@@ -26,7 +26,7 @@ function isShippedOrder(order:FulfillmentOrder){
   return ['shipped','fulfilled','delivered','processed','completed'].includes(status);
 }
 
-export function Dashboard({invoices,products,suppliers,onUpload,onProducts}:{invoices:Invoice[];products:Product[];suppliers:Supplier[];onUpload?:()=>void;onProducts?:()=>void}){
+export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrders}:{invoices:Invoice[];products:Product[];suppliers:Supplier[];onUpload?:()=>void;onProducts?:()=>void;onOrders?:()=>void}){
   const {settings,preferences,patchPreferences}=useSettings();
   const money=(value:number,maximumFractionDigits=2)=>formatAppMoney(value,settings.general.currencyCode,settings.general,{minimumFractionDigits:2,maximumFractionDigits});
   const [filter,setFilter]=useState(()=>rememberedFilter(preferences,'dashboard.period',defaultDateFilter(preferences.defaultPeriod)));
@@ -121,7 +121,7 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts}:{inv
     <div className="stats dashboardOrderStats">
       {showKpi('orders')&&<StatCard label="Pedidos" value={String(orderCount)} sub={`Amazon ${amazonOrders} · Shopify ${shopifyOrders}`} icon={<ShoppingBag/>}/>}
       {showKpi('orderValue')&&<StatCard label="Valor de pedidos" value={money(orderValue)} sub="Pedidos no cancelados · no fiscal" icon={<BadgeEuro/>}/>}
-      {showKpi('pendingOrders')&&<StatCard className={pendingOrders>0?'dashboardPendingOrders':''} label="Pendientes" value={String(pendingOrders)} sub={pendingOrders>0?'Hay pedidos por preparar / etiquetar':'Sin pedidos pendientes'} icon={<PackageCheck/>}/>}
+      {showKpi('pendingOrders')&&<StatCard className={pendingOrders>0?'dashboardPendingOrders':''} label="Pendientes" value={String(pendingOrders)} sub={pendingOrders>0?'Hay pedidos por preparar / etiquetar':'Sin pedidos pendientes'} icon={<PackageCheck/>} onClick={onOrders}/>} 
       {showKpi('shippedOrders')&&<StatCard label="Enviados" value={String(shippedOrders)} sub={selectedPeriod} icon={<Truck/>}/>}
       {showKpi('cancelledOrders')&&<StatCard label="Cancelados" value={String(cancelledOrders)} sub={selectedPeriod} icon={<XCircle/>}/>}
     </div></>}

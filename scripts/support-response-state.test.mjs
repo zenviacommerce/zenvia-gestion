@@ -13,7 +13,7 @@ test('customer workspace admins are still customer authors in support',async()=>
 test('support ticket tracks who owns the next response',async()=>{
   const migration=await read('supabase/migrations/20260927233000_support_response_state.sql');
   assert.match(migration,/last_author_role/);
-  assert.match(migration,/new\.last_author_role/);
+  assert.match(migration,/last_author_role=new\.author_role/);
   assert.match(migration,/new\.author_role='user'[\s\S]*status='waiting_user'/);
 });
 

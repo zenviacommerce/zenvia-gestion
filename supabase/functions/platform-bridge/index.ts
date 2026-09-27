@@ -409,7 +409,7 @@ Deno.serve(async(req:Request)=>{
 
     if(action==='list_tickets'){
       const [{data:tickets,error:ticketsError},{data:workspaces,error:workspacesError}]=await Promise.all([
-        admin.from('support_tickets').select('id,owner_id,ticket_number,created_by,created_by_email,created_by_name,type,subject,status,priority,assigned_to,created_at,updated_at,last_activity_at,resolved_at,closed_at').order('last_activity_at',{ascending:false}).limit(500),
+        admin.from('support_tickets').select('id,owner_id,ticket_number,created_by,created_by_email,created_by_name,type,subject,status,priority,assigned_to,created_at,updated_at,last_activity_at,last_author_role,resolved_at,closed_at').order('last_activity_at',{ascending:false}).limit(500),
         admin.from('workspaces').select('id,name,slug'),
       ]);
       if(ticketsError)throw ticketsError;if(workspacesError)throw workspacesError;

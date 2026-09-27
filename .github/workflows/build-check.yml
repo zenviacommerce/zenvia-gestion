@@ -11,6 +11,7 @@ jobs:
         with:
           node-version: 22
       - run: npm install --no-audit --no-fund --legacy-peer-deps
+      - run: node --test scripts/support-response-state.test.mjs
       - run: npm run build
       - uses: actions/upload-artifact@v4
         with:

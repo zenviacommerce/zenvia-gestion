@@ -286,7 +286,7 @@ export default function App(){
      canNavigate={next=>allowedPages.includes(next as Page)}
    />
    {error&&<div className="globalError">{error}<button onClick={refresh}>Reintentar</button></div>}
-   {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined}/>} 
+   {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders'):undefined}/>} 
    {page==='sales'&&can('sales')&&<SalesInvoices/>}
    {page==='orders'&&can('orders')&&<Orders/>}
    {page==='invoices'&&can('invoices')&&<ExpenseInvoicesHub invoices={data.invoices} suppliers={data.suppliers} categories={data.categories} onUpload={()=>setUpload(true)} onBulkUpload={()=>setBulkUpload(true)} onStatusChange={changeStatus} onOpenFile={openInvoice} onDelete={removeInvoice} onSupplierChange={changeInvoiceSupplier} onCategoryChange={changeInvoiceCategory} onImported={refresh}/>} 

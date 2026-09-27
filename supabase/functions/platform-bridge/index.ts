@@ -74,16 +74,18 @@ Deno.serve(async(req:Request)=>{
     };
 
     if(action==='bootstrap'){
-      const [workspaces,subscriptions,tickets,plans]=await Promise.all([
+      const [workspaces,subscriptions,tickets,awaitingReply,plans]=await Promise.all([
         admin.from('workspaces').select('id',{count:'exact',head:true}),
         admin.from('workspace_subscriptions').select('workspace_id',{count:'exact',head:true}).in('status',['active','trialing']),
         admin.from('support_tickets').select('id',{count:'exact',head:true}).in('status',['open','in_progress','waiting_user']),
+        admin.from('support_tickets').select('id',{count:'exact',head:true}).in('status',['open','in_progress','waiting_user']).eq('last_author_role','user'),
         admin.from('billing_plans').select('plan_key',{count:'exact',head:true}).eq('active',true),
       ]);
       return ok({stats:{
         workspaces:workspaces.count||0,
         subscriptions:subscriptions.count||0,
         openTickets:tickets.count||0,
+        ticketsAwaitingReply:awaitingReply.count||0,
         activePlans:plans.count||0,
       }});
     }
@@ -407,7 +409,7 @@ Deno.serve(async(req:Request)=>{
 
     if(action==='list_tickets'){
       const [{data:tickets,error:ticketsError},{data:workspaces,error:workspacesError}]=await Promise.all([
-        admin.from('support_tickets').select('id,owner_id,ticket_number,created_by,created_by_email,created_by_name,type,subject,status,priority,assigned_to,created_at,updated_at,last_activity_at,resolved_at,closed_at').order('last_activity_at',{ascending:false}).limit(500),
+        admin.from('support_tickets').select('id,owner_id,ticket_number,created_by,created_by_email,created_by_name,type,subject,status,priority,assigned_to,created_at,updated_at,last_activity_at,last_author_role,resolved_at,closed_at').order('last_activity_at',{ascending:false}).limit(500),
         admin.from('workspaces').select('id,name,slug'),
       ]);
       if(ticketsError)throw ticketsError;if(workspacesError)throw workspacesError;

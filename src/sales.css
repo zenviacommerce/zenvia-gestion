@@ -20,7 +20,7 @@
 .salesReceiptLineCard input,.salesReceiptLineCard select{width:100%;min-width:0;min-height:44px;border-radius:10px}
 .salesReceiptRemove{width:38px;height:42px;padding:0;display:grid;place-items:center}
 .salesReceiptModalError{margin:0 20px 12px}
-.salesReceiptList{overflow:auto}.salesReceiptRow{display:grid;grid-template-columns:34px 1.1fr 1.5fr .8fr .9fr 1.2fr 190px;gap:12px;align-items:center;padding:13px 16px;border-top:1px solid var(--border,#edf1f5);font-size:12.5px;min-width:980px}
+.salesReceiptList{overflow:auto}.salesReceiptRow{display:grid;grid-template-columns:34px 1.1fr 1.5fr .8fr .9fr 1.2fr 280px;gap:12px;align-items:center;padding:13px 16px;border-top:1px solid var(--border,#edf1f5);font-size:12.5px;min-width:980px}
 .salesReceiptRow:first-child{border-top:0}.salesReceiptHead{background:var(--surface-soft,#f8fafc);color:var(--text-secondary,#64748b);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
 .salesReceiptStatus{display:inline-flex;width:max-content;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}.salesReceiptStatus.pending{background:#fffaeb;color:#b54708}.salesReceiptStatus.partial{background:#fef3c7;color:#92400e}.salesReceiptStatus.paid{background:#ecfdf3;color:#027a48}
 .salesReceiptActions{display:flex;justify-content:flex-end;gap:6px}.salesReceiptActions .secondary{padding:7px 8px}

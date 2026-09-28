@@ -22,10 +22,15 @@
 .salesReceiptModalError{margin:0 20px 12px}
 .salesReceiptList{overflow:auto}.salesReceiptRow{display:grid;grid-template-columns:34px 1.1fr 1.5fr .8fr .9fr 1.2fr 190px;gap:12px;align-items:center;padding:13px 16px;border-top:1px solid var(--border,#edf1f5);font-size:12.5px;min-width:980px}
 .salesReceiptRow:first-child{border-top:0}.salesReceiptHead{background:var(--surface-soft,#f8fafc);color:var(--text-secondary,#64748b);font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}
-.salesReceiptStatus{display:inline-flex;width:max-content;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}.salesReceiptStatus.pending{background:#fffaeb;color:#b54708}.salesReceiptStatus.invoiced{background:#ecfdf3;color:#027a48}
+.salesReceiptStatus{display:inline-flex;width:max-content;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800}.salesReceiptStatus.pending{background:#fffaeb;color:#b54708}.salesReceiptStatus.partial{background:#fef3c7;color:#92400e}.salesReceiptStatus.paid{background:#ecfdf3;color:#027a48}
 .salesReceiptActions{display:flex;justify-content:flex-end;gap:6px}.salesReceiptActions .secondary{padding:7px 8px}
 html[data-theme='dark'] .salesReceiptNotice{background:#2b2110;border-color:#854d0e;color:#fbbf24}
-html[data-theme='dark'] .salesReceiptStatus.pending{background:#2b2110;color:#fbbf24}
-html[data-theme='dark'] .salesReceiptStatus.invoiced{background:#052e2b;color:#5eead4}
+html[data-theme='dark'] .salesReceiptStatus.pending,html[data-theme='dark'] .salesReceiptStatus.partial{background:#2b2110;color:#fbbf24}
+html[data-theme='dark'] .salesReceiptStatus.paid{background:#052e2b;color:#5eead4}
 @media(max-width:1150px){.salesReceiptLineCard{grid-template-columns:1fr 1.5fr .6fr .75fr}.salesReceiptLineCard label:nth-of-type(n+4),.salesLineTotal,.salesReceiptRemove{grid-row:2}}
 @media(max-width:760px){.salesBillingHub>.expenseHubNavShell{padding-top:14px}.salesBillingHub>.salesReceiptsPage{padding-top:14px}.salesReceiptLineCard{grid-template-columns:1fr 1fr;margin:8px;padding:11px}.salesReceiptLineCard .salesLineIdentity,.salesReceiptLineCard .salesLineDescription{grid-column:span 2}.salesReceiptLineCard label:nth-of-type(n+4),.salesLineTotal,.salesReceiptRemove{grid-row:auto}.salesReceiptActions{justify-content:flex-start}}
+
+.salesReceiptAmount{display:flex;flex-direction:column;gap:3px}.salesReceiptAmount small{font-size:10.5px;color:var(--text-secondary,#667085)}
+.salesReceiptPaymentHistory{margin:0 20px 16px;padding:12px 14px;border:1px solid var(--border,#e2e8f0);border-radius:12px;background:var(--surface-soft,#f8fafc);display:flex;flex-direction:column;gap:8px}
+.salesReceiptPaymentHistory>strong{font-size:12px}.salesReceiptPaymentHistory>div{display:flex;justify-content:space-between;gap:14px;font-size:12px;padding-top:7px;border-top:1px solid var(--border,#e2e8f0)}
+.salesReceiptActions .invoiceCollectButton{min-height:34px}

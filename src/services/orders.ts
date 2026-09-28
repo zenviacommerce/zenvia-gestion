@@ -51,12 +51,12 @@ export interface LabelResult {
 export interface LocalPrinter { id:string; name:string; default?:boolean; }
 export interface ManualOrderItem { name:string; sku?:string; quantity:number; unitPrice:number; }
 export interface ManualOrderInput {
-  integrationId:number; shippingIntegrationAccountId?:string|null; orderNumber:string; customerName:string; email?:string; phone?:string;
+  integrationId:number; shippingIntegrationAccountId?:string|null; orderNumber:string; customerName:string; companyName?:string; email?:string; phone?:string;
   address:string; houseNumber?:string; address2?:string; postalCode:string; city:string; countryCode:string;
   weightKg:number; items:ManualOrderItem[];
 }
 export interface OrderUpdateInput {
-  customerName:string; email?:string; phone?:string; address:string; houseNumber?:string;
+  customerName:string; companyName?:string; email?:string; phone?:string; address:string; houseNumber?:string;
   address2?:string; postalCode:string; city:string; stateProvince?:string; countryCode:string; weightKg:number;
 }
 

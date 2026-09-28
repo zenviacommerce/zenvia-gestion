@@ -18,12 +18,12 @@ function passkeyError(error:unknown){
   return 'No se pudo iniciar sesión con Face ID / huella.';
 }
 
-export function AuthScreen({onTenantChanged}:{onTenantChanged?:()=>void}) {
+export function AuthScreen({onTenantChanged,initialMessage=''}:{onTenantChanged?:()=>void;initialMessage?:string}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [passkeyBusy,setPasskeyBusy]=useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(initialMessage);
   const [tenantChoices,setTenantChoices]=useState<Array<Pick<TenantPublicConfig,'workspace_id'|'slug'|'name'>>>([]);
   const [selectedTenant,setSelectedTenant]=useState('');
   const canUsePasskey=passkeySupported();

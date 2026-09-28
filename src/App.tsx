@@ -23,7 +23,7 @@ import { AmazonPage } from './pages/Amazon';
 import { AdminPage } from './pages/Admin';
 import { SettingsPage } from './pages/Settings';
 import { SupportPage } from './pages/Support';
-import { activateTenant,getActiveSupabase,hasActiveTenant,supabase } from './services/supabase';
+import { activateTenant,clearActiveTenant,getActiveSupabase,hasActiveTenant,supabase } from './services/supabase';
 import { bootstrapTenantForAuthentication } from './services/tenant';
 import { loadAccessProfile, type AccessProfile, type MenuPermission } from './services/access';
 import { bootstrapUser, createInvoice, deleteProduct, deleteSupplier, getInvoiceFileUrl, loadAppData, updateInvoiceStatus } from './services/repository';
@@ -159,6 +159,7 @@ export default function App(){
        unsubscribe=()=>subscription.unsubscribe();
      }catch(e){
        if(active){
+         clearActiveTenant({forget:false});
          setSession(null);
          setAuthReady(true);
          setTenantBootError(e instanceof Error?e.message:'No se pudo preparar el acceso a tu empresa.');

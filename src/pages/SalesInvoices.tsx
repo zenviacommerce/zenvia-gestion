@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Download, FileUp, LoaderCircle, X } from 'lucide-react';
+import { Download, FileText, FileUp, LoaderCircle, ReceiptText, X } from 'lucide-react';
 import { SalesInvoices as SalesInvoicesCore } from './SalesInvoicesCore';
 import { SalesInvoiceImportModal } from '../components/SalesInvoiceImportModal';
+import { SalesReceipts } from './SalesReceipts';
 import { loadBusinessSettings, loadClients, loadSalesInvoices, type BusinessSettings, type Client, type SalesInvoice } from '../services/sales';
 import { loadCompanyBranding, type CompanyBranding } from '../services/companyBranding';
 import { exportSalesInvoices } from '../services/salesInvoiceExport';
@@ -22,6 +23,7 @@ const today=()=>new Date().toISOString().slice(0,10);
 
 export function SalesInvoices(){
   const {settings:appSettings}=useSettings();
+  const [section,setSection]=useState<'invoices'|'receipts'>('invoices');
   const [clients,setClients]=useState<Client[]>([]);
   const [invoices,setInvoices]=useState<SalesInvoice[]>([]);
   const [settings,setSettings]=useState<BusinessSettings>({legalName:'ZENVIA COMMERCE SL',countryCode:'ES'});
@@ -63,7 +65,7 @@ export function SalesInvoices(){
   useEffect(()=>{
     const frame=window.requestAnimationFrame(()=>setHeaderActionsHost(document.querySelector<HTMLElement>('.salesInvoicesTransferHost .pageHead .actions')));
     return()=>window.cancelAnimationFrame(frame);
-  },[epoch]);
+  },[epoch,section]);
 
   const clientById=useMemo(()=>new Map(clients.map(client=>[client.id,client])),[clients]);
   const clientOptions=useMemo(()=>clients.map(client=>({value:client.id,label:client.name,searchText:[client.taxId,client.email,client.city].filter(Boolean).join(' ')})),[clients]);
@@ -150,7 +152,12 @@ export function SalesInvoices(){
 
   const exportLabel=selectedInvoiceIds.length?`Exportar seleccionadas (${selectedInvoiceIds.length})`:`Exportar (${listFilteredCount})`;
 
-  return <>
+  return <div className="salesBillingHub">
+    <div className="expenseHubNavShell"><div className="expenseHubNav" role="tablist" aria-label="Facturación">
+      <button type="button" className={section==='invoices'?'active':''} onClick={()=>setSection('invoices')}><span className="expenseHubTabIcon"><FileText size={18}/></span><span className="expenseHubTabText"><strong>Facturas</strong><small>Emitidas, cobros y rectificativas</small></span></button>
+      <button type="button" className={section==='receipts'?'active':''} onClick={()=>setSection('receipts')}><span className="expenseHubTabIcon"><ReceiptText size={18}/></span><span className="expenseHubTabText"><strong>Recibos</strong><small>Pendiente de facturar</small></span></button>
+    </div></div>
+    {section==='receipts'?<SalesReceipts/>:<>
     <div className="salesInvoicesTransferHost"><SalesInvoicesCore key={epoch} selectedIds={selectedInvoiceIds} onSelectedIdsChange={setSelectedInvoiceIds} onExportSelected={ids=>void openSelectedExport(ids)} onFiltersChange={setListFilters}/></div>
     {headerActionsHost&&createPortal(<>
       <button className="secondary salesTransferHeaderAction" type="button" onClick={()=>void openExport(selectedInvoiceIds.length>0)} disabled={loading||!invoices.length}><Download size={17}/> {exportLabel}</button>
@@ -179,5 +186,6 @@ export function SalesInvoices(){
     </div>}
 
     <SalesInvoiceImportModal open={importOpen} onClose={()=>setImportOpen(false)} clients={clients} existingInvoices={invoices} onFinished={importFinished}/>
-  </>;
+    </>}
+  </div>;
 }

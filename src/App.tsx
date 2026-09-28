@@ -142,15 +142,7 @@ export default function App(){
    void (async()=>{
      try{await bootstrapTenantFromLocation()}catch{/* login will surface tenant resolution errors */}
      if(cancelled)return;
-     try{
-       const {data}=await supabase.auth.getSession();
-       if(cancelled)return;
-       setSession(data.session);
-     }catch{
-       if(!cancelled)setSession(null);
-     }finally{
-       if(!cancelled)setAuthReady(true);
-     }
+     supabase.auth.getSession().then(({data})=>{if(!cancelled){setSession(data.session);setAuthReady(true)}}).catch(()=>{setSession(null);setAuthReady(true)});
      const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{
        if(cancelled)return;
        setSession(next);setAuthReady(true);

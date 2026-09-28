@@ -28,3 +28,12 @@ test('toast system supports neutral informational messages',async()=>{
   assert.match(host,/item\.kind === 'info'/);
   assert.match(css,/\.appToast\.info/);
 });
+
+test('generating all pending labels requires the standard application confirmation dialog',async()=>{
+  const source=await read('../src/pages/Orders.tsx');
+  assert.match(source,/import \{ confirmAction \} from '\.\.\/services\/actionDialog'/);
+  assert.match(source,/title:'Generar todas las etiquetas pendientes'/);
+  assert.match(source,/confirmLabel:'Generar etiquetas'/);
+  assert.match(source,/tone:'warning'/);
+  assert.match(source,/if\(!confirmed\)return/);
+});

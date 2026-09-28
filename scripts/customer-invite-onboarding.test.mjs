@@ -36,7 +36,7 @@ test('managed user creation sends a temporary-password onboarding email and forc
   assert.match(edge,/sendWelcomeEmail/);
   assert.match(edge,/RESEND_API_KEY/);
   assert.match(edge,/temporaryPassword/);
-  assert.match(edge,/\?tenant=\$\{encodeURIComponent\(workspaceSlug\)\}/);
+  assert.match(edge,/\?tenant=\$\{encodeURIComponent\(input\.workspaceSlug\)\}/);
   assert.match(edge,/Debes cambiar esta contraseña en tu primer acceso/);
   assert.match(admin,/Contraseña temporal/);
   assert.match(admin,/Se enviará por correo/);

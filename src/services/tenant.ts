@@ -93,3 +93,36 @@ export async function resolveTenant(input:{tenant?:string|null;email?:string|nul
   if(payload?.status==='multiple')return {status:'multiple'};
   return {status:'unresolved'};
 }
+
+
+export async function resolveTenantForAuthentication(email?:string|null):Promise<TenantConnection>{
+  let rawTenant:string|null=null;
+  try{
+    const params=new URL(window.location.href).searchParams;
+    rawTenant=params.has('tenant')?params.get('tenant'):null;
+  }catch{/* no browser URL */}
+  if(rawTenant!==null){
+    const slug=tenantSlugFromUrl();
+    if(!slug)throw new Error('El enlace de acceso no es válido. Solicita una invitación nueva.');
+    const explicit=await resolveTenant({tenant:slug});
+    if(explicit.status!=='resolved')throw new Error('El enlace de acceso no es válido o la empresa todavía no está disponible.');
+    return explicit.connection;
+  }
+
+  const remembered=readRememberedTenantConnection();
+  if(remembered)return remembered;
+
+  const normalizedEmail=clean(email,254).toLowerCase();
+  if(!normalizedEmail)throw new Error('Indica tu email para localizar tu empresa.');
+  const resolved=await resolveTenant({email:normalizedEmail});
+  if(resolved.status==='resolved')return resolved.connection;
+  if(resolved.status==='multiple')throw new Error('Este email pertenece a más de una empresa. Usa el enlace de acceso de la empresa correspondiente.');
+  throw new Error('No hemos podido localizar una empresa activa para este acceso.');
+}
+
+export async function bootstrapTenantForAuthentication():Promise<TenantConnection|null>{
+  let hasTenantParam=false;
+  try{hasTenantParam=new URL(window.location.href).searchParams.has('tenant')}catch{/* no browser URL */}
+  if(hasTenantParam)return await resolveTenantForAuthentication(null);
+  return readRememberedTenantConnection();
+}

@@ -39,11 +39,12 @@ test('Gestion bridge exposes the operations Platform needs per tenant',async()=>
   }
 });
 
-test('managed users synchronize tenant identity routes server-to-server',async()=>{
+test('managed users synchronize tenant identity routes with the caller workspace on shared hosts',async()=>{
   const adminUsers=await read('supabase/functions/admin-users/index.ts');
   assert.match(adminUsers,/PLATFORM_CONTROL_PLANE_URL/);
-  assert.match(adminUsers,/PLATFORM_WORKSPACE_ID/);
   assert.match(adminUsers,/PLATFORM_BRIDGE_TOKEN/);
+  assert.match(adminUsers,/trySyncIdentityRoute\(action:'register_identity'\|'unregister_identity',workspaceId:string,email:string\)/);
+  assert.doesNotMatch(adminUsers,/const workspaceId=Deno\.env\.get\('PLATFORM_WORKSPACE_ID'\)/);
   assert.match(adminUsers,/register_identity/);
   assert.match(adminUsers,/unregister_identity/);
 });

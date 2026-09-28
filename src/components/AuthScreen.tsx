@@ -3,6 +3,7 @@ import { ZENVIA_LOGO } from '../branding';
 import { Fingerprint, LoaderCircle, LockKeyhole, ReceiptText } from 'lucide-react';
 import { resolveAndActivateTenant, supabase, type TenantPublicConfig } from '../services/supabase';
 import { emailError, normalizeEmail } from '../services/validation';
+import { SelectField } from './forms/SelectField';
 
 function passkeySupported(){
   return typeof window!=='undefined' && window.isSecureContext && 'PublicKeyCredential' in window && !!navigator.credentials;
@@ -83,7 +84,7 @@ export function AuthScreen({onTenantChanged}:{onTenantChanged?:()=>void}) {
       {canUsePasskey&&<><button type="button" className="authPasskeyButton" onClick={signInPasskey} disabled={passkeyBusy||busy}>{passkeyBusy?<LoaderCircle className="spin" size={18}/>:<Fingerprint size={20}/>} {passkeyBusy?'Verificando…':'Entrar con Face ID / huella'}</button><div className="authPasskeyDivider"><span>o con contraseña</span></div></>}
       <form onSubmit={submit} className="authForm" noValidate>
         <label>Email<input type="email" required inputMode="email" autoComplete="username" value={email} onChange={e => {setEmail(e.target.value);setTenantChoices([]);setSelectedTenant('')}} placeholder="usuario@empresa.com"/></label>
-        {tenantChoices.length>1&&<label>Selecciona tu empresa<select value={selectedTenant} onChange={e=>setSelectedTenant(e.target.value)}>{tenantChoices.map(tenant=><option key={tenant.workspace_id} value={tenant.slug}>{tenant.name}</option>)}</select></label>}
+        {tenantChoices.length>1&&<label>Selecciona tu empresa<SelectField ariaLabel="Selecciona tu empresa" value={selectedTenant} options={tenantChoices.map(tenant=>({value:tenant.slug,label:tenant.name}))} onChange={setSelectedTenant}/></label>}
         <label>Contraseña<input type="password" required minLength={8} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"/></label>
         <button className="primary authSubmit" disabled={busy||passkeyBusy}><LockKeyhole size={17}/>{busy ? 'Entrando…' : 'Entrar'}</button>
       </form>

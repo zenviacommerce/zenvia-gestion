@@ -106,11 +106,11 @@ async function trySyncIdentityRoute(action:'register_identity'|'unregister_ident
   }
 }
 
-async function sendWelcomeEmail(input:{email:string;fullName:string;temporaryPassword:string;workspaceSlug:string;workspaceName:string}){
+async function sendWelcomeEmail(input:{email:string;fullName:string;temporaryPassword:string;tenantKey:string;workspaceName:string}){
   const apiKey=(Deno.env.get('RESEND_API_KEY')||'').trim();
   if(!apiKey)return {delivered:false,reason:'RESEND_API_KEY no configurada'};
   const base=(Deno.env.get('CUSTOMER_APP_URL')||'https://gestion.zenviacommerce.com').replace(/\/$/,'');
-  const loginUrl=`${base}/?tenant=${encodeURIComponent(input.workspaceSlug)}`;
+  const loginUrl=`${base}/?tenant=${encodeURIComponent(input.tenantKey)}`;
   const from=(Deno.env.get('SUPPORT_EMAIL_FROM')||'ZENVIA Gestión <soporte@zenviacommerce.com>').trim();
   const html=`
     <div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#12203a">
@@ -161,7 +161,7 @@ Deno.serve(async (req: Request) => {
     if (!caller?.active || caller.role !== 'admin') return fail('Solo un administrador puede gestionar usuarios.', 403);
     const workspaceId = caller.workspace_id || caller.data_owner_id;
     if (!workspaceId) return fail('Workspace no configurado.', 403);
-    const { data: workspace, error: workspaceError } = await admin.from('workspaces').select('status,slug,name').eq('id', workspaceId).maybeSingle();
+    const { data: workspace, error: workspaceError } = await admin.from('workspaces').select('status,name').eq('id', workspaceId).maybeSingle();
     if (workspaceError) throw workspaceError;
     if (!workspace || !['active','trialing'].includes(workspace.status)) return fail('El acceso de tu empresa está suspendido.', 403);
 
@@ -261,7 +261,7 @@ Deno.serve(async (req: Request) => {
         email,
         fullName,
         temporaryPassword:password,
-        workspaceSlug:String(workspace.slug||''),
+        tenantKey:String(workspaceId),
         workspaceName:String(workspace.name||'tu empresa'),
       });
       await writeAudit(admin, caller, userData.user.email, 'create_user', created.user.id, email, `Creó el usuario ${email}`, {

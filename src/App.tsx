@@ -23,7 +23,7 @@ import { AmazonPage } from './pages/Amazon';
 import { AdminPage } from './pages/Admin';
 import { SettingsPage } from './pages/Settings';
 import { SupportPage } from './pages/Support';
-import { supabase } from './services/supabase';
+import { bootstrapTenantFromLocation, supabase } from './services/supabase';
 import { loadAccessProfile, type AccessProfile, type MenuPermission } from './services/access';
 import { bootstrapUser, createInvoice, deleteProduct, deleteSupplier, getInvoiceFileUrl, loadAppData, updateInvoiceStatus } from './services/repository';
 import { addSupplier, updateSupplier, type SupplierInput } from './services/supplierEditor';
@@ -60,6 +60,8 @@ export default function App(){
  const {settings,preferences,patchPreferences,loading:settingsLoading}=useSettings();
  const [session,setSession]=useState<Session|null>(null);
  const [authReady,setAuthReady]=useState(false);
+ const [authClientVersion,setAuthClientVersion]=useState(0);
+ const [tenantBootstrapError,setTenantBootstrapError]=useState('');
  const [access,setAccess]=useState<AccessProfile|null>(null);
  const [accessReady,setAccessReady]=useState(false);
  const [data,setData]=useState<AppData>(emptyData);
@@ -135,10 +137,35 @@ export default function App(){
  },[refresh]);
 
  useEffect(()=>{
-   supabase.auth.getSession().then(({data})=>{setSession(data.session);setAuthReady(true)}).catch(()=>{setSession(null);setAuthReady(true)});
-   const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{setSession(next);setAuthReady(true)});
-   return ()=>subscription.unsubscribe();
- },[]);
+   let cancelled=false;
+   let unsubscribe:undefined|(()=>void);
+   setAuthReady(false);
+   void (async()=>{
+     let resolution;
+     try{
+       resolution=await bootstrapTenantFromLocation();
+       if(!cancelled)setTenantBootstrapError('');
+     }catch(error){
+       if(!cancelled){
+         setTenantBootstrapError(error instanceof Error?error.message:'No se pudo localizar tu empresa.');
+         setSession(null);setAuthReady(true);
+       }
+       return;
+     }
+     if(cancelled)return;
+     if(resolution.status!=='resolved'){
+       setSession(null);setAuthReady(true);
+       return;
+     }
+     supabase.auth.getSession().then(({data})=>{if(!cancelled){setSession(data.session);setAuthReady(true)}}).catch(()=>{setSession(null);setAuthReady(true)});
+     const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{
+       if(cancelled)return;
+       setSession(next);setAuthReady(true);
+     });
+     unsubscribe=()=>subscription.unsubscribe();
+   })();
+   return()=>{cancelled=true;unsubscribe?.()};
+ },[authClientVersion]);
 
  useEffect(()=>{
    let cancelled=false;
@@ -167,7 +194,7 @@ export default function App(){
  },[accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading]);
 
  if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> Cargando…</div>;
- if(!session) return <><ToastHost/><AuthScreen/></>;
+ if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootstrapError} onTenantChanged={()=>{setTenantBootstrapError('');setAuthClientVersion(value=>value+1)}}/></>;
  if(session.user.user_metadata?.onboarding_pending===true) return <><ToastHost/><InvitePasswordSetup session={session} onComplete={async()=>{
    const {data}=await supabase.auth.getSession();
    setSession(data.session);

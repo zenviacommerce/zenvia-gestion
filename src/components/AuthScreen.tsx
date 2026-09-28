@@ -1,8 +1,9 @@
 import { FormEvent, useState } from 'react';
 import { ZENVIA_LOGO } from '../branding';
 import { Fingerprint, LoaderCircle, LockKeyhole, ReceiptText } from 'lucide-react';
-import { supabase } from '../services/supabase';
+import { getActiveTenant, resolveAndActivateTenant, supabase, type TenantPublicConfig } from '../services/supabase';
 import { emailError, normalizeEmail } from '../services/validation';
+import { SelectField } from './forms/SelectField';
 
 function passkeySupported(){
   return typeof window!=='undefined' && window.isSecureContext && 'PublicKeyCredential' in window && !!navigator.credentials;
@@ -17,12 +18,14 @@ function passkeyError(error:unknown){
   return 'No se pudo iniciar sesión con Face ID / huella.';
 }
 
-export function AuthScreen() {
+export function AuthScreen({onTenantChanged,initialMessage=''}:{onTenantChanged?:()=>void;initialMessage?:string}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [passkeyBusy,setPasskeyBusy]=useState(false);
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState(initialMessage);
+  const [tenantChoices,setTenantChoices]=useState<Array<Pick<TenantPublicConfig,'workspace_id'|'slug'|'name'>>>([]);
+  const [selectedTenant,setSelectedTenant]=useState('');
   const canUsePasskey=passkeySupported();
 
   const submit = async (event: FormEvent) => {
@@ -33,18 +36,52 @@ export function AuthScreen() {
     if(password.length<8){setMessage('La contraseña debe tener al menos 8 caracteres.');return;}
     setBusy(true);
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email: normalizeEmail(email), password });
+      const normalized=normalizeEmail(email);
+      const resolution=await resolveAndActivateTenant(selectedTenant?{tenant:selectedTenant}:{email:normalized});
+      if(resolution.status==='multiple'){
+        setTenantChoices(resolution.tenants);
+        if(!selectedTenant)setSelectedTenant(resolution.tenants[0]?.slug||'');
+        setMessage('Selecciona tu empresa para continuar.');
+        return;
+      }
+      if(resolution.status!=='resolved')throw new Error('No se ha encontrado una empresa activa para este usuario.');
+      const { error } = await supabase.auth.signInWithPassword({ email: normalized, password });
       if (error) throw error;
+      onTenantChanged?.();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No se pudo iniciar sesión.');
     } finally { setBusy(false); }
   };
 
   const signInPasskey=async()=>{
-    setMessage('');setPasskeyBusy(true);
+    setMessage('');
+    const activeTenant=getActiveTenant();
+    if(!email.trim()&&activeTenant){
+      setPasskeyBusy(true);
+      try{
+        const {error}=await supabase.auth.signInWithPasskey();
+        if(error)throw error;
+        onTenantChanged?.();
+      }catch(error){setMessage(passkeyError(error))}
+      finally{setPasskeyBusy(false)}
+      return;
+    }
+    const emailMessage=emailError(email,true);
+    if(emailMessage){setMessage('Indica tu email para localizar tu empresa antes de usar Face ID / huella.');return;}
+    setPasskeyBusy(true);
     try{
+      const normalized=normalizeEmail(email);
+      const resolution=await resolveAndActivateTenant(selectedTenant?{tenant:selectedTenant}:{email:normalized});
+      if(resolution.status==='multiple'){
+        setTenantChoices(resolution.tenants);
+        if(!selectedTenant)setSelectedTenant(resolution.tenants[0]?.slug||'');
+        setMessage('Selecciona tu empresa para continuar.');
+        return;
+      }
+      if(resolution.status!=='resolved')throw new Error('No se ha encontrado una empresa activa para este usuario.');
       const {error}=await supabase.auth.signInWithPasskey();
       if(error)throw error;
+      onTenantChanged?.();
     }catch(error){setMessage(passkeyError(error))}
     finally{setPasskeyBusy(false)}
   };
@@ -57,7 +94,8 @@ export function AuthScreen() {
       <p>Compras, gastos, clientes, ventas y facturación en un único espacio privado.</p>
       {canUsePasskey&&<><button type="button" className="authPasskeyButton" onClick={signInPasskey} disabled={passkeyBusy||busy}>{passkeyBusy?<LoaderCircle className="spin" size={18}/>:<Fingerprint size={20}/>} {passkeyBusy?'Verificando…':'Entrar con Face ID / huella'}</button><div className="authPasskeyDivider"><span>o con contraseña</span></div></>}
       <form onSubmit={submit} className="authForm" noValidate>
-        <label>Email<input type="email" required inputMode="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} placeholder="usuario@zenviacommerce.com"/></label>
+        <label>Email<input type="email" required inputMode="email" autoComplete="username" value={email} onChange={e => {setEmail(e.target.value);setTenantChoices([]);setSelectedTenant('')}} placeholder="usuario@empresa.com"/></label>
+        {tenantChoices.length>1&&<label>Selecciona tu empresa<SelectField ariaLabel="Selecciona tu empresa" value={selectedTenant} options={tenantChoices.map(tenant=>({value:tenant.slug,label:tenant.name}))} onChange={setSelectedTenant}/></label>}
         <label>Contraseña<input type="password" required minLength={8} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"/></label>
         <button className="primary authSubmit" disabled={busy||passkeyBusy}><LockKeyhole size={17}/>{busy ? 'Entrando…' : 'Entrar'}</button>
       </form>

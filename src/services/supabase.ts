@@ -19,6 +19,12 @@ export function hasActiveTenant(){
   return Boolean(activeConnection&&activeClient);
 }
 
+export const TENANT_CHANGED_EVENT='zenvia:tenant-changed';
+
+function notifyTenantChanged(){
+  try{window.dispatchEvent(new CustomEvent(TENANT_CHANGED_EVENT))}catch{/* non-browser */}
+}
+
 export function setActiveTenant(connection:TenantConnection,{remember=true}:{remember?:boolean}={}){
   const normalized=normalizeTenantConnection(connection);
   if(!normalized)throw new Error('La configuración de empresa no es válida.');
@@ -31,14 +37,28 @@ export function setActiveTenant(connection:TenantConnection,{remember=true}:{rem
     activeClient=getTenantSupabase(normalized);
   }
   if(remember)rememberTenantConnection(normalized);
+  if(!same)notifyTenantChanged();
   return activeClient!;
 }
 
 export function clearActiveTenant({forget=false}:{forget?:boolean}={}){
+  const hadTenant=Boolean(activeClient||activeConnection);
   try{activeClient?.auth.stopAutoRefresh()}catch{/* best effort */}
   activeConnection=null;
   activeClient=null;
   if(forget)clearRememberedTenantConnection();
+  if(hadTenant)notifyTenantChanged();
+}
+
+export async function activateTenant(connection:TenantConnection,{remember=true}:{remember?:boolean}={}){
+  const normalized=normalizeTenantConnection(connection);
+  if(!normalized)throw new Error('La configuración de empresa no es válida.');
+  const changing=Boolean(activeClient&&activeConnection?.workspaceId!==normalized.workspaceId);
+  if(changing){
+    const previous=activeClient!;
+    try{await previous.auth.signOut({scope:'local'})}catch{/* local cleanup is best effort */}
+  }
+  return setActiveTenant(normalized,{remember});
 }
 
 export function getActiveSupabase():SupabaseClient{

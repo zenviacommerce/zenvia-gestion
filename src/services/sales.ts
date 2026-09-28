@@ -149,7 +149,7 @@ function clientRow(input:ClientInput){
 
 export async function addClient(input:ClientInput){const {data,error}=await supabase.from('clients').insert(clientRow(input)).select('id').single();if(error)throw error;return data.id as string;}
 export async function updateClient(id:string,input:ClientInput){const {error}=await supabase.from('clients').update(clientRow(input)).eq('id',id);if(error)throw error;}
-export async function deleteClient(id:string){const {error}=await supabase.from('clients').delete().eq('id',id);if(error){if(error.code==='23503')throw new Error('Este cliente tiene facturas asociadas y no se puede eliminar. Puedes dejarlo registrado y reutilizarlo.');throw error;}}
+export async function deleteClient(id:string){const {error}=await supabase.from('clients').delete().eq('id',id);if(error){if(error.code==='23503')throw new Error('Este cliente tiene facturas o recibos asociados y no se puede eliminar. Puedes dejarlo registrado y reutilizarlo.');throw error;}}
 export async function deleteClientIfUnused(id:string){const {count,error}=await supabase.from('sales_invoices').select('id',{count:'exact',head:true}).eq('client_id',id);if(error)throw error;if((count||0)>0)return false;const {error:deleteError}=await supabase.from('clients').delete().eq('id',id);if(deleteError){if(deleteError.code==='23503')return false;throw deleteError;}return true;}
 
 export async function loadBusinessSettings():Promise<BusinessSettings>{

@@ -87,7 +87,7 @@ function isTransientDataApiError(error:unknown){
     ||/schema cache|database client error|connection.*closed|failed to fetch|network|timeout|timed out/.test(message);
 }
 
-async function withDataApiRetry<T extends {error:unknown}>(work:()=>Promise<T>,attempts=15):Promise<T>{
+async function withDataApiRetry<T extends {error:unknown}>(work:()=>PromiseLike<T>,attempts=15):Promise<T>{
   let result=await work();
   for(let attempt=1;attempt<attempts&&result.error&&isTransientDataApiError(result.error);attempt++){
     await sleep(Math.min(5000,1000+(attempt-1)*500));

@@ -13,3 +13,22 @@ test('Gestion exposes Platform access only through the server-to-server bridge',
   assert.match(notify,/x-platform-token/);
   assert.match(notify,/platform_bridge_secrets/);
 });
+
+
+test('Platform bridge supports workspace password recovery and complete tenant cleanup',async()=>{
+  const bridge=await read('supabase/functions/platform-bridge/index.ts');
+  assert.match(bridge,/action==='reset_workspace_user_password'/);
+  assert.match(bridge,/resetPasswordForEmail\(email,\{redirectTo:customerAppUrl\}\)/);
+  assert.match(bridge,/action==='delete_workspace_full'/);
+  assert.match(bridge,/purgeWorkspaceStorage/);
+  assert.match(bridge,/admin\.auth\.admin\.deleteUser/);
+  assert.match(bridge,/from\('workspaces'\)\.delete\(\)/);
+});
+
+test('dedicated schemas provision the company branding bucket',async()=>{
+  const migration=await read('supabase/migrations/20260928211500_company_assets_bucket.sql');
+  assert.match(migration,/company-assets/);
+  assert.match(migration,/5\*1024\*1024/);
+  assert.match(migration,/company_assets_select/);
+  assert.match(migration,/company_assets_insert/);
+});

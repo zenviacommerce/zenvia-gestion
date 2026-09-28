@@ -47,6 +47,53 @@ async function sha256(value:string){
   return [...new Uint8Array(digest)].map(v=>v.toString(16).padStart(2,'0')).join('');
 }
 
+async function storageFilesBelow(admin:any,bucketId:string,prefix:string){
+  const files:string[]=[];
+  const walk=async(folder:string)=>{
+    let offset=0;
+    for(;;){
+      const {data,error}=await admin.storage.from(bucketId).list(folder,{limit:100,offset,sortBy:{column:'name',order:'asc'}});
+      if(error){
+        if(/not found|does not exist/i.test(String(error.message||'')))return;
+        throw error;
+      }
+      const rows=Array.isArray(data)?data:[];
+      for(const item of rows){
+        const path=folder?`${folder}/${item.name}`:String(item.name||'');
+        if(!path)continue;
+        if(item.id||item.metadata)files.push(path);
+        else await walk(path);
+      }
+      if(rows.length<100)break;
+      offset+=rows.length;
+    }
+  };
+  await walk(prefix);
+  return files;
+}
+
+async function purgeWorkspaceStorage(admin:any,roots:string[]){
+  const {data:buckets,error}=await admin.storage.listBuckets();
+  if(error)throw error;
+  let removed=0;
+  for(const bucket of buckets||[]){
+    const bucketId=String(bucket.id||bucket.name||'');
+    if(!bucketId)continue;
+    const paths:string[]=[];
+    for(const root of roots){
+      paths.push(...await storageFilesBelow(admin,bucketId,root));
+    }
+    for(let index=0;index<paths.length;index+=100){
+      const batch=paths.slice(index,index+100);
+      if(!batch.length)continue;
+      const {error:removeError}=await admin.storage.from(bucketId).remove(batch);
+      if(removeError)throw removeError;
+      removed+=batch.length;
+    }
+  }
+  return removed;
+}
+
 Deno.serve(async(req:Request)=>{
   if(req.method!=='POST')return fail('Método no permitido.',405);
   try{
@@ -369,6 +416,43 @@ Deno.serve(async(req:Request)=>{
       if(error)throw error;
       await admin.auth.admin.deleteUser(userId);
       return ok({ok:true});
+    }
+
+    if(action==='reset_workspace_user_password'){
+      const workspaceId=asText(body?.workspaceId,80),userId=asText(body?.userId,80);
+      if(!workspaceId||!userId)return fail('Falta el usuario.');
+      const {data:target,error:targetError}=await admin.from('app_users')
+        .select('user_id,email,active').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
+      if(targetError)throw targetError;if(!target)return fail('Usuario no encontrado.',404);
+      const email=asText(target.email,254).toLowerCase();
+      if(!email)return fail('El usuario no tiene un email válido.');
+      const {error}=await admin.auth.resetPasswordForEmail(email,{redirectTo:customerAppUrl});
+      if(error)throw error;
+      return ok({ok:true,email});
+    }
+
+    if(action==='delete_workspace_full'){
+      const workspaceId=asText(body?.workspaceId,80);
+      if(!workspaceId)return fail('Falta el cliente.');
+      const {data:workspace,error:workspaceError}=await admin.from('workspaces').select('id,name').eq('id',workspaceId).maybeSingle();
+      if(workspaceError)throw workspaceError;
+      if(!workspace)return ok({ok:true,alreadyDeleted:true,usersDeleted:0,storageObjectsDeleted:0});
+
+      const {data:users,error:usersError}=await admin.from('app_users').select('user_id').eq('workspace_id',workspaceId);
+      if(usersError)throw usersError;
+      const userIds=(users||[]).map((row:any)=>String(row.user_id||'')).filter(Boolean);
+      const storageObjectsDeleted=await purgeWorkspaceStorage(admin,[workspaceId,...userIds]);
+
+      let usersDeleted=0;
+      for(const userId of userIds){
+        const {error}=await admin.auth.admin.deleteUser(userId);
+        if(error&&!/not found|does not exist/i.test(String(error.message||'')))throw error;
+        usersDeleted+=1;
+      }
+
+      const {error:deleteError}=await admin.from('workspaces').delete().eq('id',workspaceId);
+      if(deleteError)throw deleteError;
+      return ok({ok:true,name:workspace.name,usersDeleted,storageObjectsDeleted});
     }
 
     if(action==='create_workspace'){

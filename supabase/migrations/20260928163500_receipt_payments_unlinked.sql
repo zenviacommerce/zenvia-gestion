@@ -21,6 +21,37 @@ create table if not exists public.sales_receipt_payments (
 create index if not exists sales_receipt_payments_receipt_idx
   on public.sales_receipt_payments(receipt_id,payment_date);
 
+
+
+create or replace function private.guard_sales_receipt_payment()
+returns trigger
+language plpgsql
+set search_path=''
+as $
+declare
+  v_total numeric;
+  v_paid numeric;
+begin
+  select total_amount into v_total from public.sales_receipts where id=new.receipt_id;
+  if v_total is null then raise exception 'Recibo no encontrado.'; end if;
+
+  select coalesce(sum(amount),0) into v_paid
+  from public.sales_receipt_payments
+  where receipt_id=new.receipt_id
+    and (tg_op='INSERT' or id<>new.id);
+
+  if v_paid+new.amount > v_total+0.005 then
+    raise exception 'El cobro no puede superar el importe pendiente del recibo.';
+  end if;
+  return new;
+end;
+$;
+
+drop trigger if exists sales_receipt_payments_guard on public.sales_receipt_payments;
+create trigger sales_receipt_payments_guard
+before insert or update on public.sales_receipt_payments
+for each row execute function private.guard_sales_receipt_payment();
+
 alter table public.sales_receipt_payments enable row level security;
 revoke all on public.sales_receipt_payments from anon;
 grant select,insert,update,delete on public.sales_receipt_payments to authenticated;
@@ -29,5 +60,7 @@ drop policy if exists sales_receipt_payments_workspace_all on public.sales_recei
 create policy sales_receipt_payments_workspace_all on public.sales_receipt_payments for all to authenticated
 using (owner_id=(select private.app_workspace_owner_id()) and (select private.app_has_permission('sales')))
 with check (owner_id=(select private.app_workspace_owner_id()) and (select private.app_has_permission('sales')));
+
+revoke all on function private.guard_sales_receipt_payment() from public,anon,authenticated;
 
 notify pgrst,'reload schema';

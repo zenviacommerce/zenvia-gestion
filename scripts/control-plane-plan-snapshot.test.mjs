@@ -31,3 +31,21 @@ test('workspace context keeps its existing public return signature',async()=>{
     assert.ok(sql.includes(field),'Missing context field '+field);
   }
 });
+
+test('Platform bridge applies plan snapshots idempotently',async()=>{
+  const bridge=await read('supabase/functions/platform-bridge/index.ts');
+  assert.match(bridge,/action==='apply_plan_snapshot'/);
+  assert.match(bridge,/from\('app_subscription_state'\)/);
+  assert.match(bridge,/planVersion/);
+  assert.match(bridge,/existing\.plan_version>planVersion/);
+  assert.match(bridge,/existing\.plan_version===planVersion/);
+  assert.match(bridge,/appliedVersion/);
+  assert.match(bridge,/onConflict:'workspace_id'/);
+});
+
+test('Platform bridge usage limits prefer the local plan snapshot',async()=>{
+  const bridge=await read('supabase/functions/platform-bridge/index.ts');
+  assert.match(bridge,/subscriptionSnapshots/);
+  assert.match(bridge,/snapshotLimitFor/);
+  assert.match(bridge,/loadWorkspaceEntitlement/);
+});

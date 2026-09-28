@@ -57,3 +57,12 @@ test('invalid explicit tenant detaches the previous active data plane without fo
   assert.match(authBoot,/clearActiveTenant\(\{forget:false\}\)/);
   assert.match(authBoot,/setTenantBootError/);
 });
+
+
+test('an explicit tenant URL prevents eager restoration of a remembered tenant client',async()=>{
+  const [tenant,supabase]=await Promise.all([
+    read('src/services/tenant.ts'),read('src/services/supabase.ts'),
+  ]);
+  assert.match(tenant,/export function hasExplicitTenantParameter/);
+  assert.match(supabase,/hasExplicitTenantParameter\(\)\?null:readRememberedTenantConnection\(\)/);
+});

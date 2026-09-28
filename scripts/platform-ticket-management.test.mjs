@@ -19,4 +19,5 @@ test('Platform bridge deletes tickets and cleans attachment storage',async()=>{
   assert.match(source,/from\('support_attachments'\)\.select\('storage_path'\)/);
   assert.match(source,/from\('support_tickets'\)\.delete\(\)/);
   assert.match(source,/storage\.from\('support-attachments'\)\.remove\(paths\)/);
+  assert.match(source,/alreadyDeleted:true/);
 });

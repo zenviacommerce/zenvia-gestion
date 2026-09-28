@@ -583,7 +583,7 @@ Deno.serve(async(req:Request)=>{
         admin.from('support_attachments').select('storage_path').eq('ticket_id',ticketId),
       ]);
       if(ticketError)throw ticketError;if(attachmentsError)throw attachmentsError;
-      if(!ticket)return fail('Ticket no encontrado.',404);
+      if(!ticket)return ok({ok:true,alreadyDeleted:true,storageCleanup:true});
       const {error:deleteError}=await admin.from('support_tickets').delete().eq('id',ticketId);
       if(deleteError)throw deleteError;
       const paths=(attachments||[]).map((row:any)=>String(row.storage_path||'')).filter(Boolean);

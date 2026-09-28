@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { supabase } from '../services/supabase';
+import { getActiveSupabase,hasActiveTenant,TENANT_CHANGED_EVENT } from '../services/supabase';
 import { safeStorageGet } from '../services/browserStorage';
 import {
   loadAppSettings,
@@ -64,11 +64,20 @@ export function SettingsProvider({children,userId}:{children:ReactNode;userId?:s
   useEffect(()=>{
     if(userId!==undefined)return;
     let active=true;
-    supabase.auth.getSession()
-      .then(({data})=>{if(active)setAuthUserId(data.session?.user.id||null);})
-      .catch(()=>{if(active)setAuthUserId(null);});
-    const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{if(active)setAuthUserId(session?.user.id||null);});
-    return()=>{active=false;subscription.unsubscribe();};
+    let unsubscribe:(()=>void)|null=null;
+    const bind=()=>{
+      unsubscribe?.();unsubscribe=null;
+      if(!hasActiveTenant()){if(active)setAuthUserId(null);return}
+      const client=getActiveSupabase();
+      client.auth.getSession()
+        .then(({data})=>{if(active)setAuthUserId(data.session?.user.id||null);})
+        .catch(()=>{if(active)setAuthUserId(null);});
+      const {data:{subscription}}=client.auth.onAuthStateChange((_event,session)=>{if(active)setAuthUserId(session?.user.id||null);});
+      unsubscribe=()=>subscription.unsubscribe();
+    };
+    bind();
+    window.addEventListener(TENANT_CHANGED_EVENT,bind);
+    return()=>{active=false;unsubscribe?.();window.removeEventListener(TENANT_CHANGED_EVENT,bind);};
   },[userId]);
 
   const refresh=useCallback(async()=>{

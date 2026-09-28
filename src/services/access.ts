@@ -1,3 +1,4 @@
+import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { emailError, nameError, normalizeEmail } from './validation';
 
@@ -175,7 +176,18 @@ export async function loadAccessProfile(userId: string): Promise<AccessProfile |
 
 async function invokeAdmin<T>(body: Record<string, unknown>): Promise<T> {
   const { data, error } = await supabase.functions.invoke('admin-users', { body });
-  if (error) throw new Error(error.message || 'No se pudo completar la operación administrativa.');
+  if (error) {
+    if (error instanceof FunctionsHttpError) {
+      try {
+        const payload = await error.context.clone().json();
+        const message = String(payload?.error || payload?.message || '').trim();
+        if (message) throw new Error(message);
+      } catch (parsed) {
+        if (parsed instanceof Error && parsed.message && parsed.message !== error.message) throw parsed;
+      }
+    }
+    throw new Error(error.message || 'No se pudo completar la operación administrativa.');
+  }
   if (data?.error) throw new Error(String(data.error));
   return data as T;
 }

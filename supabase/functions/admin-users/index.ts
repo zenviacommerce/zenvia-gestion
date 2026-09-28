@@ -106,11 +106,11 @@ async function trySyncIdentityRoute(action:'register_identity'|'unregister_ident
   }
 }
 
-async function sendWelcomeEmail(input:{email:string;fullName:string;temporaryPassword:string;workspaceSlug:string;workspaceName:string}){
+async function sendWelcomeEmail(input:{email:string;fullName:string;temporaryPassword:string;tenantKey:string;workspaceName:string}){
   const apiKey=(Deno.env.get('RESEND_API_KEY')||'').trim();
   if(!apiKey)return {delivered:false,reason:'RESEND_API_KEY no configurada'};
   const base=(Deno.env.get('CUSTOMER_APP_URL')||'https://gestion.zenviacommerce.com').replace(/\/$/,'');
-  const loginUrl=`${base}/?tenant=${encodeURIComponent(input.workspaceSlug)}`;
+  const loginUrl=`${base}/?tenant=${encodeURIComponent(input.tenantKey)}`;
   const from=(Deno.env.get('SUPPORT_EMAIL_FROM')||'ZENVIA Gestión <soporte@zenviacommerce.com>').trim();
   const html=`
     <div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#12203a">
@@ -161,7 +161,7 @@ Deno.serve(async (req: Request) => {
     if (!caller?.active || caller.role !== 'admin') return fail('Solo un administrador puede gestionar usuarios.', 403);
     const workspaceId = caller.workspace_id || caller.data_owner_id;
     if (!workspaceId) return fail('Workspace no configurado.', 403);
-    const { data: workspace, error: workspaceError } = await admin.from('workspaces').select('status,slug,name').eq('id', workspaceId).maybeSingle();
+    const { data: workspace, error: workspaceError } = await admin.from('workspaces').select('status,name').eq('id', workspaceId).maybeSingle();
     if (workspaceError) throw workspaceError;
     if (!workspace || !['active','trialing'].includes(workspace.status)) return fail('El acceso de tu empresa está suspendido.', 403);
 
@@ -219,6 +219,14 @@ Deno.serve(async (req: Request) => {
       if (password.length < 8) return fail('La contraseña debe tener al menos 8 caracteres.');
       if (role === 'user' && !permissions.length) return fail('Selecciona al menos un permiso.');
 
+      const { data: existingProfiles, error: existingProfileError } = await admin
+        .from('app_users')
+        .select('user_id')
+        .ilike('email', email)
+        .limit(1);
+      if (existingProfileError) throw existingProfileError;
+      if ((existingProfiles || []).length) return fail('Ya existe un usuario con ese correo electrónico.', 409);
+
       const { data: created, error: createError } = await admin.auth.admin.createUser({
         email,
         password,
@@ -226,7 +234,13 @@ Deno.serve(async (req: Request) => {
         user_metadata: { full_name: fullName, onboarding_pending: true },
         app_metadata: { zenvia_managed: true },
       });
-      if (createError || !created.user) return fail(createError?.message || 'No se pudo crear el usuario.');
+      if (createError || !created.user) {
+        const message = String(createError?.message || '');
+        if (/already|registered|exists|duplicate/i.test(message)) {
+          return fail('Ya existe un usuario con ese correo electrónico.', 409);
+        }
+        return fail(message || 'No se pudo crear el usuario.');
+      }
 
       const { error: profileError } = await admin.from('app_users').insert({
         user_id: created.user.id,
@@ -247,7 +261,7 @@ Deno.serve(async (req: Request) => {
         email,
         fullName,
         temporaryPassword:password,
-        workspaceSlug:String(workspace.slug||''),
+        tenantKey:String(workspaceId),
         workspaceName:String(workspace.name||'tu empresa'),
       });
       await writeAudit(admin, caller, userData.user.email, 'create_user', created.user.id, email, `Creó el usuario ${email}`, {

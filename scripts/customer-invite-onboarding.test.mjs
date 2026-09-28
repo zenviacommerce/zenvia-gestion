@@ -36,7 +36,8 @@ test('managed user creation sends a temporary-password onboarding email and forc
   assert.match(edge,/sendWelcomeEmail/);
   assert.match(edge,/RESEND_API_KEY/);
   assert.match(edge,/temporaryPassword/);
-  assert.match(edge,/\?tenant=\$\{encodeURIComponent\(input\.workspaceSlug\)\}/);
+  assert.match(edge,/\?tenant=\$\{encodeURIComponent\(input\.tenantKey\)\}/);
+  assert.match(edge,/tenantKey:String\(workspaceId\)/);
   assert.match(edge,/Debes cambiar esta contraseña en tu primer acceso/);
   assert.match(admin,/Contraseña temporal/);
   assert.match(admin,/Se enviará por correo/);
@@ -56,4 +57,17 @@ test('customer bridge exposes a lightweight active-user identity lookup for rout
   assert.match(bridge,/app_users/);
   assert.match(bridge,/active',true/);
   assert.match(bridge,/exists:Boolean/);
+});
+
+
+test('managed user creation reports duplicate emails instead of a generic Edge Function failure',async()=>{
+  const [edge,access]=await Promise.all([
+    read('supabase/functions/admin-users/index.ts'),
+    read('src/services/access.ts'),
+  ]);
+  assert.match(edge,/Ya existe un usuario con ese correo electrónico/);
+  assert.match(edge,/\.ilike\('email', email\)/);
+  assert.match(edge,/already\|registered\|exists\|duplicate/);
+  assert.match(access,/FunctionsHttpError/);
+  assert.match(access,/payload\?\.error\s*\|\|\s*payload\?\.message/);
 });

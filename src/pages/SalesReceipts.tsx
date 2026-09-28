@@ -23,6 +23,7 @@ import { downloadSalesReceiptPdf, printSalesReceiptPdf } from '../services/sales
 import { confirmAction, openActionProcess } from '../services/actionDialog';
 import { errorMessage, showError, showSuccess } from '../services/toast';
 import { formatAppDate } from '../services/formatting';
+import '../sales.css';
 
 const today=()=>new Date().toISOString().slice(0,10);
 const money=(value:number)=>value.toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';

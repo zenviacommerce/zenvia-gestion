@@ -205,14 +205,14 @@ function ManualOrderModal({status,saving,defaultCountryCode,fallbackWeightKg,wei
   </section></div>;
 }
 
-export function Orders(){
+export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const {settings,preferences,patchPreferences,updateSection}=useSettings();
   const remembered=rememberedFilter<{
     query:string;state:OrderFilter;trackingFilter:TrackingFilter;countryFilter:string;carrierFilter:string;dateFilter:ReturnType<typeof defaultDateFilter>;
   }>(preferences,'orders.filters',{query:'',state:'pending',trackingFilter:'all',countryFilter:'all',carrierFilter:'all',dateFilter:defaultDateFilter(preferences.defaultPeriod)});
   const [orders,setOrders]=useState<FulfillmentOrder[]>([]),[status,setStatus]=useState<SendcloudStatus|null>(null);
   const [loading,setLoading]=useState(true),[syncing,setSyncing]=useState(false),[error,setError]=useState('');
-  const [query,setQuery]=useState(remembered.query),[channel,setChannel]=useState<'all'|OrderChannel>('all'),[state,setState]=useState<OrderFilter>(remembered.state),[trackingFilter,setTrackingFilter]=useState<TrackingFilter>(remembered.trackingFilter),[countryFilter,setCountryFilter]=useState(remembered.countryFilter),[carrierFilter,setCarrierFilter]=useState(remembered.carrierFilter);
+  const [query,setQuery]=useState(pendingOnly?'':remembered.query),[channel,setChannel]=useState<'all'|OrderChannel>('all'),[state,setState]=useState<OrderFilter>(pendingOnly?'pending':remembered.state),[trackingFilter,setTrackingFilter]=useState<TrackingFilter>(pendingOnly?'all':remembered.trackingFilter),[countryFilter,setCountryFilter]=useState(pendingOnly?'all':remembered.countryFilter),[carrierFilter,setCarrierFilter]=useState(pendingOnly?'all':remembered.carrierFilter);
   const [selected,setSelected]=useState<FulfillmentOrder|null>(null),[labelOrder,setLabelOrder]=useState<FulfillmentOrder|null>(null),[options,setOptions]=useState<ShippingOption[]>([]),[optionsLoading,setOptionsLoading]=useState(false),[busyOrder,setBusyOrder]=useState<string|null>(null);
   const [printers,setPrinters]=useState<LocalPrinter[]>([]),[printer,setPrinter]=useState(preferences.labelPrinterId||''),[printerChecking,setPrinterChecking]=useState(false);
   const [dateFilter,setDateFilter]=useState(remembered.dateFilter);

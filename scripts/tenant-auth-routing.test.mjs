@@ -49,3 +49,11 @@ test('customer invitations preserve tenant slug in the redirect',async()=>{
   assert.match(bridge,/workspaceSlug/);
   assert.match(bridge,/inviteUserByEmail/);
 });
+
+
+test('invalid explicit tenant detaches the previous active data plane without forgetting the remembered choice',async()=>{
+  const app=await read('src/App.tsx');
+  const authBoot=app.slice(app.indexOf('bootstrapTenantForAuthentication'),app.indexOf('},[tenantRevision])'));
+  assert.match(authBoot,/clearActiveTenant\(\{forget:false\}\)/);
+  assert.match(authBoot,/setTenantBootError/);
+});

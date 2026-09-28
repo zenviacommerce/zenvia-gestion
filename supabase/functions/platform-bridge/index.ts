@@ -97,12 +97,13 @@ Deno.serve(async(req:Request)=>{
 
       const {data:workspace,error:workspaceError}=await admin.from('workspaces').select('id').eq('id',workspaceId).maybeSingle();
       if(workspaceError)throw workspaceError;if(!workspace)return fail('Cliente no encontrado.',404);
-      const {data:existing,error:existingError}=await admin.from('app_subscription_state').select('plan_version').eq('workspace_id',workspaceId).maybeSingle();
+      const {data:existing,error:existingError}=await admin.from('app_subscription_state').select('plan_key,plan_version').eq('workspace_id',workspaceId).maybeSingle();
       if(existingError)throw existingError;
-      if(existing&&Number(existing.plan_version)>planVersion){
+      const samePlan=existing&&String(existing.plan_key||'')===planKey;
+      if(samePlan&&Number(existing.plan_version)>planVersion){
         return ok({ok:true,appliedVersion:Number(existing.plan_version),ignored:true,reason:'older_version'});
       }
-      if(existing&&Number(existing.plan_version)===planVersion){
+      if(samePlan&&Number(existing.plan_version)===planVersion){
         return ok({ok:true,appliedVersion:planVersion,replayed:true});
       }
 

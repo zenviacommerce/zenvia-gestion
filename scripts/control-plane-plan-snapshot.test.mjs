@@ -38,7 +38,8 @@ test('Platform bridge applies plan snapshots idempotently',async()=>{
   assert.match(bridge,/from\('app_subscription_state'\)/);
   assert.match(bridge,/planVersion/);
   assert.match(bridge,/Number\(existing\.plan_version\)>planVersion/);
-  assert.match(bridge,/Number\(existing\.plan_version\)===planVersion/);
+  assert.match(bridge,/const samePlan=existing&&String\(existing\.plan_key\|\|''\)===planKey/);
+  assert.match(bridge,/samePlan&&Number\(existing\.plan_version\)===planVersion/);
   assert.match(bridge,/appliedVersion/);
   assert.match(bridge,/onConflict:'workspace_id'/);
 });

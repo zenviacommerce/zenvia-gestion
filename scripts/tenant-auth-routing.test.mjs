@@ -57,3 +57,14 @@ test('invitation and passkey setup continue using the live tenant Supabase bindi
   assert.match(invite,/supabase\.auth\.updateUser/);
   assert.match(passkey,/supabase\.auth\.registerPasskey/);
 });
+
+test('managed user lifecycle syncs tenant identity routes server-to-server',async()=>{
+  const source=await read('supabase/functions/admin-users/index.ts');
+  assert.match(source,/syncIdentityRoute/);
+  assert.match(source,/PLATFORM_CONTROL_PLANE_URL/);
+  assert.match(source,/PLATFORM_WORKSPACE_ID/);
+  assert.match(source,/PLATFORM_BRIDGE_TOKEN/);
+  assert.match(source,/register_identity/);
+  assert.match(source,/unregister_identity/);
+  assert.match(source,/previous_email/);
+});

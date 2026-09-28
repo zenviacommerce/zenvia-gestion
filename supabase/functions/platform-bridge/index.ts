@@ -70,6 +70,21 @@ Deno.serve(async(req:Request)=>{
       name:asText(body?.actor?.name,150)||asText(body?.actor?.email,254)||'ZENVIA Platform',
     };
 
+    if(action==='resolve_identity'){
+      const workspaceId=asText(body?.workspaceId,80);
+      const email=asText(body?.email,254).toLowerCase();
+      if(!workspaceId||!email)return fail('Consulta de identidad no válida.');
+      const {data:user,error}=await admin.from('app_users')
+        .select('user_id')
+        .eq('workspace_id',workspaceId)
+        .eq('active',true)
+        .ilike('email',email)
+        .limit(1)
+        .maybeSingle();
+      if(error)throw error;
+      return ok({exists:Boolean(user)});
+    }
+
     if(action==='apply_plan_snapshot'){
       const workspaceId=asText(body?.workspaceId,80);
       const planKey=asText(body?.planKey,80);

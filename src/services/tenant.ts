@@ -61,6 +61,11 @@ export function clearRememberedTenantConnection(){
   try{window.localStorage.removeItem(TENANT_STORAGE_KEY)}catch{/* best effort */}
 }
 
+export function hasExplicitTenantParameter(){
+  try{return new URL(window.location.href).searchParams.has('tenant')}
+  catch{return false}
+}
+
 export function tenantSlugFromUrl(){
   try{
     const value=new URL(window.location.href).searchParams.get('tenant');
@@ -121,8 +126,6 @@ export async function resolveTenantForAuthentication(email?:string|null):Promise
 }
 
 export async function bootstrapTenantForAuthentication():Promise<TenantConnection|null>{
-  let hasTenantParam=false;
-  try{hasTenantParam=new URL(window.location.href).searchParams.has('tenant')}catch{/* no browser URL */}
-  if(hasTenantParam)return await resolveTenantForAuthentication(null);
+  if(hasExplicitTenantParameter())return await resolveTenantForAuthentication(null);
   return readRememberedTenantConnection();
 }

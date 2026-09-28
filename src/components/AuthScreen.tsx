@@ -3,7 +3,7 @@ import type { Session } from '@supabase/supabase-js';
 import { ZENVIA_LOGO } from '../branding';
 import { Fingerprint, LoaderCircle, LockKeyhole, ReceiptText } from 'lucide-react';
 import {
-  activateTenant,clearActiveTenant,getActiveSupabase,getActiveTenantConnection,
+  activateTenant,deactivateTenant,getActiveSupabase,getActiveTenantConnection,
 } from '../services/supabase';
 import { resolveTenantForAuthentication } from '../services/tenant';
 import { emailError, normalizeEmail } from '../services/validation';
@@ -79,8 +79,8 @@ export function AuthScreen({
     finally{setPasskeyBusy(false)}
   };
 
-  const changeCompany=()=>{
-    clearActiveTenant({forget:true});
+  const changeCompany=async()=>{
+    await deactivateTenant({forget:true});
     setTenantLabel('');
     setMessage('Indica tu email para localizar la empresa correcta.');
     onTenantChanged?.();

@@ -9,12 +9,10 @@ async function transpiled(path){
   return import(`data:text/javascript;base64,${Buffer.from(output).toString('base64')}`);
 }
 
-test('theme resolution supports system and safe fallback behavior',async()=>{
+test('theme resolution uses explicit light or dark preference',async()=>{
   const {resolveThemePreference}=await transpiled('../src/services/uiPreferences.ts');
-  assert.equal(resolveThemePreference('dark',false),'dark');
-  assert.equal(resolveThemePreference('light',true),'light');
-  assert.equal(resolveThemePreference('system',true),'dark');
-  assert.equal(resolveThemePreference('system',false),'light');
+  assert.equal(resolveThemePreference('dark'),'dark');
+  assert.equal(resolveThemePreference('light'),'light');
 });
 
 test('default date filter accepts the configured initial period',async()=>{
@@ -45,7 +43,7 @@ test('Mis preferencias exposes only controls that persist through updatePreferen
 test('application resolves theme and start page from effective preferences',async()=>{
   const source=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
   assert.match(source,/useSettings/);
-  assert.match(source,/resolveThemePreference/);
+  assert.match(source,/setTheme\(preferences\.theme\)/);
   assert.match(source,/preferences\.startPage/);
   assert.match(source,/settings\.general\.startPage/);
 });
@@ -54,7 +52,7 @@ test('application resolves theme and start page from effective preferences',asyn
 test('visible table columns honor saved order and ignore unknown keys',async()=>{
   const {orderedTableColumns}=await transpiled('../src/services/uiPreferences.ts');
   const preferences={
-    theme:'system',density:'comfortable',pageSize:20,startPage:null,defaultPeriod:'current_quarter',
+    theme:'light',density:'comfortable',pageSize:20,startPage:null,defaultPeriod:'current_quarter',
     rememberFilters:true,
     tableColumns:{clients:['client','country','pending']},
     tableColumnOrder:{clients:['pending','unknown','client']},

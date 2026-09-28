@@ -23,7 +23,8 @@ import { AmazonPage } from './pages/Amazon';
 import { AdminPage } from './pages/Admin';
 import { SettingsPage } from './pages/Settings';
 import { SupportPage } from './pages/Support';
-import { supabase } from './services/supabase';
+import { getActiveSupabase,hasActiveTenant,setActiveTenant,supabase } from './services/supabase';
+import { bootstrapTenantForAuthentication } from './services/tenant';
 import { loadAccessProfile, type AccessProfile, type MenuPermission } from './services/access';
 import { bootstrapUser, createInvoice, deleteProduct, deleteSupplier, getInvoiceFileUrl, loadAppData, updateInvoiceStatus } from './services/repository';
 import { addSupplier, updateSupplier, type SupplierInput } from './services/supplierEditor';
@@ -60,6 +61,8 @@ export default function App(){
  const {settings,preferences,patchPreferences,loading:settingsLoading}=useSettings();
  const [session,setSession]=useState<Session|null>(null);
  const [authReady,setAuthReady]=useState(false);
+ const [tenantRevision,setTenantRevision]=useState(0);
+ const [tenantBootError,setTenantBootError]=useState('');
  const [access,setAccess]=useState<AccessProfile|null>(null);
  const [accessReady,setAccessReady]=useState(false);
  const [data,setData]=useState<AppData>(emptyData);
@@ -135,10 +138,35 @@ export default function App(){
  },[refresh]);
 
  useEffect(()=>{
-   supabase.auth.getSession().then(({data})=>{setSession(data.session);setAuthReady(true)}).catch(()=>{setSession(null);setAuthReady(true)});
-   const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{setSession(next);setAuthReady(true)});
-   return ()=>subscription.unsubscribe();
- },[]);
+   let active=true;
+   let unsubscribe:(()=>void)|null=null;
+   setAuthReady(false);
+   void (async()=>{
+     try{
+       const connection=await bootstrapTenantForAuthentication();
+       if(connection)setActiveTenant(connection);
+       if(!hasActiveTenant()){
+         if(active){setSession(null);setAuthReady(true);setTenantBootError('');}
+         return;
+       }
+       const client=getActiveSupabase();
+       const {data,error:sessionError}=await client.auth.getSession();
+       if(sessionError)throw sessionError;
+       if(active){setSession(data.session);setAuthReady(true);setTenantBootError('');}
+       const {data:{subscription}}=client.auth.onAuthStateChange((_event,next)=>{
+         if(active){setSession(next);setAuthReady(true);}
+       });
+       unsubscribe=()=>subscription.unsubscribe();
+     }catch(e){
+       if(active){
+         setSession(null);
+         setAuthReady(true);
+         setTenantBootError(e instanceof Error?e.message:'No se pudo preparar el acceso a tu empresa.');
+       }
+     }
+   })();
+   return()=>{active=false;unsubscribe?.()};
+ },[tenantRevision]);
 
  useEffect(()=>{
    let cancelled=false;
@@ -167,7 +195,7 @@ export default function App(){
  },[accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading]);
 
  if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> Cargando…</div>;
- if(!session) return <><ToastHost/><AuthScreen/></>;
+ if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootError} onTenantChanged={()=>setTenantRevision(value=>value+1)} onAuthenticated={next=>{setSession(next);setAuthReady(true);setTenantRevision(value=>value+1)}}/></>;
  if(session.user.user_metadata?.onboarding_pending===true) return <><ToastHost/><InvitePasswordSetup session={session} onComplete={async()=>{
    const {data}=await supabase.auth.getSession();
    setSession(data.session);

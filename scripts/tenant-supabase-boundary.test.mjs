@@ -21,7 +21,7 @@ test('only tenantSupabase creates Supabase clients and no legacy customer projec
   const paths=await files(root);
   for(const path of paths){
     const source=await readFile(path,'utf8');
-    const rel=relative(root.pathname,path).replaceAll('\\','/');
+    const rel=relative(root,path).replaceAll('\\','/');
     if(rel!=='services/tenantSupabase.ts'){
       assert.doesNotMatch(source,/\bcreateClient\s*\(/,'Direct createClient in '+rel);
     }

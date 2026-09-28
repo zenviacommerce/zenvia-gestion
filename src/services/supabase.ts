@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   clearRememberedTenantConnection,
+  hasExplicitTenantParameter,
   normalizeTenantConnection,
   readRememberedTenantConnection,
   rememberTenantConnection,
@@ -8,7 +9,7 @@ import {
 } from './tenant';
 import { getTenantSupabase } from './tenantSupabase';
 
-let activeConnection:TenantConnection|null=readRememberedTenantConnection();
+let activeConnection:TenantConnection|null=hasExplicitTenantParameter()?null:readRememberedTenantConnection();
 let activeClient:SupabaseClient|null=activeConnection?getTenantSupabase(activeConnection):null;
 
 export function getActiveTenantConnection(){

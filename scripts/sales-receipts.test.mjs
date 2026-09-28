@@ -52,7 +52,8 @@ test('receipt totals exclude VAT but preserve the rate used by a later invoice',
   assert.match(page,/IVA al facturar/);
   assert.match(page,/IVA en recibo<\/span><strong>0,00 €/);
   assert.match(page,/taxRate:line\.invoiceTaxRate/);
-  assert.match(pdf,/Pendiente \(sin IVA\)/);
+  assert.match(pdf,/Total recibo \(sin IVA\)/);
+  assert.match(pdf,/receipt\.paidAmount/);
   assert.match(pdf,/No es una factura ni sustituye a la factura correspondiente/);
 });
 

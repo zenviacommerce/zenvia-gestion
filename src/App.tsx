@@ -23,7 +23,7 @@ import { AmazonPage } from './pages/Amazon';
 import { AdminPage } from './pages/Admin';
 import { SettingsPage } from './pages/Settings';
 import { SupportPage } from './pages/Support';
-import { getActiveSupabase,hasActiveTenant,setActiveTenant,supabase } from './services/supabase';
+import { activateTenant,getActiveSupabase,hasActiveTenant,supabase } from './services/supabase';
 import { bootstrapTenantForAuthentication } from './services/tenant';
 import { loadAccessProfile, type AccessProfile, type MenuPermission } from './services/access';
 import { bootstrapUser, createInvoice, deleteProduct, deleteSupplier, getInvoiceFileUrl, loadAppData, updateInvoiceStatus } from './services/repository';
@@ -144,7 +144,7 @@ export default function App(){
    void (async()=>{
      try{
        const connection=await bootstrapTenantForAuthentication();
-       if(connection)setActiveTenant(connection);
+       if(connection)await activateTenant(connection);
        if(!hasActiveTenant()){
          if(active){setSession(null);setAuthReady(true);setTenantBootError('');}
          return;

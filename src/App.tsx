@@ -33,7 +33,7 @@ import { deleteInvoiceWithGmailRecovery } from './services/invoiceLifecycle';
 import { errorMessage, showError, showSuccess } from './services/toast';
 import { confirmAction } from './services/actionDialog';
 import { safeStorageGet, safeStorageSet } from './services/browserStorage';
-import { effectiveStartPage, resolveThemePreference } from './services/uiPreferences';
+import { effectiveStartPage } from './services/uiPreferences';
 import type { AppData, Invoice, NewInvoiceInput, Product, Supplier } from './types';
 
 const emptyData: AppData = { invoices: [], products: [], suppliers: [], categories: [] };
@@ -51,14 +51,9 @@ function withTimeout<T>(promise:Promise<T>,ms:number,message:string):Promise<T>{
 function initialTheme(): ThemeMode {
   const preference=safeStorageGet('local',THEME_PREFERENCE_KEY);
   if(preference==='dark'||preference==='light')return preference;
-  if(preference==='system'){
-    try{return window.matchMedia?.('(prefers-color-scheme: dark)').matches?'dark':'light';}
-    catch{return 'light';}
-  }
   const stored=safeStorageGet('local',THEME_KEY);
-  if(stored==='dark'||stored==='light') return stored;
-  try{return window.matchMedia?.('(prefers-color-scheme: dark)').matches?'dark':'light';}
-  catch{return 'light';}
+  if(stored==='dark'||stored==='light')return stored;
+  return 'light';
 }
 
 export default function App(){
@@ -109,18 +104,7 @@ export default function App(){
  },[]);
 
  useEffect(()=>{
-   let mediaQuery:MediaQueryList|null=null;
-   try{mediaQuery=typeof window.matchMedia==='function'?window.matchMedia('(prefers-color-scheme: dark)'):null;}catch{mediaQuery=null;}
-   const apply=()=>setTheme(resolveThemePreference(preferences.theme,Boolean(mediaQuery?.matches)));
-   apply();
-   if(preferences.theme!=='system'||!mediaQuery)return;
-   const onChange=()=>apply();
-   if(typeof mediaQuery.addEventListener==='function'){
-     mediaQuery.addEventListener('change',onChange);
-     return()=>mediaQuery?.removeEventListener('change',onChange);
-   }
-   mediaQuery.addListener?.(onChange);
-   return()=>mediaQuery?.removeListener?.(onChange);
+   setTheme(preferences.theme);
  },[preferences.theme]);
 
  useEffect(()=>{

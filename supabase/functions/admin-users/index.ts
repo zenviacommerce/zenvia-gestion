@@ -77,6 +77,20 @@ async function writeAudit(admin: any, caller: any, actorEmail: string | null | u
   if (error) console.error('No se pudo registrar la auditoría administrativa:', error.message);
 }
 
+async function syncIdentityRoute(action:'register_identity'|'unregister_identity',email:string){
+  const base=(Deno.env.get('PLATFORM_CONTROL_PLANE_URL')||'').replace(/\/$/,'');
+  const workspaceId=Deno.env.get('PLATFORM_WORKSPACE_ID')||'';
+  const bridgeToken=Deno.env.get('PLATFORM_BRIDGE_TOKEN')||'';
+  if(!base||!workspaceId||!bridgeToken)throw new Error('La sincronización de identidad con ZENVIA Platform no está configurada.');
+  const response=await fetch(`${base}/functions/v1/tenant-router`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-platform-token':bridgeToken},
+    body:JSON.stringify({action,workspaceId,email}),
+  });
+  const payload=await response.json().catch(()=>({}));
+  if(!response.ok)throw new Error(String(payload?.error||'No se pudo sincronizar el acceso del usuario con ZENVIA Platform.'));
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
   if (req.method !== 'POST') return fail('Método no permitido.', 405);
@@ -187,6 +201,13 @@ Deno.serve(async (req: Request) => {
         await admin.auth.admin.deleteUser(created.user.id).catch(() => undefined);
         throw profileError;
       }
+      try{
+        await syncIdentityRoute('register_identity',email);
+      }catch(error){
+        await admin.from('app_users').delete().eq('user_id',created.user.id).catch(()=>undefined);
+        await admin.auth.admin.deleteUser(created.user.id).catch(()=>undefined);
+        throw error;
+      }
       await writeAudit(admin, caller, userData.user.email, 'create_user', created.user.id, email, `Creó el usuario ${email}`, { full_name: fullName, role, permissions, active: true });
       return new Response(JSON.stringify({ ok: true, userId: created.user.id }), { headers: jsonHeaders });
     }
@@ -216,13 +237,20 @@ Deno.serve(async (req: Request) => {
       if (role === 'user' && !permissions.length) return fail('Selecciona al menos un permiso.');
       if (password && password.length < 8) return fail('La nueva contraseña debe tener al menos 8 caracteres.');
 
+      const previous_email=String(target.email||'').trim().toLowerCase();
+      const emailChanged=email!==previous_email;
+      if(emailChanged)await syncIdentityRoute('register_identity',email);
+
       const authUpdate: Record<string, unknown> = {
         email,
         user_metadata: { full_name: fullName },
       };
       if (password) authUpdate.password = password;
       const { error: authError } = await admin.auth.admin.updateUserById(targetId, authUpdate);
-      if (authError) return fail(authError.message);
+      if (authError){
+        if(emailChanged)await syncIdentityRoute('unregister_identity',email).catch(()=>undefined);
+        return fail(authError.message);
+      }
 
       const { error: profileError } = await admin.from('app_users').update({
         email,
@@ -232,7 +260,11 @@ Deno.serve(async (req: Request) => {
         permissions,
         updated_at: new Date().toISOString(),
       }).eq('user_id', targetId);
-      if (profileError) throw profileError;
+      if (profileError){
+        if(emailChanged)await syncIdentityRoute('unregister_identity',email).catch(()=>undefined);
+        throw profileError;
+      }
+      if(emailChanged)await syncIdentityRoute('unregister_identity',previous_email);
 
       const auditAction = target.active !== active ? (active ? 'activate_user' : 'deactivate_user') : 'update_user';
       const summary = target.active !== active ? `${active ? 'Activó' : 'Desactivó'} el usuario ${email}` : `Modificó el usuario ${email}`;
@@ -256,6 +288,7 @@ Deno.serve(async (req: Request) => {
       if (targetId === callerId) return fail('No puedes eliminar tu propio acceso de administrador.');
       const { error } = await admin.auth.admin.deleteUser(targetId);
       if (error) return fail(error.message);
+      await syncIdentityRoute('unregister_identity',String(target.email||'').trim().toLowerCase()).catch(error=>console.error('No se pudo eliminar la ruta de identidad:',error));
       await writeAudit(admin, caller, userData.user.email, 'delete_user', targetId, target.email, `Eliminó el usuario ${target.email}`, { full_name: target.full_name, permissions: target.permissions, active: target.active });
       return new Response(JSON.stringify({ ok: true }), { headers: jsonHeaders });
     }

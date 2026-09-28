@@ -61,6 +61,7 @@ export default function App(){
  const [session,setSession]=useState<Session|null>(null);
  const [authReady,setAuthReady]=useState(false);
  const [authClientVersion,setAuthClientVersion]=useState(0);
+ const [tenantBootstrapError,setTenantBootstrapError]=useState('');
  const [access,setAccess]=useState<AccessProfile|null>(null);
  const [accessReady,setAccessReady]=useState(false);
  const [data,setData]=useState<AppData>(emptyData);
@@ -140,8 +141,22 @@ export default function App(){
    let unsubscribe:undefined|(()=>void);
    setAuthReady(false);
    void (async()=>{
-     try{await bootstrapTenantFromLocation()}catch{/* login will surface tenant resolution errors */}
+     let resolution;
+     try{
+       resolution=await bootstrapTenantFromLocation();
+       if(!cancelled)setTenantBootstrapError('');
+     }catch(error){
+       if(!cancelled){
+         setTenantBootstrapError(error instanceof Error?error.message:'No se pudo localizar tu empresa.');
+         setSession(null);setAuthReady(true);
+       }
+       return;
+     }
      if(cancelled)return;
+     if(resolution.status!=='resolved'){
+       setSession(null);setAuthReady(true);
+       return;
+     }
      supabase.auth.getSession().then(({data})=>{if(!cancelled){setSession(data.session);setAuthReady(true)}}).catch(()=>{setSession(null);setAuthReady(true)});
      const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{
        if(cancelled)return;
@@ -179,7 +194,7 @@ export default function App(){
  },[accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading]);
 
  if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> Cargando…</div>;
- if(!session) return <><ToastHost/><AuthScreen onTenantChanged={()=>setAuthClientVersion(value=>value+1)}/></>;
+ if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootstrapError} onTenantChanged={()=>{setTenantBootstrapError('');setAuthClientVersion(value=>value+1)}}/></>;
  if(session.user.user_metadata?.onboarding_pending===true) return <><ToastHost/><InvitePasswordSetup session={session} onComplete={async()=>{
    const {data}=await supabase.auth.getSession();
    setSession(data.session);

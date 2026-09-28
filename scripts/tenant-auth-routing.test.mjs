@@ -96,3 +96,29 @@ test('two tenant clients use isolated project-scoped auth storage keys',async()=
   assert.match(source,/storageKey:tenantStorageKey\(tenant\)/);
   assert.match(source,/zenvia-gestion-auth-/);
 });
+
+test('only the tenant Supabase boundary creates browser Supabase clients',async()=>{
+  const {readdir,readFile}=await import('node:fs/promises');
+  const path=await import('node:path');
+  const root=path.resolve(new URL('../src',import.meta.url).pathname);
+  const offenders=[];
+  async function walk(dir){
+    for(const entry of await readdir(dir,{withFileTypes:true})){
+      const full=path.join(dir,entry.name);
+      if(entry.isDirectory())await walk(full);
+      else if(/\.(ts|tsx)$/.test(entry.name)){
+        const text=await readFile(full,'utf8');
+        if(text.includes('createClient(')&&!full.endsWith(path.join('services','supabase.ts')))offenders.push(full);
+      }
+    }
+  }
+  await walk(root);
+  assert.deepEqual(offenders,[]);
+});
+
+test('remembered tenant allows passkey without probing other Supabases',async()=>{
+  const auth=await read('src/components/AuthScreen.tsx');
+  assert.match(auth,/getActiveTenant/);
+  assert.match(auth,/if\(!email\.trim\(\)&&activeTenant\)/);
+  assert.match(auth,/signInWithPasskey/);
+});

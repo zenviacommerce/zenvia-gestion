@@ -48,3 +48,12 @@ test('identity route sync cannot roll back a successfully created managed user',
   assert.doesNotMatch(edge,/await admin\.from\('app_users'\)\.delete\(\)[\s\S]{0,400}syncIdentityRoute/);
   assert.match(edge,/routeSynced/);
 });
+
+
+test('customer bridge exposes a lightweight active-user identity lookup for router self-heal',async()=>{
+  const bridge=await read('supabase/functions/platform-bridge/index.ts');
+  assert.match(bridge,/action==='resolve_identity'/);
+  assert.match(bridge,/app_users/);
+  assert.match(bridge,/active',true/);
+  assert.match(bridge,/exists:Boolean/);
+});

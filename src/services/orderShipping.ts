@@ -64,7 +64,7 @@ export function validateOrderForCarrier(order:FulfillmentOrder,carrierCode=''):O
   addPhoneIssue(issues,order.customerPhone||address.phone_number,country,isMrw,isMrw?20:30);
   addEmailIssue(issues,order.customerEmail||address.email,false,isMrw?50:254);
   if(isMrw){
-    addLengthIssue(issues,'address_line_2','Dirección 2',address.address_line_2,50,false);
+    addLengthIssue(issues,'address_line_2','Dirección 2',address.address_line_2,60,false);
     addLengthIssue(issues,'house_number','Número',address.house_number,20,false);
   }
   if(order.weightKg==null||!Number.isFinite(order.weightKg)||order.weightKg<=0)issues.push({field:'weight',severity:'error',message:'Peso: debe ser mayor que 0 kg.'});

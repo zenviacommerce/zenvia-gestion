@@ -2,10 +2,8 @@ import type { ThemePreference, UserPreferences } from './settingsSchema';
 
 export type ResolvedTheme='light'|'dark';
 
-export function resolveThemePreference(theme:ThemePreference,prefersDark:boolean):ResolvedTheme{
-  if(theme==='dark')return 'dark';
-  if(theme==='light')return 'light';
-  return prefersDark?'dark':'light';
+export function resolveThemePreference(theme:ThemePreference):ResolvedTheme{
+  return theme;
 }
 
 export function effectiveStartPage<T extends string>(

@@ -40,7 +40,7 @@ const RESOLVED_THEME_KEY='zenvia-gestion-theme';
 function initialUserPreferences(){
   const next=clone(DEFAULT_USER_PREFERENCES);
   const cached=safeStorageGet('local',THEME_PREFERENCE_KEY);
-  if(cached==='system'||cached==='light'||cached==='dark'){
+  if(cached==='light'||cached==='dark'){
     next.theme=cached;
     return next;
   }

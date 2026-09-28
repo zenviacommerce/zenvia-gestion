@@ -423,3 +423,27 @@ html[data-theme='dark'] .aiNote.done{
 .integrationAmazonSettings>.settingsSectionCard>.settingsSectionHero p{
   margin-top:3px;
 }
+
+
+/* Order editing and shipping overlays must not create light islands. */
+html[data-theme='dark'] :where(
+  .ordersEditModal,.ordersEditBody,.ordersManualModal,.ordersManualBody,.ordersManualGrid,
+  .ordersValidationBox,.ordersOptionList button,.ordersConnection,.ordersAddress,
+  .searchableSelectPanel,.searchableSelectOption
+){
+  background:var(--surface)!important;
+  border-color:var(--border)!important;
+  color:var(--text)!important;
+}
+html[data-theme='dark'] :where(.ordersEditBody,.ordersManualBody,.ordersManualGrid){
+  background:transparent!important;
+}
+html[data-theme='dark'] .ordersValidationBox{
+  background:#3f171b!important;
+  border-color:#7f1d1d!important;
+  color:#fecaca!important;
+}
+html[data-theme='dark'] .searchableSelectOption:hover,
+html[data-theme='dark'] .searchableSelectOption.active{
+  background:var(--surface-raised)!important;
+}

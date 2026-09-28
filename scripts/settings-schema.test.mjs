@@ -16,7 +16,7 @@ test('configuration defaults preserve current production behavior',async()=>{
   assert.equal(DEFAULT_APP_SETTINGS.general.countryCode,'ES');
   assert.equal(DEFAULT_APP_SETTINGS.orders.labelFilenameStrategy,'order_number');
   assert.equal(DEFAULT_APP_SETTINGS.orders.refreshSeconds,60);
-  assert.equal(DEFAULT_USER_PREFERENCES.theme,'system');
+  assert.equal(DEFAULT_USER_PREFERENCES.theme,'light');
   assert.equal(DEFAULT_USER_PREFERENCES.pageSize,20);
   assert.equal(DEFAULT_USER_PREFERENCES.defaultPeriod,'current_quarter');
   assert.equal(DEFAULT_USER_PREFERENCES.startPage,null);
@@ -49,15 +49,15 @@ test('unknown keys and malformed root do not break settings normalization',async
 
 test('user preference normalization accepts approved values and rejects unsupported page sizes',async()=>{
   const {normalizeUserPreferences}=await loadSchema();
-  const valid=normalizeUserPreferences({theme:'system',pageSize:50,startPage:null,defaultPeriod:'current_month'});
-  assert.equal(valid.value.theme,'system');
+  const valid=normalizeUserPreferences({theme:'dark',pageSize:50,startPage:null,defaultPeriod:'current_month'});
+  assert.equal(valid.value.theme,'dark');
   assert.equal(valid.value.pageSize,50);
   assert.equal(valid.value.startPage,null);
   assert.equal(valid.value.defaultPeriod,'current_month');
 
   const invalid=normalizeUserPreferences({pageSize:37,theme:'neon'});
   assert.equal(invalid.value.pageSize,20);
-  assert.equal(invalid.value.theme,'system');
+  assert.equal(invalid.value.theme,'light');
   assert.ok(invalid.warnings.some(item=>item.path==='pageSize'));
   assert.ok(invalid.warnings.some(item=>item.path==='theme'));
 });

@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { loadWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
 
 const jsonHeaders={'Content-Type':'application/json'};
 const modulePermissions=['dashboard','sales','orders','invoices','clients','products','suppliers','amazon','support'];
@@ -29,14 +30,10 @@ function integerOrNull(value:unknown){
   return Number.isInteger(parsed)&&parsed>=0?parsed:null;
 }
 async function loadUserLimit(admin:any,workspaceId:string){
-  const {data:subscription,error:subscriptionError}=await admin.from('workspace_subscriptions').select('plan_key').eq('workspace_id',workspaceId).maybeSingle();
-  if(subscriptionError)throw subscriptionError;
-  if(!subscription?.plan_key)return null;
-  const {data:entitlement,error:entitlementError}=await admin.from('plan_entitlements').select('enabled,limit_value').eq('plan_key',subscription.plan_key).eq('entitlement_key','users').maybeSingle();
-  if(entitlementError)throw entitlementError;
-  if(!entitlement)return null;
+  const entitlement=await loadWorkspaceEntitlement(admin,workspaceId,'users');
+  if(!entitlement.configured)return null;
   if(entitlement.enabled===false)return 0;
-  return entitlement.limit_value==null?null:Number(entitlement.limit_value);
+  return entitlement.limit;
 }
 function sanitizePermissions(value:unknown){
   if(!Array.isArray(value))return [];
@@ -73,6 +70,36 @@ Deno.serve(async(req:Request)=>{
       name:asText(body?.actor?.name,150)||asText(body?.actor?.email,254)||'ZENVIA Platform',
     };
 
+    if(action==='apply_plan_snapshot'){
+      const workspaceId=asText(body?.workspaceId,80);
+      const planKey=asText(body?.planKey,80);
+      const planName=asText(body?.planName,150);
+      const planVersion=integerOrNull(body?.planVersion);
+      const subscriptionStatus=asText(body?.subscriptionStatus,30);
+      const entitlements=body?.entitlements&&typeof body.entitlements==='object'&&!Array.isArray(body.entitlements)?body.entitlements:null;
+      if(!workspaceId||!planKey||!planName||planVersion===null||planVersion<1||!entitlements)return fail('Snapshot de plan no válido.');
+      if(!['trialing','active','past_due','cancelled','unpaid'].includes(subscriptionStatus))return fail('Estado de suscripción no válido.');
+
+      const {data:workspace,error:workspaceError}=await admin.from('workspaces').select('id').eq('id',workspaceId).maybeSingle();
+      if(workspaceError)throw workspaceError;if(!workspace)return fail('Cliente no encontrado.',404);
+      const {data:existing,error:existingError}=await admin.from('app_subscription_state').select('plan_version').eq('workspace_id',workspaceId).maybeSingle();
+      if(existingError)throw existingError;
+      if(existing&&Number(existing.plan_version)>planVersion){
+        return ok({ok:true,appliedVersion:Number(existing.plan_version),ignored:true,reason:'older_version'});
+      }
+      if(existing&&Number(existing.plan_version)===planVersion){
+        return ok({ok:true,appliedVersion:planVersion,replayed:true});
+      }
+
+      const now=new Date().toISOString();
+      const {error}=await admin.from('app_subscription_state').upsert({
+        workspace_id:workspaceId,plan_key:planKey,plan_name:planName,plan_version:planVersion,
+        status:subscriptionStatus,entitlements,synced_at:now,updated_at:now,
+      },{onConflict:'workspace_id'});
+      if(error)throw error;
+      return ok({ok:true,appliedVersion:planVersion});
+    }
+
     if(action==='bootstrap'){
       const [workspaces,subscriptions,tickets,awaitingReply,plans]=await Promise.all([
         admin.from('workspaces').select('id',{count:'exact',head:true}),
@@ -94,18 +121,21 @@ Deno.serve(async(req:Request)=>{
       const [
         {data:workspaces,error:workspacesError},
         {data:subscriptions,error:subscriptionsError},
+        {data:subscriptionSnapshots,error:subscriptionSnapshotsError},
         {data:users,error:usersError},
         {data:amazonAccounts,error:amazonError},
         {data:usageEntitlements,error:usageEntitlementsError},
       ]=await Promise.all([
         admin.from('workspaces').select('id,slug,name,legal_name,status,created_at,updated_at').order('created_at',{ascending:false}),
         admin.from('workspace_subscriptions').select('workspace_id,plan_key,status,billing_provider,trial_ends_at,current_period_ends_at,cancel_at_period_end'),
+        admin.from('app_subscription_state').select('workspace_id,plan_key,plan_name,plan_version,status,entitlements,synced_at'),
         admin.from('app_users').select('workspace_id,user_id,active,role'),
         admin.from('amazon_accounts').select('owner_id,id,status'),
         admin.from('plan_entitlements').select('plan_key,entitlement_key,enabled,limit_value').in('entitlement_key',['users','amazon_accounts','monthly_orders']),
       ]);
-      if(workspacesError)throw workspacesError;if(subscriptionsError)throw subscriptionsError;if(usersError)throw usersError;if(amazonError)throw amazonError;if(usageEntitlementsError)throw usageEntitlementsError;
+      if(workspacesError)throw workspacesError;if(subscriptionsError)throw subscriptionsError;if(subscriptionSnapshotsError)throw subscriptionSnapshotsError;if(usersError)throw usersError;if(amazonError)throw amazonError;if(usageEntitlementsError)throw usageEntitlementsError;
       const subscriptionMap=new Map((subscriptions||[]).map((row:any)=>[row.workspace_id,row]));
+      const snapshotMap=new Map((subscriptionSnapshots||[]).map((row:any)=>[row.workspace_id,row]));
       const userCounts=new Map<string,{total:number;active:number}>();
       for(const row of users||[]){const item=userCounts.get(row.workspace_id)||{total:0,active:0};item.total+=1;if(row.active)item.active+=1;userCounts.set(row.workspace_id,item);}
       const amazonCounts=new Map<string,number>();
@@ -123,16 +153,33 @@ Deno.serve(async(req:Request)=>{
         const {count,error}=await admin.from('fulfillment_orders').select('id',{count:'exact',head:true}).eq('owner_id',row.id).gte('order_created_at',monthStart).lt('order_created_at',nextMonthStart);
         if(error)throw error;monthlyOrderCounts.set(row.id,Number(count||0));
       }));
+      const snapshotLimitFor=(workspaceId:string,key:string):{found:boolean;limit:number|null}=>{
+        const snapshot:any=snapshotMap.get(workspaceId);
+        const raw=snapshot?.entitlements?.[key];
+        if(!raw||typeof raw!=='object')return {found:false,limit:null};
+        if(raw.enabled===false)return {found:true,limit:0};
+        const value=raw.limit;
+        return {found:true,limit:value===null||value===undefined?null:Number(value)};
+      };
       const limitFor=(workspaceId:string,key:string)=>{
+        const snapshot=snapshotLimitFor(workspaceId,key);
+        if(snapshot.found)return snapshot.limit;
         const planKey=subscriptionMap.get(workspaceId)?.plan_key;
         if(!planKey)return null;
         return entitlementLimits.has(`${planKey}:${key}`)?entitlementLimits.get(`${planKey}:${key}`)??null:null;
+      };
+      const subscriptionFor=(workspaceId:string)=>{
+        const snapshot:any=snapshotMap.get(workspaceId);
+        return snapshot?{
+          workspace_id:workspaceId,plan_key:snapshot.plan_key,status:snapshot.status,billing_provider:'platform',
+          plan_version:snapshot.plan_version,synced_at:snapshot.synced_at,
+        }:subscriptionMap.get(workspaceId)||null;
       };
       return ok({workspaces:(workspaces||[]).map((row:any)=>{
         const usersForWorkspace=userCounts.get(row.id)||{total:0,active:0};
         const amazonForWorkspace=amazonCounts.get(row.id)||0;
         const monthlyOrders=monthlyOrderCounts.get(row.id)||0;
-        return {...row,subscription:subscriptionMap.get(row.id)||null,users:usersForWorkspace,amazonAccounts:amazonForWorkspace,usage:{
+        return {...row,subscription:subscriptionFor(row.id),users:usersForWorkspace,amazonAccounts:amazonForWorkspace,usage:{
           users:{value:usersForWorkspace.active,limit:limitFor(row.id,'users')},
           amazonAccounts:{value:amazonForWorkspace,limit:limitFor(row.id,'amazon_accounts')},
           monthlyOrders:{value:monthlyOrders,limit:limitFor(row.id,'monthly_orders')},
@@ -149,6 +196,7 @@ Deno.serve(async(req:Request)=>{
         {data:users,error:usersError},
         {data:integrations,error:integrationsError},
         {data:subscription,error:subscriptionError},
+        {data:subscriptionSnapshot,error:subscriptionSnapshotError},
       ]=await Promise.all([
         admin.from('workspaces').select('id,slug,name,legal_name,status,created_at,updated_at').eq('id',workspaceId).maybeSingle(),
         admin.from('business_settings').select('owner_id,legal_name,trade_name,tax_id,address_line1,address_line2,postal_code,city,province,country_code,email,phone,website').eq('owner_id',workspaceId).maybeSingle(),
@@ -156,9 +204,10 @@ Deno.serve(async(req:Request)=>{
         admin.from('app_users').select('user_id,email,full_name,role,active,permissions,created_at,updated_at').eq('workspace_id',workspaceId).order('created_at',{ascending:true}),
         admin.from('integration_accounts').select('id,provider,display_name,external_account_id,status,enabled,is_default,last_tested_at,last_success_at,last_error,created_at').eq('owner_id',workspaceId).order('provider').order('created_at'),
         admin.from('workspace_subscriptions').select('workspace_id,plan_key,status,billing_provider,trial_ends_at,current_period_ends_at,cancel_at_period_end').eq('workspace_id',workspaceId).maybeSingle(),
+        admin.from('app_subscription_state').select('workspace_id,plan_key,plan_name,plan_version,status,synced_at').eq('workspace_id',workspaceId).maybeSingle(),
       ]);
       if(workspaceError)throw workspaceError;if(!workspace)return fail('Cliente no encontrado.',404);
-      if(businessError)throw businessError;if(brandingError)throw brandingError;if(usersError)throw usersError;if(integrationsError)throw integrationsError;if(subscriptionError)throw subscriptionError;
+      if(businessError)throw businessError;if(brandingError)throw brandingError;if(usersError)throw usersError;if(integrationsError)throw integrationsError;if(subscriptionError)throw subscriptionError;if(subscriptionSnapshotError)throw subscriptionSnapshotError;
       let logoUrl:string|null=null;
       if(branding?.logo_path){
         const {data:signed}=await admin.storage.from('company-assets').createSignedUrl(String(branding.logo_path),3600);
@@ -170,13 +219,16 @@ Deno.serve(async(req:Request)=>{
       return ok({
         workspace,business:business||null,branding:{logoPath:branding?.logo_path||null,logoUrl},
         users:(users||[]).map((item:any)=>({...item,last_sign_in_at:authById.get(item.user_id)?.last_sign_in_at||null})),
-        integrations:integrations||[],subscription:subscription||null,
+        integrations:integrations||[],subscription:subscriptionSnapshot?{
+          workspace_id:workspaceId,plan_key:subscriptionSnapshot.plan_key,status:subscriptionSnapshot.status,
+          billing_provider:'platform',plan_version:subscriptionSnapshot.plan_version,synced_at:subscriptionSnapshot.synced_at,
+        }:subscription||null,
         userLimit,
         onboarding:{
           company:Boolean(business?.trade_name&&business?.legal_name&&business?.email),
           branding:Boolean(branding?.logo_path),
           owner:Boolean((users||[]).some((item:any)=>item.role==='admin'&&item.active)),
-          plan:Boolean(subscription?.plan_key),
+          plan:Boolean(subscriptionSnapshot?.plan_key||subscription?.plan_key),
           integrations:Boolean((integrations||[]).some((item:any)=>item.enabled&&item.status!=='disabled')),
         },
       });

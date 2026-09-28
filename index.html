@@ -9,12 +9,9 @@
         try{
           var preference=localStorage.getItem('zenvia-gestion-theme-preference');
           var resolved=localStorage.getItem('zenvia-gestion-theme');
-          var dark=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;
           var theme=preference==='light'||preference==='dark'
             ?preference
-            :preference==='system'
-              ?(dark?'dark':'light')
-              :(resolved==='light'||resolved==='dark'?resolved:(dark?'dark':'light'));
+            :(resolved==='light'||resolved==='dark'?resolved:'light');
           document.documentElement.dataset.theme=theme;
           document.documentElement.style.colorScheme=theme;
         }catch(_error){}

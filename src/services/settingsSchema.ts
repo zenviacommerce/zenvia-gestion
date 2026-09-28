@@ -11,7 +11,7 @@ export type DocumentLanguage = 'es' | 'en' | 'fr' | 'it' | 'de' | 'pt';
 export type LabelFilenameStrategy = 'order_number' | 'sku' | 'product' | 'customer_order' | 'custom';
 export type ProductCostMethod = 'last_purchase' | 'average' | 'manual';
 export type DefaultPeriod = 'today' | 'current_month' | 'current_quarter' | 'current_year' | 'all';
-export type ThemePreference = 'system' | 'light' | 'dark';
+export type ThemePreference = 'light' | 'dark';
 export type DensityPreference = 'comfortable' | 'compact' | 'spacious';
 
 export type PaymentMethodSetting = {
@@ -401,7 +401,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 };
 
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
-  theme: 'system',
+  theme: 'light',
   density: 'comfortable',
   pageSize: 20,
   startPage: null,
@@ -949,7 +949,7 @@ export function normalizeUserPreferences(input:unknown):{value:UserPreferences;w
 
   return {
     value:{
-      theme:enumValue(input,'theme',d.theme,'theme',warnings,['system','light','dark']),
+      theme:enumValue(input,'theme',d.theme,'theme',warnings,['light','dark']),
       density:enumValue(input,'density',d.density,'density',warnings,['comfortable','compact','spacious']),
       pageSize,
       startPage,

@@ -9,7 +9,7 @@ test('access profile retries once after auth/session errors',async()=>{
   assert.match(source,/fetchAccessProfileRow/);
   assert.match(source,/supabase\.auth\.getSession\(\)/);
   assert.match(source,/supabase\.auth\.refreshSession\(\)/);
-  assert.match(source,/result=await fetchAccessProfileRow\(userId\)/);
+  assert.match(source,/result=await withDataApiRetry\(\(\)=>fetchAccessProfileRow\(userId\)/);
 });
 
 test('access errors surface PostgREST details instead of a generic blank failure',async()=>{

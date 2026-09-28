@@ -60,7 +60,7 @@ function initials(fullName: string, email: string) {
   return source.slice(0, 2).toUpperCase();
 }
 
-export function Sidebar({page,onChange,onLogout,theme,onToggleTheme,allowedPages,isAdmin,user}:{page:Page;onChange:(p:Page)=>void;onLogout:()=>void;theme:ThemeMode;onToggleTheme:()=>void;allowedPages:Page[];isAdmin:boolean;user:SidebarUser}) {
+export function Sidebar({page,onChange,onLogout,theme,onThemeChange,allowedPages,isAdmin,user}:{page:Page;onChange:(p:Page)=>void;onLogout:()=>void;theme:ThemeMode;onThemeChange:(theme:ThemeMode)=>void;allowedPages:Page[];isAdmin:boolean;user:SidebarUser}) {
   const [mobileOpen,setMobileOpen]=useState(false);
   const canOpenSettings = allowedPages.includes('settings');
   const canOpenAdmin = isAdmin && allowedPages.includes('admin');
@@ -125,8 +125,11 @@ export function Sidebar({page,onChange,onLogout,theme,onToggleTheme,allowedPages
         <div className="sidebarSectionLabel sidebarSystemLabel">Sistema</div>
         {canOpenSettings&&<button className={page==='settings'?'settingsSidebarButton active':'settingsSidebarButton'} onClick={()=>navigate('settings')}><Settings2 size={18}/><span>Configuración</span></button>}
         {canOpenAdmin&&<button className={page==='admin'?'adminSidebarButton active':'adminSidebarButton'} onClick={()=>navigate('admin')}><ShieldCheck size={18}/><span>Administración</span></button>}
-        <button className="themeSidebarButton" onClick={onToggleTheme}>{theme==='dark'?<Sun size={18}/>:<Moon size={18}/>}<span>{theme==='dark'?'Modo claro':'Modo oscuro'}</span></button>
         <button onClick={onLogout}><LogOut size={18}/><span>Cerrar sesión</span></button>
+        <div className="sidebarThemeControl" role="group" aria-label="Tema de ZENVIA Gestión">
+          <button type="button" className={theme==='light'?'active':''} aria-label="Tema Claro" aria-pressed={theme==='light'} onClick={()=>onThemeChange('light')}><Sun size={15}/><span>Claro</span></button>
+          <button type="button" className={theme==='dark'?'active':''} aria-label="Tema Oscuro" aria-pressed={theme==='dark'} onClick={()=>onThemeChange('dark')}><Moon size={15}/><span>Oscuro</span></button>
+        </div>
       </div>
     </aside>
   </>;

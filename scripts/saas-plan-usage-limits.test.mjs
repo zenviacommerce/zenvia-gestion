@@ -31,3 +31,11 @@ test('Platform bridge exposes users, Amazon accounts and monthly order usage wit
   assert.match(bridge,/row\.status!=='disabled'/);
   assert.doesNotMatch(bridge,/amazon_accounts'\)\.select\('owner_id,id,active'\)/);
 });
+
+test('shared entitlement helper prefers the Platform snapshot and keeps legacy fallback',async()=>{
+  const source=await read('supabase/functions/_shared/saas/entitlements.ts');
+  assert.match(source,/from\('app_subscription_state'\)/);
+  assert.match(source,/snapshot\.entitlements/);
+  assert.match(source,/from\('workspace_subscriptions'\)/);
+  assert.match(source,/from\('plan_entitlements'\)/);
+});

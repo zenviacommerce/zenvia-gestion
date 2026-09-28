@@ -5,6 +5,17 @@ import { getActiveTenant, resolveAndActivateTenant, supabase, type TenantPublicC
 import { emailError, normalizeEmail } from '../services/validation';
 import { SelectField } from './forms/SelectField';
 
+function authErrorMessage(error:unknown){
+  const value=error&&typeof error==='object'?error as {message?:unknown;status?:unknown;code?:unknown}:null;
+  const message=typeof value?.message==='string'?value.message.trim():'';
+  const status=Number(value?.status||0);
+  const code=typeof value?.code==='string'?value.code:'';
+  if(status>=500||['request_timeout','unexpected_failure'].includes(code)||!message||message==='{}'||/context deadline|unexpected eof|failed to fetch|timeout/i.test(message)){
+    return 'ZENVIA Gestión está tardando en responder. Inténtalo de nuevo en unos segundos.';
+  }
+  return message;
+}
+
 function passkeySupported(){
   return typeof window!=='undefined' && window.isSecureContext && 'PublicKeyCredential' in window && !!navigator.credentials;
 }
@@ -49,7 +60,7 @@ export function AuthScreen({onTenantChanged,initialMessage=''}:{onTenantChanged?
       if (error) throw error;
       onTenantChanged?.();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : 'No se pudo iniciar sesión.');
+      setMessage(authErrorMessage(error));
     } finally { setBusy(false); }
   };
 

@@ -1918,7 +1918,6 @@ function SuppliersSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void})
 }
 
 const themeOptions=[
-  {value:'system',label:'Sistema'},
   {value:'light',label:'Claro'},
   {value:'dark',label:'Oscuro'},
 ];

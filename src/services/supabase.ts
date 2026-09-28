@@ -61,6 +61,14 @@ export async function activateTenant(connection:TenantConnection,{remember=true}
   return setActiveTenant(normalized,{remember});
 }
 
+export async function deactivateTenant({forget=true}:{forget?:boolean}={}){
+  const previous=activeClient;
+  if(previous){
+    try{await previous.auth.signOut({scope:'local'})}catch{/* local cleanup is best effort */}
+  }
+  clearActiveTenant({forget});
+}
+
 export function getActiveSupabase():SupabaseClient{
   if(!activeClient)throw new Error('Selecciona primero la empresa de ZENVIA Gestión.');
   return activeClient;

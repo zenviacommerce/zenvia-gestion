@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { ZENVIA_LOGO } from '../branding';
 import { Fingerprint, LoaderCircle, LockKeyhole, ReceiptText } from 'lucide-react';
-import { resolveAndActivateTenant, supabase, type TenantPublicConfig } from '../services/supabase';
+import { getActiveTenant, resolveAndActivateTenant, supabase, type TenantPublicConfig } from '../services/supabase';
 import { emailError, normalizeEmail } from '../services/validation';
 import { SelectField } from './forms/SelectField';
 
@@ -55,6 +55,17 @@ export function AuthScreen({onTenantChanged,initialMessage=''}:{onTenantChanged?
 
   const signInPasskey=async()=>{
     setMessage('');
+    const activeTenant=getActiveTenant();
+    if(!email.trim()&&activeTenant){
+      setPasskeyBusy(true);
+      try{
+        const {error}=await supabase.auth.signInWithPasskey();
+        if(error)throw error;
+        onTenantChanged?.();
+      }catch(error){setMessage(passkeyError(error))}
+      finally{setPasskeyBusy(false)}
+      return;
+    }
     const emailMessage=emailError(email,true);
     if(emailMessage){setMessage('Indica tu email para localizar tu empresa antes de usar Face ID / huella.');return;}
     setPasskeyBusy(true);

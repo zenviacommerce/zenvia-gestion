@@ -309,7 +309,12 @@ Deno.serve(async(req:Request)=>{
         if(countError)throw countError;
         if((count||0)>=userLimit)return fail(userLimit===0?'El plan no permite usuarios adicionales.':`Se ha alcanzado el límite de ${userLimit} usuarios activos.`,403);
       }
-      const {data:invite,error:inviteError}=await admin.auth.admin.inviteUserByEmail(email,{data:{full_name:fullName,onboarding_pending:true},redirectTo:customerAppUrl});
+      const {data:workspace,error:workspaceError}=await admin.from('workspaces').select('slug').eq('id',workspaceId).maybeSingle();
+      if(workspaceError)throw workspaceError;
+      const workspaceSlug=asText(workspace?.slug,80);
+      if(!workspaceSlug)return fail('El cliente no tiene identificador de acceso.',409);
+      const redirectTo=`${customerAppUrl}?tenant=${encodeURIComponent(workspaceSlug)}`;
+      const {data:invite,error:inviteError}=await admin.auth.admin.inviteUserByEmail(email,{data:{full_name:fullName,onboarding_pending:true},redirectTo});
       if(inviteError||!invite.user)throw inviteError||new Error('No se pudo enviar la invitación.');
       const {error:metaError}=await admin.auth.admin.updateUserById(invite.user.id,{app_metadata:{...(invite.user.app_metadata||{}),zenvia_managed:true,workspace_id:workspaceId}});
       if(metaError){await admin.auth.admin.deleteUser(invite.user.id).catch(()=>undefined);throw metaError;}
@@ -370,7 +375,9 @@ Deno.serve(async(req:Request)=>{
       if(workspaceError)throw workspaceError;
       let invitedUserId='';
       try{
-        const {data:invite,error:inviteError}=await admin.auth.admin.inviteUserByEmail(ownerEmail,{data:{full_name:ownerFullName,onboarding_pending:true},redirectTo:customerAppUrl});
+        const workspaceSlug=slug;
+        const redirectTo=`${customerAppUrl}?tenant=${encodeURIComponent(workspaceSlug)}`;
+        const {data:invite,error:inviteError}=await admin.auth.admin.inviteUserByEmail(ownerEmail,{data:{full_name:ownerFullName,onboarding_pending:true},redirectTo});
         if(inviteError||!invite.user)throw inviteError||new Error('No se pudo crear la invitación.');
         invitedUserId=invite.user.id;
         const {error:metaError}=await admin.auth.admin.updateUserById(invitedUserId,{

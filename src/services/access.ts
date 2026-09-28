@@ -69,6 +69,33 @@ async function fetchAccessProfileRow(userId:string){
     .maybeSingle();
 }
 
+function sleep(ms:number){
+  return new Promise(resolve=>window.setTimeout(resolve,ms));
+}
+
+function isTransientDataApiError(error:unknown){
+  if(!error||typeof error!=='object')return false;
+  const value=error as {code?:unknown;message?:unknown;details?:unknown;status?:unknown};
+  const code=typeof value.code==='string'?value.code:'';
+  const message=[
+    typeof value.message==='string'?value.message:'',
+    typeof value.details==='string'?value.details:'',
+  ].join(' ').toLowerCase();
+  const status=Number(value.status||0);
+  return status===502||status===503||status===504
+    ||['PGRST001','PGRST002','57014'].includes(code)
+    ||/schema cache|database client error|connection.*closed|failed to fetch|network|timeout|timed out/.test(message);
+}
+
+async function withDataApiRetry<T extends {error:unknown}>(work:()=>PromiseLike<T>,attempts=15):Promise<T>{
+  let result=await work();
+  for(let attempt=1;attempt<attempts&&result.error&&isTransientDataApiError(result.error);attempt++){
+    await sleep(Math.min(5000,1000+(attempt-1)*500));
+    result=await work();
+  }
+  return result;
+}
+
 type WorkspaceContextRow = {
   workspace_id?: string | null;
   workspace_name?: string | null;
@@ -107,7 +134,8 @@ function isWorkspaceContextUnavailable(error:unknown){
 }
 
 async function loadWorkspaceContext():Promise<WorkspaceContextRow|null>{
-  const {data,error}=await supabase.rpc('get_workspace_context');
+  const result=await withDataApiRetry(()=>supabase.rpc('get_workspace_context'));
+  const {data,error}=result;
   if(error){
     // Compatibility during a staggered DB/frontend rollout.
     if(isWorkspaceContextUnavailable(error))return null;
@@ -132,9 +160,9 @@ function accessErrorMessage(error:unknown){
 }
 
 export async function loadAccessProfile(userId: string): Promise<AccessProfile | null> {
-  let result=await fetchAccessProfileRow(userId);
+  let result=await withDataApiRetry(()=>fetchAccessProfileRow(userId));
 
-  if(result.error){
+  if(result.error&&!isTransientDataApiError(result.error)){
     const {data:sessionData}=await supabase.auth.getSession();
     const session=sessionData.session;
     if(!session||session.user.id!==userId){
@@ -147,7 +175,7 @@ export async function loadAccessProfile(userId: string): Promise<AccessProfile |
         if(refreshed.error)throw new Error(accessErrorMessage(refreshed.error));
       }
     }
-    result=await fetchAccessProfileRow(userId);
+    result=await withDataApiRetry(()=>fetchAccessProfileRow(userId),3);
   }
 
   if(result.error)throw new Error(accessErrorMessage(result.error));

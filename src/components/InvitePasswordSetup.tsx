@@ -32,8 +32,8 @@ export function InvitePasswordSetup({session,onComplete}:{session:Session;onComp
     <div className="authPanel">
       <div className="authLogo"><img src={ZENVIA_LOGO} alt="ZENVIA COMMERCE"/><span>Gestión empresarial</span></div>
       <div className="authHeroIcon"><KeyRound/></div>
-      <h1>Activa tu cuenta</h1>
-      <p>Tu empresa ya está preparada en ZENVIA Gestión. Crea una contraseña para terminar la activación de tu acceso.</p>
+      <h1>Cambia tu contraseña</h1>
+      <p>Has accedido con una contraseña temporal. Crea ahora tu contraseña definitiva para continuar.</p>
       <div className="authMessage inviteAccountEmail">{session.user.email}</div>
       <form onSubmit={submit} className="authForm" noValidate>
         <label>Nueva contraseña<input type="password" required minLength={8} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mínimo 8 caracteres"/></label>

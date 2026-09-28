@@ -33,6 +33,10 @@ function fail(message: string, status = 400) {
   return new Response(JSON.stringify({ error: message }), { status, headers: jsonHeaders });
 }
 
+function esc(value: unknown) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch] || ch));
+}
+
 function validateIdentity(email: string, fullName: string) {
   if (!email || email.length > 254 || !emailRe.test(email)) return 'Indica un email válido, por ejemplo nombre@empresa.com.';
   if (fullName.length < 2) return 'El nombre debe tener al menos 2 caracteres.';
@@ -77,18 +81,55 @@ async function writeAudit(admin: any, caller: any, actorEmail: string | null | u
   if (error) console.error('No se pudo registrar la auditoría administrativa:', error.message);
 }
 
-async function syncIdentityRoute(action:'register_identity'|'unregister_identity',email:string){
+async function trySyncIdentityRoute(action:'register_identity'|'unregister_identity',email:string){
   const base=(Deno.env.get('PLATFORM_CONTROL_PLANE_URL')||'').replace(/\/$/,'');
   const workspaceId=Deno.env.get('PLATFORM_WORKSPACE_ID')||'';
   const bridgeToken=Deno.env.get('PLATFORM_BRIDGE_TOKEN')||'';
-  if(!base||!workspaceId||!bridgeToken)throw new Error('La sincronización de identidad con ZENVIA Platform no está configurada.');
-  const response=await fetch(`${base}/functions/v1/tenant-router`,{
+  if(!base||!workspaceId||!bridgeToken){
+    console.warn('Sincronización de identidad diferida: faltan credenciales de Platform.');
+    return false;
+  }
+  try{
+    const response=await fetch(`${base}/functions/v1/tenant-router`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-platform-token':bridgeToken},
+      body:JSON.stringify({action,workspaceId,email}),
+    });
+    if(!response.ok){
+      console.warn('Sincronización de identidad diferida:',response.status);
+      return false;
+    }
+    return true;
+  }catch(error){
+    console.warn('Sincronización de identidad diferida:',error);
+    return false;
+  }
+}
+
+async function sendWelcomeEmail(input:{email:string;fullName:string;temporaryPassword:string;workspaceSlug:string;workspaceName:string}){
+  const apiKey=(Deno.env.get('RESEND_API_KEY')||'').trim();
+  if(!apiKey)return {delivered:false,reason:'RESEND_API_KEY no configurada'};
+  const base=(Deno.env.get('CUSTOMER_APP_URL')||'https://gestion.zenviacommerce.com').replace(/\/$/,'');
+  const loginUrl=`${base}/?tenant=${encodeURIComponent(input.workspaceSlug)}`;
+  const from=(Deno.env.get('SUPPORT_EMAIL_FROM')||'ZENVIA Gestión <soporte@zenviacommerce.com>').trim();
+  const html=`
+    <div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#12203a">
+      <h2>Tu acceso a ZENVIA Gestión</h2>
+      <p>Hola ${esc(input.fullName)},</p>
+      <p>Se ha creado tu acceso a <strong>${esc(input.workspaceName)}</strong>.</p>
+      <p><strong>Usuario:</strong> ${esc(input.email)}<br/>
+      <strong>Contraseña temporal:</strong> <code style="font-size:16px">${esc(input.temporaryPassword)}</code></p>
+      <p><a href="${esc(loginUrl)}" style="display:inline-block;padding:12px 18px;background:#14877f;color:#fff;text-decoration:none;border-radius:8px">Entrar en ZENVIA Gestión</a></p>
+      <p>Debes cambiar esta contraseña en tu primer acceso.</p>
+      <p style="color:#667085;font-size:13px">URL de acceso: ${esc(loginUrl)}</p>
+    </div>`;
+  const result=await fetch('https://api.resend.com/emails',{
     method:'POST',
-    headers:{'Content-Type':'application/json','x-platform-token':bridgeToken},
-    body:JSON.stringify({action,workspaceId,email}),
+    headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
+    body:JSON.stringify({from,to:[input.email],subject:`Tu acceso a ${input.workspaceName} en ZENVIA Gestión`,html}),
   });
-  const payload=await response.json().catch(()=>({}));
-  if(!response.ok)throw new Error(String(payload?.error||'No se pudo sincronizar el acceso del usuario con ZENVIA Platform.'));
+  if(!result.ok)return {delivered:false,reason:`Resend ${result.status}`};
+  return {delivered:true,reason:''};
 }
 
 Deno.serve(async (req: Request) => {
@@ -120,7 +161,7 @@ Deno.serve(async (req: Request) => {
     if (!caller?.active || caller.role !== 'admin') return fail('Solo un administrador puede gestionar usuarios.', 403);
     const workspaceId = caller.workspace_id || caller.data_owner_id;
     if (!workspaceId) return fail('Workspace no configurado.', 403);
-    const { data: workspace, error: workspaceError } = await admin.from('workspaces').select('status').eq('id', workspaceId).maybeSingle();
+    const { data: workspace, error: workspaceError } = await admin.from('workspaces').select('status,slug,name').eq('id', workspaceId).maybeSingle();
     if (workspaceError) throw workspaceError;
     if (!workspace || !['active','trialing'].includes(workspace.status)) return fail('El acceso de tu empresa está suspendido.', 403);
 
@@ -182,7 +223,7 @@ Deno.serve(async (req: Request) => {
         email,
         password,
         email_confirm: true,
-        user_metadata: { full_name: fullName },
+        user_metadata: { full_name: fullName, onboarding_pending: true },
         app_metadata: { zenvia_managed: true },
       });
       if (createError || !created.user) return fail(createError?.message || 'No se pudo crear el usuario.');
@@ -201,15 +242,22 @@ Deno.serve(async (req: Request) => {
         await admin.auth.admin.deleteUser(created.user.id).catch(() => undefined);
         throw profileError;
       }
-      try{
-        await syncIdentityRoute('register_identity',email);
-      }catch(error){
-        await admin.from('app_users').delete().eq('user_id',created.user.id).catch(()=>undefined);
-        await admin.auth.admin.deleteUser(created.user.id).catch(()=>undefined);
-        throw error;
-      }
-      await writeAudit(admin, caller, userData.user.email, 'create_user', created.user.id, email, `Creó el usuario ${email}`, { full_name: fullName, role, permissions, active: true });
-      return new Response(JSON.stringify({ ok: true, userId: created.user.id }), { headers: jsonHeaders });
+      const routeSynced=await trySyncIdentityRoute('register_identity',email);
+      const welcome=await sendWelcomeEmail({
+        email,
+        fullName,
+        temporaryPassword:password,
+        workspaceSlug:String(workspace.slug||''),
+        workspaceName:String(workspace.name||'tu empresa'),
+      });
+      await writeAudit(admin, caller, userData.user.email, 'create_user', created.user.id, email, `Creó el usuario ${email}`, {
+        full_name: fullName, role, permissions, active: true,
+        onboarding_pending:true,route_synced:routeSynced,welcome_email_delivered:welcome.delivered,
+      });
+      return new Response(JSON.stringify({
+        ok:true,userId:created.user.id,routeSynced,
+        emailDelivered:welcome.delivered,emailWarning:welcome.delivered?'':welcome.reason,
+      }), { headers: jsonHeaders });
     }
 
     const targetId = String(body?.userId || '');
@@ -239,7 +287,7 @@ Deno.serve(async (req: Request) => {
 
       const previous_email=String(target.email||'').trim().toLowerCase();
       const emailChanged=email!==previous_email;
-      if(emailChanged)await syncIdentityRoute('register_identity',email);
+      if(emailChanged)await trySyncIdentityRoute('register_identity',email);
 
       const authUpdate: Record<string, unknown> = {
         email,
@@ -248,7 +296,7 @@ Deno.serve(async (req: Request) => {
       if (password) authUpdate.password = password;
       const { error: authError } = await admin.auth.admin.updateUserById(targetId, authUpdate);
       if (authError){
-        if(emailChanged)await syncIdentityRoute('unregister_identity',email).catch(()=>undefined);
+        if(emailChanged)await trySyncIdentityRoute('unregister_identity',email);
         return fail(authError.message);
       }
 
@@ -264,7 +312,7 @@ Deno.serve(async (req: Request) => {
         if(emailChanged)await syncIdentityRoute('unregister_identity',email).catch(()=>undefined);
         throw profileError;
       }
-      if(emailChanged)await syncIdentityRoute('unregister_identity',previous_email);
+      if(emailChanged)await trySyncIdentityRoute('unregister_identity',previous_email);
 
       const auditAction = target.active !== active ? (active ? 'activate_user' : 'deactivate_user') : 'update_user';
       const summary = target.active !== active ? `${active ? 'Activó' : 'Desactivó'} el usuario ${email}` : `Modificó el usuario ${email}`;
@@ -288,7 +336,7 @@ Deno.serve(async (req: Request) => {
       if (targetId === callerId) return fail('No puedes eliminar tu propio acceso de administrador.');
       const { error } = await admin.auth.admin.deleteUser(targetId);
       if (error) return fail(error.message);
-      await syncIdentityRoute('unregister_identity',String(target.email||'').trim().toLowerCase()).catch(error=>console.error('No se pudo eliminar la ruta de identidad:',error));
+      await trySyncIdentityRoute('unregister_identity',String(target.email||'').trim().toLowerCase());
       await writeAudit(admin, caller, userData.user.email, 'delete_user', targetId, target.email, `Eliminó el usuario ${target.email}`, { full_name: target.full_name, permissions: target.permissions, active: target.active });
       return new Response(JSON.stringify({ ok: true }), { headers: jsonHeaders });
     }

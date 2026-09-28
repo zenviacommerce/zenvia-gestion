@@ -221,7 +221,8 @@ function UserEditor({ user, currentUserId, onClose, onSaved }: { user: ManagedUs
       if (editing && user) {
         await updateManagedUser({ userId: user.userId, email, fullName, password: password || undefined, active: isAdmin ? true : active, role, permissions: isAdmin ? permissionOptions.map(option => option.id) : permissions });
       } else {
-        await createManagedUser({ email, fullName, password, role, permissions: isAdmin ? permissionOptions.map(option => option.id) : permissions });
+        const created=await createManagedUser({ email, fullName, password, role, permissions: isAdmin ? permissionOptions.map(option => option.id) : permissions });
+        if(!created.emailDelivered)showError(created.emailWarning||'Usuario creado, pero no se pudo enviar el correo de bienvenida.');
       }
       await onSaved();
       showSuccess(editing?'Usuario modificado correctamente.':'Usuario creado correctamente.');
@@ -236,7 +237,7 @@ function UserEditor({ user, currentUserId, onClose, onSaved }: { user: ManagedUs
         <label>Nombre<input required value={fullName} onChange={event => setFullName(event.target.value)} placeholder="Nombre y apellidos"/></label>
         <label>Email<input required type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="usuario@zenviacommerce.com"/></label>
         <label>Tipo de usuario<SelectField value={role} options={[{value:'user',label:'Usuario'},{value:'admin',label:'Administrador'}]} onChange={value=>setRole(value as AppRole)} disabled={isSelf} ariaLabel="Tipo de usuario"/></label>
-        <label>{editing ? 'Nueva contraseña (opcional)' : 'Contraseña inicial'}<div className="adminPasswordField"><KeyRound size={16}/><input type="password" required={!editing} minLength={8} value={password} onChange={event => setPassword(event.target.value)} placeholder={editing ? 'Dejar en blanco para no cambiar' : 'Mínimo 8 caracteres'}/></div></label>
+        <label>{editing ? 'Nueva contraseña (opcional)' : 'Contraseña temporal'}<div className="adminPasswordField"><KeyRound size={16}/><input type="password" required={!editing} minLength={8} value={password} onChange={event => setPassword(event.target.value)} placeholder={editing ? 'Dejar en blanco para no cambiar' : 'Mínimo 8 caracteres'}/></div>{!editing&&<small>Se enviará por correo al usuario y tendrá que cambiarla en el primer acceso.</small>}</label>
       </div>
 
       {!isAdmin && <>

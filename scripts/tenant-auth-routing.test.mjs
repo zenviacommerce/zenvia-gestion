@@ -68,3 +68,31 @@ test('managed user lifecycle syncs tenant identity routes server-to-server',asyn
   assert.match(source,/unregister_identity/);
   assert.match(source,/previous_email/);
 });
+
+test('runtime tenant routing has no hardcoded legacy Gestion project fallback',async()=>{
+  const source=await read('src/services/supabase.ts');
+  assert.doesNotMatch(source,/sjkxxbedkkmgmqnvaqjh/);
+  assert.doesNotMatch(source,/7461b2b7-f383-460d-b1c7-6ccbb52e42b2/);
+  assert.match(source,/getActiveSupabase/);
+  assert.match(source,/clearActiveTenant/);
+});
+
+test('explicit invalid invitation tenant never falls back to another tenant',async()=>{
+  const source=await read('src/services/supabase.ts');
+  assert.match(source,/TenantResolutionError/);
+  assert.match(source,/No se ha encontrado la empresa indicada/);
+  assert.match(source,/tenantFromUrl/);
+  assert.match(source,/throw new TenantResolutionError/);
+});
+
+test('switching tenants clears the previous local auth session',async()=>{
+  const source=await read('src/services/supabase.ts');
+  assert.match(source,/signOut\(\{scope:'local'\}\)/);
+  assert.match(source,/activeTenant\.workspace_id!==tenant\.workspace_id/);
+});
+
+test('two tenant clients use isolated project-scoped auth storage keys',async()=>{
+  const source=await read('src/services/supabase.ts');
+  assert.match(source,/storageKey:tenantStorageKey\(tenant\)/);
+  assert.match(source,/zenvia-gestion-auth-/);
+});

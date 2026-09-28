@@ -163,3 +163,41 @@
   .sidebar .brand{display:none}
   .sidebarUserCard{display:none}
 }
+
+
+.sidebarThemeControl{
+  margin-top:8px;
+  padding:10px 2px 0;
+  border-top:1px solid rgba(148,163,184,.12);
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:5px;
+}
+.sidebar .sidebarThemeControl>button{
+  min-width:0;
+  min-height:0;
+  border:1px solid transparent;
+  border-radius:8px;
+  background:#182230;
+  color:#98a2b3;
+  padding:7px 4px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  font-size:9px;
+  font-weight:700;
+}
+.sidebar .sidebarThemeControl>button:hover{background:#1d2939;color:#f8fafc}
+.sidebar .sidebarThemeControl>button.active{background:#344054;color:#fff;border-color:#475467}
+.sidebar .sidebarThemeControl>button.active svg{color:#2dd4bf}
+.sidebar .sidebarThemeControl>button:focus-visible{outline:2px solid #5eead4;outline-offset:2px}
+
+@media(max-width:900px), (max-height:600px) and (max-width:1100px){
+  .sidebarThemeControl{margin-top:8px;padding-top:10px}
+  .sidebar .sidebarThemeControl>button{
+    min-height:42px!important;
+    justify-content:center!important;
+  }
+}

@@ -44,3 +44,12 @@ test('App passes the loaded SaaS access profile into Settings',async()=>{
   const app=await read('src/App.tsx');
   assert.match(app,/<SettingsPage isAdmin=\{access\.role==='admin'\} access=\{access\}\/>/);
 });
+
+
+test('Plan and billing surfaces use shared theme variables instead of light-only fallbacks',async()=>{
+  const css=await read('src/settings.css');
+  assert.match(css,/\.billingUsageCard[^\n]*background:var\(--surface,#fff\)/);
+  assert.match(css,/\.billingPlanCard[^\n]*background:var\(--surface,#fff\)/);
+  assert.match(css,/\.billingCycleToggle[^\n]*background:var\(--surface-soft,#f8fafc\)/);
+  assert.match(css,/html\[data-theme='dark'\] \.billingUsageCard/);
+});

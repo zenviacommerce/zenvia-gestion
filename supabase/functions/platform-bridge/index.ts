@@ -389,7 +389,7 @@ Deno.serve(async(req:Request)=>{
       const role=body?.role==='admin'?'admin':'user',active=body?.active!==false,permissions=role==='admin'?[...modulePermissions]:sanitizePermissions(body?.permissions);
       if(role==='user'&&!permissions.length)return fail('Selecciona al menos un permiso.');
       if((target.role==='admin'&&target.active)&&(!active||role!=='admin')){
-        const {count,error:adminCountError}=await admin.from('app_users').select('user_id',{count:'exact',head:true}).eq('workspace_id',workspaceId).eq('role','admin').eq('active',true);
+        const {count:adminCount,error:adminCountError}=await admin.from('app_users').select('user_id',{count:'exact',head:true}).eq('workspace_id',workspaceId).eq('role','admin').eq('active',true);
         if(adminCountError)throw adminCountError;if((adminCount||0)<=1)return fail('El cliente debe conservar al menos un administrador activo.');
       }
       if(active&&!target.active){
@@ -409,7 +409,7 @@ Deno.serve(async(req:Request)=>{
       const {data:target,error:targetError}=await admin.from('app_users').select('user_id,role,active').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
       if(targetError)throw targetError;if(!target)return fail('Usuario no encontrado.',404);
       if(target.role==='admin'&&target.active){
-        const {count,error:adminCountError}=await admin.from('app_users').select('user_id',{count:'exact',head:true}).eq('workspace_id',workspaceId).eq('role','admin').eq('active',true);
+        const {count:adminCount,error:adminCountError}=await admin.from('app_users').select('user_id',{count:'exact',head:true}).eq('workspace_id',workspaceId).eq('role','admin').eq('active',true);
         if(adminCountError)throw adminCountError;if((adminCount||0)<=1)return fail('No puedes eliminar el último administrador activo.');
       }
       const {error}=await admin.from('app_users').delete().eq('workspace_id',workspaceId).eq('user_id',userId);

@@ -27,7 +27,7 @@ create or replace function private.guard_sales_receipt_payment()
 returns trigger
 language plpgsql
 set search_path=''
-as $
+as $function$
 declare
   v_total numeric;
   v_paid numeric;
@@ -45,7 +45,7 @@ begin
   end if;
   return new;
 end;
-$;
+$function$;
 
 drop trigger if exists sales_receipt_payments_guard on public.sales_receipt_payments;
 create trigger sales_receipt_payments_guard

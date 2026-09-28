@@ -21,3 +21,14 @@ test('Dashboard uses the configured order refresh interval',async()=>{
   assert.match(dashboard,/clearInterval/);
   assert.doesNotMatch(dashboard,/setInterval\([^\n]*60000/);
 });
+
+
+test('Orders auto-sync uses a stable in-flight guard instead of depending on syncing state',async()=>{
+  const orders=await source('src/pages/Orders.tsx');
+  assert.match(orders,/const syncingRef=useRef\(false\)/);
+  assert.match(orders,/if\(syncingRef\.current\)return/);
+  assert.match(orders,/syncingRef\.current=true/);
+  assert.match(orders,/syncingRef\.current=false/);
+  assert.match(orders,/\},\[refresh,settings\.orders\.retryTrackingConfirmation\]\);/);
+  assert.doesNotMatch(orders,/\[refresh,syncing,settings\.orders\.retryTrackingConfirmation\]/);
+});

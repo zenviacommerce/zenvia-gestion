@@ -6,7 +6,8 @@ const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
 test('post-login bootstrap cannot remain indefinitely in the initial auth spinner after getSession rejection',async()=>{
   const app=await read('src/App.tsx');
-  assert.match(app,/getSession\(\)[^\n]*catch\(\(\)=>\{setSession\(null\);setAuthReady\(true\)\}\)/);
+  assert.match(app,/const \{data,error:sessionError\}=await client\.auth\.getSession\(\)/);
+  assert.match(app,/catch\(e\)\{[\s\S]*setSession\(null\);[\s\S]*setAuthReady\(true\)/);
   assert.match(app,/withTimeout\(loadAccessProfile\(userId\),12000/);
   assert.match(app,/No se pudo cargar el acceso/);
   assert.match(app,/Reintentar/);

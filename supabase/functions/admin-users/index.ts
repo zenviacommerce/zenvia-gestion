@@ -219,6 +219,14 @@ Deno.serve(async (req: Request) => {
       if (password.length < 8) return fail('La contraseña debe tener al menos 8 caracteres.');
       if (role === 'user' && !permissions.length) return fail('Selecciona al menos un permiso.');
 
+      const { data: existingProfiles, error: existingProfileError } = await admin
+        .from('app_users')
+        .select('user_id')
+        .ilike('email', email)
+        .limit(1);
+      if (existingProfileError) throw existingProfileError;
+      if ((existingProfiles || []).length) return fail('Ya existe un usuario con ese correo electrónico.', 409);
+
       const { data: created, error: createError } = await admin.auth.admin.createUser({
         email,
         password,
@@ -226,7 +234,13 @@ Deno.serve(async (req: Request) => {
         user_metadata: { full_name: fullName, onboarding_pending: true },
         app_metadata: { zenvia_managed: true },
       });
-      if (createError || !created.user) return fail(createError?.message || 'No se pudo crear el usuario.');
+      if (createError || !created.user) {
+        const message = String(createError?.message || '');
+        if (/already|registered|exists|duplicate/i.test(message)) {
+          return fail('Ya existe un usuario con ese correo electrónico.', 409);
+        }
+        return fail(message || 'No se pudo crear el usuario.');
+      }
 
       const { error: profileError } = await admin.from('app_users').insert({
         user_id: created.user.id,

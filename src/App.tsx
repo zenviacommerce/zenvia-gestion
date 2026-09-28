@@ -68,6 +68,7 @@ export default function App(){
  const [loading,setLoading]=useState(false);
  const [error,setError]=useState('');
  const [page,setPage]=useState<Page>('dashboard');
+ const [ordersPendingEntry,setOrdersPendingEntry]=useState(false);
  const [upload,setUpload]=useState(false);
  const [bulkUpload,setBulkUpload]=useState(false);
  const [productModal,setProductModal]=useState(false);
@@ -204,7 +205,7 @@ export default function App(){
  if(access&&!['active','trialing'].includes(access.workspaceStatus)) return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>{access.workspaceStatus==='suspended'?'Empresa suspendida':'Servicio cancelado'}</h1><p>{access.workspaceStatus==='suspended'?'El acceso de tu empresa a ZENVIA Gestión está suspendido temporalmente. Contacta con soporte para reactivarlo.':'La suscripción de tu empresa ya no está activa. Contacta con soporte si necesitas recuperar el acceso.'}</p><div className="actions"><button className="secondary" onClick={()=>supabase.auth.signOut()}>Cerrar sesión</button></div></div></div></>;
  if(!access||!access.active||!allowedPages.length) return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>{error?'No se pudo cargar el acceso':'Acceso no autorizado'}</h1><p>{error?error:access&&!access.active?'Tu acceso a ZENVIA Gestión está desactivado.':'Esta cuenta no está autorizada para utilizar ZENVIA Gestión. Contacta con el administrador.'}</p><div className="actions">{error&&<button className="primary" onClick={()=>{setAccessReady(false);setError('');withTimeout(loadAccessProfile(session.user.id),12000,'La comprobación de acceso está tardando demasiado.').then(profile=>{setAccess(profile);setAccessReady(true)}).catch(e=>{setAccess(null);setAccessReady(true);setError(errorMessage(e,'No se pudo comprobar tu acceso.'))})}}>Reintentar</button>}<button className="secondary" onClick={()=>supabase.auth.signOut()}>Cerrar sesión</button></div></div></div></>;
 
- const navigate=async(next:Page)=>{
+ const navigate=async(next:Page,options?:{pendingOrders?:boolean})=>{
    if(!allowedPages.includes(next))return;
    if(page==='settings'&&next!=='settings'&&settingsDirty){
      const confirmed=await confirmAction({title:'Cambios sin guardar',message:'Tienes cambios sin guardar en Configuración.',confirmLabel:'Descartar cambios',tone:'warning',details:['Si continúas, los cambios realizados se perderán.']});
@@ -212,6 +213,8 @@ export default function App(){
      setSettingsDirty(false);
    }
    startPageApplied.current=true;
+   if(next==='orders')setOrdersPendingEntry(Boolean(options?.pendingOrders));
+   else setOrdersPendingEntry(false);
    setPage(next);
  };
  const toggleTheme=()=>{
@@ -297,9 +300,9 @@ export default function App(){
      canNavigate={next=>allowedPages.includes(next as Page)}
    />
    {error&&<div className="globalError">{error}<button onClick={refresh}>Reintentar</button></div>}
-   {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders'):undefined}/>} 
+   {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders',{pendingOrders:true}):undefined}/>} 
    {page==='sales'&&can('sales')&&<SalesInvoices/>}
-   {page==='orders'&&can('orders')&&<Orders/>}
+   {page==='orders'&&can('orders')&&<Orders pendingOnly={ordersPendingEntry}/>} 
    {page==='invoices'&&can('invoices')&&<ExpenseInvoicesHub invoices={data.invoices} suppliers={data.suppliers} categories={data.categories} onUpload={()=>setUpload(true)} onBulkUpload={()=>setBulkUpload(true)} onStatusChange={changeStatus} onOpenFile={openInvoice} onDelete={removeInvoice} onSupplierChange={changeInvoiceSupplier} onCategoryChange={changeInvoiceCategory} onImported={refresh}/>} 
    {page==='clients'&&can('clients')&&<Clients/>}
    {page==='products'&&can('products')&&<Products products={data.products} onAdd={openNewProduct} onEdit={openEditProduct} onDelete={removeProduct}/>} 

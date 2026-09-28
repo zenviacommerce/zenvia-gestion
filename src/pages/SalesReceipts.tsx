@@ -154,7 +154,7 @@ export function SalesReceipts(){
     });
     if(!confirmed)return;
     setBusy(true);
-    const process=openActionProcess({title:'Generando facturas',message:'Convirtiendo recibos pendientes en borradores de factura.',items:[...groups.entries()].map(([key,rows])=>({id:key,label:`${rows[0].clientName} · ${key.split('|')[1]}`}))});
+    const process=openActionProcess({title:'Generando facturas',description:'Convirtiendo recibos pendientes en borradores de factura.',items:[...groups.entries()].map(([key,rows])=>({id:key,label:`${rows[0].clientName} · ${key.split('|')[1]}`}))});
     let created=0,failed=0;
     try{
       const issueDate=today();

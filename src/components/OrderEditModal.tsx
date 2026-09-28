@@ -10,6 +10,7 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
 }){
   const address=order.shippingAddress||{};
   const [customerName,setCustomerName]=useState(order.customerName||text(address.name));
+  const [companyName,setCompanyName]=useState(text(address.company_name));
   const [email,setEmail]=useState(order.customerEmail||text(address.email));
   const [phone,setPhone]=useState(order.customerPhone||text(address.phone_number));
   const [street,setStreet]=useState(text(address.address_line_1));
@@ -30,6 +31,7 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
     shippingAddress:{
       ...address,
       name:customerName.trim(),
+      company_name:companyName.trim(),
       email:email.trim(),
       phone_number:phone.trim(),
       address_line_1:street.trim(),
@@ -46,7 +48,7 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
   const fieldError=(field:string)=>fieldIssue(field)?.message||'';
 
   const submit=()=>onSave({
-    customerName:customerName.trim(),email:email.trim(),phone:phone.trim(),address:street.trim(),
+    customerName:customerName.trim(),companyName:companyName.trim(),email:email.trim(),phone:phone.trim(),address:street.trim(),
     houseNumber:houseNumber.trim(),address2:address2.trim(),postalCode:postalCode.trim(),city:city.trim(),
     stateProvince:stateProvince.trim(),countryCode:countryCode.trim().toUpperCase(),weightKg:Number(weightKg)||0,
   });
@@ -59,6 +61,7 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
         {liveValidation.issues.length>0&&<div className="errorBox ordersValidationBox"><AlertCircle size={17}/><div><strong>Revisar antes de generar la etiqueta</strong>{liveValidation.issues.map((issue,index)=><span key={`${issue.field}-${index}`}>{issue.message}</span>)}</div></div>}
         <div className="ordersManualGrid">
           <label className={fieldIssue('name')?'ordersFieldInvalid':''}><span>Cliente *</span><input aria-invalid={Boolean(fieldIssue('name'))} value={customerName} onChange={e=>setCustomerName(e.target.value)}/>{fieldError('name')&&<small className="ordersFieldError">{fieldError('name')}</small>}</label>
+          <label><span>Nombre de la empresa (opcional)</span><input value={companyName} onChange={e=>setCompanyName(e.target.value)}/></label>
           <label className={fieldIssue('phone')?'ordersFieldInvalid':''}><span>Teléfono</span><input aria-invalid={Boolean(fieldIssue('phone'))} value={phone} onChange={e=>setPhone(e.target.value)}/>{fieldError('phone')&&<small className="ordersFieldError">{fieldError('phone')}</small>}</label>
           <label className={`wide ${fieldIssue('email')?'ordersFieldInvalid':''}`}><span>Email</span><input aria-invalid={Boolean(fieldIssue('email'))} type="email" value={email} onChange={e=>setEmail(e.target.value)}/>{fieldError('email')&&<small className="ordersFieldError">{fieldError('email')}</small>}</label>
           <label className={`wide ${fieldIssue('address_line_1')?'ordersFieldInvalid':''}`}><span>Dirección *</span><input aria-invalid={Boolean(fieldIssue('address_line_1'))} value={street} onChange={e=>setStreet(e.target.value)}/>{fieldError('address_line_1')&&<small className="ordersFieldError">{fieldError('address_line_1')}</small>}</label>

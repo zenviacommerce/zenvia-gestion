@@ -21,7 +21,7 @@ test('workspace context prefers the Platform snapshot and falls back to legacy p
   assert.match(sql,/coalesce\(ss\.plan_key,ws\.plan_key,'internal'\)/);
   assert.match(sql,/coalesce\(ss\.plan_name,bp\.name,'Interno'\)/);
   assert.match(sql,/coalesce\(ss\.status,ws\.status,'active'\)/);
-  assert.match(sql,/coalesce\(ss\.entitlements,[\s\S]*jsonb_object_agg/);
+  assert.match(sql,/coalesce\(\s*ss\.entitlements,[\s\S]*jsonb_object_agg/);
   assert.match(sql,/7461b2b7-f383-460d-b1c7-6ccbb52e42b2/);
 });
 

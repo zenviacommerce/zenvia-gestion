@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { supabase } from '../services/supabase';
+import { hasActiveTenant, supabase } from '../services/supabase';
 import { safeStorageGet } from '../services/browserStorage';
 import {
   loadAppSettings,
@@ -53,6 +53,7 @@ const SettingsContext=createContext<SettingsContextValue|undefined>(undefined);
 
 export function SettingsProvider({children,userId}:{children:ReactNode;userId?:string|null}){
   const [authUserId,setAuthUserId]=useState<string|null>(null);
+  const [tenantVersion,setTenantVersion]=useState(0);
   const effectiveUserId=userId===undefined?authUserId:userId;
   const [settings,setSettings]=useState<AppSettings>(()=>clone(DEFAULT_APP_SETTINGS));
   const [preferences,setPreferences]=useState<UserPreferences>(initialUserPreferences);
@@ -62,14 +63,21 @@ export function SettingsProvider({children,userId}:{children:ReactNode;userId?:s
   const preferenceWriteQueue=useRef<Promise<void>>(Promise.resolve());
 
   useEffect(()=>{
+    const onTenantChanged=()=>setTenantVersion(value=>value+1);
+    window.addEventListener('zenvia:tenant-changed',onTenantChanged);
+    return()=>window.removeEventListener('zenvia:tenant-changed',onTenantChanged);
+  },[]);
+
+  useEffect(()=>{
     if(userId!==undefined)return;
+    if(!hasActiveTenant()){setAuthUserId(null);return;}
     let active=true;
     supabase.auth.getSession()
       .then(({data})=>{if(active)setAuthUserId(data.session?.user.id||null);})
       .catch(()=>{if(active)setAuthUserId(null);});
     const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,session)=>{if(active)setAuthUserId(session?.user.id||null);});
     return()=>{active=false;subscription.unsubscribe();};
-  },[userId]);
+  },[userId,tenantVersion]);
 
   const refresh=useCallback(async()=>{
     if(!effectiveUserId){

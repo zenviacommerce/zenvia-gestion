@@ -4,7 +4,36 @@ export type WorkspaceEntitlement={
   limit:number|null;
 };
 
+function numericLimit(raw:unknown){
+  if(typeof raw==='number'&&Number.isFinite(raw))return raw;
+  if(raw===null||raw===undefined||raw==='')return null;
+  const parsed=Number(raw);
+  return Number.isFinite(parsed)?parsed:null;
+}
+
 export async function loadWorkspaceEntitlement(admin:any,workspaceId:string,entitlementKey:string):Promise<WorkspaceEntitlement>{
+  const {data:snapshot,error:snapshotError}=await admin
+    .from('app_subscription_state')
+    .select('status,entitlements')
+    .eq('workspace_id',workspaceId)
+    .maybeSingle();
+  if(snapshotError)throw snapshotError;
+
+  if(snapshot&&['active','trialing'].includes(String(snapshot.status||''))){
+    const entitlements=snapshot.entitlements&&typeof snapshot.entitlements==='object'&&!Array.isArray(snapshot.entitlements)
+      ?snapshot.entitlements as Record<string,unknown>
+      :{};
+    const raw=entitlements[entitlementKey];
+    if(raw&&typeof raw==='object'&&!Array.isArray(raw)){
+      const item=raw as Record<string,unknown>;
+      return {
+        configured:true,
+        enabled:item.enabled!==false,
+        limit:numericLimit(item.limit),
+      };
+    }
+  }
+
   const {data:subscription,error:subscriptionError}=await admin
     .from('workspace_subscriptions')
     .select('plan_key,status')
@@ -24,15 +53,10 @@ export async function loadWorkspaceEntitlement(admin:any,workspaceId:string,enti
   if(entitlementError)throw entitlementError;
   if(!entitlement)return {configured:false,enabled:true,limit:null};
 
-  const raw=entitlement.limit_value;
-  const limit=typeof raw==='number'
-    ?raw
-    :(raw===null||raw===undefined?null:Number.isFinite(Number(raw))?Number(raw):null);
-
   return {
     configured:true,
     enabled:entitlement.enabled!==false,
-    limit,
+    limit:numericLimit(entitlement.limit_value),
   };
 }
 

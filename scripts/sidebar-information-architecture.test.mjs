@@ -29,11 +29,13 @@ test('support is a first-class Help destination and system actions keep an intui
   const system=sidebar.indexOf('sidebarSystemLabel">Sistema');
   const settings=sidebar.indexOf('>Configuración</span>',system);
   const admin=sidebar.indexOf('>Administración</span>',system);
-  const theme=sidebar.indexOf("theme==='dark'?'Modo claro':'Modo oscuro'",system);
   const logout=sidebar.indexOf('>Cerrar sesión</span>',system);
+  const theme=sidebar.indexOf('sidebarThemeControl',system);
   assert.ok(ayuda>=0&&soporte>ayuda);
-  assert.ok(system>=0&&settings>system&&admin>settings&&theme>admin&&logout>theme);
+  assert.ok(system>=0&&settings>system&&admin>settings&&logout>admin&&theme>logout);
   assert.match(sidebar,/CircleHelp/);
+  assert.match(sidebar,/>Claro<\/span>/);
+  assert.match(sidebar,/>Oscuro<\/span>/);
   assert.doesNotMatch(sidebar,/LifeBuoy/);
 });
 

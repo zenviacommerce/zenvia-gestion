@@ -68,5 +68,5 @@ test('managed user creation reports duplicate emails instead of a generic Edge F
   assert.match(edge,/\.ilike\('email', email\)/);
   assert.match(edge,/already\|registered\|exists\|duplicate/);
   assert.match(access,/FunctionsHttpError/);
-  assert.match(access,/payload\?\.error\|\|payload\?\.message/);
+  assert.match(access,/payload\?\.error\s*\|\|\s*payload\?\.message/);
 });

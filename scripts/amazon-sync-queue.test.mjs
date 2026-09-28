@@ -62,7 +62,7 @@ test('orchestrator and worker are internal-only and worker claims bounded jobs a
   assert.match(orchestrator,/requireInternalSecret/);
   assert.match(worker,/requireInternalSecret/);
   assert.match(worker,/rpc\('amazon_claim_sync_jobs'/);
-  assert.match(worker,/limit_count:\s*6/);
+  assert.match(worker,/limit_count:\s*2/);
   assert.match(worker,/markJobFailed/);
 });
 
@@ -107,4 +107,13 @@ test('production Amazon worker cron uses direct pg_net invocation instead of a m
   assert.match(migration,/amazon_cron_secret_key/);
   const command=migration.slice(migration.indexOf('select cron.schedule'));
   assert.doesNotMatch(command,/amazon_invoke_internal_function/);
+});
+
+
+test('Amazon workers are serialized so minute cron invocations cannot overlap',async()=>{
+  const migrations=await migrationsSource();
+  assert.match(migrations,/amazon_sync_jobs_running_locked_idx/);
+  assert.match(migrations,/active\.status\s*=\s*'running'/);
+  assert.match(migrations,/active\.locked_at\s*>=\s*now\(\)\s*-\s*interval\s*'15 minutes'/);
+  assert.match(migrations,/if\s+exists\s*\([\s\S]*status\s*=\s*'running'[\s\S]*then\s+return/i);
 });

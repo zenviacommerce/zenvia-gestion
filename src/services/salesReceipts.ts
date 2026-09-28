@@ -14,6 +14,15 @@ export type SalesReceiptLine={
   lineTotal?:number;
 };
 
+export type SalesReceiptPayment={
+  id:string;
+  paymentDate:string;
+  amount:number;
+  method?:string|null;
+  reference?:string|null;
+  notes?:string|null;
+};
+
 export type SalesReceipt={
   id:string;
   clientId:string;
@@ -23,10 +32,9 @@ export type SalesReceipt={
   currency:string;
   notes?:string|null;
   totalAmount:number;
-  invoiceId?:string|null;
-  invoiceNumber?:string|null;
-  invoiceStatus?:string|null;
   lines:SalesReceiptLine[];
+  payments:SalesReceiptPayment[];
+  paidAmount:number;
 };
 
 export type SalesReceiptInput={
@@ -64,15 +72,14 @@ function lineRows(receiptId:string,lines:SalesReceiptLine[]){
 }
 
 export async function loadSalesReceipts():Promise<SalesReceipt[]>{
-  const [receiptResult,lineResult,clientResult,invoiceResult]=await Promise.all([
+  const [receiptResult,lineResult,clientResult,paymentResult]=await Promise.all([
     supabase.from('sales_receipts').select('*').order('receipt_date',{ascending:false}).order('created_at',{ascending:false}),
     supabase.from('sales_receipt_lines').select('*').order('position'),
     supabase.from('clients').select('id,name'),
-    supabase.from('sales_invoices').select('id,invoice_number,status'),
+    supabase.from('sales_receipt_payments').select('*').order('payment_date').order('created_at'),
   ]);
-  for(const result of [receiptResult,lineResult,clientResult,invoiceResult])if(result.error)throw result.error;
+  for(const result of [receiptResult,lineResult,clientResult,paymentResult])if(result.error)throw result.error;
   const clients=new Map((clientResult.data??[]).map((row:any)=>[row.id,row.name]));
-  const invoices=new Map((invoiceResult.data??[]).map((row:any)=>[row.id,row]));
   const lines=new Map<string,SalesReceiptLine[]>();
   for(const row of lineResult.data??[]){
     const bucket=lines.get(row.receipt_id)??[];
@@ -83,13 +90,18 @@ export async function loadSalesReceipts():Promise<SalesReceipt[]>{
     });
     lines.set(row.receipt_id,bucket);
   }
+  const payments=new Map<string,SalesReceiptPayment[]>();
+  for(const row of paymentResult.data??[]){
+    const bucket=payments.get(row.receipt_id)??[];
+    bucket.push({id:row.id,paymentDate:row.payment_date,amount:n(row.amount),method:row.method,reference:row.reference,notes:row.notes});
+    payments.set(row.receipt_id,bucket);
+  }
   return (receiptResult.data??[]).map((row:any)=>{
-    const invoice:any=row.invoice_id?invoices.get(row.invoice_id):null;
+    const receiptPayments=payments.get(row.id)??[];
     return {
       id:row.id,clientId:row.client_id,clientName:clients.get(row.client_id)||'Cliente',receiptNumber:row.receipt_number,
       receiptDate:row.receipt_date,currency:row.currency||'EUR',notes:row.notes,totalAmount:n(row.total_amount),
-      invoiceId:row.invoice_id||null,invoiceNumber:invoice?.invoice_number||null,invoiceStatus:invoice?.status||null,
-      lines:lines.get(row.id)??[],
+      lines:lines.get(row.id)??[],payments:receiptPayments,paidAmount:receiptPayments.reduce((sum,payment)=>sum+payment.amount,0),
     };
   });
 }
@@ -105,24 +117,27 @@ export async function createSalesReceipt(input:SalesReceiptInput){
 }
 
 export async function updateSalesReceipt(id:string,input:SalesReceiptInput){
-  const {data:updated,error}=await supabase.from('sales_receipts').update(receiptRow(input)).eq('id',id).is('invoice_id',null).select('id').maybeSingle();
+  const {error}=await supabase.from('sales_receipts').update(receiptRow(input)).eq('id',id);
   if(error)throw error;
-  if(!updated)throw new Error('Este recibo ya está vinculado a una factura y no se puede modificar.');
-  const {error:deleteError}=await supabase.from('sales_receipt_lines').delete().eq('receipt_id',id);if(deleteError)throw deleteError;
   const rows=lineRows(id,input.lines);
   if(!rows.length)throw new Error('Añade al menos una línea al recibo.');
+  const {error:deleteError}=await supabase.from('sales_receipt_lines').delete().eq('receipt_id',id);if(deleteError)throw deleteError;
   const {error:lineError}=await supabase.from('sales_receipt_lines').insert(rows);if(lineError)throw lineError;
 }
 
 export async function deleteSalesReceipt(id:string){
-  const {data,error}=await supabase.from('sales_receipts').delete().eq('id',id).is('invoice_id',null).select('id').maybeSingle();
+  const {error}=await supabase.from('sales_receipts').delete().eq('id',id);
   if(error)throw error;
-  if(!data)throw new Error('Este recibo ya está vinculado a una factura y no se puede eliminar.');
 }
 
-export async function linkSalesReceiptsToInvoice(receiptIds:string[],invoiceId:string){
-  if(!receiptIds.length)return;
-  const {data,error}=await supabase.from('sales_receipts').update({invoice_id:invoiceId}).in('id',receiptIds).is('invoice_id',null).select('id');
+export async function addSalesReceiptPayment(receiptId:string,input:{amount:number;paymentDate:string;method?:string;reference?:string;notes?:string}){
+  const {error}=await supabase.from('sales_receipt_payments').insert({
+    receipt_id:receiptId,
+    amount:Number(input.amount),
+    payment_date:sanitizeDatabaseSingleLine(input.paymentDate),
+    method:nullable(input.method),
+    reference:nullable(input.reference),
+    notes:nullable(input.notes),
+  });
   if(error)throw error;
-  if((data??[]).length!==receiptIds.length)throw new Error('Alguno de los recibos ya estaba vinculado a otra factura.');
 }

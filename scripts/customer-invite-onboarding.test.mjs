@@ -57,3 +57,16 @@ test('customer bridge exposes a lightweight active-user identity lookup for rout
   assert.match(bridge,/active',true/);
   assert.match(bridge,/exists:Boolean/);
 });
+
+
+test('managed user creation reports duplicate emails instead of a generic Edge Function failure',async()=>{
+  const [edge,access]=await Promise.all([
+    read('supabase/functions/admin-users/index.ts'),
+    read('src/services/access.ts'),
+  ]);
+  assert.match(edge,/Ya existe un usuario con ese correo electrónico/);
+  assert.match(edge,/\.ilike\('email', email\)/);
+  assert.match(edge,/already\|registered\|exists\|duplicate/);
+  assert.match(access,/FunctionsHttpError/);
+  assert.match(access,/payload\?\.error\|\|payload\?\.message/);
+});

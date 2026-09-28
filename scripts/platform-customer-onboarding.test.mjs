@@ -31,3 +31,11 @@ test('plan configuration persists commercial metadata and entitlements',async()=
   assert.match(bridge,/trialDays/);
   assert.match(bridge,/entitlements/);
 });
+
+
+test('workspace user admin guards bind the count they inspect',async()=>{
+  const bridge=await read('supabase/functions/platform-bridge/index.ts');
+  const matches=bridge.match(/count:adminCount,error:adminCountError/g)||[];
+  assert.equal(matches.length,2);
+  assert.doesNotMatch(bridge,/const \{count,error:adminCountError\}/);
+});

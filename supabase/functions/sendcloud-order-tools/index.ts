@@ -203,11 +203,11 @@ Deno.serve(async(req:Request)=>{
     if(action==='update_order'){
       if(!canEdit(order.source_status)||order.sendcloud_parcel_id)return fail('Solo puedes editar pedidos pendientes antes de crear la etiqueta.',409);
       const input=body?.order||{},current=order.shipping_address||{};
-      const name=clean(input.customerName||current.name||order.customer_name),email=clean(input.email??current.email??order.customer_email),phone=clean(input.phone??current.phone_number??order.customer_phone);
+      const name=clean(input.customerName||current.name||order.customer_name),companyName=clean(input.companyName??current.company_name),email=clean(input.email??current.email??order.customer_email),phone=clean(input.phone??current.phone_number??order.customer_phone);
       const address1=clean(input.address??current.address_line_1),houseNumber=clean(input.houseNumber??current.house_number),address2=clean(input.address2??current.address_line_2),postalCode=clean(input.postalCode??current.postal_code),city=clean(input.city??current.city),countryCode=clean(input.countryCode??current.country_code).toUpperCase();
       const stateInput=clean(input.stateProvince??current.state_province_code),stateProvince=normalizeStateProvince(countryCode,stateInput);
       const weightKg=Number(input.weightKg);if(!name||!address1||!postalCode||!city||countryCode.length!==2)return fail('Completa nombre, dirección, código postal, ciudad y país.');if(!Number.isFinite(weightKg)||weightKg<=0)return fail('El peso debe ser mayor que 0.');
-      const shippingAddress={...current,name,address_line_1:address1,house_number:houseNumber||null,address_line_2:address2||null,postal_code:postalCode,city,state_province_code:stateProvince,country_code:countryCode,email:email||null,phone_number:phone||null};
+      const shippingAddress={...current,name,company_name:companyName||null,address_line_1:address1,house_number:houseNumber||null,address_line_2:address2||null,postal_code:postalCode,city,state_province_code:stateProvince,country_code:countryCode,email:email||null,phone_number:phone||null};
       const raw=order.raw_payload||{},shippingDetails={...(raw.shipping_details||{}),measurement:{...(raw.shipping_details?.measurement||{}),weight:{value:Number(weightKg.toFixed(3)),unit:'kg'}}};
       const customerDetails={...(raw.customer_details||{}),name,email:email||null,phone_number:phone||null};
       const patch={shipping_address:shippingAddress,shipping_details:shippingDetails,customer_details:customerDetails};

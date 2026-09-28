@@ -143,9 +143,22 @@ async function tenantRouter(payload:{email?:string;tenant?:string}):Promise<Tena
   return {status:'unresolved',error:typeof data?.error==='string'?data.error:undefined};
 }
 
+function clearTenantQuery(){
+  if(typeof window==='undefined')return;
+  try{
+    const url=new URL(window.location.href);
+    if(!url.searchParams.has('tenant'))return;
+    url.searchParams.delete('tenant');
+    window.history.replaceState({},'',url.pathname+(url.search?url.search:'')+url.hash);
+  }catch{/* best effort */}
+}
+
 export async function resolveAndActivateTenant(input:{email?:string;tenant?:string}):Promise<TenantResolution>{
   const result=await tenantRouter(input);
-  if(result.status==='resolved')await activateTenant(result.tenant,true);
+  if(result.status==='resolved'){
+    await activateTenant(result.tenant,true);
+    if(input.email&&!input.tenant)clearTenantQuery();
+  }
   return result;
 }
 

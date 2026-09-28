@@ -9,7 +9,8 @@ test('platform owner invites land in customer app and require password setup',as
   assert.match(platform,/CUSTOMER_APP_URL/);
   assert.match(platform,/https:\/\/gestion\.zenviacommerce\.com/);
   assert.match(platform,/inviteUserByEmail\(ownerEmail,\{/);
-  assert.match(platform,/redirectTo:customerAppUrl/);
+  assert.match(platform,/tenant=/);
+  assert.match(platform,/workspaceSlug/);
   assert.match(platform,/onboarding_pending:true/);
 });
 

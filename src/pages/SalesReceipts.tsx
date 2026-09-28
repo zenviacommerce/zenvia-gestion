@@ -98,6 +98,7 @@ function ReceiptModal({receipt,clients,products,onClose,onSaved}:{receipt:SalesR
 }
 
 function ReceiptPaymentModal({receipt,salesSettings,onClose,onSaved}:{receipt:SalesReceipt|null;salesSettings:SalesSettings;onClose:()=>void;onSaved:()=>Promise<void>}){
+  const {settings}=useSettings();
   const pending=receipt?pendingAmount(receipt):0;
   const defaultMethod=salesSettings.paymentMethods.find(item=>item.id===salesSettings.defaultPaymentMethod&&item.active)?.label||salesSettings.paymentMethods.find(item=>item.active)?.label||'';
   const paymentOptions=salesSettings.paymentMethods.filter(item=>item.active).map(item=>({value:item.label,label:item.label}));
@@ -127,7 +128,7 @@ function ReceiptPaymentModal({receipt,salesSettings,onClose,onSaved}:{receipt:Sa
     <div className="modalHead salesModalHead"><div><div className="eyebrow">COBRO DE RECIBO</div><h3>Registrar cobro</h3><p>{receipt.receiptNumber} · {receipt.clientName} · Pendiente {money(pending)}</p></div><button onClick={onClose}><X/></button></div>
     <div className="salesPaymentQuick"><button type="button" className="primary" onClick={()=>setAmount(pending)}>Cobrar todo · {money(pending)}</button><span>{salesSettings.allowPartialPayments?'Puedes registrar también un cobro parcial.':'Los cobros parciales están desactivados.'}</span></div>
     <div className="salesFormSection"><div className="salesFormGrid"><label>Importe<input type="number" min="0.01" max={pending} step="0.01" value={amount} disabled={!salesSettings.allowPartialPayments} onChange={e=>setAmount(Number(e.target.value))}/></label><label>Fecha<input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label><label>Método<SelectField value={method} onChange={setMethod} ariaLabel="Método de cobro" options={paymentOptions}/></label><label>Referencia<input value={reference} onChange={e=>setReference(e.target.value)} placeholder="Nº operación, transferencia…"/></label><label className="salesSpan2">Notas<input value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Opcional"/></label></div></div>
-    {receipt.payments.length>0&&<div className="salesReceiptPaymentHistory"><strong>Cobros anteriores</strong>{receipt.payments.map(payment=><div key={payment.id}><span>{formatAppDate(payment.paymentDate,undefined,'—')}{payment.method?` · ${payment.method}`:''}</span><strong>{money(payment.amount)}</strong></div>)}</div>}
+    {receipt.payments.length>0&&<div className="salesReceiptPaymentHistory"><strong>Cobros anteriores</strong>{receipt.payments.map(payment=><div key={payment.id}><span>{formatAppDate(payment.paymentDate,settings.general,'—')}{payment.method?` · ${payment.method}`:''}</span><strong>{money(payment.amount)}</strong></div>)}</div>}
     {error&&<div className="errorBox">{error}</div>}
     <div className="modalActions"><button className="secondary" onClick={onClose} disabled={busy}>Cancelar</button><button className="primary" disabled={busy||pending<=0.005} onClick={()=>void save()}>{busy?'Guardando…':amount>=pending-0.005?'Cobrar recibo':'Registrar cobro parcial'}</button></div>
   </div></div>;

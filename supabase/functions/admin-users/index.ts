@@ -81,9 +81,8 @@ async function writeAudit(admin: any, caller: any, actorEmail: string | null | u
   if (error) console.error('No se pudo registrar la auditoría administrativa:', error.message);
 }
 
-async function trySyncIdentityRoute(action:'register_identity'|'unregister_identity',email:string){
+async function trySyncIdentityRoute(action:'register_identity'|'unregister_identity',workspaceId:string,email:string){
   const base=(Deno.env.get('PLATFORM_CONTROL_PLANE_URL')||'').replace(/\/$/,'');
-  const workspaceId=Deno.env.get('PLATFORM_WORKSPACE_ID')||'';
   const bridgeToken=Deno.env.get('PLATFORM_BRIDGE_TOKEN')||'';
   if(!base||!workspaceId||!bridgeToken){
     console.warn('Sincronización de identidad diferida: faltan credenciales de Platform.');
@@ -256,7 +255,7 @@ Deno.serve(async (req: Request) => {
         await admin.auth.admin.deleteUser(created.user.id).catch(() => undefined);
         throw profileError;
       }
-      const routeSynced=await trySyncIdentityRoute('register_identity',email);
+      const routeSynced=await trySyncIdentityRoute('register_identity',String(workspaceId),email);
       const welcome=await sendWelcomeEmail({
         email,
         fullName,
@@ -301,7 +300,7 @@ Deno.serve(async (req: Request) => {
 
       const previous_email=String(target.email||'').trim().toLowerCase();
       const emailChanged=email!==previous_email;
-      if(emailChanged)await trySyncIdentityRoute('register_identity',email);
+      if(emailChanged)await trySyncIdentityRoute('register_identity',String(workspaceId),email);
 
       const authUpdate: Record<string, unknown> = {
         email,
@@ -310,7 +309,7 @@ Deno.serve(async (req: Request) => {
       if (password) authUpdate.password = password;
       const { error: authError } = await admin.auth.admin.updateUserById(targetId, authUpdate);
       if (authError){
-        if(emailChanged)await trySyncIdentityRoute('unregister_identity',email);
+        if(emailChanged)await trySyncIdentityRoute('unregister_identity',String(workspaceId),email);
         return fail(authError.message);
       }
 
@@ -323,10 +322,10 @@ Deno.serve(async (req: Request) => {
         updated_at: new Date().toISOString(),
       }).eq('user_id', targetId);
       if (profileError){
-        if(emailChanged)await syncIdentityRoute('unregister_identity',email).catch(()=>undefined);
+        if(emailChanged)await trySyncIdentityRoute('unregister_identity',String(workspaceId),email).catch(()=>undefined);
         throw profileError;
       }
-      if(emailChanged)await trySyncIdentityRoute('unregister_identity',previous_email);
+      if(emailChanged)await trySyncIdentityRoute('unregister_identity',String(workspaceId),previous_email);
 
       const auditAction = target.active !== active ? (active ? 'activate_user' : 'deactivate_user') : 'update_user';
       const summary = target.active !== active ? `${active ? 'Activó' : 'Desactivó'} el usuario ${email}` : `Modificó el usuario ${email}`;
@@ -350,7 +349,7 @@ Deno.serve(async (req: Request) => {
       if (targetId === callerId) return fail('No puedes eliminar tu propio acceso de administrador.');
       const { error } = await admin.auth.admin.deleteUser(targetId);
       if (error) return fail(error.message);
-      await trySyncIdentityRoute('unregister_identity',String(target.email||'').trim().toLowerCase());
+      await trySyncIdentityRoute('unregister_identity',String(workspaceId),String(target.email||'').trim().toLowerCase());
       await writeAudit(admin, caller, userData.user.email, 'delete_user', targetId, target.email, `Eliminó el usuario ${target.email}`, { full_name: target.full_name, permissions: target.permissions, active: target.active });
       return new Response(JSON.stringify({ ok: true }), { headers: jsonHeaders });
     }

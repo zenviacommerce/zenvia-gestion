@@ -217,11 +217,12 @@ export default function App(){
    else setOrdersPendingEntry(false);
    setPage(next);
  };
- const toggleTheme=()=>{
-   const next:ThemeMode=theme==='dark'?'light':'dark';
+ const changeTheme=(next:ThemeMode)=>{
+   if(next===theme)return;
    setTheme(next);
    void patchPreferences({theme:next}).catch(e=>showError(errorMessage(e,'No se pudo guardar el tema.')));
  };
+ const toggleTheme=()=>changeTheme(theme==='dark'?'light':'dark');
  const runAction=async(work:()=>Promise<void>,fallback:string)=>{
    try{await work()}
    catch(e){throw new Error(errorMessage(e,fallback));}
@@ -287,7 +288,7 @@ export default function App(){
    await runAction(async()=>{await deleteSupplier(supplier.id);await refresh()},'No se pudo eliminar el proveedor.');
  };
 
- return <div className="app"><ToastHost/><Sidebar page={page} onChange={next=>void navigate(next)} onLogout={()=>supabase.auth.signOut()} theme={theme} onToggleTheme={toggleTheme} allowedPages={allowedPages} isAdmin={access.role==='admin'} user={{fullName:access.fullName,email:access.email||session.user.email||'',role:access.role}}/><main className={passkeySetupVisible?'hasPasskeySetup':''}>
+ return <div className="app"><ToastHost/><Sidebar page={page} onChange={next=>void navigate(next)} onLogout={()=>supabase.auth.signOut()} theme={theme} onThemeChange={changeTheme} allowedPages={allowedPages} isAdmin={access.role==='admin'} user={{fullName:access.fullName,email:access.email||session.user.email||'',role:access.role}}/><main className={passkeySetupVisible?'hasPasskeySetup':''}>
    <button className="mobileLogoutButton" onClick={()=>supabase.auth.signOut()} title="Cerrar sesión" aria-label="Cerrar sesión"><LogOut size={19}/></button>
    <button className="mobileThemeToggle" onClick={toggleTheme} title={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'} aria-label={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'}>{theme==='dark'?<Sun size={19}/>:<Moon size={19}/>}</button>
    <PasskeySetup userId={session.user.id} onVisibilityChange={setPasskeySetupVisible}/>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import JSZip from 'jszip';
 import {
   AlertCircle, Calculator, CheckCircle2, ChevronRight, Download, Euro,
@@ -212,6 +212,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   }>(preferences,'orders.filters',{query:'',state:'pending',trackingFilter:'all',countryFilter:'all',carrierFilter:'all',dateFilter:defaultDateFilter(preferences.defaultPeriod)});
   const [orders,setOrders]=useState<FulfillmentOrder[]>([]),[status,setStatus]=useState<SendcloudStatus|null>(null);
   const [loading,setLoading]=useState(true),[syncing,setSyncing]=useState(false),[error,setError]=useState('');
+  const syncingRef=useRef(false);
   const [query,setQuery]=useState(pendingOnly?'':remembered.query),[channel,setChannel]=useState<'all'|OrderChannel>('all'),[state,setState]=useState<OrderFilter>(pendingOnly?'pending':remembered.state),[trackingFilter,setTrackingFilter]=useState<TrackingFilter>(pendingOnly?'all':remembered.trackingFilter),[countryFilter,setCountryFilter]=useState(pendingOnly?'all':remembered.countryFilter),[carrierFilter,setCarrierFilter]=useState(pendingOnly?'all':remembered.carrierFilter);
   const [selected,setSelected]=useState<FulfillmentOrder|null>(null),[labelOrder,setLabelOrder]=useState<FulfillmentOrder|null>(null),[options,setOptions]=useState<ShippingOption[]>([]),[optionsLoading,setOptionsLoading]=useState(false),[busyOrder,setBusyOrder]=useState<string|null>(null);
   const [printers,setPrinters]=useState<LocalPrinter[]>([]),[printer,setPrinter]=useState(preferences.labelPrinterId||''),[printerChecking,setPrinterChecking]=useState(false);
@@ -251,7 +252,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     return()=>{cancelled=true};
   },[orders]);
 
-  const sync=useCallback(async(silent=false,history=false,automatic=false)=>{if(syncing)return;setSyncing(true);if(!silent)setError('');try{const result=await syncSendcloudOrders(history,settings.orders.retryTrackingConfirmation,automatic);setStatus({configured:true,integrations:result.integrations});await refresh();if(history)markHistorySyncDone();if(!silent)showSuccess(`${result.synced} pedidos actualizados desde Sendcloud.`)}catch(e){const message=errorMessage(e,'No se pudieron actualizar los pedidos.');if(!silent)showError(message)}finally{setSyncing(false)}},[refresh,syncing,settings.orders.retryTrackingConfirmation]);
+  const sync=useCallback(async(silent=false,history=false,automatic=false)=>{if(syncingRef.current)return;syncingRef.current=true;setSyncing(true);if(!silent)setError('');try{const result=await syncSendcloudOrders(history,settings.orders.retryTrackingConfirmation,automatic);setStatus({configured:true,integrations:result.integrations});await refresh();if(history)markHistorySyncDone();if(!silent)showSuccess(`${result.synced} pedidos actualizados desde Sendcloud.`)}catch(e){const message=errorMessage(e,'No se pudieron actualizar los pedidos.');if(!silent)showError(message)}finally{syncingRef.current=false;setSyncing(false)}},[refresh,settings.orders.retryTrackingConfirmation]);
   useEffect(()=>{if(!status?.configured||!settings.integrations.sendcloudEnabled)return;void sync(true,shouldRunHistorySync(),true);const timer=window.setInterval(()=>void sync(true,false,true),Math.max(30,settings.orders.refreshSeconds)*1000);return()=>window.clearInterval(timer)},[status?.configured,sync,settings.orders.refreshSeconds,settings.integrations.sendcloudEnabled]);
 
   const dateFrom=dateFilter.from,dateTo=dateFilter.to;

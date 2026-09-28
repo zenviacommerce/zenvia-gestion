@@ -55,11 +55,14 @@ export function createSalesReceiptPdfBlob(
     doc.text(money(line.lineTotal??(line.quantity*line.unitPrice*(1-(line.discountPercent||0)/100))),194,y,{align:'right'});
     y+=Math.max(7,description.length*4.5+2);
   }
-  y+=5;doc.line(125,y,196,y);y+=9;
-  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.text('Pendiente (sin IVA):',160,y,{align:'right'});doc.text(money(receipt.totalAmount),194,y,{align:'right'});
+  const pending=Math.max(0,receipt.totalAmount-receipt.paidAmount);
+  y+=5;doc.line(125,y,196,y);y+=8;doc.setFontSize(9);
+  doc.setFont('helvetica','normal');doc.text('Total recibo (sin IVA):',160,y,{align:'right'});doc.text(money(receipt.totalAmount),194,y,{align:'right'});y+=6;
+  if(receipt.paidAmount>0){doc.text('Cobrado:',160,y,{align:'right'});doc.text(money(receipt.paidAmount),194,y,{align:'right'});y+=6;}
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.text(pending<=0.005?'COBRADO':'Pendiente:',160,y,{align:'right'});doc.text(money(pending),194,y,{align:'right'});
   y+=15;doc.setFont('helvetica','normal');doc.setFontSize(8.5);
   doc.setTextColor(90);
-  doc.text(doc.splitTextToSize('Documento interno de control de entregas pendientes de facturar. No es una factura ni sustituye a la factura correspondiente. El IVA no se desglosa en este documento y se calculará al emitir la factura.',180),14,y);
+  doc.text(doc.splitTextToSize('Documento interno de control de entregas y cobros. No es una factura ni sustituye a la factura correspondiente. El IVA no se desglosa en este documento y solo se aplicará cuando se prepare la factura.',180),14,y);
   y+=16;
   if(receipt.notes){doc.setTextColor(40);doc.text(doc.splitTextToSize(`Notas: ${receipt.notes}`,180),14,y);}
   return doc.output('blob');

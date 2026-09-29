@@ -93,6 +93,9 @@ export type ShippingSettings = {
   senderCity: string;
   senderCountryCode: string;
   fallbackWeightKg: number;
+  defaultPackageLengthCm: number;
+  defaultPackageWidthCm: number;
+  defaultPackageHeightCm: number;
   weightUnit: 'kg' | 'g';
   labelSize: 'AUTO' | 'A4' | 'A5' | 'A6' | '10x15';
   labelOrientation: 'portrait' | 'landscape';
@@ -309,6 +312,9 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     senderCity: '',
     senderCountryCode: 'ES',
     fallbackWeightKg: 1,
+    defaultPackageLengthCm: 20,
+    defaultPackageWidthCm: 20,
+    defaultPackageHeightCm: 10,
     weightUnit: 'kg',
     labelSize: 'A6',
     labelOrientation: 'portrait',
@@ -747,7 +753,7 @@ function normalizeOrders(input:AnyRecord|null,warnings:SettingsWarning[]):Orders
 
 function normalizeShipping(input:AnyRecord|null,warnings:SettingsWarning[]):ShippingSettings{
   const d=DEFAULT_APP_SETTINGS.shipping;if(!input)return clone(d);
-  const keys=['senderName','senderAddress','senderPostalCode','senderCity','senderCountryCode','fallbackWeightKg','weightUnit','labelSize','labelOrientation','copies','autoDownload','enabledCarriers','noValidMethodBehavior','confirmShipmentAfterLabel','persistShippingCost'];
+  const keys=['senderName','senderAddress','senderPostalCode','senderCity','senderCountryCode','fallbackWeightKg','defaultPackageLengthCm','defaultPackageWidthCm','defaultPackageHeightCm','weightUnit','labelSize','labelOrientation','copies','autoDownload','enabledCarriers','noValidMethodBehavior','confirmShipmentAfterLabel','persistShippingCost'];
   unknownKeys(input,keys,'shipping',warnings);
   return {
     senderName:stringValue(input,'senderName',d.senderName,'shipping.senderName',warnings,{max:160}),
@@ -756,6 +762,9 @@ function normalizeShipping(input:AnyRecord|null,warnings:SettingsWarning[]):Ship
     senderCity:stringValue(input,'senderCity',d.senderCity,'shipping.senderCity',warnings,{max:120}),
     senderCountryCode:stringValue(input,'senderCountryCode',d.senderCountryCode,'shipping.senderCountryCode',warnings,{min:2,max:2,upper:true,pattern:/^[A-Za-z]{2}$/}),
     fallbackWeightKg:numberValue(input,'fallbackWeightKg',d.fallbackWeightKg,'shipping.fallbackWeightKg',warnings,0.001,1000),
+    defaultPackageLengthCm:numberValue(input,'defaultPackageLengthCm',d.defaultPackageLengthCm,'shipping.defaultPackageLengthCm',warnings,1,300),
+    defaultPackageWidthCm:numberValue(input,'defaultPackageWidthCm',d.defaultPackageWidthCm,'shipping.defaultPackageWidthCm',warnings,1,300),
+    defaultPackageHeightCm:numberValue(input,'defaultPackageHeightCm',d.defaultPackageHeightCm,'shipping.defaultPackageHeightCm',warnings,1,300),
     weightUnit:enumValue(input,'weightUnit',d.weightUnit,'shipping.weightUnit',warnings,['kg','g']),
     labelSize:enumValue(input,'labelSize',d.labelSize,'shipping.labelSize',warnings,['AUTO','A4','A5','A6','10x15']),
     labelOrientation:enumValue(input,'labelOrientation',d.labelOrientation,'shipping.labelOrientation',warnings,['portrait','landscape']),

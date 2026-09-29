@@ -343,29 +343,32 @@ export default function App(){
    if(action.type==='open_supplier_create'&&can('suppliers')){void navigate('suppliers');openNewSupplier();}
  };
 
- return <div className="app"><ToastHost/><AppAgent
-   allowedPages={allowedPages}
-   currentPage={page}
-   context={{
-     expenseInvoices:data.invoices.length,
-     products:data.products.length,
-     suppliers:data.suppliers.length,
-     workspace:access.workspaceName,
-     role:access.role,
-   }}
-   onAction={handleAgentAction}
- /><Sidebar page={page} onChange={next=>void navigate(next)} onLogout={()=>supabase.auth.signOut()} theme={theme} onThemeChange={changeTheme} allowedPages={allowedPages} isAdmin={access.role==='admin'} user={{fullName:access.fullName,email:access.email||session.user.email||'',role:access.role}} logoSrc={workspaceLogo}/><main className={passkeySetupVisible?'hasPasskeySetup':''}>
+ return <div className="app"><ToastHost/><Sidebar page={page} onChange={next=>void navigate(next)} onLogout={()=>supabase.auth.signOut()} theme={theme} onThemeChange={changeTheme} allowedPages={allowedPages} isAdmin={access.role==='admin'} user={{fullName:access.fullName,email:access.email||session.user.email||'',role:access.role}} logoSrc={workspaceLogo}/><main className={passkeySetupVisible?'hasPasskeySetup':''}>
+   <div className="appGlobalTools">
+     <AppAgent
+       allowedPages={allowedPages}
+       currentPage={page}
+       context={{
+         expenseInvoices:data.invoices.length,
+         products:data.products.length,
+         suppliers:data.suppliers.length,
+         workspace:access.workspaceName,
+         role:access.role,
+       }}
+       onAction={handleAgentAction}
+     />
+     <AlertCenter
+       notifications={settings.notifications}
+       invoices={data.invoices}
+       products={data.products}
+       suppliers={data.suppliers}
+       onNavigate={next=>void navigate(next as Page)}
+       canNavigate={next=>allowedPages.includes(next as Page)}
+     />
+   </div>
    <button className="mobileLogoutButton" onClick={()=>supabase.auth.signOut()} title="Cerrar sesión" aria-label="Cerrar sesión"><LogOut size={19}/></button>
    <button className="mobileThemeToggle" onClick={toggleTheme} title={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'} aria-label={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'}>{theme==='dark'?<Sun size={19}/>:<Moon size={19}/>}</button>
    <PasskeySetup userId={session.user.id} onVisibilityChange={setPasskeySetupVisible}/>
-   <AlertCenter
-     notifications={settings.notifications}
-     invoices={data.invoices}
-     products={data.products}
-     suppliers={data.suppliers}
-     onNavigate={next=>void navigate(next as Page)}
-     canNavigate={next=>allowedPages.includes(next as Page)}
-   />
    {error&&<div className="globalError">{error}<button onClick={refresh}>Reintentar</button></div>}
    {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders',{pendingOrders:true}):undefined}/>} 
    {page==='sales'&&can('sales')&&<SalesInvoices/>}

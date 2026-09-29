@@ -11,7 +11,7 @@ export interface ShippingPricePreview{
   currency:string;
   carrierName:string;
   serviceName:string;
-  source:'tariff_estimate'|'sendcloud_quote'|'recorded';
+  source:'tariff_estimate'|'sendcloud_quote'|'envia_quote'|'recorded';
   note?:string|null;
 }
 
@@ -115,7 +115,13 @@ export function calculateDefaultShippingPreview(order:FulfillmentOrder,tariffs:T
 
 export function previewFromShippingOption(option:ShippingOption|null):ShippingPricePreview|null{
   if(!option||option.price==null)return null;
-  return {totalAmount:option.price,netAmount:null,taxAmount:null,currency:option.currency||'EUR',carrierName:option.carrierName||option.carrierCode,serviceName:option.name,source:'sendcloud_quote',note:'Cotización Sendcloud'};
+  const isEnvia=option.provider==='envia';
+  return {
+    totalAmount:option.price,netAmount:null,taxAmount:null,currency:option.currency||'EUR',
+    carrierName:option.carrierName||option.carrierCode,serviceName:option.name,
+    source:isEnvia?'envia_quote':'sendcloud_quote',
+    note:isEnvia?'Cotización Envia.com':'Cotización Sendcloud',
+  };
 }
 
 export function shippingPriceForOrder(order:FulfillmentOrder,preview:ShippingPricePreview|null|undefined):ShippingPricePreview|null{

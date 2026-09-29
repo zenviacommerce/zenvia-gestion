@@ -27,19 +27,21 @@ test('ZENVIA IA is mounted globally and exposes operational actions through the 
   assert.match(service,/supabase\.functions\.invoke\('app-agent'/);
 });
 
-test('tenant AI proxy authenticates the user and never exposes platform bridge credentials to the browser',async()=>{
+test('tenant-local ZENVIA agent authenticates the user and runs without paid model APIs',async()=>{
   const edge=await read('supabase/functions/app-agent/index.ts');
   assert.match(edge,/admin\.auth\.getUser/);
-  assert.match(edge,/PLATFORM_CONTROL_PLANE_URL/);
-  assert.match(edge,/PLATFORM_BRIDGE_TOKEN/);
-  assert.match(edge,/functions\/v1\/platform-agent/);
-  assert.match(edge,/x-platform-token/);
   assert.match(edge,/authorizedPages/);
   assert.match(edge,/loadBusinessContext/);
+  assert.match(edge,/processLocalAgent/);
+  assert.match(edge,/zenvia-local-v1/);
   assert.match(edge,/\.eq\('owner_id',ownerId\)/);
   assert.match(edge,/fulfillment_orders/);
   assert.match(edge,/sales_invoices/);
   assert.match(edge,/support_tickets/);
+  assert.doesNotMatch(edge,/OPENAI_API_KEY/);
+  assert.doesNotMatch(edge,/api\.openai\.com/);
+  assert.doesNotMatch(edge,/PLATFORM_CONTROL_PLANE_URL/);
+  assert.doesNotMatch(edge,/functions\/v1\/platform-agent/);
 });
 
 
@@ -77,4 +79,16 @@ test('agent proxy returns upstream AI errors as chat payload instead of a generi
   assert.match(edge,/agent_upstream_error/);
   const block=edge.slice(edge.indexOf('if(!upstream.ok)'),edge.indexOf('return response(payload)',edge.indexOf('if(!upstream.ok)')));
   assert.doesNotMatch(block,/upstream\.status/);
+});
+
+
+test('local agent understands core ZENVIA domain commands and real-data questions',async()=>{
+  const edge=await read('supabase/functions/app-agent/index.ts');
+  for(const phrase of [
+    'que tengo pendiente','pedidos pendientes','facturas pendientes','productos sin coste',
+    'sincroniza los pedidos','crea un proveedor','crea un cliente','crea un producto'
+  ])assert.match(edge,new RegExp(phrase));
+  for(const action of ['sync_orders','create_client','create_product','create_supplier','set_expense_status']){
+    assert.match(edge,new RegExp(action));
+  }
 });

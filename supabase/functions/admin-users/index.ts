@@ -105,30 +105,31 @@ async function trySyncIdentityRoute(action:'register_identity'|'unregister_ident
   }
 }
 
-async function sendWelcomeEmail(input:{email:string;fullName:string;temporaryPassword:string;tenantKey:string;workspaceName:string}){
-  const apiKey=(Deno.env.get('RESEND_API_KEY')||'').trim();
-  if(!apiKey)return {delivered:false,reason:'RESEND_API_KEY no configurada'};
-  const base=(Deno.env.get('CUSTOMER_APP_URL')||'https://gestion.zenviacommerce.com').replace(/\/$/,'');
-  const loginUrl=`${base}/?tenant=${encodeURIComponent(input.tenantKey)}`;
-  const from=(Deno.env.get('SUPPORT_EMAIL_FROM')||'ZENVIA Gestión <soporte@zenviacommerce.com>').trim();
-  const html=`
-    <div style="font-family:Arial,sans-serif;max-width:620px;margin:auto;color:#12203a">
-      <h2>Tu acceso a ZENVIA Gestión</h2>
-      <p>Hola ${esc(input.fullName)},</p>
-      <p>Se ha creado tu acceso a <strong>${esc(input.workspaceName)}</strong>.</p>
-      <p><strong>Usuario:</strong> ${esc(input.email)}<br/>
-      <strong>Contraseña temporal:</strong> <code style="font-size:16px">${esc(input.temporaryPassword)}</code></p>
-      <p><a href="${esc(loginUrl)}" style="display:inline-block;padding:12px 18px;background:#14877f;color:#fff;text-decoration:none;border-radius:8px">Entrar en ZENVIA Gestión</a></p>
-      <p>Debes cambiar esta contraseña en tu primer acceso.</p>
-      <p style="color:#667085;font-size:13px">URL de acceso: ${esc(loginUrl)}</p>
-    </div>`;
-  const result=await fetch('https://api.resend.com/emails',{
-    method:'POST',
-    headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-    body:JSON.stringify({from,to:[input.email],subject:`Tu acceso a ${input.workspaceName} en ZENVIA Gestión`,html}),
-  });
-  if(!result.ok)return {delivered:false,reason:`Resend ${result.status}`};
-  return {delivered:true,reason:''};
+async function sendInviteViaPlatform(input:{workspaceId:string;email:string;fullName:string;roleLabel:string;inviteTokenHash:string}){
+  const base=(Deno.env.get('PLATFORM_CONTROL_PLANE_URL')||'').replace(/\/$/,'');
+  const bridgeToken=Deno.env.get('PLATFORM_BRIDGE_TOKEN')||'';
+  if(!base||!bridgeToken)return {delivered:false,reason:'Servicio central de invitaciones no configurado'};
+  try{
+    const result=await fetch(`${base}/functions/v1/tenant-router`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-platform-token':bridgeToken},
+      body:JSON.stringify({
+        action:'send_user_invite',
+        workspaceId:input.workspaceId,
+        email:input.email,
+        fullName:input.fullName,
+        roleLabel:input.roleLabel,
+        inviteTokenHash:input.inviteTokenHash,
+      }),
+    });
+    const payload=await result.json().catch(()=>({}));
+    if(!result.ok||payload?.delivered!==true){
+      return {delivered:false,reason:String(payload?.error||payload?.reason||`Platform respondió ${result.status}`)};
+    }
+    return {delivered:true,reason:''};
+  }catch(error){
+    return {delivered:false,reason:error instanceof Error?error.message:'No se pudo enviar la invitación.'};
+  }
 }
 
 Deno.serve(async (req: Request) => {
@@ -160,7 +161,7 @@ Deno.serve(async (req: Request) => {
     if (!caller?.active || caller.role !== 'admin') return fail('Solo un administrador puede gestionar usuarios.', 403);
     const workspaceId = caller.workspace_id || caller.data_owner_id;
     if (!workspaceId) return fail('Workspace no configurado.', 403);
-    const { data: workspace, error: workspaceError } = await admin.from('workspaces').select('status,name').eq('id', workspaceId).maybeSingle();
+    const { data: workspace, error: workspaceError } = await admin.from('workspaces').select('status,name,slug').eq('id', workspaceId).maybeSingle();
     if (workspaceError) throw workspaceError;
     if (!workspace || !['active','trialing'].includes(workspace.status)) return fail('El acceso de tu empresa está suspendido.', 403);
 
@@ -210,12 +211,10 @@ Deno.serve(async (req: Request) => {
 
       const email = String(body?.email || '').trim().toLowerCase();
       const fullName = String(body?.fullName || '').trim();
-      const password = String(body?.password || '');
       const role = body?.role === 'admin' ? 'admin' : 'user';
       const permissions = role === 'admin' ? [...allowedPermissions] : sanitizePermissions(body?.permissions);
       const identityError = validateIdentity(email, fullName);
       if (identityError) return fail(identityError);
-      if (password.length < 8) return fail('La contraseña debe tener al menos 8 caracteres.');
       if (role === 'user' && !permissions.length) return fail('Selecciona al menos un permiso.');
 
       const { data: existingProfiles, error: existingProfileError } = await admin
@@ -226,23 +225,41 @@ Deno.serve(async (req: Request) => {
       if (existingProfileError) throw existingProfileError;
       if ((existingProfiles || []).length) return fail('Ya existe un usuario con ese correo electrónico.', 409);
 
-      const { data: created, error: createError } = await admin.auth.admin.createUser({
+      const appUrl=(Deno.env.get('CUSTOMER_APP_URL')||'https://gestion.zenviacommerce.com').replace(/\/$/,'');
+      const redirectTo=`${appUrl}/?tenant=${encodeURIComponent(String(workspace.slug||workspaceId))}`;
+      const { data: generated, error: createError } = await admin.auth.admin.generateLink({
+        type:'invite',
         email,
-        password,
-        email_confirm: true,
-        user_metadata: { full_name: fullName, onboarding_pending: true },
-        app_metadata: { zenvia_managed: true },
+        options:{
+          data:{full_name:fullName,onboarding_pending:true,workspace_id:String(workspaceId)},
+          redirectTo,
+        },
       });
-      if (createError || !created.user) {
+      if (createError || !generated?.user) {
         const message = String(createError?.message || '');
         if (/already|registered|exists|duplicate/i.test(message)) {
           return fail('Ya existe un usuario con ese correo electrónico.', 409);
         }
-        return fail(message || 'No se pudo crear el usuario.');
+        return fail(message || 'No se pudo preparar la invitación.');
+      }
+
+      const inviteTokenHash=String(generated.properties?.hashed_token||'');
+      if(!inviteTokenHash){
+        await admin.auth.admin.deleteUser(generated.user.id).catch(()=>undefined);
+        return fail('No se pudo generar el token seguro de activación.',500);
+      }
+
+      const {error:metadataError}=await admin.auth.admin.updateUserById(generated.user.id,{
+        user_metadata:{...(generated.user.user_metadata||{}),full_name:fullName,onboarding_pending:true,workspace_id:String(workspaceId)},
+        app_metadata:{...(generated.user.app_metadata||{}),zenvia_managed:true,workspace_id:String(workspaceId)},
+      });
+      if(metadataError){
+        await admin.auth.admin.deleteUser(generated.user.id).catch(()=>undefined);
+        throw metadataError;
       }
 
       const { error: profileError } = await admin.from('app_users').insert({
-        user_id: created.user.id,
+        user_id: generated.user.id,
         email,
         full_name: fullName || null,
         role,
@@ -252,24 +269,31 @@ Deno.serve(async (req: Request) => {
         permissions,
       });
       if (profileError) {
-        await admin.auth.admin.deleteUser(created.user.id).catch(() => undefined);
+        await admin.auth.admin.deleteUser(generated.user.id).catch(() => undefined);
         throw profileError;
       }
+
       const routeSynced=await trySyncIdentityRoute('register_identity',String(workspaceId),email);
-      const welcome=await sendWelcomeEmail({
+      const invitation=await sendInviteViaPlatform({
+        workspaceId:String(workspaceId),
         email,
         fullName,
-        temporaryPassword:password,
-        tenantKey:String(workspaceId),
-        workspaceName:String(workspace.name||'tu empresa'),
+        roleLabel:role==='admin'?'Administrador':'Usuario',
+        inviteTokenHash,
       });
-      await writeAudit(admin, caller, userData.user.email, 'create_user', created.user.id, email, `Creó el usuario ${email}`, {
+      if(!invitation.delivered){
+        await admin.from('app_users').delete().eq('user_id',generated.user.id).catch(()=>undefined);
+        if(routeSynced)await trySyncIdentityRoute('unregister_identity',String(workspaceId),email).catch(()=>undefined);
+        await admin.auth.admin.deleteUser(generated.user.id).catch(()=>undefined);
+        return fail(`No se pudo enviar la invitación: ${invitation.reason}`,500);
+      }
+
+      await writeAudit(admin, caller, userData.user.email, 'create_user', generated.user.id, email, `Invitó al usuario ${email}`, {
         full_name: fullName, role, permissions, active: true,
-        onboarding_pending:true,route_synced:routeSynced,welcome_email_delivered:welcome.delivered,
+        onboarding_pending:true,route_synced:routeSynced,delivery:'zenvia',activation:'password_first',
       });
       return new Response(JSON.stringify({
-        ok:true,userId:created.user.id,routeSynced,
-        emailDelivered:welcome.delivered,emailWarning:welcome.delivered?'':welcome.reason,
+        ok:true,userId:generated.user.id,routeSynced,emailDelivered:true,
       }), { headers: jsonHeaders });
     }
 

@@ -6,7 +6,7 @@ import { extractSupplierContactData } from './supplierContactExtractor';
 import { extractSupplierInvoiceDetails } from './supplierInvoiceDetails';
 import { validateInvoiceRecipient } from './invoiceRecipientRules';
 import { extractInvoiceParty, formatInvoicePartyAddress } from './invoicePartyExtractor';
-import { isLikelySameSupplier } from './supplierIdentity';
+import { isLikelySameSupplier, isPlausibleSupplierName } from './supplierIdentity';
 import { expenseImportPolicyFromSettings, expenseRequiresReview, type ExpenseImportPolicy } from './expenseImportPolicy';
 import { invoiceAmountsConsistent } from './invoiceFiscalReconciler';
 
@@ -20,17 +20,7 @@ function normalizeKey(value:string){
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 }
 
-function saneSupplierName(value:string){
-  const name=value.trim();
-  if(name.length<3||name.length>120)return false;
-  if(/zenvia\s+commerce/i.test(name))return false;
-  if(/^(?:proveedor\s+gmail|factura|invoice|cliente|customer|original|copia|proforma)$/i.test(name))return false;
-  if(/\b(?:iban|bic|swift|base\s+imponible|total\s+factura|fecha|date)\b/i.test(name))return false;
-  if(/^(?:calle|c\/|avda\.?|avenida|pol[ií]gono|carretera|ctra\.?|plaza)\b/i.test(name))return false;
-  const letters=(name.match(/[A-Za-zÁÉÍÓÚÑÜáéíóúñü]/g)||[]).length;
-  const digits=(name.match(/\d/g)||[]).length;
-  return letters>=3&&digits<=Math.max(8,Math.round(letters*.8));
-}
+function saneSupplierName(value:string){return isPlausibleSupplierName(value);}
 
 function saneInvoiceNumber(value:string){
   const number=value.trim();

@@ -42,7 +42,7 @@ test('Amazon tracking edge function supports one-order confirmation and retries'
 test('label creation keeps the label even if Amazon confirmation fails and regular sync retries it',async()=>{
   const orders=await source('src/services/orders.ts');
   assert.match(orders,/amazon-confirm-shipment/i);
-  assert.match(orders,/createOrderLabel[\s\S]{0,700}invokeAmazonTracking/i);
+  assert.match(orders,/createOrderLabel[\s\S]{0,1800}invokeAmazonTracking/i);
   assert.match(orders,/syncSendcloudOrders[\s\S]{0,700}retry_pending/i);
   assert.match(orders,/catch\s*\{\s*\/\*\s*Amazon tracking is retried/i);
 });

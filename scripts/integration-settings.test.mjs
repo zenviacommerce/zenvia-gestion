@@ -38,7 +38,7 @@ test('Integrations settings editor supports multi-account credentials without ex
   const page=await read('src/pages/Settings.tsx');
   const accounts=await read('src/services/integrationAccounts.ts');
   assert.match(page,/function IntegrationsSection/);
-  for(const label of ['Gmail','Amazon','Sendcloud','Shopify','Probar','Sincronizar','Predeterminada','Conectar Amazon','Conectar Sendcloud','Autorizar Gmail'])assert.match(page,new RegExp(label,'i'),label);
+  for(const label of ['Gmail','Amazon','Sendcloud','Envia.com','Shopify','Probar','Sincronizar','Predeterminada','Conectar Amazon','Conectar Sendcloud','Conectar Envia.com','Autorizar Gmail'])assert.match(page,new RegExp(label,'i'),label);
   assert.match(page,/type="password"/);
   assert.match(page,/Refresh token/i);
   assert.match(page,/Secret key/i);
@@ -94,9 +94,10 @@ test('integration UI shows provider logos and models Shopify honestly as a Sendc
   assert.match(page,/provider==='amazon'/);
   assert.match(page,/provider==='shopify'/);
   assert.match(page,/provider==='sendcloud'/);
+  assert.match(page,/provider==='envia'/);
   assert.match(page,/provider==='gmail'/);
   assert.doesNotMatch(page,/cdn\.simpleicons\.org/);
-  assert.match(page,/primaryProviders:IntegrationProvider\[\]=\['amazon','sendcloud','gmail'\]/);
+  assert.match(page,/primaryProviders:IntegrationProvider\[\]=\['amazon','sendcloud','envia','gmail'\]/);
   assert.match(page,/Shopify vía Sendcloud/);
   assert.match(page,/no usa credenciales Shopify|no se solicita una contraseña de Shopify/i);
   assert.match(page,/Conexión directa con Amazon SP-API/i);

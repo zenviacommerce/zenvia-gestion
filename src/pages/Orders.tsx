@@ -90,8 +90,9 @@ function weightLabel(order:FulfillmentOrder,unit:ShippingSettings['weightUnit'])
 function orderAgeHours(order:FulfillmentOrder){if(!order.orderCreatedAt)return 0;const created=new Date(order.orderCreatedAt).getTime();return Number.isFinite(created)?Math.max(0,(Date.now()-created)/3600000):0;}
 function orderStatusCode(order:FulfillmentOrder){return String(order.sourceStatus||'').trim().toLowerCase();}
 function isCancelledOrder(order:FulfillmentOrder){return orderStatusCode(order).includes('cancel');}
+function hasShippingLabel(order:FulfillmentOrder){return Boolean(order.sendcloudParcelId||order.shippingRemoteId||order.labelCreatedAt);}
 function isReadyForDispatch(order:FulfillmentOrder){
-  if(!order.sendcloudParcelId)return false;
+  if(!hasShippingLabel(order))return false;
   const raw=`${order.trackingStatusCode||''} ${order.trackingStatusMessage||''}`.toLowerCase().replace(/[_-]+/g,' ');
   return raw.includes('ready to send')||raw.includes('ready for shipment')||raw.includes('announced')||raw.includes('being announced')||raw.includes('no label');
 }
@@ -99,8 +100,8 @@ function isProcessedOrder(order:FulfillmentOrder){
   if(isReadyForDispatch(order))return false;
   const status=orderStatusCode(order);return status==='fulfilled'||status==='shipped'||status==='delivered';
 }
-function isLabelledOrder(order:FulfillmentOrder){return Boolean(order.sendcloudParcelId)&&!isCancelledOrder(order)&&!isProcessedOrder(order);}
-function isPendingOrder(order:FulfillmentOrder){return !order.sendcloudParcelId&&!isCancelledOrder(order)&&!isProcessedOrder(order);}
+function isLabelledOrder(order:FulfillmentOrder){return hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);}
+function isPendingOrder(order:FulfillmentOrder){return !hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);}
 function canPrepareOrder(order:FulfillmentOrder){return isPendingOrder(order);}
 function orderState(order:FulfillmentOrder){
   if(isCancelledOrder(order))return {label:'Cancelado',className:'cancelled'};
@@ -109,7 +110,7 @@ function orderState(order:FulfillmentOrder){
   return {label:'Pendiente',className:'pending'};
 }
 function trackingState(order:FulfillmentOrder){
-  if(!order.sendcloudParcelId)return {label:'Sin etiqueta',className:'none'};
+  if(!hasShippingLabel(order))return {label:'Sin etiqueta',className:'none'};
   const raw=`${order.trackingStatusCode||''} ${order.trackingStatusMessage||''}`.toLowerCase().replace(/[_-]+/g,' ');
   if(raw.includes('delivered')||raw.includes('shipment collected by customer'))return {label:'Entregado',className:'delivered'};
   if(raw.includes('driver en route')||raw.includes('out for delivery'))return {label:'En reparto',className:'route'};
@@ -160,14 +161,14 @@ function preferredCarrier(option:ShippingOption){const h=`${option.carrierCode} 
 
 function OrderDrawer({order,shippingPrice,validationIssues,productImages,onClose,onPrepare,onEdit,onPrint,onDownload,busy}:{order:FulfillmentOrder;shippingPrice:ShippingPricePreview|null;validationIssues:OrderValidationIssue[];productImages:Record<string,string>;onClose:()=>void;onPrepare:()=>void;onEdit:()=>void;onPrint:()=>void;onDownload:()=>void;busy:boolean}){
   const {settings}=useSettings();
-  const labelled=Boolean(order.sendcloudParcelId),state=orderState(order),tracking=trackingState(order),canPrepare=canPrepareOrder(order);
+  const labelled=hasShippingLabel(order),state=orderState(order),tracking=trackingState(order),canPrepare=canPrepareOrder(order);
   return <div className="ordersDrawerBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><aside className="ordersDrawer">
     <div className="ordersDrawerHead"><div><span className={`ordersChannel ${order.sourceChannel}`}>{channelLabel(order)}</span><h2>Pedido {order.orderNumber||order.orderId||order.sendcloudId}</h2><p>{dateLabel(order.orderCreatedAt,settings.general)} · {order.integrationName||'Sendcloud'}</p></div><button className="iconBtn" onClick={onClose}><X size={18}/></button></div>
     <div className="ordersDrawerKpis"><div><span>Estado</span><strong>{state.label}</strong></div><div><span>Total</span><strong>{money(order.totalAmount,order.currency||'EUR')}</strong></div><div><span>Peso</span><strong>{weightLabel(order,settings.shipping.weightUnit)}</strong></div><div><span>Transportista</span><strong>{carrierLabel(order)}</strong></div><div><span>Envío</span><strong>{shippingPrice?money(shippingPrice.totalAmount,shippingPrice.currency):'—'}</strong></div></div>
     {validationIssues.length>0&&<section className="ordersDrawerSection"><div className="errorBox ordersValidationBox"><AlertCircle size={17}/><div><strong>Revisar antes de generar la etiqueta</strong>{validationIssues.map((issue,index)=><span key={`${issue.field}-${index}`}>{issue.message}</span>)}</div></div></section>}
     <section className="ordersDrawerSection"><h3>Entrega</h3><div className="ordersAddress"><MapPin size={17}/><div><strong>{order.customerName||text(order.shippingAddress.name)||'Cliente'}</strong>{text(order.shippingAddress.company_name)&&<small>{text(order.shippingAddress.company_name)}</small>}<span>{addressLine(order.shippingAddress)}</span>{order.customerPhone&&<small>{order.customerPhone}</small>}{order.customerEmail&&<small>{order.customerEmail}</small>}</div></div></section>
     <section className="ordersDrawerSection"><div className="ordersSectionHead"><h3>Contenido</h3><span>{order.items.length} línea{order.items.length===1?'':'s'}</span></div>{order.items.length?<div className="ordersItems">{order.items.map((item,index)=>{const image=itemImageUrl(item,productImages);return <div key={`${itemLabel(item)}-${index}`}><div className="ordersItemMain">{image?<img className="ordersDrawerProductThumb" src={image} alt="" loading="lazy" referrerPolicy="no-referrer"/>:order.sourceChannel==='amazon'?<span className="ordersDrawerProductThumb ordersProductThumbPlaceholder"><ImageOff size={17}/></span>:null}<div className="ordersItemText"><strong>{itemLabel(item)}</strong><span>{text(item.sku)||text(item.product_id)||''}</span></div></div><b>x{itemQty(item)}</b></div>})}</div>:<div className="masterEmptyMini">Sin líneas de producto.</div>}</section>
-    {shippingPrice&&<section className="ordersDrawerSection"><h3>Coste de envío</h3><div className="ordersShipmentInfo"><div><span>Total</span><strong>{money(shippingPrice.totalAmount,shippingPrice.currency)}</strong></div><div><span>Base</span><strong>{shippingPrice.netAmount==null?'—':money(shippingPrice.netAmount,shippingPrice.currency)}</strong></div><div><span>IVA</span><strong>{shippingPrice.taxAmount==null?'—':money(shippingPrice.taxAmount,shippingPrice.currency)}</strong></div><div><span>Origen</span><strong>{shippingPrice.source==='recorded'?'Coste seleccionado':shippingPrice.source==='tariff_estimate'?'Tarifa estimada':'Cotización Sendcloud'}</strong></div>{shippingPrice.note&&<div><span>Nota</span><strong>{shippingPrice.note}</strong></div>}</div></section>}
+    {shippingPrice&&<section className="ordersDrawerSection"><h3>Coste de envío</h3><div className="ordersShipmentInfo"><div><span>Total</span><strong>{money(shippingPrice.totalAmount,shippingPrice.currency)}</strong></div><div><span>Base</span><strong>{shippingPrice.netAmount==null?'—':money(shippingPrice.netAmount,shippingPrice.currency)}</strong></div><div><span>IVA</span><strong>{shippingPrice.taxAmount==null?'—':money(shippingPrice.taxAmount,shippingPrice.currency)}</strong></div><div><span>Origen</span><strong>{shippingPrice.source==='recorded'?'Coste seleccionado':shippingPrice.source==='tariff_estimate'?'Tarifa estimada':shippingPrice.note||'Cotización logística'}</strong></div>{shippingPrice.note&&<div><span>Nota</span><strong>{shippingPrice.note}</strong></div>}</div></section>}
     {(labelled||isProcessedOrder(order))&&<section className="ordersDrawerSection"><h3>Expedición</h3><div className="ordersShipmentInfo"><div><span>Transportista</span><strong>{carrierLabel(order)}</strong></div><div><span>Servicio</span><strong>{order.shippingServiceName||order.shippingOptionCode||'—'}</strong></div><div><span>Fecha pedido</span><strong>{dateLabel(order.orderCreatedAt,settings.general)}</strong></div><div><span>Fecha etiqueta</span><strong>{dateLabel(labelTimestamp(order),settings.general)}</strong></div><div><span>Seguimiento</span><strong><span className={`ordersTracking ${tracking.className}`} aria-label={order.trackingStatusMessage||tracking.label}>{tracking.label}</span></strong></div>{order.trackingUpdatedAt&&<div><span>Última actualización</span><strong>{dateLabel(order.trackingUpdatedAt,settings.general)}</strong></div>}<div><span>Tracking</span><strong>{order.trackingNumber||'—'}</strong></div>{order.trackingUrl&&<a href={order.trackingUrl} target="_blank" rel="noreferrer">Abrir seguimiento <ExternalLink size={14}/></a>}</div></section>}
     <div className="ordersDrawerActions">{labelled?<><button className="secondary" disabled={busy} onClick={onDownload}><Download size={16}/> Descargar</button><button className="primary" disabled={busy} onClick={onPrint}><Printer size={16}/> Imprimir</button></>:canPrepare?<><button className="secondary" disabled={busy} onClick={onEdit}><Pencil size={16}/> Editar pedido</button><button className="primary" disabled={busy} onClick={onPrepare}>{busy?<LoaderCircle className="spin" size={16}/>:<Truck size={16}/>} Preparar etiqueta</button></>:<div className={`ordersNoAction ${state.className}`}><AlertCircle size={16}/><span>{isCancelledOrder(order)?'Pedido cancelado. No se puede generar etiqueta.':'Este pedido ya está procesado.'}</span></div>}</div>
   </aside></div>;
@@ -175,11 +176,28 @@ function OrderDrawer({order,shippingPrice,validationIssues,productImages,onClose
 
 function LabelModal({order,options,loading,onClose,onCreate}:{order:FulfillmentOrder;options:ShippingOption[];loading:boolean;onClose:()=>void;onCreate:(option:ShippingOption|null)=>void}){
   const {settings}=useSettings();
-  const preferred=options.filter(option=>preferredCarrier(option));
-  const grouped={correos:preferred.filter(option=>preferredCarrier(option)==='correos'),mrw:preferred.filter(option=>preferredCarrier(option)==='mrw')};
+  const providers=Array.from(new Set(options.map(option=>option.provider)));
   return <div className="modalBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="modal ordersLabelModal">
-    <div className="modalHead"><div><h3>Crear etiqueta · {order.orderNumber||order.orderId}</h3><p>Elige Correos o MRW. Los precios se consultan directamente a Sendcloud con el peso y destino del pedido.</p></div><button onClick={onClose}><X size={18}/></button></div>
-    <div className="ordersLabelBody"><div className="ordersLabelContext"><div><span>Peso del paquete</span><strong>{weightLabel(order,settings.shipping.weightUnit)}</strong></div><div><span>Destino</span><strong>{text(order.shippingAddress.postal_code)||'—'} · {text(order.shippingAddress.city)||text(order.shippingAddress.country_code)||'—'}</strong></div></div>{loading?<div className="ordersOptionsLoading"><LoaderCircle className="spin"/><span>Consultando servicios y precios…</span></div>:<><div className="ordersCarrierGrid">{(['correos','mrw'] as const).map(carrier=><section className="ordersCarrierCard" key={carrier}><div className="ordersCarrierHead"><Truck size={18}/><div><strong>{carrier==='correos'?'Correos':'MRW'}</strong><span>{carrier==='correos'?'Tarifas de Sendcloud':'Contrato propio conectado'}</span></div></div>{grouped[carrier].length?<div className="ordersOptionList">{grouped[carrier].map(option=><button key={`${option.code}-${option.contractId||''}`} onClick={()=>onCreate(option)}><div><strong>{option.name}</strong><small>{option.billedWeightKg?`Peso facturable ${weightValueLabel(option.billedWeightKg,settings.shipping.weightUnit)} · `:''}{option.code}</small></div><span className={option.price==null?'noPrice':''}>{option.price==null?'Precio no disponible':money(option.price,option.currency||'EUR')}</span></button>)}</div>:<div className="ordersNoOption">No hay servicios disponibles para este pedido.</div>}</section>)}</div><button className="secondary ordersRulesButton" onClick={()=>onCreate(null)}><Settings2 size={16}/><span><strong>Usar reglas de Sendcloud</strong><small>Respeta tus métodos y reglas configuradas.</small></span><ChevronRight size={17}/></button></>}</div>
+    <div className="modalHead"><div><h3>Crear etiqueta · {order.orderNumber||order.orderId}</h3><p>Compara los servicios disponibles de tus proveedores logísticos y elige la opción que prefieras.</p></div><button onClick={onClose}><X size={18}/></button></div>
+    <div className="ordersLabelBody">
+      <div className="ordersLabelContext"><div><span>Peso del paquete</span><strong>{weightLabel(order,settings.shipping.weightUnit)}</strong></div><div><span>Destino</span><strong>{text(order.shippingAddress.postal_code)||'—'} · {text(order.shippingAddress.city)||text(order.shippingAddress.country_code)||'—'}</strong></div></div>
+      {loading?<div className="ordersOptionsLoading"><LoaderCircle className="spin"/><span>Consultando proveedores, servicios y precios…</span></div>:<>
+        {!options.length?<div className="ordersNoOption">No hay servicios disponibles en los proveedores logísticos conectados.</div>:<div className="ordersCarrierGrid">
+          {providers.map(provider=>{
+            const providerOptions=options.filter(option=>option.provider===provider);
+            const providerName=providerOptions[0]?.providerName||provider;
+            return <section className="ordersCarrierCard" key={provider}>
+              <div className="ordersCarrierHead"><Truck size={18}/><div><strong>{providerName}</strong><span>{provider==='envia'?'Comparador multi-transportista':'Servicios de tu cuenta Sendcloud'}</span></div></div>
+              <div className="ordersOptionList">{providerOptions.map((option,index)=><button key={`${provider}-${option.integrationAccountId||''}-${option.carrierCode}-${option.code}-${index}`} onClick={()=>onCreate(option)}>
+                <div><strong>{option.carrierName} · {option.name}</strong><small>{option.integrationAccountName?`${option.integrationAccountName} · `:''}{option.billedWeightKg?`Peso facturable ${weightValueLabel(option.billedWeightKg,settings.shipping.weightUnit)} · `:''}{option.etaDays?`${option.etaDays} día${option.etaDays===1?'':'s'} · `:''}{option.code}</small></div>
+                <span className={option.price==null?'noPrice':''}>{option.price==null?'Precio no disponible':money(option.price,option.currency||'EUR')}</span>
+              </button>)}</div>
+            </section>;
+          })}
+        </div>}
+        {options.some(option=>option.provider==='sendcloud')&&<button className="secondary ordersRulesButton" onClick={()=>onCreate(null)}><Settings2 size={16}/><span><strong>Usar reglas de Sendcloud</strong><small>Deja que Sendcloud resuelva el método según su configuración.</small></span><ChevronRight size={17}/></button>}
+      </>}
+    </div>
     <div className="modalActions"><button className="secondary" onClick={onClose}>Cancelar</button></div>
   </section></div>;
 }
@@ -270,7 +288,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const tariffPreviews=useMemo(()=>{const map:Record<string,ShippingPricePreview>={};for(const order of orders){const configuredCarrier=firstMatchingShippingRule(order,shippingRules)?.action.carrierContains||settings.orders.defaultCarrier||'';const preview=calculateDefaultShippingPreview(order,tariffs,configuredCarrier);if(preview)map[order.id]=preview}return map},[orders,tariffs,shippingRules,settings.orders.defaultCarrier]);
   const transportKpis=useMemo(()=>{
     let total=0,net=0,tax=0,valued=0,missing=0,mrw=0,correos=0,other=0;
-    const shipments=orders.filter(order=>Boolean(order.sendcloudParcelId)&&inPeriod(timestampDateKey(order.shippingCostRecordedAt||order.fulfilledAt||order.labelCreatedAt||order.trackingUpdatedAt||order.orderCreatedAt),dateFrom,dateTo)&&matchesOrderContext(order,query,channel,trackingFilter,countryFilter,carrierFilter));
+    const shipments=orders.filter(order=>hasShippingLabel(order)&&inPeriod(timestampDateKey(order.shippingCostRecordedAt||order.fulfilledAt||order.labelCreatedAt||order.trackingUpdatedAt||order.orderCreatedAt),dateFrom,dateTo)&&matchesOrderContext(order,query,channel,trackingFilter,countryFilter,carrierFilter));
     for(const order of shipments){
       const shipping=shippingPriceForOrder(order,tariffPreviews[order.id]||shippingPreviews[order.id]);
       if(!shipping||shipping.totalAmount==null||!Number.isFinite(shipping.totalAmount)||shipping.currency.toUpperCase()!=='EUR'){missing+=1;continue}

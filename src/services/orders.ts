@@ -13,6 +13,7 @@ export interface FulfillmentOrder {
   shippingAddress:Record<string,unknown>; billingAddress:Record<string,unknown>; items:Array<Record<string,unknown>>;
   totalAmount:number|null; currency:string|null; weightKg:number|null;
   sendcloudParcelId:number|null; sendcloudShipmentId:string|null;
+  shippingProvider:'sendcloud'|'envia'|null; shippingRemoteId:string|null; shippingLabelUrl:string|null;
   trackingNumber:string|null; trackingUrl:string|null; trackingStatusCode:string|null; trackingStatusMessage:string|null; trackingUpdatedAt:string|null;
   shippingOptionCode:string|null; contractId:number|null;
   carrierCode:string|null; carrierName:string|null; shippingServiceName:string|null;
@@ -39,8 +40,12 @@ export interface OrderAddressValidation {
   invalidAttributes:string[];
 }
 export interface ShippingOption {
+  provider:'sendcloud'|'envia';
+  providerName:string;
+  integrationAccountId?:string|null;
+  integrationAccountName?:string|null;
   code:string; name:string; carrierCode:string; carrierName:string; contractId:number|null;
-  price:number|null; currency:string|null; billedWeightKg?:number|null; raw:Record<string,unknown>;
+  price:number|null; currency:string|null; billedWeightKg?:number|null; etaDays?:number|null; raw:Record<string,unknown>;
 }
 export interface LabelResult {
   parcelId:number; shipmentId:string|null; trackingNumber:string|null; trackingUrl:string|null;
@@ -86,7 +91,10 @@ function mapRow(row:any):FulfillmentOrder{
     shippingAddress, billingAddress:row.billing_address||{}, items:Array.isArray(row.items)?row.items:[],
     totalAmount:row.total_amount==null?null:Number(row.total_amount), currency:row.currency||null, weightKg:toKg(weight?.value,weight?.unit),
     sendcloudParcelId:row.sendcloud_parcel_id==null?null:Number(row.sendcloud_parcel_id),
-    sendcloudShipmentId:row.sendcloud_shipment_id||null, trackingNumber:row.tracking_number||null, trackingUrl:row.tracking_url||null,
+    sendcloudShipmentId:row.sendcloud_shipment_id||null,
+    shippingProvider:row.shipping_provider==='envia'?'envia':row.shipping_provider==='sendcloud'?'sendcloud':(row.sendcloud_parcel_id||row.sendcloud_shipment_id?'sendcloud':null),
+    shippingRemoteId:row.shipping_remote_id||null, shippingLabelUrl:row.shipping_label_url||null,
+    trackingNumber:row.tracking_number||null, trackingUrl:row.tracking_url||null,
     trackingStatusCode:row.tracking_status_code||null, trackingStatusMessage:row.tracking_status_message||null, trackingUpdatedAt:row.tracking_updated_at||null,
     shippingOptionCode:row.shipping_option_code||null, contractId:row.contract_id==null?null:Number(row.contract_id),
     carrierCode:row.carrier_code||null, carrierName:row.carrier_name||(balearicPending?'🏝 Baleares · usar Correos':null), shippingServiceName:row.shipping_service_name||null,
@@ -114,6 +122,7 @@ async function invokeFunction<T>(functionName:string,body:Record<string,unknown>
 }
 function invokeSendcloud<T>(body:Record<string,unknown>){return invokeFunction<T>('sendcloud-orders',body);}
 function invokeOrderTools<T>(body:Record<string,unknown>){return invokeFunction<T>('sendcloud-order-tools',body);}
+function invokeEnvia<T>(body:Record<string,unknown>){return invokeFunction<T>('envia-shipping',body);}
 function invokeAmazonTracking<T>(body:Record<string,unknown>){return invokeFunction<T>('amazon-confirm-shipment',body);}
 
 export async function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
@@ -134,8 +143,24 @@ export async function syncSendcloudOrders(history=false,retryTracking=true,autom
 }
 export function createManualOrder(order:ManualOrderInput){return invokeSendcloud<{ok:true;id:string;sendcloudId:string;orderNumber:string}>({action:'create_manual_order',order});}
 export async function getShippingOptions(orderId:string){
-  const result=await invokeOrderTools<{weightKg:number;options:ShippingOption[];message?:string|null}>({action:'shipping_options',orderId});
-  return {weightKg:result.weightKg,options:result.options||[],message:result.message||null};
+  const [sendcloudResult,enviaResult]=await Promise.allSettled([
+    invokeOrderTools<{weightKg:number;options:Array<Omit<ShippingOption,'provider'|'providerName'>>;message?:string|null}>({action:'shipping_options',orderId}),
+    invokeEnvia<{configured:boolean;options:ShippingOption[];message?:string|null}>({action:'rates',orderId}),
+  ]);
+  const sendcloud=sendcloudResult.status==='fulfilled'?sendcloudResult.value:null;
+  const envia=enviaResult.status==='fulfilled'?enviaResult.value:null;
+  const sendcloudOptions=(sendcloud?.options||[]).map(option=>({
+    ...option,provider:'sendcloud' as const,providerName:'Sendcloud',
+  }));
+  const enviaOptions=envia?.options||[];
+  if(!sendcloud&&enviaResult.status==='rejected')throw enviaResult.reason;
+  if(!envia&&sendcloudResult.status==='rejected')throw sendcloudResult.reason;
+  const options=[...sendcloudOptions,...enviaOptions].sort((a,b)=>{
+    const ap=a.price==null?Number.MAX_VALUE:a.price,bp=b.price==null?Number.MAX_VALUE:b.price;
+    return ap-bp;
+  });
+  const messages=[sendcloud?.message,envia?.message].filter(Boolean).join(' · ');
+  return {weightKg:sendcloud?.weightKg??null,options,message:messages||null};
 }
 export function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){return invokeOrderTools<{ok:true;weightKg:number}>({action:'update_order',orderId,order});}
 export function validateOrderAddress(orderId:string,carrierCode='mrw'){return invokeOrderTools<OrderAddressValidation>({action:'validate_address',orderId,carrierCode});}
@@ -144,7 +169,14 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
   const automation:OrderLabelCreatedAutomationConfig=rule.enabled
     ?rule.config
     :{saveTracking:false,pushToMarketplace:false,markSent:false,downloadPdf:false,retryConfirmation:false};
-  const result=await invokeSendcloud<LabelResult>({action:'create_label',orderId,shippingOption:option?{code:option.code,contractId:option.contractId,carrierName:option.carrierName,name:option.name,price:option.price,currency:option.currency}:null});
+  const shippingOption=option?{
+    provider:option.provider,providerName:option.providerName,integrationAccountId:option.integrationAccountId||null,
+    code:option.code,contractId:option.contractId,carrierCode:option.carrierCode,carrierName:option.carrierName,
+    name:option.name,price:option.price,currency:option.currency,
+  }:null;
+  const result=option?.provider==='envia'
+    ?await invokeEnvia<LabelResult>({action:'create_label',orderId,shippingOption})
+    :await invokeSendcloud<LabelResult>({action:'create_label',orderId,shippingOption});
   if(pushTracking&&automation.pushToMarketplace){
     try{
       await invokeAmazonTracking({
@@ -163,7 +195,13 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
   }
   return {...result,automation};
 }
-export function fetchOrderLabel(orderId:string){return invokeSendcloud<LabelResult>({action:'fetch_label',orderId});}
+export async function fetchOrderLabel(orderId:string){
+  const {data,error}=await supabase.from('fulfillment_orders').select('shipping_provider,sendcloud_parcel_id').eq('id',orderId).maybeSingle();
+  if(error)throw error;
+  return data?.shipping_provider==='envia'
+    ?invokeEnvia<LabelResult>({action:'fetch_label',orderId})
+    :invokeSendcloud<LabelResult>({action:'fetch_label',orderId});
+}
 
 export function shouldRunHistorySync(){
   const today=new Date().toISOString().slice(0,10);

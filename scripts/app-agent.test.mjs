@@ -82,3 +82,16 @@ test('local agent understands core ZENVIA domain commands and real-data question
     assert.match(edge,new RegExp(action));
   }
 });
+
+
+test('local agent uses the same operational pending-order rule as the UI',async()=>{
+  const edge=await read('supabase/functions/app-agent/index.ts');
+  assert.match(edge,/function isPendingOrderRow/);
+  assert.match(edge,/source_status/);
+  assert.match(edge,/sendcloud_parcel_id/);
+  assert.match(edge,/shipping_remote_id/);
+  assert.match(edge,/label_created_at/);
+  assert.match(edge,/\['fulfilled','shipped','delivered'\]\.includes\(status\)/);
+  assert.match(edge,/raw\.ordersStateRows\.filter\(isPendingOrderRow\)/);
+  assert.doesNotMatch(edge,/\.is\('fulfilled_at',null\)\.is\('label_created_at',null\)/);
+});

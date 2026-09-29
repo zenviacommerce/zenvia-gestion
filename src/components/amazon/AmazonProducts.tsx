@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { ArrowDown, ArrowUp, ArrowUpDown, ImageOff, Link2, RefreshCw, Search } from 'lucide-react';
+import { ImageOff, Link2, RefreshCw, Search } from 'lucide-react';
 import { isAmazonConnectivityError, loadAmazonProductMetadata, loadAmazonProducts, type AmazonAnalyticsFilters, type AmazonPageResult, type AmazonProductAnalytics, type AmazonProductMetadata, type AmazonProductSort, type AmazonSortDirection } from '../../services/amazon';
 import { errorMessage } from '../../services/toast';
 import { AmazonMappingModal } from './AmazonMappingModal';
 import { readViewCache, stableCacheKey, writeViewCache } from '../../services/viewCache';
 import { useSettings } from '../../context/SettingsContext';
+import { SortableTableHeader } from '../SortableTableHeader';
 
 const integer=new Intl.NumberFormat('es-ES',{maximumFractionDigits:0});
 type SortableHeader={key:AmazonProductSort;label:string};
@@ -21,11 +22,6 @@ const sortableHeaders:SortableHeader[]=[
   {key:'profit_before_ads',label:'Beneficio*'},
   {key:'margin_pct',label:'Margen*'},
 ];
-
-function SortIcon({active,direction}:{active:boolean;direction:AmazonSortDirection}){
-  if(!active)return <ArrowUpDown size={13}/>;
-  return direction==='asc'?<ArrowUp size={13}/>:<ArrowDown size={13}/>;
-}
 
 export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:AmazonAnalyticsFilters;embedded?:boolean;refreshToken?:number}){
   const {settings}=useSettings();
@@ -79,11 +75,14 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
         <thead>
           <tr>
             <th>SKU / ASIN</th>
-            {sortableHeaders.map(header=><th key={header.key}>
-              <button className={sortBy===header.key?'amazonSortHeader isActive':'amazonSortHeader'} onClick={()=>changeSort(header.key)}>
-                <span>{header.label}</span><SortIcon active={sortBy===header.key} direction={sortDir}/>
-              </button>
-            </th>)}
+            {sortableHeaders.map(header=><SortableTableHeader
+              key={header.key}
+              label={header.label}
+              sortKey={header.key}
+              activeKey={sortBy}
+              direction={sortDir}
+              onSort={key=>changeSort(key as AmazonProductSort)}
+            />)}
             <th>IVA venta</th>
             <th>IVA tarifas</th>
             <th></th>

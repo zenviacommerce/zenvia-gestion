@@ -144,7 +144,7 @@ export default function App(){
 
  const loadAccessAndBranding=useCallback(async(targetUserId:string)=>{
    const profile=await loadAccessProfile(targetUserId);
-   const branding=profile.active?await loadCompanyBranding().catch(()=>null):null;
+   const branding=profile?.active?await loadCompanyBranding().catch(()=>null):null;
    return {profile,workspaceLogo:branding?.logoDataUrl||null};
  },[]);
 

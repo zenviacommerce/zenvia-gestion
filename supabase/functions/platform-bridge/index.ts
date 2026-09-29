@@ -376,7 +376,7 @@ Deno.serve(async(req:Request)=>{
         if((count||0)>=userLimit)return fail(userLimit===0?'El plan no permite usuarios adicionales.':`Se ha alcanzado el límite de ${userLimit} usuarios activos.`,403);
       }
 
-      let invitedUser:any=null,inviteUrl='';
+      let invitedUser:any=null,inviteTokenHash='';
       if(customDelivery){
         const {data:generated,error:inviteError}=await admin.auth.admin.generateLink({
           type:'invite',
@@ -385,8 +385,8 @@ Deno.serve(async(req:Request)=>{
         });
         if(inviteError||!generated?.user)throw inviteError||new Error('No se pudo preparar la invitación.');
         invitedUser=generated.user;
-        inviteUrl=String(generated.properties?.action_link||'');
-        if(!inviteUrl){
+        inviteTokenHash=String(generated.properties?.hashed_token||'');
+        if(!inviteTokenHash){
           await admin.auth.admin.deleteUser(invitedUser.id).catch(()=>undefined);
           throw new Error('Supabase no devolvió el enlace de invitación.');
         }
@@ -403,7 +403,7 @@ Deno.serve(async(req:Request)=>{
       if(metaError){await admin.auth.admin.deleteUser(invitedUser.id).catch(()=>undefined);throw metaError;}
       const {error:profileError}=await admin.from('app_users').insert({user_id:invitedUser.id,email,full_name:fullName,role,active:true,workspace_id:workspaceId,data_owner_id:workspaceId,permissions});
       if(profileError){await admin.auth.admin.deleteUser(invitedUser.id).catch(()=>undefined);throw profileError;}
-      return ok({ok:true,userId:invitedUser.id,email,fullName,inviteUrl:customDelivery?inviteUrl:null,delivery:customDelivery?'custom':'supabase'});
+      return ok({ok:true,userId:invitedUser.id,email,fullName,inviteTokenHash:customDelivery?inviteTokenHash:null,delivery:customDelivery?'custom':'supabase'});
     }
 
     if(action==='update_workspace_user'){

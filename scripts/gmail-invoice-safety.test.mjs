@@ -47,3 +47,18 @@ test('merchandise detection is based on generic table structure rather than supp
   assert.match(source,/precio/);
   assert.doesNotMatch(source,/Cash Sierra Nevada/i);
 });
+
+test('Gmail persistence revalidates integrity immediately before writing',async()=>{
+  const source=await read('../src/services/gmailImport.ts');
+  const persist=source.slice(source.indexOf('async function persistPreparedGmailInvoice'),source.indexOf('export async function saveReviewedGmailCandidate'));
+  assert.match(persist,/validateInvoiceCandidateIntegrity\(prepared\)/);
+  assert.match(persist,/La factura no supera la validación final/);
+  assert.ok(persist.indexOf('validateInvoiceCandidateIntegrity(prepared)')<persist.indexOf('createInvoice(invoiceInput)'));
+});
+
+test('customer orders remain a hard-negative document type',async()=>{
+  const classifier=await read('../src/services/invoiceCandidateClassifier.ts');
+  assert.match(classifier,/pedido\s\+de\s\+cliente/);
+  assert.match(classifier,/hardDocumentNegative/);
+  assert.match(classifier,/!hardDocumentNegative/);
+});

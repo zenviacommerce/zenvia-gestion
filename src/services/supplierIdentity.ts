@@ -6,7 +6,7 @@ const legalSuffixRegex = new RegExp(`\\b${legalSuffixPattern}(?=\\s|$|[,;:.])`, 
 export function canonicalizeSupplierName(value: string): string {
   let result = compact(String(value || ''))
     .replace(/^(?:un\s+cordial\s+saludo|cordialmente|atentamente|saludos?|gracias)[,:;\s-]+/i, '')
-    .replace(/^[\s:;,.-–—¡!·]+|[\s:;,.-–—]+$/g, '')
+    .replace(/^[\s:;,.–—¡!·-]+|[\s:;,.–—-]+$/g, '')
     .trim();
   if (!result) return '';
 
@@ -16,7 +16,7 @@ export function canonicalizeSupplierName(value: string): string {
   result = result
     .replace(/\s+(?:IBAN|BIC|SWIFT|NIF|CIF|VAT|IVA|TAX\s*ID|TEL(?:ÉFONO)?|TÉL(?:ÉFONO)?|PHONE|E-?MAIL|CORREO|BANCO|BANK|CUENTA\s+BANCARIA)\s*[:.-]?.*$/i, '')
     .replace(/\s+(?:https?:\/\/|www\.).*$/i, '')
-    .replace(/[\s:;,.-–—]+$/g, '')
+    .replace(/[\s:;,.–—-]+$/g, '')
     .trim();
 
   return result.slice(0, 120);
@@ -28,7 +28,7 @@ export function isPlausibleSupplierName(value:string):boolean{
   if(/zenvia\s+commerce/i.test(name))return false;
   if(/^(?:proveedor\s+gmail|factura|invoice|cliente|customer|pedido(?:\s+de\s+cliente)?|albar[aá]n|original|copia|proforma|presupuesto)$/i.test(name))return false;
   if(/\b(?:iban|bic|swift|base\s+imponible|total\s+factura|fecha\s+factura|forma\s+de\s+pago)\b/i.test(name))return false;
-  if(/^(?:calle|c\/|avda\.?|avenida|pol[ií]gono|carretera|ctra\.?|plaza|paseo|camino)\b/i.test(name))return false;
+  if(/^(?:calle|c\/|avda\.?|avenida|p\.?\s*i\.?|pol[ií]gono|carretera|ctra\.?|plaza|paseo|camino)\b/i.test(name))return false;
   // Evita que el OCR convierta una línea postal como "11660 PRADO DEL REY"
   // en proveedor. Este fue el origen de varios gastos "sin asignar".
   if(/^(?:[A-Z]{2}[-\s]?)?\d{4,6}\s+[A-Za-zÁÉÍÓÚÑÜáéíóúñü]/.test(name))return false;

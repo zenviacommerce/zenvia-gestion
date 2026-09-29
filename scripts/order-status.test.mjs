@@ -29,3 +29,11 @@ test('Dashboard uses the operational pending-order predicate', async () => {
   assert.match(source, /from ['"]\.\.\/services\/orderStatus['"]/);
   assert.doesNotMatch(source, /function\s+isPendingOrder\s*\(/);
 });
+
+
+test('a generic Envia label also removes an order from operational pending state', async () => {
+  const { isPendingOrder, hasShippingLabel } = await loadOrderStatusModule();
+  const order={ sourceStatus:'Pending', sendcloudParcelId:null, shippingRemoteId:'ENV123', labelCreatedAt:'2026-09-29T10:00:00Z' };
+  assert.equal(hasShippingLabel(order),true);
+  assert.equal(isPendingOrder(order),false);
+});

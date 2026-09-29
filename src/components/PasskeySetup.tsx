@@ -4,12 +4,21 @@ import { supabase } from '../services/supabase';
 import { showError, showSuccess } from '../services/toast';
 import { safeStorageGet, safeStorageSet } from '../services/browserStorage';
 
+function isMobileOrTabletDevice(){
+  if(typeof navigator==='undefined')return false;
+  const uaData=(navigator as Navigator&{userAgentData?:{mobile?:boolean}}).userAgentData;
+  if(uaData?.mobile===true)return true;
+  const ua=navigator.userAgent||'';
+  if(/Android|iPhone|iPad|iPod/i.test(ua))return true;
+  return navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1;
+}
+
 function basePasskeySupport(){
   return typeof window!=='undefined' && window.isSecureContext && 'PublicKeyCredential' in window && !!navigator.credentials;
 }
 
 async function supportsDeviceBiometrics(){
-  if(!basePasskeySupport())return false;
+  if(!isMobileOrTabletDevice()||!basePasskeySupport())return false;
   const availability=PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable;
   if(typeof availability!=='function')return true;
   try{return await availability.call(PublicKeyCredential);}

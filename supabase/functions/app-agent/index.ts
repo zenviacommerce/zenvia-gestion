@@ -32,16 +32,30 @@ async function safeRows(query:PromiseLike<any>){
 async function safeCount(query:PromiseLike<any>){
   try{const result=await query;if(result?.error)throw result.error;return Number(result?.count||0);}catch{return 0;}
 }
+function orderStatusCodeRow(order:any){
+  return clean(order?.source_status,120).toLowerCase();
+}
+function hasShippingLabelRow(order:any){
+  return Boolean(order?.sendcloud_parcel_id||order?.shipping_remote_id||order?.label_created_at);
+}
+function isPendingOrderRow(order:any){
+  const status=orderStatusCodeRow(order);
+  const cancelled=status.includes('cancel');
+  const processed=['fulfilled','shipped','delivered'].includes(status);
+  return !hasShippingLabelRow(order)&&!cancelled&&!processed;
+}
 async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[]){
   const can=(page:string)=>allowedPages.includes(page);
   const tasks:Record<string,Promise<any>>={};
 
   if(can('orders')||can('dashboard')){
     tasks.ordersRecent=safeRows(admin.from('fulfillment_orders')
-      .select('id,order_number,source_channel,source_status,customer_name,total_amount,currency,tracking_number,label_created_at,fulfilled_at,order_created_at,carrier_name,shipping_service_name')
+      .select('id,order_number,source_channel,source_status,customer_name,total_amount,currency,tracking_number,sendcloud_parcel_id,shipping_remote_id,label_created_at,fulfilled_at,order_created_at,carrier_name,shipping_service_name')
       .eq('owner_id',ownerId).order('order_created_at',{ascending:false,nullsFirst:false}).limit(30));
+    tasks.ordersStateRows=safeRows(admin.from('fulfillment_orders')
+      .select('id,source_status,sendcloud_parcel_id,shipping_remote_id,label_created_at')
+      .eq('owner_id',ownerId).limit(10000));
     tasks.ordersTotal=safeCount(admin.from('fulfillment_orders').select('id',{count:'exact',head:true}).eq('owner_id',ownerId));
-    tasks.ordersPending=safeCount(admin.from('fulfillment_orders').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).is('fulfilled_at',null).is('label_created_at',null));
   }
   if(can('invoices')||can('dashboard')){
     tasks.expensesRecent=safeRows(admin.from('invoices')
@@ -90,8 +104,9 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
   if(Array.isArray(raw.expensesRecent)){
     raw.expensesRecent=raw.expensesRecent.map((item:any)=>({...item,supplier_name:supplierById.get(String(item.supplier_id))||null}));
   }
+  const pendingOrders=Array.isArray(raw.ordersStateRows)?raw.ordersStateRows.filter(isPendingOrderRow):[];
   return {
-    orders:raw.ordersRecent?{total:raw.ordersTotal,pending:raw.ordersPending,recent:raw.ordersRecent}:undefined,
+    orders:raw.ordersRecent?{total:raw.ordersTotal,pending:pendingOrders.length,recent:raw.ordersRecent}:undefined,
     expenses:raw.expensesRecent?{total:raw.expensesTotal,pendingReview:raw.expensesPending,recent:raw.expensesRecent}:undefined,
     products:raw.products?{total:raw.productsTotal,withoutCost:raw.productsWithoutCost,items:raw.products}:undefined,
     suppliers:raw.suppliers?{total:raw.suppliersTotal,items:raw.suppliers}:undefined,
@@ -191,7 +206,7 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any){
   if(hasAny(text,['que tengo pendiente','pendientes ahora','resumen pendiente','cosas pendientes']))return localReply(pendingSummary(ctx,allowed));
 
   if(hasAny(text,['pedidos pendientes','pedido pendiente','sin etiqueta'])&&ctx.orders&&allowed.includes('orders')){
-    const recent=(ctx.orders.recent||[]).filter((o:any)=>!o.fulfilled_at&&!o.label_created_at).slice(0,8);
+    const recent=(ctx.orders.recent||[]).filter(isPendingOrderRow).slice(0,8);
     const detail=recent.length?' Los más recientes: '+recent.map((o:any)=>String(o.order_number||o.id)+' ('+String(o.customer_name||'sin cliente')+')').join(', ')+'.':'';
     return localReply('Tienes '+String(ctx.orders.pending)+' pedidos pendientes de etiqueta.'+detail);
   }

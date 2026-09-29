@@ -35,15 +35,16 @@ export async function loadAppData(): Promise<AppData> {
     showAfterMs:350,
   });
   try{
-  const [invoiceResult, lineResult, supplierResult, categoryResult, productResult] = await Promise.all([
+  const [invoiceResult, lineResult, supplierResult, categoryResult, productResult, sourceDocumentResult] = await Promise.all([
     supabase.from('invoices').select('*').order('issue_date', { ascending: false, nullsFirst: false }),
     supabase.from('invoice_lines').select('*'),
     supabase.from('suppliers').select('*').order('name'),
     supabase.from('expense_categories').select('*').eq('active', true).order('sort_order'),
     supabase.from('products').select('*').eq('active', true).order('name'),
+    supabase.from('source_documents').select('id,storage_bucket,storage_path,original_name,mime_type,file_hash'),
   ]);
 
-  for (const result of [invoiceResult, lineResult, supplierResult, categoryResult, productResult]) {
+  for (const result of [invoiceResult, lineResult, supplierResult, categoryResult, productResult, sourceDocumentResult]) {
     if (result.error) throw result.error;
   }
 
@@ -63,6 +64,8 @@ export async function loadAppData(): Promise<AppData> {
   const categories: ExpenseCategory[] = (categoryResult.data ?? []).map((c: any) => ({ id: c.id, name: c.name, icon: c.icon }));
   const categoryById = new Map(categories.map(c => [c.id, c]));
 
+  const sourceDocumentById=new Map((sourceDocumentResult.data??[]).map((document:any)=>[document.id,document]));
+
   const linesByInvoice = new Map<string, any[]>();
   for (const line of lineResult.data ?? []) {
     const bucket = linesByInvoice.get(line.invoice_id) ?? [];
@@ -70,8 +73,11 @@ export async function loadAppData(): Promise<AppData> {
     linesByInvoice.set(line.invoice_id, bucket);
   }
 
-  const invoices: Invoice[] = (invoiceResult.data ?? []).map((i: any) => ({
+  const invoices: Invoice[] = (invoiceResult.data ?? []).map((i: any) => {
+    const sourceDocument=sourceDocumentById.get(i.source_document_id) as any;
+    return {
     id: i.id,
+    sourceDocumentId:i.source_document_id||null,
     supplierId: i.supplier_id,
     supplierName: supplierById.get(i.supplier_id)?.name ?? 'Proveedor sin asignar',
     invoiceNumber: i.invoice_number ?? '—',
@@ -87,8 +93,9 @@ export async function loadAppData(): Promise<AppData> {
     total: numberOrZero(i.total_amount),
     source: i.source,
     status: i.status,
-    fileName: i.file_name,
-    filePath: i.file_path,
+    fileName: sourceDocument?.original_name||i.file_name,
+    filePath: sourceDocument?.storage_path||i.file_path,
+    fileHash: sourceDocument?.file_hash||i.file_hash,
     lines: (linesByInvoice.get(i.id) ?? []).map((l: any) => ({
       id: l.id,
       description: l.description,
@@ -100,7 +107,8 @@ export async function loadAppData(): Promise<AppData> {
       productId: l.product_id,
       priceUpdateStatus: l.price_update_status,
     })),
-  }));
+  };
+  });
 
   const products: Product[] = (productResult.data ?? []).map((p: any) => ({
     id: p.id,

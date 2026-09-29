@@ -447,13 +447,26 @@ Deno.serve(async(req:Request)=>{
       const workspaceId=asText(body?.workspaceId,80),userId=asText(body?.userId,80);
       if(!workspaceId||!userId)return fail('Falta el usuario.');
       const {data:target,error:targetError}=await admin.from('app_users')
-        .select('user_id,email,active').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
+        .select('user_id,email,full_name,active').eq('workspace_id',workspaceId).eq('user_id',userId).maybeSingle();
       if(targetError)throw targetError;if(!target)return fail('Usuario no encontrado.',404);
       const email=asText(target.email,254).toLowerCase();
       if(!email)return fail('El usuario no tiene un email válido.');
+
+      if(body?.delivery==='custom'){
+        const {data:generated,error}=await admin.auth.admin.generateLink({
+          type:'recovery',
+          email,
+          options:{redirectTo:customerAppUrl},
+        });
+        if(error)throw error;
+        const recoveryTokenHash=String(generated?.properties?.hashed_token||'');
+        if(!recoveryTokenHash)throw new Error('Supabase no devolvió el token de recuperación.');
+        return ok({ok:true,email,fullName:asText(target.full_name,160),recoveryTokenHash,delivery:'custom'});
+      }
+
       const {error}=await admin.auth.resetPasswordForEmail(email,{redirectTo:customerAppUrl});
       if(error)throw error;
-      return ok({ok:true,email});
+      return ok({ok:true,email,fullName:asText(target.full_name,160),delivery:'supabase'});
     }
 
     if(action==='delete_workspace_full'){

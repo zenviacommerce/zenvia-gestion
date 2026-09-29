@@ -15,10 +15,15 @@ test('Gestion exposes Platform access only through the server-to-server bridge',
 });
 
 
-test('Platform bridge supports workspace password recovery and complete tenant cleanup',async()=>{
+test('Platform bridge can generate a silent recovery token and still supports tenant cleanup',async()=>{
   const bridge=await read('supabase/functions/platform-bridge/index.ts');
-  assert.match(bridge,/action==='reset_workspace_user_password'/);
-  assert.match(bridge,/resetPasswordForEmail\(email,\{redirectTo:customerAppUrl\}\)/);
+  const recovery=bridge.slice(bridge.indexOf("if(action==='reset_workspace_user_password')"),bridge.indexOf("if(action==='delete_workspace_full')"));
+  assert.match(recovery,/body\?\.delivery==='custom'/);
+  assert.match(recovery,/auth\.admin\.generateLink/);
+  assert.match(recovery,/type:'recovery'/);
+  assert.match(recovery,/properties\?\.hashed_token/);
+  assert.match(recovery,/recoveryTokenHash/);
+  assert.match(recovery,/resetPasswordForEmail/);
   assert.match(bridge,/action==='delete_workspace_full'/);
   assert.match(bridge,/purgeWorkspaceStorage/);
   assert.match(bridge,/admin\.auth\.admin\.deleteUser/);

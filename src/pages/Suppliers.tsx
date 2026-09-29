@@ -13,6 +13,7 @@ import { formatAppDate, formatAppMoney } from '../services/formatting';
 import '../supplier-actions.css';
 import { useSettings } from '../context/SettingsContext';
 import { orderedTableColumns, persistRememberedFilter, rememberedFilter } from '../services/uiPreferences';
+import { SortableTableHeader, useSortableTable } from '../components/SortableTableHeader';
 
 const normalize=(value:string)=>value.trim().toLowerCase().replace(/\s+/g,' ');
 type SupplierTypeFilter='all'|'goods'|'service'|'both'|'unclassified';
@@ -107,8 +108,19 @@ export function Suppliers({suppliers,onAdd,onEdit,onDelete}:{suppliers:Supplier[
  const allFilteredSelected=filtered.length>0&&filtered.every(supplier=>checkedIds.has(supplier.id));
  const toggleSupplier=(id:string,checked:boolean)=>setCheckedIds(current=>{const next=new Set(current);if(checked)next.add(id);else next.delete(id);return next;});
  const toggleAllSuppliers=(checked:boolean)=>setCheckedIds(checked?new Set(filtered.map(supplier=>supplier.id)):new Set());
- const totalPages=Math.max(1,Math.ceil(filtered.length/pageSize));
- const paged=useMemo(()=>filtered.slice((page-1)*pageSize,page*pageSize),[filtered,page]);
+ const sorting=useSortableTable('suppliers',filtered,{
+   supplier:s=>s.name,
+   taxId:s=>s.taxId||'',
+   type:s=>supplierTypeLabel(s.supplierType),
+   category:s=>categories.find(category=>category.id===s.defaultCategoryId)?.name||'',
+   contact:s=>s.email||s.phone||'',
+   invoiceCount:s=>metrics.get(s.id)?.count??0,
+   spend:s=>metrics.get(s.id)?.total??0,
+   lastInvoice:s=>metrics.get(s.id)?.lastDate||'',
+ },{key:'supplier',direction:'asc'});
+ const sorted=sorting.rows;
+ const totalPages=Math.max(1,Math.ceil(sorted.length/pageSize));
+ const paged=useMemo(()=>sorted.slice((page-1)*pageSize,page*pageSize),[sorted,page,pageSize]);
  useEffect(()=>{setPage(1);setCheckedIds(new Set())},[query,typeFilter,categoryFilter,activityFilter,dateFilter]);
  useEffect(()=>{const timer=window.setTimeout(()=>{void persistRememberedFilter(preferences,patchPreferences,'suppliers.filters',{query,typeFilter,activityFilter,categoryFilter,dateFilter})},350);return()=>window.clearTimeout(timer)},[query,typeFilter,activityFilter,categoryFilter,dateFilter,preferences.rememberFilters]);
  useEffect(()=>{setPage(current=>Math.min(current,totalPages))},[totalPages]);
@@ -141,15 +153,9 @@ export function Suppliers({suppliers,onAdd,onEdit,onDelete}:{suppliers:Supplier[
  };
  const edit=(supplier:Supplier)=>{setSelected(null);onEdit(supplier)};
  const columnHeader=(key:string)=>{
-   if(key==='supplier')return <th key={key}>Proveedor</th>;
-   if(key==='taxId')return <th key={key}>CIF/VAT</th>;
-   if(key==='type')return <th key={key}>Tipo</th>;
-   if(key==='category')return <th key={key}>Categoría habitual</th>;
-   if(key==='contact')return <th key={key}>Contacto</th>;
-   if(key==='invoiceCount')return <th key={key} className="right">Facturas</th>;
-   if(key==='spend')return <th key={key} className="right">Gasto periodo</th>;
-   if(key==='lastInvoice')return <th key={key}>Última factura</th>;
-   return null;
+   const labels:Record<string,string>={supplier:'Proveedor',taxId:'CIF/VAT',type:'Tipo',category:'Categoría habitual',contact:'Contacto',invoiceCount:'Facturas',spend:'Gasto periodo',lastInvoice:'Última factura'};
+   const label=labels[key];if(!label)return null;
+   return <SortableTableHeader key={key} label={label} sortKey={key} activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className={key==='invoiceCount'||key==='spend'?'right':''}/>;
  };
  const columnCell=(key:string,s:Supplier,metric:SupplierMetric)=>{
    if(key==='supplier')return <td key={key}><div className="masterEntityCell"><div className="masterAvatar"><Building2 size={17}/></div><div><strong>{s.name}</strong><small>{supplierTypeLabel(s.supplierType)}</small></div></div></td>;

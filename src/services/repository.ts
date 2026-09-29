@@ -35,15 +35,16 @@ export async function loadAppData(): Promise<AppData> {
     showAfterMs:350,
   });
   try{
-  const [invoiceResult, lineResult, supplierResult, categoryResult, productResult] = await Promise.all([
+  const [invoiceResult, lineResult, supplierResult, categoryResult, productResult, sourceDocumentResult] = await Promise.all([
     supabase.from('invoices').select('*').order('issue_date', { ascending: false, nullsFirst: false }),
     supabase.from('invoice_lines').select('*'),
     supabase.from('suppliers').select('*').order('name'),
     supabase.from('expense_categories').select('*').eq('active', true).order('sort_order'),
     supabase.from('products').select('*').eq('active', true).order('name'),
+    supabase.from('source_documents').select('id,storage_bucket,storage_path,original_name,mime_type,file_hash'),
   ]);
 
-  for (const result of [invoiceResult, lineResult, supplierResult, categoryResult, productResult]) {
+  for (const result of [invoiceResult, lineResult, supplierResult, categoryResult, productResult, sourceDocumentResult]) {
     if (result.error) throw result.error;
   }
 
@@ -63,6 +64,8 @@ export async function loadAppData(): Promise<AppData> {
   const categories: ExpenseCategory[] = (categoryResult.data ?? []).map((c: any) => ({ id: c.id, name: c.name, icon: c.icon }));
   const categoryById = new Map(categories.map(c => [c.id, c]));
 
+  const sourceDocumentById=new Map((sourceDocumentResult.data??[]).map((document:any)=>[document.id,document]));
+
   const linesByInvoice = new Map<string, any[]>();
   for (const line of lineResult.data ?? []) {
     const bucket = linesByInvoice.get(line.invoice_id) ?? [];
@@ -70,8 +73,11 @@ export async function loadAppData(): Promise<AppData> {
     linesByInvoice.set(line.invoice_id, bucket);
   }
 
-  const invoices: Invoice[] = (invoiceResult.data ?? []).map((i: any) => ({
+  const invoices: Invoice[] = (invoiceResult.data ?? []).map((i: any) => {
+    const sourceDocument=sourceDocumentById.get(i.source_document_id) as any;
+    return {
     id: i.id,
+    sourceDocumentId:i.source_document_id||null,
     supplierId: i.supplier_id,
     supplierName: supplierById.get(i.supplier_id)?.name ?? 'Proveedor sin asignar',
     invoiceNumber: i.invoice_number ?? '—',
@@ -87,8 +93,9 @@ export async function loadAppData(): Promise<AppData> {
     total: numberOrZero(i.total_amount),
     source: i.source,
     status: i.status,
-    fileName: i.file_name,
-    filePath: i.file_path,
+    fileName: sourceDocument?.original_name||i.file_name,
+    filePath: sourceDocument?.storage_path||i.file_path,
+    fileHash: sourceDocument?.file_hash||i.file_hash,
     lines: (linesByInvoice.get(i.id) ?? []).map((l: any) => ({
       id: l.id,
       description: l.description,
@@ -100,7 +107,8 @@ export async function loadAppData(): Promise<AppData> {
       productId: l.product_id,
       priceUpdateStatus: l.price_update_status,
     })),
-  }));
+  };
+  });
 
   const products: Product[] = (productResult.data ?? []).map((p: any) => ({
     id: p.id,
@@ -123,6 +131,116 @@ async function sha256(file: File) {
   const buffer = await file.arrayBuffer();
   const digest = await crypto.subtle.digest('SHA-256', buffer);
   return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+export type ArchivedSourceDocument={
+  id:string;
+  storagePath:string;
+  originalName:string;
+  mimeType:string;
+  fileHash:string;
+};
+
+function isUniqueViolation(error:unknown){
+  const value=error as any;
+  return value?.code==='23505'||/duplicate key|unique constraint/i.test(String(value?.message||value||''));
+}
+
+export async function getSourceDocument(sourceDocumentId:string):Promise<ArchivedSourceDocument>{
+  const {data,error}=await supabase.from('source_documents')
+    .select('id,storage_path,original_name,mime_type,file_hash')
+    .eq('id',sourceDocumentId)
+    .maybeSingle();
+  if(error)throw error;
+  if(!data)throw new Error('El documento original ya no está disponible.');
+  return {
+    id:String(data.id),
+    storagePath:String(data.storage_path),
+    originalName:String(data.original_name||'documento.pdf'),
+    mimeType:String(data.mime_type||'application/pdf'),
+    fileHash:String(data.file_hash||''),
+  };
+}
+
+export async function archiveSourceDocument(
+  file:File,
+  source:'manual'|'camera'|'gmail',
+  metadata:Record<string,unknown>={},
+):Promise<ArchivedSourceDocument>{
+  const {data:userData}=await supabase.auth.getUser();
+  const user=userData.user;
+  if(!user)throw new Error('Sesión no válida.');
+
+  const fileHash=await sha256(file);
+  if(fileHash){
+    const {data:existing,error:existingError}=await supabase.from('source_documents')
+      .select('id,storage_path,original_name,mime_type,file_hash')
+      .eq('file_hash',fileHash)
+      .limit(1)
+      .maybeSingle();
+    if(existingError)throw existingError;
+    if(existing){
+      return {
+        id:String(existing.id),
+        storagePath:String(existing.storage_path),
+        originalName:String(existing.original_name||file.name||'documento.pdf'),
+        mimeType:String(existing.mime_type||file.type||'application/pdf'),
+        fileHash:String(existing.file_hash||fileHash),
+      };
+    }
+  }
+
+  const year=new Date().getFullYear();
+  const safeName=(file.name||'documento.pdf').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-100);
+  const storagePath=`${user.id}/source/${year}/${crypto.randomUUID()}-${safeName}`;
+  const mimeType=file.type||'application/pdf';
+  const {error:storageError}=await supabase.storage.from(INVOICE_BUCKET).upload(storagePath,file,{
+    contentType:mimeType,
+    upsert:false,
+  });
+  if(storageError)throw storageError;
+
+  const {data:created,error:createError}=await supabase.from('source_documents').insert({
+    storage_bucket:INVOICE_BUCKET,
+    storage_path:storagePath,
+    original_name:sanitizeDatabaseSingleLine(file.name)||'documento.pdf',
+    mime_type:mimeType,
+    file_hash:fileHash||null,
+    document_kind:'expense_source',
+    source_channel:source,
+    metadata:sanitizeDatabaseValue(metadata),
+  }).select('id,storage_path,original_name,mime_type,file_hash').single();
+
+  if(createError){
+    if(isUniqueViolation(createError)&&fileHash){
+      const {data:existing,error:existingError}=await supabase.from('source_documents')
+        .select('id,storage_path,original_name,mime_type,file_hash')
+        .eq('file_hash',fileHash)
+        .limit(1)
+        .maybeSingle();
+      await supabase.storage.from(INVOICE_BUCKET).remove([storagePath]).catch(()=>undefined);
+      if(existingError)throw existingError;
+      if(existing){
+        return {
+          id:String(existing.id),
+          storagePath:String(existing.storage_path),
+          originalName:String(existing.original_name||file.name||'documento.pdf'),
+          mimeType:String(existing.mime_type||mimeType),
+          fileHash:String(existing.file_hash||fileHash),
+        };
+      }
+    }
+    await supabase.storage.from(INVOICE_BUCKET).remove([storagePath]).catch(()=>undefined);
+    throw createError;
+  }
+
+  return {
+    id:String(created.id),
+    storagePath:String(created.storage_path),
+    originalName:String(created.original_name||file.name||'documento.pdf'),
+    mimeType:String(created.mime_type||mimeType),
+    fileHash:String(created.file_hash||fileHash),
+  };
 }
 
 function cleanSupplierContact(contact: SupplierProfileData): SupplierProfileData {
@@ -444,7 +562,13 @@ export async function createInvoice(input: NewInvoiceInput) {
   const user = userData.user;
   if (!user) throw new Error('Sesión no válida.');
 
-  const fileHash = await sha256(input.file);
+  const archivedSource=input.sourceDocumentId
+    ?await getSourceDocument(input.sourceDocumentId)
+    :await archiveSourceDocument(input.file,input.source,{
+      importIntent:'expense_invoice',
+      invoiceNumber:sanitizeDatabaseSingleLine(input.invoiceNumber)||null,
+    });
+  const fileHash=archivedSource.fileHash||await sha256(input.file);
   const multiInvoiceSource=input.extraction?.multiInvoiceSource===true;
   if(policy.detectDuplicates&&!multiInvoiceSource){
     const { data: duplicates, error: duplicateError } = await supabase.from('invoices').select('id, invoice_number').eq('file_hash', fileHash).limit(1);
@@ -483,18 +607,6 @@ export async function createInvoice(input: NewInvoiceInput) {
       throw new Error(`Esta factura parece estar subida ya (${duplicates[0].invoice_number || 'sin número'}).`);
     }
   }
-  const year = input.invoiceDate ? new Date(`${input.invoiceDate}T12:00:00`).getFullYear() : new Date().getFullYear();
-  const safeName = input.file.name.replace(/[^a-zA-Z0-9._-]+/g, '-').slice(-100);
-  const storagePath = `${user.id}/${year}/${crypto.randomUUID()}-${safeName}`;
-  const { error: storageError } = await supabase.storage.from(INVOICE_BUCKET).upload(storagePath, input.file, {
-    contentType: input.file.type || 'application/pdf',
-    upsert: false,
-  });
-  if (storageError) {
-    if (supplierResult.created) await cleanupCreatedSupplier(supplierId);
-    throw storageError;
-  }
-
   const { data: invoice, error } = await supabase.from('invoices').insert({
     supplier_id: supplierId,
     invoice_number: sanitizeDatabaseSingleLine(input.invoiceNumber) || null,
@@ -507,9 +619,10 @@ export async function createInvoice(input: NewInvoiceInput) {
     total_amount: preparedInput.total,
     source: input.source,
     status: policy.initialStatus,
-    file_path: storagePath,
-    file_name: sanitizeDatabaseSingleLine(input.file.name),
-    mime_type: input.file.type || 'application/pdf',
+    source_document_id:archivedSource.id,
+    file_path: archivedSource.storagePath,
+    file_name: sanitizeDatabaseSingleLine(archivedSource.originalName),
+    mime_type: archivedSource.mimeType,
     file_hash: fileHash,
     ocr_text: sanitizeDatabaseText(input.ocrText) || null,
     extraction: sanitizeDatabaseValue({
@@ -526,7 +639,6 @@ export async function createInvoice(input: NewInvoiceInput) {
   }).select('id').single();
 
   if (error) {
-    await supabase.storage.from(INVOICE_BUCKET).remove([storagePath]);
     if (supplierResult.created) await cleanupCreatedSupplier(supplierId);
     throw error;
   }
@@ -535,10 +647,10 @@ export async function createInvoice(input: NewInvoiceInput) {
     await createInvoiceLinesWithProducts(invoice.id, supplierId, preparedInput, policy, loadedSettings.settings.products, loadedSettings.settings.general.currencyCode);
   } catch (lineError) {
     await supabase.from('invoices').delete().eq('id', invoice.id);
-    await supabase.storage.from(INVOICE_BUCKET).remove([storagePath]);
     if (supplierResult.created) await cleanupCreatedSupplier(supplierId);
     throw lineError;
   }
+  return invoice.id as string;
 }
 
 export async function updateInvoiceStatus(invoiceId: string, status: 'pending' | 'reviewed' | 'accounted') {
@@ -546,13 +658,11 @@ export async function updateInvoiceStatus(invoiceId: string, status: 'pending' |
   if (error) throw error;
 }
 
-export async function deleteInvoice(invoiceId: string, filePath?: string | null) {
+export async function deleteInvoice(invoiceId: string, _filePath?: string | null) {
+  // La factura es una interpretación contable corregible. El documento fuente
+  // es evidencia inmutable y nunca se borra al eliminar la interpretación.
   const { error } = await supabase.from('invoices').delete().eq('id', invoiceId);
   if (error) throw error;
-  if (filePath) {
-    const { error: storageError } = await supabase.storage.from(INVOICE_BUCKET).remove([filePath]);
-    if (storageError) console.warn('La factura se eliminó, pero no se pudo borrar el archivo de Storage.', storageError);
-  }
 }
 
 export async function getInvoiceFileUrl(path: string) {

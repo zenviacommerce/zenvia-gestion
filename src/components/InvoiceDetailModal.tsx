@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ExternalLink, FileText, Trash2, X } from 'lucide-react';
 import type { ExpenseCategory, Invoice, Supplier } from '../types';
 import { SearchableSelect } from './forms/SearchableSelect';
+import { SortableTableHeader, useSortableTable } from './SortableTableHeader';
 
 const money = (value: number) => value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
@@ -30,6 +31,13 @@ export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenF
     setCategoryError('');
   },[invoice?.id,invoice?.categoryId]);
 
+  const lineSorting=useSortableTable(`expense-lines-${invoice?.id||'closed'}`,invoice?.lines||[],{
+    description:line=>line.description,
+    quantity:line=>line.quantity,
+    unitPrice:line=>line.unitPrice,
+    total:line=>line.lineTotal,
+  },{key:'description',direction:'asc'});
+
   if(!invoice) return null;
 
   const saveSupplier=async()=>{
@@ -50,7 +58,6 @@ export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenF
 
   const supplierChanged=supplierId!==String(invoice.supplierId||'');
   const categoryChanged=categoryId!==String(invoice.categoryId||'');
-
   return <div className="modalBackdrop zenviaDetailDrawerBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget) onClose()}}><div className="modal invoiceDetailModal zenviaDetailDrawer">
     <div className="modalHead"><div><h3>{invoice.supplierName}</h3><p>{invoice.invoiceNumber === '—' ? 'Factura sin número' : `Factura ${invoice.invoiceNumber}`}</p></div><button onClick={onClose}><X/></button></div>
 
@@ -93,7 +100,12 @@ export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenF
 
     <div className="detailSection">
       <div className="detailSectionHead"><div><strong>Líneas de producto</strong><span>{invoice.lines.length ? `${invoice.lines.length} línea${invoice.lines.length>1?'s':''} registrada${invoice.lines.length>1?'s':''}` : 'No se detectaron líneas'}</span></div></div>
-      {invoice.lines.length ? <div className="detailLinesWrap"><table className="detailLines"><thead><tr><th>Descripción</th><th className="right">Cantidad</th><th className="right">Precio ud.</th><th className="right">Total</th></tr></thead><tbody>{invoice.lines.map(line=><tr key={line.id}><td>{line.description}</td><td className="right">{line.quantity.toLocaleString('es-ES')}</td><td className="right">{line.unitPrice==null?'—':`${money(line.unitPrice)} €`}</td><td className="right">{line.lineTotal==null?'—':`${money(line.lineTotal)} €`}</td></tr>)}</tbody></table></div> : <div className="detailEmpty">Esta factura no tiene líneas de producto registradas.</div>}
+      {invoice.lines.length ? <div className="detailLinesWrap"><table className="detailLines"><thead><tr>
+      <SortableTableHeader label="Descripción" sortKey="description" activeKey={lineSorting.sort.key} direction={lineSorting.sort.direction} onSort={lineSorting.toggleSort}/>
+      <SortableTableHeader label="Cantidad" sortKey="quantity" activeKey={lineSorting.sort.key} direction={lineSorting.sort.direction} onSort={lineSorting.toggleSort} className="right"/>
+      <SortableTableHeader label="Precio ud." sortKey="unitPrice" activeKey={lineSorting.sort.key} direction={lineSorting.sort.direction} onSort={lineSorting.toggleSort} className="right"/>
+      <SortableTableHeader label="Total" sortKey="total" activeKey={lineSorting.sort.key} direction={lineSorting.sort.direction} onSort={lineSorting.toggleSort} className="right"/>
+      </tr></thead><tbody>{lineSorting.rows.map(line=><tr key={line.id}><td>{line.description}</td><td className="right">{line.quantity.toLocaleString('es-ES')}</td><td className="right">{line.unitPrice==null?'—':`${money(line.unitPrice)} €`}</td><td className="right">{line.lineTotal==null?'—':`${money(line.lineTotal)} €`}</td></tr>)}</tbody></table></div> : <div className="detailEmpty">Esta factura no tiene líneas de producto registradas.</div>}
     </div>
 
     <div className="modalActions detailActions"><button className="danger" disabled={deleting} onClick={()=>onDelete(invoice)}><Trash2 size={16}/>{deleting?'Eliminando…':'Eliminar factura'}</button><button className="secondary" onClick={onClose}>Cerrar</button></div>

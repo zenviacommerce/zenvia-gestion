@@ -35,6 +35,7 @@ export interface InvoiceLine {
 
 export interface Invoice {
   id: string;
+  sourceDocumentId?: string | null;
   supplierId?: string | null;
   supplierName: string;
   invoiceNumber: string;
@@ -96,6 +97,7 @@ export interface NewInvoiceLineInput {
 export interface NewInvoiceInput {
   file: File;
   source: InvoiceSource;
+  sourceDocumentId?: string;
   supplierName: string;
   supplierTaxId?: string;
   supplierEmail?: string;
@@ -120,6 +122,7 @@ export interface InvoiceImportCandidate {
   id: string;
   file: File;
   fileHash: string;
+  sourceDocumentId?: string;
   status: InvoiceImportCandidateStatus;
   reviewReason?: string;
   supplierName: string;

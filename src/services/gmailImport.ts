@@ -1,7 +1,7 @@
 import type { ExpenseCategory, InvoiceImportCandidate, NewInvoiceInput } from '../types';
 import { classifyInvoiceFile } from './invoiceCandidateClassifier';
 import { invoiceCandidateToInput, prepareInvoiceCandidate, validateInvoiceCandidateIntegrity } from './invoiceImportPipeline';
-import { createInvoice } from './repository';
+import { archiveSourceDocument, createInvoice } from './repository';
 import { supabase } from './supabase';
 import { downloadGmailAttachment, updateGmailImport, type GmailCandidate } from './gmail';
 import { isLikelySameSupplier, supplierIdentityKey } from './supplierIdentity';
@@ -257,6 +257,19 @@ export async function importGmailCandidate(
     onProgress?.('Descargando adjunto de Gmail…');
     const downloadedFile=await downloadGmailAttachment(accessToken,candidate);
     const file=normalizeAttachmentFile(downloadedFile);
+    const archivedSource=await archiveSourceDocument(file,'gmail',{
+      gmailMessageId:candidate.messageId,
+      gmailAttachmentId:candidate.attachmentId,
+      gmailThreadId:candidate.threadId||null,
+      sender:candidate.sender||null,
+      subject:candidate.subject||null,
+      attachmentName:candidate.attachmentName||file.name,
+      receivedAt:candidate.receivedAt||null,
+    });
+    const {error:sourceLinkError}=await supabase.from('gmail_imports').update({
+      source_document_id:archivedSource.id,
+    }).eq('id',candidate.id);
+    if(sourceLinkError)throw sourceLinkError;
     const isPdf=file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf');
     if(policy.gmailPdfOnly&&!isPdf){
       await updateGmailImport(candidate.id,'ignored',null,{ignoredBySetting:'gmailPdfOnly',ignoredAt:new Date().toISOString()});
@@ -299,6 +312,7 @@ export async function importGmailCandidate(
     stage='analizar la factura con el motor común';
     onProgress?.('Analizando proveedor, fecha, fiscalidad y líneas…');
     const prepared=await prepareInvoiceCandidate(file,categories,onProgress,file,policy);
+    prepared.sourceDocumentId=archivedSource.id;
 
     if(policy.detectDuplicates){
       const duplicateBySupplierNumber=await findInvoiceBySupplierAndNumber(prepared.supplierName,prepared.invoiceNumber);

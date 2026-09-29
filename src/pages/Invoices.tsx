@@ -13,6 +13,7 @@ import { confirmAction, openActionProcess } from '../services/actionDialog';
 import { useSettings } from '../context/SettingsContext';
 import { orderedTableColumns, persistRememberedFilter, rememberedFilter } from '../services/uiPreferences';
 import { formatAppDate, formatAppMoney } from '../services/formatting';
+import { SortableTableHeader, useSortableTable } from '../components/SortableTableHeader';
 
 
 export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,onStatusChange,onOpenFile,onDelete,onSupplierChange,onCategoryChange}:{invoices:Invoice[];suppliers:Supplier[];categories:ExpenseCategory[];onUpload:()=>void;onBulkUpload:()=>void;onStatusChange:(id:string,status:'pending'|'reviewed'|'accounted')=>Promise<void>;onOpenFile:(invoice:Invoice)=>Promise<void>;onDelete:(invoice:Invoice)=>Promise<void>;onSupplierChange:(invoiceId:string,supplierId:string)=>Promise<void>;onCategoryChange:(invoiceId:string,categoryId:string)=>Promise<void>}){
@@ -33,8 +34,19 @@ export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,on
    const q=query.trim().toLowerCase();
    return !q?periodFiltered:periodFiltered.filter(i=>[i.supplierName,i.invoiceNumber,i.category].some(v=>v.toLowerCase().includes(q)));
  },[invoices,query,filter]);
- const totalPages=Math.max(1,Math.ceil(filtered.length/pageSize));
- const paged=useMemo(()=>filtered.slice((page-1)*pageSize,page*pageSize),[filtered,page]);
+ const sorting=useSortableTable('expenses',filtered,{
+   date:i=>i.invoiceDate,
+   supplier:i=>i.supplierName,
+   invoice:i=>i.invoiceNumber,
+   category:i=>i.category,
+   source:i=>i.source,
+   status:i=>i.status,
+   vat:i=>i.vat,
+   total:i=>i.total,
+ },{key:'date',direction:'desc'});
+ const sorted=sorting.rows;
+ const totalPages=Math.max(1,Math.ceil(sorted.length/pageSize));
+ const paged=useMemo(()=>sorted.slice((page-1)*pageSize,page*pageSize),[sorted,page,pageSize]);
  useEffect(()=>{setPage(1);setCheckedIds(new Set())},[query,filter]);
  useEffect(()=>{const timer=window.setTimeout(()=>{void persistRememberedFilter(preferences,patchPreferences,'expenses.filters',{query,filter})},350);return()=>window.clearTimeout(timer)},[query,filter,preferences.rememberFilters]);
  useEffect(()=>{setPage(current=>Math.min(current,totalPages))},[totalPages]);
@@ -90,15 +102,9 @@ export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,on
    try{await onCategoryChange(invoice.id,categoryId);const category=categories.find(c=>c.id===categoryId);if(category)setSelected(current=>current?.id===invoice.id?{...current,categoryId,category:category.name}:current);showSuccess('Categoría de la factura actualizada correctamente.')}catch(e){throw e instanceof Error?e:new Error('No se pudo cambiar la categoría de la factura.')}finally{setBusyId(null)}
  };
  const columnHeader=(key:string)=>{
-   if(key==='date')return <th key={key}>Fecha</th>;
-   if(key==='supplier')return <th key={key}>Proveedor</th>;
-   if(key==='invoice')return <th key={key}>Factura</th>;
-   if(key==='category')return <th key={key}>Categoría</th>;
-   if(key==='source')return <th key={key}>Origen</th>;
-   if(key==='status')return <th key={key}>Estado</th>;
-   if(key==='vat')return <th key={key} className="right">IVA</th>;
-   if(key==='total')return <th key={key} className="right">Total</th>;
-   return null;
+   const labels:Record<string,string>={date:'Fecha',supplier:'Proveedor',invoice:'Factura',category:'Categoría',source:'Origen',status:'Estado',vat:'IVA',total:'Total'};
+   const label=labels[key];if(!label)return null;
+   return <SortableTableHeader key={key} label={label} sortKey={key} activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className={key==='vat'||key==='total'?'right':''}/>;
  };
  const columnCell=(key:string,i:Invoice)=>{
    if(key==='date')return <td key={key}>{formatAppDate(i.invoiceDate,settings.general)}</td>;

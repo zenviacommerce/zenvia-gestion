@@ -26,3 +26,27 @@
 @media(max-width:760px){
   .adminNavMobile{display:grid!important}
 }
+
+
+.sortableTableHeader{
+  display:inline-flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:5px;
+  width:100%;
+  border:0;
+  padding:0;
+  margin:0;
+  background:transparent;
+  color:inherit;
+  font:inherit;
+  font-weight:inherit;
+  text-align:inherit;
+  cursor:pointer;
+  opacity:.82;
+}
+.sortableTableHeader:hover{opacity:1;color:var(--primary,#0f766e)}
+.sortableTableHeader.isActive{opacity:1;color:var(--primary,#0f766e)}
+th.right .sortableTableHeader{justify-content:flex-end}
+[data-theme='dark'] .sortableTableHeader:hover,
+[data-theme='dark'] .sortableTableHeader.isActive{color:#5eead4}

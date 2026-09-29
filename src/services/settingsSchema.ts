@@ -93,6 +93,9 @@ export type ShippingSettings = {
   senderCity: string;
   senderCountryCode: string;
   fallbackWeightKg: number;
+  packageLengthCm: number;
+  packageWidthCm: number;
+  packageHeightCm: number;
   weightUnit: 'kg' | 'g';
   labelSize: 'AUTO' | 'A4' | 'A5' | 'A6' | '10x15';
   labelOrientation: 'portrait' | 'landscape';
@@ -169,6 +172,7 @@ export type IntegrationsSettings = {
   gmailEnabled: boolean;
   amazonEnabled: boolean;
   sendcloudEnabled: boolean;
+  enviaEnabled: boolean;
   shopifyEnabled: boolean;
 };
 
@@ -308,6 +312,9 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     senderCity: '',
     senderCountryCode: 'ES',
     fallbackWeightKg: 1,
+    packageLengthCm: 30,
+    packageWidthCm: 20,
+    packageHeightCm: 10,
     weightUnit: 'kg',
     labelSize: 'A6',
     labelOrientation: 'portrait',
@@ -379,6 +386,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     gmailEnabled: true,
     amazonEnabled: true,
     sendcloudEnabled: true,
+    enviaEnabled: true,
     shopifyEnabled: true,
   },
   notifications: {
@@ -745,7 +753,7 @@ function normalizeOrders(input:AnyRecord|null,warnings:SettingsWarning[]):Orders
 
 function normalizeShipping(input:AnyRecord|null,warnings:SettingsWarning[]):ShippingSettings{
   const d=DEFAULT_APP_SETTINGS.shipping;if(!input)return clone(d);
-  const keys=['senderName','senderAddress','senderPostalCode','senderCity','senderCountryCode','fallbackWeightKg','weightUnit','labelSize','labelOrientation','copies','autoDownload','enabledCarriers','noValidMethodBehavior','confirmShipmentAfterLabel','persistShippingCost'];
+  const keys=['senderName','senderAddress','senderPostalCode','senderCity','senderCountryCode','fallbackWeightKg','packageLengthCm','packageWidthCm','packageHeightCm','weightUnit','labelSize','labelOrientation','copies','autoDownload','enabledCarriers','noValidMethodBehavior','confirmShipmentAfterLabel','persistShippingCost'];
   unknownKeys(input,keys,'shipping',warnings);
   return {
     senderName:stringValue(input,'senderName',d.senderName,'shipping.senderName',warnings,{max:160}),
@@ -754,6 +762,9 @@ function normalizeShipping(input:AnyRecord|null,warnings:SettingsWarning[]):Ship
     senderCity:stringValue(input,'senderCity',d.senderCity,'shipping.senderCity',warnings,{max:120}),
     senderCountryCode:stringValue(input,'senderCountryCode',d.senderCountryCode,'shipping.senderCountryCode',warnings,{min:2,max:2,upper:true,pattern:/^[A-Za-z]{2}$/}),
     fallbackWeightKg:numberValue(input,'fallbackWeightKg',d.fallbackWeightKg,'shipping.fallbackWeightKg',warnings,0.001,1000),
+    packageLengthCm:numberValue(input,'packageLengthCm',d.packageLengthCm,'shipping.packageLengthCm',warnings,1,300),
+    packageWidthCm:numberValue(input,'packageWidthCm',d.packageWidthCm,'shipping.packageWidthCm',warnings,1,300),
+    packageHeightCm:numberValue(input,'packageHeightCm',d.packageHeightCm,'shipping.packageHeightCm',warnings,1,300),
     weightUnit:enumValue(input,'weightUnit',d.weightUnit,'shipping.weightUnit',warnings,['kg','g']),
     labelSize:enumValue(input,'labelSize',d.labelSize,'shipping.labelSize',warnings,['AUTO','A4','A5','A6','10x15']),
     labelOrientation:enumValue(input,'labelOrientation',d.labelOrientation,'shipping.labelOrientation',warnings,['portrait','landscape']),
@@ -855,12 +866,13 @@ function normalizeSuppliers(input:AnyRecord|null,warnings:SettingsWarning[]):Sup
 
 function normalizeIntegrations(input:AnyRecord|null,warnings:SettingsWarning[]):IntegrationsSettings{
   const d=DEFAULT_APP_SETTINGS.integrations;if(!input)return clone(d);
-  const keys=['gmailEnabled','amazonEnabled','sendcloudEnabled','shopifyEnabled'];
+  const keys=['gmailEnabled','amazonEnabled','sendcloudEnabled','enviaEnabled','shopifyEnabled'];
   unknownKeys(input,keys,'integrations',warnings);
   return {
     gmailEnabled:booleanValue(input,'gmailEnabled',d.gmailEnabled,'integrations.gmailEnabled',warnings),
     amazonEnabled:booleanValue(input,'amazonEnabled',d.amazonEnabled,'integrations.amazonEnabled',warnings),
     sendcloudEnabled:booleanValue(input,'sendcloudEnabled',d.sendcloudEnabled,'integrations.sendcloudEnabled',warnings),
+    enviaEnabled:booleanValue(input,'enviaEnabled',d.enviaEnabled,'integrations.enviaEnabled',warnings),
     shopifyEnabled:booleanValue(input,'shopifyEnabled',d.shopifyEnabled,'integrations.shopifyEnabled',warnings),
   };
 }

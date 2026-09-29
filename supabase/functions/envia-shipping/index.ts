@@ -97,7 +97,7 @@ function sender(config:any){
   return {
     name:clean(s.senderName||b.trade_name||b.legal_name)||'Remitente',
     company:clean(b.trade_name||b.legal_name)||undefined,
-    phone:clean(b.phone)||'000000000',
+    phone:clean(b.phone),
     email:clean(b.email)||undefined,
     street:clean(s.senderAddress||b.address_line1),
     city:clean(s.senderCity||b.city),
@@ -111,7 +111,7 @@ function destination(order:any){
   return {
     name:clean(order.customer_name||a.name)||'Cliente',
     company:clean(a.company_name)||undefined,
-    phone:clean(order.customer_phone||a.phone_number)||'000000000',
+    phone:clean(order.customer_phone||a.phone_number),
     email:clean(order.customer_email||a.email)||undefined,
     street:[clean(a.address_line_1),clean(a.house_number)].filter(Boolean).join(' '),
     city:clean(a.city),
@@ -141,10 +141,12 @@ function validatePayload(origin:any,dest:any){
   if(!origin.street)missing.push('dirección del remitente');
   if(!origin.city)missing.push('ciudad del remitente');
   if(!origin.postalCode)missing.push('código postal del remitente');
+  if(!origin.phone)missing.push('teléfono del remitente');
   if(!dest.street)missing.push('dirección del destinatario');
   if(!dest.city)missing.push('ciudad del destinatario');
   if(!dest.postalCode)missing.push('código postal del destinatario');
   if(!dest.country)missing.push('país del destinatario');
+  if(!dest.phone)missing.push('teléfono del destinatario');
   if(missing.length)throw new Error(`Faltan datos para cotizar en Envia.com: ${missing.join(', ')}.`);
 }
 function carrierName(item:any){return clean(item?.description||item?.carrierDescription||item?.carrier||item?.carrierName||item?.carrier_code||item?.carrierCode);}

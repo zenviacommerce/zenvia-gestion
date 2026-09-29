@@ -138,3 +138,16 @@ test('transient Supabase auth failures are shown as a useful retry message inste
   assert.match(auth,/ZENVIA Gestión está tardando en responder/);
   assert.match(auth,/setMessage\(authErrorMessage\(error\)\)/);
 });
+
+
+test('password recovery links open a password form before verifying the recovery token',async()=>{
+  const [app,recovery]=await Promise.all([
+    read('src/App.tsx'),
+    read('src/components/RecoveryTokenSetup.tsx'),
+  ]);
+  assert.match(app,/recovery_token/);
+  assert.match(app,/<RecoveryTokenSetup/);
+  assert.match(recovery,/supabase\.auth\.verifyOtp\(\{token_hash:tokenHash,type:'recovery'\}\)/);
+  assert.match(recovery,/supabase\.auth\.updateUser\(\{password\}\)/);
+  assert.ok(recovery.indexOf('password.length<8')<recovery.indexOf('verifyOtp'));
+});

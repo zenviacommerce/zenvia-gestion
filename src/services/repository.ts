@@ -133,6 +133,116 @@ async function sha256(file: File) {
   return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+export type ArchivedSourceDocument={
+  id:string;
+  storagePath:string;
+  originalName:string;
+  mimeType:string;
+  fileHash:string;
+};
+
+function isUniqueViolation(error:unknown){
+  const value=error as any;
+  return value?.code==='23505'||/duplicate key|unique constraint/i.test(String(value?.message||value||''));
+}
+
+export async function getSourceDocument(sourceDocumentId:string):Promise<ArchivedSourceDocument>{
+  const {data,error}=await supabase.from('source_documents')
+    .select('id,storage_path,original_name,mime_type,file_hash')
+    .eq('id',sourceDocumentId)
+    .maybeSingle();
+  if(error)throw error;
+  if(!data)throw new Error('El documento original ya no está disponible.');
+  return {
+    id:String(data.id),
+    storagePath:String(data.storage_path),
+    originalName:String(data.original_name||'documento.pdf'),
+    mimeType:String(data.mime_type||'application/pdf'),
+    fileHash:String(data.file_hash||''),
+  };
+}
+
+export async function archiveSourceDocument(
+  file:File,
+  source:'manual'|'camera'|'gmail',
+  metadata:Record<string,unknown>={},
+):Promise<ArchivedSourceDocument>{
+  const {data:userData}=await supabase.auth.getUser();
+  const user=userData.user;
+  if(!user)throw new Error('Sesión no válida.');
+
+  const fileHash=await sha256(file);
+  if(fileHash){
+    const {data:existing,error:existingError}=await supabase.from('source_documents')
+      .select('id,storage_path,original_name,mime_type,file_hash')
+      .eq('file_hash',fileHash)
+      .limit(1)
+      .maybeSingle();
+    if(existingError)throw existingError;
+    if(existing){
+      return {
+        id:String(existing.id),
+        storagePath:String(existing.storage_path),
+        originalName:String(existing.original_name||file.name||'documento.pdf'),
+        mimeType:String(existing.mime_type||file.type||'application/pdf'),
+        fileHash:String(existing.file_hash||fileHash),
+      };
+    }
+  }
+
+  const year=new Date().getFullYear();
+  const safeName=(file.name||'documento.pdf').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-100);
+  const storagePath=`${user.id}/source/${year}/${crypto.randomUUID()}-${safeName}`;
+  const mimeType=file.type||'application/pdf';
+  const {error:storageError}=await supabase.storage.from(INVOICE_BUCKET).upload(storagePath,file,{
+    contentType:mimeType,
+    upsert:false,
+  });
+  if(storageError)throw storageError;
+
+  const {data:created,error:createError}=await supabase.from('source_documents').insert({
+    storage_bucket:INVOICE_BUCKET,
+    storage_path:storagePath,
+    original_name:sanitizeDatabaseSingleLine(file.name)||'documento.pdf',
+    mime_type:mimeType,
+    file_hash:fileHash||null,
+    document_kind:'expense_source',
+    source_channel:source,
+    metadata:sanitizeDatabaseValue(metadata),
+  }).select('id,storage_path,original_name,mime_type,file_hash').single();
+
+  if(createError){
+    if(isUniqueViolation(createError)&&fileHash){
+      const {data:existing,error:existingError}=await supabase.from('source_documents')
+        .select('id,storage_path,original_name,mime_type,file_hash')
+        .eq('file_hash',fileHash)
+        .limit(1)
+        .maybeSingle();
+      await supabase.storage.from(INVOICE_BUCKET).remove([storagePath]).catch(()=>undefined);
+      if(existingError)throw existingError;
+      if(existing){
+        return {
+          id:String(existing.id),
+          storagePath:String(existing.storage_path),
+          originalName:String(existing.original_name||file.name||'documento.pdf'),
+          mimeType:String(existing.mime_type||mimeType),
+          fileHash:String(existing.file_hash||fileHash),
+        };
+      }
+    }
+    await supabase.storage.from(INVOICE_BUCKET).remove([storagePath]).catch(()=>undefined);
+    throw createError;
+  }
+
+  return {
+    id:String(created.id),
+    storagePath:String(created.storage_path),
+    originalName:String(created.original_name||file.name||'documento.pdf'),
+    mimeType:String(created.mime_type||mimeType),
+    fileHash:String(created.file_hash||fileHash),
+  };
+}
+
 function cleanSupplierContact(contact: SupplierProfileData): SupplierProfileData {
   const taxId = contact.taxId ? normalizeTaxId(contact.taxId) : '';
   const email = contact.email ? normalizeEmail(contact.email) : '';

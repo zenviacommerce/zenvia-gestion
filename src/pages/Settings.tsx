@@ -89,6 +89,12 @@ function IntegrationBrandLogo({provider,small=false}:{provider:IntegrationProvid
       <path d="M14.1 10.3c.7-1.6 1.7-2.5 2.8-2.5 1.1 0 1.9.9 2.4 2.6" fill="none" stroke="#5e8e3e" strokeWidth="1.5" strokeLinecap="round"/>
       <text x="14" y="21.8" fontSize="10.5" fontWeight="800" fontFamily="Arial,Helvetica,sans-serif" fill="#5e8e3e">S</text>
     </svg>}
+    {provider==='envia'&&<svg viewBox="0 0 32 32" role="img">
+      <rect width="32" height="32" rx="8" fill="#111827"/>
+      <path d="M7.5 10.5h11.2l5.8 5.5-5.8 5.5H7.5l5.8-5.5-5.8-5.5Z" fill="#2dd4bf"/>
+      <circle cx="12" cy="23.6" r="2.1" fill="#fff"/>
+      <circle cx="21" cy="23.6" r="2.1" fill="#fff"/>
+    </svg>}
     {provider==='gmail'&&<svg viewBox="0 0 32 32" role="img">
       <rect width="32" height="32" rx="8" fill="#fff"/>
       <path d="M6.5 10.2 16 17.3l9.5-7.1v12.1c0 1.1-.9 2-2 2h-15a2 2 0 0 1-2-2V10.2Z" fill="#f1f3f4"/>
@@ -1094,6 +1100,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   const [amazonClientSecret,setAmazonClientSecret]=useState('');
   const [sendcloudPublicKey,setSendcloudPublicKey]=useState('');
   const [sendcloudSecretKey,setSendcloudSecretKey]=useState('');
+  const [enviaToken,setEnviaToken]=useState('');
+  const [enviaEnvironment,setEnviaEnvironment]=useState<'sandbox'|'production'>('sandbox');
   const [parentAccountId,setParentAccountId]=useState('');
   const [shopifyIntegrationId,setShopifyIntegrationId]=useState('');
   const [shopifyStores,setShopifyStores]=useState<ShopifyDiscovery[]>([]);
@@ -1133,6 +1141,11 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
       description:'Conexión logística para etiquetas, transportistas, seguimiento y canales vinculados.',
       addLabel:'Conectar Sendcloud',
     },
+    envia:{
+      name:'Envia.com',
+      description:'Proveedor multitransportista para comparar tarifas, generar etiquetas y obtener tracking.',
+      addLabel:'Conectar Envia.com',
+    },
     gmail:{
       name:'Gmail',
       description:'Cuenta de Google autorizada para importar facturas recibidas.',
@@ -1142,10 +1155,10 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   // Shopify is not a standalone credential connection in the current architecture:
   // it is a sales channel discovered through Sendcloud, so it is shown inside
   // Sendcloud instead of pretending to be an independent integration.
-  const primaryProviders:IntegrationProvider[]=['amazon','sendcloud','gmail'];
-  const globalProviders:IntegrationProvider[]=['amazon','sendcloud','shopify','gmail'];
+  const primaryProviders:IntegrationProvider[]=['amazon','sendcloud','envia','gmail'];
+  const globalProviders:IntegrationProvider[]=['amazon','sendcloud','envia','shopify','gmail'];
   const settingKey:Record<IntegrationProvider,keyof IntegrationsSettings>={
-    gmail:'gmailEnabled',amazon:'amazonEnabled',sendcloud:'sendcloudEnabled',shopify:'shopifyEnabled',
+    gmail:'gmailEnabled',amazon:'amazonEnabled',sendcloud:'sendcloudEnabled',envia:'enviaEnabled',shopify:'shopifyEnabled',
   };
   const enabled=(id:IntegrationProvider)=>Boolean(draft[settingKey[id]]);
   const toggle=async(id:IntegrationProvider,value:boolean)=>{
@@ -1172,7 +1185,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     setProvider(nextProvider);setEditing(account);setDisplayName(account?.displayName||'');
     setSellerId(account?.provider==='amazon'?(account.externalAccountId||''):'');
     setRefreshToken('');setAmazonClientId('');setAmazonClientSecret('');
-    setSendcloudPublicKey('');setSendcloudSecretKey('');
+    setSendcloudPublicKey('');setSendcloudSecretKey('');setEnviaToken('');
+    setEnviaEnvironment(account?.provider==='envia'&&account.config?.environment==='production'?'production':'sandbox');
     setParentAccountId(account?.parentAccountId||sendcloudAccounts.find(item=>item.isDefault)?.id||sendcloudAccounts[0]?.id||'');
     setShopifyIntegrationId(String(account?.config?.sendcloudIntegrationId||account?.externalAccountId||''));
     setShopifyStores([]);setAccountEnabled(account?.enabled??true);
@@ -1215,6 +1229,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     };
     if(provider==='shopify')return {sendcloudIntegrationId:Number(shopifyIntegrationId),syncOrders};
     if(provider==='sendcloud')return {syncOrders,shippingEnabled:true};
+    if(provider==='envia')return {environment:enviaEnvironment,originCountryCode:settings.shipping.senderCountryCode||settings.general.countryCode||'ES',shippingEnabled:true};
     return {months:Math.max(1,Math.min(36,Number(gmailMonths)||12)),invoiceImportEnabled:true};
   };
 
@@ -1252,6 +1267,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           if(sendcloudPublicKey.trim())credentials.publicKey=sendcloudPublicKey.trim();
           if(sendcloudSecretKey.trim())credentials.secretKey=sendcloudSecretKey.trim();
         }
+        if(provider==='envia'&&enviaToken.trim())credentials.token=enviaToken.trim();
         await updateIntegrationAccount(editing.id,{
           displayName:displayName.trim()||editing.displayName,enabled:accountEnabled,config:accountConfig(),
           ...(Object.keys(credentials).length?{credentials}:{}),
@@ -1286,6 +1302,14 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           config:accountConfig(),test:true,
         });
         showSuccess('Cuenta de Sendcloud conectada.');
+      }else if(provider==='envia'){
+        if(!enviaToken.trim())throw new Error('Indica el token API de Envia.com.');
+        await createIntegrationAccount({
+          provider:'envia',displayName:displayName.trim()||undefined,
+          credentials:{token:enviaToken.trim()},
+          config:accountConfig(),test:true,
+        });
+        showSuccess(`Envia.com conectado en ${enviaEnvironment==='sandbox'?'sandbox':'producción'}.`);
       }else{
         if(!parentAccountId||!shopifyIntegrationId)throw new Error('Selecciona la cuenta de Sendcloud y la tienda Shopify.');
         const shop=shopifyStores.find(item=>String(item.id)===shopifyIntegrationId);
@@ -1391,7 +1415,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     <div className="settingsSectionHero"><div className="settingsSectionIcon"><PlugZap size={22}/></div><div><h2>Integraciones</h2><p>Conecta y administra varias cuentas por servicio. Las credenciales se gestionan por cuenta; aquí no se muestran secretos guardados.</p></div></div>
 
     <div className="settingsSubsection">
-      <div className="settingsSubsectionHead"><div><h3>Cuentas conectadas</h3><p>Amazon, Sendcloud y Gmail se conectan como servicios independientes. Las tiendas Shopify se muestran dentro de Sendcloud porque actualmente llegan a ZENVIA a través de esa conexión logística.</p></div></div>
+      <div className="settingsSubsectionHead"><div><h3>Cuentas conectadas</h3><p>Amazon, Sendcloud, Envia.com y Gmail se conectan como servicios independientes. Las tiendas Shopify se muestran dentro de Sendcloud porque actualmente llegan a ZENVIA a través de esa conexión logística.</p></div></div>
       {compatibilityMode&&<p className="settingsHelpText">Estás viendo conexiones actuales detectadas automáticamente. Ya puedes abrir el alta de nuevas cuentas; si este entorno todavía no tiene activado el backend multicuenta, al guardar se indicará de forma explícita.</p>}
       {loading?<div className="settingsInlineLoading">Cargando cuentas…</div>:<div className="integrationProviderGrid">
         {primaryProviders.map(id=>{
@@ -1478,9 +1502,10 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           :editing?'Los secretos guardados nunca se vuelven a mostrar. Déjalos vacíos para conservarlos.'
           :provider==='amazon'?'Conexión directa con Amazon SP-API. Introduce las credenciales de la cuenta Seller Central que quieras añadir.'
           :provider==='sendcloud'?'Conexión directa con la API de Sendcloud. Cada cuenta puede tener sus propios canales de venta.'
+          :provider==='envia'?'Conexión directa con la API de Envia.com. Empieza en sandbox y cambia a producción cuando las pruebas sean correctas.'
           :'Autoriza la cuenta de Google que quieras utilizar.'}</small></div></div><button type="button" className="iconBtn" onClick={closeEditor} aria-label="Cerrar">×</button></div>
         <div className="integrationEditorBody">
-          {provider!=='gmail'&&<label className="settingsField"><span>Nombre / alias</span><input value={displayName} disabled={Boolean(editing?.legacy)} onChange={e=>setDisplayName(e.target.value)} placeholder={provider==='amazon'?'Ej. ZENVIA COMMERCE':provider==='sendcloud'?'Ej. Logística principal':'Ej. TrufaPet'}/></label>}
+          {provider!=='gmail'&&<label className="settingsField"><span>Nombre / alias</span><input value={displayName} disabled={Boolean(editing?.legacy)} onChange={e=>setDisplayName(e.target.value)} placeholder={provider==='amazon'?'Ej. ZENVIA COMMERCE':provider==='sendcloud'?'Ej. Logística principal':provider==='envia'?'Ej. Envia España':'Ej. TrufaPet'}/></label>}
 
           {provider==='amazon'&&<>
             <div className="settingsFormGrid">
@@ -1509,6 +1534,14 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
               <label className="settingsField"><span>{editing?'Nueva Secret key (opcional)':'Secret key'}</span><input type="password" autoComplete="new-password" value={sendcloudSecretKey} onChange={e=>setSendcloudSecretKey(e.target.value)} placeholder={editing?'Sin cambios':'Secret key'}/></label>
             </div>:<div className="settingsResetPreview"><strong>Credenciales protegidas</strong><small>Sendcloud continúa usando las claves actuales del backend hasta completar la migración multicuenta.</small></div>}
             <label className="settingsToggleField"><input type="checkbox" checked={syncOrders} onChange={e=>setSyncOrders(e.target.checked)}/><span><strong>Sincronizar pedidos</strong><small>Permitir que esta cuenta importe pedidos y actualice seguimiento.</small></span></label>
+          </>}
+
+          {provider==='envia'&&<>
+            <div className="settingsFormGrid">
+              <label className="settingsField"><span>{editing?'Nuevo token API (opcional)':'Token API'}</span><input type="password" autoComplete="new-password" value={enviaToken} onChange={e=>setEnviaToken(e.target.value)} placeholder={editing?'Sin cambios':'Token Bearer de Envia.com'}/></label>
+              <label className="settingsField"><span>Entorno</span><SelectField ariaLabel="Entorno de Envia.com" value={enviaEnvironment} options={[{value:'sandbox',label:'Sandbox · pruebas'},{value:'production',label:'Producción · envíos reales'}]} onChange={value=>setEnviaEnvironment(value as 'sandbox'|'production')}/></label>
+            </div>
+            <div className="settingsResetPreview"><strong>{enviaEnvironment==='sandbox'?'Modo de pruebas':'Modo producción'}</strong><small>{enviaEnvironment==='sandbox'?'Las guías de sandbox no generan envíos reales ni cargos.':'Las etiquetas generadas en producción pueden registrar envíos y generar cargos en Envia.com.'}</small></div>
           </>}
 
           {provider==='shopify'&&<>

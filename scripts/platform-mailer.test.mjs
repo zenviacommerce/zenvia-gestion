@@ -16,11 +16,11 @@ test('central Platform mailer owns branded invitation delivery through Resend',a
   assert.match(mailer,/https:\/\/api\.resend\.com\/emails/);
 });
 
-test('Platform-created customer users only prepare an invite link when custom delivery is requested',async()=>{
+test('Platform-created customer users only prepare an invite token when custom delivery is requested',async()=>{
   const bridge=await read('supabase/functions/platform-bridge/index.ts');
   const block=bridge.slice(bridge.indexOf("if(action==='invite_workspace_user')"),bridge.indexOf("if(action==='update_workspace_user')"));
   assert.match(block,/body\?\.delivery==='custom'/);
   assert.match(block,/auth\.admin\.generateLink/);
-  assert.match(block,/properties\?\.action_link/);
-  assert.match(block,/inviteUrl:customDelivery\?inviteUrl:null/);
+  assert.match(block,/properties\?\.hashed_token/);
+  assert.match(block,/inviteTokenHash:customDelivery\?inviteTokenHash:null/);
 });

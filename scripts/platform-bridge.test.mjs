@@ -46,13 +46,13 @@ test('shared support reads are isolated by workspace for Platform aggregation',a
 });
 
 
-test('Platform can request a silent invite link so ZENVIA can deliver its own branded email',async()=>{
+test('Platform can request a silent invite token so ZENVIA can deliver its own branded email',async()=>{
   const bridge=await read('supabase/functions/platform-bridge/index.ts');
   const block=bridge.slice(bridge.indexOf("if(action==='invite_workspace_user')"),bridge.indexOf("if(action==='update_workspace_user')"));
   assert.match(block,/body\?\.delivery==='custom'/);
   assert.match(block,/auth\.admin\.generateLink/);
   assert.match(block,/type:'invite'/);
-  assert.match(block,/properties\?\.action_link/);
+  assert.match(block,/properties\?\.hashed_token/);
   assert.match(block,/inviteUserByEmail/);
-  assert.match(block,/inviteUrl:customDelivery\?inviteUrl:null/);
+  assert.match(block,/inviteTokenHash:customDelivery\?inviteTokenHash:null/);
 });

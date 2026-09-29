@@ -7,12 +7,12 @@ const corsHeaders={
   'Access-Control-Allow-Methods':'POST, OPTIONS',
 };
 const headers={...corsHeaders,'Content-Type':'application/json'};
-const PROVIDERS=new Set(['amazon','sendcloud','shopify','gmail']);
+const PROVIDERS=new Set(['amazon','sendcloud','envia','shopify','gmail']);
 const SENDCLOUD_BASE='https://panel.sendcloud.sc/api/v3';
 const SP_API_BASE='https://sellingpartnerapi-eu.amazon.com';
 
 type Caller={user_id:string;data_owner_id:string;role:string;active:boolean;permissions:string[]|null};
-type Provider='amazon'|'sendcloud'|'shopify'|'gmail';
+type Provider='amazon'|'sendcloud'|'envia'|'shopify'|'gmail';
 
 function response(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers});}
 function clean(v:unknown){return String(v??'').trim();}
@@ -199,6 +199,28 @@ async function sendcloudIntegrations(admin:any,account:any){
     };
   });
 }
+async function enviaCredentials(admin:any,account:any){
+  const stored=account.secret_id?await readVault(admin,account.secret_id):{};
+  const token=clean((stored as any).token||(stored as any).apiToken||(stored as any).api_token);
+  if(!token)throw new Error('Falta el token API de Envia.com.');
+  return {token};
+}
+function enviaEnvironment(account:any){
+  return account?.config?.environment==='production'?'production':'sandbox';
+}
+async function enviaCarriers(admin:any,account:any){
+  const {token}=await enviaCredentials(admin,account);
+  const environment=enviaEnvironment(account);
+  const base=environment==='production'?'https://queries.envia.com':'https://queries.test.envia.com';
+  const country=clean(account?.config?.originCountryCode||'ES').toUpperCase()||'ES';
+  const res=await fetch(`${base}/carrier?country_code=${encodeURIComponent(country)}`,{
+    headers:{Authorization:`Bearer ${token}`,Accept:'application/json'},
+  });
+  const raw=await res.text();let data:any=null;try{data=JSON.parse(raw)}catch{}
+  if(!res.ok)throw new Error(`Envia.com (${res.status}): ${sanitize(data?.message||data?.error||raw)}`);
+  const rows=Array.isArray(data)?data:Array.isArray(data?.data)?data.data:Array.isArray(data?.carriers)?data.carriers:[];
+  return {environment,country,carriers:rows};
+}
 async function testAccount(admin:any,ownerId:string,account:any){
   const now=new Date().toISOString();
   try{
@@ -209,6 +231,9 @@ async function testAccount(admin:any,ownerId:string,account:any){
     }else if(account.provider==='sendcloud'){
       const integrations=await sendcloudIntegrations(admin,account);
       detail={integrations:integrations.length};
+    }else if(account.provider==='envia'){
+      const result=await enviaCarriers(admin,account);
+      detail={environment:result.environment,country:result.country,carriers:result.carriers.length};
     }else if(account.provider==='shopify'){
       if(!account.parent_account_id)throw new Error('La tienda Shopify no tiene una cuenta de Sendcloud asociada.');
       const parent=await loadAccount(admin,ownerId,account.parent_account_id);
@@ -261,6 +286,7 @@ Deno.serve(async(req:Request)=>{
       const providerEntitlement:Record<string,{key:string;message:string}>={
         amazon:{key:'integration.amazon',message:'Tu plan no incluye la integración con Amazon.'},
         sendcloud:{key:'integration.sendcloud',message:'Tu plan no incluye la integración con Sendcloud.'},
+        envia:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones de transporte.'},
         gmail:{key:'integration.gmail',message:'Tu plan no incluye la integración con Gmail.'},
       };
       const configuredEntitlement=providerEntitlement[provider];
@@ -298,6 +324,11 @@ Deno.serve(async(req:Request)=>{
         if(!clean((credentials as any).publicKey||(credentials as any).public_key)||!clean((credentials as any).secretKey||(credentials as any).secret_key))throw new Error('Indica las claves Public y Secret de Sendcloud.');
         externalAccountId=externalAccountId||`sendcloud-${crypto.randomUUID()}`;
         displayName=displayName||'Sendcloud';
+      }else if(provider==='envia'){
+        if(!clean((credentials as any).token||(credentials as any).apiToken||(credentials as any).api_token))throw new Error('Indica el token API de Envia.com.');
+        externalAccountId=externalAccountId||`envia-${crypto.randomUUID()}`;
+        displayName=displayName||'Envia.com';
+        config={environment:config?.environment==='production'?'production':'sandbox',originCountryCode:clean(config?.originCountryCode||'ES').toUpperCase()||'ES',shippingEnabled:true,...config};
       }else if(provider==='shopify'){
         if(!parentAccountId)throw new Error('Selecciona la cuenta de Sendcloud donde está conectada la tienda.');
         const parent=await loadAccount(admin,caller.data_owner_id,parentAccountId);
@@ -327,7 +358,7 @@ Deno.serve(async(req:Request)=>{
       }).select('*').single();
       if(inserted.error)throw inserted.error;
       let account=inserted.data;
-      if(provider==='amazon'||provider==='sendcloud'){
+      if(provider==='amazon'||provider==='sendcloud'||provider==='envia'){
         const secretId=await writeVault(admin,account.id,provider,credentials,null);
         const saved=await admin.from('integration_accounts').update({secret_id:secretId,updated_at:new Date().toISOString()})
           .eq('id',account.id).eq('owner_id',caller.data_owner_id).select('*').single();
@@ -354,6 +385,7 @@ Deno.serve(async(req:Request)=>{
         const providerEntitlement:Record<string,{key:string;message:string}>={
           amazon:{key:'integration.amazon',message:'Tu plan no incluye la integración con Amazon.'},
           sendcloud:{key:'integration.sendcloud',message:'Tu plan no incluye la integración con Sendcloud.'},
+          envia:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones de transporte.'},
           gmail:{key:'integration.gmail',message:'Tu plan no incluye la integración con Gmail.'},
         };
         const configuredEntitlement=providerEntitlement[account.provider];
@@ -383,7 +415,7 @@ Deno.serve(async(req:Request)=>{
       if(typeof body?.enabled==='boolean')patch.enabled=body.enabled;
       if(body?.config&&typeof body.config==='object'&&!Array.isArray(body.config))patch.config={...(account.config||{}),...body.config};
       const credentials=(body?.credentials&&typeof body.credentials==='object'&&!Array.isArray(body.credentials))?body.credentials:null;
-      if(credentials&&(account.provider==='amazon'||account.provider==='sendcloud')){
+      if(credentials&&(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='envia')){
         const existing=account.secret_id?await readVault(admin,account.secret_id):{};
         const merged={...existing,...Object.fromEntries(Object.entries(credentials).filter(([,v])=>clean(v)))};
         patch.secret_id=await writeVault(admin,account.id,account.provider,merged,account.secret_id);

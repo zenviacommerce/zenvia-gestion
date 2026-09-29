@@ -221,11 +221,10 @@ function UserEditor({ user, currentUserId, onClose, onSaved }: { user: ManagedUs
       if (editing && user) {
         await updateManagedUser({ userId: user.userId, email, fullName, password: password || undefined, active: isAdmin ? true : active, role, permissions: isAdmin ? permissionOptions.map(option => option.id) : permissions });
       } else {
-        const created=await createManagedUser({ email, fullName, password, role, permissions: isAdmin ? permissionOptions.map(option => option.id) : permissions });
-        if(!created.emailDelivered)showError(created.emailWarning||'Usuario creado, pero no se pudo enviar el correo de bienvenida.');
+        await createManagedUser({ email, fullName, role, permissions: isAdmin ? permissionOptions.map(option => option.id) : permissions });
       }
       await onSaved();
-      showSuccess(editing?'Usuario modificado correctamente.':'Usuario creado correctamente.');
+      showSuccess(editing?'Usuario modificado correctamente.':'Invitación enviada correctamente.');
     } catch (e) { setError(errorMessage(e,'No se pudo guardar el usuario.')); }
     finally { setBusy(false); }
   };
@@ -237,7 +236,8 @@ function UserEditor({ user, currentUserId, onClose, onSaved }: { user: ManagedUs
         <label>Nombre<input required value={fullName} onChange={event => setFullName(event.target.value)} placeholder="Nombre y apellidos"/></label>
         <label>Email<input required type="email" value={email} onChange={event => setEmail(event.target.value)} placeholder="usuario@zenviacommerce.com"/></label>
         <label>Tipo de usuario<SelectField value={role} options={[{value:'user',label:'Usuario'},{value:'admin',label:'Administrador'}]} onChange={value=>setRole(value as AppRole)} disabled={isSelf} ariaLabel="Tipo de usuario"/></label>
-        <label>{editing ? 'Nueva contraseña (opcional)' : 'Contraseña temporal'}<div className="adminPasswordField"><KeyRound size={16}/><input type="password" required={!editing} minLength={8} value={password} onChange={event => setPassword(event.target.value)} placeholder={editing ? 'Dejar en blanco para no cambiar' : 'Mínimo 8 caracteres'}/></div>{!editing&&<small>Se enviará por correo al usuario y tendrá que cambiarla en el primer acceso.</small>}</label>
+        {editing&&<label>Nueva contraseña (opcional)<div className="adminPasswordField"><KeyRound size={16}/><input type="password" minLength={8} value={password} onChange={event => setPassword(event.target.value)} placeholder="Dejar en blanco para no cambiar"/></div></label>}
+        {!editing&&<div className="adminLockedNotice"><KeyRound size={18}/><div><strong>El usuario creará su contraseña</strong><span>Recibirá una invitación de ZENVIA con un enlace de activación. Hasta que defina su contraseña, no accederá a la aplicación.</span></div></div>}
       </div>
 
       {!isAdmin && <>
@@ -248,7 +248,7 @@ function UserEditor({ user, currentUserId, onClose, onSaved }: { user: ManagedUs
 
       {isAdmin && <div className="adminLockedNotice"><ShieldCheck size={18}/><div><strong>Acceso total</strong><span>Los administradores acceden a todos los módulos y al menú de Administración. No necesitan permisos individuales.</span>{isSelf&&<small>Tu propio rol no puede modificarse desde esta pantalla para evitar dejar el workspace sin administrador activo.</small>}</div></div>}
       {error && <div className="errorBox">{error}</div>}
-      <div className="modalActions"><button type="button" className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={busy}>{busy ? 'Guardando…' : editing ? 'Guardar cambios' : 'Crear usuario'}</button></div>
+      <div className="modalActions"><button type="button" className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={busy}>{busy ? (editing?'Guardando…':'Enviando…') : editing ? 'Guardar cambios' : 'Enviar invitación'}</button></div>
     </form>
   </div>;
 }

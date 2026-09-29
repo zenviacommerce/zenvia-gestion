@@ -52,6 +52,7 @@ import './action-dialog.css';
 import './activity.css';
 import './settings.css';
 import './alerts.css';
+import './app-agent.css';
 import './theme-consistency.css';
 
 const favicon=document.querySelector<HTMLLinkElement>("link[rel~='icon']")||document.createElement('link');

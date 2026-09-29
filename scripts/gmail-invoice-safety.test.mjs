@@ -58,7 +58,7 @@ test('Gmail persistence revalidates integrity immediately before writing',async(
 
 test('customer orders remain a hard-negative document type',async()=>{
   const classifier=await read('../src/services/invoiceCandidateClassifier.ts');
-  assert.match(classifier,/pedido\s\+de\s\+cliente/);
+  assert.match(classifier,/pedido\\s\+de\\s\+cliente/);
   assert.match(classifier,/hardDocumentNegative/);
   assert.match(classifier,/!hardDocumentNegative/);
 });

@@ -15,9 +15,12 @@
 }
 .sidebar .brandLogo{
   display:block;
-  width:156px;
-  max-width:100%;
+  width:auto;
+  max-width:156px;
   height:auto;
+  max-height:64px;
+  object-fit:contain;
+  object-position:left center;
   border-radius:9px;
   box-shadow:0 10px 26px rgba(2,6,23,.24);
 }

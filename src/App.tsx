@@ -8,6 +8,7 @@ import { ProductModal } from './components/ProductModal';
 import { SupplierModal } from './components/SupplierModal';
 import { ToastHost } from './components/ToastHost';
 import { AlertCenter } from './components/AlertCenter';
+import { AppAgent, type AppAgentAction } from './components/AppAgent';
 import { AuthScreen } from './components/AuthScreen';
 import { InvitePasswordSetup } from './components/InvitePasswordSetup';
 import { InviteTokenSetup } from './components/InviteTokenSetup';
@@ -331,8 +332,29 @@ export default function App(){
    if(!can('suppliers'))throw new Error('No tienes permiso para eliminar proveedores.');
    await runAction(async()=>{await deleteSupplier(supplier.id);await refresh()},'No se pudo eliminar el proveedor.');
  };
+ const handleAgentAction=(action:AppAgentAction)=>{
+   if(action.type==='navigate'&&action.target&&allowedPages.includes(action.target as Page)){
+     void navigate(action.target as Page);
+     return;
+   }
+   if(action.type==='open_settings'&&allowedPages.includes('settings')){void navigate('settings');return;}
+   if(action.type==='open_expense_upload'&&can('invoices')){void navigate('invoices');setUpload(true);return;}
+   if(action.type==='open_product_create'&&can('products')){void navigate('products');openNewProduct();return;}
+   if(action.type==='open_supplier_create'&&can('suppliers')){void navigate('suppliers');openNewSupplier();}
+ };
 
- return <div className="app"><ToastHost/><Sidebar page={page} onChange={next=>void navigate(next)} onLogout={()=>supabase.auth.signOut()} theme={theme} onThemeChange={changeTheme} allowedPages={allowedPages} isAdmin={access.role==='admin'} user={{fullName:access.fullName,email:access.email||session.user.email||'',role:access.role}} logoSrc={workspaceLogo}/><main className={passkeySetupVisible?'hasPasskeySetup':''}>
+ return <div className="app"><ToastHost/><AppAgent
+   allowedPages={allowedPages}
+   currentPage={page}
+   context={{
+     expenseInvoices:data.invoices.length,
+     products:data.products.length,
+     suppliers:data.suppliers.length,
+     workspace:access.workspaceName,
+     role:access.role,
+   }}
+   onAction={handleAgentAction}
+ /><Sidebar page={page} onChange={next=>void navigate(next)} onLogout={()=>supabase.auth.signOut()} theme={theme} onThemeChange={changeTheme} allowedPages={allowedPages} isAdmin={access.role==='admin'} user={{fullName:access.fullName,email:access.email||session.user.email||'',role:access.role}} logoSrc={workspaceLogo}/><main className={passkeySetupVisible?'hasPasskeySetup':''}>
    <button className="mobileLogoutButton" onClick={()=>supabase.auth.signOut()} title="Cerrar sesión" aria-label="Cerrar sesión"><LogOut size={19}/></button>
    <button className="mobileThemeToggle" onClick={toggleTheme} title={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'} aria-label={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'}>{theme==='dark'?<Sun size={19}/>:<Moon size={19}/>}</button>
    <PasskeySetup userId={session.user.id} onVisibilityChange={setPasskeySetupVisible}/>

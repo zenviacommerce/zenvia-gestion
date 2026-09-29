@@ -84,3 +84,27 @@ test('single expense upload blocks bundled PDFs and redirects to the normalized 
   assert.match(modal,/Usa “Importar facturas”/);
   assert.match(modal,/setReaderBlocked\(true\)/);
 });
+
+
+test('detects a supplier PDF that mixes an invoice, credit note and delivery paperwork',async()=>{
+  const {structuralInvoiceCount}=await loadBundle();
+  const text=`
+Factura
+ZENVIA COMMERCE S.L.
+26/06/26 2614066
+Desglose de impuestos
+21,00% 1.363,19 EUR 286,27 EUR
+Total factura: 1.649,46 EUR
+ABONO
+ZENVIA COMMERCE S.L.
+26/08/26 993
+Desglose de impuestos
+21,00% 34,96 EUR 7,34 EUR
+Total factura: -42,30 EUR
+DEVOLVER AL
+AGENCIA
+TRANSPORTES
+ENTREGA
+`;
+  assert.ok(structuralInvoiceCount(text)>=2);
+});

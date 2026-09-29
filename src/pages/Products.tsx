@@ -14,6 +14,7 @@ import { confirmAction, openActionProcess } from '../services/actionDialog';
 import { useSettings } from '../context/SettingsContext';
 import { orderedTableColumns, persistRememberedFilter, rememberedFilter } from '../services/uiPreferences';
 import { formatAppDate, formatAppMoney } from '../services/formatting';
+import { SortableTableHeader, useSortableTable } from '../components/SortableTableHeader';
 import '../supplier-actions.css';
 
 
@@ -124,8 +125,19 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
  const allShownSelected=shown.length>0&&shown.every(product=>checkedIds.has(product.id));
  const toggleProduct=(id:string,checked:boolean)=>setCheckedIds(current=>{const next=new Set(current);if(checked)next.add(id);else next.delete(id);return next;});
  const toggleAllProducts=(checked:boolean)=>setCheckedIds(checked?new Set(shown.map(product=>product.id)):new Set());
- const totalPages=Math.max(1,Math.ceil(shown.length/pageSize));
- const paged=useMemo(()=>shown.slice((page-1)*pageSize,page*pageSize),[shown,page]);
+ const sorting=useSortableTable('products',shown,{
+   product:p=>p.name,
+   sku:p=>p.sku||salesMap.get(p.id)?.ean||'',
+   supplier:p=>p.supplier||'',
+   lastPurchase:p=>p.lastPurchaseDate||'',
+   cost:p=>productMetrics(p,salesMap.get(p.id)).cost,
+   salePrice:p=>productMetrics(p,salesMap.get(p.id)).sale,
+   margin:p=>productMetrics(p,salesMap.get(p.id)).marginPct,
+   costChange:p=>productMetrics(p,salesMap.get(p.id)).delta,
+ },{key:'product',direction:'asc'});
+ const sorted=sorting.rows;
+ const totalPages=Math.max(1,Math.ceil(sorted.length/pageSize));
+ const paged=useMemo(()=>sorted.slice((page-1)*pageSize,page*pageSize),[sorted,page,pageSize]);
  useEffect(()=>{setPage(1);setCheckedIds(new Set())},[query,dateFilter,categoryFilter,supplierFilter,taxFilter,scope]);
  useEffect(()=>{const timer=window.setTimeout(()=>{void persistRememberedFilter(preferences,patchPreferences,'products.filters',{query,dateFilter,categoryFilter,supplierFilter,scope,taxFilter})},350);return()=>window.clearTimeout(timer)},[query,dateFilter,categoryFilter,supplierFilter,scope,taxFilter,preferences.rememberFilters]);
  useEffect(()=>{setPage(current=>Math.min(current,totalPages))},[totalPages]);
@@ -172,15 +184,10 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
  };
  const edit=(product:Product)=>{setSelected(null);onEdit(product)};
  const columnHeader=(key:string)=>{
-   if(key==='product')return <th key={key}>Producto</th>;
-   if(key==='sku')return <th key={key}>SKU / EAN</th>;
-   if(key==='supplier')return <th key={key}>Proveedor</th>;
-   if(key==='lastPurchase')return <th key={key}>Última compra</th>;
-   if(key==='cost')return <th key={key} className="right">Coste</th>;
-   if(key==='salePrice')return <th key={key} className="right">P. venta</th>;
-   if(key==='margin')return <th key={key} className="right">Margen</th>;
-   if(key==='costChange')return <th key={key} className="right">Var. coste</th>;
-   return null;
+   const labels:Record<string,string>={product:'Producto',sku:'SKU / EAN',supplier:'Proveedor',lastPurchase:'Última compra',cost:'Coste',salePrice:'P. venta',margin:'Margen',costChange:'Var. coste'};
+   const label=labels[key];if(!label)return null;
+   const right=['cost','salePrice','margin','costChange'].includes(key);
+   return <SortableTableHeader key={key} label={label} sortKey={key} activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className={right?'right':''}/>;
  };
  const columnCell=(key:string,p:Product,extra:ProductSalesInfo|undefined)=>{
    const metric=productMetrics(p,extra);

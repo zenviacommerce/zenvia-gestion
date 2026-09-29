@@ -153,7 +153,13 @@ Deno.serve(async(req:Request)=>{
       }),
     });
     const payload=await upstream.json().catch(()=>({}));
-    if(!upstream.ok)return response({error:String(payload?.error||'No se pudo consultar ZENVIA IA.'),code:payload?.code||null},upstream.status);
+    if(!upstream.ok){
+      return response({
+        ok:false,
+        error:String(payload?.error||'No se pudo consultar ZENVIA IA.'),
+        code:payload?.code||'agent_upstream_error',
+      });
+    }
     return response(payload);
   }catch(error){
     return response({error:error instanceof Error?error.message:'Error interno del agente.'},500);

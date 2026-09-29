@@ -31,6 +31,13 @@ export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenF
     setCategoryError('');
   },[invoice?.id,invoice?.categoryId]);
 
+  const lineSorting=useSortableTable(`expense-lines-${invoice?.id||'closed'}`,invoice?.lines||[],{
+    description:line=>line.description,
+    quantity:line=>line.quantity,
+    unitPrice:line=>line.unitPrice,
+    total:line=>line.lineTotal,
+  },{key:'description',direction:'asc'});
+
   if(!invoice) return null;
 
   const saveSupplier=async()=>{
@@ -51,13 +58,6 @@ export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenF
 
   const supplierChanged=supplierId!==String(invoice.supplierId||'');
   const categoryChanged=categoryId!==String(invoice.categoryId||'');
-  const lineSorting=useSortableTable(`expense-lines-${invoice.id}`,invoice.lines,{
-    description:line=>line.description,
-    quantity:line=>line.quantity,
-    unitPrice:line=>line.unitPrice,
-    total:line=>line.lineTotal,
-  },{key:'description',direction:'asc'});
-
   return <div className="modalBackdrop zenviaDetailDrawerBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget) onClose()}}><div className="modal invoiceDetailModal zenviaDetailDrawer">
     <div className="modalHead"><div><h3>{invoice.supplierName}</h3><p>{invoice.invoiceNumber === '—' ? 'Factura sin número' : `Factura ${invoice.invoiceNumber}`}</p></div><button onClick={onClose}><X/></button></div>
 

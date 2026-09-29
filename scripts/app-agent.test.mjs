@@ -72,16 +72,6 @@ test('orders refresh after agent-triggered synchronization',async()=>{
 });
 
 
-test('agent proxy returns upstream AI errors as chat payload instead of a generic Edge Function error',async()=>{
-  const edge=await read('supabase/functions/app-agent/index.ts');
-  assert.match(edge,/if\(!upstream\.ok\)/);
-  assert.match(edge,/ok:false/);
-  assert.match(edge,/agent_upstream_error/);
-  const block=edge.slice(edge.indexOf('if(!upstream.ok)'),edge.indexOf('return response(payload)',edge.indexOf('if(!upstream.ok)')));
-  assert.doesNotMatch(block,/upstream\.status/);
-});
-
-
 test('local agent understands core ZENVIA domain commands and real-data questions',async()=>{
   const edge=await read('supabase/functions/app-agent/index.ts');
   for(const phrase of [

@@ -143,6 +143,42 @@ where g.source_document_id is null
   and g.owner_id=i.owner_id
   and i.source_document_id is not null;
 
+
+-- Conserva también originales históricos que fueron descartados/corregidos
+-- pero cuya ruta se dejó registrada en la trazabilidad de Gmail.
+insert into public.source_documents(
+  owner_id,storage_bucket,storage_path,original_name,mime_type,file_hash,
+  document_kind,source_channel,received_at,metadata,created_at
+)
+select
+  g.owner_id,
+  'invoices',
+  g.metadata->>'orphanedStoragePath',
+  g.attachment_name,
+  coalesce(g.attachment_mime_type,'application/pdf'),
+  null,
+  'expense_source',
+  'gmail',
+  coalesce(g.received_at,g.created_at,now()),
+  jsonb_build_object(
+    'backfilledFrom','gmail_imports_orphaned_source',
+    'gmailImportId',g.id,
+    'cleanupReason',g.metadata->>'cleanupReason'
+  ),
+  coalesce(g.created_at,now())
+from public.gmail_imports g
+where nullif(g.metadata->>'orphanedStoragePath','') is not null
+on conflict do nothing;
+
+update public.gmail_imports g
+set source_document_id=d.id
+from public.source_documents d
+where g.source_document_id is null
+  and g.owner_id=d.owner_id
+  and nullif(g.metadata->>'orphanedStoragePath','') is not null
+  and d.storage_bucket='invoices'
+  and d.storage_path=g.metadata->>'orphanedStoragePath';
+
 comment on table public.source_documents is
 'Immutable originals imported into ZENVIA. Business records such as invoices are derived interpretations and may be corrected or deleted without deleting the original document.';
 comment on column public.invoices.source_document_id is

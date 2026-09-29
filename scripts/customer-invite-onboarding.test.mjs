@@ -4,13 +4,14 @@ import test from 'node:test';
 
 const read=path=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
-test('platform owner invites land in customer app and require password setup',async()=>{
+test('platform user invites expose a token hash instead of an auto-login action link',async()=>{
   const platform=await read('supabase/functions/platform-bridge/index.ts');
-  assert.match(platform,/CUSTOMER_APP_URL/);
-  assert.match(platform,/https:\/\/gestion\.zenviacommerce\.com/);
-  assert.match(platform,/inviteUserByEmail\(ownerEmail,\{/);
-  assert.match(platform,/redirectTo:customerAppUrl/);
-  assert.match(platform,/onboarding_pending:true/);
+  const block=platform.slice(platform.indexOf("if(action==='invite_workspace_user')"),platform.indexOf("if(action==='update_workspace_user')"));
+  assert.match(block,/auth\.admin\.generateLink/);
+  assert.match(block,/properties\?\.hashed_token/);
+  assert.match(block,/inviteTokenHash/);
+  assert.doesNotMatch(block,/properties\?\.action_link/);
+  assert.match(block,/onboarding_pending:true/);
 });
 
 test('customer app blocks invited owners until they create a password',async()=>{
@@ -27,27 +28,32 @@ test('customer app blocks invited owners until they create a password',async()=>
 });
 
 
-test('managed user creation sends a temporary-password onboarding email and forces first-login change',async()=>{
-  const [edge,admin]=await Promise.all([
+test('managed user creation sends a password-first branded invitation',async()=>{
+  const [edge,admin,access]=await Promise.all([
     read('supabase/functions/admin-users/index.ts'),
     read('src/pages/Admin.tsx'),
+    read('src/services/access.ts'),
   ]);
+  assert.match(edge,/auth\.admin\.generateLink/);
+  assert.match(edge,/properties\?\.hashed_token/);
+  assert.match(edge,/sendInviteViaPlatform/);
+  assert.match(edge,/send_user_invite/);
   assert.match(edge,/onboarding_pending:true/);
-  assert.match(edge,/sendWelcomeEmail/);
-  assert.match(edge,/RESEND_API_KEY/);
-  assert.match(edge,/temporaryPassword/);
-  assert.match(edge,/\?tenant=\$\{encodeURIComponent\(input\.tenantKey\)\}/);
-  assert.match(edge,/tenantKey:String\(workspaceId\)/);
-  assert.match(edge,/Debes cambiar esta contraseña en tu primer acceso/);
-  assert.match(admin,/Contraseña temporal/);
-  assert.match(admin,/Se enviará por correo/);
+  assert.doesNotMatch(edge,/temporaryPassword/);
+  assert.doesNotMatch(edge,/sendWelcomeEmail/);
+  assert.doesNotMatch(admin,/Contraseña temporal/);
+  assert.match(admin,/El usuario creará su contraseña/);
+  assert.match(admin,/Enviar invitación/);
+  assert.doesNotMatch(access,/createManagedUser\(input: \{ email: string; fullName: string; password:/);
 });
 
-test('identity route sync cannot roll back a successfully created managed user',async()=>{
+test('failed invitation delivery rolls back the newly created managed user',async()=>{
   const edge=await read('supabase/functions/admin-users/index.ts');
   assert.match(edge,/trySyncIdentityRoute/);
-  assert.doesNotMatch(edge,/await admin\.from\('app_users'\)\.delete\(\)[\s\S]{0,400}syncIdentityRoute/);
-  assert.match(edge,/routeSynced/);
+  assert.match(edge,/sendInviteViaPlatform/);
+  assert.match(edge,/if\(!invitation\.delivered\)/);
+  assert.match(edge,/unregister_identity/);
+  assert.match(edge,/deleteUser\(generated\.user\.id\)/);
 });
 
 

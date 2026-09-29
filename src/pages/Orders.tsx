@@ -176,11 +176,28 @@ function OrderDrawer({order,shippingPrice,validationIssues,productImages,onClose
 
 function LabelModal({order,options,loading,onClose,onCreate}:{order:FulfillmentOrder;options:ShippingOption[];loading:boolean;onClose:()=>void;onCreate:(option:ShippingOption|null)=>void}){
   const {settings}=useSettings();
-  const preferred=options.filter(option=>preferredCarrier(option));
-  const grouped={correos:preferred.filter(option=>preferredCarrier(option)==='correos'),mrw:preferred.filter(option=>preferredCarrier(option)==='mrw')};
+  const providers=Array.from(new Set(options.map(option=>option.provider)));
   return <div className="modalBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="modal ordersLabelModal">
-    <div className="modalHead"><div><h3>Crear etiqueta · {order.orderNumber||order.orderId}</h3><p>Elige Correos o MRW. Los precios se consultan directamente a Sendcloud con el peso y destino del pedido.</p></div><button onClick={onClose}><X size={18}/></button></div>
-    <div className="ordersLabelBody"><div className="ordersLabelContext"><div><span>Peso del paquete</span><strong>{weightLabel(order,settings.shipping.weightUnit)}</strong></div><div><span>Destino</span><strong>{text(order.shippingAddress.postal_code)||'—'} · {text(order.shippingAddress.city)||text(order.shippingAddress.country_code)||'—'}</strong></div></div>{loading?<div className="ordersOptionsLoading"><LoaderCircle className="spin"/><span>Consultando servicios y precios…</span></div>:<><div className="ordersCarrierGrid">{(['correos','mrw'] as const).map(carrier=><section className="ordersCarrierCard" key={carrier}><div className="ordersCarrierHead"><Truck size={18}/><div><strong>{carrier==='correos'?'Correos':'MRW'}</strong><span>{carrier==='correos'?'Tarifas de Sendcloud':'Contrato propio conectado'}</span></div></div>{grouped[carrier].length?<div className="ordersOptionList">{grouped[carrier].map(option=><button key={`${option.code}-${option.contractId||''}`} onClick={()=>onCreate(option)}><div><strong>{option.name}</strong><small>{option.billedWeightKg?`Peso facturable ${weightValueLabel(option.billedWeightKg,settings.shipping.weightUnit)} · `:''}{option.code}</small></div><span className={option.price==null?'noPrice':''}>{option.price==null?'Precio no disponible':money(option.price,option.currency||'EUR')}</span></button>)}</div>:<div className="ordersNoOption">No hay servicios disponibles para este pedido.</div>}</section>)}</div><button className="secondary ordersRulesButton" onClick={()=>onCreate(null)}><Settings2 size={16}/><span><strong>Usar reglas de Sendcloud</strong><small>Respeta tus métodos y reglas configuradas.</small></span><ChevronRight size={17}/></button></>}</div>
+    <div className="modalHead"><div><h3>Crear etiqueta · {order.orderNumber||order.orderId}</h3><p>Compara los servicios disponibles de tus proveedores logísticos y elige la opción que prefieras.</p></div><button onClick={onClose}><X size={18}/></button></div>
+    <div className="ordersLabelBody">
+      <div className="ordersLabelContext"><div><span>Peso del paquete</span><strong>{weightLabel(order,settings.shipping.weightUnit)}</strong></div><div><span>Destino</span><strong>{text(order.shippingAddress.postal_code)||'—'} · {text(order.shippingAddress.city)||text(order.shippingAddress.country_code)||'—'}</strong></div></div>
+      {loading?<div className="ordersOptionsLoading"><LoaderCircle className="spin"/><span>Consultando proveedores, servicios y precios…</span></div>:<>
+        {!options.length?<div className="ordersNoOption">No hay servicios disponibles en los proveedores logísticos conectados.</div>:<div className="ordersCarrierGrid">
+          {providers.map(provider=>{
+            const providerOptions=options.filter(option=>option.provider===provider);
+            const providerName=providerOptions[0]?.providerName||provider;
+            return <section className="ordersCarrierCard" key={provider}>
+              <div className="ordersCarrierHead"><Truck size={18}/><div><strong>{providerName}</strong><span>{provider==='envia'?'Comparador multi-transportista':'Servicios de tu cuenta Sendcloud'}</span></div></div>
+              <div className="ordersOptionList">{providerOptions.map((option,index)=><button key={`${provider}-${option.integrationAccountId||''}-${option.carrierCode}-${option.code}-${index}`} onClick={()=>onCreate(option)}>
+                <div><strong>{option.carrierName} · {option.name}</strong><small>{option.integrationAccountName?`${option.integrationAccountName} · `:''}{option.billedWeightKg?`Peso facturable ${weightValueLabel(option.billedWeightKg,settings.shipping.weightUnit)} · `:''}{option.etaDays?`${option.etaDays} día${option.etaDays===1?'':'s'} · `:''}{option.code}</small></div>
+                <span className={option.price==null?'noPrice':''}>{option.price==null?'Precio no disponible':money(option.price,option.currency||'EUR')}</span>
+              </button>)}</div>
+            </section>;
+          })}
+        </div>}
+        {options.some(option=>option.provider==='sendcloud')&&<button className="secondary ordersRulesButton" onClick={()=>onCreate(null)}><Settings2 size={16}/><span><strong>Usar reglas de Sendcloud</strong><small>Deja que Sendcloud resuelva el método según su configuración.</small></span><ChevronRight size={17}/></button>}
+      </>}
+    </div>
     <div className="modalActions"><button className="secondary" onClick={onClose}>Cancelar</button></div>
   </section></div>;
 }

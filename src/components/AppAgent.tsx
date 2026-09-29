@@ -1,8 +1,8 @@
 import { FormEvent, useMemo, useRef, useState } from 'react';
 import { Bot, LoaderCircle, Send, Sparkles, X } from 'lucide-react';
-import { askAppAgent, type AgentActionType, type AgentMessage } from '../services/appAgent';
+import { askAppAgent, type AgentAction, type AgentMessage } from '../services/appAgent';
 
-export type AppAgentAction={type:AgentActionType;target:string|null};
+export type AppAgentAction=AgentAction;
 
 export function AppAgent({
   allowedPages,
@@ -13,20 +13,20 @@ export function AppAgent({
   allowedPages:string[];
   currentPage:string;
   context:Record<string,unknown>;
-  onAction:(action:AppAgentAction)=>void;
+  onAction:(action:AppAgentAction)=>Promise<string|null|void>|string|null|void;
 }){
   const [open,setOpen]=useState(false);
   const [messages,setMessages]=useState<AgentMessage[]>([
-    {role:'assistant',content:'Soy ZENVIA IA. Conozco la aplicación y puedo ayudarte a encontrar funciones, interpretar lo que ves y realizar acciones seguras dentro de la app.'},
+    {role:'assistant',content:'Soy ZENVIA IA. Conozco la aplicación, puedo consultar tus datos y ejecutar acciones dentro de ZENVIA Gestión cuando me lo pidas.'},
   ]);
   const [input,setInput]=useState('');
   const [busy,setBusy]=useState(false);
   const endRef=useRef<HTMLDivElement|null>(null);
 
   const suggestions=useMemo(()=>[
-    '¿Qué puedo hacer desde aquí?',
-    'Llévame a Pedidos',
-    '¿Cómo importo una factura?',
+    '¿Qué tengo pendiente ahora?',
+    'Sincroniza los pedidos',
+    'Crea un proveedor nuevo',
   ],[currentPage]);
 
   const send=async(text=input)=>{
@@ -45,7 +45,12 @@ export function AppAgent({
         context:{...context,currentPage},
       });
       setMessages(current=>[...current,{role:'assistant',content:reply.answer}]);
-      if(reply.action?.type&&reply.action.type!=='none')onAction(reply.action);
+      if(reply.action?.type&&reply.action.type!=='none'){
+        const result=await onAction(reply.action);
+        if(typeof result==='string'&&result.trim()){
+          setMessages(current=>[...current,{role:'assistant',content:result.trim()}]);
+        }
+      }
     }catch(error){
       setMessages(current=>[...current,{
         role:'assistant',
@@ -88,7 +93,7 @@ export function AppAgent({
             {busy?<LoaderCircle className="spin" size={17}/>:<Send size={17}/>}
           </button>
         </form>
-        <footer className="appAgentFooter">Las acciones sensibles requieren confirmación antes de ejecutarse.</footer>
+        <footer className="appAgentFooter">Las operaciones que modifican datos usan la confirmación estándar de ZENVIA antes de ejecutarse.</footer>
       </aside>
     </div>}
   </>;

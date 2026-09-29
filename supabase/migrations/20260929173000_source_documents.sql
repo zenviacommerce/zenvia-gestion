@@ -179,6 +179,26 @@ where g.source_document_id is null
   and d.storage_bucket='invoices'
   and d.storage_path=g.metadata->>'orphanedStoragePath';
 
+-- Storage deletion is allowed only for non-archived invoice objects. Once a
+-- file is registered in source_documents it becomes immutable evidence.
+drop policy if exists invoices_storage_delete on storage.objects;
+create policy invoices_storage_delete
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id='invoices'
+  and (select private.app_storage_folder_in_workspace((storage.foldername(objects.name))[1]))
+  and (select private.app_has_permission('invoices'))
+  and not exists (
+    select 1
+    from public.source_documents d
+    where d.owner_id=(select private.app_workspace_owner_id())
+      and d.storage_bucket=objects.bucket_id
+      and d.storage_path=objects.name
+  )
+);
+
 comment on table public.source_documents is
 'Immutable originals imported into ZENVIA. Business records such as invoices are derived interpretations and may be corrected or deleted without deleting the original document.';
 comment on column public.invoices.source_document_id is

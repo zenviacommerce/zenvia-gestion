@@ -164,11 +164,13 @@ Deno.serve(async(req:Request)=>{
     }
 
     if(action==='bootstrap'){
+      const workspaceId=asText(body?.workspaceId,80);
+      if(!workspaceId)return fail('Falta el cliente.');
       const [workspaces,subscriptions,tickets,awaitingReply,plans]=await Promise.all([
-        admin.from('workspaces').select('id',{count:'exact',head:true}),
-        admin.from('workspace_subscriptions').select('workspace_id',{count:'exact',head:true}).in('status',['active','trialing']),
-        admin.from('support_tickets').select('id',{count:'exact',head:true}).in('status',['open','in_progress','waiting_user']),
-        admin.from('support_tickets').select('id',{count:'exact',head:true}).in('status',['open','in_progress','waiting_user']).eq('last_author_role','user'),
+        admin.from('workspaces').select('id',{count:'exact',head:true}).eq('id',workspaceId),
+        admin.from('workspace_subscriptions').select('workspace_id',{count:'exact',head:true}).eq('workspace_id',workspaceId).in('status',['active','trialing']),
+        admin.from('support_tickets').select('id',{count:'exact',head:true}).eq('owner_id',workspaceId).in('status',['open','in_progress','waiting_user']),
+        admin.from('support_tickets').select('id',{count:'exact',head:true}).eq('owner_id',workspaceId).in('status',['open','in_progress','waiting_user']).eq('last_author_role','user'),
         admin.from('billing_plans').select('plan_key',{count:'exact',head:true}).eq('active',true),
       ]);
       return ok({stats:{
@@ -560,13 +562,14 @@ Deno.serve(async(req:Request)=>{
     }
 
     if(action==='list_tickets'){
-      const [{data:tickets,error:ticketsError},{data:workspaces,error:workspacesError}]=await Promise.all([
-        admin.from('support_tickets').select('id,owner_id,ticket_number,created_by,created_by_email,created_by_name,type,subject,status,priority,assigned_to,created_at,updated_at,last_activity_at,last_author_role,resolved_at,closed_at').order('last_activity_at',{ascending:false}).limit(500),
-        admin.from('workspaces').select('id,name,slug'),
+      const workspaceId=asText(body?.workspaceId,80);
+      if(!workspaceId)return fail('Falta el cliente.');
+      const [{data:tickets,error:ticketsError},{data:workspace,error:workspaceError}]=await Promise.all([
+        admin.from('support_tickets').select('id,owner_id,ticket_number,created_by,created_by_email,created_by_name,type,subject,status,priority,assigned_to,created_at,updated_at,last_activity_at,last_author_role,resolved_at,closed_at').eq('owner_id',workspaceId).order('last_activity_at',{ascending:false}).limit(500),
+        admin.from('workspaces').select('id,name,slug').eq('id',workspaceId).maybeSingle(),
       ]);
-      if(ticketsError)throw ticketsError;if(workspacesError)throw workspacesError;
-      const names=new Map((workspaces||[]).map((row:any)=>[row.id,row.name]));
-      return ok({tickets:(tickets||[]).map((ticket:any)=>({...ticket,workspace_name:names.get(ticket.owner_id)||'Workspace'}))});
+      if(ticketsError)throw ticketsError;if(workspaceError)throw workspaceError;
+      return ok({tickets:(tickets||[]).map((ticket:any)=>({...ticket,workspace_name:workspace?.name||'Workspace'}))});
     }
 
     if(action==='ticket_detail'){

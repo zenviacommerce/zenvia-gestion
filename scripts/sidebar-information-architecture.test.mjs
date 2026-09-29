@@ -50,3 +50,17 @@ test('sidebar grouping remains readable on desktop and mobile',async()=>{
   assert.match(mobile,/\.sidebar \.sidebarNavGroup/);
   assert.match(mobile,/\.sidebarBottom \.adminSidebarButton\{display:flex!important\}/);
 });
+
+
+test('sidebar uses workspace branding with the ZENVIA logo as fallback',async()=>{
+  const [app,sidebar,css]=await Promise.all([
+    read('../src/App.tsx'),
+    read('../src/components/Sidebar.tsx'),
+    read('../src/sidebar-brand.css'),
+  ]);
+  assert.match(app,/loadCompanyBranding/);
+  assert.match(app,/logoSrc=\{workspaceLogo\}/);
+  assert.match(sidebar,/logoSrc\|\|ZENVIA_LOGO/);
+  assert.match(css,/max-height:64px/);
+  assert.match(css,/object-fit:contain/);
+});

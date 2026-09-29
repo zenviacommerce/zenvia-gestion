@@ -32,3 +32,15 @@ test('dedicated schemas provision the company branding bucket',async()=>{
   assert.match(migration,/company_assets_select/);
   assert.match(migration,/company_assets_insert/);
 });
+
+
+test('shared support reads are isolated by workspace for Platform aggregation',async()=>{
+  const bridge=await read('supabase/functions/platform-bridge/index.ts');
+  const bootstrap=bridge.slice(bridge.indexOf("if(action==='bootstrap')"),bridge.indexOf("if(action==='list_workspaces')"));
+  const tickets=bridge.slice(bridge.indexOf("if(action==='list_tickets')"),bridge.indexOf("if(action==='ticket_detail')"));
+  assert.match(bootstrap,/workspaceId=asText\(body\?\.workspaceId,80\)/);
+  assert.match(bootstrap,/support_tickets'[\s\S]*eq\('owner_id',workspaceId\)/);
+  assert.match(tickets,/workspaceId=asText\(body\?\.workspaceId,80\)/);
+  assert.match(tickets,/eq\('owner_id',workspaceId\)/);
+  assert.match(tickets,/workspace\?\.name/);
+});

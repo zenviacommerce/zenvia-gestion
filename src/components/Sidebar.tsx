@@ -60,7 +60,7 @@ function initials(fullName: string, email: string) {
   return source.slice(0, 2).toUpperCase();
 }
 
-export function Sidebar({page,onChange,onLogout,theme,onThemeChange,allowedPages,isAdmin,user}:{page:Page;onChange:(p:Page)=>void;onLogout:()=>void;theme:ThemeMode;onThemeChange:(theme:ThemeMode)=>void;allowedPages:Page[];isAdmin:boolean;user:SidebarUser}) {
+export function Sidebar({page,onChange,onLogout,theme,onThemeChange,allowedPages,isAdmin,user,logoSrc}:{page:Page;onChange:(p:Page)=>void;onLogout:()=>void;theme:ThemeMode;onThemeChange:(theme:ThemeMode)=>void;allowedPages:Page[];isAdmin:boolean;user:SidebarUser;logoSrc?:string|null}) {
   const [mobileOpen,setMobileOpen]=useState(false);
   const canOpenSettings = allowedPages.includes('settings');
   const canOpenAdmin = isAdmin && allowedPages.includes('admin');
@@ -89,7 +89,7 @@ export function Sidebar({page,onChange,onLogout,theme,onThemeChange,allowedPages
     {mobileOpen&&<button className="mobileSidebarBackdrop" type="button" aria-label="Cerrar menú" onClick={()=>setMobileOpen(false)}/>}
     <aside className={`sidebar ${mobileOpen?'mobileOpen':''}`}>
       <div className="brand">
-        <div className="brandLogoWrap"><img className="brandLogo" src={ZENVIA_LOGO} alt="ZENVIA COMMERCE"/></div>
+        <div className="brandLogoWrap"><img className="brandLogo" src={logoSrc||ZENVIA_LOGO} alt={logoSrc?`${displayName} · logotipo`:"ZENVIA COMMERCE"}/></div>
         <div className="brandProductLockup"><span className="brandProductDot"/><div className="brandProductText"><strong>Gestión</strong><span>Gestión empresarial</span></div></div>
         <button className="mobileMenuClose" type="button" onClick={()=>setMobileOpen(false)} aria-label="Cerrar menú"><X size={20}/></button>
       </div>

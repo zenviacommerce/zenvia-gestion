@@ -142,6 +142,12 @@ export default function App(){
    }
  },[]);
 
+ const loadAccessAndBranding=useCallback(async(targetUserId:string)=>{
+   const profile=await loadAccessProfile(targetUserId);
+   const branding=profile.active?await loadCompanyBranding().catch(()=>null):null;
+   return {profile,workspaceLogo:branding?.logoDataUrl||null};
+ },[]);
+
  useEffect(()=>{
    const onProductsChanged=()=>{void refresh();};
    window.addEventListener('zenvia:products-changed',onProductsChanged);
@@ -181,18 +187,18 @@ export default function App(){
 
  useEffect(()=>{
    let cancelled=false;
-   if(!userId){setAccess(null);setAccessReady(false);setData(emptyData);return;}
+   if(!userId){setAccess(null);setAccessReady(false);setData(emptyData);setWorkspaceLogo(null);return;}
    setAccessReady(false);setError('');
-   withTimeout(loadAccessProfile(userId),90000,'El servicio de datos sigue recuperándose. Vuelve a intentarlo en unos segundos.')
-     .then(profile=>{if(!cancelled){setAccess(profile);setAccessReady(true)}})
-     .catch(e=>{if(!cancelled){setAccess(null);setAccessReady(true);setError(e instanceof Error?e.message:'No se pudo comprobar tu acceso.')}});
+   withTimeout(loadAccessAndBranding(userId),90000,'El servicio de datos sigue recuperándose. Vuelve a intentarlo en unos segundos.')
+     .then(({profile,workspaceLogo:nextLogo})=>{if(!cancelled){setAccess(profile);setWorkspaceLogo(nextLogo);setAccessReady(true)}})
+     .catch(e=>{if(!cancelled){setAccess(null);setWorkspaceLogo(null);setAccessReady(true);setError(e instanceof Error?e.message:'No se pudo comprobar tu acceso.')}});
    return()=>{cancelled=true};
- },[userId]);
+ },[userId,loadAccessAndBranding]);
 
  useEffect(()=>{
-   if(!userId||!access?.active){setData(emptyData);setWorkspaceLogo(null);return;}
-   (async()=>{try{await bootstrapUser();await Promise.all([refresh(),refreshWorkspaceBranding()]);}catch(e){setError(e instanceof Error?e.message:'Error al inicializar la cuenta.')}})();
- },[userId,access?.active,refresh,refreshWorkspaceBranding]);
+   if(!userId||!access?.active){setData(emptyData);return;}
+   (async()=>{try{await bootstrapUser();await refresh();}catch(e){setError(e instanceof Error?e.message:'Error al inicializar la cuenta.')}})();
+ },[userId,access?.active,refresh]);
 
  useEffect(()=>{
    if(!userId||!access?.active)return;
@@ -221,7 +227,7 @@ export default function App(){
  }}/></>;
  if(!accessReady) return <><ToastHost/><div className="fullLoader"><LoaderCircle className="spin"/> Comprobando acceso…</div></>;
  if(access&&!['active','trialing'].includes(access.workspaceStatus)) return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>{access.workspaceStatus==='suspended'?'Empresa suspendida':'Servicio cancelado'}</h1><p>{access.workspaceStatus==='suspended'?'El acceso de tu empresa a ZENVIA Gestión está suspendido temporalmente. Contacta con soporte para reactivarlo.':'La suscripción de tu empresa ya no está activa. Contacta con soporte si necesitas recuperar el acceso.'}</p><div className="actions"><button className="secondary" onClick={()=>supabase.auth.signOut()}>Cerrar sesión</button></div></div></div></>;
- if(!access||!access.active||!allowedPages.length) return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>{error?'No se pudo cargar el acceso':'Acceso no autorizado'}</h1><p>{error?error:access&&!access.active?'Tu acceso a ZENVIA Gestión está desactivado.':'Esta cuenta no está autorizada para utilizar ZENVIA Gestión. Contacta con el administrador.'}</p><div className="actions">{error&&<button className="primary" onClick={()=>{setAccessReady(false);setError('');withTimeout(loadAccessProfile(session.user.id),90000,'El servicio de datos sigue recuperándose. Vuelve a intentarlo en unos segundos.').then(profile=>{setAccess(profile);setAccessReady(true)}).catch(e=>{setAccess(null);setAccessReady(true);setError(errorMessage(e,'No se pudo comprobar tu acceso.'))})}}>Reintentar</button>}<button className="secondary" onClick={()=>supabase.auth.signOut()}>Cerrar sesión</button></div></div></div></>;
+ if(!access||!access.active||!allowedPages.length) return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>{error?'No se pudo cargar el acceso':'Acceso no autorizado'}</h1><p>{error?error:access&&!access.active?'Tu acceso a ZENVIA Gestión está desactivado.':'Esta cuenta no está autorizada para utilizar ZENVIA Gestión. Contacta con el administrador.'}</p><div className="actions">{error&&<button className="primary" onClick={()=>{setAccessReady(false);setError('');withTimeout(loadAccessAndBranding(session.user.id),90000,'El servicio de datos sigue recuperándose. Vuelve a intentarlo en unos segundos.').then(({profile,workspaceLogo:nextLogo})=>{setAccess(profile);setWorkspaceLogo(nextLogo);setAccessReady(true)}).catch(e=>{setAccess(null);setWorkspaceLogo(null);setAccessReady(true);setError(errorMessage(e,'No se pudo comprobar tu acceso.'))})}}>Reintentar</button>}<button className="secondary" onClick={()=>supabase.auth.signOut()}>Cerrar sesión</button></div></div></div></>;
 
  const navigate=async(next:Page,options?:{pendingOrders?:boolean})=>{
    if(!allowedPages.includes(next))return;

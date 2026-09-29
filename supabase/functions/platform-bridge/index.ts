@@ -364,6 +364,7 @@ Deno.serve(async(req:Request)=>{
     if(action==='invite_workspace_user'){
       const workspaceId=asText(body?.workspaceId,80),email=asText(body?.email,254).toLowerCase(),fullName=asText(body?.fullName,150);
       const role=body?.role==='admin'?'admin':'user',permissions=role==='admin'?[...modulePermissions]:sanitizePermissions(body?.permissions);
+      const customDelivery=body?.delivery==='custom';
       if(!workspaceId)return fail('Falta el cliente.');
       if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i.test(email))return fail('Indica un email válido.');
       if(fullName.length<2)return fail('Indica el nombre del usuario.');
@@ -374,13 +375,35 @@ Deno.serve(async(req:Request)=>{
         if(countError)throw countError;
         if((count||0)>=userLimit)return fail(userLimit===0?'El plan no permite usuarios adicionales.':`Se ha alcanzado el límite de ${userLimit} usuarios activos.`,403);
       }
-      const {data:invite,error:inviteError}=await admin.auth.admin.inviteUserByEmail(email,{data:{full_name:fullName,onboarding_pending:true},redirectTo:customerAppUrl});
-      if(inviteError||!invite.user)throw inviteError||new Error('No se pudo enviar la invitación.');
-      const {error:metaError}=await admin.auth.admin.updateUserById(invite.user.id,{app_metadata:{...(invite.user.app_metadata||{}),zenvia_managed:true,workspace_id:workspaceId}});
-      if(metaError){await admin.auth.admin.deleteUser(invite.user.id).catch(()=>undefined);throw metaError;}
-      const {error:profileError}=await admin.from('app_users').insert({user_id:invite.user.id,email,full_name:fullName,role,active:true,workspace_id:workspaceId,data_owner_id:workspaceId,permissions});
-      if(profileError){await admin.auth.admin.deleteUser(invite.user.id).catch(()=>undefined);throw profileError;}
-      return ok({ok:true,userId:invite.user.id});
+
+      let invitedUser:any=null,inviteUrl='';
+      if(customDelivery){
+        const {data:generated,error:inviteError}=await admin.auth.admin.generateLink({
+          type:'invite',
+          email,
+          options:{data:{full_name:fullName,onboarding_pending:true,workspace_id:workspaceId},redirectTo:customerAppUrl},
+        });
+        if(inviteError||!generated?.user)throw inviteError||new Error('No se pudo preparar la invitación.');
+        invitedUser=generated.user;
+        inviteUrl=String(generated.properties?.action_link||'');
+        if(!inviteUrl){
+          await admin.auth.admin.deleteUser(invitedUser.id).catch(()=>undefined);
+          throw new Error('Supabase no devolvió el enlace de invitación.');
+        }
+      }else{
+        const {data:invite,error:inviteError}=await admin.auth.admin.inviteUserByEmail(email,{data:{full_name:fullName,onboarding_pending:true,workspace_id:workspaceId},redirectTo:customerAppUrl});
+        if(inviteError||!invite.user)throw inviteError||new Error('No se pudo enviar la invitación.');
+        invitedUser=invite.user;
+      }
+
+      const {error:metaError}=await admin.auth.admin.updateUserById(invitedUser.id,{
+        user_metadata:{...(invitedUser.user_metadata||{}),full_name:fullName,onboarding_pending:true,workspace_id:workspaceId},
+        app_metadata:{...(invitedUser.app_metadata||{}),zenvia_managed:true,workspace_id:workspaceId},
+      });
+      if(metaError){await admin.auth.admin.deleteUser(invitedUser.id).catch(()=>undefined);throw metaError;}
+      const {error:profileError}=await admin.from('app_users').insert({user_id:invitedUser.id,email,full_name:fullName,role,active:true,workspace_id:workspaceId,data_owner_id:workspaceId,permissions});
+      if(profileError){await admin.auth.admin.deleteUser(invitedUser.id).catch(()=>undefined);throw profileError;}
+      return ok({ok:true,userId:invitedUser.id,email,fullName,inviteUrl:customDelivery?inviteUrl:null,delivery:customDelivery?'custom':'supabase'});
     }
 
     if(action==='update_workspace_user'){

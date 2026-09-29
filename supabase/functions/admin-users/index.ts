@@ -282,7 +282,7 @@ Deno.serve(async (req: Request) => {
         inviteTokenHash,
       });
       if(!invitation.delivered){
-        await admin.from('app_users').delete().eq('user_id',generated.user.id).catch(()=>undefined);
+        try{await admin.from('app_users').delete().eq('user_id',generated.user.id);}catch{}
         if(routeSynced)await trySyncIdentityRoute('unregister_identity',String(workspaceId),email).catch(()=>undefined);
         await admin.auth.admin.deleteUser(generated.user.id).catch(()=>undefined);
         return fail(`No se pudo enviar la invitación: ${invitation.reason}`,500);

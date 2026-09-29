@@ -29,3 +29,17 @@ test('tenant AI proxy authenticates the user and never exposes platform bridge c
   assert.match(edge,/functions\/v1\/platform-agent/);
   assert.match(edge,/x-platform-token/);
 });
+
+
+test('global AI and alerts live in a reserved toolbar instead of floating over page actions',async()=>{
+  const [app,css]=await Promise.all([
+    read('src/App.tsx'),
+    read('src/app-agent.css'),
+  ]);
+  assert.match(app,/className="appGlobalTools"/);
+  assert.match(app,/className="appGlobalTools"[\s\S]*<AppAgent[\s\S]*<AlertCenter/);
+  assert.match(css,/\.appGlobalTools\{[\s\S]*position:sticky/);
+  assert.match(css,/\.appGlobalTools \.appAgentLauncher\{position:static/);
+  assert.match(css,/@media\(max-width:900px\)[\s\S]*\.appGlobalTools\{[\s\S]*position:fixed/);
+  assert.match(css,/\.mobileNavHeader\{padding-right:108px!important\}/);
+});

@@ -7,7 +7,7 @@ const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 test('orders expose a shipping price column that prefers the recorded real cost',async()=>{
   const orders=await read('src/pages/Orders.tsx');
   const shipping=await read('src/services/orderShipping.ts');
-  assert.match(orders,/<th>Envío<\/th>/);
+  assert.match(orders,/SortableTableHeader label="Envío" sortKey="shipping"/);
   assert.match(orders,/shippingPriceForOrder\(/);
   assert.match(shipping,/shippingCostAmount/);
   assert.match(shipping,/preview/);

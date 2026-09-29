@@ -49,12 +49,17 @@ test('App bootstraps tenant before reading the Auth session and rebinds on tenan
   assert.ok(bootstrap>=0&&getSession>bootstrap);
 });
 
-test('invitation and passkey setup continue using the live tenant Supabase binding',async()=>{
-  const [invite,passkey]=await Promise.all([
-    read('src/components/InvitePasswordSetup.tsx'),
+test('invitation activation verifies a token hash only after the user chooses a password',async()=>{
+  const [app,invite,passkey]=await Promise.all([
+    read('src/App.tsx'),
+    read('src/components/InviteTokenSetup.tsx'),
     read('src/components/PasskeySetup.tsx'),
   ]);
+  assert.match(app,/invite_token/);
+  assert.match(app,/<InviteTokenSetup/);
+  assert.match(invite,/supabase\.auth\.verifyOtp\(\{token_hash:tokenHash,type:'invite'\}\)/);
   assert.match(invite,/supabase\.auth\.updateUser/);
+  assert.ok(invite.indexOf('password.length<8')<invite.indexOf('verifyOtp'));
   assert.match(passkey,/supabase\.auth\.registerPasskey/);
 });
 

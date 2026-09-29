@@ -1,6 +1,6 @@
 import { supabase, INVOICE_BUCKET } from './supabase';
 import type { AppData, ExpenseCategory, Invoice, NewInvoiceInput, Product, Supplier } from '../types';
-import { canonicalizeSupplierName, isLikelySameSupplier, supplierIdentityKey } from './supplierIdentity';
+import { canonicalizeSupplierName, isLikelySameSupplier, isPlausibleSupplierName, supplierIdentityKey } from './supplierIdentity';
 import { extractSupplierContactData, type SupplierContactData } from './supplierContactExtractor';
 import { extractSupplierInvoiceDetails } from './supplierInvoiceDetails';
 import { repairInvoiceAmounts, repairInvoiceProductLines } from './invoiceProductLine';
@@ -144,6 +144,7 @@ function cleanSupplierContact(contact: SupplierProfileData): SupplierProfileData
 async function ensureSupplier(name: string, contactInput: SupplierProfileData = {}, supplierTypeHint?: 'goods', policy:ExpenseImportPolicy=expenseImportPolicyFromSettings(undefined), supplierSettings:SuppliersSettings=DEFAULT_APP_SETTINGS.suppliers): Promise<{ id: string; created: boolean }> {
   const clean = sanitizeDatabaseSingleLine(canonicalizeSupplierName(name) || name).slice(0, 120);
   const cleanKey = supplierIdentityKey(clean);
+  const plausibleName=isPlausibleSupplierName(clean);
   const contact = cleanSupplierContact(contactInput);
 
   const { data: existing, error: findError } = await supabase
@@ -164,8 +165,8 @@ async function ensureSupplier(name: string, contactInput: SupplierProfileData = 
       let score = 0;
       if (aliasMatch?.id===supplier.id) score = 200;
       else if (supplierSettings.detectDuplicates && contact.taxId && existingTaxId && contact.taxId === existingTaxId) score = 140;
-      else if (supplierSettings.detectDuplicates && cleanKey && existingKey === cleanKey) score = 100;
-      else if (supplierSettings.detectDuplicates && isLikelySameSupplier(clean, supplier.name || '')) score = 80;
+      else if (supplierSettings.detectDuplicates && plausibleName && cleanKey && existingKey === cleanKey) score = 100;
+      else if (supplierSettings.detectDuplicates && plausibleName && isLikelySameSupplier(clean, supplier.name || '')) score = 80;
       if(score>0 && score<supplierSettings.identityThreshold && aliasMatch?.id!==supplier.id) score = 0;
       if (score && supplier.tax_id) score += 3;
       if (score && supplier.email) score += 1;
@@ -201,6 +202,9 @@ async function ensureSupplier(name: string, contactInput: SupplierProfileData = 
     return { id: match.id as string, created: false };
   }
 
+  if(!plausibleName){
+    throw new Error('El proveedor extraído no parece una razón social válida. Revisa la factura y selecciona el proveedor antes de guardarla.');
+  }
   if(!policy.autoCreateSuppliers||!supplierSettings.autoCreate){
     throw new Error('La creación automática de proveedores está desactivada. Selecciona o crea el proveedor antes de guardar la factura.');
   }

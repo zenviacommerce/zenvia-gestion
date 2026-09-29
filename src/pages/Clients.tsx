@@ -15,6 +15,7 @@ import { defaultDateFilter, periodLabel } from '../services/filters';
 import { useSettings } from '../context/SettingsContext';
 import { orderedTableColumns, persistRememberedFilter, rememberedFilter } from '../services/uiPreferences';
 import { formatAppDate, formatAppMoney } from '../services/formatting';
+import { SortableTableHeader, useSortableTable } from '../components/SortableTableHeader';
 import '../sales.css';
 
 const emptyClient = (settings:{defaultCountryCode:string;defaultPaymentTermsDays:number;defaultVatRate:number;defaultPaymentMethod:string}): ClientInput => ({
@@ -190,8 +191,18 @@ export function Clients(){
   const allFilteredSelected=filtered.length>0&&filtered.every(client=>checkedIds.has(client.id));
   const toggleClient=(id:string,checked:boolean)=>setCheckedIds(current=>{const next=new Set(current);if(checked)next.add(id);else next.delete(id);return next;});
   const toggleAllClients=(checked:boolean)=>setCheckedIds(checked?new Set(filtered.map(client=>client.id)):new Set());
-  const totalPages=Math.max(1,Math.ceil(filtered.length/pageSize));
-  const paged=useMemo(()=>filtered.slice((page-1)*pageSize,page*pageSize),[filtered,page]);
+  const sorting=useSortableTable('clients',filtered,{
+    client:client=>client.name,
+    taxId:client=>client.taxId||'',
+    country:client=>client.countryCode||'',
+    contact:client=>client.email||client.phone||'',
+    invoiced:client=>metrics.get(client.id)?.invoiced??0,
+    pending:client=>metrics.get(client.id)?.pending??0,
+    lastInvoice:client=>metrics.get(client.id)?.lastDate||'',
+  },{key:'client',direction:'asc'});
+  const sorted=sorting.rows;
+  const totalPages=Math.max(1,Math.ceil(sorted.length/pageSize));
+  const paged=useMemo(()=>sorted.slice((page-1)*pageSize,page*pageSize),[sorted,page,pageSize]);
   useEffect(()=>{setPage(1);setCheckedIds(new Set())},[query,balanceFilter,countryFilter,dateFilter]);
   useEffect(()=>{const timer=window.setTimeout(()=>{void persistRememberedFilter(preferences,patchPreferences,'clients.filters',{query,dateFilter,balanceFilter,countryFilter})},350);return()=>window.clearTimeout(timer)},[query,dateFilter,balanceFilter,countryFilter,preferences.rememberFilters]);
   useEffect(()=>{setPage(current=>Math.min(current,totalPages))},[totalPages]);
@@ -231,14 +242,9 @@ export function Clients(){
     }finally{setBulkBusy(false);}
   };
   const columnHeader=(key:string)=>{
-    if(key==='client')return <th key={key}>Cliente</th>;
-    if(key==='taxId')return <th key={key}>CIF/NIF</th>;
-    if(key==='country')return <th key={key}>País</th>;
-    if(key==='contact')return <th key={key}>Contacto</th>;
-    if(key==='invoiced')return <th key={key} className="right">Facturado</th>;
-    if(key==='pending')return <th key={key} className="right">Pendiente</th>;
-    if(key==='lastInvoice')return <th key={key}>Última factura</th>;
-    return null;
+    const labels:Record<string,string>={client:'Cliente',taxId:'CIF/NIF',country:'País',contact:'Contacto',invoiced:'Facturado',pending:'Pendiente',lastInvoice:'Última factura'};
+    const label=labels[key];if(!label)return null;
+    return <SortableTableHeader key={key} label={label} sortKey={key} activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className={key==='invoiced'||key==='pending'?'right':''}/>;
   };
   const columnCell=(key:string,client:Client,metric:ClientMetric)=>{
     if(key==='client')return <td key={key}><div className="masterEntityCell"><div className="masterAvatar"><UserRound size={17}/></div><div><strong>{client.name}</strong><small>{client.city||'Sin ciudad'}</small></div></div></td>;

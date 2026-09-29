@@ -95,3 +95,17 @@ test('local agent uses the same operational pending-order rule as the UI',async(
   assert.match(edge,/raw\.ordersStateRows\.filter\(isPendingOrderRow\)/);
   assert.doesNotMatch(edge,/\.is\('fulfilled_at',null\)\.is\('label_created_at',null\)/);
 });
+
+
+test('agent pending metrics respect the same remembered date filters as the visible app',async()=>{
+  const edge=await read('supabase/functions/app-agent/index.ts');
+  assert.match(edge,/user_preferences/);
+  assert.match(edge,/dashboard\.period/);
+  assert.match(edge,/expenses\.filters/);
+  assert.match(edge,/orders\.filters/);
+  assert.match(edge,/sales\.filters/);
+  assert.match(edge,/applyDateRange/);
+  assert.match(edge,/issue_date/);
+  assert.match(edge,/order_created_at/);
+  assert.match(edge,/Con el periodo seleccionado/);
+});

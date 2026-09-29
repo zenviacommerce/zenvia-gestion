@@ -164,6 +164,10 @@ async function persistPreparedGmailInvoice(
   options:{reviewedByUser?:boolean;onProgress?:(message:string)=>void}={},
 ){
   if(!gmailCandidate.id)throw new Error('El adjunto de Gmail no está registrado todavía.');
+  const integrity=validateInvoiceCandidateIntegrity(prepared);
+  if(!integrity.safe){
+    throw new Error(`La factura no supera la validación final: ${integrity.reasons.join(' · ')}`);
+  }
   const duplicateBySupplierNumber=await findInvoiceBySupplierAndNumber(prepared.supplierName,prepared.invoiceNumber);
   if(duplicateBySupplierNumber)return markDuplicateAsImported(gmailCandidate,duplicateBySupplierNumber,'supplier_invoice_number');
 

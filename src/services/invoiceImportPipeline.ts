@@ -230,6 +230,7 @@ export function invoiceCandidateToInput(candidate:InvoiceImportCandidate,source:
   return {
     file:candidate.file,
     source,
+    sourceDocumentId:candidate.sourceDocumentId,
     supplierName:candidate.supplierName,
     supplierTaxId:candidate.supplierTaxId,
     supplierEmail:candidate.supplierEmail,

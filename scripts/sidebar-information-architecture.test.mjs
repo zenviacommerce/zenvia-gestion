@@ -64,3 +64,13 @@ test('sidebar uses workspace branding with the ZENVIA logo as fallback',async()=
   assert.match(css,/max-height:64px/);
   assert.match(css,/object-fit:contain/);
 });
+
+
+test('customer branding is resolved before the authenticated app shell becomes visible',async()=>{
+  const app=await read('../src/App.tsx');
+  assert.match(app,/loadAccessAndBranding/);
+  assert.match(app,/await loadCompanyBranding\(\)\.catch\(\(\)=>null\)/);
+  assert.match(app,/setWorkspaceLogo\(nextLogo\);setAccessReady\(true\)/);
+  const dataEffect=app.slice(app.indexOf("if(!userId||!access?.active){setData(emptyData);return;}"),app.indexOf("useEffect(()=>{\n   if(!userId||!access?.active)return;",app.indexOf("if(!userId||!access?.active){setData(emptyData);return;}")));
+  assert.doesNotMatch(dataEffect,/refreshWorkspaceBranding/);
+});

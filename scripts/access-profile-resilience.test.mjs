@@ -31,6 +31,6 @@ test('access profile tolerates a temporary PostgREST schema-cache outage',async(
   assert.match(source,/57014/);
   assert.match(source,/withDataApiRetry/);
   assert.match(source,/attempts=15/);
-  assert.match(app,/loadAccessProfile\(userId\),90000/);
-  assert.match(app,/loadAccessProfile\(session\.user\.id\),90000/);
+  assert.match(app,/loadAccessAndBranding\(userId\),90000/);
+  assert.match(app,/loadAccessAndBranding\(session\.user\.id\),90000/);
 });

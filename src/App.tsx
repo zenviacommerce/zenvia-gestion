@@ -10,6 +10,7 @@ import { ToastHost } from './components/ToastHost';
 import { AlertCenter } from './components/AlertCenter';
 import { AuthScreen } from './components/AuthScreen';
 import { InvitePasswordSetup } from './components/InvitePasswordSetup';
+import { InviteTokenSetup } from './components/InviteTokenSetup';
 import { PasskeySetup } from './components/PasskeySetup';
 import { useSettings } from './context/SettingsContext';
 import { Dashboard } from './pages/Dashboard';
@@ -63,6 +64,7 @@ export default function App(){
  const [authReady,setAuthReady]=useState(false);
  const [authClientVersion,setAuthClientVersion]=useState(0);
  const [tenantBootstrapError,setTenantBootstrapError]=useState('');
+ const inviteToken=typeof window!=='undefined'?(new URLSearchParams(window.location.search).get('invite_token')||'').trim():'';
  const [access,setAccess]=useState<AccessProfile|null>(null);
  const [accessReady,setAccessReady]=useState(false);
  const [data,setData]=useState<AppData>(emptyData);
@@ -219,6 +221,14 @@ export default function App(){
  },[accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading]);
 
  if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> Cargando…</div>;
+ if(inviteToken) return <><ToastHost/><InviteTokenSetup tokenHash={inviteToken} onComplete={async()=>{
+   const url=new URL(window.location.href);
+   url.searchParams.delete('invite_token');
+   window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
+   const {data}=await supabase.auth.getSession();
+   setSession(data.session);
+   setAccessReady(false);
+ }}/></>;
  if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootstrapError} onTenantChanged={()=>{setTenantBootstrapError('');setAuthClientVersion(value=>value+1)}}/></>;
  if(session.user.user_metadata?.onboarding_pending===true) return <><ToastHost/><InvitePasswordSetup session={session} onComplete={async()=>{
    const {data}=await supabase.auth.getSession();

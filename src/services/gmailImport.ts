@@ -268,10 +268,6 @@ export async function importGmailCandidate(
     });
     const {error:sourceLinkError}=await supabase.from('gmail_imports').update({
       source_document_id:archivedSource.id,
-      metadata:{
-        ...(candidate.metadata||{}),
-        sourceArchivedAt:new Date().toISOString(),
-      },
     }).eq('id',candidate.id);
     if(sourceLinkError)throw sourceLinkError;
     const isPdf=file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf');

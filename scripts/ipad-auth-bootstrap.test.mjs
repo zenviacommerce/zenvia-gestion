@@ -30,11 +30,16 @@ test('tablet account drawer keeps Settings and Administration available',async()
 });
 
 
-test('biometric setup is visible on first supported login and tracked per device',async()=>{
+test('biometric activation prompt is limited to phones and tablets and tracked per device',async()=>{
   const [setup,css]=await Promise.all([
     read('src/components/PasskeySetup.tsx'),
     read('src/passkey.css'),
   ]);
+  assert.match(setup,/function isMobileOrTabletDevice/);
+  assert.match(setup,/userAgentData\?:\{mobile\?:boolean\}/);
+  assert.match(setup,/Android\|iPhone\|iPad\|iPod/);
+  assert.match(setup,/navigator\.platform==='MacIntel'&&navigator\.maxTouchPoints>1/);
+  assert.match(setup,/if\(!isMobileOrTabletDevice\(\)\|\|!basePasskeySupport\(\)\)return false/);
   assert.match(setup,/isUserVerifyingPlatformAuthenticatorAvailable/);
   assert.match(setup,/zenvia-passkey-registered-/);
   assert.match(setup,/safeStorageGet\('local',registeredKey\)/);

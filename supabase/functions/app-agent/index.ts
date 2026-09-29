@@ -44,25 +44,64 @@ function isPendingOrderRow(order:any){
   const processed=['fulfilled','shipped','delivered'].includes(status);
   return !hasShippingLabelRow(order)&&!cancelled&&!processed;
 }
-async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[]){
+type DateRange={from:string;to:string}|null;
+function validDate(value:unknown){
+  const raw=clean(value,10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(raw)?raw:'';
+}
+function readRange(value:any):DateRange{
+  const from=validDate(value?.from),to=validDate(value?.to);
+  return from&&to?{from,to}:null;
+}
+function resolveAgentPeriods(preferences:any,currentPage:string){
+  const filters=preferences?.filters&&typeof preferences.filters==='object'?preferences.filters:{};
+  const dashboard=readRange(filters['dashboard.period']);
+  const expenses=readRange(filters['expenses.filters']?.filter);
+  const orders=readRange(filters['orders.filters']?.dateFilter);
+  const sales=readRange(filters['sales.filters']?.dateFilter);
+  return {
+    dashboard,
+    expenses:currentPage==='dashboard'?dashboard:expenses,
+    orders:currentPage==='dashboard'?dashboard:orders,
+    sales:currentPage==='dashboard'?dashboard:sales,
+  };
+}
+function applyDateRange(query:any,column:string,range:DateRange,timestamp=false){
+  if(!range)return query;
+  if(timestamp)return query.gte(column,`${range.from}T00:00:00.000Z`).lte(column,`${range.to}T23:59:59.999Z`);
+  return query.gte(column,range.from).lte(column,range.to);
+}
+async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[],periods:{dashboard:DateRange;expenses:DateRange;orders:DateRange;sales:DateRange}){
   const can=(page:string)=>allowedPages.includes(page);
   const tasks:Record<string,Promise<any>>={};
 
   if(can('orders')||can('dashboard')){
-    tasks.ordersRecent=safeRows(admin.from('fulfillment_orders')
+    let recentQuery=admin.from('fulfillment_orders')
       .select('id,order_number,source_channel,source_status,customer_name,total_amount,currency,tracking_number,sendcloud_parcel_id,shipping_remote_id,label_created_at,fulfilled_at,order_created_at,carrier_name,shipping_service_name')
-      .eq('owner_id',ownerId).order('order_created_at',{ascending:false,nullsFirst:false}).limit(30));
-    tasks.ordersStateRows=safeRows(admin.from('fulfillment_orders')
-      .select('id,source_status,sendcloud_parcel_id,shipping_remote_id,label_created_at')
-      .eq('owner_id',ownerId).limit(10000));
-    tasks.ordersTotal=safeCount(admin.from('fulfillment_orders').select('id',{count:'exact',head:true}).eq('owner_id',ownerId));
+      .eq('owner_id',ownerId);
+    recentQuery=applyDateRange(recentQuery,'order_created_at',periods.orders,true);
+    tasks.ordersRecent=safeRows(recentQuery.order('order_created_at',{ascending:false,nullsFirst:false}).limit(30));
+    let stateQuery=admin.from('fulfillment_orders')
+      .select('id,source_status,sendcloud_parcel_id,shipping_remote_id,label_created_at,order_created_at')
+      .eq('owner_id',ownerId);
+    stateQuery=applyDateRange(stateQuery,'order_created_at',periods.orders,true);
+    tasks.ordersStateRows=safeRows(stateQuery.limit(10000));
+    let totalQuery=admin.from('fulfillment_orders').select('id',{count:'exact',head:true}).eq('owner_id',ownerId);
+    totalQuery=applyDateRange(totalQuery,'order_created_at',periods.orders,true);
+    tasks.ordersTotal=safeCount(totalQuery);
   }
   if(can('invoices')||can('dashboard')){
-    tasks.expensesRecent=safeRows(admin.from('invoices')
+    let recentQuery=admin.from('invoices')
       .select('id,invoice_number,supplier_id,issue_date,received_date,total_amount,net_amount,tax_amount,status')
-      .eq('owner_id',ownerId).order('issue_date',{ascending:false,nullsFirst:false}).limit(30));
-    tasks.expensesTotal=safeCount(admin.from('invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId));
-    tasks.expensesPending=safeCount(admin.from('invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).eq('status','pending'));
+      .eq('owner_id',ownerId);
+    recentQuery=applyDateRange(recentQuery,'issue_date',periods.expenses);
+    tasks.expensesRecent=safeRows(recentQuery.order('issue_date',{ascending:false,nullsFirst:false}).limit(30));
+    let totalQuery=admin.from('invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId);
+    totalQuery=applyDateRange(totalQuery,'issue_date',periods.expenses);
+    tasks.expensesTotal=safeCount(totalQuery);
+    let pendingQuery=admin.from('invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).eq('status','pending');
+    pendingQuery=applyDateRange(pendingQuery,'issue_date',periods.expenses);
+    tasks.expensesPending=safeCount(pendingQuery);
   }
   if(can('products')||can('dashboard')){
     tasks.products=safeRows(admin.from('products')
@@ -84,11 +123,17 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
     tasks.clientsTotal=safeCount(admin.from('clients').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).eq('active',true));
   }
   if(can('sales')||can('dashboard')){
-    tasks.salesRecent=safeRows(admin.from('sales_invoices')
+    let recentQuery=admin.from('sales_invoices')
       .select('id,invoice_number,client_name,status,issue_date,due_date,total_amount,tax_amount,currency')
-      .eq('owner_id',ownerId).order('issue_date',{ascending:false,nullsFirst:false}).limit(30));
-    tasks.salesTotal=safeCount(admin.from('sales_invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId));
-    tasks.salesOpen=safeCount(admin.from('sales_invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).in('status',['issued','sent','partially_paid']));
+      .eq('owner_id',ownerId);
+    recentQuery=applyDateRange(recentQuery,'issue_date',periods.sales);
+    tasks.salesRecent=safeRows(recentQuery.order('issue_date',{ascending:false,nullsFirst:false}).limit(30));
+    let totalQuery=admin.from('sales_invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId);
+    totalQuery=applyDateRange(totalQuery,'issue_date',periods.sales);
+    tasks.salesTotal=safeCount(totalQuery);
+    let openQuery=admin.from('sales_invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).in('status',['issued','sent','partially_paid']);
+    openQuery=applyDateRange(openQuery,'issue_date',periods.sales);
+    tasks.salesOpen=safeCount(openQuery);
   }
   if(can('support')){
     tasks.supportRecent=safeRows(admin.from('support_tickets')
@@ -113,6 +158,7 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
     clients:raw.clients?{total:raw.clientsTotal,items:raw.clients}:undefined,
     sales:raw.salesRecent?{total:raw.salesTotal,open:raw.salesOpen,recent:raw.salesRecent}:undefined,
     support:raw.supportRecent?{open:raw.supportOpen,recent:raw.supportRecent}:undefined,
+    periods,
   };
 }
 
@@ -198,7 +244,9 @@ function pendingSummary(ctx:any,allowed:string[]){
   if(allowed.includes('sales')&&ctx.sales)parts.push(String(ctx.sales.open)+' facturas emitidas abiertas');
   if(allowed.includes('products')&&ctx.products)parts.push(String(ctx.products.withoutCost)+' productos sin coste');
   if(allowed.includes('support')&&ctx.support)parts.push(String(ctx.support.open)+' tickets abiertos');
-  return parts.length?'Ahora mismo veo: '+parts.join('; ')+'.':'No veo tareas pendientes en los módulos a los que tienes acceso.';
+  const period=ctx?.periods?.dashboard;
+  const scope=period?`Con el periodo seleccionado (${period.from} → ${period.to}), `:'';
+  return parts.length?scope+'ahora mismo veo: '+parts.join('; ')+'.':'No veo tareas pendientes en los módulos a los que tienes acceso.';
 }
 function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any){
   const text=norm(raw),currentPage=clean(ui?.currentPage,50)||'dashboard';
@@ -299,9 +347,14 @@ Deno.serve(async(req:Request)=>{
     const message=clean(body?.message,4000);
     if(!message)return response({error:'Escribe una pregunta para ZENVIA IA.'},400);
     const allowedPages=authorizedPages(profile,body?.allowedPages);
-    const businessContext=await loadBusinessContext(admin,String(profile.data_owner_id),allowedPages);
-
     const ui=body?.context&&typeof body.context==='object'&&!Array.isArray(body.context)?body.context:{};
+    const currentPage=clean(ui?.currentPage,50)||'dashboard';
+    const {data:preferenceRow,error:preferenceError}=await admin.from('user_preferences')
+      .select('preferences').eq('user_id',profile.user_id).maybeSingle();
+    if(preferenceError)throw preferenceError;
+    const periods=resolveAgentPeriods(preferenceRow?.preferences||{},currentPage);
+    const businessContext=await loadBusinessContext(admin,String(profile.data_owner_id),allowedPages,periods);
+
     return response(processLocalAgent(message,businessContext,allowedPages,ui));
   }catch(error){
     return response({error:error instanceof Error?error.message:'Error interno del agente.'},500);

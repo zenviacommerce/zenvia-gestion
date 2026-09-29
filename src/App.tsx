@@ -30,6 +30,8 @@ import { bootstrapTenantFromLocation, supabase } from './services/supabase';
 import { loadAccessProfile, type AccessProfile, type MenuPermission } from './services/access';
 import { bootstrapUser, createInvoice, deleteProduct, deleteSupplier, getInvoiceFileUrl, loadAppData, updateInvoiceStatus } from './services/repository';
 import { addSupplier, updateSupplier, type SupplierInput } from './services/supplierEditor';
+import { addClient } from './services/sales';
+import { syncSendcloudOrders } from './services/orders';
 import { updateInvoiceCategory, updateInvoiceSupplier } from './services/invoiceEditor';
 import { addProduct, updateProduct, type ProductInput } from './services/productEditor';
 import { deleteInvoiceWithGmailRecovery } from './services/invoiceLifecycle';
@@ -332,15 +334,142 @@ export default function App(){
    if(!can('suppliers'))throw new Error('No tienes permiso para eliminar proveedores.');
    await runAction(async()=>{await deleteSupplier(supplier.id);await refresh()},'No se pudo eliminar el proveedor.');
  };
- const handleAgentAction=(action:AppAgentAction)=>{
+ const handleAgentAction=async(action:AppAgentAction):Promise<string|null|void>=>{
    if(action.type==='navigate'&&action.target&&allowedPages.includes(action.target as Page)){
-     void navigate(action.target as Page);
-     return;
+     await navigate(action.target as Page);
+     return null;
    }
-   if(action.type==='open_settings'&&allowedPages.includes('settings')){void navigate('settings');return;}
-   if(action.type==='open_expense_upload'&&can('invoices')){void navigate('invoices');setUpload(true);return;}
-   if(action.type==='open_product_create'&&can('products')){void navigate('products');openNewProduct();return;}
-   if(action.type==='open_supplier_create'&&can('suppliers')){void navigate('suppliers');openNewSupplier();}
+   if(action.type==='open_settings'&&allowedPages.includes('settings')){await navigate('settings');return null;}
+   if(action.type==='open_expense_upload'&&can('invoices')){await navigate('invoices');setUpload(true);return null;}
+   if(action.type==='open_product_create'&&can('products')){await navigate('products');openNewProduct();return null;}
+   if(action.type==='open_supplier_create'&&can('suppliers')){await navigate('suppliers');openNewSupplier();return null;}
+   if(action.type==='refresh_data'){
+     await refresh();
+     window.dispatchEvent(new CustomEvent('zenvia:orders-refresh'));
+     return 'He actualizado los datos visibles de ZENVIA Gestión.';
+   }
+   if(action.type==='sync_orders'){
+     if(!can('orders'))return 'No tienes permiso para sincronizar pedidos.';
+     const confirmed=await confirmAction({
+       title:'Sincronizar pedidos',
+       message:'ZENVIA IA va a sincronizar ahora los pedidos con las integraciones configuradas.',
+       confirmLabel:'Sincronizar',
+       tone:'default',
+       details:['La operación actualizará los pedidos y su seguimiento con los datos disponibles en las integraciones.'],
+     });
+     if(!confirmed)return 'Sincronización cancelada.';
+     const result=await syncSendcloudOrders(false,settings.orders.retryTrackingConfirmation,false);
+     window.dispatchEvent(new CustomEvent('zenvia:orders-refresh'));
+     await navigate('orders');
+     return `Sincronización completada: ${result.synced} pedido${result.synced===1?'':'s'} actualizado${result.synced===1?'':'s'}.`;
+   }
+   if(action.type==='create_client'){
+     if(!can('clients'))return 'No tienes permiso para crear clientes.';
+     const p=action.params;
+     if(!p.name)return 'Necesito el nombre del cliente antes de crearlo.';
+     const confirmed=await confirmAction({
+       title:'Crear cliente',
+       message:`ZENVIA IA va a crear el cliente “${p.name}”.`,
+       confirmLabel:'Crear cliente',
+       tone:'default',
+       details:[
+         p.taxId?`NIF/CIF: ${p.taxId}`:'Sin NIF/CIF',
+         p.email?`Email: ${p.email}`:'Sin email',
+         `País: ${p.countryCode||settings.clients.defaultCountryCode}`,
+       ],
+     });
+     if(!confirmed)return 'Creación de cliente cancelada.';
+     await addClient({
+       name:p.name,
+       taxId:p.taxId,
+       email:p.email,
+       phone:p.phone,
+       city:p.city,
+       countryCode:p.countryCode||settings.clients.defaultCountryCode,
+       paymentTermsDays:settings.clients.defaultPaymentTermsDays,
+       defaultVatRate:settings.clients.defaultVatRate,
+       defaultPaymentMethod:settings.clients.defaultPaymentMethod,
+     });
+     await navigate('clients');
+     return `Cliente “${p.name}” creado correctamente.`;
+   }
+   if(action.type==='create_product'){
+     if(!can('products'))return 'No tienes permiso para crear productos.';
+     const p=action.params;
+     if(!p.name)return 'Necesito el nombre del producto antes de crearlo.';
+     const confirmed=await confirmAction({
+       title:'Crear producto',
+       message:`ZENVIA IA va a crear el producto “${p.name}”.`,
+       confirmLabel:'Crear producto',
+       tone:'default',
+       details:[
+         p.sku?`SKU: ${p.sku}`:'Sin SKU',
+         p.price==null?'Sin coste':`Coste: ${p.price} €`,
+         p.salePrice==null?'Sin precio de venta':`Venta: ${p.salePrice} €`,
+       ],
+     });
+     if(!confirmed)return 'Creación de producto cancelada.';
+     await addProduct({
+       name:p.name,
+       sku:p.sku||undefined,
+       ean:p.ean||undefined,
+       category:p.category||undefined,
+       unit:p.unit||settings.products.defaultUnit,
+       price:p.price,
+       salePrice:p.salePrice,
+       salesTaxRate:p.salesTaxRate??settings.products.defaultVatRate,
+       supplierId:settings.products.defaultSupplierId,
+     });
+     await refresh();
+     await navigate('products');
+     return `Producto “${p.name}” creado correctamente.`;
+   }
+   if(action.type==='create_supplier'){
+     if(!can('suppliers'))return 'No tienes permiso para crear proveedores.';
+     const p=action.params;
+     if(!p.name)return 'Necesito el nombre del proveedor antes de crearlo.';
+     const supplierType=p.supplierType||settings.suppliers.defaultType||'unclassified';
+     const confirmed=await confirmAction({
+       title:'Crear proveedor',
+       message:`ZENVIA IA va a crear el proveedor “${p.name}”.`,
+       confirmLabel:'Crear proveedor',
+       tone:'default',
+       details:[
+         p.taxId?`NIF/CIF: ${p.taxId}`:'Sin NIF/CIF',
+         p.email?`Email: ${p.email}`:'Sin email',
+         `Tipo: ${supplierType}`,
+       ],
+     });
+     if(!confirmed)return 'Creación de proveedor cancelada.';
+     await addSupplier({
+       name:p.name,
+       taxId:p.taxId||undefined,
+       email:p.email||undefined,
+       phone:p.phone||undefined,
+       supplierType,
+       defaultCategoryId:settings.suppliers.defaultCategoryId,
+     });
+     await refresh();
+     await navigate('suppliers');
+     return `Proveedor “${p.name}” creado correctamente.`;
+   }
+   if(action.type==='set_expense_status'){
+     if(!can('invoices'))return 'No tienes permiso para modificar facturas de gastos.';
+     const p=action.params;
+     const invoice=p.invoiceId?data.invoices.find(item=>item.id===p.invoiceId):null;
+     if(!invoice||!p.status)return 'No he podido identificar de forma inequívoca la factura o el estado de destino.';
+     const statusLabel={pending:'pendiente',reviewed:'revisada',accounted:'contabilizada'}[p.status];
+     const confirmed=await confirmAction({
+       title:'Cambiar estado de factura',
+       message:`ZENVIA IA va a marcar ${invoice.invoiceNumber==='—'?'la factura':`la factura ${invoice.invoiceNumber}`} de ${invoice.supplierName} como ${statusLabel}.`,
+       confirmLabel:'Cambiar estado',
+       tone:'default',
+     });
+     if(!confirmed)return 'Cambio de estado cancelado.';
+     await changeStatus(invoice.id,p.status);
+     return `Factura marcada como ${statusLabel}.`;
+   }
+   return null;
  };
 
  return <div className="app"><ToastHost/><Sidebar page={page} onChange={next=>void navigate(next)} onLogout={()=>supabase.auth.signOut()} theme={theme} onThemeChange={changeTheme} allowedPages={allowedPages} isAdmin={access.role==='admin'} user={{fullName:access.fullName,email:access.email||session.user.email||'',role:access.role}} logoSrc={workspaceLogo}/><main className={passkeySetupVisible?'hasPasskeySetup':''}>

@@ -108,3 +108,9 @@ test('PDF tariff extraction preserves visual columns and supports transposed wei
   assert.match(service,/Matrix transposed/);
   assert.match(service,/rowWeightMatch/);
 });
+
+
+test('generic tariff parser recognizes carriers commonly returned by Envia',async()=>{
+  const service=await source('src/services/transportTariffs.ts');
+  for(const carrier of ['inPost','transaher','zeleris','tdn','ontime','cainiao','cttExpress'])assert.match(service,new RegExp(carrier,'i'));
+});

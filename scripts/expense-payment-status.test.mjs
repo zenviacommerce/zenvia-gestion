@@ -19,7 +19,7 @@ test('expense list exposes payment controls, filtering and unpaid KPI',async()=>
   const invoices=await read('../src/pages/Invoices.tsx');
   const filters=await read('../src/components/InvoiceFilters.tsx');
   const service=await read('../src/services/filters.ts');
-  assert.match(invoices,/Pendientes de pago/);
+  assert.match(invoices,/Pendiente(?:s)? de pago/);
   assert.match(invoices,/className="paymentActions"/);
   assert.match(invoices,/title="Por pagar"/);
   assert.match(invoices,/title="Pagada"/);

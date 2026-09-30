@@ -138,8 +138,6 @@ Deno.serve(async(req:Request)=>{
         buttonLabel:'Crear nueva contraseña',actionUrl:recoveryUrl,
         footer:'Si no esperabas esta solicitud, puedes ignorar este correo. Tu contraseña actual seguirá funcionando hasta que completes el cambio.',
       });
-    }
-
     }else{
       const invoiceNumber=text(body?.invoiceNumber,100);
       const issueDate=text(body?.issueDate,40);
@@ -173,6 +171,8 @@ Deno.serve(async(req:Request)=>{
         footer:'Este correo corresponde a la facturación de tu suscripción a ZENVIA Gestión. Para cualquier duda, responde a este mensaje.',
       });
       attachments=[{filename:fileName,content:pdfBase64}];
+    }
+
     const sent=await sendEmail({to,subject,html,textBody,attachments});
     return response({ok:true,delivered:true,provider:sent.provider,id:sent.id});
   }catch(error){

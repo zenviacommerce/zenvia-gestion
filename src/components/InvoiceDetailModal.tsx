@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ExternalLink, FileText, Trash2, X } from 'lucide-react';
-import type { ExpenseCategory, Invoice, Supplier } from '../types';
+import type { ExpenseCategory, Invoice, InvoicePaymentStatus, Supplier } from '../types';
 import { SearchableSelect } from './forms/SearchableSelect';
 import { SortableTableHeader, useSortableTable } from './SortableTableHeader';
 
 const money = (value: number) => value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenFile,onDelete,onSupplierChange,onCategoryChange,deleting=false}:{invoice:Invoice|null;suppliers:Supplier[];categories:ExpenseCategory[];onClose:()=>void;onOpenFile:(invoice:Invoice)=>Promise<void>;onDelete:(invoice:Invoice)=>Promise<void>;onSupplierChange:(invoice:Invoice,supplierId:string)=>Promise<void>;onCategoryChange:(invoice:Invoice,categoryId:string)=>Promise<void>;deleting?:boolean}) {
+export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenFile,onDelete,onSupplierChange,onCategoryChange,onPaymentStatusChange,deleting=false}:{invoice:Invoice|null;suppliers:Supplier[];categories:ExpenseCategory[];onClose:()=>void;onOpenFile:(invoice:Invoice)=>Promise<void>;onDelete:(invoice:Invoice)=>Promise<void>;onSupplierChange:(invoice:Invoice,supplierId:string)=>Promise<void>;onCategoryChange:(invoice:Invoice,categoryId:string)=>Promise<void>;onPaymentStatusChange:(id:string,status:InvoicePaymentStatus,paidAt?:string|null)=>Promise<void>;deleting?:boolean}) {
   const [supplierId,setSupplierId]=useState('');
   const [categoryId,setCategoryId]=useState('');
   const [savingSupplier,setSavingSupplier]=useState(false);
   const [savingCategory,setSavingCategory]=useState(false);
   const [supplierError,setSupplierError]=useState('');
   const [categoryError,setCategoryError]=useState('');
+  const [paidAtDraft,setPaidAtDraft]=useState('');
+  const [savingPayment,setSavingPayment]=useState(false);
   const supplierOptions=useMemo(()=>suppliers.map(s=>({
     value:s.id,
     label:s.name,
@@ -30,6 +32,10 @@ export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenF
     setCategoryId(invoice?.categoryId || '');
     setCategoryError('');
   },[invoice?.id,invoice?.categoryId]);
+
+  useEffect(()=>{
+    setPaidAtDraft(invoice?.paidAt || new Date().toISOString().slice(0,10));
+  },[invoice?.id,invoice?.paidAt]);
 
   const lineSorting=useSortableTable(`expense-lines-${invoice?.id||'closed'}`,invoice?.lines||[],{
     description:line=>line.description,
@@ -54,6 +60,12 @@ export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenF
     try{await onCategoryChange(invoice,categoryId)}
     catch(e){setCategoryError(e instanceof Error?e.message:'No se pudo cambiar la categoría.');}
     finally{setSavingCategory(false)}
+  };
+
+  const setPayment=async(status:InvoicePaymentStatus)=>{
+    setSavingPayment(true);
+    try{await onPaymentStatusChange(invoice.id,status,status==='paid'?(paidAtDraft||new Date().toISOString().slice(0,10)):null)}
+    finally{setSavingPayment(false)}
   };
 
   const supplierChanged=supplierId!==String(invoice.supplierId||'');
@@ -85,6 +97,15 @@ export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenF
         </div>
         <span className={`invoiceCategoryHint ${!invoice.categoryId?'warn':''}`}>{!invoice.categoryId?'Esta factura no tiene categoría asignada. Selecciona una y guarda el cambio.':'Puedes reclasificar la factura sin volver a importarla.'}</span>
         {categoryError&&<div className="errorBox">{categoryError}</div>}
+      </div>
+    </div>
+
+    <div className="detailPaymentPanel">
+      <div><span>Estado de pago</span><strong className={invoice.paymentStatus==='paid'?'paymentState paid':'paymentState unpaid'}>{invoice.paymentStatus==='paid'?'Pagada':'Por pagar'}</strong></div>
+      <label><span>Fecha de pago</span><input type="date" value={paidAtDraft} disabled={savingPayment} onChange={event=>setPaidAtDraft(event.target.value)}/></label>
+      <div className="detailPaymentActions">
+        <button type="button" className={invoice.paymentStatus!=='paid'?'secondary activePaymentState':'secondary'} disabled={savingPayment} onClick={()=>void setPayment('unpaid')}>Por pagar</button>
+        <button type="button" className={invoice.paymentStatus==='paid'?'primary':'secondary'} disabled={savingPayment||!paidAtDraft} onClick={()=>void setPayment('paid')}>{savingPayment?'Guardando…':'Marcar pagada'}</button>
       </div>
     </div>
 

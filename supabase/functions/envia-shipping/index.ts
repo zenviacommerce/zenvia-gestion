@@ -129,9 +129,13 @@ function geocodeRows(payload:any):any[]{
     if(typeof value!=='object')return;
     seen.add(value);
     if(Array.isArray(value)){for(const item of value)visit(item,depth+1);return}
-    const state=enviaStateCode(value.stateCode||value.state_code||value.state?.code||value.state?.abbreviation||value.state?.shortCode||value.state?.short_name||value.state||value.provinceCode||value.province_code||value.province?.code||value.province?.abbreviation);
-    const city=clean(value.city||value.locality||value.municipality);
-    const postalCode=clean(value.zipcode||value.postalCode||value.postal_code||value.zipCode||value.zip);
+    const state=enviaStateCode(
+      value.stateCode||value.state_code||value.state?.code?.['2digit']||value.state?.code?.['1digit']||
+      value.state?.code||value.state?.abbreviation||value.state?.shortCode||value.state?.short_name||value.state||
+      value.provinceCode||value.province_code||value.province?.code?.['2digit']||value.province?.code||value.province?.abbreviation
+    );
+    const city=clean(value.city||value.locality||value.municipality||value.regions?.region_4);
+    const postalCode=clean(value.zipcode||value.zip_code||value.postalCode||value.postal_code||value.zipCode||value.zip);
     if(state||city||postalCode)found.push({...value,__state:state,__city:city,__postalCode:postalCode});
     for(const key of ['data','result','results','locations','location','zip_codes','zipCodes','items'])visit(value[key],depth+1);
   };
@@ -179,7 +183,7 @@ async function geocodeAddress(address:any){
     ...address,
     city:row.__city||address.city,
     state:row.__state||address.state,
-    country:clean(row.country||row.countryCode).toUpperCase()||address.country,
+    country:clean(row.country?.code||row.countryCode||row.country).toUpperCase()||address.country,
     postalCode:row.__postalCode||address.postalCode,
     district:clean(row.district||row.locality)||address.district,
   });

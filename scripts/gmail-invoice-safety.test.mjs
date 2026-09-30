@@ -33,10 +33,12 @@ test('shared pipeline validates supplier number date total and fiscal consistenc
   assert.match(source,/status='needs_review'/);
 });
 
-test('date parser tolerates spaces around OCR separators',async()=>{
-  const source=await read('../src/services/invoiceReader.ts');
-  assert.match(source,/validCalendarDate/);
-  assert.match(source,/\\s\*\[-\/.\]\\s\*/);
+test('date parser uses the shared evidence extractor with OCR-tolerant separators',async()=>{
+  const reader=await read('../src/services/invoiceReader.ts');
+  const dates=await read('../src/services/invoiceDateExtractor.ts');
+  assert.match(reader,/extractInvoiceDate/);
+  assert.match(dates,/validDate/);
+  assert.match(dates,/\\s\*\[-\/.\]\\s\*/);
 });
 
 test('merchandise detection is based on generic table structure rather than supplier names',async()=>{

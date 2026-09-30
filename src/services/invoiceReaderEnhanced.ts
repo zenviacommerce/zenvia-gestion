@@ -112,9 +112,13 @@ function explicitInvoiceNumber(text: string, lines: string[]) {
     /\bn[uú]mero\s+(?:de\s+)?factura\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
     /\bn(?:º|°|o)\.?\s*factura\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
     /\bbill\s*#\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
-    /\binvoice\s+(?:no\.?|number)\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
+    /\binvoice\s+(?:no\.?|number|#)\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
     /\bfactura\s+(?:n(?:º|°|o)\.?|n[uú]m(?:ero)?\.?)\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
     /\bfactura\s+([A-Z]*\d[A-Z0-9._\/-]{2,})\b/i,
+    /\b(?:numero\s+fattura|fattura\s*(?:n\.?|no\.?|#))\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
+    /\b(?:numero\s+(?:da\s+)?fatura|fatura\s*(?:n\.?|no\.?|#))\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
+    /\b(?:numero\s+de\s+facture|facture\s*(?:n\.?|no\.?|#))\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
+    /\b(?:rechnungs(?:nummer|nr\.?)|rechnung\s*(?:nr\.?|#))\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
   ];
   for (const pattern of patterns) {
     const value = normalizeInvoiceNumberCandidate(text.match(pattern)?.[1]);

@@ -108,7 +108,13 @@ async function candidateFromRead(
   if(configuredReview.required){
     status='needs_review';
     const parts:string[]=[];
-    if(configuredReview.missing.length)parts.push(`Faltan campos obligatorios: ${configuredReview.missing.join(', ')}`);
+    const fieldLabels:Record<string,string>={
+      invoiceNumber:'número de factura',
+      issueDate:'fecha de factura',
+      supplier:'proveedor',
+      total:'total',
+    };
+    if(configuredReview.missing.length)parts.push(`Faltan campos obligatorios: ${configuredReview.missing.map(field=>fieldLabels[field]||field).join(', ')}`);
     if(configuredReview.lowConfidence)parts.push(`Confianza inferior al ${Math.round(policy.confidenceThreshold*100)} %`);
     reviewReason=parts.join(' · ');
   }else if(recipient.needsReview){

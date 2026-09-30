@@ -169,12 +169,14 @@ function fallbackProposal(text:string,fileName:string):TransportTariffProposal{
     }
     return null;
   })();
+  const fuelExcluded=/combustible\s+no\s+incluido|plus\s+combustible\s+no\s+incluido|fuel\s+not\s+included/i.test(text);
+  const fuelIncluded=/combustible\s+incluido|fuel\s+included/i.test(text)&&!fuelExcluded;
   const services=mrw?parseMrwServices(text):[];
   return {
     carrierCode:mrw?'mrw':slug(fileName.split('.')[0])||'carrier',carrierName:mrw?'MRW':clean(fileName.replace(/\.[^.]+$/,''))||'Transportista',
     effectiveFrom:null,effectiveTo,currencyCode:'EUR',pricesIncludeVat:vatIncluded,fuelSurchargePct:fuelPct,
-    fuelSurchargeIncluded:!/combustible\s+no\s+incluido|plus\s+combustible\s+no\s+incluido/i.test(text),parserProvider:'automatic-rules',parserModel:null,
-    parserConfidence:services.length?0.86:0.45,parserNotes:[services.length?`${services.length} servicios detectados automáticamente.`:'No se detectaron tablas de peso automáticamente; revisa y añade los tramos.',vatExcluded?'El documento indica precios sin IVA.':'Revisa si los precios incluyen IVA.',/combustible\s+no\s+incluido|plus\s+combustible\s+no\s+incluido/i.test(text)?'El documento indica que el combustible no está incluido.':'Revisa el tratamiento del combustible.'],services,
+    fuelSurchargeIncluded:fuelIncluded,parserProvider:'automatic-rules',parserModel:null,
+    parserConfidence:services.length?0.86:0.45,parserNotes:[services.length?`${services.length} servicios detectados automáticamente.`:'No se detectaron tablas de peso automáticamente; revisa y añade los tramos.',vatExcluded?'El documento indica precios sin IVA.':'Revisa si los precios incluyen IVA.',fuelExcluded?'El documento indica que el combustible no está incluido.':fuelIncluded?'El documento indica que el combustible está incluido.':'No se ha podido determinar el tratamiento del combustible; revísalo.'],services,
   };
 }
 

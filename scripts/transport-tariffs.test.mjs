@@ -100,3 +100,11 @@ test('tariff parser is generic and preserves document table structure',async()=>
   assert.match(edge,/CONTROL DE CALIDAD/);
   assert.match(edge,/No inventes datos/);
 });
+
+
+test('PDF tariff extraction preserves visual columns and supports transposed weight rows',async()=>{
+  const service=await source('src/services/transportTariffs.ts');
+  assert.match(service,/gap>Math\.max\(12,charWidth\*3\)\?'\\t'/);
+  assert.match(service,/Matrix transposed/);
+  assert.match(service,/rowWeightMatch/);
+});

@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import type { AccessProfile, WorkspaceEntitlement } from './access';
+import { createInvoice, updateInvoicePaymentStatus } from './repository';
 
 export type BillingCycle='monthly'|'yearly';
 
@@ -175,10 +176,91 @@ export async function startCustomerPayPalCheckout(input:{
 
 export type CustomerSubscriptionInvoice={
   id:string;invoice_number:string|null;status:string;issue_date:string;period_start:string|null;period_end:string|null;
-  currency:string;subtotal_cents:number;tax_cents:number;total_cents:number;created_at:string;
+  currency:string;subtotal_cents:number;tax_rate:number;tax_cents:number;total_cents:number;
+  pdf_bucket?:string|null;pdf_path?:string|null;emailed_at?:string|null;download_url?:string|null;
+  customer_snapshot?:Record<string,unknown>|null;line_items?:Array<Record<string,unknown>>|null;metadata?:Record<string,unknown>|null;
+  created_at:string;
 };
 
 export async function loadCustomerSubscriptionInvoices(access:AccessProfile){
   const result=await invokePlatformBilling<{invoices:CustomerSubscriptionInvoice[]}>('invoices',access.workspaceId);
   return Array.isArray(result.invoices)?result.invoices:[];
+}
+
+function billingText(value:unknown){
+  return typeof value==='string'?value.trim():'';
+}
+function billingNumber(value:unknown){
+  const parsed=Number(value);
+  return Number.isFinite(parsed)?parsed:0;
+}
+function billingIssuerAddress(issuer:Record<string,unknown>){
+  return [
+    billingText(issuer.issuer_address_line1),
+    billingText(issuer.issuer_address_line2),
+    [billingText(issuer.issuer_postal_code),billingText(issuer.issuer_city)].filter(Boolean).join(' '),
+    billingText(issuer.issuer_province),
+    billingText(issuer.issuer_country_code),
+  ].filter(Boolean).join(', ');
+}
+
+export async function importCustomerSubscriptionInvoiceAsExpense(invoice:CustomerSubscriptionInvoice){
+  if(!invoice.invoice_number)throw new Error('La factura todavía no tiene numeración fiscal y no se puede añadir a Gastos.');
+  if(invoice.status==='draft')throw new Error('La factura está pendiente de revisión fiscal.');
+  if(!invoice.download_url)throw new Error('El PDF de esta factura todavía no está disponible.');
+
+  const response=await fetch(invoice.download_url);
+  if(!response.ok)throw new Error('No se pudo descargar el PDF de la factura de suscripción.');
+  const blob=await response.blob();
+  const file=new File([blob],`${invoice.invoice_number}.pdf`,{type:'application/pdf'});
+  const metadata=invoice.metadata&&typeof invoice.metadata==='object'?invoice.metadata:{};
+  const issuer=(metadata.issuer_snapshot&&typeof metadata.issuer_snapshot==='object'?metadata.issuer_snapshot:{}) as Record<string,unknown>;
+  const lines=Array.isArray(invoice.line_items)?invoice.line_items:[];
+
+  const createdId=await createInvoice({
+    file,
+    source:'manual',
+    supplierName:billingText(issuer.issuer_legal_name)||'ZENVIA COMMERCE SL',
+    supplierTaxId:billingText(issuer.issuer_tax_id)||undefined,
+    supplierEmail:billingText(issuer.issuer_email)||undefined,
+    supplierPhone:billingText(issuer.issuer_phone)||undefined,
+    supplierAddress:billingIssuerAddress(issuer)||undefined,
+    supplierWebsite:billingText(issuer.issuer_website)||undefined,
+    invoiceNumber:invoice.invoice_number,
+    invoiceDate:invoice.issue_date,
+    subtotal:invoice.subtotal_cents/100,
+    vat:invoice.tax_cents/100,
+    equivalenceSurcharge:0,
+    withholding:0,
+    total:invoice.total_cents/100,
+    currency:invoice.currency,
+    ocrText:'',
+    extraction:{
+      parser:'zenvia-subscription-billing',
+      centralBillingInvoiceId:invoice.id,
+      paymentProvider:'paypal',
+      taxRate:invoice.tax_rate,
+      periodStart:invoice.period_start,
+      periodEnd:invoice.period_end,
+    },
+    extractionConfidence:1,
+    lines:lines.map(line=>{
+      const quantity=Math.max(1,billingNumber(line.quantity)||1);
+      const netCents=billingNumber(line.net_cents);
+      const totalCents=billingNumber(line.total_cents);
+      const taxCents=billingNumber(line.tax_cents);
+      return {
+        description:billingText(line.description)||'Suscripción ZENVIA Gestión',
+        quantity,
+        unit:billingText(line.unit)||'suscripción',
+        unitPrice:netCents?netCents/100/quantity:null,
+        lineNet:netCents/100,
+        taxRate:billingNumber(line.tax_rate),
+        taxAmount:taxCents/100,
+        lineTotal:totalCents/100,
+      };
+    }),
+  });
+  await updateInvoicePaymentStatus(createdId,'paid',invoice.issue_date);
+  return createdId;
 }

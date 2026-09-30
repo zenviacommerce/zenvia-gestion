@@ -569,6 +569,41 @@ Deno.serve(async(req:Request)=>{
       return ok({ok:true,workspaceId});
     }
 
+    if(action==='reset_demo_data'){
+      const workspaceId=asText(body?.workspaceId,80);
+      if(!workspaceId)return fail('Falta el cliente.');
+      const {data:workspace,error:workspaceError}=await admin.from('workspaces').select('id,name').eq('id',workspaceId).maybeSingle();
+      if(workspaceError)throw workspaceError;
+      if(!workspace)return fail('Cliente no encontrado.',404);
+
+      const {data:settings,error:settingsError}=await admin.from('app_settings').select('schema_version,config').eq('owner_id',workspaceId).maybeSingle();
+      if(settingsError)throw settingsError;
+      const config=settings?.config&&typeof settings.config==='object'?settings.config:{};
+      const nextConfig={
+        ...config,
+        demo:{
+          ...(config as any)?.demo,
+          enabled:true,
+          scenario:'commerce_full',
+          scenario_version:1,
+          external_actions_disabled:true,
+          managed_by:'platform',
+          prepared_at:new Date().toISOString(),
+        },
+      };
+      const {error:settingsSaveError}=await admin.from('app_settings').upsert({
+        owner_id:workspaceId,
+        schema_version:Number(settings?.schema_version||1),
+        config:nextConfig,
+        updated_at:new Date().toISOString(),
+      },{onConflict:'owner_id'});
+      if(settingsSaveError)throw settingsSaveError;
+
+      const {data:result,error:resetError}=await admin.rpc('platform_reset_demo_workspace',{p_workspace_id:workspaceId});
+      if(resetError)throw resetError;
+      return ok({ok:true,...(result&&typeof result==='object'?result:{}),workspaceName:workspace.name});
+    }
+
     if(action==='update_workspace'){
       const workspaceId=asText(body?.workspaceId,80),status=asText(body?.status,30);
       if(!workspaceId||!['active','trialing','suspended','cancelled'].includes(status))return fail('Estado de cliente no válido.');

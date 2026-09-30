@@ -287,7 +287,7 @@ function taxIdFrom(raw:string){return raw.match(/\b(?:[ABCDEFGHJNPQRSUVW]\d{7}[0
 function pendingSummary(ctx:any,allowed:string[]){
   const parts:string[]=[];
   if(allowed.includes('orders')&&ctx.orders)parts.push(String(ctx.orders.pending)+' pedidos sin etiqueta');
-  if(allowed.includes('invoices')&&ctx.expenses)parts.push(String(ctx.expenses.pendingReview)+' facturas de gasto pendientes de revisar');
+  if(allowed.includes('invoices')&&ctx.expenses){parts.push(String(ctx.expenses.pendingReview)+' facturas de gasto pendientes de revisar');parts.push(String(ctx.expenses.unpaid||0)+' facturas de gasto por pagar');}
   if(allowed.includes('sales')&&ctx.sales)parts.push(String(ctx.sales.open)+' facturas emitidas abiertas');
   if(allowed.includes('products')&&ctx.products)parts.push(String(ctx.products.withoutCost)+' productos sin coste');
   if(allowed.includes('support')&&ctx.support)parts.push(String(ctx.support.open)+' tickets abiertos');

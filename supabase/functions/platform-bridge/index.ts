@@ -138,29 +138,53 @@ Deno.serve(async(req:Request)=>{
       const planName=asText(body?.planName,150);
       const planVersion=integerOrNull(body?.planVersion);
       const subscriptionStatus=asText(body?.subscriptionStatus,30);
+      const trialEndsAt=asText(body?.trialEndsAt,80)||null;
+      const currentPeriodEndsAt=asText(body?.currentPeriodEndsAt,80)||null;
+      const cancelAtPeriodEnd=body?.cancelAtPeriodEnd===true;
+      const billingProvider=asText(body?.billingProvider,40)||'platform';
       const entitlements=body?.entitlements&&typeof body.entitlements==='object'&&!Array.isArray(body.entitlements)?body.entitlements:null;
       if(!workspaceId||!planKey||!planName||planVersion===null||planVersion<1||!entitlements)return fail('Snapshot de plan no válido.');
       if(!['trialing','active','past_due','cancelled','unpaid'].includes(subscriptionStatus))return fail('Estado de suscripción no válido.');
 
-      const {data:workspace,error:workspaceError}=await admin.from('workspaces').select('id').eq('id',workspaceId).maybeSingle();
+      const {data:workspace,error:workspaceError}=await admin.from('workspaces').select('id,status').eq('id',workspaceId).maybeSingle();
       if(workspaceError)throw workspaceError;if(!workspace)return fail('Cliente no encontrado.',404);
+
+      const now=new Date().toISOString();
+      const {error:subscriptionError}=await admin.from('workspace_subscriptions').upsert({
+        workspace_id:workspaceId,plan_key:planKey,status:subscriptionStatus,billing_provider:billingProvider,
+        trial_ends_at:trialEndsAt,current_period_ends_at:currentPeriodEndsAt,cancel_at_period_end:cancelAtPeriodEnd,updated_at:now,
+      },{onConflict:'workspace_id'});
+      if(subscriptionError)throw subscriptionError;
+
+      const workspaceStatus=subscriptionStatus==='trialing'?'trialing'
+        :subscriptionStatus==='active'?'active'
+        :subscriptionStatus==='cancelled'?'cancelled'
+        :'suspended';
+      if(String(workspace.status)!==workspaceStatus){
+        const {error:workspaceStatusError}=await admin.from('workspaces').update({status:workspaceStatus,updated_at:now}).eq('id',workspaceId);
+        if(workspaceStatusError)throw workspaceStatusError;
+      }
+
       const {data:existing,error:existingError}=await admin.from('app_subscription_state').select('plan_key,plan_version').eq('workspace_id',workspaceId).maybeSingle();
       if(existingError)throw existingError;
       const samePlan=existing&&String(existing.plan_key||'')===planKey;
       if(samePlan&&Number(existing.plan_version)>planVersion){
-        return ok({ok:true,appliedVersion:Number(existing.plan_version),ignored:true,reason:'older_version'});
+        const {error:statusError}=await admin.from('app_subscription_state').update({status:subscriptionStatus,synced_at:now,updated_at:now}).eq('workspace_id',workspaceId);
+        if(statusError)throw statusError;
+        return ok({ok:true,appliedVersion:Number(existing.plan_version),ignored:true,reason:'older_version',billingUpdated:true});
       }
       if(samePlan&&Number(existing.plan_version)===planVersion){
-        return ok({ok:true,appliedVersion:planVersion,replayed:true});
+        const {error:replayError}=await admin.from('app_subscription_state').update({status:subscriptionStatus,synced_at:now,updated_at:now}).eq('workspace_id',workspaceId);
+        if(replayError)throw replayError;
+        return ok({ok:true,appliedVersion:planVersion,replayed:true,billingUpdated:true});
       }
 
-      const now=new Date().toISOString();
       const {error}=await admin.from('app_subscription_state').upsert({
         workspace_id:workspaceId,plan_key:planKey,plan_name:planName,plan_version:planVersion,
         status:subscriptionStatus,entitlements,synced_at:now,updated_at:now,
       },{onConflict:'workspace_id'});
       if(error)throw error;
-      return ok({ok:true,appliedVersion:planVersion});
+      return ok({ok:true,appliedVersion:planVersion,billingUpdated:true});
     }
 
     if(action==='bootstrap'){
@@ -286,7 +310,11 @@ Deno.serve(async(req:Request)=>{
         users:(users||[]).map((item:any)=>({...item,last_sign_in_at:authById.get(item.user_id)?.last_sign_in_at||null})),
         integrations:integrations||[],subscription:subscriptionSnapshot?{
           workspace_id:workspaceId,plan_key:subscriptionSnapshot.plan_key,status:subscriptionSnapshot.status,
-          billing_provider:'platform',plan_version:subscriptionSnapshot.plan_version,synced_at:subscriptionSnapshot.synced_at,
+          billing_provider:subscription?.billing_provider||'platform',
+          trial_ends_at:subscription?.trial_ends_at||null,
+          current_period_ends_at:subscription?.current_period_ends_at||null,
+          cancel_at_period_end:Boolean(subscription?.cancel_at_period_end),
+          plan_version:subscriptionSnapshot.plan_version,synced_at:subscriptionSnapshot.synced_at,
         }:subscription||null,
         userLimit,
         onboarding:{

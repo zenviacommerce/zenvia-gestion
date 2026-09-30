@@ -53,7 +53,8 @@ begin
   delete from public.amazon_accounts where owner_id=p_workspace_id;
 
   delete from public.sales_payments where owner_id=p_workspace_id;
-  delete from public.sales_invoice_lines where owner_id=p_workspace_id;
+  -- Delete the parent first: issued-invoice line guards permit the ON DELETE CASCADE
+  -- only after the parent row is no longer visible to the child trigger.
   delete from public.sales_invoices where owner_id=p_workspace_id;
   delete from public.sales_invoice_series where owner_id=p_workspace_id;
   delete from public.sales_receipt_payments where owner_id=p_workspace_id;

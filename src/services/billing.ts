@@ -19,6 +19,8 @@ export type CustomerBillingPlan={
   yearlyPriceCents:number|null;
   sortOrder:number;
   isPublic:boolean;
+  paypalMonthlyPlanId:string|null;
+  paypalYearlyPlanId:string|null;
   entitlements:CustomerPlanEntitlement[];
 };
 
@@ -26,9 +28,18 @@ export type CustomerSubscription={
   planKey:string;
   status:string;
   billingProvider:string;
+  providerSubscriptionId:string|null;
+  billingCycle:BillingCycle|null;
   trialEndsAt:string|null;
   currentPeriodEndsAt:string|null;
   cancelAtPeriodEnd:boolean;
+};
+
+export type CustomerCheckoutConfig={
+  provider:'paypal'|'manual';
+  mode:'sandbox'|'live'|null;
+  publicClientId:string|null;
+  ready:boolean;
 };
 
 export type CustomerPlanUsage={
@@ -40,6 +51,7 @@ export type CustomerPlanUsage={
 export type CustomerBillingOverview={
   currentPlan:CustomerBillingPlan;
   subscription:CustomerSubscription;
+  checkout:CustomerCheckoutConfig;
   usage:CustomerPlanUsage;
   availablePlans:CustomerBillingPlan[];
 };
@@ -53,6 +65,7 @@ type PlanRow={
   monthly_price_cents:number|null;
   yearly_price_cents:number|null;
   sort_order:number;
+  metadata?:Record<string,unknown>|null;
 };
 
 type EntitlementRow={
@@ -67,7 +80,17 @@ function toEntitlement(key:string,value:WorkspaceEntitlement):CustomerPlanEntitl
   return {key,enabled:value.enabled,limit:value.limit,config:value.config};
 }
 
-function mapPlan(row:PlanRow,entitlements:EntitlementRow[]):CustomerBillingPlan{
+function paypalPlanId(row:PlanRow,mode:'sandbox'|'live'|null,cycle:BillingCycle){
+  if(!mode)return null;
+  const metadata=row.metadata&&typeof row.metadata==='object'?row.metadata:{};
+  const paypal=(metadata as Record<string,any>).paypal;
+  const environment=paypal&&typeof paypal==='object'&&paypal[mode]&&typeof paypal[mode]==='object'?paypal[mode]:null;
+  if(!environment)return null;
+  const value=cycle==='monthly'?environment.monthly_plan_id:environment.yearly_plan_id;
+  return typeof value==='string'&&value.trim()?value.trim():null;
+}
+
+function mapPlan(row:PlanRow,entitlements:EntitlementRow[],mode:'sandbox'|'live'|null):CustomerBillingPlan{
   return {
     planKey:row.plan_key,
     name:row.name,
@@ -76,6 +99,8 @@ function mapPlan(row:PlanRow,entitlements:EntitlementRow[]):CustomerBillingPlan{
     yearlyPriceCents:row.yearly_price_cents,
     sortOrder:Number(row.sort_order)||0,
     isPublic:Boolean(row.is_public),
+    paypalMonthlyPlanId:paypalPlanId(row,mode,'monthly'),
+    paypalYearlyPlanId:paypalPlanId(row,mode,'yearly'),
     entitlements:entitlements
       .filter(item=>item.plan_key===row.plan_key)
       .map(item=>({
@@ -95,9 +120,10 @@ type BillingOverviewResponse={
   plans:PlanRow[];
   entitlements:EntitlementRow[];
   subscription:{
-    plan_key:string;status:string;billing_provider:string;trial_ends_at:string|null;
-    current_period_ends_at:string|null;cancel_at_period_end:boolean;
+    plan_key:string;status:string;billing_provider:string;provider_subscription_id?:string|null;billing_cycle?:BillingCycle|null;
+    trial_ends_at:string|null;current_period_ends_at:string|null;cancel_at_period_end:boolean;
   }|null;
+  billingConfig:{provider:string;mode:string|null;public_client_id:string|null}|null;
   usage:{users:number;amazonAccounts:number;monthlyOrders:number};
 };
 
@@ -108,9 +134,13 @@ export async function loadCustomerBillingOverview(access:AccessProfile):Promise<
   const response=data as BillingOverviewResponse;
   const planRows=Array.isArray(response?.plans)?response.plans:[];
   const entitlementRows=Array.isArray(response?.entitlements)?response.entitlements:[];
+  const mode=response?.billingConfig?.mode==='live'?'live':response?.billingConfig?.mode==='sandbox'?'sandbox':null;
+  const publicClientId=typeof response?.billingConfig?.public_client_id==='string'&&response.billingConfig.public_client_id.trim()
+    ?response.billingConfig.public_client_id.trim()
+    :null;
   const currentRow=planRows.find(plan=>plan.plan_key===access.planKey);
   const currentPlan=currentRow
-    ?mapPlan(currentRow,entitlementRows)
+    ?mapPlan(currentRow,entitlementRows,mode)
     :{
       planKey:access.planKey,
       name:access.planName,
@@ -119,6 +149,8 @@ export async function loadCustomerBillingOverview(access:AccessProfile):Promise<
       yearlyPriceCents:null,
       sortOrder:0,
       isPublic:false,
+      paypalMonthlyPlanId:null,
+      paypalYearlyPlanId:null,
       entitlements:Object.entries(access.entitlements).map(([key,value])=>toEntitlement(key,value)),
     };
 
@@ -129,9 +161,17 @@ export async function loadCustomerBillingOverview(access:AccessProfile):Promise<
       planKey:subscriptionRow?.plan_key||access.planKey,
       status:subscriptionRow?.status||access.subscriptionStatus,
       billingProvider:subscriptionRow?.billing_provider||'manual',
+      providerSubscriptionId:subscriptionRow?.provider_subscription_id||null,
+      billingCycle:subscriptionRow?.billing_cycle==='monthly'||subscriptionRow?.billing_cycle==='yearly'?subscriptionRow.billing_cycle:null,
       trialEndsAt:subscriptionRow?.trial_ends_at||null,
       currentPeriodEndsAt:subscriptionRow?.current_period_ends_at||null,
       cancelAtPeriodEnd:Boolean(subscriptionRow?.cancel_at_period_end),
+    },
+    checkout:{
+      provider:response?.billingConfig?.provider==='paypal'?'paypal':'manual',
+      mode,
+      publicClientId,
+      ready:response?.billingConfig?.provider==='paypal'&&Boolean(mode&&publicClientId),
     },
     usage:{
       users:{value:Number(response?.usage?.users||0),limit:limitFor(access,'users')},
@@ -140,7 +180,7 @@ export async function loadCustomerBillingOverview(access:AccessProfile):Promise<
     },
     availablePlans:planRows
       .filter(plan=>plan.plan_key!=='internal'&&plan.is_public)
-      .map(plan=>mapPlan(plan,entitlementRows)),
+      .map(plan=>mapPlan(plan,entitlementRows,mode)),
   };
 }
 
@@ -168,4 +208,22 @@ export async function requestCustomerPlanChange(input:{
       'Hasta que la contratación/pago quede confirmado, el plan actual permanece sin cambios.',
     ].join('\n'),
   });
+}
+
+
+export function paypalPlanForCycle(plan:CustomerBillingPlan,cycle:BillingCycle){
+  return cycle==='yearly'?plan.paypalYearlyPlanId:plan.paypalMonthlyPlanId;
+}
+
+export async function recordPayPalSubscription(input:{
+  targetPlanKey:string;
+  cycle:BillingCycle;
+  subscriptionId:string;
+}){
+  const {data,error}=await supabase.functions.invoke('customer-billing',{
+    body:{action:'record_paypal_subscription',...input},
+  });
+  if(error)throw new Error(error.message||'No se pudo registrar la suscripción de PayPal.');
+  if(data?.error)throw new Error(String(data.error));
+  return data as {ok:true;subscriptionId:string;pendingConfirmation:true};
 }

@@ -14,7 +14,7 @@ test('theme is applied in HTML before React bootstraps',async()=>{
   assert.doesNotMatch(html,/prefers-color-scheme/);
 });
 
-test('SettingsProvider starts from cached explicit preference or last resolved theme',async()=>{
+test('SettingsProvider starts from cached global preference or last resolved theme',async()=>{
   const source=await read('../src/context/SettingsContext.tsx');
   assert.match(source,/function initialUserPreferences/);
   assert.match(source,/zenvia-gestion-theme-preference/);
@@ -25,10 +25,12 @@ test('SettingsProvider starts from cached explicit preference or last resolved t
   assert.doesNotMatch(noUserBlock,/setPreferences\(clone\(DEFAULT_USER_PREFERENCES\)\)/);
 });
 
-test('App caches both the actual preference and resolved visual theme',async()=>{
+test('App caches global preference, resolved visual theme and a device-local override',async()=>{
   const source=await read('../src/App.tsx');
   assert.match(source,/THEME_PREFERENCE_KEY = 'zenvia-gestion-theme-preference'/);
+  assert.match(source,/DEVICE_THEME_OVERRIDE_KEY = 'zenvia-gestion-theme-device-override'/);
   assert.match(source,/safeStorageSet\('local',THEME_PREFERENCE_KEY,preferences\.theme\)/);
   assert.match(source,/safeStorageSet\('local',THEME_KEY,theme\)/);
+  assert.match(source,/safeStorageSet\('local',DEVICE_THEME_OVERRIDE_KEY,next\)/);
   assert.doesNotMatch(source,/matchMedia/);
 });

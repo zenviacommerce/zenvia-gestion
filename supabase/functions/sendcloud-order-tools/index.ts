@@ -98,8 +98,8 @@ function normalizeOption(option:any){
   const name=clean(option?.name||option?.title||option?.product?.name||option?.shipping_product?.name||option?.display_name||code)||'Servicio';
   const contractValue=option?.contract_id??option?.contract?.id??null;
   const quote=Array.isArray(option?.quotes)?option.quotes[0]:option?.quotes||null;
-  const priceValue=quote?.price?.total?.value??quote?.price?.value??quote?.total_price?.value??quote?.value??null;
-  const currency=quote?.price?.total?.currency??quote?.price?.currency??quote?.total_price?.currency??quote?.currency??null;
+  const priceValue=quote?.price?.total?.value??quote?.price?.value??quote?.total_price?.value??quote?.value??option?.price?.total?.value??option?.price?.value??null;
+  const currency=quote?.price?.total?.currency??quote?.price?.currency??quote?.total_price?.currency??quote?.currency??option?.price?.total?.currency??option?.price?.currency??null;
   const billed=option?.billed_weight;
   return {code,name,carrierCode,carrierName:clean(option?.carrier?.name||option?.carrier_name)||friendlyCarrier(carrierCode),contractId:contractValue==null?null:Number(contractValue),price:priceValue==null?null:Number(priceValue),currency:currency||null,billedWeightKg:toKg(billed?.value,billed?.unit),raw:option};
 }
@@ -189,12 +189,24 @@ Deno.serve(async(req:Request)=>{
         house_number:address.house_number||undefined,
       };
       const toState=normalizeStateProvince(address.country_code,address.state_province_code);if(toState)toAddress.state_province_code=toState;
-      const requestBody:any={calculate_quotes:true,parcels:[{weight:{value:Number(weightKg.toFixed(3)),unit:'kg'}}],to_address:toAddress};
-      if(sender){
-        const fromAddress:any={country_code:sender.country_code||undefined,postal_code:sender.postal_code||undefined,city:sender.city||undefined,address_line_1:sender.address_line_1||undefined,house_number:sender.house_number||undefined};
-        const fromState=normalizeStateProvince(sender.country_code,sender.state_province_code);if(fromState)fromAddress.state_province_code=fromState;
-        requestBody.from_address=fromAddress;
-      }
+      const fromCountry=clean(sender?.country_code||shippingConfig.senderCountryCode||ordersConfig.originCountryCode||'ES').toUpperCase();
+      const fromPostal=clean(sender?.postal_code||shippingConfig.senderPostalCode);
+      const requestBody:any={
+        calculate_quotes:true,
+        from_country_code:fromCountry,
+        to_country_code:clean(address.country_code).toUpperCase(),
+        from_postal_code:fromPostal||undefined,
+        to_postal_code:clean(address.postal_code)||undefined,
+        parcels:[{
+          weight:{value:Number(weightKg.toFixed(3)),unit:'kg'},
+          dimensions:{
+            length:String(Math.max(1,Number(shippingConfig.packageLengthCm)||30)),
+            width:String(Math.max(1,Number(shippingConfig.packageWidthCm)||20)),
+            height:String(Math.max(1,Number(shippingConfig.packageHeightCm)||10)),
+            unit:'cm',
+          },
+        }],
+      };
       const {data}=await sendcloudJson(orderCredentials,'/shipping-options',{method:'POST',body:JSON.stringify(requestBody)});
       const options=(data?.data||[]).map(normalizeOption).filter((x:any)=>x.code).filter((x:any)=>enabledCarrier(x,shippingConfig.enabledCarriers));
       return response({weightKg,options,message:options.length?data?.message||null:'No hay servicios disponibles entre los transportistas habilitados.'});

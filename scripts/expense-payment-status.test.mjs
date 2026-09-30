@@ -10,7 +10,7 @@ test('expense invoices keep payment state separate from accounting status',async
   assert.match(types,/InvoicePaymentStatus = 'unpaid' \| 'paid'/);
   assert.match(types,/paymentStatus: InvoicePaymentStatus/);
   assert.match(types,/paidAt\?: string \| null/);
-  assert.match(repository,/payment_status:i\.payment_status==='paid'\?'paid':'unpaid'/);
+  assert.match(repository,/paymentStatus:\s*i\.payment_status==='paid'\?'paid':'unpaid'/);
   assert.match(repository,/updateInvoicePaymentStatus/);
   assert.match(repository,/paid_at:resolvedPaidAt/);
 });

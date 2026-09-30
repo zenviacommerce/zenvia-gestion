@@ -358,9 +358,11 @@ function mergeReadResults(primary:InvoiceReadResult,secondary:InvoiceReadResult)
   const invoiceNumber=primary.invoiceNumber||secondary.invoiceNumber;
   const invoiceDate=primary.invoiceDate||secondary.invoiceDate;
   const subtotal=primary.subtotal>0?primary.subtotal:secondary.subtotal;
-  const vat=primary.vat!==0||primary.subtotal>0?primary.vat:secondary.vat;
-  const withholding=primary.withholding||secondary.withholding;
   const total=primary.total>0?primary.total:secondary.total;
+  const primaryZeroVatIsConsistent=primary.subtotal>0&&primary.total>0
+    &&Math.abs(primary.subtotal-primary.total)<=Math.max(.08,primary.total*.01);
+  const vat=primary.vat!==0||primaryZeroVatIsConsistent?primary.vat:secondary.vat;
+  const withholding=primary.withholding||secondary.withholding;
   const lines=primary.lines.length>=secondary.lines.length?primary.lines:secondary.lines;
   const merged=parseInvoiceText(
     [

@@ -343,7 +343,7 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:an
   if(hasAny(contextual,['tickets abiertos','ticket abierto','soporte pendiente'])&&ctx.support&&allowed.includes('support'))return localReply('Hay '+String(ctx.support.open)+' tickets de soporte abiertos.');
   if(hasAny(contextual,['facturas abiertas','facturas por cobrar','facturas emitidas pendientes'])&&ctx.sales&&allowed.includes('sales'))return localReply('Tienes '+String(ctx.sales.open)+' facturas emitidas abiertas.');
 
-  if(ctx.amazon&&allowed.includes('amazon')&&hasAny(contextual,['amazon','marketplace','mas vendido','más vendido','producto vendido','unidades vendidas','ventas'])){
+  if(ctx.amazon&&allowed.includes('amazon')&&hasAny(contextual,['amazon','marketplace'])){
     const products=Array.isArray(ctx.amazon.products)?ctx.amazon.products:[];
     const top=products[0];
     const rangeLabel=ctx.amazon.range?.label||'el periodo consultado';
@@ -476,7 +476,7 @@ Deno.serve(async(req:Request)=>{
     const businessContext=await loadBusinessContext(admin,String(profile.data_owner_id),allowedPages,periods);
     const history=sanitizedHistory(body?.history);
     const normalizedMessage=norm(message);
-    if(allowedPages.includes('amazon')&&hasAny(normalizedMessage,['amazon','marketplace','mas vendido','más vendido','ventas','unidades vendidas','rentable'])){
+    if(allowedPages.includes('amazon')&&hasAny(normalizedMessage,['amazon','marketplace'])){
       const publicKey=clean(Deno.env.get('SUPABASE_ANON_KEY')||Deno.env.get('SUPABASE_PUBLISHABLE_KEY'),4000);
       if(publicKey){
         const userClient=createClient(supabaseUrl,publicKey,{

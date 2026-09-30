@@ -150,3 +150,12 @@ test('Sendcloud falls back to v2 rate APIs when v3 options contain no quote',asy
   assert.match(edge,/api\/v2\/shipping-price/);
   assert.match(edge,/v2MethodScore/);
 });
+
+
+test('Envia geocoder reads the real Spain response shape',async()=>{
+  const edge=await read('supabase/functions/envia-shipping/index.ts');
+  assert.match(edge,/state\?\.code\?\.\['2digit'\]/);
+  assert.match(edge,/value\.zip_code/);
+  assert.match(edge,/row\.country\?\.code/);
+  assert.match(edge,/value\.locality/);
+});

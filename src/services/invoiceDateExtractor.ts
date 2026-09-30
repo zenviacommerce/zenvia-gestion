@@ -55,7 +55,10 @@ export function extractDateValues(value:string){
     add(iso(Number(match[1]),Number(match[2]),Number(match[3])));
   }
   for(const match of text.matchAll(/\b(\d{1,2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*(20\d{2}|\d{2})\b/g)){
-    add(iso(modernYear(match[3]),Number(match[2]),Number(match[1])));
+    const first=Number(match[1]),second=Number(match[2]),year=modernYear(match[3]);
+    // Convención europea por defecto. Si el segundo componente no puede ser mes,
+    // el formato es inequívocamente MM/DD/YYYY y lo interpretamos como tal.
+    add(second>12&&first<=12?iso(year,first,second):iso(year,second,first));
   }
 
   const dayMonth=new RegExp('\\b(\\d{1,2})(?:st|nd|rd|th)?\\s*(?:de\\s+|of\\s+)?('+monthAlternation+')\\.?\\s*(?:de\\s+|,\\s*)?(20\\d{2}|\\d{2})\\b','g');

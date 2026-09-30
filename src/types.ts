@@ -50,6 +50,7 @@ export interface Invoice {
   equivalenceSurcharge: number;
   withholding: number;
   total: number;
+  currency: string;
   source: InvoiceSource;
   status: InvoiceStatus;
   paymentStatus: InvoicePaymentStatus;
@@ -115,6 +116,7 @@ export interface NewInvoiceInput {
   equivalenceSurcharge?: number;
   withholding: number;
   total: number;
+  currency?: string;
   ocrText?: string;
   extraction?: Record<string, unknown>;
   extractionConfidence?: number;
@@ -144,6 +146,7 @@ export interface InvoiceImportCandidate {
   equivalenceSurcharge: number;
   withholding: number;
   total: number;
+  currency?: string;
   text: string;
   confidence: number;
   usedOcr: boolean;

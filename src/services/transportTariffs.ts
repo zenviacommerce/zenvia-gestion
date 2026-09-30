@@ -154,7 +154,7 @@ function parseMrwServices(text:string):TransportTariffServiceDraft[]{
 
 function fallbackProposal(text:string,fileName:string):TransportTariffProposal{
   const upper=text.toUpperCase();const mrw=/\bMRW\b/.test(upper)||/EXPEDICIONES?\s+MAÑANA/i.test(text);
-  const until=text.match(/(?:hasta|vigencia[^\n]{0,80}?hasta)(?:\s+el)?\s+(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/i)||text.match(/(\d{1,2})[\/-](\d{1,2})[\/-](20\d{2})/);
+  const until=text.match(/(?:vigencia[^\n]{0,80}?hasta|v[aá]lid[oa][^\n]{0,50}?hasta|tarifa[^\n]{0,50}?hasta)(?:\s+el)?\s+(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/i);
   const effectiveTo=until?isoDate(until[1],until[2],until[3]):null;
   const vatExcluded=/no\s+incluyen?\s+iva|iva\s+no\s+incluido|sin\s+iva/i.test(text);
   const vatIncluded=/iva\s+incluido/i.test(text)&&!vatExcluded;

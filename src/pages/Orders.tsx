@@ -13,9 +13,9 @@ import { PeriodFilterPanel } from '../components/PeriodFilterPanel';
 import { defaultDateFilter, periodLabel } from '../services/filters';
 import {
   createManualOrder, createOrderLabel, fetchOrderLabel,
-  getSendcloudStatus, getShippingOptions, labelBlob, listFulfillmentOrders, listLocalPrinters,
+  getEnviaStatus, getSendcloudStatus, getShippingOptions, labelBlob, listFulfillmentOrders, listLocalPrinters,
   markHistorySyncDone, openLabelForPrint, printLabelWithClient,
-  shouldRunHistorySync, syncSendcloudOrders, updateFulfillmentOrder,
+  shouldRunHistorySync, syncEnviaShipments, syncSendcloudOrders, updateFulfillmentOrder,
   type FulfillmentOrder, type LocalPrinter, type ManualOrderItem, type OrderChannel, type OrderUpdateInput,
   type SendcloudStatus, type ShippingOption,
 } from '../services/orders';
@@ -27,7 +27,7 @@ import { useSettings } from '../context/SettingsContext';
 import { loadAmazonProductImages } from '../services/amazon';
 import { listTransportTariffs, type TransportTariffDocument } from '../services/transportTariffs';
 import {
-  calculateDefaultShippingPreview, previewFromShippingOption, shippingPriceForOrder, validateOrderForCarrier,
+  calculateDefaultShippingPreview, estimateTransportTariffForOption, previewFromShippingOption, shippingPriceForOrder, validateOrderForCarrier,
   type OrderValidationIssue, type ShippingPricePreview,
 } from '../services/orderShipping';
 import { errorMessage, showError, showInfo, showSuccess } from '../services/toast';
@@ -175,9 +175,12 @@ function OrderDrawer({order,shippingPrice,validationIssues,productImages,onClose
   </aside></div>;
 }
 
-function LabelModal({order,options,loading,onClose,onCreate}:{order:FulfillmentOrder;options:ShippingOption[];loading:boolean;onClose:()=>void;onCreate:(option:ShippingOption|null)=>void}){
+function LabelModal({order,options,tariffs,message,loading,onClose,onCreate}:{order:FulfillmentOrder;options:ShippingOption[];tariffs:TransportTariffDocument[];message:string;loading:boolean;onClose:()=>void;onCreate:(option:ShippingOption|null)=>void}){
   const {settings}=useSettings();
   const providers=Array.from(new Set(options.map(option=>option.provider)));
+  const priced=options.filter(option=>option.price!=null&&Number.isFinite(option.price)).sort((a,b)=>(a.price??Number.MAX_VALUE)-(b.price??Number.MAX_VALUE));
+  const cheapest=priced[0]||null;
+  const comparison=options.map(option=>({option,tariff:estimateTransportTariffForOption(order,tariffs,option)}));
   return <div className="modalBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="modal ordersLabelModal">
     <div className="modalHead"><div><h3>Crear etiqueta · {order.orderNumber||order.orderId}</h3><p>Compara los servicios disponibles de tus proveedores logísticos y elige la opción que prefieras.</p></div><button onClick={onClose}><X size={18}/></button></div>
     <div className="ordersLabelBody">
@@ -230,11 +233,11 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const remembered=rememberedFilter<{
     query:string;state:OrderFilter;trackingFilter:TrackingFilter;countryFilter:string;carrierFilter:string;dateFilter:ReturnType<typeof defaultDateFilter>;
   }>(preferences,'orders.filters',{query:'',state:'pending',trackingFilter:'all',countryFilter:'all',carrierFilter:'all',dateFilter:defaultDateFilter(preferences.defaultPeriod)});
-  const [orders,setOrders]=useState<FulfillmentOrder[]>([]),[status,setStatus]=useState<SendcloudStatus|null>(null);
+  const [orders,setOrders]=useState<FulfillmentOrder[]>([]),[status,setStatus]=useState<SendcloudStatus|null>(null),[enviaStatus,setEnviaStatus]=useState<{configured:boolean;accounts:Array<{id:string;displayName:string;environment:string;isDefault:boolean}>}|null>(null);
   const [loading,setLoading]=useState(true),[syncing,setSyncing]=useState(false),[error,setError]=useState('');
   const syncingRef=useRef(false);
   const [query,setQuery]=useState(pendingOnly?'':remembered.query),[channel,setChannel]=useState<'all'|OrderChannel>('all'),[state,setState]=useState<OrderFilter>(pendingOnly?'pending':remembered.state),[trackingFilter,setTrackingFilter]=useState<TrackingFilter>(pendingOnly?'all':remembered.trackingFilter),[countryFilter,setCountryFilter]=useState(pendingOnly?'all':remembered.countryFilter),[carrierFilter,setCarrierFilter]=useState(pendingOnly?'all':remembered.carrierFilter);
-  const [selected,setSelected]=useState<FulfillmentOrder|null>(null),[labelOrder,setLabelOrder]=useState<FulfillmentOrder|null>(null),[options,setOptions]=useState<ShippingOption[]>([]),[optionsLoading,setOptionsLoading]=useState(false),[busyOrder,setBusyOrder]=useState<string|null>(null);
+  const [selected,setSelected]=useState<FulfillmentOrder|null>(null),[labelOrder,setLabelOrder]=useState<FulfillmentOrder|null>(null),[options,setOptions]=useState<ShippingOption[]>([]),[optionsMessage,setOptionsMessage]=useState(''),[optionsLoading,setOptionsLoading]=useState(false),[busyOrder,setBusyOrder]=useState<string|null>(null);
   const [printers,setPrinters]=useState<LocalPrinter[]>([]),[printer,setPrinter]=useState(preferences.labelPrinterId||''),[printerChecking,setPrinterChecking]=useState(false);
   const [dateFilter,setDateFilter]=useState(remembered.dateFilter);
   const [manualOpen,setManualOpen]=useState(false),[manualSaving,setManualSaving]=useState(false);

@@ -1,3 +1,5 @@
+-- Reinstall demo reset with safe reusable sample invoice lifecycle and current-period dates.
+
 create or replace function public.platform_reset_demo_workspace(p_workspace_id uuid)
 returns jsonb
 language plpgsql

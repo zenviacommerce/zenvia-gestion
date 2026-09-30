@@ -16,8 +16,8 @@ function number(value:unknown,fallback=0){const n=Number(value);return Number.is
 function asRows(payload:any){
   if(Array.isArray(payload))return payload;
   const direct=[
-    payload?.data,payload?.guides,payload?.shipments,payload?.rows,payload?.results,payload?.items,
-    payload?.data?.guides,payload?.data?.shipments,payload?.data?.rows,payload?.data?.results,payload?.data?.items,payload?.data?.data,
+    payload?.data,payload?.rates,payload?.guides,payload?.shipments,payload?.rows,payload?.results,payload?.items,
+    payload?.data?.rates,payload?.data?.guides,payload?.data?.shipments,payload?.data?.rows,payload?.data?.results,payload?.data?.items,payload?.data?.data,
   ];
   for(const value of direct)if(Array.isArray(value))return value;
   return [];
@@ -129,7 +129,7 @@ function geocodeRows(payload:any):any[]{
     if(typeof value!=='object')return;
     seen.add(value);
     if(Array.isArray(value)){for(const item of value)visit(item,depth+1);return}
-    const state=enviaStateCode(value.stateCode||value.state_code||value.state?.code||value.state||value.provinceCode||value.province_code);
+    const state=enviaStateCode(value.stateCode||value.state_code||value.state?.code||value.state?.abbreviation||value.state?.shortCode||value.state?.short_name||value.state||value.provinceCode||value.province_code||value.province?.code||value.province?.abbreviation);
     const city=clean(value.city||value.locality||value.municipality);
     const postalCode=clean(value.zipcode||value.postalCode||value.postal_code||value.zipCode||value.zip);
     if(state||city||postalCode)found.push({...value,__state:state,__city:city,__postalCode:postalCode});
@@ -292,12 +292,12 @@ async function listCarriers(c:any,originCountry:string,destinationCountry:string
   try{
     const detailed=await enviaJson(`${c.queryBase}/available-carrier/${encodeURIComponent(originCountry)}/${international}/1`,c.token);
     const rows=asRows(detailed);
-    const names=rows.filter((x:any)=>x?.active!==false).map((x:any)=>clean(x?.name||x?.carrier||x?.code)).filter(Boolean);
+    const names=rows.filter((x:any)=>x?.active!==false).map((x:any)=>clean(x?.carrier||x?.code||x?.carrierCode||x?.name)).filter(Boolean);
     if(names.length)return [...new Set(names)];
   }catch(error){console.warn('Envia available-carrier fallback',error instanceof Error?error.message:error)}
   const payload=await enviaJson(`${c.queryBase}/carrier?country_code=${encodeURIComponent(originCountry)}`,c.token);
   const rows=asRows(payload);
-  return [...new Set(rows.filter((x:any)=>x?.active!==false).map((x:any)=>clean(x?.name||x?.carrier||x?.code)).filter(Boolean))];
+  return [...new Set(rows.filter((x:any)=>x?.active!==false).map((x:any)=>clean(x?.carrier||x?.code||x?.carrierCode||x?.name)).filter(Boolean))];
 }
 async function quoteAccount(admin:any,account:any,order:any,config:any){
   const c=await credentials(admin,account);

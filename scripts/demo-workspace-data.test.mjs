@@ -39,3 +39,15 @@ test('demo invoice lines use a valid price update status',async()=>{
   assert.doesNotMatch(migration,/price_update_status[\s\S]{0,1500}'applied'/);
   assert.match(migration,/'confirmed'/);
 });
+
+
+test('demo current-period sample rows are visible across month boundaries',async()=>{
+  const migration=await read('supabase/migrations/20260930170000_demo_workspace_seed.sql');
+  assert.match(migration,/v_demo_today/);
+  assert.match(migration,/Europe\/Madrid/);
+  assert.match(migration,/DEMO-1003[\s\S]{0,300}v_demo_today/);
+  const amazon=await read('supabase/functions/amazon-status/index.ts');
+  assert.match(amazon,/config\?\.demo\?\.enabled/);
+  assert.match(amazon,/status:'demo'/);
+  assert.match(amazon,/configured:true,connected:true/);
+});

@@ -11,7 +11,7 @@ function withAmazonTimeout<T>(promise:PromiseLike<T>,ms=30000):Promise<T>{
 
 export type AmazonMarketplaceStatus={id:string;countryCode:string;name:string;currencyCode:string;active:boolean};
 export type AmazonStatus={
-  configured:boolean;connected:boolean;status:'not_configured'|'pending'|'connected'|'error'|'disabled'|string;
+  configured:boolean;connected:boolean;status:'not_configured'|'pending'|'connected'|'error'|'disabled'|'demo'|string;demo?:boolean;
   account:{id:string;integrationAccountId:string|null;displayName:string;initialSyncFrom:string;lastSuccessfulSyncAt:string|null}|null;
   marketplaces:AmazonMarketplaceStatus[];
   sync:{latestRun:{source:string;mode:string;status:string;started_at:string;finished_at:string|null;rows_processed:number;error_message:string|null}|null;jobCounts:{queued:number;running:number;success:number;failed:number}};

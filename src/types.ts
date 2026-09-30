@@ -1,4 +1,5 @@
 export type InvoiceStatus = 'pending' | 'reviewed' | 'accounted';
+export type InvoicePaymentStatus = 'unpaid' | 'paid';
 export type InvoiceSource = 'manual' | 'camera' | 'gmail';
 export type SupplierType = 'unclassified' | 'goods' | 'service' | 'both';
 export type InvoiceImportCandidateStatus = 'analyzing' | 'ready' | 'needs_review' | 'duplicate' | 'error' | 'importing' | 'imported';
@@ -51,6 +52,8 @@ export interface Invoice {
   total: number;
   source: InvoiceSource;
   status: InvoiceStatus;
+  paymentStatus: InvoicePaymentStatus;
+  paidAt?: string | null;
   fileName?: string | null;
   filePath?: string | null;
   fileHash?: string | null;

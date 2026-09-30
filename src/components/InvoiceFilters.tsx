@@ -86,6 +86,9 @@ export function InvoiceFilters({
       <label>Estado
         <SelectField value={filter.status} onChange={status=>onChange({...filter,status})} ariaLabel="Filtrar por estado" options={[{value:'',label:'Todos los estados'},{value:'pending',label:'Pendientes'},{value:'reviewed',label:'Revisadas'},{value:'accounted',label:'Contabilizadas'}]}/>
       </label>
+      <label>Pago
+        <SelectField value={filter.paymentStatus||''} onChange={paymentStatus=>onChange({...filter,paymentStatus})} ariaLabel="Filtrar por estado de pago" options={[{value:'',label:'Todos los pagos'},{value:'unpaid',label:'Por pagar'},{value:'paid',label:'Pagadas'}]}/>
+      </label>
       <label>Origen
         <SelectField value={filter.source} onChange={source=>onChange({...filter,source})} ariaLabel="Filtrar por origen" options={[{value:'',label:'Todos los orígenes'},{value:'manual',label:'Archivo / manual'},{value:'camera',label:'Cámara'},{value:'gmail',label:'Gmail'}]}/>
       </label>

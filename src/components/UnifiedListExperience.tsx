@@ -171,7 +171,8 @@ function buildMobileCards(table:HTMLTableElement){
   const expenseInvoiceTable=Boolean(table.closest('.expenseInvoicesHub'));
   const signature=rows.map(row=>{
     const selection=row.querySelector<HTMLInputElement>('.bulkSelectionCell input[type="checkbox"]');
-    return `${clean(row.textContent||'')}|e:${Boolean(matchingRowAction(row,'edit'))}|d:${Boolean(matchingRowAction(row,'delete'))}|s:${selection?.checked?'1':'0'}|x:${selection?.disabled?'1':'0'}`;
+    const activeStatus=row.querySelector<HTMLButtonElement>('.statusActions .statusBtn.active')?.title||'';
+    return `${clean(row.textContent||'')}|e:${Boolean(matchingRowAction(row,'edit'))}|d:${Boolean(matchingRowAction(row,'delete'))}|s:${selection?.checked?'1':'0'}|x:${selection?.disabled?'1':'0'}|st:${activeStatus}`;
   }).join('||');
   let list=host.querySelector<HTMLElement>(`:scope > .${LIST_CLASS}`);
   if(list?.dataset.signature===signature)return;
@@ -187,7 +188,13 @@ function buildMobileCards(table:HTMLTableElement){
 
   rows.forEach(row=>{
     const cells=Array.from(row.children).filter((node):node is HTMLTableCellElement=>node instanceof HTMLTableCellElement);
-    const values=cells.map(cell=>clean(cell.textContent||''));
+    const values=cells.map((cell,index)=>{
+      const label=(headers[index]||'').trim().toLowerCase();
+      if(expenseInvoiceTable&&label==='estado'){
+        return clean(cell.querySelector<HTMLButtonElement>('.statusActions .statusBtn.active')?.title||cell.textContent||'');
+      }
+      return clean(cell.textContent||'');
+    });
     const strongIndex=cells.findIndex(cell=>Boolean(cell.querySelector('strong')));
     const primaryIndex=strongIndex>=0?strongIndex:(values[1]?1:0);
     const primary=clean(cells[primaryIndex]?.querySelector('strong')?.textContent||values[primaryIndex]||'Registro');
@@ -264,6 +271,20 @@ function buildMobileCards(table:HTMLTableElement){
       metrics.appendChild(metric);
     });
 
+    const statusControls=document.createElement('div');
+    statusControls.className='zenviaMobileExpenseStatus';
+    if(expenseInvoiceTable){
+      const sourceButtons=Array.from(row.querySelectorAll<HTMLButtonElement>('.statusActions .statusBtn'));
+      sourceButtons.forEach(source=>{
+        const button=document.createElement('button');
+        button.type='button';
+        button.className=`zenviaMobileStatusButton ${source.classList.contains('active')?'active':''}`;
+        button.textContent=source.title||clean(source.textContent||'Estado');
+        button.addEventListener('click',event=>{event.stopPropagation();source.click();});
+        statusControls.appendChild(button);
+      });
+    }
+
     const editSource=matchingRowAction(row,'edit');
     const deleteSource=matchingRowAction(row,'delete');
     const actions=document.createElement('div');
@@ -285,6 +306,7 @@ function buildMobileCards(table:HTMLTableElement){
     card.addEventListener('click',open);
     card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open();}});
     card.append(top,metrics);
+    if(statusControls.children.length)card.appendChild(statusControls);
     if(actions.children.length)card.appendChild(actions);
     if(mobileWrapper){
       mobileWrapper.appendChild(card);

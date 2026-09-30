@@ -132,6 +132,79 @@ function serviceBlocks(text:string){
   if(!matches.length)return [] as Array<{hour:string;block:string}>;
   return matches.map((match,index)=>({hour:match[1],block:text.slice(match.index??0,matches[index+1]?.index??text.length)}));
 }
+const genericCarriers=[
+  {code:'correos-express',pattern:/\bcorreos\s+express\b/i,label:'Correos Express'},
+  {code:'correos',pattern:/\bcorreos\b/i,label:'Correos'},
+  {code:'mrw',pattern:/\bmrw\b/i,label:'MRW'},
+  {code:'seur',pattern:/\bseur\b/i,label:'SEUR'},
+  {code:'gls',pattern:/\bgls\b/i,label:'GLS'},
+  {code:'nacex',pattern:/\bnacex\b/i,label:'NACEX'},
+  {code:'ctt',pattern:/\bctt(?:\s+express)?\b/i,label:'CTT'},
+  {code:'ups',pattern:/\bups\b/i,label:'UPS'},
+  {code:'dhl',pattern:/\bdhl\b/i,label:'DHL'},
+  {code:'fedex',pattern:/\bfedex\b/i,label:'FedEx'},
+  {code:'dpd',pattern:/\bdpd\b/i,label:'DPD'},
+];
+function carrierFromLine(line:string){
+  return genericCarriers.find(item=>item.pattern.test(line))||null;
+}
+function loosePrices(line:string){
+  const euro=prices(line);if(euro.length)return euro;
+  return Array.from(line.matchAll(/(?<![\d])(-?\d{1,4}[.,]\d{2,4})(?![\d])/g))
+    .map(match=>num(match[1])).filter((value):value is number=>value!=null&&value>=0&&value<10000);
+}
+function parseGenericCarrierServices(text:string):TransportTariffServiceDraft[]{
+  const lines=text.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+  const services:TransportTariffServiceDraft[]=[];
+  let weights:number[]=[];
+  for(const line of lines){
+    const headerWeights=Array.from(line.matchAll(/(?:hasta\s+)?(\d+(?:[.,]\d+)?)\s*kg\b/gi))
+      .map(match=>num(match[1])).filter((value):value is number=>value!=null&&value>0);
+    if(headerWeights.length>=2){
+      weights=[...new Set(headerWeights)].sort((a,b)=>a-b);
+      continue;
+    }
+    const carrier=carrierFromLine(line);
+    if(!carrier)continue;
+    const rowPrices=loosePrices(line);
+    if(weights.length>=2&&rowPrices.length>=weights.length){
+      const firstPriceIndex=line.search(/\d{1,4}[.,]\d{2,4}/);
+      const rawName=(firstPriceIndex>0?line.slice(0,firstPriceIndex):line).replace(carrier.pattern,' ').replace(/[-–—|:]+/g,' ').replace(/\s+/g,' ').trim();
+      const serviceName=rawName||carrier.label;
+      const bands:TransportTariffBandDraft[]=[];
+      let min=0;
+      for(let index=0;index<weights.length;index+=1){
+        const price=rowPrices[index];if(price==null)continue;
+        bands.push({countryCode:'ES',zoneCode:'peninsular',zoneName:'España Peninsular',minWeightKg:min,maxWeightKg:weights[index],basePrice:price,extraKgPrice:null,notes:'Extraído de tabla genérica; revisar zona y servicio',sortOrder:bands.length});
+        min=weights[index];
+      }
+      if(bands.length){
+        const key=slug(`${carrier.code}-${serviceName}`);
+        services.push({serviceName:`${carrier.label} · ${serviceName}`,canonicalServiceKey:key,externalProvider:carrier.code,externalServiceCode:slug(serviceName),mappingStatus:'suggested',sortOrder:services.length,bands});
+      }
+      continue;
+    }
+
+    const range=line.match(/(?:de\s*)?(\d+(?:[.,]\d+)?)\s*(?:-|a|–|—)\s*(\d+(?:[.,]\d+)?)\s*kg/i);
+    const until=line.match(/(?:hasta|max\.?|≤)\s*(\d+(?:[.,]\d+)?)\s*kg/i);
+    const rowPrice=rowPrices.at(-1);
+    if(rowPrice==null||(!range&&!until))continue;
+    const minWeight=range?(num(range[1])??0):0;
+    const maxWeight=range?num(range[2]):num(until?.[1]||'');
+    if(maxWeight==null)continue;
+    const namePart=line.replace(carrier.pattern,' ').replace(range?.[0]||until?.[0]||'',' ').replace(/\d{1,4}[.,]\d{2,4}\s*€?/g,' ').replace(/[-–—|:]+/g,' ').replace(/\s+/g,' ').trim();
+    const serviceName=namePart||carrier.label;
+    const key=slug(`${carrier.code}-${serviceName}`);
+    let service=services.find(item=>item.canonicalServiceKey===key);
+    if(!service){
+      service={serviceName:`${carrier.label} · ${serviceName}`,canonicalServiceKey:key,externalProvider:carrier.code,externalServiceCode:slug(serviceName),mappingStatus:'suggested',sortOrder:services.length,bands:[]};
+      services.push(service);
+    }
+    service.bands.push({countryCode:'ES',zoneCode:'peninsular',zoneName:'España Peninsular',minWeightKg:minWeight,maxWeightKg:maxWeight,basePrice:rowPrice,extraKgPrice:null,notes:'Extraído de tabla genérica; revisar zona y servicio',sortOrder:service.bands.length});
+  }
+  return services.filter(service=>service.bands.length>0);
+}
+
 function parseMrwServices(text:string):TransportTariffServiceDraft[]{
   return serviceBlocks(text).map(({hour,block},serviceIndex)=>{
     const layout=zoneLayout(block);const bands:TransportTariffBandDraft[]=[];const previousMax=new Map<string,number>();const lastPrice=new Map<string,number>();
@@ -171,12 +244,18 @@ function fallbackProposal(text:string,fileName:string):TransportTariffProposal{
   })();
   const fuelExcluded=/combustible\s+no\s+incluido|plus\s+combustible\s+no\s+incluido|fuel\s+not\s+included/i.test(text);
   const fuelIncluded=/combustible\s+incluido|fuel\s+included/i.test(text)&&!fuelExcluded;
-  const services=mrw?parseMrwServices(text):[];
+  const mrwServices=mrw?parseMrwServices(text):[];
+  const genericServices=mrwServices.length?[]:parseGenericCarrierServices(text);
+  const services=mrwServices.length?mrwServices:genericServices;
+  const providers=[...new Set(services.map(service=>service.externalProvider).filter(Boolean))];
+  const multiCarrier=providers.length>1||/\benvia(?:\.com)?\b/i.test(text);
   return {
-    carrierCode:mrw?'mrw':slug(fileName.split('.')[0])||'carrier',carrierName:mrw?'MRW':clean(fileName.replace(/\.[^.]+$/,''))||'Transportista',
+    carrierCode:mrwServices.length?'mrw':multiCarrier?'envia':providers[0]||slug(fileName.split('.')[0])||'carrier',
+    carrierName:mrwServices.length?'MRW':multiCarrier?'Envia.com · Tarifas contratadas':providers[0]?genericCarriers.find(item=>item.code===providers[0])?.label||clean(fileName.replace(/\.[^.]+$/,'')):clean(fileName.replace(/\.[^.]+$/,''))||'Transportista',
     effectiveFrom:null,effectiveTo,currencyCode:'EUR',pricesIncludeVat:vatIncluded,fuelSurchargePct:fuelPct,
     fuelSurchargeIncluded:fuelIncluded,parserProvider:'automatic-rules',parserModel:null,
-    parserConfidence:services.length?0.86:0.45,parserNotes:[services.length?`${services.length} servicios detectados automáticamente.`:'No se detectaron tablas de peso automáticamente; revisa y añade los tramos.',vatExcluded?'El documento indica precios sin IVA.':'Revisa si los precios incluyen IVA.',fuelExcluded?'El documento indica que el combustible no está incluido.':fuelIncluded?'El documento indica que el combustible está incluido.':'No se ha podido determinar el tratamiento del combustible; revísalo.'],services,
+    parserConfidence:mrwServices.length?0.86:genericServices.length?0.68:0.45,
+    parserNotes:[services.length?`${services.length} servicios detectados automáticamente.`:'No se detectaron tablas de peso automáticamente; revisa y añade los tramos.',genericServices.length?'Se ha usado el lector genérico multitransportista: confirma transportista, servicio, zona y pesos antes de activar.':null,vatExcluded?'El documento indica precios sin IVA.':'Revisa si los precios incluyen IVA.',fuelExcluded?'El documento indica que el combustible no está incluido.':fuelIncluded?'El documento indica que el combustible está incluido.':'No se ha podido determinar el tratamiento del combustible; revísalo.'].filter(Boolean) as string[],services,
   };
 }
 

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
-  Banknote, CheckCircle2, Download, FileCheck2, PackageSearch, Pencil, Plus, Printer,
+  Banknote, CheckCircle2, Download, Eye, FileCheck2, PackageSearch, Pencil, Plus, Printer,
   ReceiptText, Search, Trash2, UserRound, X,
 } from 'lucide-react';
 import { ProductCatalogPicker } from '../components/ProductCatalogPicker';
@@ -8,6 +8,9 @@ import { SearchableSelect } from '../components/forms/SearchableSelect';
 import { SelectField } from '../components/forms/SelectField';
 import { StatCard } from '../components/StatCard';
 import { BulkSelectCheckbox, BulkSelectionToolbar } from '../components/BulkSelectionToolbar';
+import { PeriodFilterPanel } from '../components/PeriodFilterPanel';
+import { RecordDetailDrawer } from '../components/RecordDetailDrawer';
+import { SortableTableHeader, useSortableTable } from '../components/SortableTableHeader';
 import { useSettings } from '../context/SettingsContext';
 import { loadBillableProducts, type BillableProduct } from '../services/billableProducts';
 import { loadCompanyBranding, type CompanyBranding } from '../services/companyBranding';
@@ -24,6 +27,7 @@ import { downloadSalesReceiptPdf, printSalesReceiptPdf } from '../services/sales
 import { confirmAction, openActionProcess } from '../services/actionDialog';
 import { errorMessage, showError, showSuccess } from '../services/toast';
 import { formatAppDate } from '../services/formatting';
+import { defaultDateFilter, periodLabel } from '../services/filters';
 import type { SalesSettings } from '../services/settingsSchema';
 import '../sales.css';
 
@@ -172,6 +176,46 @@ function BulkReceiptPaymentModal({receipts,salesSettings,onClose,onSaved}:{recei
   </div></div>;
 }
 
+
+function ReceiptDetailDrawer({
+  receipt,business,branding,onClose,onEdit,onPayment,onDelete,
+}:{
+  receipt:SalesReceipt|null;business:BusinessSettings;branding:CompanyBranding;onClose:()=>void;
+  onEdit:(receipt:SalesReceipt)=>void;onPayment:(receipt:SalesReceipt)=>void;onDelete:(receipt:SalesReceipt)=>void;
+}){
+  const {settings}=useSettings();
+  if(!receipt)return null;
+  const pending=pendingAmount(receipt),status=collectionStatus(receipt);
+  return <RecordDetailDrawer
+    open
+    eyebrow="RECIBO"
+    title={receipt.receiptNumber}
+    subtitle={`${receipt.clientName} · ${formatAppDate(receipt.receiptDate,settings.general,'—')}`}
+    onClose={onClose}
+    actions={<>
+      {pending>0.005&&<button className="primary" onClick={()=>onPayment(receipt)}><Banknote size={15}/> Cobrar</button>}
+      <button className="secondary" onClick={()=>onEdit(receipt)}><Pencil size={15}/> Editar</button>
+      <button className="secondary" onClick={()=>printSalesReceiptPdf(receipt,business,branding,settings.general)}><Printer size={15}/> Imprimir</button>
+      <button className="secondary" onClick={()=>downloadSalesReceiptPdf(receipt,business,branding,settings.general)}><Download size={15}/> PDF</button>
+      <button className="secondary dangerText" onClick={()=>onDelete(receipt)}><Trash2 size={15}/> Eliminar</button>
+    </>}
+  >
+    <div className="recordDetailKpis">
+      <div><span>Importe sin IVA</span><strong>{money(receipt.totalAmount)}</strong></div>
+      <div><span>Cobrado</span><strong>{money(receipt.paidAmount)}</strong></div>
+      <div><span>Pendiente</span><strong>{money(pending)}</strong><small>{collectionLabel(receipt)}</small></div>
+    </div>
+    <section className="recordDetailSection"><h3>Conceptos</h3><div className="recordDetailList">
+      {receipt.lines.map(line=><div key={line.id||`${line.position}-${line.description}`}><span><strong>{line.description}</strong><br/><small>{line.quantity.toLocaleString('es-ES')} {line.unit} · {money(line.unitPrice)} · IVA al facturar {line.invoiceTaxRate}%</small></span><strong>{money(line.lineTotal??lineTotal(line))}</strong></div>)}
+    </div></section>
+    {receipt.payments.length>0&&<section className="recordDetailSection"><h3>Cobros</h3><div className="recordDetailList">
+      {receipt.payments.map(payment=><div key={payment.id}><span>{formatAppDate(payment.paymentDate,settings.general,'—')} · {payment.method||'Cobro'}{payment.reference?<><br/><small>{payment.reference}</small></>:null}</span><strong>{money(payment.amount)}</strong></div>)}
+    </div></section>}
+    {receipt.notes&&<section className="recordDetailSection"><h3>Notas</h3><div className="salesReceiptNotice">{receipt.notes}</div></section>}
+    <section className="recordDetailSection"><h3>Estado</h3><span className={`salesReceiptStatus ${status}`}>{collectionLabel(receipt)}</span></section>
+  </RecordDetailDrawer>;
+}
+
 export function SalesReceipts(){
   const {settings}=useSettings();
   const [receipts,setReceipts]=useState<SalesReceipt[]>([]);
@@ -182,7 +226,11 @@ export function SalesReceipts(){
   const [loading,setLoading]=useState(true);
   const [query,setQuery]=useState('');
   const [status,setStatus]=useState<'all'|'open'|'partial'|'paid'>('open');
+  const [clientId,setClientId]=useState('all');
+  const [country,setCountry]=useState('all');
+  const [dateFilter,setDateFilter]=useState(defaultDateFilter('current_month'));
   const [selected,setSelected]=useState<string[]>([]);
+  const [detail,setDetail]=useState<SalesReceipt|null>(null);
   const [editing,setEditing]=useState<SalesReceipt|null>(null);
   const [modal,setModal]=useState(false);
   const [paymentReceipt,setPaymentReceipt]=useState<SalesReceipt|null>(null);
@@ -195,11 +243,15 @@ export function SalesReceipts(){
       const [nextReceipts,nextClients,nextProducts,nextBusiness,nextBranding]=await Promise.all([loadSalesReceipts(),loadClients(),loadBillableProducts(),loadBusinessSettings(),loadCompanyBranding()]);
       setReceipts(nextReceipts);setClients(nextClients);setProducts(nextProducts);setBusiness(nextBusiness);setBranding(nextBranding);
       setSelected(current=>current.filter(id=>nextReceipts.some(receipt=>receipt.id===id)));
+      setDetail(current=>current?nextReceipts.find(receipt=>receipt.id===current.id)||null:null);
     }catch(e){showError(errorMessage(e,'No se pudieron cargar los recibos.'))}
     finally{setLoading(false)}
   },[]);
   useEffect(()=>{void refresh()},[refresh]);
 
+  const clientById=useMemo(()=>new Map(clients.map(client=>[client.id,client])),[clients]);
+  const clientOptions=useMemo(()=>clients.map(client=>({value:client.id,label:client.name,searchText:[client.taxId,client.email,client.city].filter(Boolean).join(' ')})),[clients]);
+  const countryOptions=useMemo(()=>[...new Set(clients.map(client=>(client.countryCode||'XX').toUpperCase()))].sort().map(code=>({value:code,label:code==='XX'?'País pendiente':code})),[clients]);
   const shown=useMemo(()=>{
     const q=query.trim().toLowerCase();
     return receipts.filter(receipt=>{
@@ -207,77 +259,71 @@ export function SalesReceipts(){
       if(status==='open'&&receiptStatus==='paid')return false;
       if(status==='partial'&&receiptStatus!=='partial')return false;
       if(status==='paid'&&receiptStatus!=='paid')return false;
+      if(clientId!=='all'&&receipt.clientId!==clientId)return false;
+      const clientCountry=(clientById.get(receipt.clientId)?.countryCode||'XX').toUpperCase();
+      if(country!=='all'&&clientCountry!==country)return false;
+      if(dateFilter.from&&receipt.receiptDate<dateFilter.from)return false;
+      if(dateFilter.to&&receipt.receiptDate>dateFilter.to)return false;
       if(q&&![receipt.receiptNumber,receipt.clientName,receipt.notes||''].some(value=>value.toLowerCase().includes(q)))return false;
       return true;
     });
-  },[receipts,query,status]);
+  },[receipts,query,status,clientId,country,dateFilter,clientById]);
+  const sorting=useSortableTable('sales-receipts',shown,{
+    number:receipt=>receipt.receiptNumber,
+    client:receipt=>receipt.clientName,
+    date:receipt=>receipt.receiptDate,
+    amount:receipt=>receipt.totalAmount,
+    paid:receipt=>receipt.paidAmount,
+    pending:receipt=>pendingAmount(receipt),
+    status:receipt=>collectionLabel(receipt),
+  },{key:'date',direction:'desc'});
+  const sortedReceipts=sorting.rows;
   const selectedSet=useMemo(()=>new Set(selected),[selected]);
   const selectedRows=shown.filter(receipt=>selectedSet.has(receipt.id));
   const collectableSelected=selectedRows.filter(receipt=>pendingAmount(receipt)>0.005);
   const allVisibleSelected=shown.length>0&&shown.every(receipt=>selectedSet.has(receipt.id));
-  const openReceipts=receipts.filter(receipt=>pendingAmount(receipt)>0.005);
-  const pendingTotal=receipts.reduce((sum,receipt)=>sum+pendingAmount(receipt),0);
-  const collectedTotal=receipts.reduce((sum,receipt)=>sum+receipt.paidAmount,0);
+  const openReceipts=shown.filter(receipt=>pendingAmount(receipt)>0.005);
+  const pendingTotal=shown.reduce((sum,receipt)=>sum+pendingAmount(receipt),0);
+  const collectedTotal=shown.reduce((sum,receipt)=>sum+receipt.paidAmount,0);
   const openNew=()=>{setEditing(null);setModal(true)};
+  const openEdit=(receipt:SalesReceipt)=>{setDetail(null);setEditing(receipt);setModal(true)};
+  const openPayment=(receipt:SalesReceipt)=>{setDetail(null);setPaymentReceipt(receipt)};
   const toggle=(id:string,checked:boolean)=>setSelected(current=>checked?[...new Set([...current,id])]:current.filter(value=>value!==id));
   const toggleAllVisible=(checked:boolean)=>setSelected(current=>{
-    const next=new Set(current);
-    for(const receipt of shown){if(checked)next.add(receipt.id);else next.delete(receipt.id)}
-    return [...next];
+    const next=new Set(current);for(const receipt of shown){if(checked)next.add(receipt.id);else next.delete(receipt.id)}return [...next];
   });
 
   const remove=async(receipt:SalesReceipt)=>{
     const ok=await confirmAction({title:'Eliminar recibo',message:`Se eliminará ${receipt.receiptNumber} junto con su historial de cobros, si lo hubiera.`,confirmLabel:'Eliminar',tone:'danger',details:['Esta acción no afecta a ninguna factura, porque los recibos no están vinculados a ellas.']});
     if(!ok)return;
-    try{await deleteSalesReceipt(receipt.id);showSuccess('Recibo eliminado.');await refresh()}catch(e){showError(errorMessage(e,'No se pudo eliminar el recibo.'))}
+    try{await deleteSalesReceipt(receipt.id);if(detail?.id===receipt.id)setDetail(null);showSuccess('Recibo eliminado.');await refresh()}catch(e){showError(errorMessage(e,'No se pudo eliminar el recibo.'))}
   };
 
   const invoiceSelected=async()=>{
     if(!selectedRows.length){showError('Selecciona al menos un recibo.');return;}
     const groups=new Map<string,SalesReceipt[]>();
-    for(const receipt of selectedRows){
-      const key=`${receipt.clientId}|${monthKey(receipt.receiptDate)}`;
-      groups.set(key,[...(groups.get(key)||[]),receipt]);
-    }
-    const confirmed=await confirmAction({
-      title:'Preparar facturas en borrador',
-      message:`Se crearán ${groups.size} factura${groups.size===1?'':'s'} en borrador, agrupando los recibos seleccionados por cliente y mes natural.`,
-      confirmLabel:'Generar borradores',
-      tone:'default',
-      details:['Los recibos no se vincularán ni cambiarán de estado: seguirán siendo independientes.','El IVA se aplicará a la factura según el tipo guardado en cada línea.','Puedes combinar recibos cobrados y pendientes en la misma preparación.'],
-    });
+    for(const receipt of selectedRows){const key=`${receipt.clientId}|${monthKey(receipt.receiptDate)}`;groups.set(key,[...(groups.get(key)||[]),receipt]);}
+    const confirmed=await confirmAction({title:'Preparar facturas en borrador',message:`Se crearán ${groups.size} factura${groups.size===1?'':'s'} en borrador, agrupando los recibos seleccionados por cliente y mes natural.`,confirmLabel:'Generar borradores',tone:'default',details:['Los recibos no se vincularán ni cambiarán de estado: seguirán siendo independientes.','El IVA se aplicará a la factura según el tipo guardado en cada línea.','Puedes combinar recibos cobrados y pendientes en la misma preparación.']});
     if(!confirmed)return;
     setBusy(true);
     const process=openActionProcess({title:'Generando facturas',description:'Copiando los conceptos de los recibos a borradores de factura sin modificar los recibos.',items:[...groups.entries()].map(([key,rows])=>({id:key,label:`${rows[0].clientName} · ${key.split('|')[1]}`}))});
     let created=0,failed=0;
     try{
-      const issueDate=today();
-      const series=await ensureSalesSeries(Number(issueDate.slice(0,4)));
+      const issueDate=today(),series=await ensureSalesSeries(Number(issueDate.slice(0,4)));
       const standardSeries=series.find(s=>s.id===settings.sales.defaultSeriesId&&s.kind==='standard')||series.find(s=>s.kind==='standard');
       if(!standardSeries)throw new Error('No existe una serie de facturación ordinaria activa.');
       for(const [key,rows] of groups){
-        process.setItem(key,'running','Creando borrador…');
-        let invoiceId='';
+        process.setItem(key,'running','Creando borrador…');let invoiceId='';
         try{
           const client=clients.find(c=>c.id===rows[0].clientId);
           const paymentId=client?.defaultPaymentMethod||settings.sales.defaultPaymentMethod;
           const paymentMethod=settings.sales.paymentMethods.find(item=>item.id===paymentId&&item.active)?.label||settings.sales.paymentMethods.find(item=>item.active)?.label||'';
-          const invoiceLines:SalesInvoiceLine[]=rows.sort((a,b)=>a.receiptDate.localeCompare(b.receiptDate)).flatMap(receipt=>receipt.lines.map(line=>({
-            productId:line.productId||null,position:0,description:`${receipt.receiptNumber} · ${line.description}`,quantity:line.quantity,unit:line.unit,unitPrice:line.unitPrice,discountPercent:line.discountPercent,taxRate:line.invoiceTaxRate,
-          }))).map((line,index)=>({...line,position:index+1}));
-          invoiceId=await createSalesInvoiceDraft({
-            clientId:rows[0].clientId,seriesId:standardSeries.id,taxRegistrationId:settings.sales.defaultTaxRegistrationId,
-            issueDate,operationDate:rows.map(r=>r.receiptDate).sort().at(-1),dueDate:defaultSalesDueDate(issueDate,resolveSalesDueDays(client?.paymentTermsDays,settings.sales.defaultDueDays)),
-            currency:settings.general.currencyCode,paymentMethod,notes:`Preparada a partir de recibos: ${rows.map(r=>r.receiptNumber).join(', ')}.`,lines:invoiceLines,
-          },settings.sales.defaultDueDays);
+          const invoiceLines:SalesInvoiceLine[]=rows.sort((a,b)=>a.receiptDate.localeCompare(b.receiptDate)).flatMap(receipt=>receipt.lines.map(line=>({productId:line.productId||null,position:0,description:`${receipt.receiptNumber} · ${line.description}`,quantity:line.quantity,unit:line.unit,unitPrice:line.unitPrice,discountPercent:line.discountPercent,taxRate:line.invoiceTaxRate}))).map((line,index)=>({...line,position:index+1}));
+          invoiceId=await createSalesInvoiceDraft({clientId:rows[0].clientId,seriesId:standardSeries.id,taxRegistrationId:settings.sales.defaultTaxRegistrationId,issueDate,operationDate:rows.map(r=>r.receiptDate).sort().at(-1),dueDate:defaultSalesDueDate(issueDate,resolveSalesDueDays(client?.paymentTermsDays,settings.sales.defaultDueDays)),currency:settings.general.currencyCode,paymentMethod,notes:`Preparada a partir de recibos: ${rows.map(r=>r.receiptNumber).join(', ')}.`,lines:invoiceLines},settings.sales.defaultDueDays);
           created+=1;process.setItem(key,'success','Borrador creado; los recibos no se han modificado.');
-        }catch(e){
-          if(invoiceId)await deleteSalesInvoiceDraftSafe(invoiceId).catch(()=>{});
-          failed+=1;process.setItem(key,'error',errorMessage(e,'No se pudo generar.'));
-        }
+        }catch(e){if(invoiceId)await deleteSalesInvoiceDraftSafe(invoiceId).catch(()=>{});failed+=1;process.setItem(key,'error',errorMessage(e,'No se pudo generar.'))}
       }
-      setSelected([]);await refresh();
-      process.finish(`${created} factura${created===1?'':'s'} creada${created===1?'':'s'} en borrador${failed?` · ${failed} con error`:''}.`,failed?(created?'warning':'error'):'success');
+      setSelected([]);await refresh();process.finish(`${created} factura${created===1?'':'s'} creada${created===1?'':'s'} en borrador${failed?` · ${failed} con error`:''}.`,failed?(created?'warning':'error'):'success');
       if(created)showSuccess(`${created} borrador${created===1?'':'es'} creado${created===1?'':'s'} sin vincular los recibos.`);
     }catch(e){process.finish(errorMessage(e,'No se pudieron generar las facturas.'),'error');showError(errorMessage(e,'No se pudieron generar las facturas.'))}
     finally{setBusy(false)}
@@ -286,41 +332,52 @@ export function SalesReceipts(){
   return <div className="page salesReceiptsPage">
     <div className="pageHead"><div><div className="eyebrow">VENTAS · RECIBOS</div><h1>Recibos</h1><p>Controla lo que se lleva cada cliente, registra sus cobros y prepara después facturas a partir de uno o varios recibos.</p></div><div className="actions"><button className="secondary" disabled={!selectedRows.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={17}/> Facturar seleccionados{selectedRows.length?` (${selectedRows.length})`:''}</button><button className="primary" onClick={openNew}><Plus size={17}/> Nuevo recibo</button></div></div>
     <div className="stats salesStats normalizedKpiStats">
-      <StatCard label="Pendiente de cobro" value={money(pendingTotal)} sub="Importe sin IVA aún pendiente" icon={<ReceiptText/>}/>
-      <StatCard label="Cobrado" value={money(collectedTotal)} sub="Cobros registrados en recibos" icon={<Banknote/>}/>
+      <StatCard label="Pendiente de cobro" value={money(pendingTotal)} sub={periodLabel(dateFilter)} icon={<ReceiptText/>}/>
+      <StatCard label="Cobrado" value={money(collectedTotal)} sub={periodLabel(dateFilter)} icon={<Banknote/>}/>
       <StatCard label="Recibos pendientes" value={String(openReceipts.length)} sub="Con saldo por cobrar" icon={<ReceiptText/>}/>
-      <StatCard label="Recibos cobrados" value={String(receipts.filter(receipt=>collectionStatus(receipt)==='paid').length)} sub="Saldo completamente cobrado" icon={<CheckCircle2/>}/>
+      <StatCard label="Recibos cobrados" value={String(shown.filter(receipt=>collectionStatus(receipt)==='paid').length)} sub="Saldo completamente cobrado" icon={<CheckCircle2/>}/>
     </div>
     <div className="salesReceiptNotice"><strong>Recibos y facturas son independientes:</strong> cobrar un recibo no lo factura y generar una factura desde varios recibos no los vincula ni altera su estado. El IVA solo se aplica en la factura.</div>
-    <div className="toolbar salesToolbar">
+    <PeriodFilterPanel filter={dateFilter} onChange={setDateFilter} title="Periodo de recibos"/>
+    <div className="toolbar salesToolbar businessFilterBar">
       <div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar recibo o cliente…"/></div>
-      <SelectField value={status} onChange={value=>setStatus(value as typeof status)} ariaLabel="Estado de cobro de recibos" options={[{value:'open',label:'Pendientes de cobro'},{value:'partial',label:'Cobro parcial'},{value:'paid',label:'Cobrados'},{value:'all',label:'Todos'}]}/>
+      <div className="businessFilterFields">
+        <label className="filterField"><span>Cliente</span><SearchableSelect value={clientId==='all'?'':clientId} options={clientOptions} onChange={value=>setClientId(value||'all')} allowEmpty emptyLabel="Todos los clientes" searchPlaceholder="Buscar cliente…" ariaLabel="Filtrar recibos por cliente"/></label>
+        <label className="filterField"><span>País</span><SelectField value={country} onChange={setCountry} ariaLabel="Filtrar recibos por país" options={[{value:'all',label:'Todos los países'},...countryOptions]}/></label>
+        <label className="filterField"><span>Cobro</span><SelectField value={status} onChange={value=>setStatus(value as typeof status)} ariaLabel="Estado de cobro de recibos" options={[{value:'open',label:'Pendientes de cobro'},{value:'partial',label:'Cobro parcial'},{value:'paid',label:'Cobrados'},{value:'all',label:'Todos'}]}/></label>
+      </div>
     </div>
     {shown.length>0&&<BulkSelectionToolbar selectedCount={selectedRows.length} totalCount={shown.length} allSelected={allVisibleSelected} onToggleAll={toggleAllVisible} label="recibos visibles">
       <button className="secondary" type="button" disabled={!collectableSelected.length||busy} onClick={()=>setBulkPaymentReceipts(collectableSelected)}><Banknote size={15}/> Cobrar seleccionados ({collectableSelected.length})</button>
       <button className="primary" type="button" disabled={!selectedRows.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={15}/> Facturar seleccionados ({selectedRows.length})</button>
     </BulkSelectionToolbar>}
-    <section className="card salesReceiptList">
-      <div className="salesReceiptRow salesReceiptHead"><div className="bulkSelectionCell"><BulkSelectCheckbox checked={allVisibleSelected} onChange={toggleAllVisible} label={allVisibleSelected?'Deseleccionar recibos visibles':'Seleccionar recibos visibles'}/></div><div>Recibo</div><div>Cliente</div><div>Fecha</div><div>Importe sin IVA</div><div>Estado cobro</div><div>Acciones</div></div>
-      {shown.map(receipt=>{const pending=pendingAmount(receipt);const receiptStatus=collectionStatus(receipt);return <div className={`salesReceiptRow ${selectedSet.has(receipt.id)?'bulkSelectedRow':''}`} key={receipt.id}>
-        <div className="bulkSelectionCell"><BulkSelectCheckbox checked={selectedSet.has(receipt.id)} onChange={checked=>toggle(receipt.id,checked)} label={`Seleccionar ${receipt.receiptNumber}`}/></div>
-        <div className="entityCell"><strong>{receipt.receiptNumber}</strong><span>{receipt.lines.length} línea{receipt.lines.length===1?'':'s'}</span></div>
-        <div><strong>{receipt.clientName}</strong></div>
-        <div>{formatAppDate(receipt.receiptDate,settings.general,'—')}</div>
-        <div className="salesReceiptAmount"><strong>{money(receipt.totalAmount)}</strong>{receipt.paidAmount>0&&<small>Cobrado {money(receipt.paidAmount)} · Pendiente {money(pending)}</small>}</div>
-        <div><span className={`salesReceiptStatus ${receiptStatus}`}>{collectionLabel(receipt)}</span></div>
-        <div className="salesReceiptActions">
-          {pending>0.005&&<button className="invoiceCollectButton" title="Registrar cobro" onClick={()=>setPaymentReceipt(receipt)}><Banknote size={15}/><span>Cobrar</span></button>}
-          {receiptStatus==='paid'&&<span className="invoicePaidMark"><CheckCircle2 size={14}/> Cobrado</span>}
-          <button className="secondary" title="Imprimir" onClick={()=>{try{printSalesReceiptPdf(receipt,business,branding,settings.general)}catch(e){showError(errorMessage(e,'No se pudo imprimir.'))}}}><Printer size={15}/></button>
-          <button className="secondary" title="Descargar PDF" onClick={()=>{try{downloadSalesReceiptPdf(receipt,business,branding,settings.general)}catch(e){showError(errorMessage(e,'No se pudo generar el PDF.'))}}}><Download size={15}/></button>
-          <button className="secondary" title="Editar" onClick={()=>{setEditing(receipt);setModal(true)}}><Pencil size={15}/></button>
-          <button className="secondary dangerText" title="Eliminar" onClick={()=>void remove(receipt)}><Trash2 size={15}/></button>
-        </div>
-      </div>})}
-      {!loading&&!shown.length&&<div className="emptyState large">No hay recibos para mostrar.</div>}
-      {loading&&!receipts.length&&<div className="emptyState large">Cargando recibos…</div>}
+    <section className="card tableCard salesReceiptTableCard">
+      {loading?<div className="emptyState large">Cargando recibos…</div>:sortedReceipts.length?<table><thead><tr>
+        <th className="bulkSelectionCell"><BulkSelectCheckbox checked={allVisibleSelected} onChange={toggleAllVisible} label={allVisibleSelected?'Deseleccionar recibos visibles':'Seleccionar recibos visibles'}/></th>
+        <SortableTableHeader label="Recibo" sortKey="number" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
+        <SortableTableHeader label="Cliente" sortKey="client" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
+        <SortableTableHeader label="Fecha" sortKey="date" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
+        <SortableTableHeader label="Importe sin IVA" sortKey="amount" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className="right"/>
+        <SortableTableHeader label="Cobrado" sortKey="paid" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className="right"/>
+        <SortableTableHeader label="Pendiente" sortKey="pending" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className="right"/>
+        <SortableTableHeader label="Estado cobro" sortKey="status" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
+        <th className="right">Acciones</th>
+      </tr></thead><tbody>{sortedReceipts.map(receipt=>{const pending=pendingAmount(receipt),receiptStatus=collectionStatus(receipt);return <tr key={receipt.id} className={`clickableRow ${selectedSet.has(receipt.id)?'bulkSelectedRow':''}`} onClick={()=>setDetail(receipt)}>
+        <td className="bulkSelectionCell" onClick={e=>e.stopPropagation()}><BulkSelectCheckbox checked={selectedSet.has(receipt.id)} onChange={checked=>toggle(receipt.id,checked)} label={`Seleccionar ${receipt.receiptNumber}`}/></td>
+        <td><strong>{receipt.receiptNumber}</strong></td><td><strong>{receipt.clientName}</strong></td><td>{formatAppDate(receipt.receiptDate,settings.general,'—')}</td>
+        <td className="right"><strong>{money(receipt.totalAmount)}</strong></td><td className="right">{money(receipt.paidAmount)}</td><td className="right">{money(pending)}</td>
+        <td><span className={`salesReceiptStatus ${receiptStatus}`}>{collectionLabel(receipt)}</span></td>
+        <td className="right"><div className="invoiceActions" onClick={e=>e.stopPropagation()}>
+          <button className="iconBtn" title="Ver detalle" onClick={()=>setDetail(receipt)}><Eye size={15}/></button>
+          {pending>0.005&&<button className="invoiceCollectButton" title="Registrar cobro" onClick={()=>openPayment(receipt)}><Banknote size={15}/><span>Cobrar</span></button>}
+          <button className="iconBtn" title="Imprimir" onClick={()=>{try{printSalesReceiptPdf(receipt,business,branding,settings.general)}catch(e){showError(errorMessage(e,'No se pudo imprimir.'))}}}><Printer size={15}/></button>
+          <button className="iconBtn" title="Descargar PDF" onClick={()=>{try{downloadSalesReceiptPdf(receipt,business,branding,settings.general)}catch(e){showError(errorMessage(e,'No se pudo generar el PDF.'))}}}><Download size={15}/></button>
+          <button className="iconBtn" title="Editar" onClick={()=>openEdit(receipt)}><Pencil size={15}/></button>
+          <button className="iconBtn dangerIcon" title="Eliminar" onClick={()=>void remove(receipt)}><Trash2 size={15}/></button>
+        </div></td>
+      </tr>})}</tbody></table>:<div className="emptyState large">No hay recibos para los filtros seleccionados.</div>}
     </section>
+    <ReceiptDetailDrawer receipt={detail} business={business} branding={branding} onClose={()=>setDetail(null)} onEdit={openEdit} onPayment={openPayment} onDelete={receipt=>void remove(receipt)}/>
     {modal&&<ReceiptModal receipt={editing} clients={clients} products={products} onClose={()=>{setModal(false);setEditing(null)}} onSaved={refresh}/>}
     <ReceiptPaymentModal receipt={paymentReceipt} salesSettings={settings.sales} onClose={()=>setPaymentReceipt(null)} onSaved={refresh}/>
     <BulkReceiptPaymentModal receipts={bulkPaymentReceipts} salesSettings={settings.sales} onClose={()=>setBulkPaymentReceipts([])} onSaved={refresh}/>

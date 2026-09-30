@@ -336,7 +336,6 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
         shipping_cost_recorded_at:price==null?null:createdAt,
         label_created_at:createdAt,
         last_synced_at:new Date().toISOString(),
-        raw_payload:{...row,provider:'envia',integration_account_id:account.id},
       };
       if(existing?.id){
         if(existing.shipping_provider&&existing.shipping_provider!=='envia')continue;
@@ -363,6 +362,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
           items:[],
           total_amount:null,
           currency,
+          raw_payload:{...row,provider:'envia',integration_account_id:account.id},
           ...patch,
         };
         const {error:insertError}=await admin.from('fulfillment_orders').insert(insert);

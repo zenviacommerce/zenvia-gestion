@@ -26,8 +26,8 @@ export async function exportInvoices(selected: Invoice[], label: string) {
     total:selected.length,
   });
   const zip = new JSZip();
-  const header = ['Fecha','Proveedor','Nº factura','Categoría','Base','IVA','Retención','Total','Estado','Origen','Archivo'];
-  const rows = selected.map(i => [i.invoiceDate,i.supplierName,i.invoiceNumber,i.category,i.subtotal.toFixed(2),i.vat.toFixed(2),i.withholding.toFixed(2),i.total.toFixed(2),i.status,i.source,i.fileName ?? '']);
+  const header = ['Fecha','Proveedor','Nº factura','Categoría','Moneda','Base','IVA','Retención','Total','Estado','Origen','Archivo'];
+  const rows = selected.map(i => [i.invoiceDate,i.supplierName,i.invoiceNumber,i.category,i.currency,i.subtotal.toFixed(2),i.vat.toFixed(2),i.withholding.toFixed(2),i.total.toFixed(2),i.status,i.source,i.fileName ?? '']);
   const exportLabel = safeExportLabel(label) || 'seleccion';
   zip.file(`resumen_${exportLabel}.csv`, '\ufeff' + [header, ...rows].map(r => r.map(escapeCsv).join(';')).join('\n'));
 
@@ -60,7 +60,8 @@ export async function exportInvoices(selected: Invoice[], label: string) {
       });
     }
     if (errors.length) zip.file('ERRORES_DESCARGA.txt', errors.join('\n'));
-    zip.file('LEEME.txt', `ZENVIA Gestión · ${label}\nFacturas: ${selected.length}\nTotal: ${selected.reduce((s, i) => s + i.total, 0).toFixed(2)} EUR\n`);
+    const totals=[...selected.reduce((map,invoice)=>map.set(invoice.currency,(map.get(invoice.currency)||0)+invoice.total),new Map<string,number>()).entries()].map(([currency,total])=>`${total.toFixed(2)} ${currency}`).join(' · ');
+    zip.file('LEEME.txt', `ZENVIA Gestión · ${label}\nFacturas: ${selected.length}\nTotal: ${totals||'0.00'}\n`);
     activity.update({current:selected.length,progress:85,detail:'Comprimiendo el ZIP…'});
     return await zip.generateAsync({ type: 'blob' },metadata=>{
       activity.update({

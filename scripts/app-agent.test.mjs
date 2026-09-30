@@ -68,7 +68,7 @@ test('ZENVIA IA desktop panel has enough width and mobile remains full-width',as
 test('orders refresh after agent-triggered synchronization',async()=>{
   const orders=await read('src/pages/Orders.tsx');
   assert.match(orders,/zenvia:orders-refresh/);
-  assert.match(orders,/Promise\.all\(\[refresh\(\),refreshStatus\(\),refreshTariffs\(\)\]\)/);
+  assert.match(orders,/Promise\.all\(\[refresh\(\),refreshStatus\(\),refreshEnviaStatus\(\),refreshTariffs\(\)\]\)/);
 });
 
 

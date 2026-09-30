@@ -81,3 +81,22 @@ test('active tariff keeps one visible document while any field can change by eff
   assert.match(migration,/snapshot jsonb/i);
   assert.match(migration,/drop table if exists public\.transport_tariff_fuel_periods/i);
 });
+
+
+test('tariff parser is generic and preserves document table structure',async()=>{
+  const [service,edge]=await Promise.all([
+    source('src/services/transportTariffs.ts'),
+    source('supabase/functions/transport-tariff-parser/index.ts'),
+  ]);
+  assert.match(service,/\[\[PAGE \$\{p\}\]\]/);
+  assert.match(service,/\[\[SHEET /);
+  assert.match(service,/parseGenericMatrixServices/);
+  assert.match(service,/genericWeightHeader/);
+  assert.match(service,/validateParsedServices/);
+  assert.match(service,/probableCurrency/);
+  assert.match(edge,/motor experto en lectura de TARIFAS LOGÍSTICAS/);
+  assert.match(edge,/tablas transpuestas/);
+  assert.match(edge,/varios transportistas/);
+  assert.match(edge,/CONTROL DE CALIDAD/);
+  assert.match(edge,/No inventes datos/);
+});

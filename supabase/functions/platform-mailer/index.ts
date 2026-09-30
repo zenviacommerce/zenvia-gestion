@@ -30,7 +30,7 @@ async function requirePlatformToken(req:Request,admin:any){
   if(error)throw error;
   return Boolean(data?.active)&&await sha256(supplied)===String(data?.token_sha256||'');
 }
-async function sendEmail(input:{to:string;subject:string;html:string;textBody:string}){
+async function sendEmail(input:{to:string;subject:string;html:string;textBody:string;attachments?:Array<{filename:string;content:string}>}){
   const apiKey=(Deno.env.get('RESEND_API_KEY')||'').trim();
   if(!apiKey)throw new Error('RESEND_API_KEY no está configurada en el servicio central de correo.');
   const from=(Deno.env.get('AUTH_EMAIL_FROM')||Deno.env.get('SUPPORT_EMAIL_FROM')||DEFAULT_FROM).trim();
@@ -38,7 +38,7 @@ async function sendEmail(input:{to:string;subject:string;html:string;textBody:st
   const result=await fetch('https://api.resend.com/emails',{
     method:'POST',
     headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
-    body:JSON.stringify({from,to:[input.to],reply_to:replyTo,subject:input.subject,html:input.html,text:input.textBody}),
+    body:JSON.stringify({from,to:[input.to],reply_to:replyTo,subject:input.subject,html:input.html,text:input.textBody,...(input.attachments?.length?{attachments:input.attachments}:{})}),
   });
   if(!result.ok){
     const detail=await result.text();
@@ -78,7 +78,7 @@ Deno.serve(async(req:Request)=>{
     if(!await requirePlatformToken(req,admin))return response({error:'Servicio de correo no autorizado.'},401);
     const body=await req.json().catch(()=>({}));
     const event=text(body?.event,40);
-    if(!['invite','recovery'].includes(event))return response({error:'Evento de correo no válido.'},400);
+    if(!['invite','recovery','billing_invoice'].includes(event))return response({error:'Evento de correo no válido.'},400);
 
     const to=text(body?.to,254).toLowerCase();
     const fullName=text(body?.fullName,160);
@@ -88,6 +88,7 @@ Deno.serve(async(req:Request)=>{
     if(!fullName||!workspaceName)return response({error:'Faltan los datos del correo.'},400);
 
     let subject='',html='',textBody='';
+    let attachments:Array<{filename:string;content:string}>|undefined;
     if(event==='invite'){
       const roleLabel=text(body?.roleLabel,120)||'Usuario';
       const inviteUrl=text(body?.inviteUrl,2000);
@@ -118,7 +119,7 @@ Deno.serve(async(req:Request)=>{
         buttonLabel:'Activar mi cuenta',actionUrl:inviteUrl,
         footer:'Este enlace es personal. Si no esperabas esta invitación, puedes ignorar el correo. Para cualquier duda, responde a este mensaje o contacta con soporte@zenviacommerce.com.',
       });
-    }else{
+    }else if(event==='recovery'){
       const recoveryUrl=text(body?.recoveryUrl,2000);
       if(!/^https:\/\//i.test(recoveryUrl))return response({error:'El enlace de recuperación no es válido.'},400);
       const product=app==='platform'?'ZENVIA Platform':'ZENVIA Gestión';
@@ -137,9 +138,42 @@ Deno.serve(async(req:Request)=>{
         buttonLabel:'Crear nueva contraseña',actionUrl:recoveryUrl,
         footer:'Si no esperabas esta solicitud, puedes ignorar este correo. Tu contraseña actual seguirá funcionando hasta que completes el cambio.',
       });
+    }else{
+      const invoiceNumber=text(body?.invoiceNumber,100);
+      const issueDate=text(body?.issueDate,40);
+      const total=text(body?.total,80);
+      const currency=text(body?.currency,3).toUpperCase()||'EUR';
+      const pdfBase64=text(body?.pdfBase64,7_000_000);
+      const fileName=text(body?.fileName,180)||`${invoiceNumber||'factura'}.pdf`;
+      if(!invoiceNumber||!issueDate||!total||!pdfBase64)return response({error:'Faltan datos de la factura de suscripción.'},400);
+      subject=`Factura ${invoiceNumber} · ZENVIA Gestión`;
+      textBody=[
+        `Hola ${fullName},`,'',
+        `Adjuntamos la factura ${invoiceNumber} correspondiente a la suscripción de ${workspaceName} en ZENVIA Gestión.`,
+        `Fecha: ${issueDate}`,
+        `Total: ${total} ${currency}`,'',
+        'También podrás consultarla desde Configuración → Plan y facturación.','',
+        'ZENVIA',
+      ].join('\n');
+      html=shell({
+        app:'gestion',
+        title:`Factura ${invoiceNumber}`,
+        intro:`Hola <strong>${esc(fullName)}</strong>, ya está disponible la factura de la suscripción de <strong>${esc(workspaceName)}</strong>.`,
+        bodyHtml:`<div style="margin:20px 0;padding:15px 17px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+            <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#667085;font-weight:800">Factura</div><div style="margin-top:5px;font-size:14px;font-weight:800;color:#172033">${esc(invoiceNumber)}</div></div>
+            <div><div style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#667085;font-weight:800">Total</div><div style="margin-top:5px;font-size:14px;font-weight:800;color:#172033">${esc(total)}</div></div>
+          </div>
+          <div style="margin-top:10px;font-size:12px;color:#667085">Fecha de emisión: ${esc(issueDate)}</div>
+        </div><p style="margin:0 0 22px;font-size:14px;line-height:1.65;color:#667085">La factura va adjunta en PDF y permanece disponible en Plan y facturación.</p>`,
+        buttonLabel:'Abrir ZENVIA Gestión',
+        actionUrl:'https://gestion.zenviacommerce.com/',
+        footer:'Este correo corresponde a la facturación de tu suscripción a ZENVIA Gestión. Para cualquier duda, responde a este mensaje.',
+      });
+      attachments=[{filename:fileName,content:pdfBase64}];
     }
 
-    const sent=await sendEmail({to,subject,html,textBody});
+    const sent=await sendEmail({to,subject,html,textBody,attachments});
     return response({ok:true,delivered:true,provider:sent.provider,id:sent.id});
   }catch(error){
     console.error(error);

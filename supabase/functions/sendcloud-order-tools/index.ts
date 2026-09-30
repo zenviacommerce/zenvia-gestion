@@ -103,6 +103,67 @@ function normalizeOption(option:any){
   const billed=option?.billed_weight;
   return {code,name,carrierCode,carrierName:clean(option?.carrier?.name||option?.carrier_name)||friendlyCarrier(carrierCode),contractId:contractValue==null?null:Number(contractValue),price:priceValue==null?null:Number(priceValue),currency:currency||null,billedWeightKg:toKg(billed?.value,billed?.unit),raw:option};
 }
+
+function comparable(value:unknown){
+  return clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function v2Rows(payload:any){
+  if(Array.isArray(payload))return payload;
+  for(const key of ['shipping_methods','data','results','items'])if(Array.isArray(payload?.[key]))return payload[key];
+  return [];
+}
+function v2CountryPrice(method:any,countryCode:string){
+  const countries=Array.isArray(method?.countries)?method.countries:[];
+  const country=countries.find((item:any)=>clean(item?.iso_2||item?.country||item?.code).toUpperCase()===countryCode);
+  if(!country)return null;
+  const raw=country?.price??country?.price_value??country?.value??country?.shipping_price;
+  const value=Number(typeof raw==='object'?raw?.value:raw);
+  return Number.isFinite(value)&&value>0?value:null;
+}
+function v2MethodScore(method:any,option:any){
+  const optionCarrier=comparable(option.carrierName||option.carrierCode);
+  const optionName=comparable(option.name||option.code);
+  const methodCarrier=comparable(method?.carrier||method?.carrier_name||method?.name);
+  const methodName=comparable(method?.name);
+  let score=0;
+  if(optionCarrier&&methodCarrier.includes(optionCarrier))score+=45;
+  if(optionName&&methodName===optionName)score+=80;
+  else if(optionName&&methodName&&(methodName.includes(optionName)||optionName.includes(methodName)))score+=45;
+  const code=comparable(option.code);
+  if(code&&methodName&&code.split(' ').filter(Boolean).every((token:string)=>methodName.includes(token)))score+=20;
+  return score;
+}
+async function enrichSendcloudPrices(credentials:SendcloudCredentials,options:any[],weightKg:number,fromCountry:string,toCountry:string){
+  if(!options.some(option=>option.price==null))return options;
+  try{
+    const {data:methodsPayload}=await sendcloudJson(credentials,'https://panel.sendcloud.sc/api/v2/shipping_methods');
+    const methods=v2Rows(methodsPayload);
+    const unresolved=options.filter(option=>option.price==null);
+    await Promise.all(unresolved.map(async option=>{
+      const ranked=methods.map((method:any)=>({method,score:v2MethodScore(method,option)})).filter((item:any)=>item.score>=45).sort((a:any,b:any)=>b.score-a.score);
+      const candidate=ranked[0]?.method;
+      if(!candidate)return;
+      const embedded=v2CountryPrice(candidate,toCountry);
+      if(embedded!=null){option.price=embedded;option.currency='EUR';option.priceSource='sendcloud_v2_methods';return}
+      const id=Number(candidate?.id);if(!Number.isFinite(id))return;
+      try{
+        const params=new URLSearchParams({shipping_method_id:String(id),weight:String(Number(weightKg.toFixed(3))),weight_unit:'kilogram',from_country:fromCountry,to_country:toCountry});
+        const {data:pricePayload}=await sendcloudJson(credentials,`https://panel.sendcloud.sc/api/v2/shipping-price/?${params.toString()}`);
+        const rows=Array.isArray(pricePayload)?pricePayload:v2Rows(pricePayload);
+        const row=rows.find((item:any)=>clean(item?.to_country||item?.country||item?.iso_2).toUpperCase()===toCountry)||rows[0]||pricePayload;
+        const raw=row?.price??row?.value??row?.total_price;
+        const value=Number(typeof raw==='object'?raw?.value:raw);
+        if(Number.isFinite(value)&&value>0){
+          option.price=value;
+          option.currency=clean((typeof raw==='object'?raw?.currency:null)||row?.currency)||'EUR';
+          option.priceSource='sendcloud_v2_price';
+        }
+      }catch{/* Direct-contract or postal-zone pricing can legitimately be unavailable. */}
+    }));
+  }catch{/* Shipping options remain usable without an API price. */}
+  return options;
+}
+
 async function senderAddress(credentials:SendcloudCredentials){
   try{const {data}=await sendcloudJson(credentials,'/addresses/sender-addresses');return Array.isArray(data?.data)?data.data[0]||null:null}catch{return null}
 }
@@ -209,7 +270,10 @@ Deno.serve(async(req:Request)=>{
       };
       const {data}=await sendcloudJson(orderCredentials,'/shipping-options',{method:'POST',body:JSON.stringify(requestBody)});
       const options=(data?.data||[]).map(normalizeOption).filter((x:any)=>x.code).filter((x:any)=>enabledCarrier(x,shippingConfig.enabledCarriers));
-      return response({weightKg,options,message:options.length?data?.message||null:'No hay servicios disponibles entre los transportistas habilitados.'});
+      await enrichSendcloudPrices(orderCredentials,options,weightKg,fromCountry,clean(address.country_code).toUpperCase());
+      const priced=options.filter((option:any)=>option.price!=null&&Number(option.price)>0).length;
+      const quoteMessage=priced?null:(options.length?'Sendcloud devuelve los servicios disponibles, pero no expone precio para estos métodos o contratos.':'No hay servicios disponibles entre los transportistas habilitados.');
+      return response({weightKg,options,message:data?.message||quoteMessage});
     }
 
     if(action==='update_order'){

@@ -66,3 +66,32 @@ test('tariff fallback does not invent expiry or fuel inclusion from unrelated do
   assert.match(tariff,/fuelSurchargeIncluded:fuelIncluded/);
   assert.match(tariff,/No se ha podido determinar el tratamiento del combustible/);
 });
+
+
+test('Envia quotes sanitize state values and quote one carrier per request',async()=>{
+  const edge=await read('supabase/functions/envia-shipping/index.ts');
+  assert.match(edge,/function enviaStateCode/);
+  assert.match(edge,/\^\[A-Z0-9\]\{2\}\$/);
+  assert.match(edge,/delete normalized\.state/);
+  assert.match(edge,/data\.stateCode\|\|data\.state_code/);
+  assert.doesNotMatch(edge,/shipment:\{type:1\}\}\),/);
+  assert.match(edge,/shipment:\{type:1,carrier\}/);
+});
+
+
+test('contracted tariffs are scoped to exactly one shipping provider',async()=>{
+  const [shipping,tariffs,panel,migration]=await Promise.all([
+    read('src/services/orderShipping.ts'),
+    read('src/services/transportTariffs.ts'),
+    read('src/components/TransportTariffsPanel.tsx'),
+    read('supabase/migrations/20261001001500_transport_tariff_shipping_provider.sql'),
+  ]);
+  assert.match(tariffs,/shippingProvider:TransportShippingProvider/);
+  assert.match(tariffs,/shipping_provider:shippingProvider/);
+  assert.match(shipping,/document\.shippingProvider!==option\.provider/);
+  assert.match(panel,/Aplicar en/);
+  assert.match(panel,/Sendcloud/);
+  assert.match(panel,/Envia\.com/);
+  assert.match(migration,/shipping_provider in \('sendcloud','envia'\)/);
+  assert.match(migration,/shipping_provider=v_document\.shipping_provider/);
+});

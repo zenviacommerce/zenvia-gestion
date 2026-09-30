@@ -15,14 +15,13 @@
 }
 .sidebar .brandLogo{
   display:block;
-  width:auto;
-  max-width:156px;
+  width:156px;
+  max-width:100%;
   height:auto;
-  max-height:64px;
   object-fit:contain;
   object-position:left center;
-  border-radius:9px;
-  box-shadow:0 10px 26px rgba(2,6,23,.24);
+  border-radius:0;
+  box-shadow:none;
 }
 .brandProductLockup{
   display:flex;

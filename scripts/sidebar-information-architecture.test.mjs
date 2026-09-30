@@ -61,7 +61,9 @@ test('sidebar uses workspace branding with the ZENVIA logo as fallback',async()=
   assert.match(app,/loadCompanyBranding/);
   assert.match(app,/logoSrc=\{workspaceLogo\}/);
   assert.match(sidebar,/logoSrc\|\|ZENVIA_LOGO/);
-  assert.match(css,/max-height:64px/);
+  assert.match(css,/width:156px/);
+  assert.match(css,/max-width:100%/);
+  assert.doesNotMatch(css,/max-height:64px/);
   assert.match(css,/object-fit:contain/);
 });
 

@@ -110,23 +110,35 @@ function normalizePhone(value:unknown,countryCode:string){
   }
   return digits;
 }
+function enviaStateCode(value:unknown){
+  const raw=clean(value).toUpperCase();
+  return /^[A-Z0-9]{2}$/.test(raw)?raw:'';
+}
+function normalizeEnviaAddress(address:any){
+  const state=enviaStateCode(address?.state);
+  const normalized={...address};
+  if(state)normalized.state=state;
+  else delete normalized.state;
+  return normalized;
+}
 async function geocodeAddress(address:any){
   const country=clean(address?.country).toUpperCase(),postal=clean(address?.postalCode);
-  if(!country||!postal)return address;
+  const fallback=normalizeEnviaAddress(address);
+  if(!country||!postal)return fallback;
   try{
     const res=await fetch(`https://geocodes.envia.com/zipcode/${encodeURIComponent(country)}/${encodeURIComponent(postal)}`,{headers:{Accept:'application/json'}});
-    if(!res.ok)return address;
+    if(!res.ok)return fallback;
     const payload=await res.json().catch(()=>null);
     const data=payload?.data&&typeof payload.data==='object'&&!Array.isArray(payload.data)?payload.data:null;
-    if(!data)return address;
-    return {
+    if(!data)return fallback;
+    return normalizeEnviaAddress({
       ...address,
       city:clean(data.city)||address.city,
-      state:clean(data.state)||address.state,
+      state:clean(data.stateCode||data.state_code||data.state?.code||data.state)||address.state,
       country:clean(data.country).toUpperCase()||address.country,
       postalCode:clean(data.zipcode||data.postalCode)||address.postalCode,
-    };
-  }catch{return address}
+    });
+  }catch{return fallback}
 }
 function orderWeightKg(order:any,shipping:any){
   const raw=order?.raw_payload?.shipping_details?.measurement?.weight;
@@ -250,21 +262,9 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
   [origin,dest]=await Promise.all([geocodeAddress(origin),geocodeAddress(dest)]);
   const enabled=Array.isArray(config.shipping?.enabledCarriers)?config.shipping.enabledCarriers.map((x:any)=>clean(x).toLowerCase()).filter(Boolean):[];
 
-  try{
-    const data=await enviaJson(`${c.shipBase}/ship/rate/`,c.token,{
-      method:'POST',
-      body:JSON.stringify({origin,destination:dest,packages:[pkg],shipment:{type:1}}),
-    });
-    let options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
-    if(enabled.length)options=options.filter((option:any)=>enabled.some((wanted:string)=>{
-      const carrier=`${option.carrierCode||''} ${option.carrierName||''}`.toLowerCase();
-      return carrier.includes(wanted)||wanted.includes(String(option.carrierCode||'').toLowerCase());
-    }));
-    if(options.length)return {options,errors:[],carriers:[...new Set(options.map((option:any)=>option.carrierCode))],environment:c.environment};
-  }catch(error){
-    console.warn('Envia multicarrier rate failed; using per-carrier fallback',error instanceof Error?error.message:error);
-  }
-
+  // Envia documents one carrier per rate request. Query the available carriers
+  // first and quote each independently so carrier/service identities never bleed
+  // into each other in the comparison UI.
   let carriers=await listCarriers(c,origin.country||'ES',dest.country||origin.country||'ES');
   if(enabled.length)carriers=carriers.filter((carrier:string)=>enabled.some((wanted:string)=>carrier.toLowerCase().includes(wanted)||wanted.includes(carrier.toLowerCase())));
   carriers=carriers.slice(0,30);

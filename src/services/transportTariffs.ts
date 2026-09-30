@@ -6,6 +6,7 @@ import { supabase } from './supabase';
 pdfjsLib.GlobalWorkerOptions.workerSrc=pdfWorker;
 
 export type TransportTariffStatus='draft'|'reviewed'|'active'|'superseded';
+export type TransportShippingProvider='sendcloud'|'envia';
 export type TransportMappingStatus='suggested'|'confirmed'|'unmapped';
 
 export interface TransportTariffBandDraft{
@@ -48,6 +49,7 @@ export interface TransportTariffProposal{
 export interface TransportTariffDocument extends TransportTariffProposal{
   id:string;
   status:TransportTariffStatus;
+  shippingProvider:TransportShippingProvider;
   sourceFileName:string|null;
   sourceFilePath:string|null;
   sourceMimeType:string|null;
@@ -283,7 +285,7 @@ export async function parseTransportTariffDocument(file:File):Promise<TransportT
 function mapDocument(row:any):TransportTariffDocument{
   const revisions=(row.transport_tariff_revisions||[]).sort((a:any,b:any)=>String(a.effective_from||'').localeCompare(String(b.effective_from||''))).map((item:any)=>({id:item.id,effectiveFrom:item.effective_from,snapshot:item.snapshot as TransportTariffProposal}));
   const services=(row.transport_tariff_services||[]).sort((a:any,b:any)=>(a.sort_order||0)-(b.sort_order||0)).map((service:any)=>({id:service.id,serviceName:service.service_name,canonicalServiceKey:service.canonical_service_key,externalProvider:service.external_provider||'',externalServiceCode:service.external_service_code||'',mappingStatus:service.mapping_status,sortOrder:service.sort_order,bands:(service.transport_tariff_bands||[]).sort((a:any,b:any)=>(a.sort_order||0)-(b.sort_order||0)).map((band:any)=>({id:band.id,countryCode:band.country_code,zoneCode:band.zone_code,zoneName:band.zone_name,minWeightKg:Number(band.min_weight_kg),maxWeightKg:band.max_weight_kg==null?null:Number(band.max_weight_kg),basePrice:band.base_price==null?null:Number(band.base_price),extraKgPrice:band.extra_kg_price==null?null:Number(band.extra_kg_price),notes:band.notes||null,sortOrder:band.sort_order}))}));
-  return {id:row.id,status:row.status,carrierCode:row.carrier_code,carrierName:row.carrier_name,effectiveFrom:row.effective_from||null,effectiveTo:row.effective_to||null,currencyCode:row.currency_code,pricesIncludeVat:Boolean(row.prices_include_vat),fuelSurchargePct:row.fuel_surcharge_pct==null?null:Number(row.fuel_surcharge_pct),fuelSurchargeIncluded:Boolean(row.fuel_surcharge_included),parserProvider:row.parser_provider||'unknown',parserModel:row.parser_model||null,parserConfidence:Number(row.parser_confidence||0),parserNotes:Array.isArray(row.parser_notes?.notes)?row.parser_notes.notes:[],services,revisions,sourceFileName:row.source_file_name||null,sourceFilePath:row.source_file_path||null,sourceMimeType:row.source_mime_type||null,createdAt:row.created_at,reviewedAt:row.reviewed_at||null,activatedAt:row.activated_at||null};
+  return {id:row.id,status:row.status,shippingProvider:(row.shipping_provider==='envia'?'envia':'sendcloud'),carrierCode:row.carrier_code,carrierName:row.carrier_name,effectiveFrom:row.effective_from||null,effectiveTo:row.effective_to||null,currencyCode:row.currency_code,pricesIncludeVat:Boolean(row.prices_include_vat),fuelSurchargePct:row.fuel_surcharge_pct==null?null:Number(row.fuel_surcharge_pct),fuelSurchargeIncluded:Boolean(row.fuel_surcharge_included),parserProvider:row.parser_provider||'unknown',parserModel:row.parser_model||null,parserConfidence:Number(row.parser_confidence||0),parserNotes:Array.isArray(row.parser_notes?.notes)?row.parser_notes.notes:[],services,revisions,sourceFileName:row.source_file_name||null,sourceFilePath:row.source_file_path||null,sourceMimeType:row.source_mime_type||null,createdAt:row.created_at,reviewedAt:row.reviewed_at||null,activatedAt:row.activated_at||null};
 }
 
 async function insertServices(documentId:string,ownerId:string,carrierCode:string,services:TransportTariffServiceDraft[]){
@@ -297,12 +299,12 @@ async function insertServices(documentId:string,ownerId:string,carrierCode:strin
   }
 }
 
-export async function createTransportTariffDraft(file:File,proposal:TransportTariffProposal){
+export async function createTransportTariffDraft(file:File,proposal:TransportTariffProposal,shippingProvider:TransportShippingProvider){
   const {data:{user}}=await supabase.auth.getUser();if(!user)throw new Error('Sesión no válida.');
   const id=crypto.randomUUID(),path=`${user.id}/${id}/${safeFileName(file.name)}`,digest=await sha256(file);
   const {error:uploadError}=await supabase.storage.from(BUCKET).upload(path,file,{contentType:file.type||undefined,upsert:false});if(uploadError)throw uploadError;
   try{
-    const documentPayload={id,carrier_code:proposal.carrierCode,carrier_name:proposal.carrierName,status:'draft',effective_from:proposal.effectiveFrom,effective_to:proposal.effectiveTo,currency_code:proposal.currencyCode,prices_include_vat:proposal.pricesIncludeVat,fuel_surcharge_pct:proposal.fuelSurchargePct,fuel_surcharge_included:proposal.fuelSurchargeIncluded,source_file_name:file.name,source_file_path:path,source_mime_type:file.type||null,source_sha256:digest,parser_provider:proposal.parserProvider,parser_model:proposal.parserModel,parser_confidence:proposal.parserConfidence,parser_notes:{notes:proposal.parserNotes}};
+    const documentPayload={id,shipping_provider:shippingProvider,carrier_code:proposal.carrierCode,carrier_name:proposal.carrierName,status:'draft',effective_from:proposal.effectiveFrom,effective_to:proposal.effectiveTo,currency_code:proposal.currencyCode,prices_include_vat:proposal.pricesIncludeVat,fuel_surcharge_pct:proposal.fuelSurchargePct,fuel_surcharge_included:proposal.fuelSurchargeIncluded,source_file_name:file.name,source_file_path:path,source_mime_type:file.type||null,source_sha256:digest,parser_provider:proposal.parserProvider,parser_model:proposal.parserModel,parser_confidence:proposal.parserConfidence,parser_notes:{notes:proposal.parserNotes}};
     const {data:document,error}=await supabase.from('transport_tariff_documents').insert(documentPayload).select('id,owner_id').single();if(error)throw error;
     await insertServices(document.id,document.owner_id,proposal.carrierCode,proposal.services);
     return document.id as string;
@@ -328,7 +330,7 @@ export async function listTransportTariffs():Promise<TransportTariffDocument[]>{
 export async function saveTransportTariffReview(document:TransportTariffDocument){
   if(document.status!=='draft')throw new Error('Solo se pueden modificar borradores con esta operación.');
   const {data:ownerRow,error:ownerError}=await supabase.from('transport_tariff_documents').select('owner_id').eq('id',document.id).single();if(ownerError)throw ownerError;
-  const {error}=await supabase.from('transport_tariff_documents').update({carrier_code:document.carrierCode,carrier_name:document.carrierName,effective_from:document.effectiveFrom,effective_to:document.effectiveTo,currency_code:document.currencyCode,prices_include_vat:document.pricesIncludeVat,fuel_surcharge_pct:document.fuelSurchargePct,fuel_surcharge_included:document.fuelSurchargeIncluded,parser_provider:document.parserProvider,parser_model:document.parserModel,parser_confidence:document.parserConfidence,parser_notes:{notes:document.parserNotes},updated_at:new Date().toISOString()}).eq('id',document.id);if(error)throw error;
+  const {error}=await supabase.from('transport_tariff_documents').update({shipping_provider:document.shippingProvider,carrier_code:document.carrierCode,carrier_name:document.carrierName,effective_from:document.effectiveFrom,effective_to:document.effectiveTo,currency_code:document.currencyCode,prices_include_vat:document.pricesIncludeVat,fuel_surcharge_pct:document.fuelSurchargePct,fuel_surcharge_included:document.fuelSurchargeIncluded,parser_provider:document.parserProvider,parser_model:document.parserModel,parser_confidence:document.parserConfidence,parser_notes:{notes:document.parserNotes},updated_at:new Date().toISOString()}).eq('id',document.id);if(error)throw error;
   const {error:deleteError}=await supabase.from('transport_tariff_services').delete().eq('document_id',document.id);if(deleteError)throw deleteError;
   await insertServices(document.id,ownerRow.owner_id,document.carrierCode,document.services);
 }

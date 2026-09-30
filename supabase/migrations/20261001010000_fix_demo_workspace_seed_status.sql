@@ -1,5 +1,5 @@
--- Reinstall the demo reset function with values compatible with the current invoice-line status domain.
--- Kept as a forward migration so already-provisioned shared and dedicated projects receive the fix.
+-- Reinstall the demo reset function with values compatible with the current invoice-line status domain
+-- and seed invoice lines before moving sales invoices out of draft.
 
 create or replace function public.platform_reset_demo_workspace(p_workspace_id uuid)
 returns jsonb
@@ -138,10 +138,10 @@ begin
     payment_method,notes,client_name,client_tax_id,client_email,client_phone,client_address,issuer_name,issuer_tax_id,issuer_email,issuer_phone,issuer_address,
     issued_at,sent_at,paid_at,reserved_number,document_kind,fiscal_treatment
   ) values
-    (v_sale_1,p_workspace_id,v_client_restaurant,v_sales_series,'standard','D-'||v_year||'-0001','paid',current_date-20,current_date+10,'EUR',412.00,0,86.52,498.52,'transfer','Venta ficticia.',
+    (v_sale_1,p_workspace_id,v_client_restaurant,v_sales_series,'standard','D-'||v_year||'-0001','draft',current_date-20,current_date+10,'EUR',412.00,0,86.52,498.52,'transfer','Venta ficticia.',
       'Restaurante La Marina Demo','B11010001','compras.marina@example.com','600000111','Paseo Marítimo 8, Cádiz','Comercial Bahía Demo SL','B12345678','administracion@example.com','600000000','Avenida del Comercio 24, Cádiz',
       v_now-interval '20 days',v_now-interval '20 days',v_now-interval '12 days',1,'invoice','taxable'),
-    (v_sale_2,p_workspace_id,v_client_fruit,v_sales_series,'standard','D-'||v_year||'-0002','sent',current_date-4,current_date+26,'EUR',286.00,0,60.06,346.06,'transfer','Venta ficticia pendiente.',
+    (v_sale_2,p_workspace_id,v_client_fruit,v_sales_series,'standard','D-'||v_year||'-0002','draft',current_date-4,current_date+26,'EUR',286.00,0,60.06,346.06,'transfer','Venta ficticia pendiente.',
       'Frutas del Sur Demo','B41010002','pedidos.frutas@example.com','600000112','Calle Mercado 14, Sevilla','Comercial Bahía Demo SL','B12345678','administracion@example.com','600000000','Avenida del Comercio 24, Cádiz',
       v_now-interval '4 days',v_now-interval '4 days',null,2,'invoice','taxable');
 
@@ -151,6 +151,14 @@ begin
     (p_workspace_id,v_sale_1,v_product_tubs,2,'Tarrina salsa 60 ml',1334.6154,'ud',0.13,0,21,173.50,36.435,209.935),
     (p_workspace_id,v_sale_2,v_product_cups,1,'Vaso kraft 240 ml',1000,'ud',0.16,0,21,160.00,33.60,193.60),
     (p_workspace_id,v_sale_2,v_product_bags,2,'Bolsa camiseta 40x50',1680,'ud',0.075,0,21,126.00,26.46,152.46);
+
+  -- Lines are guarded as immutable once an invoice leaves draft.
+  update public.sales_invoices
+  set status='paid'
+  where id=v_sale_1 and owner_id=p_workspace_id;
+  update public.sales_invoices
+  set status='sent'
+  where id=v_sale_2 and owner_id=p_workspace_id;
 
   insert into public.fulfillment_orders(
     owner_id,sendcloud_id,order_id,order_number,integration_id,integration_name,integration_type,source_channel,source_status,

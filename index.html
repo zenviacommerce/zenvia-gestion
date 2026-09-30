@@ -7,11 +7,14 @@
     <script>
       (function(){
         try{
+          var deviceOverride=localStorage.getItem('zenvia-gestion-theme-device-override');
           var preference=localStorage.getItem('zenvia-gestion-theme-preference');
           var resolved=localStorage.getItem('zenvia-gestion-theme');
-          var theme=preference==='light'||preference==='dark'
-            ?preference
-            :(resolved==='light'||resolved==='dark'?resolved:'light');
+          var theme=deviceOverride==='light'||deviceOverride==='dark'
+            ?deviceOverride
+            :(preference==='light'||preference==='dark'
+              ?preference
+              :(resolved==='light'||resolved==='dark'?resolved:'light'));
           document.documentElement.dataset.theme=theme;
           document.documentElement.style.colorScheme=theme;
         }catch(_error){}

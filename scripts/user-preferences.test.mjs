@@ -105,12 +105,13 @@ test('remembered filters persist as a partial patch and cannot overwrite theme o
   assert.equal(Object.prototype.hasOwnProperty.call(patch,'pageSize'),false);
 });
 
-test('automatic preference writers use patchPreferences instead of stale full preference snapshots',async()=>{
+test('automatic preference writers patch shared preferences while manual theme stays device-local',async()=>{
   const app=await readFile(new URL('../src/App.tsx',import.meta.url),'utf8');
   const orders=await readFile(new URL('../src/pages/Orders.tsx',import.meta.url),'utf8');
   const dashboard=await readFile(new URL('../src/pages/Dashboard.tsx',import.meta.url),'utf8');
-  assert.match(app,/patchPreferences\(\{theme:next\}\)/);
-  assert.doesNotMatch(app,/updatePreferences\(\{\.\.\.preferences,theme:/);
+  assert.doesNotMatch(app,/patchPreferences\(\{theme:next\}\)/);
+  assert.match(app,/DEVICE_THEME_OVERRIDE_KEY/);
+  assert.match(app,/safeStorageSet\('local',DEVICE_THEME_OVERRIDE_KEY,next\)/);
   assert.match(orders,/patchPreferences\(\{labelPrinterId:/);
   assert.doesNotMatch(orders,/updatePreferences\(\{\.\.\.preferences,labelPrinterId:/);
   assert.match(dashboard,/persistRememberedFilter\(preferences,patchPreferences/);

@@ -37,7 +37,7 @@ import { addProduct, updateProduct, type ProductInput } from './services/product
 import { deleteInvoiceWithGmailRecovery } from './services/invoiceLifecycle';
 import { errorMessage, showError, showSuccess } from './services/toast';
 import { confirmAction } from './services/actionDialog';
-import { safeStorageGet, safeStorageSet } from './services/browserStorage';
+import { safeStorageGet, safeStorageRemove, safeStorageSet } from './services/browserStorage';
 import { effectiveStartPage } from './services/uiPreferences';
 import { loadCompanyBranding } from './services/companyBranding';
 import type { AppData, Invoice, NewInvoiceInput, Product, Supplier } from './types';
@@ -45,6 +45,7 @@ import type { AppData, Invoice, NewInvoiceInput, Product, Supplier } from './typ
 const emptyData: AppData = { invoices: [], products: [], suppliers: [], categories: [] };
 const THEME_KEY = 'zenvia-gestion-theme';
 const THEME_PREFERENCE_KEY = 'zenvia-gestion-theme-preference';
+const DEVICE_THEME_OVERRIDE_KEY = 'zenvia-gestion-theme-device-override';
 const regularPages: MenuPermission[] = ['dashboard','sales','orders','invoices','clients','products','suppliers','amazon','support'];
 
 function withTimeout<T>(promise:Promise<T>,ms:number,message:string):Promise<T>{
@@ -55,6 +56,8 @@ function withTimeout<T>(promise:Promise<T>,ms:number,message:string):Promise<T>{
 }
 
 function initialTheme(): ThemeMode {
+  const deviceOverride=safeStorageGet('local',DEVICE_THEME_OVERRIDE_KEY);
+  if(deviceOverride==='dark'||deviceOverride==='light')return deviceOverride;
   const preference=safeStorageGet('local',THEME_PREFERENCE_KEY);
   if(preference==='dark'||preference==='light')return preference;
   const stored=safeStorageGet('local',THEME_KEY);
@@ -63,7 +66,7 @@ function initialTheme(): ThemeMode {
 }
 
 export default function App(){
- const {settings,preferences,patchPreferences,loading:settingsLoading}=useSettings();
+ const {settings,preferences,loading:settingsLoading}=useSettings();
  const [session,setSession]=useState<Session|null>(null);
  const [authReady,setAuthReady]=useState(false);
  const [authClientVersion,setAuthClientVersion]=useState(0);
@@ -116,7 +119,8 @@ export default function App(){
  },[]);
 
  useEffect(()=>{
-   setTheme(preferences.theme);
+   const deviceOverride=safeStorageGet('local',DEVICE_THEME_OVERRIDE_KEY);
+   if(deviceOverride!=='dark'&&deviceOverride!=='light')setTheme(preferences.theme);
  },[preferences.theme]);
 
  useEffect(()=>{
@@ -267,7 +271,8 @@ export default function App(){
  const changeTheme=(next:ThemeMode)=>{
    if(next===theme)return;
    setTheme(next);
-   void patchPreferences({theme:next}).catch(e=>showError(errorMessage(e,'No se pudo guardar el tema.')));
+   if(next===preferences.theme)safeStorageRemove('local',DEVICE_THEME_OVERRIDE_KEY);
+   else safeStorageSet('local',DEVICE_THEME_OVERRIDE_KEY,next);
  };
  const toggleTheme=()=>changeTheme(theme==='dark'?'light':'dark');
  const runAction=async(work:()=>Promise<void>,fallback:string)=>{

@@ -128,8 +128,12 @@ function parseProductGroup(group: ProductGroup): NewInvoiceLineInput | null {
 export function extractStructuredProductLines(lines: string[]): NewInvoiceLineInput[] {
   const groups: ProductGroup[] = [];
   let current: ProductGroup | null = null;
+  // OCR frequently inserts an em dash, a minus sign or no whitespace between a
+  // long numeric supplier SKU and the package/count column. Parse that shape
+  // before the generic alphanumeric row so valid product rows are not dropped.
+  const numericSkuRow = /^\s*(\d[\d.]{7,}?)(?:\s*[—–-]\s*|\s+)(-?\d{1,4})\s+(.+)$/i;
   const rowStart = /^\s*([A-Z0-9][A-Z0-9._\/-]{7,})\s+\d{1,4}\s+(.+)$/i;
-  const stop = /^(?:basado\s+en\s+entregas|desglose\s+de\s+impuestos|registro\s+mercantil|importe\s+base|total\s+factura)/i;
+  const stop = /^(?:basado\s+en\s+entregas|palet\s+europeo|el\s+pago\s+de\s+esta\s+factura|desglose\s+de\s+impuestos|registro\s+mercantil|importe\s+base|total\s+factura)/i;
 
   const flush = () => {
     if (current) groups.push(current);
@@ -140,6 +144,13 @@ export function extractStructuredProductLines(lines: string[]): NewInvoiceLineIn
     const line = compact(raw);
     if (!line) continue;
     if (stop.test(line)) { flush(); break; }
+    const numericMatch = line.match(numericSkuRow);
+    if (numericMatch) {
+      flush();
+      const sku = numericMatch[1].replace(/[.]+$/, '');
+      current = { sku, rest: numericMatch[3], continuation: [] };
+      continue;
+    }
     const match = line.match(rowStart);
     if (match) {
       flush();

@@ -141,3 +141,12 @@ test('Sendcloud unstamped zero-cost placeholder is excluded from parcel comparis
   assert.match(orders,/Number\(option\.price\)===0/);
   assert.match(orders,/unstamped\|sin franqueo\|unfranked/);
 });
+
+
+test('Sendcloud falls back to v2 rate APIs when v3 options contain no quote',async()=>{
+  const edge=await read('supabase/functions/sendcloud-order-tools/index.ts');
+  assert.match(edge,/enrichSendcloudPrices/);
+  assert.match(edge,/api\/v2\/shipping_methods/);
+  assert.match(edge,/api\/v2\/shipping-price/);
+  assert.match(edge,/v2MethodScore/);
+});

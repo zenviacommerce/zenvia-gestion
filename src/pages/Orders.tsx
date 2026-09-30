@@ -186,12 +186,26 @@ function LabelModal({order,options,tariffs,message,loading,onClose,onCreate}:{or
     <div className="ordersLabelBody">
       <div className="ordersLabelContext"><div><span>Peso del paquete</span><strong>{weightLabel(order,settings.shipping.weightUnit)}</strong></div><div><span>Destino</span><strong>{text(order.shippingAddress.postal_code)||'—'} · {text(order.shippingAddress.city)||text(order.shippingAddress.country_code)||'—'}</strong></div></div>
       {loading?<div className="ordersOptionsLoading"><LoaderCircle className="spin"/><span>Consultando proveedores, servicios y precios…</span></div>:<>
+        {message&&<div className="ordersQuoteMessage"><AlertCircle size={15}/><span>{message}</span></div>}
+        {options.length>0&&<section className="ordersComparison">
+          <div className="ordersComparisonHead"><div><strong>Comparativa</strong><span>Precio API frente a tu tarifa contratada cuando existe una asociación válida.</span></div><small>{priced.length?priced.length+' opciones con precio':'Sin precios en tiempo real'}</small></div>
+          <div className="ordersComparisonList">{comparison.slice().sort((a,b)=>(a.option.price??Number.MAX_VALUE)-(b.option.price??Number.MAX_VALUE)).map(({option,tariff},index)=>{
+            const delta=option.price!=null&&tariff?.totalAmount!=null?Math.round((option.price-tariff.totalAmount)*100)/100:null;
+            const isCheapest=cheapest===option;
+            return <button type="button" className="ordersComparisonRow" key={'comparison-'+option.provider+'-'+(option.integrationAccountId||'')+'-'+option.carrierCode+'-'+option.code+'-'+index} onClick={()=>onCreate(option)}>
+              <div className="ordersComparisonIdentity"><span className={'ordersProviderBadge '+option.provider}>{option.providerName}</span><strong>{option.carrierName||option.carrierCode||'Transportista'}</strong><small>{option.name||option.code}</small></div>
+              <div><span>Precio API</span><strong>{option.price==null?'—':money(option.price,option.currency||'EUR')}</strong>{isCheapest&&<small className="ordersBestPrice">Más barato</small>}</div>
+              <div><span>Tu tarifa</span><strong>{tariff?.totalAmount==null?'—':money(tariff.totalAmount,tariff.currency)}</strong><small>{tariff?.documentName||'Sin asociación'}</small></div>
+              <div><span>Diferencia</span><strong className={delta==null?'':delta<=0?'good':'bad'}>{delta==null?'—':(delta>0?'+':'')+money(delta,option.currency||tariff?.currency||'EUR')}</strong></div>
+            </button>;
+          })}</div>
+        </section>}
         {!options.length?<div className="ordersNoOption">No hay servicios disponibles en los proveedores logísticos conectados.</div>:<div className="ordersCarrierGrid">
           {providers.map(provider=>{
             const providerOptions=options.filter(option=>option.provider===provider);
             const providerName=providerOptions[0]?.providerName||provider;
             return <section className="ordersCarrierCard" key={provider}>
-              <div className="ordersCarrierHead"><Truck size={18}/><div><strong>{providerName}</strong><span>{provider==='envia'?'Comparador multi-transportista':'Servicios de tu cuenta Sendcloud'}</span></div></div>
+              <div className="ordersCarrierHead"><Truck size={18}/><div><strong>{providerName}</strong><span>{provider==='envia'?'Tarifas en tiempo real de Envia.com':'Servicios de tu cuenta Sendcloud'}</span></div></div>
               <div className="ordersOptionList">{providerOptions.map((option,index)=><button key={`${provider}-${option.integrationAccountId||''}-${option.carrierCode}-${option.code}-${index}`} onClick={()=>onCreate(option)}>
                 <div><strong>{option.carrierName} · {option.name}</strong><small>{option.integrationAccountName?`${option.integrationAccountName} · `:''}{option.billedWeightKg?`Peso facturable ${weightValueLabel(option.billedWeightKg,settings.shipping.weightUnit)} · `:''}{option.etaDays?`${option.etaDays} día${option.etaDays===1?'':'s'} · `:''}{option.code}</small></div>
                 <span className={option.price==null?'noPrice':''}>{option.price==null?'Precio no disponible':money(option.price,option.currency||'EUR')}</span>

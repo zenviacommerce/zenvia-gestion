@@ -129,8 +129,8 @@ export function isLikelySameSupplier(a: string, b: string): boolean {
 }
 
 export function extractExplicitLegalSupplier(lines: string[]): string {
-  const labelOnly = /^(?:proveedor|supplier|emisor|raz[oó]n\s+social)\s*[:.-]?\s*$/i;
-  const inlineLabel = /^(?:proveedor|supplier|emisor|raz[oó]n\s+social)\s*[:.-]\s*(.+)$/i;
+  const labelOnly = /^(?:proveedor|supplier|vendor|issuer|emisor|emitente|fornitore|fournisseur|lieferant|raz[oó]n\s+social)\s*[:.-]?\s*$/i;
+  const inlineLabel = /^(?:proveedor|supplier|vendor|issuer|emisor|emitente|fornitore|fournisseur|lieferant|raz[oó]n\s+social)\s*[:.-]\s*(.+)$/i;
 
   for (let index = 0; index < lines.length; index += 1) {
     const line = compact(lines[index]);

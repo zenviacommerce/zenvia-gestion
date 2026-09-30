@@ -66,3 +66,14 @@ test('tariff fallback does not invent expiry or fuel inclusion from unrelated do
   assert.match(tariff,/fuelSurchargeIncluded:fuelIncluded/);
   assert.match(tariff,/No se ha podido determinar el tratamiento del combustible/);
 });
+
+
+test('Envia quotes sanitize state values and quote one carrier per request',async()=>{
+  const edge=await read('supabase/functions/envia-shipping/index.ts');
+  assert.match(edge,/function enviaStateCode/);
+  assert.match(edge,/\^\[A-Z0-9\]\{2\}\$/);
+  assert.match(edge,/delete normalized\.state/);
+  assert.match(edge,/data\.stateCode\|\|data\.state_code/);
+  assert.doesNotMatch(edge,/shipment:\{type:1\}\}\),/);
+  assert.match(edge,/shipment:\{type:1,carrier\}/);
+});

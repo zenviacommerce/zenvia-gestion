@@ -271,13 +271,14 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
 
   const refresh=useCallback(async()=>{try{setOrders(await listFulfillmentOrders())}catch(e){setError(errorMessage(e,'No se pudieron cargar los pedidos.'))}},[]);
   const refreshStatus=useCallback(async()=>{try{setStatus(await getSendcloudStatus())}catch(e){setStatus({configured:false,integrations:[],message:errorMessage(e,'No se pudo comprobar Sendcloud.')})}},[]);
+  const refreshEnviaStatus=useCallback(async()=>{try{const result=await getEnviaStatus();setEnviaStatus({configured:result.configured,accounts:result.accounts||[]})}catch{setEnviaStatus({configured:false,accounts:[]})}},[]);
   const refreshTariffs=useCallback(async()=>{try{setTariffs(await listTransportTariffs())}catch{/* El precio real seleccionado seguirá disponible aunque no haya tarifa estimada. */}},[]);
   useEffect(()=>{
-    const onAgentRefresh=()=>{void Promise.all([refresh(),refreshStatus(),refreshTariffs()]);};
+    const onAgentRefresh=()=>{void Promise.all([refresh(),refreshStatus(),refreshEnviaStatus(),refreshTariffs()]);};
     window.addEventListener('zenvia:orders-refresh',onAgentRefresh);
     return()=>window.removeEventListener('zenvia:orders-refresh',onAgentRefresh);
-  },[refresh,refreshStatus,refreshTariffs]);
-  useEffect(()=>{(async()=>{setLoading(true);await Promise.all([refresh(),refreshStatus(),refreshTariffs()]);setLoading(false)})()},[refresh,refreshStatus,refreshTariffs]);
+  },[refresh,refreshStatus,refreshEnviaStatus,refreshTariffs]);
+  useEffect(()=>{(async()=>{setLoading(true);await Promise.all([refresh(),refreshStatus(),refreshEnviaStatus(),refreshTariffs()]);setLoading(false)})()},[refresh,refreshStatus,refreshEnviaStatus,refreshTariffs]);
   useEffect(()=>{let active=true;loadShippingRules({ensureDefaults:false}).then(rows=>{if(active)setShippingRules(rows.length?rows:defaultShippingRules())}).catch(()=>{if(active)setShippingRules(defaultShippingRules())});return()=>{active=false}},[]);
   useEffect(()=>{
     const asins=Array.from(new Set(orders

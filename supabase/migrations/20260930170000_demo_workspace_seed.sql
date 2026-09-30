@@ -139,10 +139,10 @@ begin
   ) values
     (v_sale_1,p_workspace_id,v_client_restaurant,v_sales_series,'standard','D-'||v_year||'-0001','draft',current_date-20,current_date+10,'EUR',412.00,0,86.52,498.52,'transfer','Venta ficticia.',
       'Restaurante La Marina Demo','B11010001','compras.marina@example.com','600000111','Paseo Marítimo 8, Cádiz','Comercial Bahía Demo SL','B12345678','administracion@example.com','600000000','Avenida del Comercio 24, Cádiz',
-      v_now-interval '20 days',v_now-interval '20 days',v_now-interval '12 days',1,'invoice','taxable'),
+      v_now-interval '20 days',null,null,1,'invoice','taxable'),
     (v_sale_2,p_workspace_id,v_client_fruit,v_sales_series,'standard','D-'||v_year||'-0002','draft',current_date-4,current_date+26,'EUR',286.00,0,60.06,346.06,'transfer','Venta ficticia pendiente.',
       'Frutas del Sur Demo','B41010002','pedidos.frutas@example.com','600000112','Calle Mercado 14, Sevilla','Comercial Bahía Demo SL','B12345678','administracion@example.com','600000000','Avenida del Comercio 24, Cádiz',
-      v_now-interval '4 days',v_now-interval '4 days',null,2,'invoice','taxable');
+      null,null,null,2,'invoice','taxable');
 
   insert into public.sales_invoice_lines(owner_id,invoice_id,product_id,position,description,quantity,unit,unit_price,discount_percent,tax_rate,line_net,tax_amount,line_total)
   values
@@ -153,11 +153,8 @@ begin
 
   -- Lines are guarded as immutable once an invoice leaves draft.
   update public.sales_invoices
-  set status='paid'
+  set status='issued'
   where id=v_sale_1 and owner_id=p_workspace_id;
-  update public.sales_invoices
-  set status='sent'
-  where id=v_sale_2 and owner_id=p_workspace_id;
 
   insert into public.fulfillment_orders(
     owner_id,sendcloud_id,order_id,order_number,integration_id,integration_name,integration_type,source_channel,source_status,

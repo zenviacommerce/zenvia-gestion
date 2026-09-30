@@ -115,7 +115,7 @@ async function invokeFunction<T>(functionName:string,body:Record<string,unknown>
         detail=String(payload?.error||payload?.message||'').trim();
       }catch{/* respuesta no JSON */}
     }
-    throw new Error(detail||error.message||'No se pudo conectar con Sendcloud.');
+    throw new Error(detail||error.message||`No se pudo conectar con ${functionName==='envia-shipping'?'Envia.com':functionName.startsWith('sendcloud')?'Sendcloud':'el servicio logístico'}.`);
   }
   if(data?.error)throw new Error(String(data.error));
   return data as T;
@@ -131,6 +131,13 @@ export async function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
   return (data||[]).map(mapRow);
 }
 export function getSendcloudStatus(){return invokeSendcloud<SendcloudStatus>({action:'status'});}
+export interface EnviaSyncResult{
+  ok:true;configured:boolean;found:number;synced:number;
+  accounts:Array<{accountId:string;accountName:string;environment:string;found:number;synced:number}>;
+  message?:string|null;
+}
+export function getEnviaStatus(){return invokeEnvia<{ok:true;configured:boolean;accounts:Array<{id:string;displayName:string;environment:string;isDefault:boolean}>}>({action:'status'});}
+export function syncEnviaShipments(months=2){return invokeEnvia<EnviaSyncResult>({action:'sync_shipments',months});}
 export async function syncSendcloudOrders(history=false,retryTracking=true,automatic=false){
   const result=await invokeSendcloud<{ok:true;synced:number;enriched?:number;history?:boolean;integrations:SendcloudIntegration[]}>({action:'sync',history,automatic});
   if(retryTracking){
@@ -145,7 +152,7 @@ export function createManualOrder(order:ManualOrderInput){return invokeSendcloud
 export async function getShippingOptions(orderId:string){
   const [sendcloudResult,enviaResult]=await Promise.allSettled([
     invokeOrderTools<{weightKg:number;options:Array<Omit<ShippingOption,'provider'|'providerName'>>;message?:string|null}>({action:'shipping_options',orderId}),
-    invokeEnvia<{configured:boolean;options:ShippingOption[];message?:string|null}>({action:'rates',orderId}),
+    invokeEnvia<{configured:boolean;options:ShippingOption[];message?:string|null;diagnostics?:Array<{account?:string;carrier?:string|null;message:string}>}>({action:'rates',orderId}),
   ]);
   const sendcloud=sendcloudResult.status==='fulfilled'?sendcloudResult.value:null;
   const envia=enviaResult.status==='fulfilled'?enviaResult.value:null;
@@ -160,7 +167,7 @@ export async function getShippingOptions(orderId:string){
     return ap-bp;
   });
   const messages=[sendcloud?.message,envia?.message].filter(Boolean).join(' · ');
-  return {weightKg:sendcloud?.weightKg??null,options,message:messages||null};
+  return {weightKg:sendcloud?.weightKg??null,options,message:messages||null,diagnostics:envia?.diagnostics||[]};
 }
 export function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){return invokeOrderTools<{ok:true;weightKg:number}>({action:'update_order',orderId,order});}
 export function validateOrderAddress(orderId:string,carrierCode='mrw'){return invokeOrderTools<OrderAddressValidation>({action:'validate_address',orderId,carrierCode});}

@@ -154,17 +154,29 @@ function parseMrwServices(text:string):TransportTariffServiceDraft[]{
 
 function fallbackProposal(text:string,fileName:string):TransportTariffProposal{
   const upper=text.toUpperCase();const mrw=/\bMRW\b/.test(upper)||/EXPEDICIONES?\s+MAÑANA/i.test(text);
-  const until=text.match(/(?:hasta|vigencia[^\n]{0,80}?hasta)(?:\s+el)?\s+(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/i)||text.match(/(\d{1,2})[\/-](\d{1,2})[\/-](20\d{2})/);
+  const until=text.match(/(?:vigencia[^\n]{0,80}?hasta|v[aá]lid[oa][^\n]{0,50}?hasta|tarifa[^\n]{0,50}?hasta)(?:\s+el)?\s+(\d{1,2})[\/-](\d{1,2})[\/-](\d{2,4})/i);
   const effectiveTo=until?isoDate(until[1],until[2],until[3]):null;
   const vatExcluded=/no\s+incluyen?\s+iva|iva\s+no\s+incluido|sin\s+iva/i.test(text);
   const vatIncluded=/iva\s+incluido/i.test(text)&&!vatExcluded;
-  const fuelMatch=text.match(/(?:plus|recargo|suplemento)[^\n]{0,60}combustible[^\n%]{0,30}(\d+(?:[.,]\d+)?)\s*%/i)||text.match(/(\d+(?:[.,]\d+)?)\s*%[^\n]{0,50}combustible/i);
+  const fuelPct=(()=>{
+    const lines=text.split(/\r?\n/).filter(line=>/combustible|fuel/i.test(line));
+    for(const line of lines){
+      for(const match of line.matchAll(/(\d+(?:[.,]\d+)?)\s*%/g)){
+        const before=line.slice(Math.max(0,(match.index||0)-28),match.index||0);
+        if(/iva|vat|impuesto/i.test(before))continue;
+        if(/combustible|fuel|plus|recargo|suplemento/i.test(line))return num(match[1]);
+      }
+    }
+    return null;
+  })();
+  const fuelExcluded=/combustible\s+no\s+incluido|plus\s+combustible\s+no\s+incluido|fuel\s+not\s+included/i.test(text);
+  const fuelIncluded=/combustible\s+incluido|fuel\s+included/i.test(text)&&!fuelExcluded;
   const services=mrw?parseMrwServices(text):[];
   return {
     carrierCode:mrw?'mrw':slug(fileName.split('.')[0])||'carrier',carrierName:mrw?'MRW':clean(fileName.replace(/\.[^.]+$/,''))||'Transportista',
-    effectiveFrom:null,effectiveTo,currencyCode:'EUR',pricesIncludeVat:vatIncluded,fuelSurchargePct:fuelMatch?num(fuelMatch[1]):null,
-    fuelSurchargeIncluded:!/combustible\s+no\s+incluido|plus\s+combustible\s+no\s+incluido/i.test(text),parserProvider:'automatic-rules',parserModel:null,
-    parserConfidence:services.length?0.86:0.45,parserNotes:[services.length?`${services.length} servicios detectados automáticamente.`:'No se detectaron tablas de peso automáticamente; revisa y añade los tramos.',vatExcluded?'El documento indica precios sin IVA.':'Revisa si los precios incluyen IVA.',/combustible\s+no\s+incluido|plus\s+combustible\s+no\s+incluido/i.test(text)?'El documento indica que el combustible no está incluido.':'Revisa el tratamiento del combustible.'],services,
+    effectiveFrom:null,effectiveTo,currencyCode:'EUR',pricesIncludeVat:vatIncluded,fuelSurchargePct:fuelPct,
+    fuelSurchargeIncluded:fuelIncluded,parserProvider:'automatic-rules',parserModel:null,
+    parserConfidence:services.length?0.86:0.45,parserNotes:[services.length?`${services.length} servicios detectados automáticamente.`:'No se detectaron tablas de peso automáticamente; revisa y añade los tramos.',vatExcluded?'El documento indica precios sin IVA.':'Revisa si los precios incluyen IVA.',fuelExcluded?'El documento indica que el combustible no está incluido.':fuelIncluded?'El documento indica que el combustible está incluido.':'No se ha podido determinar el tratamiento del combustible; revísalo.'],services,
   };
 }
 
@@ -218,6 +230,18 @@ export async function createTransportTariffDraft(file:File,proposal:TransportTar
   }catch(error){await supabase.storage.from(BUCKET).remove([path]).catch(()=>undefined);await supabase.from('transport_tariff_documents').delete().eq('id',id);throw error}
 }
 
+export async function reanalyzeTransportTariffDraft(document:TransportTariffDocument){
+  if(document.status!=='draft')throw new Error('Solo se puede reanalizar una tarifa en borrador.');
+  if(!document.sourceFilePath)throw new Error('La tarifa no conserva el documento original.');
+  const {data,error}=await supabase.storage.from(BUCKET).download(document.sourceFilePath);
+  if(error||!data)throw error||new Error('No se pudo recuperar el documento original.');
+  const file=new File([data],document.sourceFileName||'tarifa.pdf',{type:document.sourceMimeType||data.type||'application/pdf'});
+  const proposal=await parseTransportTariffDocument(file);
+  const next:TransportTariffDocument={...document,...proposal};
+  await saveTransportTariffReview(next);
+  return next;
+}
+
 export async function listTransportTariffs():Promise<TransportTariffDocument[]>{
   const {data,error}=await supabase.from('transport_tariff_documents').select('*,transport_tariff_revisions(*),transport_tariff_services(*,transport_tariff_bands(*))').order('created_at',{ascending:false});if(error)throw error;return (data||[]).map(mapDocument);
 }
@@ -225,7 +249,7 @@ export async function listTransportTariffs():Promise<TransportTariffDocument[]>{
 export async function saveTransportTariffReview(document:TransportTariffDocument){
   if(document.status!=='draft')throw new Error('Solo se pueden modificar borradores con esta operación.');
   const {data:ownerRow,error:ownerError}=await supabase.from('transport_tariff_documents').select('owner_id').eq('id',document.id).single();if(ownerError)throw ownerError;
-  const {error}=await supabase.from('transport_tariff_documents').update({carrier_code:document.carrierCode,carrier_name:document.carrierName,effective_from:document.effectiveFrom,effective_to:document.effectiveTo,currency_code:document.currencyCode,prices_include_vat:document.pricesIncludeVat,fuel_surcharge_pct:document.fuelSurchargePct,fuel_surcharge_included:document.fuelSurchargeIncluded,updated_at:new Date().toISOString()}).eq('id',document.id);if(error)throw error;
+  const {error}=await supabase.from('transport_tariff_documents').update({carrier_code:document.carrierCode,carrier_name:document.carrierName,effective_from:document.effectiveFrom,effective_to:document.effectiveTo,currency_code:document.currencyCode,prices_include_vat:document.pricesIncludeVat,fuel_surcharge_pct:document.fuelSurchargePct,fuel_surcharge_included:document.fuelSurchargeIncluded,parser_provider:document.parserProvider,parser_model:document.parserModel,parser_confidence:document.parserConfidence,parser_notes:{notes:document.parserNotes},updated_at:new Date().toISOString()}).eq('id',document.id);if(error)throw error;
   const {error:deleteError}=await supabase.from('transport_tariff_services').delete().eq('document_id',document.id);if(deleteError)throw deleteError;
   await insertServices(document.id,ownerRow.owner_id,document.carrierCode,document.services);
 }

@@ -58,3 +58,11 @@ test('unusable tariff imports are explicit and cannot be reviewed as empty tarif
   assert.match(panel,/Reanalizar/);
   assert.match(panel,/La tarifa no contiene servicios y tramos utilizables/);
 });
+
+
+test('tariff fallback does not invent expiry or fuel inclusion from unrelated document text',async()=>{
+  const tariff=await read('src/services/transportTariffs.ts');
+  assert.doesNotMatch(tariff,/\|\|text\.match\(\/\(\\d\{1,2\}\)/);
+  assert.match(tariff,/fuelSurchargeIncluded:fuelIncluded/);
+  assert.match(tariff,/No se ha podido determinar el tratamiento del combustible/);
+});

@@ -200,7 +200,7 @@ function LabelModal({order,options,tariffs,message,loading,preferredOption,onClo
   const selectOption=(option:ShippingOption)=>setSelectedKey(shippingOptionKey(option));
 
   return <div className="modalBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="modal ordersLabelModal">
-    <div className="modalHead"><div><h3>Crear etiqueta · {order.orderNumber||order.orderId}</h3><p>Compara los servicios disponibles, selecciona uno y confirma la creación de la etiqueta.</p></div><button onClick={onClose}><X size={18}/></button></div>
+    <div className="modalHead"><div><h3>Crear etiqueta · {order.orderNumber||order.orderId}</h3><p>Compara los servicios disponibles de tus proveedores logísticos, selecciona uno y confirma la creación de la etiqueta.</p></div><button onClick={onClose}><X size={18}/></button></div>
     <div className="ordersLabelBody">
       <div className="ordersLabelContext"><div><span>Peso del paquete</span><strong>{weightLabel(order,settings.shipping.weightUnit)}</strong></div><div><span>Destino</span><strong>{text(order.shippingAddress.postal_code)||'—'} · {text(order.shippingAddress.city)||text(order.shippingAddress.country_code)||'—'}</strong></div></div>
       {loading?<div className="ordersOptionsLoading"><LoaderCircle className="spin"/><span>Consultando proveedores, servicios y precios…</span></div>:<>

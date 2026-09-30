@@ -16,7 +16,7 @@ import { formatAppDate, formatAppMoney } from '../services/formatting';
 import { SortableTableHeader, useSortableTable } from '../components/SortableTableHeader';
 
 
-export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,onStatusChange,onPaymentStatusChange,onOpenFile,onDelete,onSupplierChange,onCategoryChange}:{invoices:Invoice[];suppliers:Supplier[];categories:ExpenseCategory[];onUpload:()=>void;onBulkUpload:()=>void;onStatusChange:(id:string,status:'pending'|'reviewed'|'accounted')=>Promise<void>;onPaymentStatusChange:(id:string,status:InvoicePaymentStatus,paidAt?:string|null)=>Promise<void>;onOpenFile:(invoice:Invoice)=>Promise<void>;onDelete:(invoice:Invoice)=>Promise<void>;onSupplierChange:(invoiceId:string,supplierId:string)=>Promise<void>;onCategoryChange:(invoiceId:string,categoryId:string)=>Promise<void>}){
+export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,onStatusChange,onPaymentStatusChange,onBulkPaymentStatusChange,onOpenFile,onDelete,onSupplierChange,onCategoryChange}:{invoices:Invoice[];suppliers:Supplier[];categories:ExpenseCategory[];onUpload:()=>void;onBulkUpload:()=>void;onStatusChange:(id:string,status:'pending'|'reviewed'|'accounted')=>Promise<void>;onPaymentStatusChange:(id:string,status:InvoicePaymentStatus,paidAt?:string|null)=>Promise<void>;onBulkPaymentStatusChange:(ids:string[],status:InvoicePaymentStatus,paidAt?:string|null)=>Promise<void>;onOpenFile:(invoice:Invoice)=>Promise<void>;onDelete:(invoice:Invoice)=>Promise<void>;onSupplierChange:(invoiceId:string,supplierId:string)=>Promise<void>;onCategoryChange:(invoiceId:string,categoryId:string)=>Promise<void>}){
  const {settings,preferences,patchPreferences}=useSettings();
  const money=(value:number)=>formatAppMoney(value,settings.general.currencyCode,settings.general,{minimumFractionDigits:2,maximumFractionDigits:2});
  const pageSize=preferences.pageSize;
@@ -28,6 +28,7 @@ export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,on
  const [checkedIds,setCheckedIds]=useState<Set<string>>(()=>new Set());
  const [busyId,setBusyId]=useState<string|null>(null);
  const [bulkDeleting,setBulkDeleting]=useState(false);
+ const [bulkPaying,setBulkPaying]=useState(false);
  const [page,setPage]=useState(1);
  const filtered=useMemo(()=>{
    const periodFiltered=filterInvoices(invoices,filter);
@@ -64,6 +65,7 @@ export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,on
  const averageTicket=invoiceCount?expenseTotal/invoiceCount:0;
  const supplierCount=new Set(filtered.map(invoice=>invoice.supplierId||invoice.supplierName)).size;
  const selectedRows=filtered.filter(invoice=>checkedIds.has(invoice.id));
+ const selectedUnpaid=selectedRows.filter(invoice=>invoice.paymentStatus!=='paid');
  const allFilteredSelected=filtered.length>0&&filtered.every(invoice=>checkedIds.has(invoice.id));
  const toggleChecked=(id:string,checked:boolean)=>setCheckedIds(current=>{const next=new Set(current);if(checked)next.add(id);else next.delete(id);return next;});
  const toggleAllFiltered=(checked:boolean)=>setCheckedIds(checked?new Set(filtered.map(invoice=>invoice.id)):new Set());
@@ -77,6 +79,25 @@ export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,on
    if(!confirmed)return;
    setBusyId(invoice.id);
    try{await onDelete(invoice);if(selected?.id===invoice.id)setSelected(null);setCheckedIds(current=>{const next=new Set(current);next.delete(invoice.id);return next});showSuccess('Factura eliminada correctamente.')}catch(e){showError(e instanceof Error?e.message:'No se pudo eliminar la factura.')}finally{setBusyId(null)}
+ };
+ const markSelectedPaid=async()=>{
+   if(!selectedUnpaid.length)return;
+   const paidAt=new Date().toISOString().slice(0,10);
+   const confirmed=await confirmAction({
+     title:`Marcar ${selectedUnpaid.length} factura${selectedUnpaid.length===1?'':'s'} como pagada${selectedUnpaid.length===1?'':'s'}`,
+     message:`Se marcarán como pagadas con fecha ${formatAppDate(paidAt,settings.general)}.`,
+     confirmLabel:'Marcar como pagadas',
+     tone:'default',
+     details:['El estado contable no se modificará.','La fecha de pago podrá cambiarse después desde el detalle de cada factura.'],
+   });
+   if(!confirmed)return;
+   setBulkPaying(true);
+   try{
+     await onBulkPaymentStatusChange(selectedUnpaid.map(invoice=>invoice.id),'paid',paidAt);
+     setCheckedIds(new Set());
+     showSuccess(`${selectedUnpaid.length} factura${selectedUnpaid.length===1?'':'s'} marcada${selectedUnpaid.length===1?'':'s'} como pagada${selectedUnpaid.length===1?'':'s'}.`);
+   }catch(e){showError(errorMessage(e,'No se pudieron marcar las facturas como pagadas.'))}
+   finally{setBulkPaying(false)}
  };
  const removeSelected=async()=>{
    if(!selectedRows.length)return;
@@ -125,8 +146,9 @@ export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,on
  <div className="stats expenseStats"><StatCard label="Gasto total" value={money(expenseTotal)} sub={selectionLabel} icon={<Euro/>}/><StatCard label="IVA soportado" value={money(vatTotal)} sub={selectionLabel} icon={<BadgeEuro/>}/><StatCard label="Nº de facturas" value={String(invoiceCount)} sub={selectionLabel} icon={<ReceiptText/>}/><StatCard label="Pendientes de revisar" value={String(pendingReview)} sub={pendingReview?`${pendingReview} pendiente${pendingReview===1?'':'s'}`:'Todo revisado'} icon={<Clock3/>}/><StatCard label="Pendientes de pago" value={String(unpaidCount)} sub={unpaidCount?`${unpaidCount} por pagar`:'Todo pagado'} icon={<WalletCards/>}/><StatCard label="Ticket medio" value={money(averageTicket)} sub="Media por factura" icon={<Calculator/>}/><StatCard label="Proveedores distintos" value={String(supplierCount)} sub={selectionLabel} icon={<Building2/>}/></div>
  <div className="toolbar invoiceSearchToolbar"><div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar proveedor, nº factura, categoría…"/></div><span className="filterResultCount">{filtered.length} factura{filtered.length===1?'':'s'} · {selectionLabel}</span></div>
  {filtered.length>0&&<BulkSelectionToolbar selectedCount={selectedRows.length} totalCount={filtered.length} allSelected={allFilteredSelected} onToggleAll={toggleAllFiltered} label="gastos visibles">
-   <button className="secondary dangerText" type="button" disabled={!selectedRows.length||bulkDeleting||exporting} onClick={()=>void removeSelected()}><Trash2 size={15}/> {bulkDeleting?'Eliminando…':`Eliminar seleccionados (${selectedRows.length})`}</button>
-   <button className="primary" type="button" disabled={!selectedRows.length||exporting||bulkDeleting} onClick={doExport}><Download size={15}/> Exportar seleccionados ({selectedRows.length})</button>
+   <button className="secondary" type="button" disabled={!selectedUnpaid.length||bulkPaying||bulkDeleting||exporting} onClick={()=>void markSelectedPaid()}><CheckCircle2 size={15}/> {bulkPaying?'Marcando…':`Marcar pagadas (${selectedUnpaid.length})`}</button>
+   <button className="secondary dangerText" type="button" disabled={!selectedRows.length||bulkDeleting||bulkPaying||exporting} onClick={()=>void removeSelected()}><Trash2 size={15}/> {bulkDeleting?'Eliminando…':`Eliminar seleccionados (${selectedRows.length})`}</button>
+   <button className="primary" type="button" disabled={!selectedRows.length||exporting||bulkDeleting||bulkPaying} onClick={doExport}><Download size={15}/> Exportar seleccionados ({selectedRows.length})</button>
  </BulkSelectionToolbar>}
  <section className="card tableCard">{filtered.length?<><table data-preference-table="expenses"><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allFilteredSelected} onChange={toggleAllFiltered} label={allFilteredSelected?'Deseleccionar gastos visibles':'Seleccionar gastos visibles'}/></th>{columns.map(columnHeader)}<SortableTableHeader label="Pago" sortKey="payment" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/><th className="right">Acciones</th></tr></thead><tbody>{paged.map(i=><tr key={i.id} className={`clickableRow ${checkedIds.has(i.id)?'bulkSelectedRow':''}`} onClick={()=>setSelected(i)}><td className="bulkSelectionCell" onClick={e=>e.stopPropagation()}><BulkSelectCheckbox checked={checkedIds.has(i.id)} onChange={checked=>toggleChecked(i.id,checked)} label={`Seleccionar gasto ${i.invoiceNumber==='—'?i.supplierName:i.invoiceNumber}`}/></td>{columns.map(key=>columnCell(key,i))}<td><div className="paymentActions" onClick={e=>e.stopPropagation()}><button title="Por pagar" className={i.paymentStatus!=='paid'?'paymentBtn active unpaidBtn':'paymentBtn'} onClick={()=>void changePaymentStatus(i.id,'unpaid')}>Por pagar</button><button title="Pagada" className={i.paymentStatus==='paid'?'paymentBtn active paidBtn':'paymentBtn'} onClick={()=>void changePaymentStatus(i.id,'paid')}><CheckCircle2 size={13}/> Pagada</button></div></td><td className="right"><div className="invoiceActions" onClick={e=>e.stopPropagation()}><button className="iconBtn" title="Abrir factura" disabled={!i.filePath} onClick={()=>openFile(i)}><Eye size={16}/></button><button className="iconBtn dangerIcon" title="Eliminar factura" disabled={busyId===i.id} onClick={()=>remove(i)}><Trash2 size={16}/></button></div></td></tr>)}</tbody></table><Pagination page={page} totalItems={filtered.length} pageSize={pageSize} onPageChange={setPage}/></>:<div className="emptyState large">No hay facturas para los filtros seleccionados.</div>}</section>
  <InvoiceDetailModal invoice={selected} suppliers={suppliers} categories={categories} onClose={()=>setSelected(null)} onOpenFile={openFile} onDelete={remove} onSupplierChange={changeSupplier} onCategoryChange={changeCategory} onPaymentStatusChange={changePaymentStatus} deleting={busyId===selected?.id}/>

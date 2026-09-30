@@ -661,13 +661,19 @@ export async function updateInvoiceStatus(invoiceId: string, status: 'pending' |
 }
 
 export async function updateInvoicePaymentStatus(invoiceId:string,paymentStatus:InvoicePaymentStatus,paidAt?:string|null){
+  return updateInvoicesPaymentStatus([invoiceId],paymentStatus,paidAt);
+}
+
+export async function updateInvoicesPaymentStatus(invoiceIds:string[],paymentStatus:InvoicePaymentStatus,paidAt?:string|null){
+  const ids=[...new Set(invoiceIds.filter(Boolean))];
+  if(!ids.length)return;
   const resolvedPaidAt=paymentStatus==='paid'
     ?(paidAt||new Date().toISOString().slice(0,10))
     :null;
   const {error}=await supabase.from('invoices').update({
     payment_status:paymentStatus,
     paid_at:resolvedPaidAt,
-  }).eq('id',invoiceId);
+  }).in('id',ids);
   if(error)throw error;
 }
 

@@ -121,9 +121,9 @@ begin
 
   insert into public.invoice_lines(owner_id,invoice_id,product_id,description,supplier_sku,quantity,unit,units_per_purchase,unit_price,normalized_unit_price,line_net,tax_rate,tax_amount,line_total,ai_confidence,price_update_status)
   values
-    (p_workspace_id,v_purchase_1,v_product_cups,'Vaso kraft 240 ml','VASO-K240',6000,'ud',1,0.071,0.071,426.00,21,89.46,515.46,1,'applied'),
-    (p_workspace_id,v_purchase_1,v_product_bags,'Bolsa camiseta 40x50','BOL-4050',10000,'ud',1,0.031,0.031,310.00,21,65.10,375.10,1,'applied'),
-    (p_workspace_id,v_purchase_1,v_product_tubs,'Tarrina salsa 60 ml','TAR-60',1692.3077,'ud',1,0.052,0.052,88.00,21,18.48,106.48,1,'applied'),
+    (p_workspace_id,v_purchase_1,v_product_cups,'Vaso kraft 240 ml','VASO-K240',6000,'ud',1,0.071,0.071,426.00,21,89.46,515.46,1,'confirmed'),
+    (p_workspace_id,v_purchase_1,v_product_bags,'Bolsa camiseta 40x50','BOL-4050',10000,'ud',1,0.031,0.031,310.00,21,65.10,375.10,1,'confirmed'),
+    (p_workspace_id,v_purchase_1,v_product_tubs,'Tarrina salsa 60 ml','TAR-60',1692.3077,'ud',1,0.052,0.052,88.00,21,18.48,106.48,1,'confirmed'),
     (p_workspace_id,v_purchase_2,null,'Servicio transporte nacional',null,1,'servicio',1,186,186,186,21,39.06,225.06,1,'pending'),
     (p_workspace_id,v_purchase_3,null,'Suscripción analítica mensual',null,1,'mes',1,49,49,49,0,0,49,1,'pending');
 

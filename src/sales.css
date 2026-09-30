@@ -34,3 +34,22 @@ html[data-theme='dark'] .salesReceiptStatus.paid{background:#052e2b;color:#5eead
 .salesReceiptPaymentHistory{margin:0 20px 16px;padding:12px 14px;border:1px solid var(--border,#e2e8f0);border-radius:12px;background:var(--surface-soft,#f8fafc);display:flex;flex-direction:column;gap:8px}
 .salesReceiptPaymentHistory>strong{font-size:12px}.salesReceiptPaymentHistory>div{display:flex;justify-content:space-between;gap:14px;font-size:12px;padding-top:7px;border-top:1px solid var(--border,#e2e8f0)}
 .salesReceiptActions .invoiceCollectButton{min-height:34px}
+
+/* Generic reusable right-side record detail shell. */
+.recordDrawerBackdrop{position:fixed;inset:0;z-index:95;background:#0f172a52;display:flex;justify-content:flex-end}
+.recordDrawer{width:min(620px,calc(100vw - 28px));height:100%;overflow:hidden;background:var(--surface,#fff);box-shadow:-18px 0 50px #0f172a26;display:flex;flex-direction:column}
+.recordDrawerHead{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding:22px;border-bottom:1px solid var(--border,#e2e8f0);background:var(--surface,#fff)}
+.recordDrawerHead h2{margin:5px 0 3px;font-size:22px}.recordDrawerHead p{margin:0;color:var(--text-secondary,#64748b);font-size:12px}
+.recordDrawerBody{flex:1;overflow:auto;padding:18px 22px 24px}.recordDrawerActions{display:flex;gap:8px;flex-wrap:wrap;padding:13px 22px;border-top:1px solid var(--border,#e2e8f0);background:var(--surface,#fff)}
+.recordDrawerActions button{flex:1;justify-content:center;min-width:130px}
+.recordDetailKpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-bottom:18px}
+.recordDetailKpis>div{display:flex;flex-direction:column;gap:4px;padding:11px;border-radius:11px;background:var(--surface-soft,#f8fafc)}
+.recordDetailKpis span{font-size:9px;text-transform:uppercase;letter-spacing:.04em;color:var(--text-secondary,#64748b);font-weight:800}.recordDetailKpis strong{font-size:13px}
+.recordDetailSection{margin-top:18px}.recordDetailSection h3{margin:0 0 9px;font-size:13px}.recordDetailList{border:1px solid var(--border,#e2e8f0);border-radius:12px;overflow:hidden}
+.recordDetailList>div{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;padding:10px 11px;border-top:1px solid var(--border,#e2e8f0)}
+.recordDetailList>div:first-child{border-top:0}.recordDetailList span,.recordDetailList small{font-size:11px;color:var(--text-secondary,#64748b)}.recordDetailList strong{font-size:11px;text-align:right}
+html[data-theme='dark'] .recordDrawer,html[data-theme='dark'] .recordDrawerHead,html[data-theme='dark'] .recordDrawerActions{background:#111827}
+html[data-theme='dark'] .recordDrawerHead,html[data-theme='dark'] .recordDrawerActions,html[data-theme='dark'] .recordDetailList,html[data-theme='dark'] .recordDetailList>div{border-color:#263244}
+html[data-theme='dark'] .recordDetailKpis>div{background:#0f172a}
+.salesReceiptTableCard table{width:100%}.salesReceiptTableCard tbody tr{cursor:pointer}.salesReceiptTableCard tbody tr:hover{background:var(--surface-soft,#f8fafc)}
+@media(max-width:760px){.recordDrawer{width:calc(100vw - 10px)}.recordDrawerHead{padding:17px 15px}.recordDrawerBody{padding:15px}.recordDrawerActions{padding:11px 15px}.recordDetailKpis{grid-template-columns:1fr 1fr}}

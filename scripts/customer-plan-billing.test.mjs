@@ -12,7 +12,7 @@ test('Settings exposes an admin-only Plan and billing section',async()=>{
   assert.match(settings,/Plan actual/);
   assert.match(settings,/Uso del plan/);
   assert.match(settings,/Planes disponibles/);
-  assert.match(settings,/Solicitar cambio/);
+  assert.match(settings,/Contratar con PayPal/);
   assert.match(settings,/active&&active\.id==='billing'\?<BillingSection/);
 });
 
@@ -22,8 +22,8 @@ test('customer billing overview is loaded through an authenticated server endpoi
     read('supabase/functions/customer-billing/index.ts'),
   ]);
   assert.match(service,/functions\.invoke\('customer-billing'/);
-  assert.match(service,/createSupportTicket/);
-  assert.match(service,/Cambio de plan/);
+  assert.match(service,/startCustomerPayPalCheckout/);
+  assert.match(service,/customer-billing-api/);
   assert.match(backend,/auth\.getUser\(token\)/);
   assert.match(backend,/caller\.role!=='admin'/);
   assert.match(backend,/from\('billing_plans'\)/);

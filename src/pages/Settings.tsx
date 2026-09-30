@@ -44,7 +44,7 @@ import { downloadSettingsExport, previewSettingsReset, resetAllSettingsToDefault
 import { DASHBOARD_KPI_DEFAULTS, TABLE_COLUMN_DEFAULTS, type PreferenceTableKey } from '../services/uiPreferences';
 import { formatAppDateTime, formatAppMoney } from '../services/formatting';
 import type { AccessProfile } from '../services/access';
-import { loadCustomerBillingOverview, requestCustomerPlanChange, type BillingCycle, type CustomerBillingOverview, type CustomerBillingPlan } from '../services/billing';
+import { loadCustomerBillingOverview, loadCustomerSubscriptionInvoices, startCustomerPayPalCheckout, type BillingCycle, type CustomerBillingOverview, type CustomerBillingPlan, type CustomerSubscriptionInvoice } from '../services/billing';
 
 type SettingsSectionId =
   | 'general'
@@ -349,10 +349,11 @@ function BillingSection({access}:{access:AccessProfile}){
   const [error,setError]=useState('');
   const [cycle,setCycle]=useState<BillingCycle>('monthly');
   const [requesting,setRequesting]=useState<string|null>(null);
+  const [subscriptionInvoices,setSubscriptionInvoices]=useState<CustomerSubscriptionInvoice[]>([]);
 
   const load=async()=>{
     setLoading(true);setError('');
-    try{setOverview(await loadCustomerBillingOverview(access));}
+    try{const [nextOverview,nextInvoices]=await Promise.all([loadCustomerBillingOverview(access),loadCustomerSubscriptionInvoices(access)]);setOverview(nextOverview);setSubscriptionInvoices(nextInvoices);}
     catch(e){
       const message=e instanceof Error?e.message:'No se pudo cargar el plan y la facturación.';
       setError(message);showError(message);
@@ -363,11 +364,9 @@ function BillingSection({access}:{access:AccessProfile}){
   const requestChange=async(plan:CustomerBillingPlan)=>{
     setRequesting(plan.planKey);
     try{
-      const result=await requestCustomerPlanChange({access,targetPlan:plan,cycle});
-      showSuccess(`Solicitud para cambiar a ${plan.name} enviada a soporte.`);
-      if(!result.notification.delivered)showInfo('La solicitud quedó registrada, aunque el aviso por email no pudo enviarse.');
-    }catch(e){showError(e instanceof Error?e.message:'No se pudo solicitar el cambio de plan.')}
-    finally{setRequesting(null)}
+      const result=await startCustomerPayPalCheckout({access,targetPlan:plan,cycle});
+      window.location.assign(result.approveUrl);
+    }catch(e){showError(e instanceof Error?e.message:'No se pudo iniciar el pago con PayPal.');setRequesting(null)}
   };
 
   if(loading)return <section className="settingsSectionCard"><div className="settingsSectionHero"><div className="settingsSectionIcon"><CreditCard size={22}/></div><div><h2>Plan y facturación</h2><p>Cargando tu suscripción…</p></div></div><div className="settingsInlineLoading">Cargando plan y consumo…</div></section>;
@@ -402,7 +401,7 @@ function BillingSection({access}:{access:AccessProfile}){
         {currentYearly!=null&&<small>{billingMoney(currentYearly)} / año</small>}
       </div>
       <div className="billingMeta">
-        <div><span>Proveedor</span><strong>{overview.subscription.billingProvider==='stripe'?'Stripe':'Gestión manual'}</strong></div>
+        <div><span>Proveedor</span><strong>{overview.subscription.billingProvider==='paypal'?'PayPal':overview.subscription.billingProvider==='stripe'?'Stripe':'Gestión manual'}</strong></div>
         <div><span>Próxima renovación</span><strong>{billingDate(overview.subscription.currentPeriodEndsAt)}</strong></div>
         {overview.subscription.trialEndsAt&&<div><span>Fin de prueba</span><strong>{billingDate(overview.subscription.trialEndsAt)}</strong></div>}
         {overview.subscription.cancelAtPeriodEnd&&<div className="billingCancelNotice"><span>Cancelación</span><strong>Al final del periodo</strong></div>}
@@ -438,12 +437,21 @@ function BillingSection({access}:{access:AccessProfile}){
           <p>{plan.description}</p>
           <div className="billingPlanPrice"><strong>{billingMoney(price)}</strong>{price!=null&&<span>{cycle==='yearly'?'/ año':'/ mes'}</span>}</div>
           {features.length>0&&<ul>{features.map(feature=><li key={feature}><ShieldCheck size={14}/>{feature}</li>)}</ul>}
-          <button type="button" className={currentPlan?'secondary':'primary'} disabled={currentPlan||requesting!==null} onClick={()=>void requestChange(plan)}>
-            {currentPlan?'Plan actual':requesting===plan.planKey?'Enviando…':'Solicitar cambio'}
+          <button type="button" className={currentPlan?'secondary':'primary'} disabled={(currentPlan&&overview.subscription.billingProvider==='paypal'&&overview.subscription.status==='active')||requesting!==null} onClick={()=>void requestChange(plan)}>
+            {requesting===plan.planKey?'Abriendo PayPal…':currentPlan&&overview.subscription.billingProvider==='paypal'&&overview.subscription.status==='active'?'Plan actual':currentPlan?'Activar con PayPal':'Contratar con PayPal'}
           </button>
         </article>;
       })}</div>:<div className="settingsEmptySection"><CreditCard size={22}/><div><strong>No hay planes públicos disponibles todavía</strong><span>Cuando se publiquen planes desde ZENVIA Platform aparecerán aquí automáticamente con sus precios, límites y funcionalidades.</span></div></div>}
-      <div className="billingCheckoutNote"><ShieldCheck size={16}/><span>Hasta integrar el cobro automático, “Solicitar cambio” crea una petición de soporte. El plan no cambia hasta que ZENVIA confirme la contratación. Cuando Stripe esté conectado, este flujo pasará a checkout automático.</span></div>
+      <div className="billingCheckoutNote"><ShieldCheck size={16}/><span>El alta se completa en PayPal. ZENVIA no almacena los datos de pago; el plan se activa cuando PayPal confirma la suscripción mediante webhook.</span></div>
+    </div>
+
+    <div className="settingsSubsection">
+      <h3>Facturas de la suscripción</h3>
+      <p className="settingsHelpText">Aquí aparecerán las facturas emitidas por ZENVIA asociadas a tu suscripción.</p>
+      {subscriptionInvoices.length?<div className="billingInvoiceHistory">{subscriptionInvoices.map(invoice=><article className="billingInvoiceHistoryRow" key={invoice.id}>
+        <div><strong>{invoice.invoice_number||'Pendiente de emisión'}</strong><span>{billingDate(invoice.issue_date)}</span></div>
+        <div><span>{invoice.status}</span><strong>{new Intl.NumberFormat('es-ES',{style:'currency',currency:invoice.currency}).format(invoice.total_cents/100)}</strong></div>
+      </article>)}</div>:<div className="settingsEmptySection"><ReceiptText size={22}/><div><strong>Aún no hay facturas de suscripción</strong><span>Se mostrarán aquí cuando se emitan tras los cobros confirmados.</span></div></div>}
     </div>
   </section>;
 }

@@ -1,6 +1,5 @@
 import { supabase } from './supabase';
 import type { AccessProfile, WorkspaceEntitlement } from './access';
-import { createSupportTicket } from './support';
 
 export type BillingCycle='monthly'|'yearly';
 
@@ -144,28 +143,42 @@ export async function loadCustomerBillingOverview(access:AccessProfile):Promise<
   };
 }
 
-export async function requestCustomerPlanChange(input:{
+const PLATFORM_CONTROL_PLANE_URL=(import.meta.env.VITE_PLATFORM_CONTROL_PLANE_URL||'https://ucokhtztxozxcikrmidv.supabase.co').replace(/\/$/,'');
+
+async function invokePlatformBilling<T>(action:string,workspaceId:string,payload:Record<string,unknown>={}):Promise<T>{
+  const {data:{session},error:sessionError}=await supabase.auth.getSession();
+  if(sessionError||!session?.access_token)throw new Error('Tu sesión ha caducado. Vuelve a iniciar sesión.');
+  const response=await fetch(`${PLATFORM_CONTROL_PLANE_URL}/functions/v1/customer-billing-api`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':`Bearer ${session.access_token}`},
+    body:JSON.stringify({action,workspaceId,...payload}),
+  });
+  const data=await response.json().catch(()=>({}));
+  if(!response.ok||data?.error)throw new Error(String(data?.error||'No se pudo completar la operación de facturación.'));
+  return data as T;
+}
+
+export async function startCustomerPayPalCheckout(input:{
   access:AccessProfile;
   targetPlan:CustomerBillingPlan;
   cycle:BillingCycle;
 }){
   if(input.targetPlan.planKey==='internal'||!input.targetPlan.isPublic)throw new Error('El plan seleccionado no está disponible para contratación.');
-  if(input.targetPlan.planKey===input.access.planKey)throw new Error('Ese ya es tu plan actual.');
-  const cycleLabel=input.cycle==='yearly'?'anual':'mensual';
   const price=input.cycle==='yearly'?input.targetPlan.yearlyPriceCents:input.targetPlan.monthlyPriceCents;
-  const priceText=price==null?'Precio pendiente de confirmación':new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(price/100);
-  return createSupportTicket({
-    type:'request',
-    subject:`Cambio de plan: ${input.access.planName} → ${input.targetPlan.name}`,
-    description:[
-      'Solicitud de cambio de plan desde ZENVIA Gestión.',
-      `Empresa: ${input.access.workspaceName||input.access.workspaceId}`,
-      `Plan actual: ${input.access.planName} (${input.access.planKey})`,
-      `Plan solicitado: ${input.targetPlan.name} (${input.targetPlan.planKey})`,
-      `Modalidad: ${cycleLabel}`,
-      `Precio mostrado: ${priceText}`,
-      '',
-      'Hasta que la contratación/pago quede confirmado, el plan actual permanece sin cambios.',
-    ].join('\n'),
-  });
+  if(price==null)throw new Error('Este plan no tiene precio configurado para la modalidad seleccionada.');
+  return invokePlatformBilling<{ok:true;subscriptionId:string;approveUrl:string;planKey:string;cycle:BillingCycle;mode:'sandbox'|'live'}>(
+    'checkout',
+    input.access.workspaceId,
+    {planKey:input.targetPlan.planKey,cycle:input.cycle},
+  );
+}
+
+export type CustomerSubscriptionInvoice={
+  id:string;invoice_number:string|null;status:string;issue_date:string;period_start:string|null;period_end:string|null;
+  currency:string;subtotal_cents:number;tax_cents:number;total_cents:number;created_at:string;
+};
+
+export async function loadCustomerSubscriptionInvoices(access:AccessProfile){
+  const result=await invokePlatformBilling<{invoices:CustomerSubscriptionInvoice[]}>('invoices',access.workspaceId);
+  return Array.isArray(result.invoices)?result.invoices:[];
 }

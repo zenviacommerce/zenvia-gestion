@@ -4,10 +4,10 @@ import test from 'node:test';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 
-test('Envia uses one multicarrier rate request as the primary comparison source',async()=>{
+test('Envia quotes each real carrier independently for an unambiguous comparison',async()=>{
   const edge=await read('supabase/functions/envia-shipping/index.ts');
-  assert.match(edge,/shipment:\{type:1\}/);
-  assert.match(edge,/Envia multicarrier rate failed; using per-carrier fallback/);
+  assert.match(edge,/shipment:\{type:1,carrier\}/);
+  assert.doesNotMatch(edge,/Envia multicarrier rate failed; using per-carrier fallback/);
   assert.match(edge,/carrierDescription/);
   assert.match(edge,/serviceDescription/);
 });

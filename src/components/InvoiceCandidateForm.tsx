@@ -15,15 +15,18 @@ const numeric=(value:string)=>{
 export function InvoiceCandidateForm({candidate,categories,onChange}:Props){
   const set=<K extends keyof InvoiceImportCandidate>(key:K,value:InvoiceImportCandidate[K])=>onChange({...candidate,[key]:value});
   const categoryOptions=categories.map(category=>({value:category.id,label:category.name,searchText:category.name}));
+  const currency=String(candidate.currency||'EUR').toUpperCase();
+  const currencyOptions=['EUR','USD','GBP','CHF','CAD','AUD','JPY','CNY','SGD','HKD','SEK','NOK','DKK','PLN'].map(code=>({value:code,label:code,searchText:code}));
   return <div className="invoiceFormGrid">
     <label>Proveedor *<input value={candidate.supplierName} onChange={e=>set('supplierName',e.target.value)} placeholder="Ej. MRW"/></label>
     <label>Nº de factura<input value={candidate.invoiceNumber} onChange={e=>set('invoiceNumber',e.target.value)} placeholder="FV-2026-001"/></label>
     <label>Fecha *<input type="date" value={candidate.invoiceDate} onChange={e=>set('invoiceDate',e.target.value)}/></label>
+    <label>Moneda<SearchableSelect value={currency} options={currencyOptions} onChange={value=>set('currency',value||'EUR')} placeholder="EUR" searchPlaceholder="Buscar moneda…" ariaLabel="Moneda de la factura"/></label>
     <label>Categoría<SearchableSelect value={candidate.categoryId||''} options={categoryOptions} onChange={value=>set('categoryId',value||undefined)} allowEmpty emptyLabel="Sin categoría" placeholder="Sin categoría" searchPlaceholder="Buscar categoría…" ariaLabel="Categoría de la factura"/></label>
-    <label>Base imponible (€)<input type="number" step="0.01" value={candidate.subtotal} onChange={e=>set('subtotal',numeric(e.target.value))}/></label>
-    <label>IVA (€)<input type="number" step="0.01" value={candidate.vat} onChange={e=>set('vat',numeric(e.target.value))}/></label>
-    <label>Recargo equivalencia (€)<input type="number" step="0.01" value={candidate.equivalenceSurcharge} onChange={e=>set('equivalenceSurcharge',numeric(e.target.value))}/></label>
-    <label>Retención (€)<input type="number" step="0.01" value={candidate.withholding} onChange={e=>set('withholding',numeric(e.target.value))}/></label>
-    <label>Total (€)<input type="number" step="0.01" value={candidate.total} onChange={e=>set('total',numeric(e.target.value))}/></label>
+    <label>{`Base imponible (${currency})`}<input type="number" step="0.01" value={candidate.subtotal} onChange={e=>set('subtotal',numeric(e.target.value))}/></label>
+    <label>{`IVA (${currency})`}<input type="number" step="0.01" value={candidate.vat} onChange={e=>set('vat',numeric(e.target.value))}/></label>
+    <label>{`Recargo equivalencia (${currency})`}<input type="number" step="0.01" value={candidate.equivalenceSurcharge} onChange={e=>set('equivalenceSurcharge',numeric(e.target.value))}/></label>
+    <label>{`Retención (${currency})`}<input type="number" step="0.01" value={candidate.withholding} onChange={e=>set('withholding',numeric(e.target.value))}/></label>
+    <label>{`Total (${currency})`}<input type="number" step="0.01" value={candidate.total} onChange={e=>set('total',numeric(e.target.value))}/></label>
   </div>;
 }

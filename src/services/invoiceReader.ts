@@ -3,6 +3,7 @@ import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import type { ExpenseCategory, NewInvoiceLineInput } from '../types';
 import { sanitizeDatabaseText, sanitizeDatabaseSingleLine } from './textSanitizer';
 import { extractInvoiceDate } from './invoiceDateExtractor';
+import { detectInvoiceCurrency } from './invoiceCurrency';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -15,6 +16,7 @@ export interface InvoiceReadResult {
   vat: number;
   withholding: number;
   total: number;
+  currency?: string;
   lines: NewInvoiceLineInput[];
   text: string;
   confidence: number;
@@ -169,6 +171,7 @@ export function parseInvoiceText(text: string, categories: ExpenseCategory[], us
 
   const categoryId = inferCategoryId(categories, fullText, supplierName);
   const extractedLines = extractLines(lines);
+  const currencyEvidence=detectInvoiceCurrency(fullText);
 
   // Confianza por evidencias, no por "campos truthy". Un IVA 0 es perfectamente
   // válido y no debe penalizar facturas internacionales, inversión del sujeto pasivo
@@ -191,7 +194,7 @@ export function parseInvoiceText(text: string, categories: ExpenseCategory[], us
   if(usedOcr)confidence-=.03;
   confidence=Math.min(.99,Math.max(.20,confidence));
 
-  return { supplierName, invoiceNumber, invoiceDate, categoryId, subtotal, vat, withholding, total, lines: extractedLines, text: fullText, confidence, usedOcr };
+  return { supplierName, invoiceNumber, invoiceDate, categoryId, subtotal, vat, withholding, total, currency:currencyEvidence?.currency, lines: extractedLines, text: fullText, confidence, usedOcr };
 }
 
 async function extractPdfText(file: File): Promise<{ text: string; pdf: any }> {
@@ -364,6 +367,7 @@ function mergeReadResults(primary:InvoiceReadResult,secondary:InvoiceReadResult)
   const vat=primary.vat!==0||primaryZeroVatIsConsistent?primary.vat:secondary.vat;
   const withholding=primary.withholding||secondary.withholding;
   const lines=primary.lines.length>=secondary.lines.length?primary.lines:secondary.lines;
+  const currency=primary.currency||secondary.currency;
   const merged=parseInvoiceText(
     [
       supplierName?'Proveedor: '+supplierName:'',
@@ -386,6 +390,7 @@ function mergeReadResults(primary:InvoiceReadResult,secondary:InvoiceReadResult)
     vat,
     withholding,
     total,
+    currency,
     lines,
     confidence:Math.max(primary.confidence,secondary.confidence,merged.confidence),
     usedOcr:primary.usedOcr||secondary.usedOcr,

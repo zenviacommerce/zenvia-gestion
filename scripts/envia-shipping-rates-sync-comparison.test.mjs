@@ -134,3 +134,10 @@ test('label modal restores a preferred selection and explicit create action',asy
   assert.match(css,/ordersComparisonRow\.selected/);
   assert.match(page,/Number\(option\.price\)>0/,'zero-cost placeholders must not become the cheapest priced recommendation');
 });
+
+
+test('Sendcloud unstamped zero-cost placeholder is excluded from parcel comparison',async()=>{
+  const orders=await read('src/services/orders.ts');
+  assert.match(orders,/Number\(option\.price\)===0/);
+  assert.match(orders,/unstamped\|sin franqueo\|unfranked/);
+});

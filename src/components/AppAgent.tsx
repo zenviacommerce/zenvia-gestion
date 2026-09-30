@@ -23,11 +23,11 @@ export function AppAgent({
   const [busy,setBusy]=useState(false);
   const endRef=useRef<HTMLDivElement|null>(null);
 
-  const suggestions=useMemo(()=>[
-    '¿Qué tengo pendiente ahora?',
-    'Sincroniza los pedidos',
-    'Crea un proveedor nuevo',
-  ],[currentPage]);
+  const suggestions=useMemo(()=>{
+    if(currentPage==='amazon')return ['¿Cuál es el producto más vendido en Amazon?','Resumen de Amazon este mes','¿Cómo funciona Amazon Analytics?'];
+    if(currentPage==='invoices')return ['¿Qué facturas tengo por pagar?','¿Qué gastos tengo pendientes?','¿Cómo funciona Gastos?'];
+    return ['¿Qué tengo pendiente ahora?','¿Cómo funciona la aplicación?','¿Cuál es el producto más vendido en Amazon?'];
+  },[currentPage]);
 
   const send=async(text=input)=>{
     const value=text.trim();

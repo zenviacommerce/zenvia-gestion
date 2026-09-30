@@ -76,6 +76,115 @@ function inDateRange(document:TransportTariffDocument,order:FulfillmentOrder){
   return (!document.effectiveFrom||raw>=document.effectiveFrom)&&(!document.effectiveTo||raw<=document.effectiveTo);
 }
 
+const tariffKey=(value:unknown)=>clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+function destinationZone(order:FulfillmentOrder){
+  const country=clean(order.shippingAddress?.country_code).toUpperCase();
+  const postal=clean(order.shippingAddress?.postal_code).replace(/\s+/g,'');
+  if(country==='ES'){
+    if(/^07\d{3}$/.test(postal))return 'balearic';
+    if(/^(35|38)\d{3}$/.test(postal))return 'canary';
+    if(/^51\d{3}$/.test(postal))return 'ceuta';
+    if(/^52\d{3}$/.test(postal))return 'melilla';
+    return 'peninsular';
+  }
+  if(country==='PT')return 'peninsular';
+  return '';
+}
+function matchingBand(service:TransportTariffDocument['services'][number],order:FulfillmentOrder){
+  if(order.weightKg==null||!Number.isFinite(order.weightKg)||order.weightKg<=0)return null;
+  const country=clean(order.shippingAddress?.country_code).toUpperCase();
+  const countryBands=service.bands.filter(band=>band.countryCode===country);
+  if(!countryBands.length)return null;
+  const desiredZone=destinationZone(order);
+  let zoneBands=desiredZone?countryBands.filter(band=>{
+    const code=tariffKey(band.zoneCode),name=tariffKey(band.zoneName);
+    if(desiredZone==='balearic')return /balear|baleares|illes-balears/.test(code+' '+name);
+    if(desiredZone==='canary')return /canar/.test(code+' '+name);
+    if(desiredZone==='ceuta')return /ceuta/.test(code+' '+name);
+    if(desiredZone==='melilla')return /melilla/.test(code+' '+name);
+    return /peninsular|peninsula/.test(code+' '+name);
+  }):[];
+  if(!zoneBands.length){
+    const distinct=[...new Set(countryBands.map(band=>tariffKey(band.zoneCode||band.zoneName)))];
+    if(distinct.length!==1)return null;
+    zoneBands=countryBands;
+  }
+  const weight=order.weightKg;
+  return zoneBands.sort((a,b)=>(a.maxWeightKg??Number.MAX_VALUE)-(b.maxWeightKg??Number.MAX_VALUE))
+    .find(band=>weight>=(band.minWeightKg||0)&& (band.maxWeightKg==null||weight<=band.maxWeightKg))||null;
+}
+function serviceScore(document:TransportTariffDocument,service:TransportTariffDocument['services'][number],option:ShippingOption){
+  const carrierCandidates=[option.carrierCode,option.carrierName].map(tariffKey).filter(Boolean);
+  const docCarrier=[document.carrierCode,document.carrierName].map(tariffKey).filter(Boolean);
+  const externalProvider=tariffKey(service.externalProvider);
+  const providerMatch=document.carrierCode==='envia'||externalProvider==='envia'
+    ||carrierCandidates.some(candidate=>docCarrier.some(value=>value===candidate||value.includes(candidate)||candidate.includes(value)))
+    ||carrierCandidates.some(candidate=>externalProvider&&(candidate===externalProvider||candidate.includes(externalProvider)||externalProvider.includes(candidate)));
+  if(!providerMatch)return -1;
+
+  const optionCodes=[option.code,option.name].map(tariffKey).filter(Boolean);
+  const serviceCodes=[service.externalServiceCode,service.canonicalServiceKey,service.serviceName].map(tariffKey).filter(Boolean);
+  if(option.code&&service.externalServiceCode&&tariffKey(option.code)===tariffKey(service.externalServiceCode))return 100;
+  if(optionCodes.some(value=>serviceCodes.includes(value)))return 80;
+  if(optionCodes.some(value=>serviceCodes.some(candidate=>value.length>=4&&candidate.length>=4&&(value.includes(candidate)||candidate.includes(value)))))return 55;
+  // If a carrier tariff only contains one service, allow that service as a safe
+  // carrier-level estimate. Never do this for multi-carrier Envia documents.
+  if(document.carrierCode!=='envia'&&document.services.length===1)return 20;
+  return -1;
+}
+
+export interface ContractedTariffComparison extends ShippingPricePreview{
+  documentId:string;
+  documentName:string;
+  matchedServiceCode:string;
+}
+
+export function estimateTransportTariffForOption(order:FulfillmentOrder,tariffs:TransportTariffDocument[],option:ShippingOption,vatRate=21):ContractedTariffComparison|null{
+  if(order.weightKg==null||!Number.isFinite(order.weightKg)||order.weightKg<=0)return null;
+  const candidates=tariffs
+    .filter(document=>(document.status==='active'||document.status==='superseded')&&inDateRange(document,order)&&document.services.length>0)
+    .flatMap(document=>{
+      const orderDate=(order.orderCreatedAt||new Date().toISOString()).slice(0,10);
+      const revision=(document.revisions||[]).filter(item=>item.effectiveFrom<=orderDate).sort((a,b)=>b.effectiveFrom.localeCompare(a.effectiveFrom))[0];
+      const config=(revision?.snapshot||document) as TransportTariffDocument;
+      return config.services.map(service=>({document,config,service,score:serviceScore(document,service,option)}));
+    })
+    .filter(item=>item.score>=0)
+    .sort((a,b)=>b.score-a.score);
+
+  for(const item of candidates){
+    const band=matchingBand(item.service,order);
+    if(!band||band.basePrice==null)continue;
+    let base=band.basePrice;
+    if(band.maxWeightKg==null&&band.extraKgPrice!=null&&order.weightKg>band.minWeightKg){
+      base+=Math.ceil(order.weightKg-band.minWeightKg)*band.extraKgPrice;
+    }
+    const fuelPct=item.config.fuelSurchargeIncluded?0:(item.config.fuelSurchargePct??0);
+    const priced=base*(1+fuelPct/100);
+    let netAmount:number,totalAmount:number,taxAmount:number;
+    if(item.config.pricesIncludeVat){
+      totalAmount=priced;netAmount=priced/(1+vatRate/100);taxAmount=totalAmount-netAmount;
+    }else{
+      netAmount=priced;taxAmount=netAmount*(vatRate/100);totalAmount=netAmount+taxAmount;
+    }
+    const round=(value:number)=>Math.round((value+Number.EPSILON)*100)/100;
+    return {
+      totalAmount:round(totalAmount),
+      netAmount:round(netAmount),
+      taxAmount:round(taxAmount),
+      currency:item.config.currencyCode||'EUR',
+      carrierName:option.carrierName||option.carrierCode,
+      serviceName:item.service.serviceName,
+      source:'tariff_estimate',
+      note:item.score<50?'Estimación por tarifa del transportista':'Tarifa contratada asociada al servicio',
+      documentId:item.document.id,
+      documentName:item.document.carrierName,
+      matchedServiceCode:item.service.externalServiceCode||item.service.canonicalServiceKey,
+    };
+  }
+  return null;
+}
+
 export function calculateDefaultShippingPreview(order:FulfillmentOrder,tariffs:TransportTariffDocument[],carrierCode='',vatRate=21):ShippingPricePreview|null{
   if(!clean(carrierCode).toLowerCase().includes('mrw')||order.weightKg==null)return null;
   const country=clean(order.shippingAddress?.country_code).toUpperCase();

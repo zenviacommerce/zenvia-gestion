@@ -2,6 +2,7 @@ import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
 import type { ExpenseCategory, NewInvoiceLineInput } from '../types';
 import { sanitizeDatabaseText, sanitizeDatabaseSingleLine } from './textSanitizer';
+import { extractInvoiceDate } from './invoiceDateExtractor';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = pdfWorker;
 
@@ -44,28 +45,6 @@ function moneyTokens(line: string): string[] {
 function lastMoney(line: string): number {
   const values = moneyTokens(line);
   return parseMoney(values.at(-1));
-}
-
-function validCalendarDate(year:number,month:number,day:number){
-  if(year<2000||year>2100||month<1||month>12||day<1||day>31)return false;
-  const date=new Date(Date.UTC(year,month-1,day));
-  return date.getUTCFullYear()===year&&date.getUTCMonth()===month-1&&date.getUTCDate()===day;
-}
-
-function parseDate(value: string): string {
-  // Los PDF/OCR separan a menudo los componentes con espacios: "24 / 09 / 2026".
-  const iso = value.match(/\b(20\d{2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*(\d{1,2})\b/);
-  if (iso) {
-    const year=Number(iso[1]),month=Number(iso[2]),day=Number(iso[3]);
-    if(validCalendarDate(year,month,day))return `${iso[1]}-${iso[2].padStart(2, '0')}-${iso[3].padStart(2, '0')}`;
-  }
-  const es = value.match(/\b(\d{1,2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*(20\d{2}|\d{2})\b/);
-  if (!es) return '';
-  const year = Number(es[3].length === 2 ? `20${es[3]}` : es[3]);
-  const day = Number(es[1]);
-  const month = Number(es[2]);
-  if (!validCalendarDate(year,month,day)) return '';
-  return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
 function findAmount(lines: string[], terms: RegExp, excluded?: RegExp): number {
@@ -177,13 +156,7 @@ export function parseInvoiceText(text: string, categories: ExpenseCategory[], us
   const supplierName = extractSupplier(lines);
   const invoiceNumber = extractInvoiceNumber(lines, fullText);
 
-  let invoiceDate = '';
-  for (const line of lines) {
-    if (!/fecha|date/i.test(line)) continue;
-    invoiceDate = parseDate(line);
-    if (invoiceDate) break;
-  }
-  if (!invoiceDate) invoiceDate = parseDate(fullText);
+  const invoiceDate = extractInvoiceDate(fullText);
 
   const subtotal = findAmount(lines, /base\s+imponible|subtotal|importe\s+neto|importe\s+bruto|total\s+neto/i);
   const vat = findAmount(lines, /\biva\b|i\.v\.a\.|vat|\bimpuestos\b/i, /cif|nif|vat\s*(?:id|number|no)/i);
@@ -196,8 +169,27 @@ export function parseInvoiceText(text: string, categories: ExpenseCategory[], us
 
   const categoryId = inferCategoryId(categories, fullText, supplierName);
   const extractedLines = extractLines(lines);
-  const hits = [supplierName, invoiceNumber, invoiceDate, subtotal, vat, total].filter(Boolean).length;
-  const confidence = Math.min(0.98, Math.max(0.25, hits / 6 - (usedOcr ? 0.04 : 0)));
+
+  // Confianza por evidencias, no por "campos truthy". Un IVA 0 es perfectamente
+  // válido y no debe penalizar facturas internacionales, inversión del sujeto pasivo
+  // o servicios exentos.
+  const hasTaxEvidence=/\b(?:iva|i\.v\.a\.|vat|tax|impuesto|reverse\s+charge|tax\s+exempt|exento)\b/i.test(fullText);
+  const hasInvoiceMarker=/\b(?:factura|invoice|rechnung|fattura|fatura)\b/i.test(fullText);
+  const fiscalRelation=subtotal>0&&total>0&&(
+    Math.abs((subtotal+vat-withholding)-total)<=Math.max(.08,total*.01)
+    || (vat===0&&Math.abs(subtotal-total)<=Math.max(.08,total*.01))
+  );
+  let confidence=.10;
+  if(supplierName)confidence+=.15;
+  if(invoiceNumber)confidence+=.15;
+  if(invoiceDate)confidence+=.18;
+  if(total>0)confidence+=.18;
+  if(subtotal>0)confidence+=.08;
+  if(hasTaxEvidence)confidence+=.06;
+  if(hasInvoiceMarker)confidence+=.05;
+  if(fiscalRelation)confidence+=.08;
+  if(usedOcr)confidence-=.03;
+  confidence=Math.min(.99,Math.max(.20,confidence));
 
   return { supplierName, invoiceNumber, invoiceDate, categoryId, subtotal, vat, withholding, total, lines: extractedLines, text: fullText, confidence, usedOcr };
 }
@@ -353,12 +345,72 @@ async function ocrImage(file: File, onProgress?: (message: string) => void): Pro
   }
 }
 
+function shouldCrossCheckWithOcr(result:InvoiceReadResult){
+  return !result.supplierName
+    || !result.invoiceNumber
+    || !result.invoiceDate
+    || !(result.total>0)
+    || result.confidence<.80;
+}
+
+function mergeReadResults(primary:InvoiceReadResult,secondary:InvoiceReadResult):InvoiceReadResult{
+  const supplierName=primary.supplierName||secondary.supplierName;
+  const invoiceNumber=primary.invoiceNumber||secondary.invoiceNumber;
+  const invoiceDate=primary.invoiceDate||secondary.invoiceDate;
+  const subtotal=primary.subtotal>0?primary.subtotal:secondary.subtotal;
+  const vat=primary.vat!==0||primary.subtotal>0?primary.vat:secondary.vat;
+  const withholding=primary.withholding||secondary.withholding;
+  const total=primary.total>0?primary.total:secondary.total;
+  const lines=primary.lines.length>=secondary.lines.length?primary.lines:secondary.lines;
+  const merged=parseInvoiceText(
+    [
+      supplierName?'Proveedor: '+supplierName:'',
+      invoiceNumber?'Factura: '+invoiceNumber:'',
+      invoiceDate?'Fecha factura: '+invoiceDate:'',
+      subtotal>0?'Subtotal: '+subtotal.toFixed(2):'',
+      vat||vat===0?'IVA: '+vat.toFixed(2):'',
+      total>0?'Total factura: '+total.toFixed(2):'',
+    ].filter(Boolean).join('\n'),
+    [],
+    primary.usedOcr||secondary.usedOcr,
+  );
+  return {
+    ...primary,
+    supplierName,
+    invoiceNumber,
+    invoiceDate,
+    categoryId:primary.categoryId||secondary.categoryId,
+    subtotal,
+    vat,
+    withholding,
+    total,
+    lines,
+    confidence:Math.max(primary.confidence,secondary.confidence,merged.confidence),
+    usedOcr:primary.usedOcr||secondary.usedOcr,
+  };
+}
+
 export async function readInvoiceDocument(file: File, categories: ExpenseCategory[], onProgress?: (message: string) => void): Promise<InvoiceReadResult> {
   onProgress?.('Analizando documento…');
   if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
     const { text, pdf } = await extractPdfText(file);
     const enoughText = text.replace(/\s/g, '').length >= 80;
-    if (enoughText) return parseInvoiceText(text, categories, false);
+    if (enoughText) {
+      const nativeRead=parseInvoiceText(text,categories,false);
+      if(!shouldCrossCheckWithOcr(nativeRead))return nativeRead;
+
+      // Un PDF puede tener "texto" suficiente y aun así venir con una capa textual
+      // rota o desordenada. En ese caso contrastamos automáticamente con OCR y
+      // recuperamos solo los campos que aporten evidencia, sin descartar la lectura nativa.
+      try{
+        onProgress?.('La primera lectura es incompleta. Contrastando con OCR…');
+        const ocrText=await ocrPdf(pdf,onProgress);
+        const ocrRead=parseInvoiceText(ocrText,categories,true);
+        return mergeReadResults(nativeRead,ocrRead);
+      }catch{
+        return nativeRead;
+      }
+    }
     const ocrText = await ocrPdf(pdf, onProgress);
     return parseInvoiceText(ocrText, categories, true);
   }

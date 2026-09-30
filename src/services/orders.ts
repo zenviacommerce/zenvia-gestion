@@ -67,6 +67,7 @@ export interface OrderUpdateInput {
 
 const PRINTER_KEY='zenvia-label-printer';
 const HISTORY_SYNC_KEY='zenvia-orders-history-sync';
+const ENVIA_HISTORY_SYNC_KEY='zenvia-envia-history-sync';
 
 function toKg(value:unknown,unit:unknown){
   const n=Number(value);if(!Number.isFinite(n)||n<=0)return null;
@@ -215,6 +216,11 @@ export function shouldRunHistorySync(){
   return window.localStorage.getItem(HISTORY_SYNC_KEY)!==today;
 }
 export function markHistorySyncDone(){window.localStorage.setItem(HISTORY_SYNC_KEY,new Date().toISOString().slice(0,10));}
+export function shouldRunEnviaHistorySync(){
+  const today=new Date().toISOString().slice(0,10);
+  return window.localStorage.getItem(ENVIA_HISTORY_SYNC_KEY)!==today;
+}
+export function markEnviaHistorySyncDone(){window.localStorage.setItem(ENVIA_HISTORY_SYNC_KEY,new Date().toISOString().slice(0,10));}
 
 export function labelBlob(result:Pick<LabelResult,'base64'|'mimeType'>){
   const binary=atob(result.base64); const bytes=new Uint8Array(binary.length);

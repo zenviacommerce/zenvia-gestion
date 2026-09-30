@@ -14,8 +14,8 @@ import { defaultDateFilter, periodLabel } from '../services/filters';
 import {
   createManualOrder, createOrderLabel, fetchOrderLabel,
   getEnviaStatus, getSendcloudStatus, getShippingOptions, labelBlob, listFulfillmentOrders, listLocalPrinters,
-  markHistorySyncDone, openLabelForPrint, printLabelWithClient,
-  shouldRunHistorySync, syncEnviaShipments, syncSendcloudOrders, updateFulfillmentOrder,
+  markEnviaHistorySyncDone, markHistorySyncDone, openLabelForPrint, printLabelWithClient,
+  shouldRunEnviaHistorySync, shouldRunHistorySync, syncEnviaShipments, syncSendcloudOrders, updateFulfillmentOrder,
   type FulfillmentOrder, type LocalPrinter, type ManualOrderItem, type OrderChannel, type OrderUpdateInput,
   type SendcloudStatus, type ShippingOption,
 } from '../services/orders';
@@ -302,7 +302,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     return()=>{cancelled=true};
   },[orders]);
 
-  const sync=useCallback(async(silent=false,history=false,automatic=false)=>{
+  const sync=useCallback(async(silent=false,history=false,automatic=false,enviaHistory=shouldRunEnviaHistorySync())=>{
     if(syncingRef.current)return;
     const runSendcloud=Boolean(settings.integrations.sendcloudEnabled&&status?.configured);
     const runEnvia=Boolean(settings.integrations.enviaEnabled&&enviaStatus?.configured);
@@ -311,7 +311,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     try{
       const [sendcloudResult,enviaResult]=await Promise.allSettled([
         runSendcloud?syncSendcloudOrders(history,settings.orders.retryTrackingConfirmation,automatic):Promise.resolve(null),
-        runEnvia?syncEnviaShipments(history?6:2):Promise.resolve(null),
+        runEnvia?syncEnviaShipments(enviaHistory?12:2):Promise.resolve(null),
       ]);
       const messages:string[]=[],failures:string[]=[];
       if(sendcloudResult.status==='fulfilled'&&sendcloudResult.value){
@@ -321,6 +321,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       }else if(sendcloudResult.status==='rejected')failures.push('Sendcloud: '+errorMessage(sendcloudResult.reason,'error de sincronización'));
       if(enviaResult.status==='fulfilled'&&enviaResult.value){
         messages.push('Envia.com '+enviaResult.value.synced);
+        if(enviaHistory)markEnviaHistorySyncDone();
       }else if(enviaResult.status==='rejected')failures.push('Envia.com: '+errorMessage(enviaResult.reason,'error de sincronización'));
       await refresh();
       if(!silent){
@@ -332,7 +333,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   useEffect(()=>{
     const enabled=Boolean((settings.integrations.sendcloudEnabled&&status?.configured)||(settings.integrations.enviaEnabled&&enviaStatus?.configured));
     if(!enabled)return;
-    void sync(true,shouldRunHistorySync(),true);
+    void sync(true,shouldRunHistorySync(),true,shouldRunEnviaHistorySync());
     const timer=window.setInterval(()=>void sync(true,false,true),Math.max(30,settings.orders.refreshSeconds)*1000);
     return()=>window.clearInterval(timer);
   },[status?.configured,enviaStatus?.configured,sync,settings.orders.refreshSeconds,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled]);

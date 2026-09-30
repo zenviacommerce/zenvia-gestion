@@ -28,7 +28,7 @@ test('Platform-created customer users only prepare an invite token when custom d
 
 test('central mailer sends password recovery through Resend instead of Supabase email delivery',async()=>{
   const mailer=await read('supabase/functions/platform-mailer/index.ts');
-  assert.match(mailer,/\['invite','recovery'\]\.includes\(event\)/);
+  assert.match(mailer,/\['invite','recovery','billing_invoice'\]\.includes\(event\)/);
   assert.match(mailer,/Restablece tu contraseña/);
   assert.match(mailer,/Crear nueva contraseña/);
   assert.match(mailer,/recoveryUrl/);

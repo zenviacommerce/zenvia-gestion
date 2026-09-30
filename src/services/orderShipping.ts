@@ -114,11 +114,11 @@ function matchingBand(service:TransportTariffDocument['services'][number],order:
     .find(band=>weight>=(band.minWeightKg||0)&& (band.maxWeightKg==null||weight<=band.maxWeightKg))||null;
 }
 function serviceScore(document:TransportTariffDocument,service:TransportTariffDocument['services'][number],option:ShippingOption){
+  if(document.shippingProvider!==option.provider)return -1;
   const carrierCandidates=[option.carrierCode,option.carrierName].map(tariffKey).filter(Boolean);
   const docCarrier=[document.carrierCode,document.carrierName].map(tariffKey).filter(Boolean);
   const externalProvider=tariffKey(service.externalProvider);
-  const providerMatch=document.carrierCode==='envia'||externalProvider==='envia'
-    ||carrierCandidates.some(candidate=>docCarrier.some(value=>value===candidate||value.includes(candidate)||candidate.includes(value)))
+  const providerMatch=carrierCandidates.some(candidate=>docCarrier.some(value=>value===candidate||value.includes(candidate)||candidate.includes(value)))
     ||carrierCandidates.some(candidate=>externalProvider&&(candidate===externalProvider||candidate.includes(externalProvider)||externalProvider.includes(candidate)));
   if(!providerMatch)return -1;
 
@@ -189,7 +189,7 @@ export function calculateDefaultShippingPreview(order:FulfillmentOrder,tariffs:T
   if(!clean(carrierCode).toLowerCase().includes('mrw')||order.weightKg==null)return null;
   const country=clean(order.shippingAddress?.country_code).toUpperCase();
   if(!['ES','PT'].includes(country))return null;
-  const document=tariffs.filter(item=>(item.status==='active'||item.status==='superseded')&&item.carrierCode==='mrw'&&inDateRange(item,order)).sort((a,b)=>(b.effectiveFrom||'').localeCompare(a.effectiveFrom||''))[0];
+  const document=tariffs.filter(item=>(item.status==='active'||item.status==='superseded')&&item.shippingProvider==='sendcloud'&&item.carrierCode==='mrw'&&inDateRange(item,order)).sort((a,b)=>(b.effectiveFrom||'').localeCompare(a.effectiveFrom||''))[0];
   if(!document)return null;
   const orderDate=(order.orderCreatedAt||new Date().toISOString()).slice(0,10);
   const revision=(document.revisions||[]).filter(item=>item.effectiveFrom<=orderDate).sort((a,b)=>b.effectiveFrom.localeCompare(a.effectiveFrom))[0];

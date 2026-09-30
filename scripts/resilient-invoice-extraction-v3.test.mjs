@@ -16,6 +16,12 @@ test('date extractor understands English textual invoice dates used by internati
   assert.equal(extractInvoiceDate('Invoice date: September 27, 2026'),'2026-09-27');
 });
 
+test('date extractor supports unambiguous US numeric dates without changing European ambiguous dates',async()=>{
+  const {extractInvoiceDate}=await loadTs('../src/services/invoiceDateExtractor.ts');
+  assert.equal(extractInvoiceDate('Invoice date: 09/27/2026'),'2026-09-27');
+  assert.equal(extractInvoiceDate('Fecha factura: 09/10/2026'),'2026-10-09');
+});
+
 test('date extractor understands Spanish and continental European textual dates',async()=>{
   const {extractInvoiceDate}=await loadTs('../src/services/invoiceDateExtractor.ts');
   assert.equal(extractInvoiceDate('Fecha de factura: 26 de septiembre de 2026'),'2026-09-26');

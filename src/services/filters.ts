@@ -12,6 +12,7 @@ export interface InvoiceFilter extends DateRangeFilter {
   supplierId: string;
   categoryId: string;
   status: string;
+  paymentStatus: string;
   source: string;
 }
 
@@ -61,7 +62,7 @@ export function defaultDateFilter(preset: PeriodPreset = 'current_quarter', now 
 }
 
 export function filterForPreset(preset: PeriodPreset, supplierId = '', now = new Date()): InvoiceFilter {
-  return { ...dateFilterForPreset(preset, now), supplierId, categoryId: '', status: '', source: '' };
+  return { ...dateFilterForPreset(preset, now), supplierId, categoryId: '', status: '', paymentStatus: '', source: '' };
 }
 
 export function defaultInvoiceFilter(preset: PeriodPreset = 'current_quarter', now = new Date()): InvoiceFilter {
@@ -73,6 +74,7 @@ export function filterInvoices(invoices: Invoice[], filter: InvoiceFilter) {
     if (filter.supplierId && invoice.supplierId !== filter.supplierId) return false;
     if (filter.categoryId && invoice.categoryId !== filter.categoryId) return false;
     if (filter.status && invoice.status !== filter.status) return false;
+    if (filter.paymentStatus && invoice.paymentStatus !== filter.paymentStatus) return false;
     if (filter.source && invoice.source !== filter.source) return false;
     const date = invoice.invoiceDate || '';
     if (filter.from && (!date || date < filter.from)) return false;

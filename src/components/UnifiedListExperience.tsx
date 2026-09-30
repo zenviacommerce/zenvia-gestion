@@ -172,7 +172,8 @@ function buildMobileCards(table:HTMLTableElement){
   const signature=rows.map(row=>{
     const selection=row.querySelector<HTMLInputElement>('.bulkSelectionCell input[type="checkbox"]');
     const activeStatus=row.querySelector<HTMLButtonElement>('.statusActions .statusBtn.active')?.title||'';
-    return `${clean(row.textContent||'')}|e:${Boolean(matchingRowAction(row,'edit'))}|d:${Boolean(matchingRowAction(row,'delete'))}|s:${selection?.checked?'1':'0'}|x:${selection?.disabled?'1':'0'}|st:${activeStatus}`;
+    const activePayment=row.querySelector<HTMLButtonElement>('.paymentActions .paymentBtn.active')?.title||'';
+    return `${clean(row.textContent||'')}|e:${Boolean(matchingRowAction(row,'edit'))}|d:${Boolean(matchingRowAction(row,'delete'))}|s:${selection?.checked?'1':'0'}|x:${selection?.disabled?'1':'0'}|st:${activeStatus}|pay:${activePayment}`;
   }).join('||');
   let list=host.querySelector<HTMLElement>(`:scope > .${LIST_CLASS}`);
   if(list?.dataset.signature===signature)return;
@@ -192,6 +193,9 @@ function buildMobileCards(table:HTMLTableElement){
       const label=(headers[index]||'').trim().toLowerCase();
       if(expenseInvoiceTable&&label==='estado'){
         return clean(cell.querySelector<HTMLButtonElement>('.statusActions .statusBtn.active')?.title||cell.textContent||'');
+      }
+      if(expenseInvoiceTable&&label==='pago'){
+        return clean(cell.querySelector<HTMLButtonElement>('.paymentActions .paymentBtn.active')?.title||cell.textContent||'');
       }
       return clean(cell.textContent||'');
     });
@@ -285,6 +289,20 @@ function buildMobileCards(table:HTMLTableElement){
       });
     }
 
+    const paymentControls=document.createElement('div');
+    paymentControls.className='zenviaMobilePaymentStatus';
+    if(expenseInvoiceTable){
+      const sourceButtons=Array.from(row.querySelectorAll<HTMLButtonElement>('.paymentActions .paymentBtn'));
+      sourceButtons.forEach(source=>{
+        const button=document.createElement('button');
+        button.type='button';
+        button.className=`zenviaMobilePaymentButton ${source.classList.contains('active')?'active':''}`;
+        button.textContent=source.title||clean(source.textContent||'Pago');
+        button.addEventListener('click',event=>{event.stopPropagation();source.click();});
+        paymentControls.appendChild(button);
+      });
+    }
+
     const editSource=matchingRowAction(row,'edit');
     const deleteSource=matchingRowAction(row,'delete');
     const actions=document.createElement('div');
@@ -307,6 +325,7 @@ function buildMobileCards(table:HTMLTableElement){
     card.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();open();}});
     card.append(top,metrics);
     if(statusControls.children.length)card.appendChild(statusControls);
+    if(paymentControls.children.length)card.appendChild(paymentControls);
     if(actions.children.length)card.appendChild(actions);
     if(mobileWrapper){
       mobileWrapper.appendChild(card);

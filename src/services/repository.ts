@@ -1,5 +1,5 @@
 import { supabase, INVOICE_BUCKET } from './supabase';
-import type { AppData, ExpenseCategory, Invoice, NewInvoiceInput, Product, Supplier } from '../types';
+import type { AppData, ExpenseCategory, Invoice, InvoicePaymentStatus, NewInvoiceInput, Product, Supplier } from '../types';
 import { canonicalizeSupplierName, isLikelySameSupplier, isPlausibleSupplierName, supplierIdentityKey } from './supplierIdentity';
 import { extractSupplierContactData, type SupplierContactData } from './supplierContactExtractor';
 import { extractSupplierInvoiceDetails } from './supplierInvoiceDetails';
@@ -93,6 +93,8 @@ export async function loadAppData(): Promise<AppData> {
     total: numberOrZero(i.total_amount),
     source: i.source,
     status: i.status,
+    paymentStatus: i.payment_status==='paid'?'paid':'unpaid',
+    paidAt: i.paid_at || null,
     fileName: sourceDocument?.original_name||i.file_name,
     filePath: sourceDocument?.storage_path||i.file_path,
     fileHash: sourceDocument?.file_hash||i.file_hash,
@@ -656,6 +658,17 @@ export async function createInvoice(input: NewInvoiceInput) {
 export async function updateInvoiceStatus(invoiceId: string, status: 'pending' | 'reviewed' | 'accounted') {
   const { error } = await supabase.from('invoices').update({ status }).eq('id', invoiceId);
   if (error) throw error;
+}
+
+export async function updateInvoicePaymentStatus(invoiceId:string,paymentStatus:InvoicePaymentStatus,paidAt?:string|null){
+  const resolvedPaidAt=paymentStatus==='paid'
+    ?(paidAt||new Date().toISOString().slice(0,10))
+    :null;
+  const {error}=await supabase.from('invoices').update({
+    payment_status:paymentStatus,
+    paid_at:resolvedPaidAt,
+  }).eq('id',invoiceId);
+  if(error)throw error;
 }
 
 export async function deleteInvoice(invoiceId: string, _filePath?: string | null) {

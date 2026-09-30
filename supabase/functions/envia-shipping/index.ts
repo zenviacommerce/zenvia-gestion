@@ -111,34 +111,78 @@ function normalizePhone(value:unknown,countryCode:string){
   return digits;
 }
 function enviaStateCode(value:unknown){
-  const raw=clean(value).toUpperCase();
+  const raw=clean(typeof value==='object'&&value?(value as any).code:value).toUpperCase();
   return /^[A-Z0-9]{2}$/.test(raw)?raw:'';
 }
 function normalizeEnviaAddress(address:any){
-  const state=enviaStateCode(address?.state);
   const normalized={...address};
+  const state=enviaStateCode(address?.state);
   if(state)normalized.state=state;
   else delete normalized.state;
   return normalized;
 }
+function geocodeRows(payload:any):any[]{
+  const found:any[]=[];
+  const seen=new Set<any>();
+  const visit=(value:any,depth=0)=>{
+    if(value==null||depth>5||seen.has(value))return;
+    if(typeof value!=='object')return;
+    seen.add(value);
+    if(Array.isArray(value)){for(const item of value)visit(item,depth+1);return}
+    const state=enviaStateCode(value.stateCode||value.state_code||value.state?.code||value.state||value.provinceCode||value.province_code);
+    const city=clean(value.city||value.locality||value.municipality);
+    const postalCode=clean(value.zipcode||value.postalCode||value.postal_code||value.zipCode||value.zip);
+    if(state||city||postalCode)found.push({...value,__state:state,__city:city,__postalCode:postalCode});
+    for(const key of ['data','result','results','locations','location','zip_codes','zipCodes','items'])visit(value[key],depth+1);
+  };
+  visit(payload);
+  return found;
+}
+function bestGeocodeRow(payload:any,postal:string,city:string){
+  const rows=geocodeRows(payload);
+  if(!rows.length)return null;
+  const wantedPostal=clean(postal).replace(/\s+/g,'').toUpperCase();
+  const wantedCity=clean(city).toLowerCase();
+  return rows.sort((a,b)=>{
+    const score=(row:any)=>{
+      let value=0;
+      if(row.__state)value+=8;
+      if(wantedPostal&&clean(row.__postalCode).replace(/\s+/g,'').toUpperCase()===wantedPostal)value+=6;
+      if(wantedCity&&clean(row.__city).toLowerCase()===wantedCity)value+=3;
+      return value;
+    };
+    return score(b)-score(a);
+  })[0]||null;
+}
+async function geocodeLookup(country:string,postal:string,city:string){
+  const urls:string[]=[];
+  if(postal)urls.push(`https://geocodes.envia.com/zipcode/${encodeURIComponent(country)}/${encodeURIComponent(postal)}`);
+  if(city)urls.push(`https://geocodes.envia.com/locate/${encodeURIComponent(country)}/${encodeURIComponent(city)}`);
+  for(const url of urls){
+    try{
+      const res=await fetch(url,{headers:{Accept:'application/json'}});
+      if(!res.ok)continue;
+      const payload=await res.json().catch(()=>null);
+      const row=bestGeocodeRow(payload,postal,city);
+      if(row?.__state)return row;
+    }catch{/* try the next canonical Envia geocoder */}
+  }
+  return null;
+}
 async function geocodeAddress(address:any){
-  const country=clean(address?.country).toUpperCase(),postal=clean(address?.postalCode);
+  const country=clean(address?.country).toUpperCase(),postal=clean(address?.postalCode),city=clean(address?.city);
   const fallback=normalizeEnviaAddress(address);
-  if(!country||!postal)return fallback;
-  try{
-    const res=await fetch(`https://geocodes.envia.com/zipcode/${encodeURIComponent(country)}/${encodeURIComponent(postal)}`,{headers:{Accept:'application/json'}});
-    if(!res.ok)return fallback;
-    const payload=await res.json().catch(()=>null);
-    const data=payload?.data&&typeof payload.data==='object'&&!Array.isArray(payload.data)?payload.data:null;
-    if(!data)return fallback;
-    return normalizeEnviaAddress({
-      ...address,
-      city:clean(data.city)||address.city,
-      state:clean(data.stateCode||data.state_code||data.state?.code||data.state)||address.state,
-      country:clean(data.country).toUpperCase()||address.country,
-      postalCode:clean(data.zipcode||data.postalCode)||address.postalCode,
-    });
-  }catch{return fallback}
+  if(!country)return fallback;
+  const row=await geocodeLookup(country,postal,city);
+  if(!row)return fallback;
+  return normalizeEnviaAddress({
+    ...address,
+    city:row.__city||address.city,
+    state:row.__state||address.state,
+    country:clean(row.country||row.countryCode).toUpperCase()||address.country,
+    postalCode:row.__postalCode||address.postalCode,
+    district:clean(row.district||row.locality)||address.district,
+  });
 }
 function orderWeightKg(order:any,shipping:any){
   const raw=order?.raw_payload?.shipping_details?.measurement?.weight;
@@ -260,6 +304,8 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
   let origin=sender(config),dest=destination(order);const pkg=packageFor(order,config.shipping);
   validatePayload(origin,dest);
   [origin,dest]=await Promise.all([geocodeAddress(origin),geocodeAddress(dest)]);
+  if(!origin.state)throw new Error(`Envia.com no pudo resolver el código de provincia/estado del remitente (${origin.postalCode||origin.city||origin.country}).`);
+  if(!dest.state)throw new Error(`Envia.com no pudo resolver el código de provincia/estado del destinatario (${dest.postalCode||dest.city||dest.country}).`);
   const enabled=Array.isArray(config.shipping?.enabledCarriers)?config.shipping.enabledCarriers.map((x:any)=>clean(x).toLowerCase()).filter(Boolean):[];
 
   // Envia documents one carrier per rate request. Query the available carriers
@@ -495,6 +541,7 @@ Deno.serve(async(req:Request)=>{
       let origin=sender(config),dest=destination(order);const pkg=packageFor(order,config.shipping);
       validatePayload(origin,dest);
       [origin,dest]=await Promise.all([geocodeAddress(origin),geocodeAddress(dest)]);
+      if(!origin.state||!dest.state)return fail('Envia.com no pudo validar la provincia/estado del remitente o destinatario. Revisa los códigos postales.',422);
       const carrier=clean(option?.carrierCode),service=clean(option?.code);
       if(!carrier||!service)return fail('Selecciona un transportista y servicio de Envia.com.');
       const labelSize=clean(config.shipping?.labelSize);

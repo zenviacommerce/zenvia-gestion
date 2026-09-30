@@ -159,7 +159,10 @@ export async function getShippingOptions(orderId:string){
   const envia=enviaResult.status==='fulfilled'?enviaResult.value:null;
   const sendcloudOptions=(sendcloud?.options||[]).map(option=>({
     ...option,provider:'sendcloud' as const,providerName:'Sendcloud',
-  }));
+  })).filter(option=>{
+    const label=`${option.carrierCode||''} ${option.carrierName||''} ${option.code||''} ${option.name||''}`.toLowerCase();
+    return !(Number(option.price)===0&&/unstamped|sin franqueo|unfranked/.test(label));
+  });
   const enviaOptions=envia?.options||[];
   if(!sendcloud&&enviaResult.status==='rejected')throw enviaResult.reason;
   if(!envia&&sendcloudResult.status==='rejected')throw sendcloudResult.reason;

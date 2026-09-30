@@ -73,7 +73,9 @@ test('Envia quotes sanitize state values and quote one carrier per request',asyn
   assert.match(edge,/function enviaStateCode/);
   assert.match(edge,/\^\[A-Z0-9\]\{2\}\$/);
   assert.match(edge,/delete normalized\.state/);
-  assert.match(edge,/data\.stateCode\|\|data\.state_code/);
+  assert.match(edge,/geocodeRows/);
+  assert.match(edge,/geocodes\.envia\.com\/locate/);
+  assert.match(edge,/if\(!origin\.state\)throw new Error/);
   assert.doesNotMatch(edge,/shipment:\{type:1\}\}\),/);
   assert.match(edge,/shipment:\{type:1,carrier\}/);
 });
@@ -108,4 +110,34 @@ test('Envia history backfill is independent from Sendcloud history state',async(
   assert.match(page,/syncEnviaShipments\(enviaHistory\?12:2\)/);
   assert.match(page,/markEnviaHistorySyncDone\(\)/);
   assert.match(page,/shouldRunEnviaHistorySync\(\)/);
+});
+
+
+test('Sendcloud V3 shipping-options request includes route fields so quotes can be calculated',async()=>{
+  const edge=await read('supabase/functions/sendcloud-order-tools/index.ts');
+  assert.match(edge,/from_country_code:fromCountry/);
+  assert.match(edge,/to_country_code:clean\(address\.country_code\)/);
+  assert.match(edge,/from_postal_code:fromPostal/);
+  assert.match(edge,/to_postal_code:clean\(address\.postal_code\)/);
+  assert.match(edge,/calculate_quotes:true/);
+  assert.match(edge,/dimensions:/);
+  assert.doesNotMatch(edge,/requestBody\.from_address=fromAddress/);
+});
+
+test('label modal restores a preferred selection and explicit create action',async()=>{
+  const [page,css]=await Promise.all([read('src/pages/Orders.tsx'),read('src/orders.css')]);
+  assert.match(page,/preferredOption=\{automaticShippingOption\(labelOrder,options\)\}/);
+  assert.match(page,/const \[selectedKey,setSelectedKey\]/);
+  assert.match(page,/Predeterminada/);
+  assert.match(page,/Crear etiqueta/);
+  assert.match(page,/disabled=\{loading\|\|!selected\}/);
+  assert.match(css,/ordersComparisonRow\.selected/);
+  assert.match(page,/Number\(option\.price\)>0/,'zero-cost placeholders must not become the cheapest priced recommendation');
+});
+
+
+test('Sendcloud unstamped zero-cost placeholder is excluded from parcel comparison',async()=>{
+  const orders=await read('src/services/orders.ts');
+  assert.match(orders,/Number\(option\.price\)===0/);
+  assert.match(orders,/unstamped\|sin franqueo\|unfranked/);
 });

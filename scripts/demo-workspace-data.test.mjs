@@ -32,3 +32,10 @@ test('Platform bridge explicitly enables demo safety before destructive reset',a
   assert.match(bridge,/managed_by:'platform'/);
   assert.match(bridge,/platform_reset_demo_workspace/);
 });
+
+
+test('demo invoice lines use a valid price update status',async()=>{
+  const migration=await read('supabase/migrations/20260930170000_demo_workspace_seed.sql');
+  assert.doesNotMatch(migration,/price_update_status[\s\S]{0,1500}'applied'/);
+  assert.match(migration,/'confirmed'/);
+});

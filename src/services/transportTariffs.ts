@@ -77,7 +77,7 @@ async function readPdfText(file:File){
     const rows=new Map<number,Array<{text:string;x:number}>>();
     for(const item of items){const key=Math.round(item.y/3)*3;const row=rows.get(key)||[];row.push({text:item.text,x:item.x});rows.set(key,row)}
     const text=Array.from(rows.entries()).sort((a,b)=>b[0]-a[0]).map(([,row])=>row.sort((a,b)=>a.x-b.x).map(item=>item.text).join(' ')).join('\n');
-    pages.push(text);
+    pages.push(`[[PAGE ${p}]]\n${text}`);
   }
   return pages.join('\n\n');
 }
@@ -93,6 +93,7 @@ async function readXlsxText(file:File){
   const output:string[]=[];
   for(const name of sheets){
     const sheet=zip.file(name);if(!sheet)continue;
+    output.push(`[[SHEET ${name.replace('xl/worksheets/','')}]]`);
     const xml=parser.parseFromString(await sheet.async('text'),'application/xml');
     xml.querySelectorAll('row').forEach(row=>{
       const cells:Array<{ref:string;value:string}>=[];
@@ -207,6 +208,85 @@ function parseGenericCarrierServices(text:string):TransportTariffServiceDraft[]{
   return services.filter(service=>service.bands.length>0);
 }
 
+
+function probableCurrency(text:string){
+  if(/\bUSD\b|\$/i.test(text))return 'USD';
+  if(/\bGBP\b|£/i.test(text))return 'GBP';
+  if(/\bCHF\b/i.test(text))return 'CHF';
+  return 'EUR';
+}
+function genericWeightHeader(line:string){
+  const explicit=Array.from(line.matchAll(/(?:hasta\s*)?(\d+(?:[.,]\d+)?)\s*(?:kg|kgs|kilogramos?)\b/gi))
+    .map(match=>num(match[1])).filter((value):value is number=>value!=null&&value>0&&value<=10000);
+  if(explicit.length>=2)return [...new Set(explicit)].sort((a,b)=>a-b);
+  if(!/peso|weight|kg|tramo/i.test(line))return [];
+  const cells=line.split(/\t|\s{2,}|[|;]/).map(clean).filter(Boolean);
+  const numeric=cells.map(cell=>num(cell.replace(/\bkg\b/gi,''))).filter((value):value is number=>value!=null&&value>0&&value<=10000);
+  return numeric.length>=2?[...new Set(numeric)].sort((a,b)=>a-b):[];
+}
+function genericRowLabel(line:string){
+  const cells=line.split(/\t|\s{2,}|[|;]/).map(clean).filter(Boolean);
+  const labels=cells.filter(cell=>/[A-Za-zÀ-ÿ]/.test(cell)&&!/^\[\[/.test(cell)&&!/^(?:kg|eur|usd|precio|price|hasta|desde)$/i.test(cell));
+  return clean(labels.slice(0,2).join(' · ')).slice(0,120);
+}
+function parseGenericMatrixServices(text:string):TransportTariffServiceDraft[]{
+  const lines=text.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+  const services:TransportTariffServiceDraft[]=[];
+  let weights:number[]=[];
+  let context='';
+  for(const line of lines){
+    if(/^\[\[(?:PAGE|SHEET)/.test(line)){context='';weights=[];continue}
+    const header=genericWeightHeader(line);
+    if(header.length>=2){weights=header;continue}
+    if(!weights.length){
+      if(/[A-Za-zÀ-ÿ]{3}/.test(line)&&line.length<140&&!/iva|vat|combustible|fuel|vigencia|condiciones/i.test(line))context=line;
+      continue;
+    }
+    const rowPrices=loosePrices(line).filter(value=>value>=0&&value<100000);
+    if(rowPrices.length<weights.length)continue;
+    const label=genericRowLabel(line)||clean(context);
+    if(!label||label.length<2)continue;
+    const known=carrierFromLine(`${context} ${line}`);
+    const provider=known?.code||slug((context||label).split(/[·|:–—-]/)[0])||'carrier';
+    const carrierLabel=known?.label||clean((context||label).split(/[·|:–—-]/)[0])||'Transportista';
+    const serviceLabel=known?clean(label.replace(known.pattern,' '))||label:label;
+    const key=slug(`${provider}-${serviceLabel}`);
+    if(!key||services.some(service=>service.canonicalServiceKey===key))continue;
+    const bands:TransportTariffBandDraft[]=[];let minWeight=0;
+    for(let index=0;index<weights.length;index+=1){
+      const price=rowPrices[index];if(price==null)continue;
+      bands.push({countryCode:'ES',zoneCode:'peninsular',zoneName:'España Peninsular',minWeightKg:minWeight,maxWeightKg:weights[index],basePrice:price,extraKgPrice:null,notes:'Tabla detectada automáticamente; confirmar país/zona y correspondencia de columnas.',sortOrder:index});
+      minWeight=weights[index];
+    }
+    if(bands.length>=2)services.push({
+      serviceName:known?`${carrierLabel} · ${serviceLabel}`:serviceLabel,
+      canonicalServiceKey:key,externalProvider:provider,externalServiceCode:slug(serviceLabel),
+      mappingStatus:'suggested',sortOrder:services.length,bands,
+    });
+  }
+  return services;
+}
+function validateParsedServices(services:TransportTariffServiceDraft[]){
+  const notes:string[]=[];
+  const valid=services.map((service,serviceIndex)=>{
+    const seen=new Set<string>();
+    const bands=service.bands
+      .filter(band=>{
+        const min=Number(band.minWeightKg),max=band.maxWeightKg==null?null:Number(band.maxWeightKg);
+        const base=band.basePrice==null?null:Number(band.basePrice),extra=band.extraKgPrice==null?null:Number(band.extraKgPrice);
+        const ok=Number.isFinite(min)&&min>=0&&(max==null||(Number.isFinite(max)&&max>min))
+          &&(base!=null||extra!=null)&&(base==null||(Number.isFinite(base)&&base>=0&&base<100000))
+          &&(extra==null||(Number.isFinite(extra)&&extra>=0&&extra<100000));
+        if(!ok){notes.push(`Se descartó un tramo incoherente de ${service.serviceName||`Servicio ${serviceIndex+1}`}.`);return false}
+        const key=`${band.countryCode}|${band.zoneCode}|${min}|${max??''}|${base??''}|${extra??''}`;
+        if(seen.has(key))return false;seen.add(key);return true;
+      })
+      .sort((a,b)=>a.countryCode.localeCompare(b.countryCode)||a.zoneCode.localeCompare(b.zoneCode)||a.minWeightKg-b.minWeightKg);
+    return {...service,sortOrder:serviceIndex,bands:bands.map((band,index)=>({...band,sortOrder:index}))};
+  }).filter(service=>service.bands.length);
+  return {services:valid,notes:[...new Set(notes)]};
+}
+
 function parseMrwServices(text:string):TransportTariffServiceDraft[]{
   return serviceBlocks(text).map(({hour,block},serviceIndex)=>{
     const layout=zoneLayout(block);const bands:TransportTariffBandDraft[]=[];const previousMax=new Map<string,number>();const lastPrice=new Map<string,number>();
@@ -247,17 +327,20 @@ function fallbackProposal(text:string,fileName:string):TransportTariffProposal{
   const fuelExcluded=/combustible\s+no\s+incluido|plus\s+combustible\s+no\s+incluido|fuel\s+not\s+included/i.test(text);
   const fuelIncluded=/combustible\s+incluido|fuel\s+included/i.test(text)&&!fuelExcluded;
   const mrwServices=mrw?parseMrwServices(text):[];
-  const genericServices=mrwServices.length?[]:parseGenericCarrierServices(text);
-  const services=mrwServices.length?mrwServices:genericServices;
+  const namedGenericServices=mrwServices.length?[]:parseGenericCarrierServices(text);
+  const matrixServices=mrwServices.length||namedGenericServices.length?[]:parseGenericMatrixServices(text);
+  const checked=validateParsedServices(mrwServices.length?mrwServices:namedGenericServices.length?namedGenericServices:matrixServices);
+  const services=checked.services;
+  const genericServices=namedGenericServices.length?namedGenericServices:matrixServices;
   const providers=[...new Set(services.map(service=>service.externalProvider).filter(Boolean))];
   const multiCarrier=providers.length>1||/\benvia(?:\.com)?\b/i.test(text);
   return {
     carrierCode:mrwServices.length?'mrw':multiCarrier?'envia':providers[0]||slug(fileName.split('.')[0])||'carrier',
     carrierName:mrwServices.length?'MRW':multiCarrier?'Envia.com · Tarifas contratadas':providers[0]?genericCarriers.find(item=>item.code===providers[0])?.label||clean(fileName.replace(/\.[^.]+$/,'')):clean(fileName.replace(/\.[^.]+$/,''))||'Transportista',
-    effectiveFrom:null,effectiveTo,currencyCode:'EUR',pricesIncludeVat:vatIncluded,fuelSurchargePct:fuelPct,
+    effectiveFrom:null,effectiveTo,currencyCode:probableCurrency(text),pricesIncludeVat:vatIncluded,fuelSurchargePct:fuelPct,
     fuelSurchargeIncluded:fuelIncluded,parserProvider:'automatic-rules',parserModel:null,
     parserConfidence:mrwServices.length?0.86:genericServices.length?0.68:0.45,
-    parserNotes:[services.length?`${services.length} servicios detectados automáticamente.`:'No se detectaron tablas de peso automáticamente; revisa y añade los tramos.',genericServices.length?'Se ha usado el lector genérico multitransportista: confirma transportista, servicio, zona y pesos antes de activar.':null,vatExcluded?'El documento indica precios sin IVA.':'Revisa si los precios incluyen IVA.',fuelExcluded?'El documento indica que el combustible no está incluido.':fuelIncluded?'El documento indica que el combustible está incluido.':'No se ha podido determinar el tratamiento del combustible; revísalo.'].filter(Boolean) as string[],services,
+    parserNotes:[services.length?`${services.length} servicios detectados automáticamente.`:'No se detectaron tablas de peso automáticamente; revisa y añade los tramos.',...checked.notes,genericServices.length?'Se ha usado el lector genérico multitransportista: confirma transportista, servicio, zona y pesos antes de activar.':null,vatExcluded?'El documento indica precios sin IVA.':'Revisa si los precios incluyen IVA.',fuelExcluded?'El documento indica que el combustible no está incluido.':fuelIncluded?'El documento indica que el combustible está incluido.':'No se ha podido determinar el tratamiento del combustible; revísalo.'].filter(Boolean) as string[],services,
   };
 }
 
@@ -269,7 +352,12 @@ function normalizeProposal(value:any,fallback:TransportTariffProposal):Transport
     mappingStatus:(['suggested','confirmed','unmapped'].includes(service.mappingStatus)?service.mappingStatus:'suggested') as TransportMappingStatus,sortOrder:index,
     bands:Array.isArray(service.bands)?service.bands.map((band:any,bandIndex:number)=>({countryCode:clean(band.countryCode).toUpperCase().slice(0,2),zoneCode:slug(band.zoneCode||band.zoneName||'zone'),zoneName:clean(band.zoneName)||clean(band.zoneCode)||'Zona',minWeightKg:Number(band.minWeightKg||0),maxWeightKg:band.maxWeightKg==null?null:Number(band.maxWeightKg),basePrice:band.basePrice==null?null:Number(band.basePrice),extraKgPrice:band.extraKgPrice==null?null:Number(band.extraKgPrice),notes:clean(band.notes)||null,sortOrder:bandIndex})).filter((band:any)=>band.countryCode.length===2&&(band.basePrice!=null||band.extraKgPrice!=null)):[],
   })).filter((service:any)=>service.serviceName):fallback.services;
-  return {...fallback,...value,carrierCode:slug(value.carrierCode||fallback.carrierCode),carrierName:clean(value.carrierName)||fallback.carrierName,effectiveFrom:value.effectiveFrom||null,effectiveTo:value.effectiveTo||null,currencyCode:clean(value.currencyCode||fallback.currencyCode).toUpperCase(),fuelSurchargePct:value.fuelSurchargePct==null?null:Number(value.fuelSurchargePct),parserConfidence:Number(value.parserConfidence??fallback.parserConfidence),parserNotes:Array.isArray(value.parserNotes)?value.parserNotes.map(clean).filter(Boolean):fallback.parserNotes,services};
+  const proposal={...fallback,...value,carrierCode:slug(value.carrierCode||fallback.carrierCode),carrierName:clean(value.carrierName)||fallback.carrierName,effectiveFrom:value.effectiveFrom||null,effectiveTo:value.effectiveTo||null,currencyCode:clean(value.currencyCode||fallback.currencyCode).toUpperCase(),fuelSurchargePct:value.fuelSurchargePct==null?null:Number(value.fuelSurchargePct),parserConfidence:Number(value.parserConfidence??fallback.parserConfidence),parserNotes:Array.isArray(value.parserNotes)?value.parserNotes.map(clean).filter(Boolean):fallback.parserNotes,services};
+  const checked=validateParsedServices(proposal.services);
+  const warnings=[...new Set([...proposal.parserNotes,...checked.notes])];
+  const suspiciousFuel=proposal.fuelSurchargePct!=null&&(!Number.isFinite(proposal.fuelSurchargePct)||proposal.fuelSurchargePct<0||proposal.fuelSurchargePct>100);
+  if(suspiciousFuel)warnings.push('Se descartó un porcentaje de combustible incoherente.');
+  return {...proposal,fuelSurchargePct:suspiciousFuel?null:proposal.fuelSurchargePct,parserConfidence:Math.max(0,Math.min(1,Number(proposal.parserConfidence)||0)),parserNotes:warnings,services:checked.services};
 }
 
 export async function parseTransportTariffDocument(file:File):Promise<TransportTariffProposal>{

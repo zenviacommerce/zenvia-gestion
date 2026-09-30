@@ -18,7 +18,12 @@ import { SortableTableHeader, useSortableTable } from '../components/SortableTab
 
 export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,onStatusChange,onPaymentStatusChange,onBulkPaymentStatusChange,onOpenFile,onDelete,onSupplierChange,onCategoryChange}:{invoices:Invoice[];suppliers:Supplier[];categories:ExpenseCategory[];onUpload:()=>void;onBulkUpload:()=>void;onStatusChange:(id:string,status:'pending'|'reviewed'|'accounted')=>Promise<void>;onPaymentStatusChange:(id:string,status:InvoicePaymentStatus,paidAt?:string|null)=>Promise<void>;onBulkPaymentStatusChange:(ids:string[],status:InvoicePaymentStatus,paidAt?:string|null)=>Promise<void>;onOpenFile:(invoice:Invoice)=>Promise<void>;onDelete:(invoice:Invoice)=>Promise<void>;onSupplierChange:(invoiceId:string,supplierId:string)=>Promise<void>;onCategoryChange:(invoiceId:string,categoryId:string)=>Promise<void>}){
  const {settings,preferences,patchPreferences}=useSettings();
- const money=(value:number)=>formatAppMoney(value,settings.general.currencyCode,settings.general,{minimumFractionDigits:2,maximumFractionDigits:2});
+ const money=(value:number,currency:string=settings.general.currencyCode)=>formatAppMoney(value,currency,settings.general,{minimumFractionDigits:2,maximumFractionDigits:2});
+ const groupedMoney=(rows:Invoice[],selector:(invoice:Invoice)=>number)=>{
+   const totals=new Map<string,number>();
+   for(const invoice of rows){const code=invoice.currency||settings.general.currencyCode;totals.set(code,(totals.get(code)||0)+selector(invoice));}
+   return [...totals.entries()].sort(([a],[b])=>a.localeCompare(b)).map(([currency,total])=>money(total,currency)).join(' + ')||money(0);
+ };
  const pageSize=preferences.pageSize;
  const columns=orderedTableColumns(preferences,'expenses');
  const remembered=rememberedFilter<{query:string;filter:ReturnType<typeof defaultInvoiceFilter>}>(preferences,'expenses.filters',{query:'',filter:defaultInvoiceFilter(preferences.defaultPeriod)});
@@ -57,14 +62,15 @@ export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,on
  const sourceLabels:Record<string,string>={manual:'Archivo / manual',camera:'Cámara',gmail:'Gmail'};
  const paymentLabels:Record<string,string>={unpaid:'Por pagar',paid:'Pagadas'};
  const selectionLabel=[periodLabel(filter),selectedSupplier?.name,selectedCategory?.name,filter.status?statusLabels[filter.status]:null,filter.paymentStatus?paymentLabels[filter.paymentStatus]:null,filter.source?sourceLabels[filter.source]:null].filter(Boolean).join(' · ');
- const expenseTotal=filtered.reduce((sum,invoice)=>sum+invoice.total,0);
- const vatTotal=filtered.reduce((sum,invoice)=>sum+invoice.vat,0);
+ const expenseTotal=groupedMoney(filtered,invoice=>invoice.total);
+ const vatTotal=groupedMoney(filtered,invoice=>invoice.vat);
  const invoiceCount=filtered.length;
  const pendingReview=filtered.filter(invoice=>invoice.status==='pending').length;
  const unpaidInvoices=filtered.filter(invoice=>invoice.paymentStatus!=='paid');
  const unpaidCount=unpaidInvoices.length;
- const unpaidAmount=unpaidInvoices.reduce((sum,invoice)=>sum+invoice.total,0);
- const averageTicket=invoiceCount?expenseTotal/invoiceCount:0;
+ const unpaidAmount=groupedMoney(unpaidInvoices,invoice=>invoice.total);
+ const currencies=[...new Set(filtered.map(invoice=>invoice.currency||settings.general.currencyCode))];
+ const averageTicket=invoiceCount&&currencies.length===1?filtered.reduce((sum,invoice)=>sum+invoice.total,0)/invoiceCount:null;
  const supplierCount=new Set(filtered.map(invoice=>invoice.supplierId||invoice.supplierName)).size;
  const selectedRows=filtered.filter(invoice=>checkedIds.has(invoice.id));
  const selectedUnpaid=selectedRows.filter(invoice=>invoice.paymentStatus!=='paid');
@@ -139,13 +145,13 @@ export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,on
    if(key==='category')return <td key={key}><span className="tag">{i.category}</span></td>;
    if(key==='source')return <td key={key}>{i.source==='camera'?<><Camera size={14}/> Cámara</>:i.source==='manual'?<><FileUp size={14}/> Archivo</>:'Gmail'}</td>;
    if(key==='status')return <td key={key}><div className="statusActions" onClick={e=>e.stopPropagation()}><button title="Pendiente" className={i.status==='pending'?'statusBtn active warnBtn':'statusBtn'} onClick={()=>void changeStatus(i.id,'pending')}>P</button><button title="Revisada" className={i.status==='reviewed'?'statusBtn active okBtn':'statusBtn'} onClick={()=>void changeStatus(i.id,'reviewed')}><CheckCircle2 size={13}/></button><button title="Contabilizada" className={i.status==='accounted'?'statusBtn active accountBtn':'statusBtn'} onClick={()=>void changeStatus(i.id,'accounted')}><CircleDollarSign size={13}/></button></div></td>;
-   if(key==='vat')return <td key={key} className="right">{money(i.vat)}</td>;
-   if(key==='total')return <td key={key} className="right"><strong>{money(i.total)}</strong></td>;
+   if(key==='vat')return <td key={key} className="right">{money(i.vat,i.currency)}</td>;
+   if(key==='total')return <td key={key} className="right"><strong>{money(i.total,i.currency)}</strong></td>;
    return null;
  };
  return <div className="page"><div className="pageHead"><div><div className="eyebrow">DOCUMENTACIÓN · {periodLabel(filter)}</div><h1>Facturas de gastos</h1><p>Consulta el histórico completo, filtra y exporta cualquier periodo.</p></div><div className="actions"><button className="secondary" onClick={doExport} disabled={exporting||!exportRows.length}><Download size={17}/> {exporting?'Preparando…':selectedRows.length?`Exportar seleccionadas (${selectedRows.length})`:`Exportar (${filtered.length})`}</button><button className="secondary" onClick={onBulkUpload}><Files size={17}/> Importar facturas</button><button className="primary" onClick={onUpload}>+ Nueva factura</button></div></div>
  <InvoiceFilters filter={filter} onChange={setFilter} invoices={invoices} suppliers={suppliers} categories={categories}/>
- <div className="stats expenseStats"><StatCard label="Gasto total" value={money(expenseTotal)} sub={selectionLabel} icon={<Euro/>}/><StatCard label="IVA soportado" value={money(vatTotal)} sub={selectionLabel} icon={<BadgeEuro/>}/><StatCard label="Nº de facturas" value={String(invoiceCount)} sub={selectionLabel} icon={<ReceiptText/>}/><StatCard label="Pendientes de revisar" value={String(pendingReview)} sub={pendingReview?`${pendingReview} pendiente${pendingReview===1?'':'s'}`:'Todo revisado'} icon={<Clock3/>}/><StatCard label="Pendiente de pago" value={money(unpaidAmount)} sub={unpaidCount?`${unpaidCount} factura${unpaidCount===1?'':'s'} por pagar`:'Todo pagado'} icon={<WalletCards/>}/><StatCard label="Ticket medio" value={money(averageTicket)} sub="Media por factura" icon={<Calculator/>}/><StatCard label="Proveedores distintos" value={String(supplierCount)} sub={selectionLabel} icon={<Building2/>}/></div>
+ <div className="stats expenseStats"><StatCard label="Gasto total" value={expenseTotal} sub={selectionLabel} icon={<Euro/>}/><StatCard label="IVA soportado" value={vatTotal} sub={selectionLabel} icon={<BadgeEuro/>}/><StatCard label="Nº de facturas" value={String(invoiceCount)} sub={selectionLabel} icon={<ReceiptText/>}/><StatCard label="Pendientes de revisar" value={String(pendingReview)} sub={pendingReview?`${pendingReview} pendiente${pendingReview===1?'':'s'}`:'Todo revisado'} icon={<Clock3/>}/><StatCard label="Pendiente de pago" value={unpaidAmount} sub={unpaidCount?`${unpaidCount} factura${unpaidCount===1?'':'s'} por pagar`:'Todo pagado'} icon={<WalletCards/>}/><StatCard label="Ticket medio" value={averageTicket==null?'—':money(averageTicket,currencies[0])} sub={averageTicket==null&&invoiceCount?'Varias monedas':'Media por factura'} icon={<Calculator/>}/><StatCard label="Proveedores distintos" value={String(supplierCount)} sub={selectionLabel} icon={<Building2/>}/></div>
  <div className="toolbar invoiceSearchToolbar"><div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar proveedor, nº factura, categoría…"/></div><span className="filterResultCount">{filtered.length} factura{filtered.length===1?'':'s'} · {selectionLabel}</span></div>
  {filtered.length>0&&<BulkSelectionToolbar selectedCount={selectedRows.length} totalCount={filtered.length} allSelected={allFilteredSelected} onToggleAll={toggleAllFiltered} label="gastos visibles">
    <button className="secondary" type="button" disabled={!selectedUnpaid.length||bulkPaying||bulkDeleting||exporting} onClick={()=>void markSelectedPaid()}><CheckCircle2 size={15}/> {bulkPaying?'Marcando…':`Marcar pagadas (${selectedUnpaid.length})`}</button>

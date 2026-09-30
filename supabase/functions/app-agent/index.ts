@@ -92,7 +92,7 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
   }
   if(can('invoices')||can('dashboard')){
     let recentQuery=admin.from('invoices')
-      .select('id,invoice_number,supplier_id,issue_date,received_date,total_amount,net_amount,tax_amount,status')
+      .select('id,invoice_number,supplier_id,issue_date,received_date,total_amount,net_amount,tax_amount,status,payment_status,paid_at')
       .eq('owner_id',ownerId);
     recentQuery=applyDateRange(recentQuery,'issue_date',periods.expenses);
     tasks.expensesRecent=safeRows(recentQuery.order('issue_date',{ascending:false,nullsFirst:false}).limit(30));
@@ -102,6 +102,12 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
     let pendingQuery=admin.from('invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).eq('status','pending');
     pendingQuery=applyDateRange(pendingQuery,'issue_date',periods.expenses);
     tasks.expensesPending=safeCount(pendingQuery);
+    let unpaidQuery=admin.from('invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).eq('payment_status','unpaid');
+    unpaidQuery=applyDateRange(unpaidQuery,'issue_date',periods.expenses);
+    tasks.expensesUnpaid=safeCount(unpaidQuery);
+    let paidQuery=admin.from('invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).eq('payment_status','paid');
+    paidQuery=applyDateRange(paidQuery,'issue_date',periods.expenses);
+    tasks.expensesPaid=safeCount(paidQuery);
   }
   if(can('products')||can('dashboard')){
     tasks.products=safeRows(admin.from('products')
@@ -152,7 +158,7 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
   const pendingOrders=Array.isArray(raw.ordersStateRows)?raw.ordersStateRows.filter(isPendingOrderRow):[];
   return {
     orders:raw.ordersRecent?{total:raw.ordersTotal,pending:pendingOrders.length,recent:raw.ordersRecent}:undefined,
-    expenses:raw.expensesRecent?{total:raw.expensesTotal,pendingReview:raw.expensesPending,recent:raw.expensesRecent}:undefined,
+    expenses:raw.expensesRecent?{total:raw.expensesTotal,pendingReview:raw.expensesPending,unpaid:raw.expensesUnpaid,paid:raw.expensesPaid,recent:raw.expensesRecent}:undefined,
     products:raw.products?{total:raw.productsTotal,withoutCost:raw.productsWithoutCost,items:raw.products}:undefined,
     suppliers:raw.suppliers?{total:raw.suppliersTotal,items:raw.suppliers}:undefined,
     clients:raw.clients?{total:raw.clientsTotal,items:raw.clients}:undefined,
@@ -162,6 +168,47 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
   };
 }
 
+
+
+function ymdLocal(date:Date){
+  const y=date.getFullYear(),m=String(date.getMonth()+1).padStart(2,'0'),d=String(date.getDate()).padStart(2,'0');
+  return `${y}-${m}-${d}`;
+}
+function agentQuestionRange(text:string){
+  const today=new Date();
+  let from=new Date(today.getFullYear(),today.getMonth(),1);
+  let label='este mes';
+  if(hasAny(text,['hoy'])){from=new Date(today);label='hoy';}
+  else if(hasAny(text,['esta semana','ultimos 7 dias','últimos 7 días'])){from=new Date(today);from.setDate(from.getDate()-6);label='los últimos 7 días';}
+  else if(hasAny(text,['ultimos 30 dias','últimos 30 días'])){from=new Date(today);from.setDate(from.getDate()-29);label='los últimos 30 días';}
+  else if(hasAny(text,['este ano','este año','ano actual','año actual'])){from=new Date(today.getFullYear(),0,1);label='este año';}
+  else if(hasAny(text,['trimestre','este trimestre'])){from=new Date(today.getFullYear(),Math.floor(today.getMonth()/3)*3,1);label='este trimestre';}
+  return {from:ymdLocal(from),to:ymdLocal(today),label};
+}
+async function loadAmazonAgentContext(userClient:any,text:string){
+  const range=agentQuestionRange(text);
+  const sortBy=hasAny(text,['rentable','beneficio','beneficios','margen'])?'profit_before_ads'
+    :hasAny(text,['factura mas','facturación','facturacion','ventas','vende mas dinero'])?'gross_sales'
+    :'units';
+  try{
+    const [summaryResult,productsResult]=await Promise.all([
+      userClient.rpc('amazon_analytics_summary',{from_date:range.from,to_date:range.to,marketplace_ids:null}),
+      userClient.rpc('amazon_analytics_products',{
+        from_date:range.from,to_date:range.to,marketplace_ids:null,search:null,page:1,page_size:10,sort_by:sortBy,sort_dir:'desc',
+      }),
+    ]);
+    return {
+      range,
+      sortBy,
+      summary:summaryResult?.error?null:summaryResult?.data||null,
+      products:productsResult?.error?[]:(productsResult?.data?.items||[]),
+    };
+  }catch{return {range,sortBy,summary:null,products:[]};}
+}
+function sanitizedHistory(value:unknown){
+  if(!Array.isArray(value))return [];
+  return value.slice(-8).map((item:any)=>({role:item?.role==='assistant'?'assistant':'user',content:clean(item?.content,1000)})).filter((item:any)=>item.content);
+}
 
 type LocalActionParams={
   name:string|null;taxId:string|null;email:string|null;phone:string|null;city:string|null;countryCode:string|null;
@@ -248,32 +295,95 @@ function pendingSummary(ctx:any,allowed:string[]){
   const scope=period?`Con el periodo seleccionado (${period.from} → ${period.to}), `:'';
   return parts.length?scope+'ahora mismo veo: '+parts.join('; ')+'.':'No veo tareas pendientes en los módulos a los que tienes acceso.';
 }
-function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any){
+function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:any[]=[]){
   const text=norm(raw),currentPage=clean(ui?.currentPage,50)||'dashboard';
+  const previousUser=[...history].reverse().find(item=>item?.role==='user')?.content||'';
+  const contextual=text.split(' ').length<=5&&previousUser?norm(previousUser+' '+raw):text;
 
-  if(hasAny(text,['que tengo pendiente','pendientes ahora','resumen pendiente','cosas pendientes']))return localReply(pendingSummary(ctx,allowed));
+  if(/^(hola|buenas|buenos dias|buen dia|hey|hello|que tal|qué tal)(\s+zenvia)?$/.test(text)){
+    return localReply('¡Hola! Soy ZENVIA IA. Puedo ayudarte con ZENVIA Gestión, consultar datos reales de tu empresa y llevarte o preparar acciones dentro de la aplicación. ¿Qué necesitas?');
+  }
+  if(/^(gracias|muchas gracias|perfecto|genial|vale|ok|okay)$/.test(text)){
+    return localReply('De nada. Dime qué quieres consultar o hacer en ZENVIA Gestión.');
+  }
 
-  if(hasAny(text,['pedidos pendientes','pedido pendiente','sin etiqueta'])&&ctx.orders&&allowed.includes('orders')){
+  if(hasAny(text,['como funciona la aplicacion','cómo funciona la aplicación','explicame la aplicacion','explícame la aplicación','que es zenvia gestion','qué es zenvia gestión','como funciona zenvia gestion','cómo funciona zenvia gestión'])){
+    return localReply('ZENVIA Gestión centraliza la operativa de la empresa: Resumen reúne KPIs y pendientes; Facturación gestiona facturas emitidas; Pedidos sincroniza pedidos, logística, etiquetas y tracking; Gastos importa y controla facturas de proveedores, su revisión, contabilización y pago; Clientes, Productos y Proveedores mantienen los maestros; Amazon analiza ventas, unidades, rentabilidad e inventario; Soporte gestiona incidencias; Configuración concentra integraciones y reglas; y Administración controla usuarios y permisos. Puedes preguntarme por datos concretos de esos módulos o pedirme que te lleve a uno.');
+  }
+
+  if(hasAny(text,['que tengo pendiente','pendientes ahora','resumen pendiente','cosas pendientes','que me queda','qué me queda']))return localReply(pendingSummary(ctx,allowed));
+
+  if(hasAny(contextual,['pedidos pendientes','pedido pendiente','sin etiqueta'])&&ctx.orders&&allowed.includes('orders')){
     const recent=(ctx.orders.recent||[]).filter(isPendingOrderRow).slice(0,8);
     const detail=recent.length?' Los más recientes: '+recent.map((o:any)=>String(o.order_number||o.id)+' ('+String(o.customer_name||'sin cliente')+')').join(', ')+'.':'';
     return localReply('Tienes '+String(ctx.orders.pending)+' pedidos pendientes de etiqueta.'+detail);
   }
-  if(hasAny(text,['ultimos pedidos','pedidos recientes'])&&ctx.orders&&allowed.includes('orders')){
+  if(hasAny(contextual,['ultimos pedidos','últimos pedidos','pedidos recientes'])&&ctx.orders&&allowed.includes('orders')){
     const rows=(ctx.orders.recent||[]).slice(0,8);
-    return localReply(rows.length?'Últimos pedidos:\n'+rows.map((o:any)=>String(o.order_number||o.id)+' · '+String(o.customer_name||'sin cliente')+' · '+euroLocal(o.total_amount,o.currency)).join('\n'):'No hay pedidos recientes.');
+    return localReply(rows.length?'Últimos pedidos:\n'+rows.map((o:any)=>String(o.order_number||o.id)+' · '+String(o.customer_name||'sin cliente')+' · '+euroLocal(o.total_amount,o.currency)).join('\n'):'No hay pedidos recientes en el periodo consultado.');
   }
-  if(hasAny(text,['facturas pendientes','gastos pendientes','facturas de gasto pendientes'])&&ctx.expenses&&allowed.includes('invoices')){
+  if((hasAny(contextual,['facturas pendientes','gastos pendientes','facturas de gasto pendientes'])&&!hasAny(contextual,['pagar','pago','pagadas']))&&ctx.expenses&&allowed.includes('invoices')){
     const rows=(ctx.expenses.recent||[]).filter((i:any)=>i.status==='pending').slice(0,8);
     return localReply('Tienes '+String(ctx.expenses.pendingReview)+' facturas de gasto pendientes de revisar.'+(rows.length?'\n'+rows.map((i:any)=>String(i.invoice_number||'sin número')+' · '+String(i.supplier_name||'proveedor')+' · '+euroLocal(i.total_amount)).join('\n'):''));
   }
-  if(hasAny(text,['productos sin coste','sin coste','productos sin precio de coste'])&&ctx.products&&allowed.includes('products')){
+  if(hasAny(contextual,['por pagar','pendientes de pago','sin pagar','facturas no pagadas'])&&ctx.expenses&&allowed.includes('invoices')){
+    const rows=(ctx.expenses.recent||[]).filter((i:any)=>String(i.payment_status||'unpaid')!=='paid').slice(0,8);
+    return localReply('Tienes '+String(ctx.expenses.unpaid||0)+' facturas de gasto por pagar.'+(rows.length?'\n'+rows.map((i:any)=>String(i.invoice_number||'sin número')+' · '+String(i.supplier_name||'proveedor')+' · '+euroLocal(i.total_amount)).join('\n'):''));
+  }
+  if(hasAny(contextual,['facturas pagadas','gastos pagados','cuantas pagadas','cuántas pagadas'])&&ctx.expenses&&allowed.includes('invoices')){
+    return localReply('Hay '+String(ctx.expenses.paid||0)+' facturas de gasto marcadas como pagadas en el periodo consultado.');
+  }
+  if(hasAny(contextual,['productos sin coste','sin coste','productos sin precio de coste'])&&ctx.products&&allowed.includes('products')){
     const rows=(ctx.products.items||[]).filter((p:any)=>p.last_cost==null).slice(0,12);
     return localReply(rows.length?'Tienes '+String(ctx.products.withoutCost)+' productos sin coste. Ejemplos: '+rows.map((p:any)=>String(p.name)).join(', ')+'.':'No veo productos activos sin coste.');
   }
-  if(hasAny(text,['cuantos clientes','numero de clientes'])&&ctx.clients&&allowed.includes('clients'))return localReply('Tienes '+String(ctx.clients.total)+' clientes activos.');
-  if(hasAny(text,['cuantos proveedores','numero de proveedores'])&&ctx.suppliers&&allowed.includes('suppliers'))return localReply('Tienes '+String(ctx.suppliers.total)+' proveedores.');
-  if(hasAny(text,['tickets abiertos','ticket abierto','soporte pendiente'])&&ctx.support&&allowed.includes('support'))return localReply('Hay '+String(ctx.support.open)+' tickets de soporte abiertos.');
-  if(hasAny(text,['facturas abiertas','facturas por cobrar','facturas emitidas pendientes'])&&ctx.sales&&allowed.includes('sales'))return localReply('Tienes '+String(ctx.sales.open)+' facturas emitidas abiertas.');
+  if(hasAny(contextual,['cuantos productos','cuántos productos','numero de productos','número de productos'])&&ctx.products&&allowed.includes('products'))return localReply('Tienes '+String(ctx.products.total)+' productos activos.');
+  if(hasAny(contextual,['cuantos clientes','cuántos clientes','numero de clientes','número de clientes'])&&ctx.clients&&allowed.includes('clients'))return localReply('Tienes '+String(ctx.clients.total)+' clientes activos.');
+  if(hasAny(contextual,['cuantos proveedores','cuántos proveedores','numero de proveedores','número de proveedores'])&&ctx.suppliers&&allowed.includes('suppliers'))return localReply('Tienes '+String(ctx.suppliers.total)+' proveedores.');
+  if(hasAny(contextual,['tickets abiertos','ticket abierto','soporte pendiente'])&&ctx.support&&allowed.includes('support'))return localReply('Hay '+String(ctx.support.open)+' tickets de soporte abiertos.');
+  if(hasAny(contextual,['facturas abiertas','facturas por cobrar','facturas emitidas pendientes'])&&ctx.sales&&allowed.includes('sales'))return localReply('Tienes '+String(ctx.sales.open)+' facturas emitidas abiertas.');
+
+  if(ctx.amazon&&allowed.includes('amazon')&&hasAny(contextual,['amazon','marketplace','mas vendido','más vendido','producto vendido','unidades vendidas','ventas'])){
+    const products=Array.isArray(ctx.amazon.products)?ctx.amazon.products:[];
+    const top=products[0];
+    const rangeLabel=ctx.amazon.range?.label||'el periodo consultado';
+    if(top&&hasAny(contextual,['mas vendido','más vendido','producto vendido','unidades','vende mas','vende más'])){
+      const name=String(top.productName||top.sellerSku||top.asin||'Producto');
+      return localReply(`El producto más vendido en Amazon en ${rangeLabel} es ${name}, con ${Number(top.units||0).toLocaleString('es-ES')} unidades en ${Number(top.orders||0).toLocaleString('es-ES')} pedidos. Ventas brutas: ${euroLocal(top.grossSales)}.`);
+    }
+    if(top&&hasAny(contextual,['mas rentable','más rentable','beneficio','margen'])){
+      const name=String(top.productName||top.sellerSku||top.asin||'Producto');
+      return localReply(`El producto con mayor beneficio antes de publicidad en Amazon en ${rangeLabel} es ${name}: ${euroLocal(top.profitBeforeAds)} de beneficio y ${top.marginPct==null?'margen no disponible':Number(top.marginPct).toLocaleString('es-ES')+' % de margen'}.`);
+    }
+    if(top&&hasAny(contextual,['mas factura','más factura','facturacion','facturación','ventas'])){
+      const name=String(top.productName||top.sellerSku||top.asin||'Producto');
+      return localReply(`El producto con más ventas brutas en Amazon en ${rangeLabel} es ${name}: ${euroLocal(top.grossSales)}, ${Number(top.units||0).toLocaleString('es-ES')} unidades.`);
+    }
+    if(ctx.amazon.summary){
+      const s=ctx.amazon.summary;
+      return localReply(`Resumen de Amazon de ${rangeLabel}: ${Number(s.orders||0).toLocaleString('es-ES')} pedidos, ${Number(s.units||0).toLocaleString('es-ES')} unidades y ${euroLocal(s.grossSales)} de ventas brutas.`);
+    }
+  }
+
+  const entitySearch=(items:any[],fields:string[])=>{
+    const meaningful=text.split(' ').filter(word=>word.length>=4&&!['cliente','producto','proveedor','busca','dime','sobre','datos','cual','cuál','tiene'].includes(word));
+    return items.filter(item=>meaningful.some(word=>fields.some(field=>norm(String(item?.[field]||'')).includes(word)))).slice(0,5);
+  };
+  if(ctx.products&&allowed.includes('products')&&hasAny(text,['producto','sku','ean'])){
+    const matches=entitySearch(ctx.products.items||[],['name','sku','ean','category']);
+    if(matches.length===1){const p=matches[0];return localReply(`${p.name}: SKU ${p.sku||'—'}, coste ${p.last_cost==null?'sin coste':euroLocal(p.last_cost)}, precio de venta ${p.sale_price==null?'sin precio':euroLocal(p.sale_price)}.`);}
+    if(matches.length>1)return localReply('He encontrado varios productos: '+matches.map((p:any)=>String(p.name)).join(', ')+'.');
+  }
+  if(ctx.clients&&allowed.includes('clients')&&hasAny(text,['cliente'])){
+    const matches=entitySearch(ctx.clients.items||[],['name','tax_id','email','city']);
+    if(matches.length===1){const p=matches[0];return localReply(`${p.name}: ${p.tax_id||'sin NIF/CIF'}, ${p.email||'sin email'}, ${p.city||'sin ciudad'}.`);}
+    if(matches.length>1)return localReply('He encontrado varios clientes: '+matches.map((p:any)=>String(p.name)).join(', ')+'.');
+  }
+  if(ctx.suppliers&&allowed.includes('suppliers')&&hasAny(text,['proveedor'])){
+    const matches=entitySearch(ctx.suppliers.items||[],['name','tax_id','email']);
+    if(matches.length===1){const p=matches[0];return localReply(`${p.name}: ${p.tax_id||'sin NIF/CIF'}, tipo ${p.supplier_type||'sin clasificar'}, ${p.email||'sin email'}.`);}
+    if(matches.length>1)return localReply('He encontrado varios proveedores: '+matches.map((p:any)=>String(p.name)).join(', ')+'.');
+  }
 
   if(hasAny(text,['sincroniza los pedidos','sincronizar pedidos','actualiza los pedidos','trae los pedidos'])&&allowed.includes('orders'))return localReply('He preparado la sincronización de pedidos. Te pediré confirmación antes de ejecutarla.',localAction('sync_orders','orders'));
 
@@ -303,20 +413,30 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any){
     return localReply(matches.length>1?'Encuentro varias facturas que coinciden. Indícame el número exacto.':'No he podido identificar con seguridad la factura. Indícame su número exacto o el proveedor.');
   }
 
-  if(hasAny(text,['que puedes hacer','para que sirves','ayuda']))return localReply('Puedo consultar datos reales de ZENVIA Gestión, decirte qué tienes pendiente, navegar por la app y ejecutar con confirmación acciones como sincronizar pedidos, crear clientes, productos o proveedores y cambiar el estado de gastos.');
-  if(hasAny(text,['que puedo hacer desde aqui','esta pantalla','esta seccion']))return localReply(helpForPage(currentPage));
+  if(hasAny(text,['que puedes hacer','qué puedes hacer','para que sirves','para qué sirves','ayuda'])){
+    return localReply('Puedo conversar sobre cómo funciona ZENVIA Gestión, explicar cada módulo, consultar tus datos reales de pedidos, gastos y pagos, facturación, productos, clientes, proveedores, Amazon y soporte, navegar por la aplicación y preparar con confirmación acciones como sincronizar pedidos o crear maestros.');
+  }
+  if(hasAny(text,['que puedo hacer desde aqui','qué puedo hacer desde aquí','esta pantalla','esta seccion','esta sección']))return localReply(helpForPage(currentPage));
   if(hasAny(text,['importar factura','importo una factura','subir factura','cargar factura']))return localReply('Puedo abrirte el importador de Gastos. También puedes importar desde Gmail si lo tienes conectado.',localAction('open_expense_upload','invoices'));
-  if(hasAny(text,['modo oscuro','tema oscuro','modo claro']))return localReply('El tema se cambia desde el control de apariencia y queda guardado como preferencia de usuario.');
-  if(hasAny(text,['sendcloud','envia.com','envia com','transportista','logistica'])&&hasAny(text,['configurar','conectar','integracion','donde']))return localReply('Sendcloud y Envia.com se gestionan en Configuración → Integraciones y pueden convivir.',localAction('open_settings','settings'));
+  if(hasAny(text,['modo oscuro','tema oscuro','modo claro']))return localReply('En Configuración defines el tema global preferido. El botón rápido de claro/oscuro aplica un cambio local al dispositivo actual, sin modificar los demás equipos.');
+  if(hasAny(text,['sendcloud','envia.com','envia com','transportista','logistica','logística'])&&hasAny(text,['configurar','conectar','integracion','integración','donde']))return localReply('Sendcloud y Envia.com se gestionan en Configuración → Integraciones y pueden convivir.',localAction('open_settings','settings'));
 
-  if(hasAny(text,['llevame','ve a','abre','ir a','quiero ir','muestrame'])){
+  const mentionedPage=pageAlias(text);
+  if(mentionedPage&&hasAny(text,['como funciona','cómo funciona','explica','explicame','explícame','para que sirve','para qué sirve','que hace','qué hace'])){
+    if(!allowed.includes(mentionedPage))return localReply('No tienes acceso a '+pageTitle(mentionedPage)+'.');
+    return localReply(helpForPage(mentionedPage));
+  }
+
+  if(hasAny(text,['llevame','llévame','ve a','abre','ir a','quiero ir','muestrame','muéstrame'])){
     const page=pageAlias(text);
     if(page&&!allowed.includes(page))return localReply('No tienes acceso a '+pageTitle(page)+'.');
     if(page==='settings')return localReply('Abro Configuración.',localAction('open_settings','settings'));
     if(page)return localReply('Te llevo a '+pageTitle(page)+'.',localAction('navigate',page));
   }
 
-  return localReply('Esa petición todavía no la interpreto con suficiente seguridad. Prueba con “qué tengo pendiente”, “sincroniza los pedidos”, “crea un proveedor…”, “productos sin coste” o “llévame a Facturación”.');
+  if(mentionedPage&&allowed.includes(mentionedPage))return localReply(helpForPage(mentionedPage));
+
+  return localReply('No he encontrado una respuesta exacta para esa pregunta con el contexto disponible. Puedo ayudarte con cualquier módulo de ZENVIA Gestión; dime qué dato buscas o qué quieres hacer y, si puedo consultarlo o ejecutarlo de forma segura, lo haré.');
 }
 
 Deno.serve(async(req:Request)=>{
@@ -354,8 +474,20 @@ Deno.serve(async(req:Request)=>{
     if(preferenceError)throw preferenceError;
     const periods=resolveAgentPeriods(preferenceRow?.preferences||{},currentPage);
     const businessContext=await loadBusinessContext(admin,String(profile.data_owner_id),allowedPages,periods);
+    const history=sanitizedHistory(body?.history);
+    const normalizedMessage=norm(message);
+    if(allowedPages.includes('amazon')&&hasAny(normalizedMessage,['amazon','marketplace','mas vendido','más vendido','ventas','unidades vendidas','rentable'])){
+      const publicKey=clean(Deno.env.get('SUPABASE_ANON_KEY')||Deno.env.get('SUPABASE_PUBLISHABLE_KEY'),4000);
+      if(publicKey){
+        const userClient=createClient(supabaseUrl,publicKey,{
+          global:{headers:{Authorization:`Bearer ${token}`}},
+          auth:{persistSession:false,autoRefreshToken:false},
+        });
+        (businessContext as any).amazon=await loadAmazonAgentContext(userClient,normalizedMessage);
+      }
+    }
 
-    return response(processLocalAgent(message,businessContext,allowedPages,ui));
+    return response(processLocalAgent(message,businessContext,allowedPages,ui,history));
   }catch(error){
     return response({error:error instanceof Error?error.message:'Error interno del agente.'},500);
   }

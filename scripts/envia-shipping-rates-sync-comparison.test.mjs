@@ -95,3 +95,17 @@ test('contracted tariffs are scoped to exactly one shipping provider',async()=>{
   assert.match(migration,/shipping_provider in \('sendcloud','envia'\)/);
   assert.match(migration,/shipping_provider=v_document\.shipping_provider/);
 });
+
+
+test('Envia history backfill is independent from Sendcloud history state',async()=>{
+  const [orders,page]=await Promise.all([
+    read('src/services/orders.ts'),
+    read('src/pages/Orders.tsx'),
+  ]);
+  assert.match(orders,/ENVIA_HISTORY_SYNC_KEY='zenvia-envia-history-sync'/);
+  assert.match(orders,/shouldRunEnviaHistorySync/);
+  assert.match(orders,/markEnviaHistorySyncDone/);
+  assert.match(page,/syncEnviaShipments\(enviaHistory\?12:2\)/);
+  assert.match(page,/markEnviaHistorySyncDone\(\)/);
+  assert.match(page,/shouldRunEnviaHistorySync\(\)/);
+});

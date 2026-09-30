@@ -28,7 +28,7 @@ import { SettingsPage } from './pages/Settings';
 import { SupportPage } from './pages/Support';
 import { bootstrapTenantFromLocation, supabase } from './services/supabase';
 import { loadAccessProfile, type AccessProfile, type MenuPermission } from './services/access';
-import { bootstrapUser, createInvoice, deleteProduct, deleteSupplier, getInvoiceFileUrl, loadAppData, updateInvoicePaymentStatus, updateInvoiceStatus } from './services/repository';
+import { bootstrapUser, createInvoice, deleteProduct, deleteSupplier, getInvoiceFileUrl, loadAppData, updateInvoicePaymentStatus, updateInvoicesPaymentStatus, updateInvoiceStatus } from './services/repository';
 import { addSupplier, updateSupplier, type SupplierInput } from './services/supplierEditor';
 import { addClient } from './services/sales';
 import { syncSendcloudOrders } from './services/orders';
@@ -296,6 +296,10 @@ export default function App(){
    if(!can('invoices'))throw new Error('No tienes permiso para modificar facturas.');
    await runAction(async()=>{await updateInvoicePaymentStatus(id,status,paidAt);await refresh()},'No se pudo cambiar el estado de pago de la factura.');
  };
+ const changePaymentStatuses=async(ids:string[],status:InvoicePaymentStatus,paidAt?:string|null)=>{
+   if(!can('invoices'))throw new Error('No tienes permiso para modificar facturas.');
+   await runAction(async()=>{await updateInvoicesPaymentStatus(ids,status,paidAt);await refresh()},'No se pudo cambiar el estado de pago de las facturas.');
+ };
  const changeInvoiceSupplier=async(invoiceId:string,supplierId:string)=>{
    if(!can('invoices'))throw new Error('No tienes permiso para modificar facturas.');
    await runAction(async()=>{await updateInvoiceSupplier(invoiceId,supplierId);await refresh()},'No se pudo cambiar el proveedor de la factura.');
@@ -511,7 +515,7 @@ export default function App(){
    {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders',{pendingOrders:true}):undefined}/>} 
    {page==='sales'&&can('sales')&&<SalesInvoices/>}
    {page==='orders'&&can('orders')&&<Orders pendingOnly={ordersPendingEntry}/>} 
-   {page==='invoices'&&can('invoices')&&<ExpenseInvoicesHub invoices={data.invoices} suppliers={data.suppliers} categories={data.categories} onUpload={()=>setUpload(true)} onBulkUpload={()=>setBulkUpload(true)} onStatusChange={changeStatus} onPaymentStatusChange={changePaymentStatus} onOpenFile={openInvoice} onDelete={removeInvoice} onSupplierChange={changeInvoiceSupplier} onCategoryChange={changeInvoiceCategory} onImported={refresh}/>} 
+   {page==='invoices'&&can('invoices')&&<ExpenseInvoicesHub invoices={data.invoices} suppliers={data.suppliers} categories={data.categories} onUpload={()=>setUpload(true)} onBulkUpload={()=>setBulkUpload(true)} onStatusChange={changeStatus} onPaymentStatusChange={changePaymentStatus} onBulkPaymentStatusChange={changePaymentStatuses} onOpenFile={openInvoice} onDelete={removeInvoice} onSupplierChange={changeInvoiceSupplier} onCategoryChange={changeInvoiceCategory} onImported={refresh}/>} 
    {page==='clients'&&can('clients')&&<Clients/>}
    {page==='products'&&can('products')&&<Products products={data.products} onAdd={openNewProduct} onEdit={openEditProduct} onDelete={removeProduct}/>} 
    {page==='suppliers'&&can('suppliers')&&<Suppliers suppliers={data.suppliers} onAdd={openNewSupplier} onEdit={openEditSupplier} onDelete={removeSupplier}/>} 

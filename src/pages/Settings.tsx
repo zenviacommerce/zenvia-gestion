@@ -6,6 +6,7 @@ import {
   Box,
   Building2,
   CreditCard,
+  Download,
   FileInput,
   Gauge,
   PlugZap,
@@ -44,7 +45,7 @@ import { downloadSettingsExport, previewSettingsReset, resetAllSettingsToDefault
 import { DASHBOARD_KPI_DEFAULTS, TABLE_COLUMN_DEFAULTS, type PreferenceTableKey } from '../services/uiPreferences';
 import { formatAppDateTime, formatAppMoney } from '../services/formatting';
 import type { AccessProfile } from '../services/access';
-import { loadCustomerBillingOverview, loadCustomerSubscriptionInvoices, startCustomerPayPalCheckout, type BillingCycle, type CustomerBillingOverview, type CustomerBillingPlan, type CustomerSubscriptionInvoice } from '../services/billing';
+import { importCustomerSubscriptionInvoiceAsExpense, loadCustomerBillingOverview, loadCustomerSubscriptionInvoices, startCustomerPayPalCheckout, type BillingCycle, type CustomerBillingOverview, type CustomerBillingPlan, type CustomerSubscriptionInvoice } from '../services/billing';
 
 type SettingsSectionId =
   | 'general'
@@ -350,6 +351,7 @@ function BillingSection({access}:{access:AccessProfile}){
   const [cycle,setCycle]=useState<BillingCycle>('monthly');
   const [requesting,setRequesting]=useState<string|null>(null);
   const [subscriptionInvoices,setSubscriptionInvoices]=useState<CustomerSubscriptionInvoice[]>([]);
+  const [importingInvoiceId,setImportingInvoiceId]=useState<string|null>(null);
 
   const load=async()=>{
     setLoading(true);setError('');
@@ -367,6 +369,15 @@ function BillingSection({access}:{access:AccessProfile}){
       const result=await startCustomerPayPalCheckout({access,targetPlan:plan,cycle});
       window.location.assign(result.approveUrl);
     }catch(e){showError(e instanceof Error?e.message:'No se pudo iniciar el pago con PayPal.');setRequesting(null)}
+  };
+
+  const importSubscriptionInvoice=async(invoice:CustomerSubscriptionInvoice)=>{
+    setImportingInvoiceId(invoice.id);
+    try{
+      await importCustomerSubscriptionInvoiceAsExpense(invoice);
+      showSuccess(`Factura ${invoice.invoice_number||''} añadida a Gastos y marcada como pagada.`);
+    }catch(e){showError(e instanceof Error?e.message:'No se pudo añadir la factura a Gastos.')}
+    finally{setImportingInvoiceId(null)}
   };
 
   if(loading)return <section className="settingsSectionCard"><div className="settingsSectionHero"><div className="settingsSectionIcon"><CreditCard size={22}/></div><div><h2>Plan y facturación</h2><p>Cargando tu suscripción…</p></div></div><div className="settingsInlineLoading">Cargando plan y consumo…</div></section>;
@@ -449,8 +460,14 @@ function BillingSection({access}:{access:AccessProfile}){
       <h3>Facturas de la suscripción</h3>
       <p className="settingsHelpText">Aquí aparecerán las facturas emitidas por ZENVIA asociadas a tu suscripción.</p>
       {subscriptionInvoices.length?<div className="billingInvoiceHistory">{subscriptionInvoices.map(invoice=><article className="billingInvoiceHistoryRow" key={invoice.id}>
-        <div><strong>{invoice.invoice_number||'Pendiente de emisión'}</strong><span>{billingDate(invoice.issue_date)}</span></div>
-        <div><span>{invoice.status}</span><strong>{new Intl.NumberFormat('es-ES',{style:'currency',currency:invoice.currency}).format(invoice.total_cents/100)}</strong></div>
+        <div className="billingInvoiceIdentity"><strong>{invoice.invoice_number||'Pendiente de emisión'}</strong><span>{billingDate(invoice.issue_date)} · {invoice.status==='draft'?'Pendiente de revisión':invoice.status==='paid'?'Pagada':invoice.status}</span></div>
+        <div className="billingInvoiceTotal"><span>{invoice.currency}</span><strong>{new Intl.NumberFormat('es-ES',{style:'currency',currency:invoice.currency}).format(invoice.total_cents/100)}</strong></div>
+        <div className="billingInvoiceActions">
+          {invoice.download_url?<a className="secondary" href={invoice.download_url} target="_blank" rel="noreferrer"><Download size={14}/> PDF</a>:<button type="button" className="secondary" disabled>PDF pendiente</button>}
+          <button type="button" className="secondary" disabled={!invoice.download_url||invoice.status==='draft'||importingInvoiceId!==null} onClick={()=>void importSubscriptionInvoice(invoice)}>
+            <FileInput size={14}/>{importingInvoiceId===invoice.id?'Añadiendo…':'Añadir a Gastos'}
+          </button>
+        </div>
       </article>)}</div>:<div className="settingsEmptySection"><ReceiptText size={22}/><div><strong>Aún no hay facturas de suscripción</strong><span>Se mostrarán aquí cuando se emitan tras los cobros confirmados.</span></div></div>}
     </div>
   </section>;

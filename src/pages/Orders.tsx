@@ -175,26 +175,52 @@ function OrderDrawer({order,shippingPrice,validationIssues,productImages,onClose
   </aside></div>;
 }
 
-function LabelModal({order,options,tariffs,message,loading,onClose,onCreate}:{order:FulfillmentOrder;options:ShippingOption[];tariffs:TransportTariffDocument[];message:string;loading:boolean;onClose:()=>void;onCreate:(option:ShippingOption|null)=>void}){
+function shippingOptionKey(option:ShippingOption|null|undefined){
+  if(!option)return '';
+  return [option.provider,option.integrationAccountId||'',option.carrierCode||'',option.code||'',option.contractId??''].join('|');
+}
+
+function LabelModal({order,options,tariffs,message,loading,preferredOption,onClose,onCreate}:{order:FulfillmentOrder;options:ShippingOption[];tariffs:TransportTariffDocument[];message:string;loading:boolean;preferredOption:ShippingOption|null;onClose:()=>void;onCreate:(option:ShippingOption|null)=>void}){
   const {settings}=useSettings();
   const providers=Array.from(new Set(options.map(option=>option.provider)));
-  const priced=options.filter(option=>option.price!=null&&Number.isFinite(option.price)).sort((a,b)=>(a.price??Number.MAX_VALUE)-(b.price??Number.MAX_VALUE));
+  const priced=options.filter(option=>option.price!=null&&Number.isFinite(option.price)&&Number(option.price)>0).sort((a,b)=>(a.price??Number.MAX_VALUE)-(b.price??Number.MAX_VALUE));
   const cheapest=priced[0]||null;
+  const preferredKey=shippingOptionKey(preferredOption);
+  const firstUsable=preferredOption||cheapest||options.find(option=>!/^unstamped(?:\s+letter)?$/i.test(option.name||''))||options[0]||null;
+  const [selectedKey,setSelectedKey]=useState(()=>shippingOptionKey(firstUsable));
+
+  useEffect(()=>{
+    const available=new Set(options.map(shippingOptionKey));
+    if(preferredKey&&available.has(preferredKey)){setSelectedKey(preferredKey);return}
+    setSelectedKey(current=>available.has(current)?current:shippingOptionKey(firstUsable));
+  },[order.id,preferredKey,options.length]);
+
+  const selected=options.find(option=>shippingOptionKey(option)===selectedKey)||null;
   const comparison=options.map(option=>({option,tariff:estimateTransportTariffForOption(order,tariffs,option)}));
+  const selectOption=(option:ShippingOption)=>setSelectedKey(shippingOptionKey(option));
+
   return <div className="modalBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><section className="modal ordersLabelModal">
-    <div className="modalHead"><div><h3>Crear etiqueta · {order.orderNumber||order.orderId}</h3><p>Compara los servicios disponibles de tus proveedores logísticos y elige la opción que prefieras.</p></div><button onClick={onClose}><X size={18}/></button></div>
+    <div className="modalHead"><div><h3>Crear etiqueta · {order.orderNumber||order.orderId}</h3><p>Compara los servicios disponibles, selecciona uno y confirma la creación de la etiqueta.</p></div><button onClick={onClose}><X size={18}/></button></div>
     <div className="ordersLabelBody">
       <div className="ordersLabelContext"><div><span>Peso del paquete</span><strong>{weightLabel(order,settings.shipping.weightUnit)}</strong></div><div><span>Destino</span><strong>{text(order.shippingAddress.postal_code)||'—'} · {text(order.shippingAddress.city)||text(order.shippingAddress.country_code)||'—'}</strong></div></div>
       {loading?<div className="ordersOptionsLoading"><LoaderCircle className="spin"/><span>Consultando proveedores, servicios y precios…</span></div>:<>
         {message&&<div className="ordersQuoteMessage"><AlertCircle size={15}/><span>{message}</span></div>}
         {options.length>0&&<section className="ordersComparison">
           <div className="ordersComparisonHead"><div><strong>Comparativa</strong><span>Precio API frente a tu tarifa contratada cuando existe una asociación válida.</span></div><small>{priced.length?priced.length+' opciones con precio':'Sin precios en tiempo real'}</small></div>
-          <div className="ordersComparisonList">{comparison.slice().sort((a,b)=>(a.option.price??Number.MAX_VALUE)-(b.option.price??Number.MAX_VALUE)).map(({option,tariff},index)=>{
+          <div className="ordersComparisonList">{comparison.slice().sort((a,b)=>{
+            const aPreferred=shippingOptionKey(a.option)===preferredKey?0:1,bPreferred=shippingOptionKey(b.option)===preferredKey?0:1;
+            if(aPreferred!==bPreferred)return aPreferred-bPreferred;
+            const ap=a.option.price!=null&&a.option.price>0?a.option.price:Number.MAX_VALUE;
+            const bp=b.option.price!=null&&b.option.price>0?b.option.price:Number.MAX_VALUE;
+            return ap-bp;
+          }).map(({option,tariff},index)=>{
             const delta=option.price!=null&&tariff?.totalAmount!=null?Math.round((option.price-tariff.totalAmount)*100)/100:null;
             const isCheapest=cheapest===option;
-            return <button type="button" className="ordersComparisonRow" key={'comparison-'+option.provider+'-'+(option.integrationAccountId||'')+'-'+option.carrierCode+'-'+option.code+'-'+index} onClick={()=>onCreate(option)}>
-              <div className="ordersComparisonIdentity"><span className={'ordersProviderBadge '+option.provider}>{option.providerName}</span><strong>{option.carrierName||option.carrierCode||'Transportista'}</strong><small>{option.name||option.code}</small></div>
-              <div><span>Precio API</span><strong>{option.price==null?'—':money(option.price,option.currency||'EUR')}</strong>{isCheapest&&<small className="ordersBestPrice">Más barato</small>}</div>
+            const isPreferred=shippingOptionKey(option)===preferredKey;
+            const isSelected=shippingOptionKey(option)===selectedKey;
+            return <button type="button" className={'ordersComparisonRow '+(isSelected?'selected':'')} aria-pressed={isSelected} key={'comparison-'+option.provider+'-'+(option.integrationAccountId||'')+'-'+option.carrierCode+'-'+option.code+'-'+index} onClick={()=>selectOption(option)}>
+              <div className="ordersComparisonIdentity"><span className={'ordersProviderBadge '+option.provider}>{option.providerName}</span><strong>{option.carrierName||option.carrierCode||'Transportista'}</strong><small>{option.name||option.code}{isPreferred?' · Predeterminada':''}</small></div>
+              <div><span>Precio API</span><strong>{option.price==null?'—':money(option.price,option.currency||'EUR')}</strong>{isCheapest&&<small className="ordersBestPrice">Más barato con precio</small>}</div>
               <div><span>Tu tarifa</span><strong>{tariff?.totalAmount==null?'—':money(tariff.totalAmount,tariff.currency)}</strong><small>{tariff?.documentName||'Sin asociación'}</small></div>
               <div><span>Diferencia</span><strong className={delta==null?'':delta<=0?'good':'bad'}>{delta==null?'—':(delta>0?'+':'')+money(delta,option.currency||tariff?.currency||'EUR')}</strong></div>
             </button>;
@@ -212,10 +238,13 @@ function LabelModal({order,options,tariffs,message,loading,onClose,onCreate}:{or
               <div className="ordersCarrierHead"><Truck size={18}/><div><strong>{providerName}</strong><span>{provider==='envia'?'Comparativa multitransportista en tiempo real':'Servicios de tu cuenta Sendcloud'}</span></div></div>
               <div className="ordersCarrierGroups">{carrierGroups.map(group=><section className="ordersCarrierGroup" key={provider+'-'+group.name}>
                 <div className="ordersCarrierGroupHead"><strong>{group.name}</strong><small>{group.options.length} servicio{group.options.length===1?'':'s'}</small></div>
-                <div className="ordersOptionList">{group.options.map((option,index)=><button key={`${provider}-${option.integrationAccountId||''}-${option.carrierCode}-${option.code}-${index}`} onClick={()=>onCreate(option)}>
-                  <div><strong>{option.name||option.code}</strong><small>{option.integrationAccountName?`${option.integrationAccountName} · `:''}{option.billedWeightKg?`Peso facturable ${weightValueLabel(option.billedWeightKg,settings.shipping.weightUnit)} · `:''}{option.etaDays?`${option.etaDays} día${option.etaDays===1?'':'s'} · `:''}{option.code}</small></div>
-                  <span className={option.price==null?'noPrice':''}>{option.price==null?'Precio no disponible':money(option.price,option.currency||'EUR')}</span>
-                </button>)}</div>
+                <div className="ordersOptionList">{group.options.map((option,index)=>{
+                  const isSelected=shippingOptionKey(option)===selectedKey;
+                  return <button className={isSelected?'selected':''} aria-pressed={isSelected} key={`${provider}-${option.integrationAccountId||''}-${option.carrierCode}-${option.code}-${index}`} onClick={()=>selectOption(option)}>
+                    <div><strong>{option.name||option.code}</strong><small>{option.integrationAccountName?`${option.integrationAccountName} · `:''}{option.billedWeightKg?`Peso facturable ${weightValueLabel(option.billedWeightKg,settings.shipping.weightUnit)} · `:''}{option.etaDays?`${option.etaDays} día${option.etaDays===1?'':'s'} · `:''}{option.code}</small></div>
+                    <span className={option.price==null?'noPrice':''}>{option.price==null?'Precio no disponible':money(option.price,option.currency||'EUR')}</span>
+                  </button>;
+                })}</div>
               </section>)}</div>
             </section>;
           })}
@@ -223,10 +252,9 @@ function LabelModal({order,options,tariffs,message,loading,onClose,onCreate}:{or
         {options.some(option=>option.provider==='sendcloud')&&<button className="secondary ordersRulesButton" onClick={()=>onCreate(null)}><Settings2 size={16}/><span><strong>Usar reglas de Sendcloud</strong><small>Deja que Sendcloud resuelva el método según su configuración.</small></span><ChevronRight size={17}/></button>}
       </>}
     </div>
-    <div className="modalActions"><button className="secondary" onClick={onClose}>Cancelar</button></div>
+    <div className="modalActions"><button className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={loading||!selected} onClick={()=>selected&&onCreate(selected)}>{selected?'Crear etiqueta':'Selecciona un servicio'}</button></div>
   </section></div>;
 }
-
 function ManualOrderModal({status,saving,defaultCountryCode,fallbackWeightKg,weightUnit,onClose,onSave}:{status:SendcloudStatus;saving:boolean;defaultCountryCode:string;fallbackWeightKg:number;weightUnit:ShippingSettings['weightUnit'];onClose:()=>void;onSave:(value:any)=>void}){
   const apiIntegrations=status.integrations.filter(item=>item.channel==='other');
   const suggested=apiIntegrations.find(item=>item.isApi)||apiIntegrations[0];
@@ -582,7 +610,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     <div className="ordersMobileList">{sortedOrders.map(order=>{const stateInfo=orderState(order),tracking=trackingState(order),validation=validateOrderForCarrier(order),shipping=shippingPriceForOrder(order,shippingPreviews[order.id]||tariffPreviews[order.id]);return <div className={`bulkMobileSelectableRow ${checkedIds.has(order.id)?'selected':''}`} key={order.id}><BulkSelectCheckbox checked={checkedIds.has(order.id)} disabled={!canPrepareOrder(order)} onChange={checked=>toggleOrder(order.id,checked)} label={canPrepareOrder(order)?`Seleccionar pedido ${order.orderNumber||order.orderId}`:'Este pedido ya no admite una nueva etiqueta'}/><button className="card ordersMobileRow" onClick={()=>setSelected(order)}><div><span className={`ordersChannel ${order.sourceChannel}`}>{channelLabel(order)}</span><strong>{order.orderNumber||order.orderId}</strong><small>{order.customerName||'Cliente'} · {weightLabel(order,settings.shipping.weightUnit)} · {carrierLabel(order)} · Envío {shipping?money(shipping.totalAmount,shipping.currency):'—'}</small>{validation.blocking&&<small className="ordersValidationWarn"><AlertCircle size={12}/> Revisar pedido</small>}<small>Pedido {dateLabel(order.orderCreatedAt,settings.general)} · Etiqueta {dateLabel(labelTimestamp(order),settings.general)}</small>{order.items[0]&&<div className="ordersMobileProductRow">{order.sourceChannel==='amazon'&&(itemImageUrl(order.items[0],amazonImages)?<img className="ordersProductThumb" src={itemImageUrl(order.items[0],amazonImages)} alt="" loading="lazy" referrerPolicy="no-referrer"/>:<span className="ordersProductThumb ordersProductThumbPlaceholder"><ImageOff size={15}/></span>)}<small className="ordersMobileProduct">{itemLabel(order.items[0])}{order.items.length>1?` · +${order.items.length-1} producto${order.items.length-1===1?'':'s'}`:''}</small></div>}</div><div><b>{money(order.totalAmount,order.currency||'EUR')}</b><span className={`ordersState ${stateInfo.className}`}>{stateInfo.label}</span><span className={`ordersTracking ${tracking.className}`}>{tracking.label}</span></div><ChevronRight size={18}/></button></div>})}</div>
 
     {selected&&(()=>{const current=orders.find(item=>item.id===selected.id)||selected;const validation=validateOrderForCarrier(current);const shipping=shippingPriceForOrder(current,shippingPreviews[current.id]||tariffPreviews[current.id]);return <OrderDrawer order={current} shippingPrice={shipping} validationIssues={validation.issues} productImages={amazonImages} onClose={()=>setSelected(null)} onEdit={()=>{setEditValidationIssues(validation.issues);setEditOrder(current)}} onPrepare={()=>prepare(current)} onPrint={()=>existingLabel(current,'print')} onDownload={()=>existingLabel(current,'download')} busy={busyOrder===selected.id}/>})()} 
-    {labelOrder&&<LabelModal order={labelOrder} options={options} tariffs={tariffs} message={optionsMessage} loading={optionsLoading} onClose={()=>setLabelOrder(null)} onCreate={createLabel}/>} 
+    {labelOrder&&<LabelModal order={labelOrder} options={options} tariffs={tariffs} message={optionsMessage} loading={optionsLoading} preferredOption={automaticShippingOption(labelOrder,options)} onClose={()=>setLabelOrder(null)} onCreate={createLabel}/>}  
     {manualOpen&&status&&<ManualOrderModal status={status} saving={manualSaving} defaultCountryCode={settings.orders.originCountryCode} fallbackWeightKg={settings.shipping.fallbackWeightKg} weightUnit={settings.shipping.weightUnit} onClose={()=>setManualOpen(false)} onSave={saveManual}/>} 
     {editOrder&&<OrderEditModal order={editOrder} fallbackWeightKg={settings.shipping.fallbackWeightKg} saving={editSaving} validationIssues={editValidationIssues} onClose={()=>{setEditValidationIssues([]);setEditOrder(null)}} onSave={saveEdit}/>} 
   </div>;

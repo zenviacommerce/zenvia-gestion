@@ -7,6 +7,7 @@ as $$
 declare
   v_workspace public.workspaces%rowtype;
   v_now timestamptz:=now();
+  v_demo_today timestamptz:=(((now() at time zone 'Europe/Madrid')::date + time '00:10') at time zone 'Europe/Madrid');
   v_year integer:=extract(year from current_date)::integer;
   v_merchandise_category uuid;
   v_transport_category uuid;
@@ -163,7 +164,7 @@ begin
     tracking_number,tracking_url,label_created_at,fulfilled_at,last_synced_at,carrier_code,carrier_name,shipping_service_name,tracking_status_code,tracking_status_message,
     shipping_cost_amount,shipping_cost_currency,shipping_cost_source,shipping_cost_net_amount,shipping_cost_tax_amount,shipping_cost_recorded_at
   ) values
-    (p_workspace_id,'demo-order-1001','AMZ-DEMO-1001','DEMO-1001',900001,'Amazon Demo','amazon','amazon','shipped',v_now-interval '8 days',v_now-interval '7 days','Laura Martín','laura.martin@example.com','600100001',
+    (p_workspace_id,'demo-order-1001','AMZ-DEMO-1001','DEMO-1001',900001,'Amazon Demo','amazon','amazon','shipped',v_demo_today-interval '8 days',v_demo_today-interval '7 days','Laura Martín','laura.martin@example.com','600100001',
       '{"street":"Calle Sol 10","city":"Sevilla","postal_code":"41001","country":"ES"}','{}',
       '[{"sku":"DEMO-FILM-45","name":"Film alimentario 45 cm","quantity":2}]',15.90,'EUR','{"demo":true}',
       'DEMO-TRK-1001','https://example.com/tracking/demo-1001',v_now-interval '7 days',v_now-interval '7 days',v_now,'ctt','CTT Express','24H','delivered','Entregado',4.20,'EUR','demo',3.47,0.73,v_now-interval '7 days'),
@@ -171,7 +172,7 @@ begin
       '{"street":"Avenida Andalucía 22","city":"Málaga","postal_code":"29002","country":"ES"}','{}',
       '[{"sku":"DEMO-VASO-240","name":"Vaso kraft 240 ml","quantity":500},{"sku":"DEMO-TARRINA-60","name":"Tarrina salsa 60 ml","quantity":500}]',145.00,'EUR','{"demo":true}',
       null,null,null,null,v_now,null,null,null,null,'Pendiente de preparar',null,null,null,null,null,null),
-    (p_workspace_id,'demo-order-1003','AMZ-DEMO-1003','DEMO-1003',900001,'Amazon Demo','amazon','amazon','unshipped',v_now-interval '3 hours',v_now-interval '2 hours','Ana López','ana.lopez@example.com','600100003',
+    (p_workspace_id,'demo-order-1003','AMZ-DEMO-1003','DEMO-1003',900001,'Amazon Demo','amazon','amazon','unshipped',v_demo_today+interval '30 minutes',v_demo_today+interval '35 minutes','Ana López','ana.lopez@example.com','600100003',
       '{"street":"Calle Real 5","city":"Cádiz","postal_code":"11001","country":"ES"}','{}',
       '[{"sku":"DEMO-BOLSA-4050","name":"Bolsa camiseta 40x50","quantity":1000}]',75.00,'EUR','{"demo":true}',
       null,null,null,null,v_now,null,null,null,null,'Pendiente de etiqueta',null,null,null,null,null,null);
@@ -184,7 +185,7 @@ begin
     gross_sales,vat_amount,shipping_amount,promotion_discount,order_total,synced_at,programs,is_business_order
   ) values
     (p_workspace_id,v_amazon_account,'404-DEMO-0000001','A1RKKUPIHCS9HS',v_now-interval '8 days',v_now-interval '7 days','Shipped','MFN','Amazon.es','EUR',15.90,2.76,0,0,15.90,v_now,'{}',false),
-    (p_workspace_id,v_amazon_account,'404-DEMO-0000002','A1RKKUPIHCS9HS',v_now-interval '2 days',v_now-interval '1 day','Unshipped','MFN','Amazon.es','EUR',75.00,13.02,0,0,75.00,v_now,'{}',true),
+    (p_workspace_id,v_amazon_account,'404-DEMO-0000002','A1RKKUPIHCS9HS',v_demo_today+interval '20 minutes',v_demo_today+interval '25 minutes','Unshipped','MFN','Amazon.es','EUR',75.00,13.02,0,0,75.00,v_now,'{}',true),
     (p_workspace_id,v_amazon_account,'171-DEMO-0000003','A13V1IB3VIYZZH',v_now-interval '5 days',v_now-interval '4 days','Shipped','AFN','Amazon.fr','EUR',34.90,5.82,0,0,34.90,v_now,'{}',false);
 
   insert into public.amazon_order_items(

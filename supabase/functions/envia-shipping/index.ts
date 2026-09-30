@@ -329,8 +329,15 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
   for(const period of monthKeys(Math.max(1,Math.min(months,12)))){
     const payload=await enviaJson(`${c.queryBase}/guide/${period.month}/${period.year}`,c.token);
     const rows=asRows(payload);found+=rows.length;
-    for(const row of rows){
-      const tracking=trackingOf(row);if(!tracking)continue;
+    for(const summary of rows){
+      const tracking=trackingOf(summary);if(!tracking)continue;
+      let row=summary;
+      try{
+        const detail=await enviaJson(`${c.queryBase}/guide/${encodeURIComponent(tracking)}`,c.token);
+        row=asRows(detail)[0]||(detail?.data&&typeof detail.data==='object'&&!Array.isArray(detail.data)?detail.data:detail)||summary;
+      }catch(error){
+        console.warn('Envia shipment detail fallback',tracking,error instanceof Error?error.message:error);
+      }
       const createdAt=shipmentCreatedAt(row),destination=shipmentDestination(row),status=shipmentStatus(row);
       const carrierCode=clean(row?.carrier||row?.carrierCode||row?.shipment?.carrier);
       const carrierName=shipmentCarrier(row)||humanCarrier(carrierCode);

@@ -29,6 +29,8 @@ test('Orders auto-sync uses a stable in-flight guard instead of depending on syn
   assert.match(orders,/if\(syncingRef\.current\)return/);
   assert.match(orders,/syncingRef\.current=true/);
   assert.match(orders,/syncingRef\.current=false/);
-  assert.match(orders,/settings\.integrations\.enviaEnabled/);\n  assert.match(orders,/syncEnviaShipments/);\n  assert.match(orders,/\},\[refresh,settings\.integrations\.sendcloudEnabled,settings\.integrations\.enviaEnabled,settings\.orders\.retryTrackingConfirmation,status\?\.configured,enviaStatus\?\.configured\]\);/);
+  assert.match(orders,/settings\.integrations\.enviaEnabled/);
+  assert.match(orders,/syncEnviaShipments/);
+  assert.match(orders,/\},\[refresh,settings\.integrations\.sendcloudEnabled,settings\.integrations\.enviaEnabled,settings\.orders\.retryTrackingConfirmation,status\?\.configured,enviaStatus\?\.configured\]\);/);
   assert.doesNotMatch(orders,/\[refresh,syncing,settings\.orders\.retryTrackingConfirmation\]/);
 });

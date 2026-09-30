@@ -142,6 +142,9 @@ Deno.serve(async(req:Request)=>{
       const currentPeriodEndsAt=asText(body?.currentPeriodEndsAt,80)||null;
       const cancelAtPeriodEnd=body?.cancelAtPeriodEnd===true;
       const billingProvider=asText(body?.billingProvider,40)||'platform';
+      const providerSubscriptionId=asText(body?.providerSubscriptionId,180)||null;
+      const billingCycle=['monthly','yearly'].includes(asText(body?.billingCycle,20))?asText(body?.billingCycle,20):null;
+      const billingCatalog=body?.billingCatalog&&typeof body.billingCatalog==='object'&&!Array.isArray(body.billingCatalog)?body.billingCatalog:null;
       const entitlements=body?.entitlements&&typeof body.entitlements==='object'&&!Array.isArray(body.entitlements)?body.entitlements:null;
       if(!workspaceId||!planKey||!planName||planVersion===null||planVersion<1||!entitlements)return fail('Snapshot de plan no válido.');
       if(!['trialing','active','past_due','cancelled','unpaid'].includes(subscriptionStatus))return fail('Estado de suscripción no válido.');
@@ -150,8 +153,56 @@ Deno.serve(async(req:Request)=>{
       if(workspaceError)throw workspaceError;if(!workspace)return fail('Cliente no encontrado.',404);
 
       const now=new Date().toISOString();
+
+      if(billingCatalog){
+        const catalogProvider=asText(billingCatalog.provider,40)||'paypal';
+        const catalogMode=['sandbox','live'].includes(asText(billingCatalog.mode,20))?asText(billingCatalog.mode,20):null;
+        const publicClientId=asText(billingCatalog.publicClientId,500)||null;
+        const catalogPlans=Array.isArray(billingCatalog.plans)?billingCatalog.plans:[];
+        const catalogEntitlements=Array.isArray(billingCatalog.entitlements)?billingCatalog.entitlements:[];
+
+        const planRows=catalogPlans.map((plan:any)=>({
+          plan_key:asText(plan?.planKey,80),
+          name:asText(plan?.name,150)||asText(plan?.planKey,80),
+          description:asText(plan?.description,1000)||null,
+          is_public:plan?.isPublic===true,
+          active:plan?.active!==false,
+          monthly_price_cents:plan?.monthlyPriceCents==null?null:Number(plan.monthlyPriceCents),
+          yearly_price_cents:plan?.yearlyPriceCents==null?null:Number(plan.yearlyPriceCents),
+          sort_order:Number(plan?.sortOrder||0),
+          metadata:plan?.metadata&&typeof plan.metadata==='object'&&!Array.isArray(plan.metadata)?plan.metadata:{},
+          updated_at:now,
+        })).filter((plan:any)=>Boolean(plan.plan_key));
+        if(planRows.length){
+          const {error:catalogPlansError}=await admin.from('billing_plans').upsert(planRows,{onConflict:'plan_key'});
+          if(catalogPlansError)throw catalogPlansError;
+
+          const planKeys=planRows.map((plan:any)=>plan.plan_key);
+          const {error:deleteEntitlementsError}=await admin.from('plan_entitlements').delete().in('plan_key',planKeys);
+          if(deleteEntitlementsError)throw deleteEntitlementsError;
+          const entitlementRows=catalogEntitlements.map((item:any)=>({
+            plan_key:asText(item?.planKey,80),
+            entitlement_key:asText(item?.key,120),
+            enabled:item?.enabled!==false,
+            limit_value:item?.limit==null?null:Number(item.limit),
+            config:item?.config&&typeof item.config==='object'&&!Array.isArray(item.config)?item.config:{},
+            updated_at:now,
+          })).filter((item:any)=>planKeys.includes(item.plan_key)&&Boolean(item.entitlement_key));
+          if(entitlementRows.length){
+            const {error:insertEntitlementsError}=await admin.from('plan_entitlements').insert(entitlementRows);
+            if(insertEntitlementsError)throw insertEntitlementsError;
+          }
+        }
+
+        const {error:billingConfigError}=await admin.from('workspace_billing_config').upsert({
+          workspace_id:workspaceId,provider:catalogProvider,mode:catalogMode,public_client_id:publicClientId,updated_at:now,
+        },{onConflict:'workspace_id'});
+        if(billingConfigError)throw billingConfigError;
+      }
+
       const {error:subscriptionError}=await admin.from('workspace_subscriptions').upsert({
         workspace_id:workspaceId,plan_key:planKey,status:subscriptionStatus,billing_provider:billingProvider,
+        provider_subscription_id:providerSubscriptionId,billing_cycle:billingCycle,
         trial_ends_at:trialEndsAt,current_period_ends_at:currentPeriodEndsAt,cancel_at_period_end:cancelAtPeriodEnd,updated_at:now,
       },{onConflict:'workspace_id'});
       if(subscriptionError)throw subscriptionError;

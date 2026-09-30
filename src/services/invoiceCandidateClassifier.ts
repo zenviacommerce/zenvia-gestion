@@ -17,13 +17,13 @@ export interface InvoiceCandidateClassification {
 const invoiceWord = /\b(factura|invoice|tax invoice|receipt|recibo|ticket|billing statement|fattura|fatura|rechnung|facture|nota de abono|credit note|factura rectificativa)\b/i;
 // Exige al menos un dígito en el identificador para que «Factura Dublin» o
 // «Factura original» no cuenten como número de factura explícito.
-const invoiceNumberLabel = /(?:n(?:º|°|o)\.?\s*factura|n[uú]mero\s+(?:de\s+)?factura|factura\s*(?:n[ºo°]\.?|no\.?|number|n[uú]m(?:ero)?\.?)?|invoice\s*(?:no\.?|number)?|receipt\s*(?:no\.?|number)?|ticket\s*(?:no\.?|number)?)\s*[:#-]?\s*(?=[A-Z0-9._\/-]{3,}\b)(?=[A-Z0-9._\/-]*\d)[A-Z0-9][A-Z0-9._\/-]{2,}/i;
+const invoiceNumberLabel = /(?:n(?:º|°|o)\.?\s*factura|n[uú]mero\s+(?:de\s+)?factura|factura\s*(?:n[ºo°]\.?|no\.?|number|n[uú]m(?:ero)?\.?)?|invoice\s*(?:no\.?|number|#)?|receipt\s*(?:no\.?|number)?|ticket\s*(?:no\.?|number)?|numero\s+fattura|fattura\s*(?:n\.?|no\.?|#)|numero\s+(?:da\s+)?fatura|fatura\s*(?:n\.?|no\.?|#)|numero\s+de\s+facture|facture\s*(?:n\.?|no\.?|#)|rechnungs(?:nummer|nr\.?)|rechnung\s*(?:nr\.?|#))\s*[:#-]?\s*(?=[A-Z0-9._\/-]{3,}\b)(?=[A-Z0-9._\/-]*\d)[A-Z0-9][A-Z0-9._\/-]{2,}/i;
 const totalLabel = /\b(total\s+factura|importe\s+total|total\s+a\s+pagar|total\s+due|amount\s+due|invoice\s+total|grand\s+total|importe\s+adeudado|total\s+pendiente)\b/i;
 const subtotalLabel = /\b(base\s+imponible|subtotal|importe\s+neto|importe\s+base\s+total|net\s+amount|taxable\s+amount|importe\s+bruto)\b/i;
 const taxLabel = /\b(iva|i\.v\.a\.|vat|impuestos?|tax(?:es)?|gst)\b/i;
-const dateLabel = /\b(fecha\s+(?:de\s+)?factura|invoice\s+date|date\s+of\s+issue|fecha\s+emisi[oó]n|\bfecha\s*:)\b/i;
+const dateLabel = /\b(fecha\s+(?:de\s+)?factura|invoice\s+date|date\s+of\s+issue|issue\s+date|fecha\s+(?:de\s+)?emisi[oó]n|data\s+fattura|data\s+(?:da\s+)?fatura|date\s+de\s+facture|rechnungsdatum|datum\s+der\s+rechnung|\bfecha\s*:)\b/i;
 const taxIdLabel = /\b(cif|nif|vat\s*(?:id|number|no)?|tax\s+id|identificaci[oó]n\s+fiscal)\b/i;
-const partyLabel = /\b(proveedor|supplier|emisor|cliente|customer|bill\s+to|sold\s+to|ship\s+to|interesado)\b/i;
+const partyLabel = /\b(proveedor|supplier|vendor|issuer|emisor|emitente|fornitore|fournisseur|lieferant|cliente|customer|bill\s+to|sold\s+to|ship\s+to|interesado)\b/i;
 const currencyAmount = /(?:€|eur|usd|gbp|\$|£)\s*-?\d|\d[\d.,]*\s*(?:€|eur|usd|gbp|\$|£)/gi;
 
 // Si alguno de estos términos aparece como título/cabecera, el documento no es una

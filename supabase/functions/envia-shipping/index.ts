@@ -313,9 +313,15 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
       const trackingUrl=clean(row?.trackUrl||row?.trackingUrl||row?.tracking_url);
       const orderNumber=clean(row?.orderNumber||row?.order_number||row?.reference||row?.referenceNumber||row?.shipmentId)||`ENVIA-${tracking}`;
 
-      const {data:existing,error:existingError}=await admin.from('fulfillment_orders').select('id,shipping_provider')
-        .eq('owner_id',ownerId).or(`shipping_remote_id.eq.${tracking},tracking_number.eq.${tracking}`).limit(1).maybeSingle();
+      let {data:existing,error:existingError}=await admin.from('fulfillment_orders').select('id,shipping_provider')
+        .eq('owner_id',ownerId).eq('shipping_remote_id',tracking).limit(1).maybeSingle();
       if(existingError)throw existingError;
+      if(!existing){
+        const fallback=await admin.from('fulfillment_orders').select('id,shipping_provider')
+          .eq('owner_id',ownerId).eq('tracking_number',tracking).limit(1).maybeSingle();
+        if(fallback.error)throw fallback.error;
+        existing=fallback.data;
+      }
       const patch:any={
         shipping_provider:'envia',
         shipping_remote_id:tracking,

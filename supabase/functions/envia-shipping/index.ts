@@ -14,10 +14,19 @@ function fail(message:string,status=400){return response({error:message},status)
 function clean(value:unknown){return String(value??'').trim();}
 function number(value:unknown,fallback=0){const n=Number(value);return Number.isFinite(n)?n:fallback;}
 function asRows(payload:any){
-  if(Array.isArray(payload?.data))return payload.data;
-  if(Array.isArray(payload?.guides))return payload.guides;
-  if(Array.isArray(payload?.shipments))return payload.shipments;
-  return Array.isArray(payload)?payload:[];
+  if(Array.isArray(payload))return payload;
+  const direct=[
+    payload?.data,payload?.guides,payload?.shipments,payload?.rows,payload?.results,payload?.items,
+    payload?.data?.guides,payload?.data?.shipments,payload?.data?.rows,payload?.data?.results,payload?.data?.items,payload?.data?.data,
+  ];
+  for(const value of direct)if(Array.isArray(value))return value;
+  return [];
+}
+function responseMetaError(payload:any){
+  if(!payload||typeof payload!=='object')return '';
+  if(String(payload?.meta||'').toLowerCase()!=='error')return '';
+  const error=payload?.error;
+  return clean(error?.message||error?.description||payload?.message||'Envia.com devolvió un error.');
 }
 function getAdminKey(){
   const raw=Deno.env.get('SUPABASE_SECRET_KEYS');
@@ -73,9 +82,11 @@ async function enviaJson(url:string,token:string,init:RequestInit={}){
   const raw=await res.text();
   let data:any=null;try{data=raw?JSON.parse(raw):null}catch{data=raw}
   if(!res.ok){
-    const detail=data?.message||data?.error||data?.meta?.message||raw||'Error desconocido';
+    const detail=data?.message||data?.error?.message||data?.error?.description||data?.error||data?.meta?.message||raw||'Error desconocido';
     throw new Error(`Envia.com (${res.status}): ${String(detail).slice(0,800)}`);
   }
+  const metaError=responseMetaError(data);
+  if(metaError)throw new Error(`Envia.com: ${metaError}`);
   return data;
 }
 async function workspaceConfig(admin:any,ownerId:string){
@@ -238,6 +249,22 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
   validatePayload(origin,dest);
   [origin,dest]=await Promise.all([geocodeAddress(origin),geocodeAddress(dest)]);
   const enabled=Array.isArray(config.shipping?.enabledCarriers)?config.shipping.enabledCarriers.map((x:any)=>clean(x).toLowerCase()).filter(Boolean):[];
+
+  try{
+    const data=await enviaJson(`${c.shipBase}/ship/rate/`,c.token,{
+      method:'POST',
+      body:JSON.stringify({origin,destination:dest,packages:[pkg],shipment:{type:1}}),
+    });
+    let options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
+    if(enabled.length)options=options.filter((option:any)=>enabled.some((wanted:string)=>{
+      const carrier=`${option.carrierCode||''} ${option.carrierName||''}`.toLowerCase();
+      return carrier.includes(wanted)||wanted.includes(String(option.carrierCode||'').toLowerCase());
+    }));
+    if(options.length)return {options,errors:[],carriers:[...new Set(options.map((option:any)=>option.carrierCode))],environment:c.environment};
+  }catch(error){
+    console.warn('Envia multicarrier rate failed; using per-carrier fallback',error instanceof Error?error.message:error);
+  }
+
   let carriers=await listCarriers(c,origin.country||'ES',dest.country||origin.country||'ES');
   if(enabled.length)carriers=carriers.filter((carrier:string)=>enabled.some((wanted:string)=>carrier.toLowerCase().includes(wanted)||wanted.includes(carrier.toLowerCase())));
   carriers=carriers.slice(0,30);
@@ -247,7 +274,8 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
         method:'POST',
         body:JSON.stringify({origin,destination:dest,packages:[pkg],shipment:{type:1,carrier}}),
       });
-      return {carrier,options:asRows(data).map((row:any)=>normalizeRate(row,account)),error:null};
+      const options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
+      return {carrier,options,error:null};
     }catch(error){
       const message=error instanceof Error?error.message:String(error);
       console.warn('Envia rate failed',carrier,message);
@@ -301,8 +329,15 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
   for(const period of monthKeys(Math.max(1,Math.min(months,12)))){
     const payload=await enviaJson(`${c.queryBase}/guide/${period.month}/${period.year}`,c.token);
     const rows=asRows(payload);found+=rows.length;
-    for(const row of rows){
-      const tracking=trackingOf(row);if(!tracking)continue;
+    for(const summary of rows){
+      const tracking=trackingOf(summary);if(!tracking)continue;
+      let row=summary;
+      try{
+        const detail=await enviaJson(`${c.queryBase}/guide/${encodeURIComponent(tracking)}`,c.token);
+        row=asRows(detail)[0]||(detail?.data&&typeof detail.data==='object'&&!Array.isArray(detail.data)?detail.data:detail)||summary;
+      }catch(error){
+        console.warn('Envia shipment detail fallback',tracking,error instanceof Error?error.message:error);
+      }
       const createdAt=shipmentCreatedAt(row),destination=shipmentDestination(row),status=shipmentStatus(row);
       const carrierCode=clean(row?.carrier||row?.carrierCode||row?.shipment?.carrier);
       const carrierName=shipmentCarrier(row)||humanCarrier(carrierCode);

@@ -42,7 +42,7 @@ test('Orders compares providers and routes label creation to the selected provid
   assert.match(orders,/option\?\.provider==='envia'/);
   assert.match(page,/Compara los servicios disponibles de tus proveedores logísticos/);
   assert.match(page,/providerName/);
-  assert.match(page,/Tarifas en tiempo real de Envia\.com/);
+  assert.match(page,/Comparativa multitransportista en tiempo real/);
   assert.match(page,/hasShippingLabel/);
 });
 

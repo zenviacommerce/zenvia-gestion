@@ -20,6 +20,30 @@ Deno.serve(async(req:Request)=>{
     const body=await req.json().catch(()=>({}));
     const requestedIntegrationId=String(body?.integrationAccountId||'').trim();
 
+    const {data:settings,error:settingsError}=await admin.from('app_settings').select('config').eq('owner_id',caller.data_owner_id).maybeSingle();
+    if(settingsError)throw settingsError;
+    const demo=Boolean(settings?.config?.demo?.enabled);
+    if(demo){
+      const {data:account,error:accountError}=await admin.from('amazon_accounts')
+        .select('id,display_name,initial_sync_from,last_successful_sync_at,integration_account_id')
+        .eq('owner_id',caller.data_owner_id).order('updated_at',{ascending:false}).limit(1).maybeSingle();
+      if(accountError)throw accountError;
+      const {data:marketplaces,error:marketError}=account
+        ?await admin.from('amazon_marketplaces').select('marketplace_id,country_code,name,currency_code,active').eq('owner_id',caller.data_owner_id).eq('amazon_account_id',account.id).order('country_code')
+        :{data:[],error:null};
+      if(marketError)throw marketError;
+      const demoMarketplaces=(marketplaces||[]).length?marketplaces:[
+        {marketplace_id:'A1RKKUPIHCS9HS',country_code:'ES',name:'Amazon.es',currency_code:'EUR',active:true},
+        {marketplace_id:'A13V1IB3VIYZZH',country_code:'FR',name:'Amazon.fr',currency_code:'EUR',active:true},
+      ];
+      return response({
+        configured:true,connected:true,status:'demo',demo:true,
+        account:account?{id:account.id,integrationAccountId:account.integration_account_id||null,displayName:account.display_name||'Amazon Europe · Demo',initialSyncFrom:account.initial_sync_from,lastSuccessfulSyncAt:account.last_successful_sync_at}:null,
+        marketplaces:demoMarketplaces.map((item:any)=>({id:item.marketplace_id,countryCode:item.country_code,name:item.name,currencyCode:item.currency_code,active:Boolean(item.active)})),
+        sync:{latestRun:null,jobCounts:{queued:0,running:0,success:0,failed:0}},error:null,warning:null,
+      });
+    }
+
     let integration:any=null;
     if(requestedIntegrationId){
       const result=await admin.from('integration_accounts').select('id,display_name,status,enabled,secret_id,credential_source,linked_resource_id,last_error')

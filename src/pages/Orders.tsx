@@ -295,8 +295,40 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     return()=>{cancelled=true};
   },[orders]);
 
-  const sync=useCallback(async(silent=false,history=false,automatic=false)=>{if(syncingRef.current)return;syncingRef.current=true;setSyncing(true);if(!silent)setError('');try{const result=await syncSendcloudOrders(history,settings.orders.retryTrackingConfirmation,automatic);setStatus({configured:true,integrations:result.integrations});await refresh();if(history)markHistorySyncDone();if(!silent)showSuccess(`${result.synced} pedidos actualizados desde Sendcloud.`)}catch(e){const message=errorMessage(e,'No se pudieron actualizar los pedidos.');if(!silent)showError(message)}finally{syncingRef.current=false;setSyncing(false)}},[refresh,settings.orders.retryTrackingConfirmation]);
-  useEffect(()=>{if(!status?.configured||!settings.integrations.sendcloudEnabled)return;void sync(true,shouldRunHistorySync(),true);const timer=window.setInterval(()=>void sync(true,false,true),Math.max(30,settings.orders.refreshSeconds)*1000);return()=>window.clearInterval(timer)},[status?.configured,sync,settings.orders.refreshSeconds,settings.integrations.sendcloudEnabled]);
+  const sync=useCallback(async(silent=false,history=false,automatic=false)=>{
+    if(syncingRef.current)return;
+    const runSendcloud=Boolean(settings.integrations.sendcloudEnabled&&status?.configured);
+    const runEnvia=Boolean(settings.integrations.enviaEnabled&&enviaStatus?.configured);
+    if(!runSendcloud&&!runEnvia){if(!silent)showInfo('No hay proveedores logísticos habilitados para sincronizar.');return}
+    syncingRef.current=true;setSyncing(true);if(!silent)setError('');
+    try{
+      const [sendcloudResult,enviaResult]=await Promise.allSettled([
+        runSendcloud?syncSendcloudOrders(history,settings.orders.retryTrackingConfirmation,automatic):Promise.resolve(null),
+        runEnvia?syncEnviaShipments(history?6:2):Promise.resolve(null),
+      ]);
+      const messages:string[]=[],failures:string[]=[];
+      if(sendcloudResult.status==='fulfilled'&&sendcloudResult.value){
+        setStatus({configured:true,integrations:sendcloudResult.value.integrations});
+        messages.push('Sendcloud '+sendcloudResult.value.synced);
+        if(history)markHistorySyncDone();
+      }else if(sendcloudResult.status==='rejected')failures.push('Sendcloud: '+errorMessage(sendcloudResult.reason,'error de sincronización'));
+      if(enviaResult.status==='fulfilled'&&enviaResult.value){
+        messages.push('Envia.com '+enviaResult.value.synced);
+      }else if(enviaResult.status==='rejected')failures.push('Envia.com: '+errorMessage(enviaResult.reason,'error de sincronización'));
+      await refresh();
+      if(!silent){
+        if(messages.length)showSuccess('Pedidos actualizados · '+messages.join(' · ')+'.');
+        if(failures.length)showInfo(failures.join(' · '));
+      }
+    }finally{syncingRef.current=false;setSyncing(false)}
+  },[refresh,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled,settings.orders.retryTrackingConfirmation,status?.configured,enviaStatus?.configured]);
+  useEffect(()=>{
+    const enabled=Boolean((settings.integrations.sendcloudEnabled&&status?.configured)||(settings.integrations.enviaEnabled&&enviaStatus?.configured));
+    if(!enabled)return;
+    void sync(true,shouldRunHistorySync(),true);
+    const timer=window.setInterval(()=>void sync(true,false,true),Math.max(30,settings.orders.refreshSeconds)*1000);
+    return()=>window.clearInterval(timer);
+  },[status?.configured,enviaStatus?.configured,sync,settings.orders.refreshSeconds,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled]);
 
   const dateFrom=dateFilter.from,dateTo=dateFilter.to;
   const selectedPeriod=periodLabel(dateFilter);

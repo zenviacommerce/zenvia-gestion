@@ -84,7 +84,7 @@ function extractInvoiceNumber(lines: string[], fullText: string): string {
 
 function extractSupplier(lines: string[]): string {
   for (const line of lines.slice(0, 30)) {
-    const labelled = line.match(/(?:proveedor|supplier|emisor|raz[oó]n\s+social)\s*[:.-]\s*(.{3,80})/i)?.[1];
+    const labelled = line.match(/(?:proveedor|supplier|vendor|issuer|emisor|emitente|fornitore|fournisseur|lieferant|raz[oó]n\s+social)\s*[:.-]\s*(.{3,80})/i)?.[1];
     if (labelled) return compact(labelled);
   }
   const ignored = /factura|invoice|fecha|date|cif|nif|vat|iva|total|base imponible|direcci[oó]n|tel[eé]fono|email|p[aá]gina|www\.|zenvia commerce/i;

@@ -91,6 +91,7 @@ export async function loadAppData(): Promise<AppData> {
     equivalenceSurcharge: numberOrZero(i.equivalence_surcharge_amount),
     withholding: numberOrZero(i.withholding_amount),
     total: numberOrZero(i.total_amount),
+    currency:String(i.currency||'EUR').toUpperCase(),
     source: i.source,
     status: i.status,
     paymentStatus: i.payment_status==='paid'?'paid':'unpaid',
@@ -364,12 +365,14 @@ async function isMerchandiseCategory(categoryId?: string) {
   return Boolean(data?.name && normalizeProductKey(data.name).includes('mercancia'));
 }
 
-async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: string, input: NewInvoiceInput, policy:ExpenseImportPolicy, productSettings:ProductsSettings, currencyCode:string) {
+async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: string, input: NewInvoiceInput, policy:ExpenseImportPolicy, productSettings:ProductsSettings, baseCurrencyCode:string) {
   if (!input.lines?.length) return;
 
   const merchandise = await isMerchandiseCategory(input.categoryId);
   const manageProducts = merchandise && ((policy.autoCreateProducts && productSettings.autoCreateFromInvoice) || policy.createSupplierProductRelation);
-  const updateImportedCost = policy.updateProductCosts && productSettings.updateCostFromImports && productSettings.costMethod !== 'manual';
+  const invoiceCurrencyCode=String(input.currency||baseCurrencyCode||'EUR').toUpperCase();
+  const foreignCurrency=invoiceCurrencyCode!==String(baseCurrencyCode||'EUR').toUpperCase();
+  const updateImportedCost = policy.updateProductCosts && productSettings.updateCostFromImports && productSettings.costMethod !== 'manual' && !foreignCurrency;
   const writePriceHistory = policy.updatePriceHistory;
   const roundCost=(value:number)=>Number(value.toFixed(productSettings.costDecimals));
   const createdProductIds: string[] = [];
@@ -492,7 +495,7 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
           purchase_unit_price:line.unit_price,
           normalized_unit_price:line.normalized_unit_price,
           base_unit:product?.base_unit||line.unit||productSettings.defaultUnit,
-          currency:currencyCode,
+          currency:invoiceCurrencyCode,
         },{onConflict:'invoice_line_id'});
         if(historyError)throw historyError;
       }
@@ -619,6 +622,7 @@ export async function createInvoice(input: NewInvoiceInput) {
     equivalence_surcharge_amount: preparedInput.equivalenceSurcharge ?? 0,
     withholding_amount: input.withholding,
     total_amount: preparedInput.total,
+    currency:String(input.currency||loadedSettings.settings.general.currencyCode||'EUR').toUpperCase(),
     source: input.source,
     status: policy.initialStatus,
     source_document_id:archivedSource.id,

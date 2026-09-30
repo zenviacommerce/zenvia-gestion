@@ -16,3 +16,13 @@ export function safeStorageSet(storage:'local'|'session',key:string,value:string
     return false;
   }
 }
+
+export function safeStorageRemove(storage:'local'|'session',key:string){
+  try{
+    const target=storage==='local'?window.localStorage:window.sessionStorage;
+    target.removeItem(key);
+    return true;
+  }catch{
+    return false;
+  }
+}

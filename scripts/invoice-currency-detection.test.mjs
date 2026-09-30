@@ -35,7 +35,7 @@ test('invoice import persists the detected currency instead of falling back to a
 test('foreign currency invoice lines cannot silently overwrite base-currency product cost',async()=>{
   const repository=await read('../src/services/repository.ts');
   assert.match(repository,/foreignCurrency/);
-  assert.match(repository,/updateImportedCost = .*&&!foreignCurrency/);
+  assert.match(repository,/updateImportedCost[\s\S]*&&!foreignCurrency/);
   assert.match(repository,/currency:invoiceCurrencyCode/);
 });
 

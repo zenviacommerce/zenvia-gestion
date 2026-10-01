@@ -479,7 +479,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     openLabelForPrint(prepared);
   };
   const createLabel=async(option:ShippingOption|null,explicitOrder:FulfillmentOrder|null=labelOrder)=>{if(!explicitOrder)return;const order=explicitOrder;
-    const finalValidation=validateOrderForCarrier(order,option?.carrierCode||validationCarrier(order));
+    const finalValidation=validateOrderForCarrier(order,option?`${option.carrierCode||''} ${option.code||''} ${option.name||''}`:validationCarrier(order));
     if(finalValidation.blocking){
       setLabelOrder(null);setEditValidationIssues(finalValidation.issues);setEditOrder(order);
       showError('Hay datos de envío que el transportista rechazará. Corrígelos antes de generar la etiqueta.');
@@ -526,7 +526,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
           const option=automaticShippingOption(order,shipping.options);
           if(!option)throw new Error('No se encontró un servicio válido según las reglas automáticas de envío.');
           // Validate only against the provider/service that will actually be used.
-          const carrierValidation=validateOrderForCarrier(order,option.carrierCode);
+          const carrierValidation=validateOrderForCarrier(order,`${option.carrierCode||''} ${option.code||''} ${option.name||''}`);
           if(carrierValidation.blocking)throw new Error(carrierValidation.issues[0]?.message||'El transportista rechazará los datos del pedido.');
           const result=await createOrderLabel(order.id,option,settings.orders.pushTrackingToMarketplace);
           const prepared=await prepareLabelPdf(labelBlob(result),settings.shipping);

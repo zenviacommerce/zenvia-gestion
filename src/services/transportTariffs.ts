@@ -236,6 +236,44 @@ function parseGenericCarrierServices(text:string):TransportTariffServiceDraft[]{
 }
 
 
+function parseFlatCarrierServices(text:string):TransportTariffServiceDraft[]{
+  const lines=text.split(/\r?\n/).map(line=>line.trim()).filter(Boolean);
+  const services:TransportTariffServiceDraft[]=[];
+  let carrierContext:ReturnType<typeof carrierFromLine>=null;
+  for(const line of lines){
+    const detected=carrierFromLine(line);if(detected)carrierContext=detected;
+    const carrier=detected||carrierContext;
+    if(!carrier)continue;
+    const rowPrices=loosePrices(line);
+    if(rowPrices.length!==1)continue;
+    if(/iva|vat|combustible|fuel|suplemento|recargo|seguro|reembolso|total|subtotal/i.test(line))continue;
+    const price=rowPrices[0];if(price==null||price<=0)continue;
+    const weight=line.match(/(?:hasta|max\.?|≤)?\s*(\d+(?:[.,]\d+)?)\s*(?:kg|kgs|kilogramos?)\b/i);
+    const maxWeight=weight?num(weight[1]):999.999;
+    if(maxWeight==null||maxWeight<=0)continue;
+    const priceToken=line.match(/\d{1,4}[.,]\d{2,4}\s*€?/)?.[0]||'';
+    const serviceLabel=clean(line.replace(carrier.pattern,' ').replace(weight?.[0]||'',' ').replace(priceToken,' ').replace(/[-–—|:]+/g,' '));
+    if(!serviceLabel||serviceLabel.length<2)continue;
+    const key=slug(`${carrier.code}-${serviceLabel}`);
+    if(services.some(service=>service.canonicalServiceKey===key))continue;
+    services.push({
+      serviceName:`${carrier.label} · ${serviceLabel}`,
+      canonicalServiceKey:key,
+      externalProvider:carrier.code,
+      externalServiceCode:slug(serviceLabel),
+      mappingStatus:'suggested',
+      sortOrder:services.length,
+      bands:[{
+        countryCode:'ES',zoneCode:'peninsular',zoneName:'España Peninsular',
+        minWeightKg:0,maxWeightKg:weight?maxWeight:999.999,basePrice:price,extraKgPrice:null,
+        notes:weight?'Fila de precio/peso detectada automáticamente.':'Precio plano detectado sin tramo de peso explícito; revisar antes de activar.',
+        sortOrder:0,
+      }],
+    });
+  }
+  return services;
+}
+
 function probableCurrency(text:string){
   if(/\bUSD\b|\$/i.test(text))return 'USD';
   if(/\bGBP\b|£/i.test(text))return 'GBP';
@@ -369,10 +407,13 @@ function fallbackProposal(text:string,fileName:string):TransportTariffProposal{
   const fuelPct=(()=>{
     const lines=text.split(/\r?\n/).filter(line=>/combustible|fuel/i.test(line));
     for(const line of lines){
+      const fuelIndex=line.search(/combustible|fuel/i);
       for(const match of line.matchAll(/(\d+(?:[.,]\d+)?)\s*%/g)){
-        const before=line.slice(Math.max(0,(match.index||0)-28),match.index||0);
-        if(/iva|vat|impuesto/i.test(before))continue;
-        if(/combustible|fuel|plus|recargo|suplemento/i.test(line))return num(match[1]);
+        const pctIndex=match.index||0;
+        if(Math.abs(pctIndex-fuelIndex)>45)continue;
+        const around=line.slice(Math.max(0,pctIndex-35),Math.min(line.length,pctIndex+35));
+        if(/iva|vat|impuesto/i.test(around)&&!/combustible|fuel/i.test(around))continue;
+        return num(match[1]);
       }
     }
     return null;
@@ -382,9 +423,10 @@ function fallbackProposal(text:string,fileName:string):TransportTariffProposal{
   const mrwServices=mrw?parseMrwServices(text):[];
   const namedGenericServices=mrwServices.length?[]:parseGenericCarrierServices(text);
   const matrixServices=mrwServices.length||namedGenericServices.length?[]:parseGenericMatrixServices(text);
-  const checked=validateParsedServices(mrwServices.length?mrwServices:namedGenericServices.length?namedGenericServices:matrixServices);
+  const flatServices=mrwServices.length||namedGenericServices.length||matrixServices.length?[]:parseFlatCarrierServices(text);
+  const checked=validateParsedServices(mrwServices.length?mrwServices:namedGenericServices.length?namedGenericServices:matrixServices.length?matrixServices:flatServices);
   const services=checked.services;
-  const genericServices=namedGenericServices.length?namedGenericServices:matrixServices;
+  const genericServices=namedGenericServices.length?namedGenericServices:matrixServices.length?matrixServices:flatServices;
   const providers=[...new Set(services.map(service=>service.externalProvider).filter(Boolean))];
   const multiCarrier=providers.length>1||/\benvia(?:\.com)?\b/i.test(text);
   return {

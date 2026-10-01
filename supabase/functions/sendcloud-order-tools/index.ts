@@ -92,12 +92,22 @@ function normalizeStateProvince(country:unknown,value:unknown){
   const candidate=(prefixed?.[1]||upper).trim();
   return /^[A-Z0-9-]{1,8}$/.test(candidate)?candidate:null;
 }
-function normalizeOption(option:any){
+function quoteForWeight(option:any,weightKg?:number){
+  const quotes=Array.isArray(option?.quotes)?option.quotes:[option?.quotes].filter(Boolean);
+  if(!quotes.length)return null;
+  if(weightKg==null||!Number.isFinite(weightKg))return quotes.find((q:any)=>q?.price?.total?.value!=null)||quotes[0];
+  const matching=quotes.find((q:any)=>{
+    const min=toKg(q?.weight?.min?.value,q?.weight?.min?.unit),max=toKg(q?.weight?.max?.value,q?.weight?.max?.unit);
+    return (min==null||weightKg>=min)&&(max==null||weightKg<=max)&&q?.price?.total?.value!=null;
+  });
+  return matching||quotes.find((q:any)=>q?.price?.total?.value!=null)||quotes[0];
+}
+function normalizeOption(option:any,weightKg?:number){
   const code=clean(option?.code||option?.shipping_option_code||option?.shipping_option?.code);
   const carrierCode=clean(option?.carrier?.code||option?.carrier_code||code.split(':')[0]);
   const name=clean(option?.name||option?.title||option?.product?.name||option?.shipping_product?.name||option?.display_name||code)||'Servicio';
   const contractValue=option?.contract_id??option?.contract?.id??null;
-  const quote=Array.isArray(option?.quotes)?option.quotes[0]:option?.quotes||null;
+  const quote=quoteForWeight(option,weightKg);
   const priceValue=quote?.price?.total?.value??quote?.price?.value??quote?.total_price?.value??quote?.value??option?.price?.total?.value??option?.price?.value??null;
   const currency=quote?.price?.total?.currency??quote?.price?.currency??quote?.total_price?.currency??quote?.currency??option?.price?.total?.currency??option?.price?.currency??null;
   const billed=option?.billed_weight;
@@ -133,6 +143,36 @@ function v2MethodScore(method:any,option:any){
   if(code&&methodName&&code.split(' ').filter(Boolean).every((token:string)=>methodName.includes(token)))score+=20;
   return score;
 }
+async function enrichSendcloudV3Quotes(credentials:SendcloudCredentials,options:any[],weightKg:number,requestBody:any){
+  const unresolved=options.filter(option=>option.price==null);
+  if(!unresolved.length)return options;
+  const groups=new Map<string,any>();
+  for(const option of unresolved){
+    const carrierCode=clean(option.carrierCode),contractId=option.contractId==null?null:Number(option.contractId);
+    if(!carrierCode)continue;
+    const key=`${carrierCode}|${contractId??''}`;
+    if(!groups.has(key))groups.set(key,{carrierCode,contractId});
+  }
+  for(const group of groups.values()){
+    try{
+      const payload={...requestBody,carrier_code:group.carrierCode,...(group.contractId?{contract_id:group.contractId}:{})};
+      const {data}=await sendcloudJson(credentials,'/shipping-options',{method:'POST',body:JSON.stringify(payload)});
+      const rated=(data?.data||[]).map((item:any)=>normalizeOption(item,weightKg));
+      for(const option of unresolved.filter(item=>clean(item.carrierCode)===group.carrierCode&&(group.contractId==null||Number(item.contractId)===group.contractId))){
+        const exact=rated.find((item:any)=>item.code===option.code&&item.price!=null)
+          ||rated.find((item:any)=>clean(item.raw?.product?.code)===clean(option.raw?.product?.code)&&item.price!=null);
+        if(exact){
+          option.price=exact.price;
+          option.currency=exact.currency||'EUR';
+          option.billedWeightKg=exact.billedWeightKg??option.billedWeightKg;
+          option.priceSource='sendcloud_v3_quote';
+        }
+      }
+    }catch{/* Keep the option usable even when one carrier cannot return a quote. */}
+  }
+  return options;
+}
+
 async function enrichSendcloudPrices(credentials:SendcloudCredentials,options:any[],weightKg:number,fromCountry:string,toCountry:string){
   if(!options.some(option=>option.price==null))return options;
   try{
@@ -269,10 +309,14 @@ Deno.serve(async(req:Request)=>{
         }],
       };
       const {data}=await sendcloudJson(orderCredentials,'/shipping-options',{method:'POST',body:JSON.stringify(requestBody)});
-      const options=(data?.data||[]).map(normalizeOption).filter((x:any)=>x.code).filter((x:any)=>enabledCarrier(x,shippingConfig.enabledCarriers));
+      const options=(data?.data||[]).map((item:any)=>normalizeOption(item,weightKg)).filter((x:any)=>x.code).filter((x:any)=>enabledCarrier(x,shippingConfig.enabledCarriers));
+      await enrichSendcloudV3Quotes(orderCredentials,options,weightKg,requestBody);
       await enrichSendcloudPrices(orderCredentials,options,weightKg,fromCountry,clean(address.country_code).toUpperCase());
       const priced=options.filter((option:any)=>option.price!=null&&Number(option.price)>0).length;
-      const quoteMessage=priced?null:(options.length?'Sendcloud devuelve los servicios disponibles, pero no expone precio para estos métodos o contratos.':'No hay servicios disponibles entre los transportistas habilitados.');
+      const unpricedCorreos=options.some((option:any)=>option.price==null&&/correos/i.test(`${option.carrierCode} ${option.carrierName}`));
+      const quoteMessage=unpricedCorreos
+        ?'Sendcloud devuelve servicios de Correos pero no una tarifa para este contrato. ZENVIA ha reintentado la cotización V3 por contrato; si sigue sin precio, Sendcloud no está exponiendo una tarifa cargada para ese método.'
+        :priced?null:(options.length?'Sendcloud devuelve los servicios disponibles, pero no expone precio para estos métodos o contratos.':'No hay servicios disponibles entre los transportistas habilitados.');
       return response({weightKg,options,message:data?.message||quoteMessage});
     }
 

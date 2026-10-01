@@ -12,6 +12,7 @@ export interface FulfillmentOrder {
   customerName:string|null; customerEmail:string|null; customerPhone:string|null;
   shippingAddress:Record<string,unknown>; billingAddress:Record<string,unknown>; items:Array<Record<string,unknown>>;
   totalAmount:number|null; currency:string|null; weightKg:number|null;
+  packageLengthCm:number|null; packageWidthCm:number|null; packageHeightCm:number|null;
   sendcloudParcelId:number|null; sendcloudShipmentId:string|null;
   shippingProvider:'sendcloud'|'envia'|null; shippingRemoteId:string|null; shippingLabelUrl:string|null;
   trackingNumber:string|null; trackingUrl:string|null; trackingStatusCode:string|null; trackingStatusMessage:string|null; trackingUpdatedAt:string|null;
@@ -19,7 +20,7 @@ export interface FulfillmentOrder {
   carrierCode:string|null; carrierName:string|null; shippingServiceName:string|null;
   shippingCostAmount:number|null; shippingCostCurrency:string|null; shippingCostSource:string|null;
   shippingCostNetAmount:number|null; shippingCostTaxAmount:number|null; shippingCostRecordedAt:string|null;
-  labelCreatedAt:string|null; fulfilledAt:string|null; lastSyncedAt:string;
+  labelCreatedAt:string|null; labelPrintedAt:string|null; labelPrintCount:number; fulfilledAt:string|null; lastSyncedAt:string;
 }
 
 export interface SendcloudIntegration {
@@ -40,7 +41,7 @@ export interface OrderAddressValidation {
   invalidAttributes:string[];
 }
 export interface ShippingOption {
-  provider:'sendcloud'|'envia';
+  provider:'sendcloud'|'envia'|'mrw';
   providerName:string;
   integrationAccountId?:string|null;
   integrationAccountName?:string|null;
@@ -63,6 +64,7 @@ export interface ManualOrderInput {
 export interface OrderUpdateInput {
   customerName:string; companyName?:string; email?:string; phone?:string; address:string; houseNumber?:string;
   address2?:string; postalCode:string; city:string; stateProvince?:string; countryCode:string; weightKg:number;
+  packageLengthCm?:number; packageWidthCm?:number; packageHeightCm?:number;
 }
 
 const PRINTER_KEY='zenvia-label-printer';
@@ -91,6 +93,9 @@ function mapRow(row:any):FulfillmentOrder{
     customerName:row.customer_name||null, customerEmail:row.customer_email||null, customerPhone:row.customer_phone||null,
     shippingAddress, billingAddress:row.billing_address||{}, items:Array.isArray(row.items)?row.items:[],
     totalAmount:row.total_amount==null?null:Number(row.total_amount), currency:row.currency||null, weightKg:toKg(weight?.value,weight?.unit),
+    packageLengthCm:row.package_length_cm==null?null:Number(row.package_length_cm),
+    packageWidthCm:row.package_width_cm==null?null:Number(row.package_width_cm),
+    packageHeightCm:row.package_height_cm==null?null:Number(row.package_height_cm),
     sendcloudParcelId:row.sendcloud_parcel_id==null?null:Number(row.sendcloud_parcel_id),
     sendcloudShipmentId:row.sendcloud_shipment_id||null,
     shippingProvider:row.shipping_provider==='envia'?'envia':row.shipping_provider==='sendcloud'?'sendcloud':(row.sendcloud_parcel_id||row.sendcloud_shipment_id?'sendcloud':null),
@@ -101,7 +106,7 @@ function mapRow(row:any):FulfillmentOrder{
     carrierCode:row.carrier_code||null, carrierName:row.carrier_name||(balearicPending?'🏝 Baleares · usar Correos':null), shippingServiceName:row.shipping_service_name||null,
     shippingCostAmount:row.shipping_cost_amount==null?null:Number(row.shipping_cost_amount), shippingCostCurrency:row.shipping_cost_currency||null, shippingCostSource:row.shipping_cost_source||null,
     shippingCostNetAmount:row.shipping_cost_net_amount==null?null:Number(row.shipping_cost_net_amount), shippingCostTaxAmount:row.shipping_cost_tax_amount==null?null:Number(row.shipping_cost_tax_amount), shippingCostRecordedAt:row.shipping_cost_recorded_at||null,
-    labelCreatedAt:row.label_created_at||null, fulfilledAt:row.fulfilled_at||null, lastSyncedAt:row.last_synced_at,
+    labelCreatedAt:row.label_created_at||null, labelPrintedAt:row.label_printed_at||null, labelPrintCount:Number(row.label_print_count||0), fulfilledAt:row.fulfilled_at||null, lastSyncedAt:row.last_synced_at,
   };
 }
 
@@ -123,6 +128,7 @@ async function invokeFunction<T>(functionName:string,body:Record<string,unknown>
 }
 function invokeSendcloud<T>(body:Record<string,unknown>){return invokeFunction<T>('sendcloud-orders',body);}
 function invokeOrderTools<T>(body:Record<string,unknown>){return invokeFunction<T>('sendcloud-order-tools',body);}
+function invokeOrderState<T>(body:Record<string,unknown>){return invokeFunction<T>('order-logistics-state',body);}
 function invokeEnvia<T>(body:Record<string,unknown>){return invokeFunction<T>('envia-shipping',body);}
 function invokeAmazonTracking<T>(body:Record<string,unknown>){return invokeFunction<T>('amazon-confirm-shipment',body);}
 
@@ -174,6 +180,7 @@ export async function getShippingOptions(orderId:string){
   return {weightKg:sendcloud?.weightKg??null,options,message:messages||null,diagnostics:envia?.diagnostics||[]};
 }
 export function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){return invokeOrderTools<{ok:true;weightKg:number}>({action:'update_order',orderId,order});}
+export function markOrderLabelPrinted(orderId:string){return invokeOrderState<{ok:true;printedAt:string;printCount:number}>({action:'mark_label_printed',orderId});}
 export function validateOrderAddress(orderId:string,carrierCode='mrw'){return invokeOrderTools<OrderAddressValidation>({action:'validate_address',orderId,carrierCode});}
 export async function createOrderLabel(orderId:string,option?:ShippingOption|null,pushTracking=true){
   const rule=await loadAutomationRule('order_label_created');

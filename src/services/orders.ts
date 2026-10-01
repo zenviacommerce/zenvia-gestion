@@ -140,7 +140,7 @@ function invokeAmazonTracking<T>(body:Record<string,unknown>){return invokeFunct
 
 function orderCompleteness(order:FulfillmentOrder){
   let score=0;
-  if(order.sendcloudRemoteId)score+=40;
+  if(order.sendcloudId&&!order.sendcloudId.startsWith('amazon:'))score+=40;
   if(order.shippingIntegrationAccountId)score+=20;
   if(order.customerName)score+=8;
   if(order.customerPhone)score+=4;

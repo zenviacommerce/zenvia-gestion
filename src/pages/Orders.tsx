@@ -15,7 +15,7 @@ import {
   createManualOrder, createOrderLabel, fetchOrderLabel,
   getEnviaStatus, getSendcloudStatus, getShippingOptions, labelBlob, listFulfillmentOrders, listLocalPrinters, markOrderLabelPrinted,
   markEnviaHistorySyncDone, markHistorySyncDone, openLabelForPrint, printLabelWithClient,
-  shouldRunEnviaHistorySync, shouldRunHistorySync, syncEnviaShipments, syncSendcloudOrders, updateFulfillmentOrder,
+  shouldRunEnviaHistorySync, shouldRunHistorySync, syncEnviaShipments, syncSendcloudOrders, retryAmazonTrackingConfirmations, updateFulfillmentOrder,
   type FulfillmentOrder, type LocalPrinter, type ManualOrderItem, type OrderChannel, type OrderUpdateInput,
   type SendcloudStatus, type ShippingOption,
 } from '../services/orders';
@@ -339,7 +339,11 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     if(syncingRef.current)return;
     const runSendcloud=Boolean(settings.integrations.sendcloudEnabled&&status?.configured);
     const runEnvia=Boolean(settings.integrations.enviaEnabled&&enviaStatus?.configured);
-    if(!runSendcloud&&!runEnvia){if(!silent)showInfo('No hay proveedores logísticos habilitados para sincronizar.');return}
+    if(!runSendcloud&&!runEnvia){
+      await Promise.all([refresh(),settings.orders.retryTrackingConfirmation?retryAmazonTrackingConfirmations():Promise.resolve()]);
+      if(!silent)showSuccess('Pedidos actualizados. Amazon y los transportistas directos no dependen de Sendcloud para refrescar esta vista.');
+      return;
+    }
     syncingRef.current=true;setSyncing(true);if(!silent)setError('');
     try{
       const [sendcloudResult,enviaResult]=await Promise.allSettled([
@@ -365,11 +369,14 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   },[refresh,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled,settings.orders.retryTrackingConfirmation,status?.configured,enviaStatus?.configured]);
   useEffect(()=>{
     const enabled=Boolean((settings.integrations.sendcloudEnabled&&status?.configured)||(settings.integrations.enviaEnabled&&enviaStatus?.configured));
-    if(!enabled)return;
-    void sync(true,shouldRunHistorySync(),true,shouldRunEnviaHistorySync());
-    const timer=window.setInterval(()=>void sync(true,false,true),Math.max(30,settings.orders.refreshSeconds)*1000);
+    const tick=()=>enabled
+      ?sync(true,false,true)
+      :Promise.all([refresh(),settings.orders.retryTrackingConfirmation?retryAmazonTrackingConfirmations():Promise.resolve()]);
+    if(enabled)void sync(true,shouldRunHistorySync(),true,shouldRunEnviaHistorySync());
+    else void tick();
+    const timer=window.setInterval(()=>void tick(),Math.max(30,settings.orders.refreshSeconds)*1000);
     return()=>window.clearInterval(timer);
-  },[status?.configured,enviaStatus?.configured,sync,settings.orders.refreshSeconds,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled]);
+  },[status?.configured,enviaStatus?.configured,sync,refresh,settings.orders.refreshSeconds,settings.orders.retryTrackingConfirmation,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled]);
 
   const dateFrom=dateFilter.from,dateTo=dateFilter.to;
   const selectedPeriod=periodLabel(dateFilter);

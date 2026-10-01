@@ -30,7 +30,7 @@ function withTrackingOverride(order:FulfillmentOrderRow,override?:AmazonTracking
 function amazonOrderId(order:FulfillmentOrderRow){
   const candidates=[order.order_id,order.order_number].map(clean).filter(Boolean);
   const found=candidates.find(value=>/^\d{3}-\d{7}-\d{7}$/.test(value));
-  if(!found)throw new Error('El pedido de Sendcloud no contiene un Amazon Order ID válido.');
+  if(!found)throw new Error('El pedido no contiene un Amazon Order ID válido.');
   return found;
 }
 function positivePackageReference(value:unknown){const text=clean(value);return /^\d+$/.test(text)&&Number(text)>0?text:null;}
@@ -77,7 +77,9 @@ async function currentTrackingState(admin:any,order:FulfillmentOrderRow){
 }
 async function markSuccess(admin:any,order:FulfillmentOrderRow){
   const now=new Date().toISOString();
-  const {error}=await admin.from('fulfillment_orders').update({amazon_tracking_synced_at:now,amazon_tracking_last_attempt_at:now,amazon_tracking_sync_error:null}).eq('id',order.id).eq('owner_id',order.owner_id);
+  const patch:any={amazon_tracking_synced_at:now,amazon_tracking_last_attempt_at:now,amazon_tracking_sync_error:null,source_status:'shipped'};
+  if(!order.fulfilled_at)patch.fulfilled_at=now;
+  const {error}=await admin.from('fulfillment_orders').update(patch).eq('id',order.id).eq('owner_id',order.owner_id);
   if(error)throw error;
 }
 async function markFailure(admin:any,order:FulfillmentOrderRow,errorValue:unknown){
@@ -115,7 +117,7 @@ async function currentPackages(orderId:string,credentials:AmazonSpApiCredentials
   const current=data?.order||data?.Order||data||{};
   return Array.isArray(current?.packages)?current.packages:[];
 }
-function packageReference(packages:any[],trackingNumber:string,parcelId:unknown){
+function packageReference(packages:any[],trackingNumber:string,legacyParcelId:unknown){
   const exact=packages.filter(item=>clean(item?.trackingNumber)===trackingNumber);
   if(exact.length){
     const ref=positivePackageReference(exact[0]?.packageReferenceId);
@@ -127,10 +129,9 @@ function packageReference(packages:any[],trackingNumber:string,parcelId:unknown)
     if(!ref)throw new Error('Amazon devolvió un packageReferenceId no numérico para el paquete existente.');
     return {packageReferenceId:ref,alreadySynced:false};
   }
-  if(packages.length>1)throw new Error('Amazon tiene varios paquetes para este pedido y no se puede determinar de forma segura cuál corresponde al tracking de Sendcloud.');
-  const fallback=positivePackageReference(parcelId);
-  if(!fallback)throw new Error('Sendcloud no devolvió un parcel_id válido para identificar el paquete en Amazon.');
-  return {packageReferenceId:fallback,alreadySynced:false};
+  if(packages.length>1)throw new Error('Amazon tiene varios paquetes para este pedido y ZENVIA no puede determinar de forma segura cuál corresponde al tracking.');
+  const legacy=positivePackageReference(legacyParcelId);
+  return {packageReferenceId:legacy||'1',alreadySynced:false};
 }
 
 export async function syncAmazonTracking(admin:any,order:FulfillmentOrderRow,override?:AmazonTrackingOverride):Promise<AmazonTrackingSyncResult>{
@@ -140,7 +141,7 @@ export async function syncAmazonTracking(admin:any,order:FulfillmentOrderRow,ove
   const claimed=claimedRow?withTrackingOverride(claimedRow,override):null;
   if(!claimed){
     const state=await currentTrackingState(admin,order);
-    if(state?.amazon_tracking_synced_at)return {orderId:requested.id,amazonOrderId:amazonOrderId(requested),status:'already_synced',trackingNumber,packageReferenceId:positivePackageReference(state.sendcloud_parcel_id??requested.sendcloud_parcel_id)};
+    if(state?.amazon_tracking_synced_at)return {orderId:requested.id,amazonOrderId:amazonOrderId(requested),status:'already_synced',trackingNumber,packageReferenceId:positivePackageReference(state.sendcloud_parcel_id??requested.sendcloud_parcel_id)||null};
     throw new Error('La confirmación del tracking de Amazon ya está en curso.');
   }
   let context:AmazonOrderContext|undefined;

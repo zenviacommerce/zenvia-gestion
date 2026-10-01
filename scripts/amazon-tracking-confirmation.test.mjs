@@ -39,10 +39,16 @@ test('Amazon tracking edge function supports one-order confirmation and retries'
   assert.match(fn,/retry_pending/i);
 });
 
-test('label creation keeps the label even if Amazon confirmation fails and regular sync retries it',async()=>{
-  const orders=await source('src/services/orders.ts');
+test('label creation keeps the label if Amazon confirmation fails and retries no longer depend on Sendcloud',async()=>{
+  const [orders,worker,helper]=await Promise.all([
+    source('src/services/orders.ts'),
+    source('supabase/functions/amazon-sync-worker/index.ts'),
+    source('supabase/functions/_shared/amazon/shipment-confirmation.ts'),
+  ]);
   assert.match(orders,/amazon-confirm-shipment/i);
   assert.match(orders,/createOrderLabel[\s\S]{0,1800}invokeAmazonTracking/i);
-  assert.match(orders,/syncSendcloudOrders[\s\S]{0,700}retry_pending/i);
-  assert.match(orders,/catch\s*\{\s*\/\*\s*Amazon tracking is retried/i);
+  assert.match(orders,/retryAmazonTrackingConfirmations/);
+  assert.match(worker,/retryPendingAmazonTracking/);
+  assert.match(helper,/legacy\|\|'1'/);
+  assert.doesNotMatch(helper,/Sendcloud no devolvió un parcel_id/);
 });

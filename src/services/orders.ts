@@ -151,14 +151,15 @@ export interface EnviaSyncResult{
 }
 export function getEnviaStatus(){return invokeEnvia<{ok:true;configured:boolean;accounts:Array<{id:string;displayName:string;environment:string;isDefault:boolean}>}>({action:'status'});}
 export function syncEnviaShipments(months=2){return invokeEnvia<EnviaSyncResult>({action:'sync_shipments',months});}
+export async function retryAmazonTrackingConfirmations(){
+  try{
+    const rule=await loadAutomationRule('order_label_created');
+    if(rule.enabled&&rule.config.retryConfirmation&&rule.config.saveTracking)await invokeAmazonTracking({action:'retry_pending',limit:10});
+  }catch{/* El worker de Amazon también reintentará la confirmación independientemente de Sendcloud. */}
+}
 export async function syncSendcloudOrders(history=false,retryTracking=true,automatic=false){
   const result=await invokeSendcloud<{ok:true;synced:number;enriched?:number;history?:boolean;integrations:SendcloudIntegration[]}>({action:'sync',history,automatic});
-  if(retryTracking){
-    try{
-      const rule=await loadAutomationRule('order_label_created');
-      if(rule.enabled&&rule.config.retryConfirmation&&rule.config.saveTracking)await invokeAmazonTracking({action:'retry_pending',limit:10});
-    }catch{/* Amazon tracking is retried on the next enabled Sendcloud sync. */}
-  }
+  if(retryTracking)await retryAmazonTrackingConfirmations();
   return result;
 }
 export function createManualOrder(order:ManualOrderInput){return invokeSendcloud<{ok:true;id:string;sendcloudId:string;orderNumber:string}>({action:'create_manual_order',order});}
@@ -182,8 +183,12 @@ export async function getShippingOptions(orderId:string){
   });
   const enviaOptions=(envia?.options||[]).filter(option=>!(directMrwAvailable&&/\bmrw\b/i.test(`${option.carrierCode||''} ${option.carrierName||''}`)));
   const mrwOptions=mrw?.options||[];
-  if(!sendcloud&&enviaResult.status==='rejected')throw enviaResult.reason;
-  if(!envia&&sendcloudResult.status==='rejected')throw sendcloudResult.reason;
+  const noProviderOptions=!sendcloud&&!envia&&!mrw;
+  if(noProviderOptions){
+    if(mrwResult.status==='rejected')throw mrwResult.reason;
+    if(enviaResult.status==='rejected')throw enviaResult.reason;
+    if(sendcloudResult.status==='rejected')throw sendcloudResult.reason;
+  }
   const options=[...sendcloudOptions,...enviaOptions,...mrwOptions].sort((a,b)=>{
     const ap=a.price==null?Number.MAX_VALUE:a.price,bp=b.price==null?Number.MAX_VALUE:b.price;
     return ap-bp;
@@ -191,7 +196,14 @@ export async function getShippingOptions(orderId:string){
   const messages=[sendcloud?.message,envia?.message,mrw?.message].filter(Boolean).join(' · ');
   return {weightKg:sendcloud?.weightKg??null,options,message:messages||null,diagnostics:envia?.diagnostics||[]};
 }
-export function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){return invokeOrderTools<{ok:true;weightKg:number}>({action:'update_order',orderId,order});}
+export async function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){
+  const {data,error}=await supabase.from('fulfillment_orders').select('sendcloud_remote_id,sendcloud_id,source_channel').eq('id',orderId).maybeSingle();
+  if(error)throw error;
+  const nativeAmazon=data?.source_channel==='amazon'&&!data?.sendcloud_remote_id&&String(data?.sendcloud_id||'').startsWith('amazon:');
+  return nativeAmazon
+    ?invokeOrderState<{ok:true;weightKg:number}>({action:'update_native_order',orderId,order})
+    :invokeOrderTools<{ok:true;weightKg:number}>({action:'update_order',orderId,order});
+}
 export function markOrderLabelPrinted(orderId:string){return invokeOrderState<{ok:true;printedAt:string;printCount:number}>({action:'mark_label_printed',orderId});}
 export function validateOrderAddress(orderId:string,carrierCode='mrw'){return invokeOrderTools<OrderAddressValidation>({action:'validate_address',orderId,carrierCode});}
 export async function createOrderLabel(orderId:string,option?:ShippingOption|null,pushTracking=true){

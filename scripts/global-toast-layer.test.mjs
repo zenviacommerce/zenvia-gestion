@@ -24,8 +24,10 @@ test('MRW connection validation uses read-only SOAP operations and never exposes
   ]);
   assert.match(edge,/GetPointsByCP/);
   assert.match(edge,/GetPointsDB/);
-  assert.match(edge,/codigoPoint>00000<\/codigoPoint/);
+  assert.match(edge,/codigoPoint><\/codigoPoint/);
   assert.match(edge,/GetEtiquetaEnvio/);
+  assert.match(edge,/AuthInfoSWGE/);
+  assert.match(edge,/TransmitirEnvio/);
   assert.match(edge,/application\/soap\+xml/);
   assert.match(edge,/text\/xml/);
   assert.match(edge,/Web Services/);

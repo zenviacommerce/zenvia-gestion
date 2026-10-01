@@ -20,7 +20,7 @@ export interface FulfillmentOrder {
   carrierCode:string|null; carrierName:string|null; shippingServiceName:string|null;
   shippingCostAmount:number|null; shippingCostCurrency:string|null; shippingCostSource:string|null;
   shippingCostNetAmount:number|null; shippingCostTaxAmount:number|null; shippingCostRecordedAt:string|null;
-  labelCreatedAt:string|null; labelPrintedAt:string|null; labelPrintCount:number; fulfilledAt:string|null; lastSyncedAt:string;
+  labelCreatedAt:string|null; labelPrintedAt:string|null; labelPrintCount:number; labelPrintStateKnown:boolean; fulfilledAt:string|null; lastSyncedAt:string;
 }
 
 export interface SendcloudIntegration {
@@ -111,7 +111,7 @@ function mapRow(row:any):FulfillmentOrder{
     carrierCode:row.carrier_code||null, carrierName:row.carrier_name||(balearicPending?'🏝 Baleares · usar Correos':null), shippingServiceName:row.shipping_service_name||null,
     shippingCostAmount:row.shipping_cost_amount==null?null:Number(row.shipping_cost_amount), shippingCostCurrency:row.shipping_cost_currency||null, shippingCostSource:row.shipping_cost_source||null,
     shippingCostNetAmount:row.shipping_cost_net_amount==null?null:Number(row.shipping_cost_net_amount), shippingCostTaxAmount:row.shipping_cost_tax_amount==null?null:Number(row.shipping_cost_tax_amount), shippingCostRecordedAt:row.shipping_cost_recorded_at||null,
-    labelCreatedAt:row.label_created_at||null, labelPrintedAt:row.label_printed_at||null, labelPrintCount:Number(row.label_print_count||0), fulfilledAt:row.fulfilled_at||null, lastSyncedAt:row.last_synced_at,
+    labelCreatedAt:row.label_created_at||null, labelPrintedAt:row.label_printed_at||null, labelPrintCount:Number(row.label_print_count||0), labelPrintStateKnown:row.label_print_state_known!==false, fulfilledAt:row.fulfilled_at||null, lastSyncedAt:row.last_synced_at,
   };
 }
 

@@ -65,3 +65,20 @@ test('Orders tracks whether a generated label has been printed from ZENVIA',asyn
   assert.match(migration,/label_printed_at/);
   assert.match(migration,/label_print_count/);
 });
+
+
+test('historical labels without tracked print evidence show as unknown, not unprinted',async()=>{
+  const [page,service,migration,stateEdge]=await Promise.all([
+    read('../src/pages/Orders.tsx'),
+    read('../src/services/orders.ts'),
+    read('../supabase/migrations/20261001111500_label_print_history_known_state.sql'),
+    read('../supabase/functions/order-logistics-state/index.ts'),
+  ]);
+  assert.match(service,/labelPrintStateKnown:boolean/);
+  assert.match(page,/Sin información/);
+  assert.match(page,/Sin información histórica/);
+  assert.match(page,/labelPrintState\(order\)/);
+  assert.match(migration,/label_print_state_known=false/);
+  assert.match(migration,/403-5230881-6173918/);
+  assert.match(stateEdge,/label_print_state_known:true/);
+});

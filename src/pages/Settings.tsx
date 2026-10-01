@@ -1373,7 +1373,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
         });
         showSuccess('Cuenta de Envia.com conectada.');
       }else if(provider==='mrw'){
-        if(!mrwFranchiseCode.trim()||!mrwSubscriberCode.trim()||!mrwUsername.trim()||!mrwPassword.trim())throw new Error('Indica franquicia, abonado, usuario y contraseña de MRW.');
+        if(!mrwFranchiseCode.trim()||!mrwSubscriberCode.trim()||!mrwDepartmentCode.trim()||!mrwUsername.trim()||!mrwPassword.trim())throw new Error('Indica franquicia, abonado, departamento, usuario y contraseña de MRW.');
         await createIntegrationAccount({
           provider:'mrw',displayName:displayName.trim()||'MRW',
           credentials:{franchiseCode:mrwFranchiseCode.trim(),subscriberCode:mrwSubscriberCode.trim(),departmentCode:mrwDepartmentCode.trim(),username:mrwUsername.trim(),password:mrwPassword.trim(),trackingPassword:mrwTrackingPassword.trim()},
@@ -1605,7 +1605,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
             <div className="settingsFormGrid">
               <label className="settingsField"><span>{editing?'Nueva franquicia (opcional)':'Código de franquicia'}</span><input inputMode="numeric" autoComplete="off" value={mrwFranchiseCode} onChange={e=>setMrwFranchiseCode(e.target.value)} placeholder={editing?'Sin cambios':'Franquicia'}/></label>
               <label className="settingsField"><span>{editing?'Nuevo suscriptor (opcional)':'Código de suscriptor'}</span><input inputMode="numeric" autoComplete="off" value={mrwSubscriberCode} onChange={e=>setMrwSubscriberCode(e.target.value)} placeholder={editing?'Sin cambios':'Abonado'}/></label>
-              <label className="settingsField"><span>{editing?'Nuevo departamento (opcional)':'Departamento (opcional)'}</span><input autoComplete="off" value={mrwDepartmentCode} onChange={e=>setMrwDepartmentCode(e.target.value)} placeholder={editing?'Sin cambios':'Departamento (si aplica)'}/></label>
+              <label className="settingsField"><span>{editing?'Nuevo departamento (opcional)':'Departamento *'}</span><input autoComplete="off" value={mrwDepartmentCode} onChange={e=>setMrwDepartmentCode(e.target.value)} placeholder={editing?'Sin cambios':'Departamento (si aplica)'}/></label>
               <label className="settingsField"><span>{editing?'Nuevo usuario (opcional)':'Nombre de usuario'}</span><input autoComplete="username" value={mrwUsername} onChange={e=>setMrwUsername(e.target.value)} placeholder={editing?'Sin cambios':'Usuario MRW'}/></label>
               <label className="settingsField"><span>{editing?'Nueva contraseña (opcional)':'Contraseña'}</span><input type="password" autoComplete="new-password" value={mrwPassword} onChange={e=>setMrwPassword(e.target.value)} placeholder={editing?'Sin cambios':'Contraseña MRW'}/></label>
               <label className="settingsField"><span>{editing?'Nueva contraseña de seguimiento (opcional)':'Contraseña de seguimiento (opcional)'}</span><input type="password" autoComplete="new-password" value={mrwTrackingPassword} onChange={e=>setMrwTrackingPassword(e.target.value)} placeholder={editing?'Sin cambios':'Solo necesaria para POD'}/><small>La misma contraseña usada en el seguimiento de MRW; solo es necesaria para recuperar POD.</small></label>

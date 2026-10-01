@@ -111,3 +111,10 @@ test('order editor exposes and saves package dimensions',async()=>{
   assert.match(source,/Ancho paquete \(cm\)/);
   assert.match(source,/Alto paquete \(cm\)/);
 });
+
+
+test('preflight warnings are only shown for orders that can still create a label',async()=>{
+  const source=await read('../src/pages/Orders.tsx');
+  assert.match(source,/validation=canPrepareOrder\(order\)\?validateOrderForCarrier\(order\)/);
+  assert.match(source,/validation=canPrepareOrder\(current\)\?validateOrderForCarrier\(current\)/);
+});

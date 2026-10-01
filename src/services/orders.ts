@@ -98,7 +98,7 @@ function mapRow(row:any):FulfillmentOrder{
     packageHeightCm:row.package_height_cm==null?null:Number(row.package_height_cm),
     sendcloudParcelId:row.sendcloud_parcel_id==null?null:Number(row.sendcloud_parcel_id),
     sendcloudShipmentId:row.sendcloud_shipment_id||null,
-    shippingProvider:row.shipping_provider==='envia'?'envia':row.shipping_provider==='sendcloud'?'sendcloud':(row.sendcloud_parcel_id||row.sendcloud_shipment_id?'sendcloud':null),
+    shippingProvider:row.shipping_provider==='envia'?'envia':row.shipping_provider==='mrw'?'mrw':row.shipping_provider==='sendcloud'?'sendcloud':(row.sendcloud_parcel_id||row.sendcloud_shipment_id?'sendcloud':null),
     shippingRemoteId:row.shipping_remote_id||null, shippingLabelUrl:row.shipping_label_url||null,
     trackingNumber:row.tracking_number||null, trackingUrl:row.tracking_url||null,
     trackingStatusCode:row.tracking_status_code||null, trackingStatusMessage:row.tracking_status_message||null, trackingUpdatedAt:row.tracking_updated_at||null,
@@ -130,6 +130,7 @@ function invokeSendcloud<T>(body:Record<string,unknown>){return invokeFunction<T
 function invokeOrderTools<T>(body:Record<string,unknown>){return invokeFunction<T>('sendcloud-order-tools',body);}
 function invokeOrderState<T>(body:Record<string,unknown>){return invokeFunction<T>('order-logistics-state',body);}
 function invokeEnvia<T>(body:Record<string,unknown>){return invokeFunction<T>('envia-shipping',body);}
+function invokeMrw<T>(body:Record<string,unknown>){return invokeFunction<T>('mrw-shipping',body);}
 function invokeAmazonTracking<T>(body:Record<string,unknown>){return invokeFunction<T>('amazon-confirm-shipment',body);}
 
 export async function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
@@ -157,26 +158,32 @@ export async function syncSendcloudOrders(history=false,retryTracking=true,autom
 }
 export function createManualOrder(order:ManualOrderInput){return invokeSendcloud<{ok:true;id:string;sendcloudId:string;orderNumber:string}>({action:'create_manual_order',order});}
 export async function getShippingOptions(orderId:string){
-  const [sendcloudResult,enviaResult]=await Promise.allSettled([
+  const [sendcloudResult,enviaResult,mrwResult]=await Promise.allSettled([
     invokeOrderTools<{weightKg:number;options:Array<Omit<ShippingOption,'provider'|'providerName'>>;message?:string|null}>({action:'shipping_options',orderId}),
     invokeEnvia<{configured:boolean;options:ShippingOption[];message?:string|null;diagnostics?:Array<{account?:string;carrier?:string|null;message:string}>}>({action:'rates',orderId}),
+    invokeMrw<{configured:boolean;options:ShippingOption[];message?:string|null}>({action:'options',orderId}),
   ]);
   const sendcloud=sendcloudResult.status==='fulfilled'?sendcloudResult.value:null;
   const envia=enviaResult.status==='fulfilled'?enviaResult.value:null;
+  const mrw=mrwResult.status==='fulfilled'?mrwResult.value:null;
+  const directMrwAvailable=Boolean(mrw?.configured&&(mrw?.options||[]).length);
   const sendcloudOptions=(sendcloud?.options||[]).map(option=>({
     ...option,provider:'sendcloud' as const,providerName:'Sendcloud',
   })).filter(option=>{
     const label=`${option.carrierCode||''} ${option.carrierName||''} ${option.code||''} ${option.name||''}`.toLowerCase();
-    return !(Number(option.price)===0&&/unstamped|sin franqueo|unfranked/.test(label));
+    if(Number(option.price)===0&&/unstamped|sin franqueo|unfranked/.test(label))return false;
+    if(directMrwAvailable&&/\bmrw\b/.test(label))return false;
+    return true;
   });
-  const enviaOptions=envia?.options||[];
+  const enviaOptions=(envia?.options||[]).filter(option=>!(directMrwAvailable&&/\bmrw\b/i.test(`${option.carrierCode||''} ${option.carrierName||''}`)));
+  const mrwOptions=mrw?.options||[];
   if(!sendcloud&&enviaResult.status==='rejected')throw enviaResult.reason;
   if(!envia&&sendcloudResult.status==='rejected')throw sendcloudResult.reason;
-  const options=[...sendcloudOptions,...enviaOptions].sort((a,b)=>{
+  const options=[...sendcloudOptions,...enviaOptions,...mrwOptions].sort((a,b)=>{
     const ap=a.price==null?Number.MAX_VALUE:a.price,bp=b.price==null?Number.MAX_VALUE:b.price;
     return ap-bp;
   });
-  const messages=[sendcloud?.message,envia?.message].filter(Boolean).join(' · ');
+  const messages=[sendcloud?.message,envia?.message,mrw?.message].filter(Boolean).join(' · ');
   return {weightKg:sendcloud?.weightKg??null,options,message:messages||null,diagnostics:envia?.diagnostics||[]};
 }
 export function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){return invokeOrderTools<{ok:true;weightKg:number}>({action:'update_order',orderId,order});}
@@ -194,7 +201,9 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
   }:null;
   const result=option?.provider==='envia'
     ?await invokeEnvia<LabelResult>({action:'create_label',orderId,shippingOption})
-    :await invokeSendcloud<LabelResult>({action:'create_label',orderId,shippingOption});
+    :option?.provider==='mrw'
+      ?await invokeMrw<LabelResult>({action:'create_label',orderId,shippingOption})
+      :await invokeSendcloud<LabelResult>({action:'create_label',orderId,shippingOption});
   if(pushTracking&&automation.pushToMarketplace){
     try{
       await invokeAmazonTracking({
@@ -218,7 +227,9 @@ export async function fetchOrderLabel(orderId:string){
   if(error)throw error;
   return data?.shipping_provider==='envia'
     ?invokeEnvia<LabelResult>({action:'fetch_label',orderId})
-    :invokeSendcloud<LabelResult>({action:'fetch_label',orderId});
+    :data?.shipping_provider==='mrw'
+      ?invokeMrw<LabelResult>({action:'fetch_label',orderId})
+      :invokeSendcloud<LabelResult>({action:'fetch_label',orderId});
 }
 
 export function shouldRunHistorySync(){

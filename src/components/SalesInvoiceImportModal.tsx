@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, CheckCircle2, FileText, LoaderCircle, Plus, Trash2, Upload, X } from 'lucide-react';
+import { AlertCircle, Camera, CheckCircle2, FileText, LoaderCircle, Plus, Trash2, Upload, X } from 'lucide-react';
 import { ensureSalesSeries, type Client, type SalesInvoice, type SalesInvoiceSeries } from '../services/sales';
 import { createSalesInvoiceDraftFromCandidate, friendlySalesImportError, prepareSalesInvoiceImportCandidate, recalculateSalesImportCandidate, type SalesInvoiceImportCandidate } from '../services/salesInvoiceImport';
 import { SearchableSelect } from './forms/SearchableSelect';
@@ -9,6 +9,7 @@ import { showError, showOperationResult, showSuccess } from '../services/toast';
 import { normalizeTaxId, taxIdError } from '../services/validation';
 import { useSettings } from '../context/SettingsContext';
 import { defaultSalesDueDate } from '../services/salesDefaults';
+import { imageFilesToPdf } from '../services/pdf';
 
 const ANALYSIS_CONCURRENCY=2;
 type Item={id:string;file:File;candidate?:SalesInvoiceImportCandidate;series:SalesInvoiceSeries[];status:'analyzing'|'needs_review'|'ready'|'duplicate'|'importing'|'imported'|'error';error?:string;excluded?:boolean};
@@ -24,6 +25,7 @@ function proposedNumber(series:SalesInvoiceSeries){return `${series.prefix}${Str
 export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,onFinished}:Props){
   const {settings}=useSettings();
   const inputRef=useRef<HTMLInputElement>(null);
+  const cameraRef=useRef<HTMLInputElement>(null);
   const [items,setItems]=useState<Item[]>([]);
   const [selectedId,setSelectedId]=useState<string|null>(null);
   const [checkedIds,setCheckedIds]=useState<Set<string>>(()=>new Set());
@@ -54,12 +56,20 @@ export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,o
   };
 
   const analyzeFiles=async(files:File[])=>{
-    const pdfs=files.filter(file=>file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf'));
-    const initial:Item[]=pdfs.map(file=>({id:crypto.randomUUID(),file,series:[],status:'analyzing'}));
+    const documents=files.filter(file=>file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf')||file.type.startsWith('image/'));
+    const initial:Item[]=documents.map(file=>({id:crypto.randomUUID(),file,series:[],status:'analyzing'}));
     setItems(initial);setSelectedId(null);setCheckedIds(new Set());
     let cursor=0;
     const worker=async()=>{while(true){const index=cursor++;if(index>=initial.length)return;await prepareFile(initial[index]);}};
     await Promise.all(Array.from({length:Math.min(ANALYSIS_CONCURRENCY,initial.length)},()=>worker()));
+  };
+
+  const analyzeCameraPages=async(files:File[])=>{
+    if(!files.length)return;
+    try{
+      const pdf=await imageFilesToPdf(files);
+      await analyzeFiles([pdf]);
+    }catch(error){showError(error instanceof Error?error.message:'No se pudo preparar el escaneo.');}
   };
 
   const selected=items.find(item=>item.id===selectedId);
@@ -162,9 +172,10 @@ export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,o
   const reviewCount=items.filter(item=>!item.excluded&&item.status==='needs_review').length;
 
   return <div className="modalBackdrop"><div className="modal bulkInvoiceModal salesImportModal">
-    <div className="modalHead"><div><h3>Importar facturas de venta</h3><p>Selecciona uno o varios PDF. Cada factura debe revisarse antes de guardarse y siempre se crea como borrador.</p></div><button onClick={onClose}><X/></button></div>
-    <input hidden ref={inputRef} type="file" multiple accept="application/pdf" onChange={event=>void analyzeFiles(Array.from(event.target.files||[]))}/>
-    {!items.length?<button className="bulkInvoiceDrop" type="button" onClick={()=>inputRef.current?.click()}><Upload/><strong>Seleccionar PDFs</strong><span>Puedes elegir varios archivos a la vez</span></button>:<>
+    <div className="modalHead"><div><h3>Importar facturas de venta</h3><p>Sube PDF o imágenes, o escanea varias páginas con la cámara. Todo pasa por el mismo motor documental y siempre se crea como borrador.</p></div><button onClick={onClose}><X/></button></div>
+    <input hidden ref={inputRef} type="file" multiple accept="application/pdf,image/*" onChange={event=>void analyzeFiles(Array.from(event.target.files||[]))}/>
+    <input hidden ref={cameraRef} type="file" multiple accept="image/*" capture="environment" onChange={event=>void analyzeCameraPages(Array.from(event.target.files||[]))}/>
+    {!items.length?<div className="salesImportSources"><button className="bulkInvoiceDrop" type="button" onClick={()=>inputRef.current?.click()}><Upload/><strong>Seleccionar documentos</strong><span>PDF o imágenes; puedes elegir varios archivos</span></button><button className="secondary" type="button" onClick={()=>cameraRef.current?.click()}><Camera size={17}/> Escanear con cámara</button></div>:<>
       <div className="bulkInvoiceSummary"><strong>{items.length-pendingCount} de {items.length} analizadas</strong><span>{readyCount} revisadas · {reviewCount} por revisar · {pendingCount} analizando</span><button className="secondary" type="button" disabled={busy} onClick={()=>inputRef.current?.click()}>Cambiar selección</button></div>
       <BulkSelectionToolbar selectedCount={selectedBulkItems.length} totalCount={selectableItems.length} allSelected={allSelectableSelected} onToggleAll={toggleAll} label="facturas">
         <button className="secondary" type="button" disabled={!selectedBulkItems.length||busy} onClick={excludeSelected}>Excluir seleccionadas</button>

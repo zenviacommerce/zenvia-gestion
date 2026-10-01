@@ -1,6 +1,6 @@
 import type { Invoice } from '../types';
 
-export type PeriodPreset = 'today' | 'current_month' | 'current_quarter' | 'current_year' | 'all' | 'custom' | `quarter:${number}:${number}`;
+export type PeriodPreset = 'today' | 'current_month' | 'previous_month' | 'current_quarter' | 'current_year' | 'all' | 'custom' | `quarter:${number}:${number}`;
 
 export interface DateRangeFilter {
   preset: PeriodPreset;
@@ -37,6 +37,12 @@ export function rangeForPreset(preset: PeriodPreset, now = new Date()) {
     return {
       from: ymd(new Date(now.getFullYear(), now.getMonth(), 1)),
       to: ymd(new Date(now.getFullYear(), now.getMonth() + 1, 0)),
+    };
+  }
+  if (preset === 'previous_month') {
+    return {
+      from: ymd(new Date(now.getFullYear(), now.getMonth() - 1, 1)),
+      to: ymd(new Date(now.getFullYear(), now.getMonth(), 0)),
     };
   }
   if (preset === 'current_quarter') {
@@ -108,6 +114,11 @@ export function periodLabel(filter: DateRangeFilter, now = new Date()) {
   if (filter.preset === 'today') return 'Hoy';
   if (filter.preset === 'current_month') {
     const label = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  }
+  if (filter.preset === 'previous_month') {
+    const previous = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const label = previous.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     return label.charAt(0).toUpperCase() + label.slice(1);
   }
   if (filter.preset === 'current_quarter') return `${Math.floor(now.getMonth() / 3) + 1}T ${now.getFullYear()}`;

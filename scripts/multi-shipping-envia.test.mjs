@@ -12,8 +12,8 @@ test('shipping data model supports Sendcloud and Envia side by side',async()=>{
   assert.match(migration,/provider in \('amazon','sendcloud','envia','shopify','gmail'\)/);
   assert.match(migration,/shipping_provider text/);
   assert.match(migration,/shipping_remote_id text/);
-  assert.match(orders,/shippingProvider:'sendcloud'\|'envia'\|null/);
-  assert.match(orders,/provider:'sendcloud'\|'envia'/);
+  assert.match(orders,/shippingProvider:'sendcloud'\|'envia'\|'mrw'\|null/);
+  assert.match(orders,/provider:'sendcloud'\|'envia'\|'mrw'/);
 });
 
 test('Envia credentials are vaulted and sandbox is the default environment',async()=>{

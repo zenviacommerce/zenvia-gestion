@@ -58,3 +58,21 @@ test('Envia quotations use explicit package dimensions and never invent phone nu
   assert.match(edge,/teléfono del destinatario/);
   assert.doesNotMatch(edge,/000000000/);
 });
+
+
+test('current logistics model adds MRW as a direct first-class provider',async()=>{
+  const [migration,orders,mrw]=await Promise.all([
+    read('supabase/migrations/20261001104500_direct_mrw_provider.sql'),
+    read('src/services/orders.ts'),
+    read('supabase/functions/mrw-shipping/index.ts'),
+  ]);
+  assert.match(migration,/provider in \('amazon','sendcloud','envia','mrw','shopify','gmail'\)/);
+  assert.match(migration,/shipping_provider is null or shipping_provider in \('sendcloud','envia','mrw'\)/);
+  assert.match(orders,/provider:'sendcloud'\|'envia'\|'mrw'/);
+  assert.match(orders,/invokeMrw/);
+  assert.match(orders,/directMrwAvailable/);
+  assert.match(orders,/option\?\.provider==='mrw'/);
+  assert.match(mrw,/TransmEnvio/);
+  assert.match(mrw,/GetEtiquetaEnvio/);
+  assert.match(mrw,/BultoRequest/);
+});

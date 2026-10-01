@@ -458,10 +458,10 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       const allowed=enabledShippingOptions(result.options);
       setOptionsMessage(result.message||'');
       const automatic=automaticShippingOption(order,allowed);
-      const carrier=automatic?.carrierCode||validationCarrier(order);
-      const local=validateOrderForCarrier(order,carrier);
-      if(local.blocking){setEditValidationIssues(local.issues);setEditOrder(order);showError('El pedido tiene datos obligatorios incompletos. Revísalos antes de continuar.');return}
       if(!allowed.length){showError('No hay servicios disponibles entre los transportistas habilitados.');return}
+      // Carrier-specific requirements must only be enforced after a service is chosen.
+      // In particular, MRW Directo requires package dimensions, but Sendcloud and
+      // Envia.com may legitimately quote/create a label using weight only.
       if(settings.orders.generateLabelAutomatically){
         if(automatic){await createLabel(automatic,order);return}
         if(settings.shipping.noValidMethodBehavior==='error'){showError('Ninguna regla automática encuentra un servicio válido para este pedido.');return}
@@ -522,10 +522,10 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
           detail:`Pedido ${order.orderNumber||order.orderId||processed+1} · ${processed} de ${targets.length}`,
         });
         try{
-          const local=validateOrderForCarrier(order);if(local.blocking)throw new Error(local.issues[0]?.message||'El pedido necesita revisión antes de generar la etiqueta.');
           const shipping=await getShippingOptions(order.id);
           const option=automaticShippingOption(order,shipping.options);
           if(!option)throw new Error('No se encontró un servicio válido según las reglas automáticas de envío.');
+          // Validate only against the provider/service that will actually be used.
           const carrierValidation=validateOrderForCarrier(order,option.carrierCode);
           if(carrierValidation.blocking)throw new Error(carrierValidation.issues[0]?.message||'El transportista rechazará los datos del pedido.');
           const result=await createOrderLabel(order.id,option,settings.orders.pushTrackingToMarketplace);

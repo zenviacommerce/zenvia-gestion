@@ -218,7 +218,7 @@ function mrwResponseError(text:string,status:number){
 async function testMrw(admin:any,account:any){
   const c=await mrwCredentials(admin,account);
   const environment=account.config?.environment==='test'?'test':'production';
-  const base=environment==='test'?'https://sagec-test.mrw.es/mrwenvio.asmx':'https://sagec.mrw.es/mrwenvio.asmx';
+  const base=environment==='test'?'https://sagec-test.mrw.es/MRWEnvio.asmx':'https://sagec.mrw.es/MRWEnvio.asmx';
   const modernDepartment=`<CodigoDepartamento>${mrwEsc(c.departmentCode)}</CodigoDepartamento>`;
   const modernAuth=`<AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${mrwEsc(c.franchiseCode)}</CodigoFranquicia><CodigoAbonado>${mrwEsc(c.subscriberCode)}</CodigoAbonado>${modernDepartment}<UserName>${mrwEsc(c.username)}</UserName><Password>${mrwEsc(c.password)}</Password></AuthInfo>`;
   const legacyAuth=`<AuthInfoSWGE xmlns="http://www.mrw.es/"><Cliente>${mrwEsc(c.subscriberCode)}</Cliente><Password>${mrwEsc(c.password)}</Password><Departamento>${mrwEsc(c.departmentCode)}</Departamento><Franquicia>${mrwEsc(c.franchiseCode)}</Franquicia><Usuario>${mrwEsc(c.username)}</Usuario></AuthInfoSWGE>`;
@@ -253,6 +253,23 @@ async function testMrw(admin:any,account:any){
       }
       diagnostics.push(`${operation} SOAP ${protocol}: HTTP ${result.res.status} ${result.res.headers.get('content-type')||''}`.trim());
     }
+  }
+
+  // CancelarEnvio has a very small, fully documented request contract and is a
+  // safer credential probe than asking MRW to render a label for a fake shipment.
+  // The deliberately non-existent shipment cannot cancel a real shipment. A SOAP
+  // business fault proves that MRW parsed the authenticated request.
+  const cancelBody='<request><CancelaEnvio><NumeroEnvioOriginal>000000000000</NumeroEnvioOriginal></CancelaEnvio></request>';
+  for(const protocol of ['1.1','1.2'] as const){
+    const result=await call('CancelarEnvio',protocol,cancelBody,modernAuth);
+    if(result.fault&&authRejected(result.fault))throw new Error(`MRW ha rechazado las credenciales: ${sanitize(result.fault)}`);
+    if(result.res.ok&&/CancelarEnvioResponse|CancelarEnvioResult/i.test(result.text)){
+      return {environment,apiMode:'modern',validationOperation:'CancelarEnvio',soap:protocol};
+    }
+    if(result.fault&&!authRejected(result.fault)){
+      return {environment,apiMode:'modern',validationOperation:'CancelarEnvio-fault',soap:protocol,detail:sanitize(result.fault)};
+    }
+    diagnostics.push(`CancelarEnvio SOAP ${protocol}: HTTP ${result.res.status} ${result.res.headers.get('content-type')||''}`.trim());
   }
 
   const labelBody='<request><NumeroEnvio>000000000000</NumeroEnvio><NumerosEtiqueta></NumerosEtiqueta><SeparadorNumerosEnvio></SeparadorNumerosEnvio><FechaInicioEnvio></FechaInicioEnvio><FechaFinEnvio></FechaFinEnvio><TipoEtiquetaEnvio>PDF</TipoEtiquetaEnvio><ReportTopMargin>0</ReportTopMargin><ReportLeftMargin>0</ReportLeftMargin></request>';

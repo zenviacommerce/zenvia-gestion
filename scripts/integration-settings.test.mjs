@@ -143,11 +143,13 @@ test('Integrations supports a vaulted direct MRW account without exposing creden
 
 test('MRW only masks actual passwords; identifiers stay readable like the carrier contract form',async()=>{
   const page=await read('src/pages/Settings.tsx');
-  assert.match(page,/Código de franquicia<\/span><input inputMode="numeric"/);
-  assert.match(page,/Código de suscriptor<\/span><input inputMode="numeric"/);
-  assert.match(page,/Departamento \(opcional\)<\/span><input autoComplete="off"/);
-  assert.match(page,/Nombre de usuario<\/span><input autoComplete="username"/);
-  assert.match(page,/Contraseña<\/span><input type="password"/);
+  assert.match(page,/Código de franquicia/);
+  assert.match(page,/Código de suscriptor/);
+  assert.match(page,/inputMode="numeric"[^>]*value=\{mrwFranchiseCode\}/);
+  assert.match(page,/inputMode="numeric"[^>]*value=\{mrwSubscriberCode\}/);
+  assert.match(page,/Departamento \(opcional\)/);
+  assert.match(page,/autoComplete="username"[^>]*value=\{mrwUsername\}/);
+  assert.match(page,/type="password"[^>]*value=\{mrwPassword\}/);
   assert.match(page,/Contraseña de seguimiento \(opcional\)/);
   assert.match(page,/trackingPassword:mrwTrackingPassword\.trim\(\)/);
 });

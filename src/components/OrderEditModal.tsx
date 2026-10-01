@@ -21,6 +21,9 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
   const [stateProvince,setStateProvince]=useState(text(address.state_province_code));
   const [countryCode,setCountryCode]=useState(text(address.country_code)||'ES');
   const [weightKg,setWeightKg]=useState(order.weightKg||fallbackWeightKg||1);
+  const [packageLengthCm,setPackageLengthCm]=useState(order.packageLengthCm||0);
+  const [packageWidthCm,setPackageWidthCm]=useState(order.packageWidthCm||0);
+  const [packageHeightCm,setPackageHeightCm]=useState(order.packageHeightCm||0);
 
   const liveOrder:FulfillmentOrder={
     ...order,
@@ -28,6 +31,9 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
     customerEmail:email.trim()||null,
     customerPhone:phone.trim()||null,
     weightKg:Number(weightKg)||0,
+    packageLengthCm:Number(packageLengthCm)||null,
+    packageWidthCm:Number(packageWidthCm)||null,
+    packageHeightCm:Number(packageHeightCm)||null,
     shippingAddress:{
       ...address,
       name:customerName.trim(),
@@ -51,13 +57,14 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
     customerName:customerName.trim(),companyName:companyName.trim(),email:email.trim(),phone:phone.trim(),address:street.trim(),
     houseNumber:houseNumber.trim(),address2:address2.trim(),postalCode:postalCode.trim(),city:city.trim(),
     stateProvince:stateProvince.trim(),countryCode:countryCode.trim().toUpperCase(),weightKg:Number(weightKg)||0,
+    packageLengthCm:Number(packageLengthCm)||0,packageWidthCm:Number(packageWidthCm)||0,packageHeightCm:Number(packageHeightCm)||0,
   });
 
   return <div className="modalBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
     <section className="modal ordersEditModal">
-      <div className="modalHead"><div><h3>Editar pedido · {order.orderNumber||order.orderId}</h3><p>Corrige los datos de envío antes de generar la etiqueta. Los cambios se guardan también en Sendcloud.</p></div><button onClick={onClose}><X size={18}/></button></div>
+      <div className="modalHead"><div><h3>Editar pedido · {order.orderNumber||order.orderId}</h3><p>Corrige los datos de envío y del paquete antes de generar la etiqueta. Los cambios se guardan también en el proveedor logístico cuando corresponde.</p></div><button onClick={onClose}><X size={18}/></button></div>
       <div className="ordersEditBody">
-        <div className="ordersEditHint">MRW suele validar estrictamente nombre, teléfono, dirección, código postal, provincia y peso. Revisa estos campos si una etiqueta da error.</div>
+        <div className="ordersEditHint">MRW valida estrictamente nombre, teléfono, dirección, código postal, peso y medidas del paquete. Revisa estos campos si una etiqueta da error.</div>
         {liveValidation.issues.length>0&&<div className="errorBox ordersValidationBox"><AlertCircle size={17}/><div><strong>Revisar antes de generar la etiqueta</strong>{liveValidation.issues.map((issue,index)=><span key={`${issue.field}-${index}`}>{issue.message}</span>)}</div></div>}
         <div className="ordersManualGrid">
           <label className={fieldIssue('name')?'ordersFieldInvalid':''}><span>Cliente *</span><input aria-invalid={Boolean(fieldIssue('name'))} value={customerName} onChange={e=>setCustomerName(e.target.value)}/>{fieldError('name')&&<small className="ordersFieldError">{fieldError('name')}</small>}</label>
@@ -72,6 +79,9 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
           <label><span>Provincia / Estado</span><input value={stateProvince} onChange={e=>setStateProvince(e.target.value)}/></label>
           <label className={fieldIssue('country_code')?'ordersFieldInvalid':''}><span>País *</span><input aria-invalid={Boolean(fieldIssue('country_code'))} maxLength={2} value={countryCode} onChange={e=>setCountryCode(e.target.value.toUpperCase())}/>{fieldError('country_code')&&<small className="ordersFieldError">{fieldError('country_code')}</small>}</label>
           <label className={fieldIssue('weight')?'ordersFieldInvalid':''}><span>Peso (kg) *</span><input aria-invalid={Boolean(fieldIssue('weight'))} type="number" min="0.01" step="0.01" value={weightKg} onChange={e=>setWeightKg(Number(e.target.value)||0)}/>{fieldError('weight')&&<small className="ordersFieldError">{fieldError('weight')}</small>}</label>
+          <label className={fieldIssue('package_length_cm')?'ordersFieldInvalid':''}><span>Largo paquete (cm)</span><input aria-invalid={Boolean(fieldIssue('package_length_cm'))} type="number" min="1" step="0.1" value={packageLengthCm||''} onChange={e=>setPackageLengthCm(Number(e.target.value)||0)}/>{fieldError('package_length_cm')&&<small className="ordersFieldError">{fieldError('package_length_cm')}</small>}</label>
+          <label className={fieldIssue('package_width_cm')?'ordersFieldInvalid':''}><span>Ancho paquete (cm)</span><input aria-invalid={Boolean(fieldIssue('package_width_cm'))} type="number" min="1" step="0.1" value={packageWidthCm||''} onChange={e=>setPackageWidthCm(Number(e.target.value)||0)}/>{fieldError('package_width_cm')&&<small className="ordersFieldError">{fieldError('package_width_cm')}</small>}</label>
+          <label className={fieldIssue('package_height_cm')?'ordersFieldInvalid':''}><span>Alto paquete (cm)</span><input aria-invalid={Boolean(fieldIssue('package_height_cm'))} type="number" min="1" step="0.1" value={packageHeightCm||''} onChange={e=>setPackageHeightCm(Number(e.target.value)||0)}/>{fieldError('package_height_cm')&&<small className="ordersFieldError">{fieldError('package_height_cm')}</small>}</label>
         </div>
       </div>
       <div className="modalActions"><button className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={saving} onClick={submit}>{saving?<LoaderCircle className="spin" size={16}/>:<Save size={16}/>} Guardar cambios</button></div>

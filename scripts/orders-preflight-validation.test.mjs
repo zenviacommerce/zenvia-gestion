@@ -62,7 +62,7 @@ test('MRW final-carrier preflight requires a usable telephone',async()=>{
 
 test('order edit form validates current values live and marks invalid fields',async()=>{
   const source=await read('../src/components/OrderEditModal.tsx');
-  assert.match(source,/const liveValidation=validateOrderForCarrier\(liveOrder\)/);
+  assert.match(source,/const liveValidation=validateOrderForCarrier\(liveOrder,effectiveCarrier\)/);
   assert.match(source,/fieldIssue\('phone'\)/);
   assert.match(source,/aria-invalid=\{Boolean\(fieldIssue\('phone'\)\)\}/);
   assert.match(source,/ordersFieldError/);

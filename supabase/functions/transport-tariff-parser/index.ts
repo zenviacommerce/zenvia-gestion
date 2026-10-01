@@ -73,7 +73,15 @@ Deno.serve(async(req:Request)=>{
     await authenticate(req,admin);
     const body=await req.json().catch(()=>({}));
     const text=String(body?.text||'').trim(),fileName=String(body?.fileName||'tarifa'),fallback=body?.fallback||{};
-    if(!text)return fail('El documento no contiene texto para analizar.');
+    const fileData=typeof body?.fileData==='string'?body.fileData:'';
+    if(!text&&!fileData)return fail('El documento no contiene contenido para analizar.');
+
+    const fallbackServices=Array.isArray(fallback?.services)?fallback.services:[];
+    const fallbackConfidence=Number(fallback?.parserConfidence||0);
+    if(fallbackServices.length>0&&fallbackConfidence>=0.82){
+      return fallbackResponse(fallback,'Lectura local validada con confianza suficiente; no se ha consumido IA para este documento.');
+    }
+
     const apiKey=Deno.env.get('OPENAI_API_KEY')||'';
     if(!apiKey)return fallbackResponse(fallback,'IA no configurada: se ha usado la lectura automática y debes revisar todos los datos.');
 
@@ -107,8 +115,12 @@ CONTROL DE CALIDAD
 - parserNotes debe explicar ambigüedades, supuestos evitados y campos que requieren revisión.
 
 Devuelve únicamente información respaldada por el documento y ajustada al esquema solicitado.`;
+    const content:any[]=[{type:'input_text',text:`Archivo: ${fileName}\nTipo MIME: ${String(body?.mimeType||'desconocido')}\n\nDocumento estructurado extraído:\n${text.slice(0,120000)}`}];
+    if(fileData&&String(body?.mimeType||'').toLowerCase().includes('pdf')){
+      content.push({type:'input_file',filename:fileName,file_data:fileData});
+    }
     const ai=await fetch('https://api.openai.com/v1/responses',{method:'POST',headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},body:JSON.stringify({
-      model,instructions,input:`Archivo: ${fileName}\nTipo MIME: ${String(body?.mimeType||'desconocido')}\n\nDocumento estructurado extraído:\n${text.slice(0,120000)}`,
+      model,instructions,input:[{role:'user',content}],max_output_tokens:6000,
       text:{format:{type:'json_schema',name:'transport_tariff',strict:true,schema:tariffSchema}},
     })});
     if(!ai.ok){const detail=(await ai.text()).slice(0,600);console.error('OpenAI tariff parse failed',ai.status,detail);return fallbackResponse(fallback,'La IA no pudo completar la lectura: se mantiene la extracción automática para revisión.');}

@@ -15,7 +15,7 @@ test('Orders sync uses v2026-01-01 searchOrders with the recipient datasets need
   assert.match(orders,/nextToken/);
   for(const dataset of ['PROCEEDS','EXPENSE','PROMOTION','CANCELLATION','FULFILLMENT','TAX','BUYER','RECIPIENT'])assert.match(orders,new RegExp(dataset));
   assert.match(orders,/OPERATIONAL_INCLUDED_DATA/);
-  assert.match(orders,/Amazon SP-API \\(403\\)/);
+  assert.match(orders,/Amazon SP-API \(403\)/);
 });
 
 test('Orders sync upserts orders and line items with stable conflict keys',async()=>{

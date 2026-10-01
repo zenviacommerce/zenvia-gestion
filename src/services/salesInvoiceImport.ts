@@ -287,13 +287,30 @@ function salesLineFromRead(line:any,index:number,fallbackTaxRate:number):SalesIn
 }
 
 export async function prepareSalesInvoiceImportCandidate(file:File,clients:Client[],defaultDueDays:number,clientSettings:ClientsSettings=DEFAULT_APP_SETTINGS.clients):Promise<SalesInvoiceImportCandidate>{
-  const read=await readInvoiceDocumentEnhanced(file,[]);
+  const read=await readInvoiceDocumentEnhanced(file,[],undefined,{mode:'sales'});
   const fiscal=extractSalesFiscalTotals(read.text);
   const subtotal=fiscal?.subtotal||read.subtotal;
   const vat=fiscal?.vat??read.vat;
   const total=fiscal?.total||read.total;
-  const proposedClient=extractSalesRecipient(read.text,file.name,read.invoiceNumber||'',read.invoiceDate||'',clientSettings);
-  const dueDate=extractSalesDueDate(read.text,read.invoiceDate||'',defaultDueDays);
+  const aiRecipient=read.aiRecipient;
+  const deterministicRecipient=extractSalesRecipient(read.text,file.name,read.invoiceNumber||'',read.invoiceDate||'',clientSettings);
+  const proposedClient=aiRecipient?.name?{
+    name:aiRecipient.name,
+    taxId:aiRecipient.taxId||deterministicRecipient?.taxId||'',
+    email:aiRecipient.email||deterministicRecipient?.email||'',
+    phone:aiRecipient.phone||deterministicRecipient?.phone||'',
+    addressLine1:aiRecipient.address||deterministicRecipient?.addressLine1||'',
+    addressLine2:deterministicRecipient?.addressLine2||'',
+    postalCode:deterministicRecipient?.postalCode||'',
+    city:deterministicRecipient?.city||'',
+    province:deterministicRecipient?.province||'',
+    countryCode:(aiRecipient.countryCode&&aiRecipient.countryCode!=='XX'?aiRecipient.countryCode:deterministicRecipient?.countryCode)||clientSettings.defaultCountryCode,
+    paymentTermsDays:deterministicRecipient?.paymentTermsDays||clientSettings.defaultPaymentTermsDays,
+    defaultVatRate:deterministicRecipient?.defaultVatRate??clientSettings.defaultVatRate,
+    defaultPaymentMethod:deterministicRecipient?.defaultPaymentMethod||clientSettings.defaultPaymentMethod,
+    notes:'',
+  }:deterministicRecipient;
+  const dueDate=read.aiDueDate||extractSalesDueDate(read.text,read.invoiceDate||'',defaultDueDays);
   const matched=(proposedClient&&matchClientIdentity(proposedClient,clients,clientSettings))||matchSalesInvoiceClient(read.text,clients);
   const fallbackTaxRate=nearestTaxRate(subtotal,vat);
   const exactLines=extractSalesConceptLines(read.text,fallbackTaxRate);

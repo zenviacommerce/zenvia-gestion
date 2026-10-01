@@ -218,29 +218,57 @@ function mrwResponseError(text:string,status:number){
 async function testMrw(admin:any,account:any){
   const c=await mrwCredentials(admin,account);
   const base=account.config?.environment==='test'?'https://sagec-test.mrw.es/mrwenvio.asmx':'https://sagec.mrw.es/mrwenvio.asmx';
-  const department=c.departmentCode?`<CodigoDepartamento>${mrwEsc(c.departmentCode)}</CodigoDepartamento>`:'';
-  const auth=`<soap:Header><AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${mrwEsc(c.franchiseCode)}</CodigoFranquicia><CodigoAbonado>${mrwEsc(c.subscriberCode)}</CodigoAbonado>${department}<UserName>${mrwEsc(c.username)}</UserName><Password>${mrwEsc(c.password)}</Password></AuthInfo></soap:Header>`;
-  const envelope=(operation:string)=>`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">${auth}<soap:Body><${operation} xmlns="http://www.mrw.es/"><request><Point><codigoPoint xsi:nil="true" /><CodigoPostal>28001</CodigoPostal></Point></request></${operation}></soap:Body></soap:Envelope>`;
-
-  const attempts=['GetPointsByCP','GetPointsDB'];
-  let lastMessage='MRW no ha podido validar la cuenta.';
-  for(const operation of attempts){
-    const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':`"http://www.mrw.es/${operation}"`,Accept:'text/xml'},body:envelope(operation)});
+  const department=`<CodigoDepartamento>${mrwEsc(c.departmentCode)}</CodigoDepartamento>`;
+  const authBody=`<AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${mrwEsc(c.franchiseCode)}</CodigoFranquicia><CodigoAbonado>${mrwEsc(c.subscriberCode)}</CodigoAbonado>${department}<UserName>${mrwEsc(c.username)}</UserName><Password>${mrwEsc(c.password)}</Password></AuthInfo>`;
+  const authRejected=(fault:string)=>/usuario|password|contrase|abonado|franquicia|autent|credencial|acceso|login|unauthorized|no autorizado/i.test(fault);
+  const soapFault=(text:string)=>(text.match(/<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i)?.[1]
+    ||text.match(/<Mensaje[^>]*>([\s\S]*?)<\/Mensaje>/i)?.[1]
+    ||text.match(/<DescripcionError[^>]*>([\s\S]*?)<\/DescripcionError>/i)?.[1]
+    ||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+  const protocolBody=(operation:string,protocol:'1.1'|'1.2',body:string)=>{
+    if(protocol==='1.2')return `<?xml version="1.0" encoding="utf-8"?><soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope"><soap12:Header>${authBody}</soap12:Header><soap12:Body><${operation} xmlns="http://www.mrw.es/">${body}</${operation}></soap12:Body></soap12:Envelope>`;
+    return `<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Header>${authBody}</soap:Header><soap:Body><${operation} xmlns="http://www.mrw.es/">${body}</${operation}></soap:Body></soap:Envelope>`;
+  };
+  const call=async(operation:string,protocol:'1.1'|'1.2',body:string)=>{
+    const action=`http://www.mrw.es/${operation}`;
+    const headers:Record<string,string>=protocol==='1.2'
+      ?{'Content-Type':`application/soap+xml; charset=utf-8; action="${action}"`,Accept:'application/soap+xml,text/xml'}
+      :{'Content-Type':'text/xml; charset=utf-8','SOAPAction':`"${action}"`,Accept:'text/xml'};
+    const res=await fetch(base,{method:'POST',headers,body:protocolBody(operation,protocol,body)});
     const text=await res.text();
-    const fault=(text.match(/<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i)?.[1]||text.match(/<Mensaje[^>]*>([\s\S]*?)<\/Mensaje>/i)?.[1]||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
-    if(res.ok&&!fault&&new RegExp(`${operation}Response|PuntoDeRedDTO`,'i').test(text)){
-      return {environment:account.config?.environment==='test'?'test':'production',validationOperation:operation};
-    }
-    lastMessage=mrwResponseError(text,res.status);
-    if(fault){
-      const normalized=fault.toLowerCase();
-      if(/usuario|password|contrase|abonado|franquicia|autent|credencial|acceso/.test(normalized)){
-        throw new Error(`MRW ha rechazado las credenciales: ${sanitize(fault)}`);
+    return {res,text,fault:soapFault(text),protocol,operation};
+  };
+
+  const diagnostics:string[]=[];
+  const pointsBody='<request><Point><codigoPoint>00000</codigoPoint><CodigoPostal>28001</CodigoPostal></Point></request>';
+  for(const operation of ['GetPointsByCP','GetPointsDB']){
+    for(const protocol of ['1.1','1.2'] as const){
+      const result=await call(operation,protocol,pointsBody);
+      if(result.fault&&authRejected(result.fault))throw new Error(`MRW ha rechazado las credenciales: ${sanitize(result.fault)}`);
+      if(result.res.ok&&!result.fault&&new RegExp(`${operation}Response|PuntoDeRedDTO`,'i').test(result.text)){
+        return {environment:account.config?.environment==='test'?'test':'production',validationOperation:operation,soap:protocol};
       }
-      break;
+      diagnostics.push(`${operation} SOAP ${protocol}: HTTP ${result.res.status} ${result.res.headers.get('content-type')||''}`.trim());
     }
   }
-  throw new Error(lastMessage);
+
+  // Last non-destructive check: requesting a deliberately non-existent label.
+  // A business-level SOAP fault (shipment not found, invalid shipment, etc.) proves
+  // that MRW accepted and processed the authenticated SOAP envelope.
+  const labelBody='<request><NumeroEnvio>000000000000</NumeroEnvio><NumerosEtiqueta></NumerosEtiqueta><SeparadorNumerosEnvio></SeparadorNumerosEnvio><FechaInicioEnvio></FechaInicioEnvio><FechaFinEnvio></FechaFinEnvio><TipoEtiquetaEnvio>PDF</TipoEtiquetaEnvio><ReportTopMargin>0</ReportTopMargin><ReportLeftMargin>0</ReportLeftMargin></request>';
+  for(const protocol of ['1.1','1.2'] as const){
+    const result=await call('GetEtiquetaEnvio',protocol,labelBody);
+    if(result.fault&&authRejected(result.fault))throw new Error(`MRW ha rechazado las credenciales: ${sanitize(result.fault)}`);
+    if(result.res.ok&&/GetEtiquetaEnvioResponse/i.test(result.text)){
+      return {environment:account.config?.environment==='test'?'test':'production',validationOperation:'GetEtiquetaEnvio',soap:protocol};
+    }
+    if(result.fault&&!authRejected(result.fault)){
+      return {environment:account.config?.environment==='test'?'test':'production',validationOperation:'GetEtiquetaEnvio-fault',soap:protocol,detail:sanitize(result.fault)};
+    }
+    diagnostics.push(`GetEtiquetaEnvio SOAP ${protocol}: HTTP ${result.res.status} ${result.res.headers.get('content-type')||''}`.trim());
+  }
+
+  throw new Error(`MRW no ha aceptado ninguna variante SOAP de validación. ${diagnostics.join(' · ')}. Esto apunta al servicio remoto de MRW o a que estas credenciales no están habilitadas para Web Services.`);
 }
 async function enviaCarriers(admin:any,account:any){
   const c=await enviaCredentials(admin,account);

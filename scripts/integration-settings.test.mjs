@@ -153,3 +153,10 @@ test('MRW only masks actual passwords; identifiers stay readable like the carrie
   assert.match(page,/Contraseña de seguimiento \(opcional\)/);
   assert.match(page,/trackingPassword:mrwTrackingPassword\.trim\(\)/);
 });
+
+
+test('MRW integration card uses concise copy without the Sendcloud tagline',async()=>{
+  const page=await read('src/pages/Settings.tsx');
+  assert.match(page,/description:'Conexión directa con MRW para gestionar envíos\.'/);
+  assert.doesNotMatch(page,/generar envíos y etiquetas sin pasar por Sendcloud/);
+});

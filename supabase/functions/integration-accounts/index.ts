@@ -215,6 +215,18 @@ function mrwResponseError(text:string,status:number){
   }
   return `MRW (${status}): ${sanitize(text||'respuesta no válida')}`;
 }
+async function mrwGatewayRequest(payload:Record<string,unknown>){
+  const url=clean(Deno.env.get('MRW_GATEWAY_URL')),secret=clean(Deno.env.get('MRW_GATEWAY_SECRET'));
+  if(!url||!secret)return null;
+  const res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json','X-Zenvia-Gateway-Key':secret},body:JSON.stringify(payload)});
+  const data=await res.json().catch(()=>({}));
+  if(!res.ok)throw new Error(`MRW gateway HTTP ${res.status}: ${sanitize((data as any)?.error||'respuesta no válida')}`);
+  const upstreamStatus=Number((data as any)?.status||0);
+  const contentType=clean((data as any)?.contentType);
+  const bodyBase64=clean((data as any)?.bodyBase64);
+  const body=bodyBase64?atob(bodyBase64):'';
+  return {status:upstreamStatus,contentType,body};
+}
 async function testMrw(admin:any,ownerId:string,account:any){
   const creds=await mrwCredentials(admin,account);
   const environment=account.config?.environment==='test'?'test':'production';
@@ -233,15 +245,23 @@ async function testMrw(admin:any,ownerId:string,account:any){
     .map((row:any)=>clean(row?.shipping_address?.postal_code).replace(/\s+/g,''))
     .find((value:string)=>/^\d{5}$/.test(value))||'28001';
 
-  const wsdl=await fetch(base+'?WSDL',{headers:{Accept:'text/xml,application/xml','User-Agent':'ZENVIA-Gestion/1.0'}});
-  const wsdlText=await wsdl.text();
-  if(!wsdl.ok||!/definitions|wsdl:/i.test(wsdlText)){
-    throw new Error(`MRW SAGEC no expone correctamente el WSDL desde nuestro servidor (HTTP ${wsdl.status}). Esto es un problema de acceso al servicio, no de los datos del pedido.`);
+  const gatewayWsdl=await mrwGatewayRequest({environment,method:'GET',resource:'wsdl'});
+  let wsdlStatus:number,wsdlText:string;
+  if(gatewayWsdl){wsdlStatus=gatewayWsdl.status;wsdlText=gatewayWsdl.body}
+  else{
+    const wsdl=await fetch(base+'?WSDL',{headers:{Accept:'text/xml,application/xml','User-Agent':'ZENVIA-Gestion/1.0'}});
+    wsdlStatus=wsdl.status;wsdlText=await wsdl.text();
+  }
+  if(wsdlStatus<200||wsdlStatus>=300||!/definitions|wsdl:/i.test(wsdlText)){
+    throw new Error(`MRW SAGEC no expone correctamente el WSDL desde ${gatewayWsdl?'el gateway de IP fija':'nuestro servidor'} (HTTP ${wsdlStatus}).`);
   }
   const request=`<request><Point><codigoPoint></codigoPoint><CodigoPostal>${mrwEsc(postal)}</CodigoPostal></Point></request>`;
   const envelope=`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Header>${auth}</soap:Header><soap:Body><GetPointsDB xmlns="http://www.mrw.es/">${request}</GetPointsDB></soap:Body></soap:Envelope>`;
-  const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':'"http://www.mrw.es/GetPointsDB"',Accept:'text/xml','User-Agent':'ZENVIA-Gestion/1.0'},body:envelope});
-  const raw=await res.text();
+  const gatewaySoap=await mrwGatewayRequest({environment,method:'POST',operation:'GetPointsDB',soapVersion:'1.1',body:envelope});
+  const directRes=gatewaySoap?null:await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':'"http://www.mrw.es/GetPointsDB"',Accept:'text/xml','User-Agent':'ZENVIA-Gestion/1.0'},body:envelope});
+  const status=gatewaySoap?gatewaySoap.status:directRes!.status;
+  const responseContentType=gatewaySoap?gatewaySoap.contentType:(directRes!.headers.get('content-type')||'');
+  const raw=gatewaySoap?gatewaySoap.body:await directRes!.text();
   const fault=(raw.match(/<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i)?.[1]
     ||raw.match(/<Mensaje[^>]*>([\s\S]*?)<\/Mensaje>/i)?.[1]
     ||raw.match(/<DescripcionError[^>]*>([\s\S]*?)<\/DescripcionError>/i)?.[1]
@@ -249,7 +269,7 @@ async function testMrw(admin:any,ownerId:string,account:any){
   const title=(raw.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
   const bodyText=raw.replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/\s+/g,' ').trim();
 
-  if(res.ok&&/GetPointsDBResponse/i.test(raw)){
+  if(status>=200&&status<300&&/GetPointsDBResponse/i.test(raw)){
     return {environment,apiMode:'modern',validationOperation:'GetPointsDB',soap:'1.1',postalCode:postal};
   }
   if(fault){
@@ -260,7 +280,7 @@ async function testMrw(admin:any,ownerId:string,account:any){
     return {environment,apiMode:'modern',validationOperation:'GetPointsDB-fault',soap:'1.1',detail:sanitize(fault),postalCode:postal};
   }
   const htmlDetail=sanitize(title||bodyText||'sin detalle');
-  throw new Error(`El WSDL de MRW SAGEC es accesible desde ZENVIA, pero la llamada SOAP autenticada devuelve HTTP ${res.status} (${res.headers.get('content-type')||'sin content-type'}): ${htmlDetail}. Como estas mismas credenciales funcionan en Sendcloud, MRW está rechazando la ejecución directa fuera de Sendcloud o necesita habilitar este usuario Webservice para otro origen/IP.`);
+  throw new Error(`El WSDL de MRW SAGEC es accesible desde ${gatewaySoap?'el gateway de IP fija':'ZENVIA'}, pero la llamada SOAP autenticada devuelve HTTP ${status} (${responseContentType||'sin content-type'}): ${htmlDetail}.`);
 }
 async function enviaCarriers(admin:any,account:any){
   const c=await enviaCredentials(admin,account);

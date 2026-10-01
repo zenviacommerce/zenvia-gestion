@@ -137,6 +137,18 @@ function serviceScore(document:TransportTariffDocument,service:TransportTariffDo
 
   const optionCodes=[option.code,option.name].map(tariffKey).filter(Boolean);
   const serviceCodes=[service.externalServiceCode,service.canonicalServiceKey,service.serviceName].map(tariffKey).filter(Boolean);
+
+  // MRW SAGEC identifies services with numeric codes while our uploaded tariff
+  // uses commercial names ("Mañana 19 h", etc.). Bridge the direct API option to
+  // the tariff by the service time instead of requiring identical codes.
+  if(carrierCandidates.some(value=>value.includes('mrw'))){
+    const optionText=`${tariffKey(option.code)} ${tariffKey(option.name)}`;
+    const serviceText=serviceCodes.join(' ');
+    const hourMatch=optionText.match(/(?:^|\D)(10|12|14|19)(?:\D|$)/);
+    if(hourMatch&&new RegExp(`(?:^|\\D)${hourMatch[1]}(?:\\D|$)`).test(serviceText))return 95;
+    if(tariffKey(option.code)==='0205'&&/19/.test(serviceText))return 95;
+  }
+
   if(option.code&&service.externalServiceCode&&tariffKey(option.code)===tariffKey(service.externalServiceCode))return 100;
   if(optionCodes.some(value=>serviceCodes.includes(value)))return 80;
   if(optionCodes.some(value=>serviceCodes.some(candidate=>value.length>=4&&candidate.length>=4&&(value.includes(candidate)||candidate.includes(value)))))return 55;

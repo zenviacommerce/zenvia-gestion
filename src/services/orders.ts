@@ -81,7 +81,12 @@ function isBalearicAddress(address:Record<string,unknown>){
   return country==='ES'&&/^07\d{3}$/.test(postal);
 }
 function mapRow(row:any):FulfillmentOrder{
-  const weight=row?.raw_payload?.shipping_details?.measurement?.weight;
+  const measurement=row?.raw_payload?.shipping_details?.measurement||{};
+  const weight=measurement?.weight;
+  const dimension=measurement?.dimension||measurement?.dimensions||{};
+  const dimensionUnit=String(dimension?.unit||'cm').toLowerCase();
+  const dimensionFactor=dimensionUnit==='in'||dimensionUnit==='inch'||dimensionUnit==='inches'?2.54:dimensionUnit==='mm'?0.1:1;
+  const dimensionCm=(value:unknown)=>{const n=Number(value);return Number.isFinite(n)&&n>0?n*dimensionFactor:null};
   const shippingAddress=row.shipping_address||{};
   const balearicPending=isBalearicAddress(shippingAddress)&&row.sendcloud_parcel_id==null;
   return {
@@ -93,9 +98,9 @@ function mapRow(row:any):FulfillmentOrder{
     customerName:row.customer_name||null, customerEmail:row.customer_email||null, customerPhone:row.customer_phone||null,
     shippingAddress, billingAddress:row.billing_address||{}, items:Array.isArray(row.items)?row.items:[],
     totalAmount:row.total_amount==null?null:Number(row.total_amount), currency:row.currency||null, weightKg:toKg(weight?.value,weight?.unit),
-    packageLengthCm:row.package_length_cm==null?null:Number(row.package_length_cm),
-    packageWidthCm:row.package_width_cm==null?null:Number(row.package_width_cm),
-    packageHeightCm:row.package_height_cm==null?null:Number(row.package_height_cm),
+    packageLengthCm:row.package_length_cm==null?dimensionCm(dimension?.length):Number(row.package_length_cm),
+    packageWidthCm:row.package_width_cm==null?dimensionCm(dimension?.width):Number(row.package_width_cm),
+    packageHeightCm:row.package_height_cm==null?dimensionCm(dimension?.height):Number(row.package_height_cm),
     sendcloudParcelId:row.sendcloud_parcel_id==null?null:Number(row.sendcloud_parcel_id),
     sendcloudShipmentId:row.sendcloud_shipment_id||null,
     shippingProvider:row.shipping_provider==='envia'?'envia':row.shipping_provider==='mrw'?'mrw':row.shipping_provider==='sendcloud'?'sendcloud':(row.sendcloud_parcel_id||row.sendcloud_shipment_id?'sendcloud':null),

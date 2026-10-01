@@ -462,10 +462,10 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       // Carrier-specific requirements must only be enforced after a service is chosen.
       // In particular, MRW Directo requires package dimensions, but Sendcloud and
       // Envia.com may legitimately quote/create a label using weight only.
-      if(settings.orders.generateLabelAutomatically){
-        if(automatic){await createLabel(automatic,order);return}
-        if(settings.shipping.noValidMethodBehavior==='error'){showError('Ninguna regla automática encuentra un servicio válido para este pedido.');return}
-      }
+      // "Preparar etiqueta" is an explicit review action: always open the
+      // comparison modal so the user can see Sendcloud, Envia.com and MRW Directo.
+      // Automatic rules only preselect the preferred service here; bulk generation
+      // can still create labels automatically.
       setLabelOrder(order);
       setOptions(allowed);
     }catch(e){

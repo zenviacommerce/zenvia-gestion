@@ -64,9 +64,9 @@ function mergeOperationalItems(existing:any[],fresh:any[]){
     return match?{...match,...item,image_url:match.image_url||null,measurement:match.measurement||null}:item;
   });
 }
-async function amazonIntegrationAccountId(admin:any,job:any){
+async function amazonIntegrationAccount(admin:any,job:any){
   const {data,error}=await admin.from('integration_accounts')
-    .select('id')
+    .select('id,config')
     .eq('owner_id',job.owner_id)
     .eq('provider','amazon')
     .eq('linked_resource_id',job.amazon_account_id)
@@ -74,7 +74,28 @@ async function amazonIntegrationAccountId(admin:any,job:any){
     .neq('status','disabled')
     .maybeSingle();
   if(error)throw error;
-  return data?.id?String(data.id):null;
+  return data||null;
+}
+async function amazonIntegrationAccountId(admin:any,job:any){
+  const account=await amazonIntegrationAccount(admin,job);
+  return account?.id?String(account.id):null;
+}
+async function markOperationalReadiness(admin:any,job:any,status:'ready'|'pii_permission_missing',message=''){
+  const account=await amazonIntegrationAccount(admin,job);
+  if(!account?.id)return;
+  const config=(account.config&&typeof account.config==='object'&&!Array.isArray(account.config))?account.config:{};
+  const current=(config as any).operationalOrdersDirect||{};
+  if(current?.status===status&&String(current?.message||'')===message)return;
+  const next={
+    ...config,
+    operationalOrdersDirect:{
+      status,
+      checkedAt:new Date().toISOString(),
+      ...(message?{message}:{}),
+    },
+  };
+  const {error}=await admin.from('integration_accounts').update({config:next}).eq('id',account.id).eq('owner_id',job.owner_id);
+  if(error)throw error;
 }
 async function fallbackWeightKg(admin:any,ownerId:string){
   const {data,error}=await admin.from('app_settings').select('config').eq('owner_id',ownerId).maybeSingle();
@@ -253,9 +274,16 @@ export async function syncOrdersJob(admin:any,job:any){
     let data:any;
     try{
       data=await spApiRequest('/orders/2026-01-01/orders',{query},credentials);
+      await markOperationalReadiness(admin,job,'ready');
     }catch(error){
       const message=error instanceof Error?error.message:String(error);
       if(!/Amazon SP-API \(403\)/.test(message))throw error;
+      await markOperationalReadiness(
+        admin,
+        job,
+        'pii_permission_missing',
+        'Amazon no ha autorizado BUYER/RECIPIENT para esta aplicación. El análisis sigue sincronizando, pero los pedidos operativos directos necesitan acceso PII de destinatario.',
+      );
       data=await spApiRequest('/orders/2026-01-01/orders',{query:{...query,includedData:INCLUDED_DATA}},credentials);
     }
     const orders=Array.isArray(data?.orders)?data.orders:[];

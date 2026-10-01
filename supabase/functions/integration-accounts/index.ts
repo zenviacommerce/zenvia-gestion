@@ -200,7 +200,7 @@ async function mrwCredentials(admin:any,account:any){
     username:clean((stored as any).username||(stored as any).userName||(stored as any).usuario),
     password:clean((stored as any).password),
   };
-  if(!credentials.franchiseCode||!credentials.subscriberCode||!credentials.username||!credentials.password)throw new Error('Faltan credenciales MRW: franquicia, abonado, usuario o contraseña.');
+  if(!credentials.franchiseCode||!credentials.subscriberCode||!credentials.departmentCode||!credentials.username||!credentials.password)throw new Error('Faltan credenciales MRW: franquicia, abonado, departamento, usuario o contraseña. El departamento es obligatorio en el contrato Webservice de MRW.');
   return credentials;
 }
 function mrwEsc(value:unknown){return clean(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')}
@@ -394,7 +394,7 @@ Deno.serve(async(req:Request)=>{
         displayName=displayName||'Envia.com';
         config={...config,environment:config?.environment==='production'?'production':'sandbox',shippingEnabled:true};
       }else if(provider==='mrw'){
-        if(!clean((credentials as any).franchiseCode)||!clean((credentials as any).subscriberCode)||!clean((credentials as any).username)||!clean((credentials as any).password))throw new Error('Indica franquicia, abonado, usuario y contraseña de MRW.');
+        if(!clean((credentials as any).franchiseCode)||!clean((credentials as any).subscriberCode)||!clean((credentials as any).departmentCode)||!clean((credentials as any).username)||!clean((credentials as any).password))throw new Error('Indica franquicia, abonado, departamento, usuario y contraseña de MRW.');
         externalAccountId=externalAccountId||`${clean((credentials as any).franchiseCode)}-${clean((credentials as any).subscriberCode)}`;
         displayName=displayName||'MRW';
         config={...config,environment:config?.environment==='test'?'test':'production',shippingEnabled:true,serviceCode:clean(config?.serviceCode)||'0205',serviceName:clean(config?.serviceName)||'MRW Urgent 19:00'};

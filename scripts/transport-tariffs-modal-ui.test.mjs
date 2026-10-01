@@ -13,7 +13,7 @@ test('transport tariffs uses the standard centered modal backdrop and close butt
 
 
 test('transport tariffs can be deleted after import regardless of status',async()=>{
-  const panel=await read('src/components/TransportTariffsPanel.tsx');
+  const panel=await read('../src/components/TransportTariffsPanel.tsx');
   assert.match(panel,/deleteTransportTariff/);
   assert.match(panel,/Es la tarifa activa: dejará de utilizarse inmediatamente/);
   assert.doesNotMatch(panel,/\['draft','reviewed'\]\.includes\(draft\.status\).*Eliminar/);

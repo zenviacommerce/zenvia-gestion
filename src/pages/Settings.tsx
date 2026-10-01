@@ -1136,6 +1136,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   const [mrwDepartmentCode,setMrwDepartmentCode]=useState('');
   const [mrwUsername,setMrwUsername]=useState('');
   const [mrwPassword,setMrwPassword]=useState('');
+  const [mrwTrackingPassword,setMrwTrackingPassword]=useState('');
   const [mrwEnvironment,setMrwEnvironment]=useState<'test'|'production'>('production');
   const [mrwServiceCode,setMrwServiceCode]=useState('0205');
   const [mrwServiceName,setMrwServiceName]=useState('MRW Urgent 19:00');
@@ -1197,8 +1198,12 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   // Shopify is not a standalone credential connection in the current architecture:
   // it is a sales channel discovered through Sendcloud, so it is shown inside
   // Sendcloud instead of pretending to be an independent integration.
-  const primaryProviders:IntegrationProvider[]=['amazon','sendcloud','envia','mrw','gmail'];
-  const globalProviders:IntegrationProvider[]=['amazon','sendcloud','envia','mrw','shopify','gmail'];
+  const integrationGroups:Array<{id:string;title:string;description:string;providers:IntegrationProvider[]}>= [
+    {id:'ecommerce',title:'Ecommerce',description:'Canales de venta y marketplaces conectados a ZENVIA.',providers:['amazon','shopify']},
+    {id:'shipping',title:'Transportistas y logística',description:'Plataformas logísticas y transportistas utilizados para tarifas, etiquetas y seguimiento.',providers:['sendcloud','envia','mrw']},
+    {id:'documents',title:'Documentos y correo',description:'Servicios utilizados para importar documentación y automatizar entradas.',providers:['gmail']},
+  ];
+  const globalProviders:IntegrationProvider[]=['amazon','shopify','sendcloud','envia','mrw','gmail'];
   const settingKey:Record<IntegrationProvider,keyof IntegrationsSettings>={
     gmail:'gmailEnabled',amazon:'amazonEnabled',sendcloud:'sendcloudEnabled',envia:'enviaEnabled',mrw:'mrwEnabled',shopify:'shopifyEnabled',
   };
@@ -1230,7 +1235,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     setSendcloudPublicKey('');setSendcloudSecretKey('');
     setEnviaToken('');
     setEnviaEnvironment(account?.provider==='envia'&&account?.config?.environment==='production'?'production':'sandbox');
-    setMrwFranchiseCode('');setMrwSubscriberCode('');setMrwDepartmentCode('');setMrwUsername('');setMrwPassword('');
+    setMrwFranchiseCode('');setMrwSubscriberCode('');setMrwDepartmentCode('');setMrwUsername('');setMrwPassword('');setMrwTrackingPassword('');
     setMrwEnvironment(account?.provider==='mrw'&&account?.config?.environment==='test'?'test':'production');
     setMrwServiceCode(account?.provider==='mrw'&&typeof account?.config?.serviceCode==='string'?String(account.config.serviceCode):'0205');
     setMrwServiceName(account?.provider==='mrw'&&typeof account?.config?.serviceName==='string'?String(account.config.serviceName):'MRW Urgent 19:00');
@@ -1322,6 +1327,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           if(mrwDepartmentCode.trim())credentials.departmentCode=mrwDepartmentCode.trim();
           if(mrwUsername.trim())credentials.username=mrwUsername.trim();
           if(mrwPassword.trim())credentials.password=mrwPassword.trim();
+          if(mrwTrackingPassword.trim())credentials.trackingPassword=mrwTrackingPassword.trim();
         }
         await updateIntegrationAccount(editing.id,{
           displayName:displayName.trim()||editing.displayName,enabled:accountEnabled,config:accountConfig(),
@@ -1369,7 +1375,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
         if(!mrwFranchiseCode.trim()||!mrwSubscriberCode.trim()||!mrwUsername.trim()||!mrwPassword.trim())throw new Error('Indica franquicia, abonado, usuario y contraseña de MRW.');
         await createIntegrationAccount({
           provider:'mrw',displayName:displayName.trim()||'MRW',
-          credentials:{franchiseCode:mrwFranchiseCode.trim(),subscriberCode:mrwSubscriberCode.trim(),departmentCode:mrwDepartmentCode.trim(),username:mrwUsername.trim(),password:mrwPassword.trim()},
+          credentials:{franchiseCode:mrwFranchiseCode.trim(),subscriberCode:mrwSubscriberCode.trim(),departmentCode:mrwDepartmentCode.trim(),username:mrwUsername.trim(),password:mrwPassword.trim(),trackingPassword:mrwTrackingPassword.trim()},
           config:accountConfig(),test:true,
         });
         showSuccess('Cuenta de MRW conectada directamente.');
@@ -1480,8 +1486,11 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     <div className="settingsSubsection">
       <div className="settingsSubsectionHead"><div><h3>Cuentas conectadas</h3><p>Amazon, Sendcloud, Envia.com, MRW y Gmail se conectan como servicios independientes. Las tiendas Shopify se muestran dentro de Sendcloud porque actualmente llegan a ZENVIA a través de esa conexión logística.</p></div></div>
       {compatibilityMode&&<p className="settingsHelpText">Estás viendo conexiones actuales detectadas automáticamente. Ya puedes abrir el alta de nuevas cuentas; si este entorno todavía no tiene activado el backend multicuenta, al guardar se indicará de forma explícita.</p>}
-      {loading?<div className="settingsInlineLoading">Cargando cuentas…</div>:<div className="integrationProviderGrid">
-        {primaryProviders.map(id=>{
+      {loading?<div className="settingsInlineLoading">Cargando cuentas…</div>:<div className="integrationCategoryList">
+        {integrationGroups.map(group=><section className="integrationCategory" key={group.id}>
+          <div className="integrationCategoryHead"><div><h4>${group.title}</h4><p>${group.description}</p></div></div>
+          <div className="integrationProviderGrid">
+            {group.providers.map(id=>{
           const items=accounts.filter(item=>item.provider===id);
           return <div className="integrationProviderCard" key={id}>
             <div className="integrationProviderHead">
@@ -1489,7 +1498,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                 <IntegrationBrandLogo provider={id}/>
                 <div><strong>{providerMeta[id].name}</strong><small>{providerMeta[id].description}</small></div>
               </div>
-              <button type="button" className="secondary" disabled={busy!==null} onClick={()=>resetEditor(id)}><Plus size={14}/> {providerMeta[id].addLabel}</button>
+              <button type="button" className="secondary" disabled={busy!==null||(id==='shopify'&&!sendcloudAccounts.length)} onClick={()=>resetEditor(id)}><Plus size={14}/> {providerMeta[id].addLabel}</button>
             </div>
             <div className="integrationAccountList">
               {!items.length?<div className="settingsEmptyMini">Todavía no hay cuentas configuradas.</div>:items.map(account=><div className={`integrationAccountRow ${account.status==='disabled'?'isDisabled':''}`} key={account.id}>
@@ -1512,43 +1521,21 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                 </div>
               </div>)}
             </div>
-            {id==='sendcloud'&&<div className="integrationDerivedChannels">
-              <div className="integrationDerivedHead">
-                <div className="integrationProviderIdentity">
-                  <IntegrationBrandLogo provider="shopify" small/>
-                  <div><strong>Shopify vía Sendcloud</strong><small>Estas tiendas no usan credenciales Shopify en ZENVIA: Sendcloud es el conector que entrega los pedidos.</small></div>
-                </div>
-                <button type="button" className="secondary" disabled={busy!==null||!sendcloudAccounts.length} onClick={()=>resetEditor('shopify')}><Plus size={14}/> Añadir tienda</button>
-              </div>
-              {!sendcloudAccounts.length?<div className="settingsEmptyMini">Conecta Sendcloud antes de añadir una tienda Shopify.</div>:accounts.filter(item=>item.provider==='shopify').length===0
-                ?<div className="settingsEmptyMini">No hay tiendas Shopify añadidas desde Sendcloud.</div>
-                :<div className="integrationAccountList">{accounts.filter(item=>item.provider==='shopify').map(account=><div className={`integrationAccountRow integrationDerivedRow ${account.status==='disabled'?'isDisabled':''}`} key={account.id}>
-                  <div className="integrationAccountMain">
-                    <span className={`integrationStatusDot status-${account.status}`}/>
-                    <div>
-                      <strong>{account.displayName}{account.isDefault&&<em>Predeterminada</em>}{account.legacy&&<em>Actual</em>}</strong>
-                      <small>{String(account.config?.shopUrl||account.externalAccountId||'Tienda Shopify')} · vía {sendcloudAccounts.find(parent=>parent.id===account.parentAccountId)?.displayName||'Sendcloud'}</small>
-                      {account.lastSuccessAt&&<small>Último éxito: {dateTime(account.lastSuccessAt)}</small>}
-                      {account.lastError&&<small className="integrationError">{account.lastError}</small>}
-                    </div>
-                  </div>
-                  <div className="integrationAccountActions">
-                    <button type="button" className="secondary" disabled={busy!==null||account.status==='disabled'} onClick={()=>void testAccount(account)}>{busy==='test:'+account.id?'Probando…':'Probar'}</button>
-                    <button type="button" className="secondary" disabled={busy!==null} onClick={()=>resetEditor('shopify',account)}>Configurar</button>
-                    {!account.isDefault&&account.status!=='disabled'&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void makeDefault(account)}>Predeterminada</button>}
-                    {account.status!=='disabled'&&!account.legacy&&<button type="button" className="secondary dangerText" disabled={busy!==null} onClick={()=>void disconnect(account)}>Desconectar</button>}
-                  </div>
-                </div>)}</div>}
-            </div>}
+            {id==='shopify'&&!sendcloudAccounts.length&&<div className="settingsHelpText">Conecta Sendcloud antes de añadir una tienda Shopify: ZENVIA detecta las tiendas desde esa cuenta logística.</div>}
           </div>;
-        })}
+
+            })}
+          </div>
+        </section>)}
       </div>}
     </div>
 
     <div className="settingsSubsection">
       <div className="settingsSubsectionHead"><div><h3>Comportamiento global</h3><p>Estos interruptores se guardan al instante. La conexión, marketplaces y reglas concretas pertenecen a cada cuenta.</p></div><button type="button" className="secondary" disabled={saving} onClick={()=>void restore()}>Restaurar interruptores</button></div>
-      <div className="settingsToggleGrid">
-        {globalProviders.map(id=><label className="settingsToggleField" key={id}><input type="checkbox" disabled={saving} checked={enabled(id)} onChange={e=>void toggle(id,e.target.checked)}/><span><strong>{providerMeta[id].name}</strong><small>{enabled(id)?'Automatismos globales permitidos.':'Automatismos globales desactivados.'}</small></span></label>)}
+      <div className="integrationGlobalGroups">
+        {integrationGroups.map(group=><div className="integrationGlobalGroup" key={group.id}><strong>{group.title}</strong><div className="settingsToggleGrid">
+          {group.providers.filter(id=>globalProviders.includes(id)).map(id=><label className="settingsToggleField" key={id}><input type="checkbox" disabled={saving} checked={enabled(id)} onChange={e=>void toggle(id,e.target.checked)}/><span><strong>{providerMeta[id].name}</strong><small>{enabled(id)?'Automatismos globales permitidos.':'Automatismos globales desactivados.'}</small></span></label>)}
+        </div></div>)}
       </div>
     </div>
 
@@ -1610,11 +1597,12 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           {provider==='mrw'&&<>
             <div className="settingsResetPreview"><strong>MRW directo</strong><small>ZENVIA generará el envío y recuperará la etiqueta desde los Web Services de MRW, sin Sendcloud. No se activará en pedidos hasta que la conexión pase la prueba.</small></div>
             <div className="settingsFormGrid">
-              <label className="settingsField"><span>{editing?'Nueva franquicia (opcional)':'Código franquicia'}</span><input type="password" autoComplete="new-password" value={mrwFranchiseCode} onChange={e=>setMrwFranchiseCode(e.target.value)} placeholder={editing?'Sin cambios':'Franquicia'}/></label>
-              <label className="settingsField"><span>{editing?'Nuevo abonado (opcional)':'Código abonado'}</span><input type="password" autoComplete="new-password" value={mrwSubscriberCode} onChange={e=>setMrwSubscriberCode(e.target.value)} placeholder={editing?'Sin cambios':'Abonado'}/></label>
-              <label className="settingsField"><span>{editing?'Nuevo departamento (opcional)':'Código departamento'}</span><input type="password" autoComplete="new-password" value={mrwDepartmentCode} onChange={e=>setMrwDepartmentCode(e.target.value)} placeholder={editing?'Sin cambios':'Departamento (si aplica)'}/></label>
-              <label className="settingsField"><span>{editing?'Nuevo usuario (opcional)':'Usuario'}</span><input type="password" autoComplete="new-password" value={mrwUsername} onChange={e=>setMrwUsername(e.target.value)} placeholder={editing?'Sin cambios':'Usuario MRW'}/></label>
+              <label className="settingsField"><span>{editing?'Nueva franquicia (opcional)':'Código de franquicia'}</span><input inputMode="numeric" autoComplete="off" value={mrwFranchiseCode} onChange={e=>setMrwFranchiseCode(e.target.value)} placeholder={editing?'Sin cambios':'Franquicia'}/></label>
+              <label className="settingsField"><span>{editing?'Nuevo suscriptor (opcional)':'Código de suscriptor'}</span><input inputMode="numeric" autoComplete="off" value={mrwSubscriberCode} onChange={e=>setMrwSubscriberCode(e.target.value)} placeholder={editing?'Sin cambios':'Abonado'}/></label>
+              <label className="settingsField"><span>{editing?'Nuevo departamento (opcional)':'Departamento (opcional)'}</span><input autoComplete="off" value={mrwDepartmentCode} onChange={e=>setMrwDepartmentCode(e.target.value)} placeholder={editing?'Sin cambios':'Departamento (si aplica)'}/></label>
+              <label className="settingsField"><span>{editing?'Nuevo usuario (opcional)':'Nombre de usuario'}</span><input autoComplete="username" value={mrwUsername} onChange={e=>setMrwUsername(e.target.value)} placeholder={editing?'Sin cambios':'Usuario MRW'}/></label>
               <label className="settingsField"><span>{editing?'Nueva contraseña (opcional)':'Contraseña'}</span><input type="password" autoComplete="new-password" value={mrwPassword} onChange={e=>setMrwPassword(e.target.value)} placeholder={editing?'Sin cambios':'Contraseña MRW'}/></label>
+              <label className="settingsField"><span>{editing?'Nueva contraseña de seguimiento (opcional)':'Contraseña de seguimiento (opcional)'}</span><input type="password" autoComplete="new-password" value={mrwTrackingPassword} onChange={e=>setMrwTrackingPassword(e.target.value)} placeholder={editing?'Sin cambios':'Solo necesaria para POD'}/><small>La misma contraseña usada en el seguimiento de MRW; solo es necesaria para recuperar POD.</small></label>
               <label className="settingsField"><span>Entorno</span><SelectField ariaLabel="Entorno MRW" value={mrwEnvironment} options={[{value:'test',label:'Pruebas MRW'},{value:'production',label:'Producción MRW'}]} onChange={value=>setMrwEnvironment(value as 'test'|'production')}/></label>
               <label className="settingsField"><span>Código de servicio</span><input value={mrwServiceCode} onChange={e=>setMrwServiceCode(e.target.value)} placeholder="0205"/></label>
               <label className="settingsField"><span>Nombre del servicio</span><input value={mrwServiceName} onChange={e=>setMrwServiceName(e.target.value)} placeholder="MRW Urgent 19:00"/></label>

@@ -7,12 +7,12 @@ const corsHeaders={
   'Access-Control-Allow-Methods':'POST, OPTIONS',
 };
 const headers={...corsHeaders,'Content-Type':'application/json'};
-const PROVIDERS=new Set(['amazon','sendcloud','envia','shopify','gmail']);
+const PROVIDERS=new Set(['amazon','sendcloud','envia','mrw','shopify','gmail']);
 const SENDCLOUD_BASE='https://panel.sendcloud.sc/api/v3';
 const SP_API_BASE='https://sellingpartnerapi-eu.amazon.com';
 
 type Caller={user_id:string;data_owner_id:string;role:string;active:boolean;permissions:string[]|null};
-type Provider='amazon'|'sendcloud'|'envia'|'shopify'|'gmail';
+type Provider='amazon'|'sendcloud'|'envia'|'mrw'|'shopify'|'gmail';
 
 function response(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers});}
 function clean(v:unknown){return String(v??'').trim();}
@@ -191,6 +191,30 @@ async function enviaCredentials(admin:any,account:any){
   const environment=account.config?.environment==='production'?'production':'sandbox';
   return {token,environment};
 }
+async function mrwCredentials(admin:any,account:any){
+  const stored=account.secret_id?await readVault(admin,account.secret_id):{};
+  const credentials={
+    franchiseCode:clean((stored as any).franchiseCode||(stored as any).codigoFranquicia),
+    subscriberCode:clean((stored as any).subscriberCode||(stored as any).codigoAbonado),
+    departmentCode:clean((stored as any).departmentCode||(stored as any).codigoDepartamento),
+    username:clean((stored as any).username||(stored as any).userName||(stored as any).usuario),
+    password:clean((stored as any).password),
+  };
+  if(!credentials.franchiseCode||!credentials.subscriberCode||!credentials.username||!credentials.password)throw new Error('Faltan credenciales MRW: franquicia, abonado, usuario o contraseña.');
+  return credentials;
+}
+function mrwEsc(value:unknown){return clean(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')}
+async function testMrw(admin:any,account:any){
+  const c=await mrwCredentials(admin,account);
+  const base=account.config?.environment==='test'?'https://sagec-test.mrw.es/MRWEnvio.asmx':'https://sagec.mrw.es/MRWEnvio.asmx';
+  const xml=`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Header><AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${mrwEsc(c.franchiseCode)}</CodigoFranquicia><CodigoAbonado>${mrwEsc(c.subscriberCode)}</CodigoAbonado><CodigoDepartamento>${mrwEsc(c.departmentCode)}</CodigoDepartamento><UserName>${mrwEsc(c.username)}</UserName><Password>${mrwEsc(c.password)}</Password></AuthInfo></soap:Header><soap:Body><GetPointsDB xmlns="http://www.mrw.es/"><request><Point><codigoPoint></codigoPoint><CodigoPostal>28001</CodigoPostal></Point></request></GetPointsDB></soap:Body></soap:Envelope>`;
+  const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':'"http://www.mrw.es/GetPointsDB"',Accept:'text/xml'},body:xml});
+  const text=await res.text();
+  const fault=(text.match(/<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i)?.[1]||text.match(/<Mensaje[^>]*>([\s\S]*?)<\/Mensaje>/i)?.[1]||'').replace(/<[^>]+>/g,' ').trim();
+  if(!res.ok||fault)throw new Error(`MRW${res.ok?'':` (${res.status})`}: ${sanitize(fault||text)}`);
+  if(!/GetPointsDBResponse|PuntoDeRedDTO/i.test(text))throw new Error('MRW respondió, pero no se pudo validar la cuenta.');
+  return {environment:account.config?.environment==='test'?'test':'production'};
+}
 async function enviaCarriers(admin:any,account:any){
   const c=await enviaCredentials(admin,account);
   const base=c.environment==='production'?'https://queries.envia.com':'https://queries.test.envia.com';
@@ -228,6 +252,8 @@ async function testAccount(admin:any,ownerId:string,account:any){
     }else if(account.provider==='envia'){
       const carriers=await enviaCarriers(admin,account);
       detail={carriers:carriers.length,environment:account.config?.environment==='production'?'production':'sandbox'};
+    }else if(account.provider==='mrw'){
+      detail=await testMrw(admin,account);
     }else if(account.provider==='shopify'){
       if(!account.parent_account_id)throw new Error('La tienda Shopify no tiene una cuenta de Sendcloud asociada.');
       const parent=await loadAccount(admin,ownerId,account.parent_account_id);
@@ -281,6 +307,7 @@ Deno.serve(async(req:Request)=>{
         amazon:{key:'integration.amazon',message:'Tu plan no incluye la integración con Amazon.'},
         sendcloud:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
         envia:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
+        mrw:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
         gmail:{key:'integration.gmail',message:'Tu plan no incluye la integración con Gmail.'},
       };
       const configuredEntitlement=providerEntitlement[provider];
@@ -323,6 +350,11 @@ Deno.serve(async(req:Request)=>{
         externalAccountId=externalAccountId||`envia-${crypto.randomUUID()}`;
         displayName=displayName||'Envia.com';
         config={...config,environment:config?.environment==='production'?'production':'sandbox',shippingEnabled:true};
+      }else if(provider==='mrw'){
+        if(!clean((credentials as any).franchiseCode)||!clean((credentials as any).subscriberCode)||!clean((credentials as any).username)||!clean((credentials as any).password))throw new Error('Indica franquicia, abonado, usuario y contraseña de MRW.');
+        externalAccountId=externalAccountId||`${clean((credentials as any).franchiseCode)}-${clean((credentials as any).subscriberCode)}`;
+        displayName=displayName||'MRW';
+        config={...config,environment:config?.environment==='test'?'test':'production',shippingEnabled:true,serviceCode:clean(config?.serviceCode)||'0205',serviceName:clean(config?.serviceName)||'MRW Urgent 19:00'};
       }else if(provider==='shopify'){
         if(!parentAccountId)throw new Error('Selecciona la cuenta de Sendcloud donde está conectada la tienda.');
         const parent=await loadAccount(admin,caller.data_owner_id,parentAccountId);
@@ -352,7 +384,7 @@ Deno.serve(async(req:Request)=>{
       }).select('*').single();
       if(inserted.error)throw inserted.error;
       let account=inserted.data;
-      if(provider==='amazon'||provider==='sendcloud'||provider==='envia'){
+      if(provider==='amazon'||provider==='sendcloud'||provider==='envia'||provider==='mrw'){
         const secretId=await writeVault(admin,account.id,provider,credentials,null);
         const saved=await admin.from('integration_accounts').update({secret_id:secretId,updated_at:new Date().toISOString()})
           .eq('id',account.id).eq('owner_id',caller.data_owner_id).select('*').single();
@@ -409,7 +441,7 @@ Deno.serve(async(req:Request)=>{
       if(typeof body?.enabled==='boolean')patch.enabled=body.enabled;
       if(body?.config&&typeof body.config==='object'&&!Array.isArray(body.config))patch.config={...(account.config||{}),...body.config};
       const credentials=(body?.credentials&&typeof body.credentials==='object'&&!Array.isArray(body.credentials))?body.credentials:null;
-      if(credentials&&(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='envia')){
+      if(credentials&&(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='envia'||account.provider==='mrw')){
         const existing=account.secret_id?await readVault(admin,account.secret_id):{};
         const merged={...existing,...Object.fromEntries(Object.entries(credentials).filter(([,v])=>clean(v)))};
         patch.secret_id=await writeVault(admin,account.id,account.provider,merged,account.secret_id);

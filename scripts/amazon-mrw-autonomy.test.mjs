@@ -36,3 +36,22 @@ test('Amazon sync stores merchant-fulfilled recipient data directly in the opera
   assert.match(source,/source_integration_account_id/);
   assert.match(source,/integration_type:'amazon-direct'/);
 });
+
+
+test('native routing survives migration of existing Sendcloud-backed Amazon rows',async()=>{
+  const service=await read('src/services/orders.ts');
+  assert.match(service,/integration_type/);
+  assert.match(service,/data\?\.integration_type==='amazon-direct'/);
+});
+
+test('Amazon direct-order readiness records missing PII permission and exposes it in Integrations',async()=>{
+  const [orders,settings]=await Promise.all([
+    read('supabase/functions/_shared/amazon/orders.ts'),
+    read('src/pages/Settings.tsx'),
+  ]);
+  assert.match(orders,/operationalOrdersDirect/);
+  assert.match(orders,/pii_permission_missing/);
+  assert.match(orders,/markOperationalReadiness/);
+  assert.match(settings,/Pedidos directos Amazon: activos/);
+  assert.match(settings,/falta autorización PII de destinatario/);
+});

@@ -331,9 +331,31 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
   if(!dest.state)throw new Error(`Envia.com no pudo resolver el código de provincia/estado del destinatario (${dest.postalCode||dest.city||dest.country}).`);
   const enabled=Array.isArray(config.shipping?.enabledCarriers)?config.shipping.enabledCarriers.map((x:any)=>clean(x).toLowerCase()).filter(Boolean):[];
 
-  // Envia documents one carrier per rate request. Query the available carriers
-  // first and quote each independently so carrier/service identities never bleed
-  // into each other in the comparison UI.
+  // Envia's rate endpoint can return all available carriers/services in one call
+  // when shipment.carrier is omitted. This is substantially faster than N carrier
+  // requests and is also the authoritative route-level availability source.
+  try{
+    const data=await withTimeout(enviaJson(`${c.shipBase}/ship/rate/`,c.token,{
+      method:'POST',
+      body:JSON.stringify({origin,destination:dest,packages:[pkg],shipment:{type:1}}),
+    }),5000,'Timeout cotizando Envia.com');
+    let options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
+    if(enabled.length)options=options.filter((option:any)=>{
+      const carrier=clean(option.carrierCode).toLowerCase(),name=clean(option.carrierName).toLowerCase();
+      return enabled.some((wanted:string)=>carrier.includes(wanted)||wanted.includes(carrier)||name.includes(wanted)||wanted.includes(name));
+    });
+    const unique=new Map<string,any>();
+    for(const option of options){
+      const key=`${clean(option.carrierCode).toLowerCase()}|${clean(option.code).toLowerCase()}|${Number(option.price)||''}`;
+      if(!unique.has(key))unique.set(key,option);
+    }
+    if(unique.size)return {options:[...unique.values()],errors:[],carriers:[...new Set([...unique.values()].map((option:any)=>option.carrierCode))],environment:c.environment};
+  }catch(error){
+    console.warn('Envia all-carrier quote fallback',error instanceof Error?error.message:error);
+  }
+
+  // Compatibility fallback for accounts/routes where the all-carrier quote is
+  // unavailable: discover carriers and quote them independently with short timeouts.
   let carriers=await listCarriers(c,origin.country||'ES',dest.country||origin.country||'ES');
   if(enabled.length)carriers=carriers.filter((carrier:string)=>enabled.some((wanted:string)=>carrier.toLowerCase().includes(wanted)||wanted.includes(carrier.toLowerCase())));
   carriers=carriers.slice(0,30);
@@ -343,13 +365,8 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
         method:'POST',
         body:JSON.stringify({origin,destination:dest,packages:[pkg],shipment:{type:1,carrier}}),
       }),3500,`Timeout cotizando ${carrier}`);
-      let options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
-      const unique=new Map<string,any>();
-      for(const option of options){
-        const key=`${clean(option.carrierCode).toLowerCase()}|${clean(option.code).toLowerCase()}|${Number(option.price)||''}`;
-        if(!unique.has(key))unique.set(key,option);
-      }
-      return {carrier,options:[...unique.values()],error:null};
+      const options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
+      return {carrier,options,error:null};
     }catch(error){
       const message=error instanceof Error?error.message:String(error);
       console.warn('Envia rate failed',carrier,message);
@@ -357,8 +374,13 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
     }
   }));
   const options=settled.flatMap(item=>item.options);
+  const unique=new Map<string,any>();
+  for(const option of options){
+    const key=`${clean(option.carrierCode).toLowerCase()}|${clean(option.code).toLowerCase()}|${Number(option.price)||''}`;
+    if(!unique.has(key))unique.set(key,option);
+  }
   const errors=settled.filter(item=>item.error).map(item=>({carrier:item.carrier,message:item.error as string}));
-  return {options,errors,carriers,environment:c.environment};
+  return {options:[...unique.values()],errors,carriers,environment:c.environment};
 }
 function trackingOf(row:any){return clean(row?.tracking_number||row?.trackingNumber||row?.tracking||row?.guideNumber||row?.guide||row?.shipment?.trackingNumber);}
 function shipmentCreatedAt(row:any){

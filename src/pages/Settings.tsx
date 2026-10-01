@@ -1171,7 +1171,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     },
     shopify:{
       name:'Shopify',
-      description:'Tienda de venta conectada a través de una cuenta de Sendcloud.',
+      description:'Canal ecommerce conectado a ZENVIA a través de una cuenta de Sendcloud.',
       addLabel:'Añadir Shopify',
     },
     sendcloud:{
@@ -1484,11 +1484,11 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     <div className="settingsSectionHero"><div className="settingsSectionIcon"><PlugZap size={22}/></div><div><h2>Integraciones</h2><p>Conecta y administra varias cuentas por servicio. Las credenciales se gestionan por cuenta; aquí no se muestran secretos guardados.</p></div></div>
 
     <div className="settingsSubsection">
-      <div className="settingsSubsectionHead"><div><h3>Cuentas conectadas</h3><p>Amazon, Sendcloud, Envia.com, MRW y Gmail se conectan como servicios independientes. Las tiendas Shopify se muestran dentro de Sendcloud porque actualmente llegan a ZENVIA a través de esa conexión logística.</p></div></div>
+      <div className="settingsSubsectionHead"><div><h3>Cuentas conectadas</h3><p>Las integraciones se agrupan por función para que sea más fácil localizar canales de venta, transportistas y servicios documentales. Shopify sigue utilizando Sendcloud como conexión técnica, pero se muestra dentro de Ecommerce.</p></div></div>
       {compatibilityMode&&<p className="settingsHelpText">Estás viendo conexiones actuales detectadas automáticamente. Ya puedes abrir el alta de nuevas cuentas; si este entorno todavía no tiene activado el backend multicuenta, al guardar se indicará de forma explícita.</p>}
       {loading?<div className="settingsInlineLoading">Cargando cuentas…</div>:<div className="integrationCategoryList">
         {integrationGroups.map(group=><section className="integrationCategory" key={group.id}>
-          <div className="integrationCategoryHead"><div><h4>${group.title}</h4><p>${group.description}</p></div></div>
+          <div className="integrationCategoryHead"><div><h4>{group.title}</h4><p>{group.description}</p></div></div>
           <div className="integrationProviderGrid">
             {group.providers.map(id=>{
           const items=accounts.filter(item=>item.provider===id);

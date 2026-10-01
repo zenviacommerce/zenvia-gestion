@@ -1,13 +1,18 @@
 import { createAdminClient, requireInternalSecret } from '../_shared/amazon/supabase.ts';
 import { markJobFailed, markJobSuccess } from '../_shared/amazon/sync.ts';
 import { syncOrdersJob } from '../_shared/amazon/orders.ts';
+import { retryPendingAmazonTracking } from '../_shared/amazon/shipment-confirmation.ts';
 import { syncFinancesJob } from '../_shared/amazon/finances.ts';
 import { syncInventoryJob } from '../_shared/amazon/inventory.ts';
 
 function response(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});}
 
 async function dispatch(admin:any,job:any){
-  if(job.source==='orders')return syncOrdersJob(admin,job);
+  if(job.source==='orders'){
+    const rows=await syncOrdersJob(admin,job);
+    try{await retryPendingAmazonTracking(admin,job.owner_id,10)}catch{/* La sincronización de pedidos no debe fallar por un reintento de tracking. */}
+    return rows;
+  }
   if(job.source==='finances')return syncFinancesJob(admin,job);
   if(job.source==='inventory')return syncInventoryJob(admin,job);
   throw new Error(`Fuente Amazon no soportada: ${String(job.source)}`);

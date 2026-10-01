@@ -51,7 +51,7 @@ async function mrwAccount(admin:any,ownerId:string,wantedId=''){
   return {row:data,credentials,config:data.config||{}};
 }
 function mrwBase(environment:unknown){
-  return clean(environment)==='test'?'https://sagec-test.mrw.es/MRWEnvio.asmx':'https://sagec.mrw.es/MRWEnvio.asmx';
+  return clean(environment)==='test'?'https://sagec-test.mrw.es/mrwenvio.asmx':'https://sagec.mrw.es/mrwenvio.asmx';
 }
 function authXml(c:any){
   return `<AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${esc(c.franchiseCode)}</CodigoFranquicia><CodigoAbonado>${esc(c.subscriberCode)}</CodigoAbonado><CodigoDepartamento>${esc(c.departmentCode)}</CodigoDepartamento><UserName>${esc(c.username)}</UserName><Password>${esc(c.password)}</Password></AuthInfo>`;
@@ -69,7 +69,11 @@ function soapError(xml:string){
 async function soapCall(base:string,c:any,action:string,body:string){
   const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':`"http://www.mrw.es/${action}"`,Accept:'text/xml'},body:envelope(c,body)});
   const xml=await res.text(),fault=soapError(xml);
-  if(!res.ok||fault)throw new Error(`MRW${res.ok?'':` (${res.status})`}: ${fault||'respuesta no válida'}`);
+  if(fault)throw new Error(`MRW: ${fault.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,800)}`);
+  if(!res.ok){
+    if(/<!doctype html|<html[\s>]/i.test(xml))throw new Error(`MRW (${res.status}) devolvió un error interno. Revisa la conexión MRW en Configuración > Integraciones y vuelve a probarla.`);
+    throw new Error(`MRW (${res.status}): ${xml.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,800)||'respuesta no válida'}`);
+  }
   return xml;
 }
 function positive(value:unknown){const n=Number(value);return Number.isFinite(n)&&n>0?n:null}

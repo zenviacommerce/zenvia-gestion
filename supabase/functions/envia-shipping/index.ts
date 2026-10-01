@@ -10,6 +10,13 @@ const headers={...corsHeaders,'Content-Type':'application/json'};
 type Caller={user_id:string;data_owner_id:string;role:string;active:boolean;permissions:string[]|null};
 
 function response(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers});}
+const carrierCache=new Map<string,{expires:number,items:string[]}>();
+const geocodeCache=new Map<string,{expires:number,row:any}>();
+async function withTimeout<T>(promise:Promise<T>,ms:number,label:string):Promise<T>{
+  let timer:number|undefined;
+  try{return await Promise.race([promise,new Promise<T>((_,reject)=>{timer=setTimeout(()=>reject(new Error(label)),ms) as unknown as number;})]);}
+  finally{if(timer!==undefined)clearTimeout(timer);}
+}
 function fail(message:string,status=400){return response({error:message},status);}
 function clean(value:unknown){return String(value??'').trim();}
 function number(value:unknown,fallback=0){const n=Number(value);return Number.isFinite(n)?n:fallback;}
@@ -159,6 +166,9 @@ function bestGeocodeRow(payload:any,postal:string,city:string){
   })[0]||null;
 }
 async function geocodeLookup(country:string,postal:string,city:string){
+  const cacheKey=`${country}|${postal}|${city}`.toUpperCase();
+  const cached=geocodeCache.get(cacheKey);
+  if(cached&&cached.expires>Date.now())return cached.row;
   const urls:string[]=[];
   if(postal)urls.push(`https://geocodes.envia.com/zipcode/${encodeURIComponent(country)}/${encodeURIComponent(postal)}`);
   if(city)urls.push(`https://geocodes.envia.com/locate/${encodeURIComponent(country)}/${encodeURIComponent(city)}`);
@@ -168,7 +178,7 @@ async function geocodeLookup(country:string,postal:string,city:string){
       if(!res.ok)continue;
       const payload=await res.json().catch(()=>null);
       const row=bestGeocodeRow(payload,postal,city);
-      if(row?.__state)return row;
+      if(row?.__state){geocodeCache.set(cacheKey,{expires:Date.now()+60*60*1000,row});return row;}
     }catch{/* try the next canonical Envia geocoder */}
   }
   return null;
@@ -293,15 +303,24 @@ function normalizeRate(item:any,account:any){
 }
 async function listCarriers(c:any,originCountry:string,destinationCountry:string){
   const international=originCountry!==destinationCountry?'1':'0';
+  const cacheKey=`${c.environment}|${originCountry}|${destinationCountry}`;
+  const cached=carrierCache.get(cacheKey);
+  if(cached&&cached.expires>Date.now())return [...cached.items];
+  let names:string[]=[];
   try{
-    const detailed=await enviaJson(`${c.queryBase}/available-carrier/${encodeURIComponent(originCountry)}/${international}/1`,c.token);
+    const detailed=await withTimeout(enviaJson(`${c.queryBase}/available-carrier/${encodeURIComponent(originCountry)}/${international}/1`,c.token),2500,'Timeout consultando transportistas Envia');
     const rows=asRows(detailed);
-    const names=rows.filter((x:any)=>x?.active!==false).map((x:any)=>clean(x?.carrier||x?.code||x?.carrierCode||x?.name)).filter(Boolean);
-    if(names.length)return [...new Set(names)];
+    names=rows.filter((x:any)=>x?.active!==false).map((x:any)=>clean(x?.carrier||x?.code||x?.carrierCode||x?.name)).filter(Boolean);
   }catch(error){console.warn('Envia available-carrier fallback',error instanceof Error?error.message:error)}
-  const payload=await enviaJson(`${c.queryBase}/carrier?country_code=${encodeURIComponent(originCountry)}`,c.token);
-  const rows=asRows(payload);
-  return [...new Set(rows.filter((x:any)=>x?.active!==false).map((x:any)=>clean(x?.carrier||x?.code||x?.carrierCode||x?.name)).filter(Boolean))];
+  if(!names.length){
+    const payload=await withTimeout(enviaJson(`${c.queryBase}/carrier?country_code=${encodeURIComponent(originCountry)}`,c.token),2500,'Timeout consultando catálogo Envia');
+    const rows=asRows(payload);
+    names=rows.filter((x:any)=>x?.active!==false).map((x:any)=>clean(x?.carrier||x?.code||x?.carrierCode||x?.name)).filter(Boolean);
+  }
+  if(originCountry==='ES'&&destinationCountry==='ES'&&!names.some(name=>/^correos$/i.test(name)))names.push('correos');
+  const unique=[...new Set(names)];
+  carrierCache.set(cacheKey,{expires:Date.now()+10*60*1000,items:unique});
+  return unique;
 }
 async function quoteAccount(admin:any,account:any,order:any,config:any){
   const c=await credentials(admin,account);
@@ -320,10 +339,10 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
   carriers=carriers.slice(0,30);
   const settled=await Promise.all(carriers.map(async(carrier:string)=>{
     try{
-      const data=await enviaJson(`${c.shipBase}/ship/rate/`,c.token,{
+      const data=await withTimeout(enviaJson(`${c.shipBase}/ship/rate/`,c.token,{
         method:'POST',
         body:JSON.stringify({origin,destination:dest,packages:[pkg],shipment:{type:1,carrier}}),
-      });
+      }),3500,`Timeout cotizando ${carrier}`);
       let options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
       const unique=new Map<string,any>();
       for(const option of options){

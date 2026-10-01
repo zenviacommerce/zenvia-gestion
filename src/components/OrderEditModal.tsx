@@ -49,7 +49,8 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
       country_code:countryCode.trim().toUpperCase(),
     },
   };
-  const liveValidation=validateOrderForCarrier(liveOrder);
+  const effectiveCarrier=order.carrierCode||order.carrierName||order.shippingOptionCode||(validationIssues.some(issue=>String(issue.field).startsWith('package_'))?'mrw':'');
+  const liveValidation=validateOrderForCarrier(liveOrder,effectiveCarrier);
   const fieldIssue=(field:string)=>liveValidation.issues.find(issue=>issue.field===field);
   const fieldError=(field:string)=>fieldIssue(field)?.message||'';
 

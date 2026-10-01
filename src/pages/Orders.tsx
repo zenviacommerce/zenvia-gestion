@@ -577,21 +577,38 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       const {orderId,result:shipping}=result.value;
       const allowed=enabledShippingOptions(shipping.options);
       optionsByOrder[orderId]=allowed;
-      const seenCarrier=new Set<string>();
+
+      // Aggregate once per provider/carrier/order. A carrier can expose many
+      // services (e.g. Correos Express Paq24, Punto Paq, Ecommerce...), but for
+      // bulk comparison we only need the cheapest usable service for this order.
+      const perOrder=new Map<string,{provider:string;providerName:string;carrierCode:string;carrierName:string;options:ShippingOption[]}>();
       for(const option of allowed){
         const carrierCode=String(option.carrierCode||option.carrierName||'').trim();
         if(!carrierCode)continue;
         const key=`${option.provider}|${carrierCode.toLowerCase()}`;
+        const current=perOrder.get(key);
+        if(current)current.options.push(option);
+        else perOrder.set(key,{
+          provider:option.provider,
+          providerName:option.providerName,
+          carrierCode,
+          carrierName:option.carrierName||carrierCode,
+          options:[option],
+        });
+      }
+
+      for(const [key,group] of perOrder){
         let row=aggregate.get(key);
         if(!row){
-          row={key,provider:option.provider,providerName:option.providerName,carrierCode,carrierName:option.carrierName||carrierCode,orders:new Set(),priced:0,total:0};
+          row={key,provider:group.provider,providerName:group.providerName,carrierCode:group.carrierCode,carrierName:group.carrierName,orders:new Set(),priced:0,total:0};
           aggregate.set(key,row);
         }
-        if(!seenCarrier.has(key)){row.orders.add(orderId);seenCarrier.add(key)}
-        const matching=allowed.filter(item=>item.provider===option.provider&&String(item.carrierCode||item.carrierName||'').toLowerCase()===carrierCode.toLowerCase()&&item.price!=null&&Number(item.price)>0);
-        if(matching.length){
-          const cheapest=Math.min(...matching.map(item=>Number(item.price)));
-          row.priced+=1;row.total+=cheapest;
+        row.orders.add(orderId);
+        const pricedOptions=group.options.filter(item=>item.price!=null&&Number(item.price)>0);
+        if(pricedOptions.length){
+          const cheapest=Math.min(...pricedOptions.map(item=>Number(item.price)));
+          row.priced+=1;
+          row.total+=cheapest;
         }
       }
     }

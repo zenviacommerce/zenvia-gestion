@@ -47,3 +47,21 @@ test('pending and labelled order queues are operational and ignore global period
   assert.match(source,/Etiquetas listas · sin limitar por periodo/);
   assert.doesNotMatch(source,/labelPeriodOrders/);
 });
+
+
+test('Orders tracks whether a generated label has been printed from ZENVIA',async()=>{
+  const [page,service,stateEdge,migration]=await Promise.all([
+    read('../src/pages/Orders.tsx'),
+    read('../src/services/orders.ts'),
+    read('../supabase/functions/order-logistics-state/index.ts'),
+    read('../supabase/migrations/20261001103000_order_package_and_print_state.sql'),
+  ]);
+  assert.match(page,/Impresión/);
+  assert.match(page,/No impreso/);
+  assert.match(page,/markOrderLabelPrinted/);
+  assert.match(service,/labelPrintedAt/);
+  assert.match(service,/labelPrintCount/);
+  assert.match(stateEdge,/mark_label_printed/);
+  assert.match(migration,/label_printed_at/);
+  assert.match(migration,/label_print_count/);
+});

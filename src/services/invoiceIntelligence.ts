@@ -35,6 +35,10 @@ async function fileAsDataUrl(file:File){
   });
 }
 function supported(response:IntelligenceResponse,field:string){return response.verification?.support?.[field]===true;}
+function verifiedParty(response:IntelligenceResponse,prefix:'issuer'|'recipient',party:InvoicePartyAI):InvoicePartyAI{
+  const value=(field:keyof InvoicePartyAI)=>supported(response,prefix+'.'+field)?clean(party?.[field])||null:null;
+  return {name:value('name'),taxId:value('taxId'),email:value('email'),phone:value('phone'),address:value('address'),countryCode:value('countryCode')};
+}
 function validDate(value:string){return /^\\d{4}-\\d{2}-\\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value+'T12:00:00Z'));}
 function validCurrency(value:string){return /^[A-Z]{3}$/.test(value);}
 function verifiedLines(response:IntelligenceResponse):NewInvoiceLineInput[]{
@@ -89,9 +93,9 @@ export async function analyzeInvoiceWithIntelligence(
     analysisEngine:'hybrid-ai-verified',
     analysisModel:data.model,
     analysisWarnings:[...(verification.warnings||[])],
-    aiIssuer:extracted.issuer,
-    aiRecipient:extracted.recipient,
-    aiDueDate:clean(extracted.dueDate)||undefined,
+    aiIssuer:verifiedParty(data,'issuer',extracted.issuer),
+    aiRecipient:verifiedParty(data,'recipient',extracted.recipient),
+    aiDueDate:supported(data,'dueDate')&&validDate(clean(extracted.dueDate))?clean(extracted.dueDate):undefined,
   };
 
   if(supported(data,'invoiceNumber')&&clean(extracted.invoiceNumber))next.invoiceNumber=clean(extracted.invoiceNumber);

@@ -218,26 +218,24 @@ function mrwResponseError(text:string,status:number){
 async function testMrw(admin:any,ownerId:string,account:any){
   const creds=await mrwCredentials(admin,account);
   const environment=account.config?.environment==='test'?'test':'production';
-  const base=environment==='test'?'https://sagec-test.mrw.es/mrwenvio.asmx':'https://sagec.mrw.es/MRWEnvio.asmx';
+  const base=environment==='test'?'https://sagec-test.mrw.es/MRWEnvio.asmx':'https://sagec.mrw.es/MRWEnvio.asmx';
   const auth=`<AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${mrwEsc(creds.franchiseCode)}</CodigoFranquicia><CodigoAbonado>${mrwEsc(creds.subscriberCode)}</CodigoAbonado><CodigoDepartamento>${mrwEsc(creds.departmentCode)}</CodigoDepartamento><UserName>${mrwEsc(creds.username)}</UserName><Password>${mrwEsc(creds.password)}</Password></AuthInfo>`;
-  const action='GetEtiquetaEnvio';
-  const {data:recentOrders,error:recentError}=await admin.from('fulfillment_orders')
-    .select('tracking_number,shipping_remote_id,carrier_name,shipping_provider,updated_at')
+
+  // Use MRW's read-only GetPointsDB contract with a real destination postcode.
+  // This verifies authentication without creating/cancelling shipments or requesting
+  // labels for numbers that MRW may not consider native to this SAGEC account.
+  const {data:recentOrders}=await admin.from('fulfillment_orders')
+    .select('shipping_address,updated_at')
     .eq('owner_id',ownerId)
-    .not('tracking_number','is',null)
     .order('updated_at',{ascending:false})
-    .limit(200);
-  if(recentError)throw recentError;
-  const knownShipment=(recentOrders||[])
-    .filter((row:any)=>/mrw/i.test(clean(row.carrier_name))||clean(row.shipping_provider)==='mrw')
-    .map((row:any)=>clean(row.shipping_remote_id||row.tracking_number))
-    .find((value:string)=>value.length>=8)||'';
-  if(!knownShipment){
-    throw new Error('No hay todavía un envío MRW real en ZENVIA con el que validar la conexión sin crear uno nuevo. Sin un envío real, MRW devuelve Runtime Error con números ficticios.');
-  }
-  const request=`<request><NumeroEnvio>${mrwEsc(knownShipment)}</NumeroEnvio><NumerosEtiqueta></NumerosEtiqueta><SeparadorNumerosEnvio></SeparadorNumerosEnvio><FechaInicioEnvio></FechaInicioEnvio><FechaFinEnvio></FechaFinEnvio><TipoEtiquetaEnvio>PDF</TipoEtiquetaEnvio><ReportTopMargin>0</ReportTopMargin><ReportLeftMargin>0</ReportLeftMargin></request>`;
-  const envelope=`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Header>${auth}</soap:Header><soap:Body><GetEtiquetaEnvio xmlns="http://www.mrw.es/">${request}</GetEtiquetaEnvio></soap:Body></soap:Envelope>`;
-  const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':'"http://www.mrw.es/GetEtiquetaEnvio"',Accept:'text/xml'},body:envelope});
+    .limit(100);
+  const postal=(recentOrders||[])
+    .map((row:any)=>clean(row?.shipping_address?.postal_code).replace(/\s+/g,''))
+    .find((value:string)=>/^\d{5}$/.test(value))||'28001';
+
+  const request=`<request><Point><codigoPoint></codigoPoint><CodigoPostal>${mrwEsc(postal)}</CodigoPostal></Point></request>`;
+  const envelope=`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Header>${auth}</soap:Header><soap:Body><GetPointsDB xmlns="http://www.mrw.es/">${request}</GetPointsDB></soap:Body></soap:Envelope>`;
+  const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':'"http://www.mrw.es/GetPointsDB"',Accept:'text/xml'},body:envelope});
   const raw=await res.text();
   const fault=(raw.match(/<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i)?.[1]
     ||raw.match(/<Mensaje[^>]*>([\s\S]*?)<\/Mensaje>/i)?.[1]
@@ -245,17 +243,19 @@ async function testMrw(admin:any,ownerId:string,account:any){
     ||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
   const title=(raw.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1]||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
   const bodyText=raw.replace(/<script[\s\S]*?<\/script>/gi,' ').replace(/<style[\s\S]*?<\/style>/gi,' ').replace(/<[^>]+>/g,' ').replace(/&nbsp;/gi,' ').replace(/&amp;/gi,'&').replace(/\s+/g,' ').trim();
-  if(fault&&/usuario|password|contrase|abonado|franquicia|autent|credencial|acceso|login|unauthorized|no autorizado/i.test(fault)){
-    throw new Error(`MRW ha rechazado las credenciales: ${sanitize(fault)}`);
-  }
-  if(res.ok&&/GetEtiquetaEnvioResponse/i.test(raw)){
-    return {environment,apiMode:'modern',validationOperation:'GetEtiquetaEnvio',soap:'1.1'};
+
+  if(res.ok&&/GetPointsDBResponse/i.test(raw)){
+    return {environment,apiMode:'modern',validationOperation:'GetPointsDB',soap:'1.1',postalCode:postal};
   }
   if(fault){
-    return {environment,apiMode:'modern',validationOperation:'GetEtiquetaEnvio-fault',soap:'1.1',detail:sanitize(fault)};
+    if(/usuario|password|contrase|abonado|franquicia|autent|credencial|acceso|login|unauthorized|no autorizado/i.test(fault)){
+      throw new Error(`MRW ha rechazado las credenciales: ${sanitize(fault)}`);
+    }
+    // A business SOAP fault means MRW authenticated and parsed the request.
+    return {environment,apiMode:'modern',validationOperation:'GetPointsDB-fault',soap:'1.1',detail:sanitize(fault),postalCode:postal};
   }
   const htmlDetail=sanitize(title||bodyText||'sin detalle');
-  throw new Error(`MRW respondió HTTP ${res.status} (${res.headers.get('content-type')||'sin content-type'}) al contrato SOAP 1.1 oficial de GetEtiquetaEnvio. Detalle remoto: ${htmlDetail}`);
+  throw new Error(`MRW respondió HTTP ${res.status} (${res.headers.get('content-type')||'sin content-type'}) al GetPointsDB oficial con CP ${postal}. Detalle remoto: ${htmlDetail}`);
 }
 async function enviaCarriers(admin:any,account:any){
   const c=await enviaCredentials(admin,account);

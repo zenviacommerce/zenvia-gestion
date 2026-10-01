@@ -1510,8 +1510,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                     <small>{account.externalAccountId||'Sin identificador externo'} · {account.status==='connected'?'Conectada':account.status==='disabled'?'Desconectada':account.status==='error'?'Con error':'Pendiente'}</small>
                     {account.lastSuccessAt&&<small>Último éxito: {dateTime(account.lastSuccessAt)}</small>}
                     {account.legacy&&<small>Conexión existente detectada automáticamente.</small>}
-                    {account.provider==='amazon'&&account.config?.operationalOrdersDirect&&<small className={account.config.operationalOrdersDirect.status==='ready'?'integrationReadinessOk':'integrationError'}>
-                      {account.config.operationalOrdersDirect.status==='ready'
+                    {account.provider==='amazon'&&typeof account.config?.operationalOrdersDirect==='object'&&account.config.operationalOrdersDirect!==null&&<small className={(account.config.operationalOrdersDirect as {status?:string}).status==='ready'?'integrationReadinessOk':'integrationError'}>
+                      {(account.config.operationalOrdersDirect as {status?:string}).status==='ready'
                         ?'Pedidos directos Amazon: activos · destinatario disponible para logística sin Sendcloud.'
                         :'Pedidos directos Amazon: falta autorización PII de destinatario en Amazon. Analytics sigue sincronizando, pero Pedidos todavía necesita el origen logístico existente.'}
                     </small>}

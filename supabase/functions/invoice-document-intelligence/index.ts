@@ -143,7 +143,12 @@ REGLAS:
 
     const evidence=evidenceMap(parsed?.evidence||[]);
     const support:Record<string,boolean>={};
-    for(const field of ['issuer.name','issuer.taxId','recipient.name','recipient.taxId','invoiceNumber','issueDate','currency','amounts.subtotal','amounts.vat','amounts.equivalenceSurcharge','amounts.withholding','amounts.total']){
+    for(const field of [
+      'issuer.name','issuer.taxId','issuer.email','issuer.phone','issuer.address','issuer.countryCode',
+      'recipient.name','recipient.taxId','recipient.email','recipient.phone','recipient.address','recipient.countryCode',
+      'invoiceNumber','issueDate','dueDate','currency',
+      'amounts.subtotal','amounts.vat','amounts.equivalenceSurcharge','amounts.withholding','amounts.total'
+    ]){
       support[field]=evidenceSupported(evidence,field,text);
     }
     const verifiedLines=(Array.isArray(parsed?.lines)?parsed.lines:[]).map((line:any)=>({

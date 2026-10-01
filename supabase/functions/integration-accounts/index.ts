@@ -218,8 +218,9 @@ function mrwResponseError(text:string,status:number){
 async function testMrw(admin:any,account:any){
   const c=await mrwCredentials(admin,account);
   const base=account.config?.environment==='test'?'https://sagec-test.mrw.es/mrwenvio.asmx':'https://sagec.mrw.es/mrwenvio.asmx';
-  const auth=`<soap:Header><AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${mrwEsc(c.franchiseCode)}</CodigoFranquicia><CodigoAbonado>${mrwEsc(c.subscriberCode)}</CodigoAbonado><CodigoDepartamento>${mrwEsc(c.departmentCode)}</CodigoDepartamento><UserName>${mrwEsc(c.username)}</UserName><Password>${mrwEsc(c.password)}</Password></AuthInfo></soap:Header>`;
-  const envelope=(operation:string)=>`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">${auth}<soap:Body><${operation} xmlns="http://www.mrw.es/"><request><Point><codigoPoint>00000</codigoPoint><CodigoPostal>28001</CodigoPostal></Point></request></${operation}></soap:Body></soap:Envelope>`;
+  const department=c.departmentCode?`<CodigoDepartamento>${mrwEsc(c.departmentCode)}</CodigoDepartamento>`:'';
+  const auth=`<soap:Header><AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${mrwEsc(c.franchiseCode)}</CodigoFranquicia><CodigoAbonado>${mrwEsc(c.subscriberCode)}</CodigoAbonado>${department}<UserName>${mrwEsc(c.username)}</UserName><Password>${mrwEsc(c.password)}</Password></AuthInfo></soap:Header>`;
+  const envelope=(operation:string)=>`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">${auth}<soap:Body><${operation} xmlns="http://www.mrw.es/"><request><Point><codigoPoint xsi:nil="true" /><CodigoPostal>28001</CodigoPostal></Point></request></${operation}></soap:Body></soap:Envelope>`;
 
   const attempts=['GetPointsByCP','GetPointsDB'];
   let lastMessage='MRW no ha podido validar la cuenta.';
@@ -231,7 +232,13 @@ async function testMrw(admin:any,account:any){
       return {environment:account.config?.environment==='test'?'test':'production',validationOperation:operation};
     }
     lastMessage=mrwResponseError(text,res.status);
-    if(fault)break;
+    if(fault){
+      const normalized=fault.toLowerCase();
+      if(/usuario|password|contrase|abonado|franquicia|autent|credencial|acceso/.test(normalized)){
+        throw new Error(`MRW ha rechazado las credenciales: ${sanitize(fault)}`);
+      }
+      break;
+    }
   }
   throw new Error(lastMessage);
 }

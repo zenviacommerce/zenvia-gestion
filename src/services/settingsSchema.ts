@@ -173,6 +173,7 @@ export type IntegrationsSettings = {
   amazonEnabled: boolean;
   sendcloudEnabled: boolean;
   enviaEnabled: boolean;
+  mrwEnabled: boolean;
   shopifyEnabled: boolean;
 };
 
@@ -387,6 +388,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     amazonEnabled: true,
     sendcloudEnabled: true,
     enviaEnabled: true,
+    mrwEnabled: true,
     shopifyEnabled: true,
   },
   notifications: {
@@ -866,13 +868,14 @@ function normalizeSuppliers(input:AnyRecord|null,warnings:SettingsWarning[]):Sup
 
 function normalizeIntegrations(input:AnyRecord|null,warnings:SettingsWarning[]):IntegrationsSettings{
   const d=DEFAULT_APP_SETTINGS.integrations;if(!input)return clone(d);
-  const keys=['gmailEnabled','amazonEnabled','sendcloudEnabled','enviaEnabled','shopifyEnabled'];
+  const keys=['gmailEnabled','amazonEnabled','sendcloudEnabled','enviaEnabled','mrwEnabled','shopifyEnabled'];
   unknownKeys(input,keys,'integrations',warnings);
   return {
     gmailEnabled:booleanValue(input,'gmailEnabled',d.gmailEnabled,'integrations.gmailEnabled',warnings),
     amazonEnabled:booleanValue(input,'amazonEnabled',d.amazonEnabled,'integrations.amazonEnabled',warnings),
     sendcloudEnabled:booleanValue(input,'sendcloudEnabled',d.sendcloudEnabled,'integrations.sendcloudEnabled',warnings),
     enviaEnabled:booleanValue(input,'enviaEnabled',d.enviaEnabled,'integrations.enviaEnabled',warnings),
+    mrwEnabled:booleanValue(input,'mrwEnabled',d.mrwEnabled,'integrations.mrwEnabled',warnings),
     shopifyEnabled:booleanValue(input,'shopifyEnabled',d.shopifyEnabled,'integrations.shopifyEnabled',warnings),
   };
 }

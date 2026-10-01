@@ -14,7 +14,7 @@ export interface FulfillmentOrder {
   totalAmount:number|null; currency:string|null; weightKg:number|null;
   packageLengthCm:number|null; packageWidthCm:number|null; packageHeightCm:number|null;
   sendcloudParcelId:number|null; sendcloudShipmentId:string|null;
-  shippingProvider:'sendcloud'|'envia'|null; shippingRemoteId:string|null; shippingLabelUrl:string|null;
+  shippingProvider:'sendcloud'|'envia'|'mrw'|null; shippingRemoteId:string|null; shippingLabelUrl:string|null;
   trackingNumber:string|null; trackingUrl:string|null; trackingStatusCode:string|null; trackingStatusMessage:string|null; trackingUpdatedAt:string|null;
   shippingOptionCode:string|null; contractId:number|null;
   carrierCode:string|null; carrierName:string|null; shippingServiceName:string|null;

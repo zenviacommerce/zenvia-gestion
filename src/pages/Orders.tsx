@@ -449,6 +449,18 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       return enabled.some(value=>haystack.includes(value));
     });
   };
+  const applyTariffPrices=(order:FulfillmentOrder,available:ShippingOption[])=>available.map(option=>{
+    if(option.price!=null&&Number.isFinite(Number(option.price))&&Number(option.price)>0)return option;
+    if(option.provider!=='mrw')return option;
+    const tariff=estimateTransportTariffForOption(order,tariffs,option);
+    if(!tariff?.totalAmount)return option;
+    return {
+      ...option,
+      price:tariff.totalAmount,
+      currency:tariff.currency||option.currency||'EUR',
+      raw:{...(option.raw||{}),priceSource:'tariff_estimate',tariffDocumentId:tariff.documentId,tariffDocumentName:tariff.documentName,matchedServiceCode:tariff.matchedServiceCode},
+    };
+  });
   const automaticShippingOption=(order:FulfillmentOrder,available:ShippingOption[])=>{
     const allowed=enabledShippingOptions(available);
     const byRules=selectShippingOptionByRules(order,allowed,shippingRules);
@@ -465,7 +477,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     setOptions([]);setOptionsMessage('');setOptionsLoading(true);setLabelOrder(order);
     try{
       const result=await getShippingOptions(order.id);
-      const allowed=enabledShippingOptions(result.options);
+      const allowed=applyTariffPrices(order,enabledShippingOptions(result.options));
       setOptionsMessage(result.message||'');
       if(!allowed.length){setLabelOrder(null);showError('No hay servicios disponibles entre los transportistas habilitados.');return}
       setOptions(allowed);
@@ -575,7 +587,8 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     for(const result of settled){
       if(result.status!=='fulfilled')continue;
       const {orderId,result:shipping}=result.value;
-      const allowed=enabledShippingOptions(shipping.options);
+      const order=targets.find(item=>item.id===orderId);
+      const allowed=order?applyTariffPrices(order,enabledShippingOptions(shipping.options)):enabledShippingOptions(shipping.options);
       optionsByOrder[orderId]=allowed;
 
       // Aggregate once per provider/carrier/order. A carrier can expose many

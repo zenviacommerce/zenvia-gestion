@@ -38,14 +38,17 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
       const result=classifyInvoiceCandidate(preparedCandidate,existingInvoices,policy);
       setCandidate(result);
       const percent=Math.round(result.confidence*100);
+      const intelligence=result.analysisEngine==='hybrid-ai-verified'
+        ?('IA verificada'+(result.analysisModel?' · '+result.analysisModel:''))
+        :'motor determinista';
       if(result.status==='duplicate'){
         setReaderBlocked(true);
         setError(result.reviewReason||'Esta factura ya está importada.');
         setReaderMessage('Documento bloqueado: se ha detectado como duplicado.');
       }else if(result.status==='needs_review'){
-        setReaderMessage(`Lectura completada · confianza ${percent}% · requiere revisión: ${result.reviewReason||'revisa los datos antes de guardar.'}`);
+        setReaderMessage(`Lectura completada con ${intelligence} · confianza ${percent}% · requiere revisión: ${result.reviewReason||'revisa los datos antes de guardar.'}`);
       }else{
-        setReaderMessage(`Lectura completada · confianza ${percent}%${result.lines.length?` · ${result.lines.length} línea${result.lines.length>1?'s':''} detectada${result.lines.length>1?'s':''}`:''}. Revisa los datos antes de guardar.`);
+        setReaderMessage(`Lectura completada con ${intelligence} · confianza ${percent}%${result.lines.length?` · ${result.lines.length} línea${result.lines.length>1?'s':''} detectada${result.lines.length>1?'s':''}`:''}. Revisa los datos antes de guardar.`);
       }
     } catch(e) {
       if(isMultiInvoiceDocumentError(e)) {

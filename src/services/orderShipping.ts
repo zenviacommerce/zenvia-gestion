@@ -125,7 +125,9 @@ function matchingBand(service:TransportTariffDocument['services'][number],order:
     .find(band=>weight>=(band.minWeightKg||0)&& (band.maxWeightKg==null||weight<=band.maxWeightKg))||null;
 }
 function serviceScore(document:TransportTariffDocument,service:TransportTariffDocument['services'][number],option:ShippingOption){
-  if(document.shippingProvider!==option.provider)return -1;
+  // A carrier tariff belongs to the carrier contract, not to the aggregator used
+  // to reach it. The same Correos/MRW/SEUR tariff must therefore be comparable
+  // against Sendcloud and Envia.com options when the carrier/service matches.
   const carrierCandidates=[option.carrierCode,option.carrierName].map(tariffKey).filter(Boolean);
   const docCarrier=[document.carrierCode,document.carrierName].map(tariffKey).filter(Boolean);
   const externalProvider=tariffKey(service.externalProvider);

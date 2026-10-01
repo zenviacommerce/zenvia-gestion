@@ -193,24 +193,62 @@ async function enrichSendcloudV3Quotes(credentials:SendcloudCredentials,options:
 }
 
 async function enrichSendcloudPrices(credentials:SendcloudCredentials,options:any[],weightKg:number,fromCountry:string,toCountry:string,fromPostal:string,toPostal:string,senderAddressId?:string|number|null){
-  if(!options.some(option=>option.price==null))return options;
+  const diagnostics:any={methods:0,pricedMethods:0,correosMethods:0,correosPriced:0,matches:[] as any[]};
+  if(!options.some(option=>option.price==null))return diagnostics;
   try{
     const methodParams=new URLSearchParams();
     if(senderAddressId)methodParams.set('sender_address',String(senderAddressId));
-    else methodParams.set('sender_address','all');
     if(toCountry)methodParams.set('to_country',toCountry);
     if(fromPostal)methodParams.set('from_postal_code',fromPostal);
     if(toPostal)methodParams.set('to_postal_code',toPostal);
     const {data:methodsPayload}=await sendcloudJson(credentials,`https://panel.sendcloud.sc/api/v2/shipping_methods?${methodParams.toString()}`);
     const methods=v2Rows(methodsPayload);
+    diagnostics.methods=methods.length;
+    diagnostics.pricedMethods=methods.filter((method:any)=>v2CountryPrice(method,toCountry)!=null).length;
+    diagnostics.correosMethods=methods.filter((method:any)=>/correos/i.test(`${method?.carrier||''} ${method?.name||''}`)).length;
+    diagnostics.correosPriced=methods.filter((method:any)=>/correos/i.test(`${method?.carrier||''} ${method?.name||''}`)&&v2CountryPrice(method,toCountry)!=null).length;
+
     const unresolved=options.filter(option=>option.price==null);
-    await Promise.all(unresolved.map(async option=>{
-      const ranked=methods.map((method:any)=>({method,score:v2MethodScore(method,option,weightKg)})).filter((item:any)=>item.score>=55).sort((a:any,b:any)=>b.score-a.score);
-      const candidate=ranked[0]?.method;
-      if(!candidate)return;
-      const embedded=v2CountryPrice(candidate,toCountry);
-      if(embedded!=null){option.price=embedded;option.currency='EUR';option.priceSource='sendcloud_standard_rate';return}
-      const id=Number(candidate?.id);if(!Number.isFinite(id))return;
+    for(const option of unresolved){
+      const carrierKey=comparable(option.carrierCode||option.carrierName);
+      const sameCarrier=methods.filter((method:any)=>{
+        const methodCarrier=comparable(method?.carrier||method?.carrier_name||method?.name);
+        if(!carrierKey||!methodCarrier)return false;
+        // Keep Correos and Correos Express separate.
+        if(carrierKey.includes('correos express'))return methodCarrier.includes('correos express')||methodCarrier==='correosexpress';
+        if(carrierKey==='correos'||carrierKey.startsWith('correos '))return methodCarrier.includes('correos')&&!methodCarrier.includes('express');
+        return methodCarrier.includes(carrierKey)||carrierKey.includes(methodCarrier);
+      }).filter((method:any)=>{
+        const min=Number(method?.min_weight),max=Number(method?.max_weight);
+        return (!Number.isFinite(min)||weightKg>=min-0.0001)&&(!Number.isFinite(max)||weightKg<=max+0.0001);
+      });
+
+      const ranked=sameCarrier.map((method:any)=>({
+        method,
+        score:v2MethodScore(method,option,weightKg),
+        price:v2CountryPrice(method,toCountry),
+      })).sort((a:any,b:any)=>b.score-a.score);
+
+      // Prefer a name/service match, but for Sendcloud transactional postal
+      // methods the v2/v3 names are not always identical. If every candidate
+      // belongs to the same carrier, use the cheapest priced applicable method
+      // as a safe fallback rather than showing no price at all.
+      let candidate=ranked.find((item:any)=>item.score>=70&&item.price!=null)
+        ||ranked.filter((item:any)=>item.price!=null).sort((a:any,b:any)=>a.price-b.price)[0]
+        ||ranked[0];
+
+      if(candidate?.price!=null){
+        option.price=candidate.price;
+        option.currency='EUR';
+        option.priceSource='sendcloud_standard_rate';
+        option.raw={...(option.raw||{}),sendcloudRateMethodId:candidate.method?.id,sendcloudRateMethodName:candidate.method?.name};
+        diagnostics.matches.push({option:option.name,method:candidate.method?.name,price:candidate.price,score:candidate.score});
+        continue;
+      }
+
+      // Non-zonal fallback. Sendcloud documents that shipping-price does not
+      // support zone-based Spanish carriers, so this is intentionally secondary.
+      const id=Number(candidate?.method?.id);if(!Number.isFinite(id))continue;
       try{
         const params=new URLSearchParams({shipping_method_id:String(id),weight:String(Number(weightKg.toFixed(3))),weight_unit:'kilogram',from_country:fromCountry,to_country:toCountry});
         const {data:pricePayload}=await sendcloudJson(credentials,`https://panel.sendcloud.sc/api/v2/shipping-price/?${params.toString()}`);
@@ -222,13 +260,15 @@ async function enrichSendcloudPrices(credentials:SendcloudCredentials,options:an
           option.price=value;
           option.currency=clean((typeof raw==='object'?raw?.currency:null)||row?.currency)||'EUR';
           option.priceSource='sendcloud_standard_rate';
+          diagnostics.matches.push({option:option.name,method:candidate.method?.name,price:value,score:candidate.score});
         }
-      }catch{/* Direct-contract or postal-zone pricing can legitimately be unavailable. */}
-    }));
-  }catch{/* Shipping options remain usable without an API price. */}
-  return options;
+      }catch{/* Keep option usable without a price. */}
+    }
+  }catch(error){
+    diagnostics.error=error instanceof Error?error.message:String(error);
+  }
+  return diagnostics;
 }
-
 async function senderAddress(credentials:SendcloudCredentials){
   try{const {data}=await sendcloudJson(credentials,'/addresses/sender-addresses');return Array.isArray(data?.data)?data.data[0]||null:null}catch{return null}
 }
@@ -346,7 +386,7 @@ Deno.serve(async(req:Request)=>{
       const {data}=await sendcloudJson(orderCredentials,'/shipping-options',{method:'POST',body:JSON.stringify(requestBody)});
       const options=(data?.data||[]).map((item:any)=>normalizeOption(item,weightKg)).filter((x:any)=>x.code).filter((x:any)=>enabledCarrier(x,shippingConfig.enabledCarriers));
       await enrichSendcloudV3Quotes(orderCredentials,options,weightKg,requestBody);
-      await enrichSendcloudPrices(
+      const rateDiagnostics=await enrichSendcloudPrices(
         orderCredentials,
         options,
         weightKg,
@@ -361,7 +401,10 @@ Deno.serve(async(req:Request)=>{
       const quoteMessage=unpricedCorreos
         ?'Sendcloud devuelve servicios de Correos sin precio incluso tras solicitar la tarifa transaccional con dirección completa y cálculo de cotización.'
         :priced?null:(options.length?'Sendcloud devuelve los servicios disponibles, pero no expone precio para estos métodos.':'No hay servicios disponibles entre los transportistas habilitados.');
-      return response({weightKg,options,message:data?.message||quoteMessage});
+      return response({
+        weightKg,options,message:data?.message||quoteMessage,
+        ...(unpricedCorreos?{rateDiagnostics}:{}),
+      });
     }
 
     if(action==='update_order'){

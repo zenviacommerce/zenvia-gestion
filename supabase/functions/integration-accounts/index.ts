@@ -204,16 +204,36 @@ async function mrwCredentials(admin:any,account:any){
   return credentials;
 }
 function mrwEsc(value:unknown){return clean(value).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;')}
+function mrwResponseError(text:string,status:number){
+  const fault=(text.match(/<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i)?.[1]
+    ||text.match(/<Mensaje[^>]*>([\s\S]*?)<\/Mensaje>/i)?.[1]
+    ||text.match(/<DescripcionError[^>]*>([\s\S]*?)<\/DescripcionError>/i)?.[1]
+    ||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+  if(fault)return `MRW: ${sanitize(fault)}`;
+  if(/<!doctype html|<html[\s>]/i.test(text)){
+    return `MRW (${status}) devolvió un error interno al validar la conexión. Las credenciales se han guardado, pero MRW no ha podido verificarlas todavía.`;
+  }
+  return `MRW (${status}): ${sanitize(text||'respuesta no válida')}`;
+}
 async function testMrw(admin:any,account:any){
   const c=await mrwCredentials(admin,account);
-  const base=account.config?.environment==='test'?'https://sagec-test.mrw.es/MRWEnvio.asmx':'https://sagec.mrw.es/MRWEnvio.asmx';
-  const xml=`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Header><AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${mrwEsc(c.franchiseCode)}</CodigoFranquicia><CodigoAbonado>${mrwEsc(c.subscriberCode)}</CodigoAbonado><CodigoDepartamento>${mrwEsc(c.departmentCode)}</CodigoDepartamento><UserName>${mrwEsc(c.username)}</UserName><Password>${mrwEsc(c.password)}</Password></AuthInfo></soap:Header><soap:Body><GetPointsDB xmlns="http://www.mrw.es/"><request><Point><codigoPoint></codigoPoint><CodigoPostal>28001</CodigoPostal></Point></request></GetPointsDB></soap:Body></soap:Envelope>`;
-  const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':'"http://www.mrw.es/GetPointsDB"',Accept:'text/xml'},body:xml});
-  const text=await res.text();
-  const fault=(text.match(/<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i)?.[1]||text.match(/<Mensaje[^>]*>([\s\S]*?)<\/Mensaje>/i)?.[1]||'').replace(/<[^>]+>/g,' ').trim();
-  if(!res.ok||fault)throw new Error(`MRW${res.ok?'':` (${res.status})`}: ${sanitize(fault||text)}`);
-  if(!/GetPointsDBResponse|PuntoDeRedDTO/i.test(text))throw new Error('MRW respondió, pero no se pudo validar la cuenta.');
-  return {environment:account.config?.environment==='test'?'test':'production'};
+  const base=account.config?.environment==='test'?'https://sagec-test.mrw.es/mrwenvio.asmx':'https://sagec.mrw.es/mrwenvio.asmx';
+  const auth=`<soap:Header><AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${mrwEsc(c.franchiseCode)}</CodigoFranquicia><CodigoAbonado>${mrwEsc(c.subscriberCode)}</CodigoAbonado><CodigoDepartamento>${mrwEsc(c.departmentCode)}</CodigoDepartamento><UserName>${mrwEsc(c.username)}</UserName><Password>${mrwEsc(c.password)}</Password></AuthInfo></soap:Header>`;
+  const envelope=(operation:string)=>`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">${auth}<soap:Body><${operation} xmlns="http://www.mrw.es/"><request><Point><codigoPoint>00000</codigoPoint><CodigoPostal>28001</CodigoPostal></Point></request></${operation}></soap:Body></soap:Envelope>`;
+
+  const attempts=['GetPointsByCP','GetPointsDB'];
+  let lastMessage='MRW no ha podido validar la cuenta.';
+  for(const operation of attempts){
+    const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':`"http://www.mrw.es/${operation}"`,Accept:'text/xml'},body:envelope(operation)});
+    const text=await res.text();
+    const fault=(text.match(/<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i)?.[1]||text.match(/<Mensaje[^>]*>([\s\S]*?)<\/Mensaje>/i)?.[1]||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+    if(res.ok&&!fault&&new RegExp(`${operation}Response|PuntoDeRedDTO`,'i').test(text)){
+      return {environment:account.config?.environment==='test'?'test':'production',validationOperation:operation};
+    }
+    lastMessage=mrwResponseError(text,res.status);
+    if(fault)break;
+  }
+  throw new Error(lastMessage);
 }
 async function enviaCarriers(admin:any,account:any){
   const c=await enviaCredentials(admin,account);

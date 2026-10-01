@@ -57,9 +57,29 @@ function message(data:any,error:any,fallback:string){
   return detail||fallback;
 }
 
+async function functionErrorMessage(error:any,fallback:string){
+  const context=error?.context;
+  if(context&&typeof context.clone==='function'){
+    try{
+      const response=context.clone();
+      const payload=await response.json();
+      const detail=String(payload?.error||payload?.message||'').trim();
+      if(detail)return detail;
+    }catch{}
+    try{
+      const response=context.clone();
+      const text=String(await response.text()).trim();
+      if(text&&text!=='Edge Function returned a non-2xx status code')return text.slice(0,1200);
+    }catch{}
+  }
+  const raw=String(error?.message||'').trim();
+  return raw&&raw!=='Edge Function returned a non-2xx status code'?raw:fallback;
+}
+
 async function invoke<T>(body:Record<string,unknown>,fallback:string):Promise<T>{
   const {data,error}=await supabase.functions.invoke('integration-accounts',{body});
-  if(error||!data||data.error)throw new Error(message(data,error,fallback));
+  if(error)throw new Error(await functionErrorMessage(error,fallback));
+  if(!data||data.error)throw new Error(message(data,null,fallback));
   return data as T;
 }
 

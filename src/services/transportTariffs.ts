@@ -413,11 +413,27 @@ function normalizeProposal(value:any,fallback:TransportTariffProposal):Transport
   return {...proposal,fuelSurchargePct:suspiciousFuel?null:proposal.fuelSurchargePct,parserConfidence:Math.max(0,Math.min(1,Number(proposal.parserConfidence)||0)),parserNotes:warnings,services:checked.services};
 }
 
+async function fileDataUrl(file:File){
+  if(file.size>9.5*1024*1024)return '';
+  return await new Promise<string>((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onerror=()=>reject(reader.error||new Error('No se pudo preparar el documento.'));
+    reader.onload=()=>resolve(typeof reader.result==='string'?reader.result:'');
+    reader.readAsDataURL(file);
+  });
+}
+
 export async function parseTransportTariffDocument(file:File):Promise<TransportTariffProposal>{
   const text=await readTransportDocumentText(file);if(!clean(text))throw new Error('No se ha podido extraer texto del documento.');
   const fallback=fallbackProposal(text,file.name);
+  let fileData='';
+  if(file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf')){
+    try{fileData=await fileDataUrl(file)}catch{/* El texto estructurado sigue disponible. */}
+  }
   try{
-    const {data,error}=await supabase.functions.invoke('transport-tariff-parser',{body:{fileName:file.name,mimeType:file.type,text:text.slice(0,90000),fallback}});
+    const {data,error}=await supabase.functions.invoke('transport-tariff-parser',{body:{
+      fileName:file.name,mimeType:file.type,text:text.slice(0,120000),fileData:fileData||undefined,fallback,
+    }});
     if(!error&&data?.proposal)return normalizeProposal(data.proposal,{...fallback,parserProvider:data.parserProvider||fallback.parserProvider,parserModel:data.parserModel||null,parserConfidence:Number(data.parserConfidence??fallback.parserConfidence)});
   }catch{/* El lector automático local mantiene el flujo disponible si el proveedor IA no está configurado. */}
   return fallback;
@@ -496,4 +512,8 @@ export async function saveActiveTransportTariff(document:TransportTariffDocument
 
 export async function markTransportTariffReviewed(documentId:string){const {data,error}=await supabase.rpc('transport_tariff_mark_reviewed',{document_id:documentId});if(error)throw error;return data}
 export async function activateTransportTariff(documentId:string){const {data,error}=await supabase.rpc('transport_tariff_activate',{document_id:documentId});if(error)throw error;return data}
-export async function deleteTransportTariffDraft(document:TransportTariffDocument){if(!['draft','reviewed'].includes(document.status))throw new Error('Una tarifa activa no se puede eliminar.');const {error}=await supabase.from('transport_tariff_documents').delete().eq('id',document.id);if(error)throw error;if(document.sourceFilePath)await supabase.storage.from(BUCKET).remove([document.sourceFilePath]).catch(()=>undefined)}
+export async function deleteTransportTariff(document:TransportTariffDocument){
+  const {error}=await supabase.from('transport_tariff_documents').delete().eq('id',document.id);
+  if(error)throw error;
+  if(document.sourceFilePath)await supabase.storage.from(BUCKET).remove([document.sourceFilePath]).catch(()=>undefined);
+}

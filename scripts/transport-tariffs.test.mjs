@@ -114,3 +114,23 @@ test('generic tariff parser recognizes carriers commonly returned by Envia',asyn
   const service=await source('src/services/transportTariffs.ts');
   for(const carrier of ['inPost','transaher','zeleris','tdn','ontime','cainiao','cttExpress'])assert.match(service,new RegExp(carrier,'i'));
 });
+
+
+test('tariff parser spends AI only when local extraction is insufficient and sends original PDF when needed',async()=>{
+  const [service,edge]=await Promise.all([
+    source('src/services/transportTariffs.ts'),
+    source('supabase/functions/transport-tariff-parser/index.ts'),
+  ]);
+  assert.match(service,/fileDataUrl/);
+  assert.match(service,/fileData:fileData\|\|undefined/);
+  assert.match(edge,/fallbackServices\.length>0&&fallbackConfidence>=0\.82/);
+  assert.match(edge,/no se ha consumido IA/);
+  assert.match(edge,/type:'input_file'/);
+  assert.match(edge,/file_data:fileData/);
+});
+
+test('transport tariff delete is not restricted to draft or reviewed documents',async()=>{
+  const service=await source('src/services/transportTariffs.ts');
+  assert.match(service,/export async function deleteTransportTariff\(/);
+  assert.doesNotMatch(service,/Una tarifa activa no se puede eliminar/);
+});

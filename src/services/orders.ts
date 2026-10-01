@@ -138,10 +138,59 @@ function invokeEnvia<T>(body:Record<string,unknown>){return invokeFunction<T>('e
 function invokeMrw<T>(body:Record<string,unknown>){return invokeFunction<T>('mrw-shipping',body);}
 function invokeAmazonTracking<T>(body:Record<string,unknown>){return invokeFunction<T>('amazon-confirm-shipment',body);}
 
+function orderCompleteness(order:FulfillmentOrder){
+  let score=0;
+  if(order.sendcloudRemoteId)score+=40;
+  if(order.shippingIntegrationAccountId)score+=20;
+  if(order.customerName)score+=8;
+  if(order.customerPhone)score+=4;
+  if(order.customerEmail)score+=2;
+  if(String(order.shippingAddress?.address_line_1||'').trim())score+=8;
+  if(String(order.shippingAddress?.postal_code||'').trim())score+=4;
+  if(order.weightKg&&order.weightKg>0)score+=4;
+  if(order.items.length)score+=2;
+  if(order.sendcloudParcelId||order.shippingRemoteId||order.labelCreatedAt)score+=50;
+  return score;
+}
+function dedupeMarketplaceOrders(orders:FulfillmentOrder[]){
+  const result:FulfillmentOrder[]=[],byAmazonOrder=new Map<string,number>();
+  for(const order of orders){
+    const key=order.sourceChannel==='amazon'&&order.orderNumber?order.orderNumber.trim():'';
+    if(!key){result.push(order);continue}
+    const existingIndex=byAmazonOrder.get(key);
+    if(existingIndex==null){
+      byAmazonOrder.set(key,result.length);result.push(order);continue;
+    }
+    const current=result[existingIndex];
+    const preferred=orderCompleteness(order)>orderCompleteness(current)?order:current;
+    const other=preferred===order?current:order;
+    // Amazon direct and Sendcloud can expose the same marketplace order with
+    // different internal IDs. Keep one logistics row, preferring the one that
+    // has the Sendcloud linkage/recipient data, while preserving marketplace
+    // linkage from the other source when necessary.
+    result[existingIndex]={
+      ...preferred,
+      sourceIntegrationAccountId:preferred.sourceIntegrationAccountId||other.sourceIntegrationAccountId,
+      customerName:preferred.customerName||other.customerName,
+      customerEmail:preferred.customerEmail||other.customerEmail,
+      customerPhone:preferred.customerPhone||other.customerPhone,
+      shippingAddress:Object.keys(preferred.shippingAddress||{}).length?preferred.shippingAddress:other.shippingAddress,
+      billingAddress:Object.keys(preferred.billingAddress||{}).length?preferred.billingAddress:other.billingAddress,
+      items:preferred.items.length?preferred.items:other.items,
+      totalAmount:preferred.totalAmount??other.totalAmount,
+      currency:preferred.currency||other.currency,
+      weightKg:preferred.weightKg??other.weightKg,
+      packageLengthCm:preferred.packageLengthCm??other.packageLengthCm,
+      packageWidthCm:preferred.packageWidthCm??other.packageWidthCm,
+      packageHeightCm:preferred.packageHeightCm??other.packageHeightCm,
+    };
+  }
+  return result;
+}
 export async function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
   const {data,error}=await supabase.from('fulfillment_orders').select('*').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000);
   if(error)throw error;
-  return (data||[]).map(mapRow);
+  return dedupeMarketplaceOrders((data||[]).map(mapRow));
 }
 export function getSendcloudStatus(){return invokeSendcloud<SendcloudStatus>({action:'status'});}
 export interface EnviaSyncResult{

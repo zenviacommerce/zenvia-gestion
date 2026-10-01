@@ -51,6 +51,7 @@ export function validateOrderForCarrier(order:FulfillmentOrder,carrierCode=''):O
   const address=order.shippingAddress||{},issues:OrderValidationIssue[]=[];
   const carrierHint=clean(carrierCode||order.carrierCode||order.carrierName||order.shippingOptionCode||order.shippingServiceName).toLowerCase();
   const isMrw=carrierHint.includes('mrw');
+  const requiresMrwDimensions=isMrw&&(/\b0200\b|\b0205\b|\b0220\b/.test(carrierHint)||/urgente\s*19/.test(carrierHint));
   const country=clean(address.country_code).toUpperCase();
   const name=order.customerName||address.name;
   addLengthIssue(issues,'name','Nombre',name,isMrw?50:80,true);
@@ -68,7 +69,7 @@ export function validateOrderForCarrier(order:FulfillmentOrder,carrierCode=''):O
     addLengthIssue(issues,'house_number','Número',address.house_number,20,false);
   }
   if(order.weightKg==null||!Number.isFinite(order.weightKg)||order.weightKg<=0)issues.push({field:'weight',severity:'error',message:'Peso: debe ser mayor que 0 kg.'});
-  if(isMrw){
+  if(requiresMrwDimensions){
     const dimensions=[
       ['package_length_cm','Largo',order.packageLengthCm],
       ['package_width_cm','Ancho',order.packageWidthCm],

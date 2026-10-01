@@ -215,13 +215,27 @@ function mrwResponseError(text:string,status:number){
   }
   return `MRW (${status}): ${sanitize(text||'respuesta no válida')}`;
 }
-async function testMrw(admin:any,account:any){
+async function testMrw(admin:any,ownerId:string,account:any){
   const creds=await mrwCredentials(admin,account);
   const environment=account.config?.environment==='test'?'test':'production';
   const base=environment==='test'?'https://sagec-test.mrw.es/mrwenvio.asmx':'https://sagec.mrw.es/MRWEnvio.asmx';
   const auth=`<AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${mrwEsc(creds.franchiseCode)}</CodigoFranquicia><CodigoAbonado>${mrwEsc(creds.subscriberCode)}</CodigoAbonado><CodigoDepartamento>${mrwEsc(creds.departmentCode)}</CodigoDepartamento><UserName>${mrwEsc(creds.username)}</UserName><Password>${mrwEsc(creds.password)}</Password></AuthInfo>`;
   const action='GetEtiquetaEnvio';
-  const request='<request><NumeroEnvio>000000000000</NumeroEnvio><NumerosEtiqueta></NumerosEtiqueta><SeparadorNumerosEnvio></SeparadorNumerosEnvio><FechaInicioEnvio></FechaInicioEnvio><FechaFinEnvio></FechaFinEnvio><TipoEtiquetaEnvio>PDF</TipoEtiquetaEnvio><ReportTopMargin>0</ReportTopMargin><ReportLeftMargin>0</ReportLeftMargin></request>';
+  const {data:recentOrders,error:recentError}=await admin.from('fulfillment_orders')
+    .select('tracking_number,shipping_remote_id,carrier_name,shipping_provider,updated_at')
+    .eq('owner_id',ownerId)
+    .not('tracking_number','is',null)
+    .order('updated_at',{ascending:false})
+    .limit(200);
+  if(recentError)throw recentError;
+  const knownShipment=(recentOrders||[])
+    .filter((row:any)=>/mrw/i.test(clean(row.carrier_name))||clean(row.shipping_provider)==='mrw')
+    .map((row:any)=>clean(row.shipping_remote_id||row.tracking_number))
+    .find((value:string)=>value.length>=8)||'';
+  if(!knownShipment){
+    throw new Error('No hay todavía un envío MRW real en ZENVIA con el que validar la conexión sin crear uno nuevo. Sin un envío real, MRW devuelve Runtime Error con números ficticios.');
+  }
+  const request=`<request><NumeroEnvio>${mrwEsc(knownShipment)}</NumeroEnvio><NumerosEtiqueta></NumerosEtiqueta><SeparadorNumerosEnvio></SeparadorNumerosEnvio><FechaInicioEnvio></FechaInicioEnvio><FechaFinEnvio></FechaFinEnvio><TipoEtiquetaEnvio>PDF</TipoEtiquetaEnvio><ReportTopMargin>0</ReportTopMargin><ReportLeftMargin>0</ReportLeftMargin></request>`;
   const envelope=`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Header>${auth}</soap:Header><soap:Body><GetEtiquetaEnvio xmlns="http://www.mrw.es/">${request}</GetEtiquetaEnvio></soap:Body></soap:Envelope>`;
   const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':'"http://www.mrw.es/GetEtiquetaEnvio"',Accept:'text/xml'},body:envelope});
   const raw=await res.text();
@@ -281,7 +295,7 @@ async function testAccount(admin:any,ownerId:string,account:any){
       const carriers=await enviaCarriers(admin,account);
       detail={carriers:carriers.length,environment:account.config?.environment==='production'?'production':'sandbox'};
     }else if(account.provider==='mrw'){
-      detail=await testMrw(admin,account);
+      detail=await testMrw(admin,ownerId,account);
     }else if(account.provider==='shopify'){
       if(!account.parent_account_id)throw new Error('La tienda Shopify no tiene una cuenta de Sendcloud asociada.');
       const parent=await loadAccount(admin,ownerId,account.parent_account_id);

@@ -197,9 +197,9 @@ export async function getShippingOptions(orderId:string){
   return {weightKg:sendcloud?.weightKg??null,options,message:messages||null,diagnostics:envia?.diagnostics||[]};
 }
 export async function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){
-  const {data,error}=await supabase.from('fulfillment_orders').select('sendcloud_remote_id,sendcloud_id,source_channel').eq('id',orderId).maybeSingle();
+  const {data,error}=await supabase.from('fulfillment_orders').select('sendcloud_remote_id,sendcloud_id,source_channel,integration_type').eq('id',orderId).maybeSingle();
   if(error)throw error;
-  const nativeAmazon=data?.source_channel==='amazon'&&!data?.sendcloud_remote_id&&String(data?.sendcloud_id||'').startsWith('amazon:');
+  const nativeAmazon=data?.source_channel==='amazon'&&(data?.integration_type==='amazon-direct'||(!data?.sendcloud_remote_id&&String(data?.sendcloud_id||'').startsWith('amazon:')));
   return nativeAmazon
     ?invokeOrderState<{ok:true;weightKg:number}>({action:'update_native_order',orderId,order})
     :invokeOrderTools<{ok:true;weightKg:number}>({action:'update_order',orderId,order});

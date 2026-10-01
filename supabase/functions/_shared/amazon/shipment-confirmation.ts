@@ -77,7 +77,9 @@ async function currentTrackingState(admin:any,order:FulfillmentOrderRow){
 }
 async function markSuccess(admin:any,order:FulfillmentOrderRow){
   const now=new Date().toISOString();
-  const {error}=await admin.from('fulfillment_orders').update({amazon_tracking_synced_at:now,amazon_tracking_last_attempt_at:now,amazon_tracking_sync_error:null}).eq('id',order.id).eq('owner_id',order.owner_id);
+  const patch:any={amazon_tracking_synced_at:now,amazon_tracking_last_attempt_at:now,amazon_tracking_sync_error:null,source_status:'shipped'};
+  if(!order.fulfilled_at)patch.fulfilled_at=now;
+  const {error}=await admin.from('fulfillment_orders').update(patch).eq('id',order.id).eq('owner_id',order.owner_id);
   if(error)throw error;
 }
 async function markFailure(admin:any,order:FulfillmentOrderRow,errorValue:unknown){

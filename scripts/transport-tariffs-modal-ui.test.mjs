@@ -10,3 +10,11 @@ test('transport tariffs uses the standard centered modal backdrop and close butt
   assert.match(source,/className="modalHead transportTariffHead"/,'transport tariff header must inherit the standard modal close-button treatment');
   assert.doesNotMatch(source,/className="modalOverlay transportTariffOverlay"/,'legacy non-positioned overlay class must not be used');
 });
+
+
+test('transport tariffs can be deleted after import regardless of status',async()=>{
+  const panel=await read('src/components/TransportTariffsPanel.tsx');
+  assert.match(panel,/deleteTransportTariff/);
+  assert.match(panel,/Es la tarifa activa: dejará de utilizarse inmediatamente/);
+  assert.doesNotMatch(panel,/\['draft','reviewed'\]\.includes\(draft\.status\).*Eliminar/);
+});

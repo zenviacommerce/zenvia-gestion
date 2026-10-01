@@ -197,7 +197,7 @@ async function enrichSendcloudPrices(credentials:SendcloudCredentials,options:an
   if(!options.some(option=>option.price==null))return diagnostics;
   try{
     const methodParams=new URLSearchParams();
-    if(senderAddressId)methodParams.set('sender_address',String(senderAddressId));
+    methodParams.set('sender_address',senderAddressId?String(senderAddressId):'all');
     if(toCountry)methodParams.set('to_country',toCountry);
     if(fromPostal)methodParams.set('from_postal_code',fromPostal);
     if(toPostal)methodParams.set('to_postal_code',toPostal);
@@ -336,7 +336,15 @@ Deno.serve(async(req:Request)=>{
 
     if(action==='shipping_options'){
       if(!canEdit(order.source_status)||order.sendcloud_parcel_id)return fail('Este pedido ya no admite una nueva etiqueta.',409);
-      let address=order.shipping_address||{};const sender=configuredSender(shippingConfig)||await senderAddress(orderCredentials),weightKg=orderWeightKg(order,shippingConfig.fallbackWeightKg);
+      let address=order.shipping_address||{};
+      // For zonal carriers (Correos / Correos Express), Sendcloud v2 requires
+      // sender_address=<ID>. Our configured sender object has no Sendcloud ID,
+      // so always fetch the remote sender record and keep its ID even when
+      // local address fields override the visible sender data.
+      const remoteSender=await senderAddress(orderCredentials);
+      const configured=configuredSender(shippingConfig);
+      const sender=configured?{...remoteSender,...configured,id:remoteSender?.id??null}:remoteSender;
+      const weightKg=orderWeightKg(order,shippingConfig.fallbackWeightKg);
       const normalizedState=normalizeStateProvince(address.country_code,address.state_province_code);
       if(clean(address.state_province_code)!==clean(normalizedState)){
         const correctedAddress={...address,state_province_code:normalizedState};
@@ -394,7 +402,7 @@ Deno.serve(async(req:Request)=>{
         clean(address.country_code).toUpperCase(),
         fromPostal,
         clean(address.postal_code),
-        sender?.id??null,
+        remoteSender?.id??sender?.id??null,
       );
       const priced=options.filter((option:any)=>option.price!=null&&Number(option.price)>0).length;
       const unpricedCorreos=options.some((option:any)=>option.price==null&&/correos/i.test(`${option.carrierCode} ${option.carrierName}`));

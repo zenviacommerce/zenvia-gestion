@@ -225,7 +225,7 @@ function LabelModal({order,options,tariffs,message,loading,preferredOption,onClo
             const isSelected=shippingOptionKey(option)===selectedKey;
             return <button type="button" className={'ordersComparisonRow '+(isSelected?'selected':'')} aria-pressed={isSelected} key={'comparison-'+option.provider+'-'+(option.integrationAccountId||'')+'-'+option.carrierCode+'-'+option.code+'-'+index} onClick={()=>selectOption(option)}>
               <div className="ordersComparisonIdentity"><span className={'ordersProviderBadge '+option.provider}>{option.providerName}</span><strong>{option.carrierName||option.carrierCode||'Transportista'}</strong><small>{option.name||option.code}{isPreferred?' · Predeterminada':''}</small></div>
-              <div><span>Precio API</span><strong>{option.price==null?'—':money(option.price,option.currency||'EUR')}</strong>{isCheapest&&<small className="ordersBestPrice">Más barato con precio</small>}</div>
+              <div><span>Precio API</span><strong>{option.price==null?'—':money(option.price,option.currency||'EUR')}</strong>{option.provider==='envia'&&option.price!=null&&<small>IVA y combustible incluidos</small>}{isCheapest&&<small className="ordersBestPrice">Más barato con precio</small>}</div>
               <div><span>Tu tarifa</span><strong>{tariff?.totalAmount==null?'—':money(tariff.totalAmount,tariff.currency)}</strong><small>{tariff?.documentName||'Sin asociación'}</small></div>
               <div><span>Diferencia</span><strong className={delta==null?'':delta<=0?'good':'bad'}>{delta==null?'—':(delta>0?'+':'')+money(delta,option.currency||tariff?.currency||'EUR')}</strong></div>
             </button>;

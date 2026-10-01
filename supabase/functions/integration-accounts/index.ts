@@ -245,15 +245,17 @@ async function testMrw(admin:any,ownerId:string,account:any){
     .map((row:any)=>clean(row?.shipping_address?.postal_code).replace(/\s+/g,''))
     .find((value:string)=>/^\d{5}$/.test(value))||'28001';
 
-  const gatewayWsdl=await mrwGatewayRequest({environment,method:'GET',resource:'wsdl'});
-  let wsdlStatus:number,wsdlText:string;
-  if(gatewayWsdl){wsdlStatus=gatewayWsdl.status;wsdlText=gatewayWsdl.body}
+  // MRW currently returns HTTP 500 for ?WSDL from public clients, while its
+  // operation pages remain available. Do not use WSDL availability as a network test.
+  const gatewayOperation=await mrwGatewayRequest({environment,method:'GET',resource:'operation'});
+  let operationStatus:number,operationText:string;
+  if(gatewayOperation){operationStatus=gatewayOperation.status;operationText=gatewayOperation.body}
   else{
-    const wsdl=await fetch(base+'?WSDL',{headers:{Accept:'text/xml,application/xml','User-Agent':'ZENVIA-Gestion/1.0'}});
-    wsdlStatus=wsdl.status;wsdlText=await wsdl.text();
+    const operation=await fetch(base+'?op=GetPointsDB',{headers:{Accept:'text/html,application/xhtml+xml','User-Agent':'ZENVIA-Gestion/1.0'}});
+    operationStatus=operation.status;operationText=await operation.text();
   }
-  if(wsdlStatus<200||wsdlStatus>=300||!/definitions|wsdl:/i.test(wsdlText)){
-    throw new Error(`MRW SAGEC no expone correctamente el WSDL desde ${gatewayWsdl?'el gateway de IP fija':'nuestro servidor'} (HTTP ${wsdlStatus}).`);
+  if(operationStatus<200||operationStatus>=300||!/GetPointsDB/i.test(operationText)){
+    throw new Error(`MRW SAGEC no expone la página de operación GetPointsDB desde ${gatewayOperation?'el gateway Vercel':'nuestro servidor'} (HTTP ${operationStatus}).`);
   }
   const request=`<request><Point><codigoPoint></codigoPoint><CodigoPostal>${mrwEsc(postal)}</CodigoPostal></Point></request>`;
   const envelope=`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Header>${auth}</soap:Header><soap:Body><GetPointsDB xmlns="http://www.mrw.es/">${request}</GetPointsDB></soap:Body></soap:Envelope>`;

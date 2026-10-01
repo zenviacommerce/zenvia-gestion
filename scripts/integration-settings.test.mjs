@@ -97,12 +97,16 @@ test('integration UI shows provider logos and models Shopify honestly as a Sendc
   assert.match(page,/provider==='envia'/);
   assert.match(page,/provider==='gmail'/);
   assert.doesNotMatch(page,/cdn\.simpleicons\.org/);
-  assert.match(page,/primaryProviders:IntegrationProvider\[\]=\['amazon','sendcloud','envia','mrw','gmail'\]/);
-  assert.match(page,/Shopify vía Sendcloud/);
+  assert.match(page,/title:'Ecommerce'/);
+  assert.match(page,/providers:\['amazon','shopify'\]/);
+  assert.match(page,/title:'Transportistas y logística'/);
+  assert.match(page,/providers:\['sendcloud','envia','mrw'\]/);
+  assert.match(page,/title:'Documentos y correo'/);
   assert.match(page,/no usa credenciales Shopify|no se solicita una contraseña de Shopify/i);
   assert.match(page,/Conexión directa con Amazon SP-API/i);
   assert.match(css,/\.integrationProviderLogo/);
-  assert.match(css,/\.integrationDerivedChannels/);
+  assert.match(css,/\.integrationCategoryList/);
+  assert.match(css,/\.integrationCategoryHead/);
 });
 
 
@@ -127,11 +131,25 @@ test('Integrations supports a vaulted direct MRW account without exposing creden
   ]);
   assert.match(service,/\|'mrw'\|/);
   assert.match(page,/Conectar MRW/);
-  assert.match(page,/Código franquicia/);
-  assert.match(page,/Código abonado/);
+  assert.match(page,/Código de franquicia/);
+  assert.match(page,/Código de suscriptor/);
   assert.match(page,/MRW directo/);
   assert.match(edge,/provider==='mrw'/);
   assert.match(edge,/mrwCredentials/);
   assert.match(edge,/testMrw/);
   assert.match(mrw,/integration_read_secret/);
+});
+
+
+test('MRW only masks actual passwords; identifiers stay readable like the carrier contract form',async()=>{
+  const page=await read('src/pages/Settings.tsx');
+  assert.match(page,/Código de franquicia/);
+  assert.match(page,/Código de suscriptor/);
+  assert.match(page,/inputMode="numeric"[^>]*value=\{mrwFranchiseCode\}/);
+  assert.match(page,/inputMode="numeric"[^>]*value=\{mrwSubscriberCode\}/);
+  assert.match(page,/Departamento \(opcional\)/);
+  assert.match(page,/autoComplete="username"[^>]*value=\{mrwUsername\}/);
+  assert.match(page,/type="password"[^>]*value=\{mrwPassword\}/);
+  assert.match(page,/Contraseña de seguimiento \(opcional\)/);
+  assert.match(page,/trackingPassword:mrwTrackingPassword\.trim\(\)/);
 });

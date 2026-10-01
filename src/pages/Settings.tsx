@@ -90,6 +90,7 @@ function IntegrationBrandLogo({provider,small=false}:{provider:IntegrationProvid
       <circle cx="12" cy="22.2" r="2.2" fill="#ff5a36"/><circle cx="21.2" cy="22.2" r="2.2" fill="#ff5a36"/>
       <path d="M9.5 8.5h9" stroke="#fff" strokeWidth="2" strokeLinecap="round"/>
     </svg>}
+    {provider==='mrw'&&<svg viewBox="0 0 32 32" role="img"><rect width="32" height="32" rx="8" fill="#281a5b"/><text x="4.8" y="19.5" fontSize="9.4" fontWeight="800" fontFamily="Arial,Helvetica,sans-serif" fill="#fff">MRW</text></svg>}
     {provider==='shopify'&&<svg viewBox="0 0 32 32" role="img">
       <rect width="32" height="32" rx="8" fill="#95bf47"/>
       <path d="M9.2 10.9 11 25.3l13.6 2.1 1.8-16.5-5.3-.4c-.6-2.7-2-4.2-4-4.2-2 0-3.7 1.5-4.7 4.1l-3.2.5Z" fill="#fff"/>
@@ -1130,6 +1131,14 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   const [sendcloudSecretKey,setSendcloudSecretKey]=useState('');
   const [enviaToken,setEnviaToken]=useState('');
   const [enviaEnvironment,setEnviaEnvironment]=useState<'sandbox'|'production'>('sandbox');
+  const [mrwFranchiseCode,setMrwFranchiseCode]=useState('');
+  const [mrwSubscriberCode,setMrwSubscriberCode]=useState('');
+  const [mrwDepartmentCode,setMrwDepartmentCode]=useState('');
+  const [mrwUsername,setMrwUsername]=useState('');
+  const [mrwPassword,setMrwPassword]=useState('');
+  const [mrwEnvironment,setMrwEnvironment]=useState<'test'|'production'>('production');
+  const [mrwServiceCode,setMrwServiceCode]=useState('0205');
+  const [mrwServiceName,setMrwServiceName]=useState('MRW Urgent 19:00');
   const [parentAccountId,setParentAccountId]=useState('');
   const [shopifyIntegrationId,setShopifyIntegrationId]=useState('');
   const [shopifyStores,setShopifyStores]=useState<ShopifyDiscovery[]>([]);
@@ -1174,6 +1183,11 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
       description:'Proveedor logístico multi-transportista para comparar tarifas, generar etiquetas y seguimiento.',
       addLabel:'Conectar Envia.com',
     },
+    mrw:{
+      name:'MRW',
+      description:'Conexión directa con MRW para generar envíos y etiquetas sin pasar por Sendcloud.',
+      addLabel:'Conectar MRW',
+    },
     gmail:{
       name:'Gmail',
       description:'Cuenta de Google autorizada para importar facturas recibidas.',
@@ -1183,10 +1197,10 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   // Shopify is not a standalone credential connection in the current architecture:
   // it is a sales channel discovered through Sendcloud, so it is shown inside
   // Sendcloud instead of pretending to be an independent integration.
-  const primaryProviders:IntegrationProvider[]=['amazon','sendcloud','envia','gmail'];
-  const globalProviders:IntegrationProvider[]=['amazon','sendcloud','envia','shopify','gmail'];
+  const primaryProviders:IntegrationProvider[]=['amazon','sendcloud','envia','mrw','gmail'];
+  const globalProviders:IntegrationProvider[]=['amazon','sendcloud','envia','mrw','shopify','gmail'];
   const settingKey:Record<IntegrationProvider,keyof IntegrationsSettings>={
-    gmail:'gmailEnabled',amazon:'amazonEnabled',sendcloud:'sendcloudEnabled',envia:'enviaEnabled',shopify:'shopifyEnabled',
+    gmail:'gmailEnabled',amazon:'amazonEnabled',sendcloud:'sendcloudEnabled',envia:'enviaEnabled',mrw:'mrwEnabled',shopify:'shopifyEnabled',
   };
   const enabled=(id:IntegrationProvider)=>Boolean(draft[settingKey[id]]);
   const toggle=async(id:IntegrationProvider,value:boolean)=>{
@@ -1216,6 +1230,10 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     setSendcloudPublicKey('');setSendcloudSecretKey('');
     setEnviaToken('');
     setEnviaEnvironment(account?.provider==='envia'&&account?.config?.environment==='production'?'production':'sandbox');
+    setMrwFranchiseCode('');setMrwSubscriberCode('');setMrwDepartmentCode('');setMrwUsername('');setMrwPassword('');
+    setMrwEnvironment(account?.provider==='mrw'&&account?.config?.environment==='test'?'test':'production');
+    setMrwServiceCode(account?.provider==='mrw'&&typeof account?.config?.serviceCode==='string'?String(account.config.serviceCode):'0205');
+    setMrwServiceName(account?.provider==='mrw'&&typeof account?.config?.serviceName==='string'?String(account.config.serviceName):'MRW Urgent 19:00');
     setParentAccountId(account?.parentAccountId||sendcloudAccounts.find(item=>item.isDefault)?.id||sendcloudAccounts[0]?.id||'');
     setShopifyIntegrationId(String(account?.config?.sendcloudIntegrationId||account?.externalAccountId||''));
     setShopifyStores([]);setAccountEnabled(account?.enabled??true);
@@ -1259,6 +1277,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     if(provider==='shopify')return {sendcloudIntegrationId:Number(shopifyIntegrationId),syncOrders};
     if(provider==='sendcloud')return {syncOrders,shippingEnabled:true};
     if(provider==='envia')return {shippingEnabled:true,environment:enviaEnvironment};
+    if(provider==='mrw')return {shippingEnabled:true,environment:mrwEnvironment,serviceCode:mrwServiceCode.trim()||'0205',serviceName:mrwServiceName.trim()||'MRW Urgent 19:00'};
     return {months:Math.max(1,Math.min(36,Number(gmailMonths)||12)),invoiceImportEnabled:true};
   };
 
@@ -1297,6 +1316,13 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           if(sendcloudSecretKey.trim())credentials.secretKey=sendcloudSecretKey.trim();
         }
         if(provider==='envia'&&enviaToken.trim())credentials.token=enviaToken.trim();
+        if(provider==='mrw'){
+          if(mrwFranchiseCode.trim())credentials.franchiseCode=mrwFranchiseCode.trim();
+          if(mrwSubscriberCode.trim())credentials.subscriberCode=mrwSubscriberCode.trim();
+          if(mrwDepartmentCode.trim())credentials.departmentCode=mrwDepartmentCode.trim();
+          if(mrwUsername.trim())credentials.username=mrwUsername.trim();
+          if(mrwPassword.trim())credentials.password=mrwPassword.trim();
+        }
         await updateIntegrationAccount(editing.id,{
           displayName:displayName.trim()||editing.displayName,enabled:accountEnabled,config:accountConfig(),
           ...(Object.keys(credentials).length?{credentials}:{}),
@@ -1339,6 +1365,14 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           config:accountConfig(),test:true,
         });
         showSuccess('Cuenta de Envia.com conectada.');
+      }else if(provider==='mrw'){
+        if(!mrwFranchiseCode.trim()||!mrwSubscriberCode.trim()||!mrwUsername.trim()||!mrwPassword.trim())throw new Error('Indica franquicia, abonado, usuario y contraseña de MRW.');
+        await createIntegrationAccount({
+          provider:'mrw',displayName:displayName.trim()||'MRW',
+          credentials:{franchiseCode:mrwFranchiseCode.trim(),subscriberCode:mrwSubscriberCode.trim(),departmentCode:mrwDepartmentCode.trim(),username:mrwUsername.trim(),password:mrwPassword.trim()},
+          config:accountConfig(),test:true,
+        });
+        showSuccess('Cuenta de MRW conectada directamente.');
       }else{
         if(!parentAccountId||!shopifyIntegrationId)throw new Error('Selecciona la cuenta de Sendcloud y la tienda Shopify.');
         const shop=shopifyStores.find(item=>String(item.id)===shopifyIntegrationId);
@@ -1444,7 +1478,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     <div className="settingsSectionHero"><div className="settingsSectionIcon"><PlugZap size={22}/></div><div><h2>Integraciones</h2><p>Conecta y administra varias cuentas por servicio. Las credenciales se gestionan por cuenta; aquí no se muestran secretos guardados.</p></div></div>
 
     <div className="settingsSubsection">
-      <div className="settingsSubsectionHead"><div><h3>Cuentas conectadas</h3><p>Amazon, Sendcloud, Envia.com y Gmail se conectan como servicios independientes. Las tiendas Shopify se muestran dentro de Sendcloud porque actualmente llegan a ZENVIA a través de esa conexión logística.</p></div></div>
+      <div className="settingsSubsectionHead"><div><h3>Cuentas conectadas</h3><p>Amazon, Sendcloud, Envia.com, MRW y Gmail se conectan como servicios independientes. Las tiendas Shopify se muestran dentro de Sendcloud porque actualmente llegan a ZENVIA a través de esa conexión logística.</p></div></div>
       {compatibilityMode&&<p className="settingsHelpText">Estás viendo conexiones actuales detectadas automáticamente. Ya puedes abrir el alta de nuevas cuentas; si este entorno todavía no tiene activado el backend multicuenta, al guardar se indicará de forma explícita.</p>}
       {loading?<div className="settingsInlineLoading">Cargando cuentas…</div>:<div className="integrationProviderGrid">
         {primaryProviders.map(id=>{
@@ -1531,6 +1565,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           :editing?'Los secretos guardados nunca se vuelven a mostrar. Déjalos vacíos para conservarlos.'
           :provider==='amazon'?'Conexión directa con Amazon SP-API. Introduce las credenciales de la cuenta Seller Central que quieras añadir.'
           :provider==='sendcloud'?'Conexión directa con la API de Sendcloud. Cada cuenta puede tener sus propios canales de venta.'
+          :provider==='mrw'?'Conexión directa con los Web Services oficiales de MRW. Las credenciales se guardan cifradas y MRW deja de depender de Sendcloud.'
           :'Autoriza la cuenta de Google que quieras utilizar.'}</small></div></div><button type="button" className="iconBtn" onClick={closeEditor} aria-label="Cerrar">×</button></div>
         <div className="integrationEditorBody">
           {provider!=='gmail'&&<label className="settingsField"><span>Nombre / alias</span><input value={displayName} disabled={Boolean(editing?.legacy)} onChange={e=>setDisplayName(e.target.value)} placeholder={provider==='amazon'?'Ej. ZENVIA COMMERCE':provider==='sendcloud'?'Ej. Logística principal':'Ej. TrufaPet'}/></label>}
@@ -1569,6 +1604,20 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
             <div className="settingsFormGrid">
               <label className="settingsField"><span>{editing?'Nuevo token API (opcional)':'Token API'}</span><input type="password" autoComplete="new-password" value={enviaToken} onChange={e=>setEnviaToken(e.target.value)} placeholder={editing?'Sin cambios':'Bearer token'}/></label>
               <label className="settingsField"><span>Entorno</span><SelectField ariaLabel="Entorno Envia.com" value={enviaEnvironment} options={[{value:'sandbox',label:'Sandbox · pruebas'},{value:'production',label:'Producción · etiquetas reales'}]} onChange={value=>setEnviaEnvironment(value as 'sandbox'|'production')}/></label>
+            </div>
+          </>}
+
+          {provider==='mrw'&&<>
+            <div className="settingsResetPreview"><strong>MRW directo</strong><small>ZENVIA generará el envío y recuperará la etiqueta desde los Web Services de MRW, sin Sendcloud. No se activará en pedidos hasta que la conexión pase la prueba.</small></div>
+            <div className="settingsFormGrid">
+              <label className="settingsField"><span>{editing?'Nueva franquicia (opcional)':'Código franquicia'}</span><input type="password" autoComplete="new-password" value={mrwFranchiseCode} onChange={e=>setMrwFranchiseCode(e.target.value)} placeholder={editing?'Sin cambios':'Franquicia'}/></label>
+              <label className="settingsField"><span>{editing?'Nuevo abonado (opcional)':'Código abonado'}</span><input type="password" autoComplete="new-password" value={mrwSubscriberCode} onChange={e=>setMrwSubscriberCode(e.target.value)} placeholder={editing?'Sin cambios':'Abonado'}/></label>
+              <label className="settingsField"><span>{editing?'Nuevo departamento (opcional)':'Código departamento'}</span><input type="password" autoComplete="new-password" value={mrwDepartmentCode} onChange={e=>setMrwDepartmentCode(e.target.value)} placeholder={editing?'Sin cambios':'Departamento (si aplica)'}/></label>
+              <label className="settingsField"><span>{editing?'Nuevo usuario (opcional)':'Usuario'}</span><input type="password" autoComplete="new-password" value={mrwUsername} onChange={e=>setMrwUsername(e.target.value)} placeholder={editing?'Sin cambios':'Usuario MRW'}/></label>
+              <label className="settingsField"><span>{editing?'Nueva contraseña (opcional)':'Contraseña'}</span><input type="password" autoComplete="new-password" value={mrwPassword} onChange={e=>setMrwPassword(e.target.value)} placeholder={editing?'Sin cambios':'Contraseña MRW'}/></label>
+              <label className="settingsField"><span>Entorno</span><SelectField ariaLabel="Entorno MRW" value={mrwEnvironment} options={[{value:'test',label:'Pruebas MRW'},{value:'production',label:'Producción MRW'}]} onChange={value=>setMrwEnvironment(value as 'test'|'production')}/></label>
+              <label className="settingsField"><span>Código de servicio</span><input value={mrwServiceCode} onChange={e=>setMrwServiceCode(e.target.value)} placeholder="0205"/></label>
+              <label className="settingsField"><span>Nombre del servicio</span><input value={mrwServiceName} onChange={e=>setMrwServiceName(e.target.value)} placeholder="MRW Urgent 19:00"/></label>
             </div>
           </>}
 

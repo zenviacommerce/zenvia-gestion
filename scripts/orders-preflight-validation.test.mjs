@@ -62,7 +62,7 @@ test('MRW final-carrier preflight requires a usable telephone',async()=>{
 
 test('order edit form validates current values live and marks invalid fields',async()=>{
   const source=await read('../src/components/OrderEditModal.tsx');
-  assert.match(source,/const liveValidation=validateOrderForCarrier\(liveOrder\)/);
+  assert.match(source,/const liveValidation=validateOrderForCarrier\(liveOrder,effectiveCarrier\)/);
   assert.match(source,/fieldIssue\('phone'\)/);
   assert.match(source,/aria-invalid=\{Boolean\(fieldIssue\('phone'\)\)\}/);
   assert.match(source,/ordersFieldError/);
@@ -88,4 +88,26 @@ test('quick label format is styled as an active interactive control',async()=>{
   assert.match(css,/\.ordersQuickLabelFormat \.searchableSelectTrigger[\s\S]*opacity:1!important/);
   assert.match(css,/cursor:pointer!important/);
   assert.match(css,/border:1px solid #94a3b8!important/);
+});
+
+
+test('MRW preflight blocks label creation when parcel dimensions are missing',async()=>{
+  const {validateOrderForCarrier}=await loadShipping();
+  const result=validateOrderForCarrier(order({packageLengthCm:null,packageWidthCm:null,packageHeightCm:null}),'mrw');
+  assert.equal(result.blocking,true);
+  for(const field of ['package_length_cm','package_width_cm','package_height_cm'])assert.ok(result.issues.some(item=>item.field===field),field);
+});
+
+test('MRW preflight accepts explicit parcel dimensions',async()=>{
+  const {validateOrderForCarrier}=await loadShipping();
+  const result=validateOrderForCarrier(order({packageLengthCm:30,packageWidthCm:20,packageHeightCm:10}),'mrw');
+  assert.equal(result.issues.some(item=>String(item.field).startsWith('package_')),false);
+});
+
+test('order editor exposes and saves package dimensions',async()=>{
+  const source=await read('../src/components/OrderEditModal.tsx');
+  for(const name of ['packageLengthCm','packageWidthCm','packageHeightCm'])assert.match(source,new RegExp(name));
+  assert.match(source,/Largo paquete \(cm\)/);
+  assert.match(source,/Ancho paquete \(cm\)/);
+  assert.match(source,/Alto paquete \(cm\)/);
 });

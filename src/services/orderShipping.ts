@@ -68,6 +68,16 @@ export function validateOrderForCarrier(order:FulfillmentOrder,carrierCode=''):O
     addLengthIssue(issues,'house_number','Número',address.house_number,20,false);
   }
   if(order.weightKg==null||!Number.isFinite(order.weightKg)||order.weightKg<=0)issues.push({field:'weight',severity:'error',message:'Peso: debe ser mayor que 0 kg.'});
+  if(isMrw){
+    const dimensions=[
+      ['package_length_cm','Largo',order.packageLengthCm],
+      ['package_width_cm','Ancho',order.packageWidthCm],
+      ['package_height_cm','Alto',order.packageHeightCm],
+    ] as const;
+    for(const [field,label,value] of dimensions){
+      if(value==null||!Number.isFinite(value)||value<=0)issues.push({field,severity:'error',message:`${label} del paquete: obligatorio para MRW.`});
+    }
+  }
   return {blocking:issues.some(issue=>issue.severity==='error'),issues};
 }
 

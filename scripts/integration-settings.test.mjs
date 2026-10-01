@@ -97,7 +97,7 @@ test('integration UI shows provider logos and models Shopify honestly as a Sendc
   assert.match(page,/provider==='envia'/);
   assert.match(page,/provider==='gmail'/);
   assert.doesNotMatch(page,/cdn\.simpleicons\.org/);
-  assert.match(page,/primaryProviders:IntegrationProvider\[\]=\['amazon','sendcloud','envia','gmail'\]/);
+  assert.match(page,/primaryProviders:IntegrationProvider\[\]=\['amazon','sendcloud','envia','mrw','gmail'\]/);
   assert.match(page,/Shopify vía Sendcloud/);
   assert.match(page,/no usa credenciales Shopify|no se solicita una contraseña de Shopify/i);
   assert.match(page,/Conexión directa con Amazon SP-API/i);
@@ -115,4 +115,23 @@ test('Integrations has one explicit save area: Amazon settings; global switches 
   assert.match(block,/await updateSection\('integrations',next\)/);
   assert.doesNotMatch(block,/saveGlobal/);
   assert.doesNotMatch(block,/Restaurar valores globales/);
+});
+
+
+test('Integrations supports a vaulted direct MRW account without exposing credentials',async()=>{
+  const [page,service,edge,mrw]=await Promise.all([
+    read('src/pages/Settings.tsx'),
+    read('src/services/integrationAccounts.ts'),
+    read('supabase/functions/integration-accounts/index.ts'),
+    read('supabase/functions/mrw-shipping/index.ts'),
+  ]);
+  assert.match(service,/\|'mrw'\|/);
+  assert.match(page,/Conectar MRW/);
+  assert.match(page,/Código franquicia/);
+  assert.match(page,/Código abonado/);
+  assert.match(page,/MRW directo/);
+  assert.match(edge,/provider==='mrw'/);
+  assert.match(edge,/mrwCredentials/);
+  assert.match(edge,/testMrw/);
+  assert.match(mrw,/integration_read_secret/);
 });

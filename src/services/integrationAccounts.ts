@@ -3,7 +3,7 @@ import { loadAmazonStatus } from './amazon';
 import { listCachedGmailConnections } from './gmail';
 import { getSendcloudStatus } from './orders';
 
-export type IntegrationProvider='amazon'|'sendcloud'|'envia'|'shopify'|'gmail';
+export type IntegrationProvider='amazon'|'sendcloud'|'envia'|'mrw'|'shopify'|'gmail';
 
 export type IntegrationAccount={
   id:string;

@@ -283,14 +283,20 @@ Deno.serve(async(req:Request)=>{
       const address1=clean(input.address??current.address_line_1),houseNumber=clean(input.houseNumber??current.house_number),address2=clean(input.address2??current.address_line_2),postalCode=clean(input.postalCode??current.postal_code),city=clean(input.city??current.city),countryCode=clean(input.countryCode??current.country_code).toUpperCase();
       const stateInput=clean(input.stateProvince??current.state_province_code),stateProvince=normalizeStateProvince(countryCode,stateInput);
       const weightKg=Number(input.weightKg);if(!name||!address1||!postalCode||!city||countryCode.length!==2)return fail('Completa nombre, dirección, código postal, ciudad y país.');if(!Number.isFinite(weightKg)||weightKg<=0)return fail('El peso debe ser mayor que 0.');
+      const lengthCm=Number(input.packageLengthCm),widthCm=Number(input.packageWidthCm),heightCm=Number(input.packageHeightCm);
+      const hasDimensions=[lengthCm,widthCm,heightCm].every(value=>Number.isFinite(value)&&value>0);
       const shippingAddress={...current,name,company_name:companyName||null,address_line_1:address1,house_number:houseNumber||null,address_line_2:address2||null,postal_code:postalCode,city,state_province_code:stateProvince,country_code:countryCode,email:email||null,phone_number:phone||null};
-      const raw=order.raw_payload||{},shippingDetails={...(raw.shipping_details||{}),measurement:{...(raw.shipping_details?.measurement||{}),weight:{value:Number(weightKg.toFixed(3)),unit:'kg'}}};
+      const raw=order.raw_payload||{},shippingDetails={...(raw.shipping_details||{}),measurement:{...(raw.shipping_details?.measurement||{}),weight:{value:Number(weightKg.toFixed(3)),unit:'kg'},...(hasDimensions?{dimension:{length:Number(lengthCm.toFixed(1)),width:Number(widthCm.toFixed(1)),height:Number(heightCm.toFixed(1)),unit:'cm'}}:{})}};
       const customerDetails={...(raw.customer_details||{}),name,email:email||null,phone_number:phone||null};
       const patch={shipping_address:shippingAddress,shipping_details:shippingDetails,customer_details:customerDetails};
       const {data}=await sendcloudJson(orderCredentials,`/orders/${encodeURIComponent(sendcloudOrderId)}`,{method:'PATCH',body:JSON.stringify(patch)});
       const remote=data?.data||{},now=new Date().toISOString(),newRaw={...raw,...remote,shipping_address:remote.shipping_address||shippingAddress,shipping_details:remote.shipping_details||shippingDetails,customer_details:remote.customer_details||customerDetails};
-      const {error:updateError}=await admin.from('fulfillment_orders').update({customer_name:name,customer_email:email||null,customer_phone:phone||null,shipping_address:remote.shipping_address||shippingAddress,raw_payload:newRaw,order_updated_at:remote?.order_details?.order_updated_at||remote?.modified_at||now,last_synced_at:now}).eq('id',order.id).eq('owner_id',caller.data_owner_id);if(updateError)throw updateError;
-      return response({ok:true,weightKg,stateProvince});
+      const {error:updateError}=await admin.from('fulfillment_orders').update({
+        customer_name:name,customer_email:email||null,customer_phone:phone||null,shipping_address:remote.shipping_address||shippingAddress,raw_payload:newRaw,
+        package_length_cm:hasDimensions?lengthCm:null,package_width_cm:hasDimensions?widthCm:null,package_height_cm:hasDimensions?heightCm:null,
+        order_updated_at:remote?.order_details?.order_updated_at||remote?.modified_at||now,last_synced_at:now,
+      }).eq('id',order.id).eq('owner_id',caller.data_owner_id);if(updateError)throw updateError;
+      return response({ok:true,weightKg,stateProvince,dimensions:hasDimensions?{lengthCm,widthCm,heightCm}:null});
     }
     return fail('Acción no válida.');
   }catch(error){const message=error instanceof Error?error.message:String(error||'Error interno.');const status=/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:/Solo puedes|no admite/.test(message)?409:500;return fail(message,status)}

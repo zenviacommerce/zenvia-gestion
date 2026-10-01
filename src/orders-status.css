@@ -11,3 +11,7 @@ html[data-theme='dark'] .ordersState.cancelled,html[data-theme='dark'] .ordersNo
 @media(max-width:700px){.ordersManualGrid{grid-template-columns:1fr}.ordersManualGrid label.wide{grid-column:auto}.ordersManualItem{grid-template-columns:1fr 1fr}.ordersManualItem input:first-child{grid-column:1/-1}.ordersManualItem .iconBtn{justify-self:end}.ordersManualBody{padding:12px}.ordersManualModal{width:calc(100vw - 18px)}}
 @media(max-width:560px){.ordersSalesStats{grid-template-columns:1fr 1fr}}
 @media(max-width:430px){.ordersSalesStats,.ordersStats{grid-template-columns:1fr}.ordersManualItem{grid-template-columns:1fr}.ordersManualItem input:first-child{grid-column:auto}.ordersManualItem .iconBtn{justify-self:stretch;width:100%}}
+
+.ordersPrintState{display:inline-flex;align-items:center;padding:4px 8px;border-radius:999px;font-size:11px;font-weight:800;white-space:nowrap}
+.ordersPrintState.unprinted{background:var(--warning-soft,#fff7ed);color:var(--warning-text,#9a5b00)}
+.ordersPrintState.printed{background:var(--success-soft,#ecfdf5);color:var(--success-text,#047857)}

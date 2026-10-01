@@ -24,8 +24,17 @@ test('MRW connection validation uses read-only SOAP operations and never exposes
   ]);
   assert.match(edge,/GetPointsByCP/);
   assert.match(edge,/GetPointsDB/);
-  assert.match(edge,/codigoPoint>00000<\/codigoPoint/);
+  assert.match(edge,/codigoPoint xsi:nil="true" \/>/);
   assert.match(edge,/devolvió un error interno al validar la conexión/);
   assert.match(shipping,/devolvió un error interno/);
-  assert.doesNotMatch(edge,/codigoPoint><\/codigoPoint/);
+  assert.doesNotMatch(edge,/codigoPoint>00000<\/codigoPoint/);
+});
+
+
+test('integration client preserves structured Edge Function error messages instead of generic non-2xx text',async()=>{
+  const service=await read('src/services/integrationAccounts.ts');
+  assert.match(service,/functionErrorMessage/);
+  assert.match(service,/error\?\.context/);
+  assert.match(service,/payload\?\.error\|\|payload\?\.message/);
+  assert.match(service,/Edge Function returned a non-2xx status code/);
 });

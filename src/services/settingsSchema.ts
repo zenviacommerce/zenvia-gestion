@@ -10,7 +10,7 @@ export type DateFormat = 'DD/MM/YYYY' | 'DD-MM-YYYY' | 'YYYY-MM-DD';
 export type DocumentLanguage = 'es' | 'en' | 'fr' | 'it' | 'de' | 'pt';
 export type LabelFilenameStrategy = 'order_number' | 'sku' | 'product' | 'customer_order' | 'custom';
 export type ProductCostMethod = 'last_purchase' | 'average' | 'manual';
-export type DefaultPeriod = 'today' | 'current_month' | 'current_quarter' | 'current_year' | 'all';
+export type DefaultPeriod = 'today' | 'current_month' | 'previous_month' | 'current_quarter' | 'current_year' | 'all';
 export type ThemePreference = 'light' | 'dark';
 export type DensityPreference = 'comfortable' | 'compact' | 'spacious';
 
@@ -787,7 +787,7 @@ function normalizeAmazon(input:AnyRecord|null,warnings:SettingsWarning[]):Amazon
     activeMarketplaceIds:stringArrayValue(input,'activeMarketplaceIds',d.activeMarketplaceIds,'amazon.activeMarketplaceIds',warnings),
     primaryMarketplaceId:nullableStringValue(input,'primaryMarketplaceId',d.primaryMarketplaceId,'amazon.primaryMarketplaceId',warnings),
     consolidatedCurrency:stringValue(input,'consolidatedCurrency',d.consolidatedCurrency,'amazon.consolidatedCurrency',warnings,{min:3,max:3,upper:true,pattern:/^[A-Za-z]{3}$/}),
-    defaultPeriod:enumValue(input,'defaultPeriod',d.defaultPeriod,'amazon.defaultPeriod',warnings,['today','current_month','current_quarter','current_year','all']),
+    defaultPeriod:enumValue(input,'defaultPeriod',d.defaultPeriod,'amazon.defaultPeriod',warnings,['today','current_month','previous_month','current_quarter','current_year','all']),
     historyDays:numberValue(input,'historyDays',d.historyDays,'amazon.historyDays',warnings,1,3650,true),
     autoSyncOrders:booleanValue(input,'autoSyncOrders',d.autoSyncOrders,'amazon.autoSyncOrders',warnings),
     autoSyncInventory:booleanValue(input,'autoSyncInventory',d.autoSyncInventory,'amazon.autoSyncInventory',warnings),
@@ -968,7 +968,7 @@ export function normalizeUserPreferences(input:unknown):{value:UserPreferences;w
       density:enumValue(input,'density',d.density,'density',warnings,['comfortable','compact','spacious']),
       pageSize,
       startPage,
-      defaultPeriod:enumValue(input,'defaultPeriod',d.defaultPeriod,'defaultPeriod',warnings,['today','current_month','current_quarter','current_year','all']),
+      defaultPeriod:enumValue(input,'defaultPeriod',d.defaultPeriod,'defaultPeriod',warnings,['today','current_month','previous_month','current_quarter','current_year','all']),
       rememberFilters:booleanValue(input,'rememberFilters',d.rememberFilters,'rememberFilters',warnings),
       tableColumns:recordOfStringArraysValue(input,'tableColumns',d.tableColumns,'tableColumns',warnings),
       tableColumnOrder:recordOfStringArraysValue(input,'tableColumnOrder',d.tableColumnOrder,'tableColumnOrder',warnings),

@@ -1046,6 +1046,7 @@ function AmazonSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
   const periodOptionsAmazon=[
     {value:'today',label:'Hoy'},
     {value:'current_month',label:'Mes actual'},
+    {value:'previous_month',label:'Mes anterior'},
     {value:'current_quarter',label:'Trimestre actual'},
     {value:'current_year',label:'Año actual'},
     {value:'all',label:'Histórico configurado'},
@@ -1186,7 +1187,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     },
     mrw:{
       name:'MRW',
-      description:'Conexión directa con MRW para generar envíos y etiquetas sin pasar por Sendcloud.',
+      description:'Conexión directa con MRW para gestionar envíos.',
       addLabel:'Conectar MRW',
     },
     gmail:{
@@ -2036,6 +2037,7 @@ const startPageOptions=[
 const periodOptions=[
   {value:'today',label:'Hoy'},
   {value:'current_month',label:'Mes actual'},
+  {value:'previous_month',label:'Mes anterior'},
   {value:'current_quarter',label:'Trimestre actual'},
   {value:'current_year',label:'Año actual'},
   {value:'all',label:'Todo'},

@@ -5,6 +5,7 @@ import { dateFilterForPreset, periodLabel, type DateRangeFilter } from '../servi
 const quickPresets = [
   ['today', 'Hoy'],
   ['current_month', 'Mes actual'],
+  ['previous_month', 'Mes anterior'],
   ['current_quarter', 'Trimestre actual'],
   ['current_year', 'Año actual'],
   ['all', 'Todo'],
@@ -23,7 +24,7 @@ export function PeriodFilterPanel({
   note?: ReactNode;
   className?: string;
 }) {
-  const applyPreset=(preset:'today'|'current_month'|'current_quarter'|'current_year'|'all')=>onChange(dateFilterForPreset(preset));
+  const applyPreset=(preset:'today'|'current_month'|'previous_month'|'current_quarter'|'current_year'|'all')=>onChange(dateFilterForPreset(preset));
   const setDate=(key:'from'|'to',value:string)=>onChange({...filter,preset:'custom',[key]:value});
 
   return <section className={`masterPeriodPanel sharedPeriodPanel ${className}`.trim()}>

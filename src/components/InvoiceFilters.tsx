@@ -28,6 +28,7 @@ export function InvoiceFilters({
   const periodOptions=[
     {value:'today',label:'Hoy'},
     {value:'current_month',label:'Mes actual'},
+    {value:'previous_month',label:'Mes anterior'},
     {value:'current_quarter',label:'Trimestre actual'},
     {value:'current_year',label:'Año actual'},
     {value:'all',label:'Todo el histórico'},
@@ -51,6 +52,7 @@ export function InvoiceFilters({
   const quick = [
     ['today', 'Hoy'],
     ['current_month', 'Mes actual'],
+    ['previous_month', 'Mes anterior'],
     ['current_quarter', 'Trimestre actual'],
     ['current_year', 'Año actual'],
     ['all', 'Histórico'],

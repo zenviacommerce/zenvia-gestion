@@ -21,9 +21,10 @@ export default async function handler(req,res){
 
   try{
     let upstream;
-    if(body.method==='GET'&&body.resource==='wsdl'){
-      upstream=await fetch(base+'?WSDL',{headers:{
-        Accept:'text/xml,application/xml',
+    if(body.method==='GET'&&(body.resource==='wsdl'||body.resource==='operation')){
+      const target=body.resource==='operation'?base+'?op=GetPointsDB':base+'?WSDL';
+      upstream=await fetch(target,{headers:{
+        Accept:body.resource==='operation'?'text/html,application/xhtml+xml':'text/xml,application/xml',
         'User-Agent':'ZENVIA-MRW-Gateway/1.0',
       },redirect:'follow'});
     }else{

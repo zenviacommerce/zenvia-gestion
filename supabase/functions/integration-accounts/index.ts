@@ -233,9 +233,14 @@ async function testMrw(admin:any,ownerId:string,account:any){
     .map((row:any)=>clean(row?.shipping_address?.postal_code).replace(/\s+/g,''))
     .find((value:string)=>/^\d{5}$/.test(value))||'28001';
 
+  const wsdl=await fetch(base+'?WSDL',{headers:{Accept:'text/xml,application/xml','User-Agent':'ZENVIA-Gestion/1.0'}});
+  const wsdlText=await wsdl.text();
+  if(!wsdl.ok||!/definitions|wsdl:/i.test(wsdlText)){
+    throw new Error(`MRW SAGEC no expone correctamente el WSDL desde nuestro servidor (HTTP ${wsdl.status}). Esto es un problema de acceso al servicio, no de los datos del pedido.`);
+  }
   const request=`<request><Point><codigoPoint></codigoPoint><CodigoPostal>${mrwEsc(postal)}</CodigoPostal></Point></request>`;
   const envelope=`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Header>${auth}</soap:Header><soap:Body><GetPointsDB xmlns="http://www.mrw.es/">${request}</GetPointsDB></soap:Body></soap:Envelope>`;
-  const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':'"http://www.mrw.es/GetPointsDB"',Accept:'text/xml'},body:envelope});
+  const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':'"http://www.mrw.es/GetPointsDB"',Accept:'text/xml','User-Agent':'ZENVIA-Gestion/1.0'},body:envelope});
   const raw=await res.text();
   const fault=(raw.match(/<faultstring[^>]*>([\s\S]*?)<\/faultstring>/i)?.[1]
     ||raw.match(/<Mensaje[^>]*>([\s\S]*?)<\/Mensaje>/i)?.[1]
@@ -255,7 +260,7 @@ async function testMrw(admin:any,ownerId:string,account:any){
     return {environment,apiMode:'modern',validationOperation:'GetPointsDB-fault',soap:'1.1',detail:sanitize(fault),postalCode:postal};
   }
   const htmlDetail=sanitize(title||bodyText||'sin detalle');
-  throw new Error(`MRW respondió HTTP ${res.status} (${res.headers.get('content-type')||'sin content-type'}) al GetPointsDB oficial con CP ${postal}. Detalle remoto: ${htmlDetail}`);
+  throw new Error(`El WSDL de MRW SAGEC es accesible desde ZENVIA, pero la llamada SOAP autenticada devuelve HTTP ${res.status} (${res.headers.get('content-type')||'sin content-type'}): ${htmlDetail}. Como estas mismas credenciales funcionan en Sendcloud, MRW está rechazando la ejecución directa fuera de Sendcloud o necesita habilitar este usuario Webservice para otro origen/IP.`);
 }
 async function enviaCarriers(admin:any,account:any){
   const c=await enviaCredentials(admin,account);

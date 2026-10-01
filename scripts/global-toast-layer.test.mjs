@@ -24,10 +24,13 @@ test('MRW connection validation uses read-only SOAP operations and never exposes
   ]);
   assert.match(edge,/GetPointsByCP/);
   assert.match(edge,/GetPointsDB/);
-  assert.match(edge,/codigoPoint xsi:nil="true" \/>/);
-  assert.match(edge,/devolvió un error interno al validar la conexión/);
-  assert.match(shipping,/devolvió un error interno/);
-  assert.doesNotMatch(edge,/codigoPoint>00000<\/codigoPoint/);
+  assert.match(edge,/codigoPoint>00000<\/codigoPoint/);
+  assert.match(edge,/GetEtiquetaEnvio/);
+  assert.match(edge,/application\/soap\+xml/);
+  assert.match(edge,/text\/xml/);
+  assert.match(edge,/Web Services/);
+  assert.match(shipping,/application\/soap\+xml/);
+  assert.match(shipping,/text\/xml/);
 });
 
 

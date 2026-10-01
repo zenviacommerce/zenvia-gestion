@@ -160,3 +160,17 @@ test('MRW integration card uses concise copy without the Sendcloud tagline',asyn
   assert.match(page,/description:'Conexión directa con MRW para gestionar envíos\.'/);
   assert.doesNotMatch(page,/generar envíos y etiquetas sin pasar por Sendcloud/);
 });
+
+
+test('MRW connection validation supports both AuthInfo and legacy AuthInfoSWGE contracts',async()=>{
+  const edge=await read('supabase/functions/integration-accounts/index.ts');
+  assert.match(edge,/AuthInfoSWGE/);
+  assert.match(edge,/TransmitirEnvio/);
+  assert.match(edge,/apiMode:'swge'/);
+  assert.match(edge,/apiMode:'modern'/);
+  assert.match(edge,/Cliente>\$\{mrwEsc\(c\.subscriberCode\)\}/);
+  assert.match(edge,/Franquicia>\$\{mrwEsc\(c\.franchiseCode\)\}/);
+  assert.match(edge,/Usuario>\$\{mrwEsc\(c\.username\)\}/);
+  assert.match(edge,/VALIDACION-ZENVIA/);
+  assert.match(edge,/config:nextConfig/);
+});

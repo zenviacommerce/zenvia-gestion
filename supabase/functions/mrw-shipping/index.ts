@@ -71,10 +71,21 @@ function envelope12(c:any,body:string){
 }
 async function soapAttempt(base:string,c:any,action:string,body:string,protocol:'1.1'|'1.2'){
   const actionUri=`http://www.mrw.es/${action}`;
+  const xmlBody=protocol==='1.2'?envelope12(c,body):envelope(c,body);
+  const gatewayUrl=clean(Deno.env.get('MRW_GATEWAY_URL')),gatewaySecret=clean(Deno.env.get('MRW_GATEWAY_SECRET'));
+  if(gatewayUrl&&gatewaySecret){
+    const environment=base.includes('sagec-test')?'test':'production';
+    const gatewayRes=await fetch(gatewayUrl,{method:'POST',headers:{'Content-Type':'application/json','X-Zenvia-Gateway-Key':gatewaySecret},body:JSON.stringify({environment,method:'POST',operation:action,soapVersion:protocol,body:xmlBody})});
+    const payload=await gatewayRes.json().catch(()=>({}));
+    if(!gatewayRes.ok)throw new Error(`MRW gateway HTTP ${gatewayRes.status}: ${clean((payload as any)?.error)||'respuesta no válida'}`);
+    const status=Number((payload as any)?.status||0),contentType=clean((payload as any)?.contentType),bodyBase64=clean((payload as any)?.bodyBase64);
+    const xml=bodyBase64?atob(bodyBase64):'';
+    return {res:{ok:status>=200&&status<300,status,headers:{get:(name:string)=>name.toLowerCase()==='content-type'?contentType:null}},xml,fault:soapError(xml),protocol};
+  }
   const headers:Record<string,string>=protocol==='1.2'
     ?{'Content-Type':`application/soap+xml; charset=utf-8; action="${actionUri}"`,Accept:'application/soap+xml,text/xml'}
     :{'Content-Type':'text/xml; charset=utf-8','SOAPAction':`"${actionUri}"`,Accept:'text/xml'};
-  const res=await fetch(base,{method:'POST',headers,body:protocol==='1.2'?envelope12(c,body):envelope(c,body)});
+  const res=await fetch(base,{method:'POST',headers,body:xmlBody});
   const xml=await res.text();
   return {res,xml,fault:soapError(xml),protocol};
 }

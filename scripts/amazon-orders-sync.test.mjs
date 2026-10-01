@@ -4,7 +4,7 @@ import test from 'node:test';
 
 async function source(path){return readFile(new URL(`../${path}`,import.meta.url),'utf8');}
 
-test('Orders sync uses v2026-01-01 searchOrders and safe non-PII datasets',async()=>{
+test('Orders sync uses v2026-01-01 searchOrders with the recipient datasets needed for direct fulfillment',async()=>{
   const orders=await source('supabase/functions/_shared/amazon/orders.ts');
   assert.match(orders,/\/orders\/2026-01-01\/orders/);
   assert.match(orders,/createdAfter/);
@@ -13,8 +13,9 @@ test('Orders sync uses v2026-01-01 searchOrders and safe non-PII datasets',async
   assert.match(orders,/lastUpdatedBefore/);
   assert.match(orders,/paginationToken/);
   assert.match(orders,/nextToken/);
-  for(const dataset of ['PROCEEDS','EXPENSE','PROMOTION','CANCELLATION','FULFILLMENT','TAX'])assert.match(orders,new RegExp(dataset));
-  assert.doesNotMatch(orders,/['"]BUYER['"]|['"]RECIPIENT['"]|['"]PAYMENT['"]/);
+  for(const dataset of ['PROCEEDS','EXPENSE','PROMOTION','CANCELLATION','FULFILLMENT','TAX','BUYER','RECIPIENT'])assert.match(orders,new RegExp(dataset));
+  assert.match(orders,/OPERATIONAL_INCLUDED_DATA/);
+  assert.match(orders,/Amazon SP-API \\(403\\)/);
 });
 
 test('Orders sync upserts orders and line items with stable conflict keys',async()=>{
@@ -31,15 +32,29 @@ test('Orders sync upserts orders and line items with stable conflict keys',async
   assert.match(orders,/programs/);
 });
 
-test('Orders normalization is defensive and persists no buyer PII',async()=>{
-  const orders=(await source('supabase/functions/_shared/amazon/orders.ts')).toLowerCase();
-  assert.match(orders,/normaliz/);
-  assert.match(orders,/money/);
-  for(const forbidden of ['buyer_name','buyer_email','buyer_phone','shipping_address','recipient_name'])assert.equal(orders.includes(forbidden),false,forbidden);
+test('Orders analytics normalization remains separate while operational Amazon orders persist only the shipping PII required for fulfillment',async()=>{
+  const orders=await source('supabase/functions/_shared/amazon/orders.ts');
+  assert.match(orders,/normalizeAmazonOrder/);
+  assert.match(orders,/upsertOperationalAmazonOrders/);
+  assert.match(orders,/recipient\?\.deliveryAddress/);
+  assert.match(orders,/buyer\?\.buyerEmail/);
+  assert.match(orders,/source_channel:'amazon'/);
+  assert.match(orders,/integration_type:'amazon-direct'/);
+  assert.match(orders,/amazon:/);
+  assert.match(orders,/fulfillment_orders/);
 });
 
 test('Orders Edge Function is internal-only and delegates one job',async()=>{
   const edge=await source('supabase/functions/amazon-sync-orders/index.ts');
   assert.match(edge,/requireInternalSecret/);
   assert.match(edge,/syncOrdersJob/);
+});
+
+
+test('direct Amazon operational sync preserves existing logistics state instead of replacing labels or tracking',async()=>{
+  const orders=await source('supabase/functions/_shared/amazon/orders.ts');
+  assert.match(orders,/existingByOrder/);
+  assert.match(orders,/current\?\.raw_payload/);
+  assert.match(orders,/mergeOperationalItems/);
+  assert.doesNotMatch(orders,/shipping_provider:'amazon'/);
 });

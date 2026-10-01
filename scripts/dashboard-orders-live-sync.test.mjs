@@ -34,3 +34,12 @@ test('Orders auto-sync uses a stable in-flight guard instead of depending on syn
   assert.match(orders,/\},\[refresh,settings\.integrations\.sendcloudEnabled,settings\.integrations\.enviaEnabled,settings\.orders\.retryTrackingConfirmation,status\?\.configured,enviaStatus\?\.configured\]\);/);
   assert.doesNotMatch(orders,/\[refresh,syncing,settings\.orders\.retryTrackingConfirmation\]/);
 });
+
+
+test('Dashboard pending orders KPI ignores period boundaries and reflects the real operational backlog',async()=>{
+  const dashboard=await source('src/pages/Dashboard.tsx');
+  assert.match(dashboard,/const allValidOrders=orders\.filter\(order=>!isCancelledOrder\(order\)\)/);
+  assert.match(dashboard,/const pendingOrders=allValidOrders\.filter\(isPendingOrder\)\.length/);
+  assert.match(dashboard,/Pendientes reales · sin limitar por periodo/);
+  assert.doesNotMatch(dashboard,/const pendingOrders=validOrders\.filter\(isPendingOrder\)\.length/);
+});

@@ -317,18 +317,28 @@ Deno.serve(async(req:Request)=>{
       const toState=normalizeStateProvince(address.country_code,address.state_province_code);if(toState)toAddress.state_province_code=toState;
       const fromCountry=clean(sender?.country_code||shippingConfig.senderCountryCode||ordersConfig.originCountryCode||'ES').toUpperCase();
       const fromPostal=clean(sender?.postal_code||shippingConfig.senderPostalCode);
+      const fromAddress:any={
+        country_code:fromCountry,
+        postal_code:fromPostal||undefined,
+        city:clean(sender?.city||shippingConfig.senderCity)||undefined,
+        address_line_1:clean(sender?.address_line_1||sender?.address||shippingConfig.senderAddress)||undefined,
+        house_number:clean(sender?.house_number)||undefined,
+      };
+      const fromState=normalizeStateProvince(fromCountry,sender?.state_province_code);
+      if(fromState)fromAddress.state_province_code=fromState;
       const requestBody:any={
         calculate_quotes:true,
-        from_country_code:fromCountry,
-        to_country_code:clean(address.country_code).toUpperCase(),
-        from_postal_code:fromPostal||undefined,
-        to_postal_code:clean(address.postal_code)||undefined,
+        // Sendcloud explicitly recommends address objects for zonal pricing.
+        // Correos/Correos Express in Spain need postcode/address context; the
+        // legacy flat country/postcode fields can return options without quotes.
+        from_address:fromAddress,
+        to_address:toAddress,
         parcels:[{
           weight:{value:Number(weightKg.toFixed(3)),unit:'kg'},
           dimensions:{
-            length:String(Math.max(1,Number(shippingConfig.packageLengthCm)||30)),
-            width:String(Math.max(1,Number(shippingConfig.packageWidthCm)||20)),
-            height:String(Math.max(1,Number(shippingConfig.packageHeightCm)||10)),
+            length:String(Math.max(1,Number(order.package_length_cm)||Number(shippingConfig.packageLengthCm)||30)),
+            width:String(Math.max(1,Number(order.package_width_cm)||Number(shippingConfig.packageWidthCm)||20)),
+            height:String(Math.max(1,Number(order.package_height_cm)||Number(shippingConfig.packageHeightCm)||10)),
             unit:'cm',
           },
         }],
@@ -349,7 +359,7 @@ Deno.serve(async(req:Request)=>{
       const priced=options.filter((option:any)=>option.price!=null&&Number(option.price)>0).length;
       const unpricedCorreos=options.some((option:any)=>option.price==null&&/correos/i.test(`${option.carrierCode} ${option.carrierName}`));
       const quoteMessage=unpricedCorreos
-        ?'Sendcloud devuelve servicios de Correos sin precio API. ZENVIA ha consultado también la tarifa estándar de Sendcloud con origen, destino y códigos postales para precios zonales.'
+        ?'Sendcloud devuelve servicios de Correos sin precio incluso tras solicitar la tarifa transaccional con dirección completa y cálculo de cotización.'
         :priced?null:(options.length?'Sendcloud devuelve los servicios disponibles, pero no expone precio para estos métodos.':'No hay servicios disponibles entre los transportistas habilitados.');
       return response({weightKg,options,message:data?.message||quoteMessage});
     }

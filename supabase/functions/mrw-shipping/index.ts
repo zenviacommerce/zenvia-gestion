@@ -66,15 +66,27 @@ function xmlValue(xml:string,tag:string){
 function soapError(xml:string){
   return xmlValue(xml,'faultstring')||xmlValue(xml,'Message')||xmlValue(xml,'Mensaje')||xmlValue(xml,'DescripcionError')||'';
 }
+function envelope12(c:any,body:string){
+  return `<?xml version="1.0" encoding="utf-8"?><soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope"><soap12:Header>${authXml(c)}</soap12:Header><soap12:Body>${body}</soap12:Body></soap12:Envelope>`;
+}
+async function soapAttempt(base:string,c:any,action:string,body:string,protocol:'1.1'|'1.2'){
+  const actionUri=`http://www.mrw.es/${action}`;
+  const headers:Record<string,string>=protocol==='1.2'
+    ?{'Content-Type':`application/soap+xml; charset=utf-8; action="${actionUri}"`,Accept:'application/soap+xml,text/xml'}
+    :{'Content-Type':'text/xml; charset=utf-8','SOAPAction':`"${actionUri}"`,Accept:'text/xml'};
+  const res=await fetch(base,{method:'POST',headers,body:protocol==='1.2'?envelope12(c,body):envelope(c,body)});
+  const xml=await res.text();
+  return {res,xml,fault:soapError(xml),protocol};
+}
 async function soapCall(base:string,c:any,action:string,body:string){
-  const res=await fetch(base,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8','SOAPAction':`"http://www.mrw.es/${action}"`,Accept:'text/xml'},body:envelope(c,body)});
-  const xml=await res.text(),fault=soapError(xml);
-  if(fault)throw new Error(`MRW: ${fault.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,800)}`);
-  if(!res.ok){
-    if(/<!doctype html|<html[\s>]/i.test(xml))throw new Error(`MRW (${res.status}) devolvió un error interno. Revisa la conexión MRW en Configuración > Integraciones y vuelve a probarla.`);
-    throw new Error(`MRW (${res.status}): ${xml.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,800)||'respuesta no válida'}`);
+  const diagnostics:string[]=[];
+  for(const protocol of ['1.1','1.2'] as const){
+    const {res,xml,fault}=await soapAttempt(base,c,action,body,protocol);
+    if(fault)throw new Error(`MRW: ${fault.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,800)}`);
+    if(res.ok)return xml;
+    diagnostics.push(`SOAP ${protocol}: HTTP ${res.status} ${res.headers.get('content-type')||''}`.trim());
   }
-  return xml;
+  throw new Error(`MRW no ha procesado la solicitud. ${diagnostics.join(' · ')}. Revisa que la cuenta MRW esté habilitada para Web Services.`);
 }
 function positive(value:unknown){const n=Number(value);return Number.isFinite(n)&&n>0?n:null}
 function orderWeight(order:any,fallback:number){

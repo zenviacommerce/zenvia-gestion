@@ -42,7 +42,7 @@ Deno.serve(async(req:Request)=>{
     if(action==='mark_label_printed'){
       if(!order.label_created_at&&!order.sendcloud_parcel_id&&!order.shipping_remote_id)return response({error:'Este pedido todavía no tiene una etiqueta creada.'},409);
       const now=new Date().toISOString(),nextCount=Number(order.label_print_count||0)+1;
-      const {error:updateError}=await admin.from('fulfillment_orders').update({label_printed_at:now,label_print_count:nextCount}).eq('owner_id',caller.data_owner_id).eq('id',orderId);
+      const {error:updateError}=await admin.from('fulfillment_orders').update({label_printed_at:now,label_print_count:nextCount,label_print_state_known:true}).eq('owner_id',caller.data_owner_id).eq('id',orderId);
       if(updateError)throw updateError;
       return response({ok:true,printedAt:now,printCount:nextCount});
     }

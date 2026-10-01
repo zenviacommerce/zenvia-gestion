@@ -11,7 +11,9 @@ export default async function handler(req,res){
   if(req.method!=='POST')return json(res,405,{error:'Método no permitido.'});
   const expected=clean(process.env.MRW_GATEWAY_SECRET);
   const provided=clean(req.headers['x-zenvia-gateway-key']);
-  if(!expected||provided!==expected)return json(res,401,{error:'No autorizado.'});
+  if(!expected)return json(res,500,{error:'MRW_GATEWAY_SECRET no está disponible en este deployment de Vercel. Guarda la variable y vuelve a desplegar.'});
+  if(!provided)return json(res,401,{error:'Falta X-Zenvia-Gateway-Key en la petición.'});
+  if(provided!==expected)return json(res,401,{error:'MRW_GATEWAY_SECRET no coincide entre Supabase y Vercel.'});
 
   const body=typeof req.body==='string'?JSON.parse(req.body||'{}'):(req.body||{});
   const environment=body.environment==='test'?'test':'production';

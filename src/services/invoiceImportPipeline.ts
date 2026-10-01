@@ -95,7 +95,9 @@ async function candidateFromRead(
   const contact=extractSupplierContactData(read.text,read.supplierName);
   const details=extractSupplierInvoiceDetails(read.text,read.supplierName);
   const recipient=validateInvoiceRecipient(read.text,read.invoiceDate);
-  const equivalenceSurcharge='equivalenceSurcharge' in repairedAmounts?Number(repairedAmounts.equivalenceSurcharge||0):0;
+  const equivalenceSurcharge=read.aiEquivalenceSurcharge!=null
+    ?Number(read.aiEquivalenceSurcharge)
+    :'equivalenceSurcharge' in repairedAmounts?Number(repairedAmounts.equivalenceSurcharge||0):0;
 
   let status:InvoiceImportCandidate['status']='ready';
   let reviewReason:string|undefined;
@@ -149,10 +151,10 @@ async function candidateFromRead(
     status,
     reviewReason,
     supplierName:read.supplierName,
-    supplierTaxId:contact.taxId||details.taxId||party.taxId,
-    supplierEmail:contact.email||party.email,
-    supplierPhone:contact.phone||party.phone,
-    supplierAddress:details.address||formatInvoicePartyAddress(party),
+    supplierTaxId:read.aiIssuer?.taxId||contact.taxId||details.taxId||party.taxId,
+    supplierEmail:read.aiIssuer?.email||contact.email||party.email,
+    supplierPhone:read.aiIssuer?.phone||contact.phone||party.phone,
+    supplierAddress:read.aiIssuer?.address||details.address||formatInvoicePartyAddress(party),
     supplierWebsite:details.website,
     recipientTaxId:recipient.detectedTaxId,
     recipientName:recipient.detectedName,
@@ -168,6 +170,9 @@ async function candidateFromRead(
     text:read.text,
     confidence:read.confidence,
     usedOcr:read.usedOcr,
+    analysisEngine:read.analysisEngine,
+    analysisModel:read.analysisModel,
+    analysisWarnings:read.analysisWarnings,
     lines:repairedLines,
     multiInvoiceSource:Boolean(bundle&&bundle.count>1),
     bundleIndex:bundle?.index,
@@ -256,7 +261,9 @@ export function invoiceCandidateToInput(candidate:InvoiceImportCandidate,source:
     currency:candidate.currency,
     ocrText:candidate.text,
     extraction:{
-      parser:candidate.usedOcr?'browser-ocr-v2':'pdf-text-v2',
+      parser:candidate.analysisEngine||(candidate.usedOcr?'browser-ocr-v2':'pdf-text-v2'),
+      analysisModel:candidate.analysisModel??null,
+      analysisWarnings:candidate.analysisWarnings??[],
       recipientTaxId:candidate.recipientTaxId??null,
       recipientName:candidate.recipientName??null,
       equivalenceSurcharge:candidate.equivalenceSurcharge,

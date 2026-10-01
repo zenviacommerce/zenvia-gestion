@@ -5,6 +5,7 @@ import { getCashSierraNevadaProductLines, getRetailInvoiceCorrection } from './i
 import { canonicalizeSupplierName, extractExplicitLegalSupplier } from './supplierIdentity';
 import { splitBundledInvoiceText, structuralInvoiceCount } from './invoiceBundle';
 import { reconcileInvoiceFiscalAmounts } from './invoiceFiscalReconciler';
+import { analyzeInvoiceWithIntelligence, type InvoiceIntelligenceMode } from './invoiceIntelligence';
 
 const compact = (value: string) => value.replace(/\s+/g, ' ').trim();
 const moneyToken = /-?(?:\d{1,3}(?:\.\d{3})+|\d+),\d{2,6}|-?\d+\.\d{2,6}/g;
@@ -362,13 +363,15 @@ export async function readInvoiceDocumentsEnhanced(
   file:File,
   categories:ExpenseCategory[],
   onProgress?:(message:string)=>void,
+  options:{mode?:InvoiceIntelligenceMode}={},
 ):Promise<InvoiceReadResult[]>{
+  const mode=options.mode||'expense';
   const base=await readInvoiceDocument(file,categories,onProgress);
   const bundled=detectBundledDocument(base);
 
   if(bundled.blocks.length>=2){
     onProgress?.(`Separando ${bundled.blocks.length} facturas detectadas…`);
-    return bundled.blocks.map(text=>
+    const deterministic=bundled.blocks.map(text=>
       enhanceInvoiceReadResult(
         parseInvoiceText(text,categories,base.usedOcr),
         file,
@@ -376,6 +379,8 @@ export async function readInvoiceDocumentsEnhanced(
         {allowFilenameNumber:false},
       )
     );
+    onProgress?.('Validando cada factura con IA y evidencia documental…');
+    return Promise.all(deterministic.map(result=>analyzeInvoiceWithIntelligence(undefined,result,mode)));
   }
 
   if(bundled.count>=2){
@@ -385,15 +390,18 @@ export async function readInvoiceDocumentsEnhanced(
   }
 
   onProgress?.('Reconstruyendo proveedor, fiscalidad y líneas de producto…');
-  return [enhanceInvoiceReadResult(base,file,categories)];
+  const deterministic=enhanceInvoiceReadResult(base,file,categories);
+  onProgress?.('Contrastando la lectura con IA y evidencia documental…');
+  return [await analyzeInvoiceWithIntelligence(file,deterministic,mode)];
 }
 
 export async function readInvoiceDocumentEnhanced(
   file:File,
   categories:ExpenseCategory[],
   onProgress?:(message:string)=>void,
+  options:{mode?:InvoiceIntelligenceMode}={},
 ):Promise<InvoiceReadResult>{
-  const results=await readInvoiceDocumentsEnhanced(file,categories,onProgress);
+  const results=await readInvoiceDocumentsEnhanced(file,categories,onProgress,options);
   if(results.length!==1){
     throw new MultiInvoiceDocumentError(results.map(result=>result.invoiceNumber).filter(Boolean));
   }

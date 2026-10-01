@@ -21,6 +21,13 @@ export interface InvoiceReadResult {
   text: string;
   confidence: number;
   usedOcr: boolean;
+  analysisEngine?: 'deterministic'|'hybrid-ai-verified';
+  analysisModel?: string;
+  analysisWarnings?: string[];
+  aiIssuer?: {name:string|null;taxId:string|null;email:string|null;phone:string|null;address:string|null;countryCode:string|null};
+  aiRecipient?: {name:string|null;taxId:string|null;email:string|null;phone:string|null;address:string|null;countryCode:string|null};
+  aiDueDate?: string;
+  aiEquivalenceSurcharge?: number;
 }
 
 const compact = (value: string) => sanitizeDatabaseSingleLine(value);

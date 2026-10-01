@@ -150,6 +150,9 @@ export interface InvoiceImportCandidate {
   text: string;
   confidence: number;
   usedOcr: boolean;
+  analysisEngine?: string;
+  analysisModel?: string;
+  analysisWarnings?: string[];
   lines: NewInvoiceLineInput[];
   multiInvoiceSource?: boolean;
   bundleIndex?: number;

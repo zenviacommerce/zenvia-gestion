@@ -37,3 +37,13 @@ test('generating all pending labels requires the standard application confirmati
   assert.match(source,/tone:'warning'/);
   assert.match(source,/if\(!confirmed\)return/);
 });
+
+
+test('pending and labelled order queues are operational and ignore global period boundaries',async()=>{
+  const source=await read('../src/pages/Orders.tsx');
+  assert.match(source,/const operationalContextOrders=useMemo\(\(\)=>orders\.filter/);
+  assert.match(source,/const labelContextOrders=useMemo\(\(\)=>operationalContextOrders\.filter\(isLabelledOrder\)/);
+  assert.match(source,/const pendingOrders=useMemo\(\(\)=>operationalContextOrders\.filter\(isPendingOrder\)/);
+  assert.match(source,/Etiquetas listas · sin limitar por periodo/);
+  assert.doesNotMatch(source,/labelPeriodOrders/);
+});

@@ -64,7 +64,6 @@ function timestampDateKey(value?:string|null){
 function inPeriod(key:string,from:string,to:string){return Boolean(key)&&(!from||key>=from)&&(!to||key<=to);}
 function orderDateKey(order:FulfillmentOrder){return timestampDateKey(order.orderCreatedAt);}
 function labelTimestamp(order:FulfillmentOrder){return order.labelCreatedAt||order.fulfilledAt||order.trackingUpdatedAt||null;}
-function labelDateKey(order:FulfillmentOrder){return timestampDateKey(labelTimestamp(order));}
 function shippedDateKey(order:FulfillmentOrder){return timestampDateKey(order.fulfilledAt||order.trackingUpdatedAt||order.labelCreatedAt||order.orderUpdatedAt||order.orderCreatedAt);}
 function channelLabel(order:FulfillmentOrder){
   if(order.sourceChannel==='amazon')return 'Amazon'; if(order.sourceChannel==='shopify')return 'Shopify';
@@ -369,7 +368,6 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const dateFrom=dateFilter.from,dateTo=dateFilter.to;
   const selectedPeriod=periodLabel(dateFilter);
   const orderPeriodOrders=useMemo(()=>orders.filter(order=>inPeriod(orderDateKey(order),dateFrom,dateTo)),[orders,dateFrom,dateTo]);
-  const labelPeriodOrders=useMemo(()=>orders.filter(order=>isLabelledOrder(order)&&inPeriod(labelDateKey(order),dateFrom,dateTo)),[orders,dateFrom,dateTo]);
   const shippedPeriodOrders=useMemo(()=>orders.filter(order=>isProcessedOrder(order)&&inPeriod(shippedDateKey(order),dateFrom,dateTo)),[orders,dateFrom,dateTo]);
   const countryOptions=useMemo(()=>[...new Set(orders.map(order=>text(order.shippingAddress.country_code).trim().toUpperCase()||'XX'))].sort((a,b)=>countryName(a).localeCompare(countryName(b),'es')).map(code=>({value:code,label:code==='XX'?'País pendiente':`${countryName(code)} · ${code}`})),[orders]);
   const carrierOptions=useMemo(()=>[...new Set(orders.map(order=>carrierLabel(order)).filter(value=>value&&value!=='—'))].sort((a,b)=>a.localeCompare(b,'es')).map(value=>({value:value.toLowerCase(),label:value})),[orders]);

@@ -288,7 +288,7 @@ function normalizeRate(item:any,account:any){
     currency,
     billedWeightKg:null,
     etaDays:parseEtaDays(item),
-    raw:item,
+    raw:{...item,priceIncludesVat:true,fuelSurchargeIncluded:true,priceSemantics:'final_quote'},
   };
 }
 async function listCarriers(c:any,originCountry:string,destinationCountry:string){
@@ -324,8 +324,22 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
         method:'POST',
         body:JSON.stringify({origin,destination:dest,packages:[pkg],shipment:{type:1,carrier}}),
       });
-      const options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
-      return {carrier,options,error:null};
+      let options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
+      if(/^correos$/i.test(carrier)){
+        options=options.filter((option:any)=>{
+          const code=clean(option.code).toLowerCase();
+          // Envia exposes OO/OD/DO/DD permutations for Correos. Our shipment origin
+          // is the configured sender address, so office-origin (OO/OD) products are
+          // not applicable and only make the comparison look duplicated.
+          return !/(?:_|-)(?:oo|od)$/.test(code);
+        });
+      }
+      const unique=new Map<string,any>();
+      for(const option of options){
+        const key=`${clean(option.carrierCode).toLowerCase()}|${clean(option.code).toLowerCase()}|${Number(option.price)||''}`;
+        if(!unique.has(key))unique.set(key,option);
+      }
+      return {carrier,options:[...unique.values()],error:null};
     }catch(error){
       const message=error instanceof Error?error.message:String(error);
       console.warn('Envia rate failed',carrier,message);

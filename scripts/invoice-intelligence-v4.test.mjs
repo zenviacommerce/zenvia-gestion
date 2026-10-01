@@ -47,3 +47,20 @@ test('camera passes the original image to the intelligence layer rather than onl
   assert.match(upload,/analysisFile=allImages&&files\.length===1\?files\[0\]:prepared/);
   assert.match(upload,/prepareInvoiceCandidate\(prepared,categories,setReaderMessage,analysisFile,policy\)/);
 });
+
+
+test('expense imports require human review when the AI verifier is unavailable',async()=>{
+  const pipeline=await read('src/services/invoiceImportPipeline.ts');
+  assert.match(pipeline,/aiUnavailable/);
+  assert.match(pipeline,/La validación IA documental no está disponible/);
+  assert.match(pipeline,/status='needs_review'/);
+});
+
+test('sales invoice import accepts images and supports multi-page camera scanning',async()=>{
+  const modal=await read('src/components/SalesInvoiceImportModal.tsx');
+  assert.match(modal,/imageFilesToPdf/);
+  assert.match(modal,/cameraRef/);
+  assert.match(modal,/capture="environment"/);
+  assert.match(modal,/accept="application\/pdf,image\/\*"/);
+  assert.match(modal,/Escanear con cámara/);
+});

@@ -129,6 +129,12 @@ async function candidateFromRead(
     reviewReason=[reviewReason,'PDF con varias facturas: revisa e indica el número de esta factura.'].filter(Boolean).join(' · ');
   }
 
+  const aiUnavailable=read.analysisEngine!=='hybrid-ai-verified'&&(read.analysisWarnings||[]).some(message=>/IA documental no disponible|OPENAI_API_KEY|analizador IA/i.test(message));
+  if(aiUnavailable){
+    status='needs_review';
+    reviewReason=[reviewReason,'La validación IA documental no está disponible; esta lectura procede del motor determinista y requiere confirmación humana.'].filter(Boolean).join(' · ');
+  }
+
   const integrity=validateInvoiceCandidateIntegrity({
     supplierName:read.supplierName,
     invoiceNumber:read.invoiceNumber,

@@ -174,6 +174,12 @@ Deno.serve(async(req:Request)=>{
         shipping_provider:'mrw',shipping_integration_account_id:account.row.id,shipping_remote_id:shipment,
         tracking_number:shipment,tracking_status_code:'READY_TO_SEND',tracking_status_message:'Ready to send',tracking_updated_at:now,
         carrier_code:'mrw',carrier_name:'MRW',shipping_option_code:serviceCode,shipping_service_name:serviceName,label_created_at:now,
+        ...(Number(body?.shippingOption?.price)>0?{
+          shipping_cost_amount:Number(body.shippingOption.price),
+          shipping_cost_currency:clean(body?.shippingOption?.currency)||'EUR',
+          shipping_cost_source:'tariff_estimate',
+          shipping_cost_recorded_at:now,
+        }:{}),
       }).eq('owner_id',caller.data_owner_id).eq('id',order.id);
       if(updateError)throw updateError;
       return response({parcelId:0,shipmentId:shipment,trackingNumber:shipment,trackingUrl:null,shippingOptionCode:serviceCode,contractId:null,carrierCode:'mrw',carrierName:'MRW',shippingServiceName:serviceName,mimeType:'application/pdf',base64});

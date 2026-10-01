@@ -476,8 +476,18 @@ export async function parseTransportTariffDocument(file:File):Promise<TransportT
     const {data,error}=await supabase.functions.invoke('transport-tariff-parser',{body:{
       fileName:file.name,mimeType:file.type,text:text.slice(0,120000),fileData:fileData||undefined,fallback,
     }});
-    if(!error&&data?.proposal)return normalizeProposal(data.proposal,{...fallback,parserProvider:data.parserProvider||fallback.parserProvider,parserModel:data.parserModel||null,parserConfidence:Number(data.parserConfidence??fallback.parserConfidence)});
-  }catch{/* El lector automático local mantiene el flujo disponible si el proveedor IA no está configurado. */}
+    if(error)throw error;
+    if(data?.proposal){
+      const normalized=normalizeProposal(data.proposal,{...fallback,parserProvider:data.parserProvider||fallback.parserProvider,parserModel:data.parserModel||null,parserConfidence:Number(data.parserConfidence??fallback.parserConfidence)});
+      if(!normalized.services.length&&fallback.services.length) return fallback;
+      return normalized;
+    }
+  }catch(error){
+    throw new Error('No se pudo analizar la tarifa. El importador necesita el parser configurado correctamente; se ha evitado crear un borrador vacío o incorrecto.');
+  }
+  if(!fallback.services.length){
+    throw new Error('No se han podido detectar servicios ni tramos de precio en el documento. No se ha creado ninguna tarifa para evitar importar datos basura.');
+  }
   return fallback;
 }
 

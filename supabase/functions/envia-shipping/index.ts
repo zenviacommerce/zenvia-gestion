@@ -245,7 +245,9 @@ function destination(order:any){
     phone:normalizePhone(order.customer_phone||a.phone_number,country),
     email:clean(order.customer_email||a.email)||undefined,
     street,
-    number:addressNumber(a.house_number,street),
+    // Envia's own dashboard maps the second address line into consignee_number
+    // for Spanish carrier labels when no explicit house number is available.
+    number:addressNumber(a.house_number||a.address_line_2,street),
     city:clean(a.city),
     state:clean(a.state_province_code||a.state)||undefined,
     country,
@@ -253,6 +255,16 @@ function destination(order:any){
   };
 }
 function packageFor(order:any,shipping:any){
+  const rawDimension=order?.raw_payload?.shipping_details?.measurement?.dimension||{};
+  const rawUnit=clean(rawDimension?.unit).toLowerCase();
+  const dimensionFactor=rawUnit==='in'||rawUnit==='inch'||rawUnit==='inches'?2.54:(rawUnit==='mm'?0.1:1);
+  const dim=(direct:any,raw:any,fallback:number)=>{
+    const directValue=number(direct,0);
+    if(directValue>0)return Number(directValue.toFixed(2));
+    const rawValue=number(raw,0);
+    if(rawValue>0)return Number((rawValue*dimensionFactor).toFixed(2));
+    return fallback;
+  };
   return {
     type:'box',
     content:contentName(order),
@@ -260,12 +272,11 @@ function packageFor(order:any,shipping:any){
     declaredValue:Math.max(0,number(order.total_amount,0)),
     lengthUnit:'CM',
     weightUnit:'KG',
-    // The rating API schema requires a JSON number here.
     weight:Number(orderWeightKg(order,shipping).toFixed(3)),
     dimensions:{
-      length:Math.max(1,number(shipping?.packageLengthCm,30)),
-      width:Math.max(1,number(shipping?.packageWidthCm,20)),
-      height:Math.max(1,number(shipping?.packageHeightCm,10)),
+      length:Math.max(1,dim(order?.package_length_cm,rawDimension?.length,number(shipping?.packageLengthCm,30))),
+      width:Math.max(1,dim(order?.package_width_cm,rawDimension?.width,number(shipping?.packageWidthCm,20))),
+      height:Math.max(1,dim(order?.package_height_cm,rawDimension?.height,number(shipping?.packageHeightCm,10))),
     },
   };
 }
@@ -641,9 +652,7 @@ Deno.serve(async(req:Request)=>{
       const normalizedService=service.toLowerCase();
       const correosExpressEpaq24=normalizedCarrier==='correosexpress'&&normalizedService==='epaq_24';
       const generateWeight=correosExpressEpaq24&&realWeight<1?1:realWeight;
-      const generatePackage=correosExpressEpaq24
-        ?{...pkg,weight:generateWeight,weightUnit:'kg',lengthUnit:'cm'}
-        :{...pkg,weight:generateWeight};
+      const generatePackage={...pkg,weight:generateWeight};
       let payload:any;
       try{
         payload=await enviaJson(`${c.shipBase}/ship/generate/`,c.token,{

@@ -281,9 +281,52 @@ Deno.serve(async(req:Request)=>{
       if(selected&&!enabledCarrier(selected,shippingConfig.enabledCarriers))return fail('El transportista seleccionado está deshabilitado en Configuración.',409);
       if(!selected&&Array.isArray(shippingConfig.enabledCarriers)&&shippingConfig.enabledCarriers.length)return fail('Selecciona un servicio de uno de los transportistas habilitados.',409);
 
-      // ZENVIA is the source of truth. Only when Sendcloud is actually selected
-      // do we push the latest local recipient/package data to its remote order.
-      const remoteOrderId=clean(order.sendcloud_remote_id);
+      // ZENVIA is the source of truth. A Sendcloud order is created lazily only
+      // when Sendcloud is actually chosen for the label.
+      let remoteOrderId=clean(order.sendcloud_remote_id);
+      let labelIntegrationId=Number(order.integration_id)||0;
+      if(!remoteOrderId){
+        const linked=await integrations(orderCredentials);
+        const integration=linked.find(item=>item.id===labelIntegrationId&&item.channel==='other')
+          ||linked.find(item=>item.channel==='other'&&item.isApi)
+          ||linked.find(item=>item.channel==='other');
+        if(!integration)return fail('No hay una integración API de Sendcloud disponible para crear esta etiqueta.',409);
+        labelIntegrationId=integration.id;
+        const now=new Date().toISOString(),address=order.shipping_address||{},raw=order.raw_payload||{};
+        const sourceItems=Array.isArray(order.items)?order.items:[];
+        const sendcloudItems=sourceItems.map((item:any,index:number)=>{
+          const quantity=Math.max(1,Math.floor(Number(item?.quantity)||1));
+          const totalValue=Number(item?.total_price?.value??item?.total_price??((Number(item?.unit_price)||0)*quantity))||0;
+          const line:any={name:clean(item?.name)||`Producto ${index+1}`,quantity,total_price:{value:Number(totalValue.toFixed(2)),currency:order.currency||'EUR'}};
+          const sku=clean(item?.sku);if(sku)line.sku=sku;return line;
+        });
+        const measurement={...(raw.shipping_details?.measurement||{})};
+        if(!measurement.weight?.value)measurement.weight={value:Math.max(.01,Number(shippingConfig.fallbackWeightKg)||1),unit:'kg'};
+        const length=Number(order.package_length_cm),width=Number(order.package_width_cm),height=Number(order.package_height_cm);
+        if([length,width,height].every(value=>Number.isFinite(value)&&value>0))measurement.dimension={length,width,height,unit:'cm'};
+        const externalOrderId=clean(order.order_id)||`zenvia-${order.id}`;
+        const sendcloudOrder={
+          order_id:externalOrderId,
+          order_number:clean(order.order_number)||externalOrderId,
+          order_details:{integration:{id:integration.id},status:{code:'unshipped',message:'Unshipped'},order_created_at:order.order_created_at||now,order_items:sendcloudItems},
+          payment_details:{total_price:{value:Number(order.total_amount||0),currency:order.currency||'EUR'},status:{code:'paid',message:'Paid'}},
+          shipping_address:address,
+          shipping_details:{...(raw.shipping_details||{}),is_local_pickup:false,delivery_indicator:'ZENVIA Gestión',measurement},
+        };
+        const {data:createdPayload}=await sendcloudJson(orderCredentials,'/orders',{method:'POST',body:JSON.stringify([sendcloudOrder])});
+        const createdOrder=Array.isArray(createdPayload?.data)?createdPayload.data[0]:null;
+        if(createdOrder?.id==null)throw new Error('Sendcloud no devolvió el identificador del pedido creado para la etiqueta.');
+        remoteOrderId=String(createdOrder.id);
+        const {error:linkError}=await admin.from('fulfillment_orders').update({
+          sendcloud_id:storedSendcloudId(orderSendcloudAccount,remoteOrderId),
+          sendcloud_remote_id:remoteOrderId,
+          shipping_integration_account_id:orderSendcloudAccount.id,
+          last_synced_at:now,
+        }).eq('id',order.id).eq('owner_id',caller.data_owner_id);
+        if(linkError)throw linkError;
+      }
+
+      // Push the latest local recipient/package data immediately before label creation.
       if(remoteOrderId){
         const raw=order.raw_payload||{},address=order.shipping_address||{};
         const measurement={...(raw.shipping_details?.measurement||{})};
@@ -301,7 +344,7 @@ Deno.serve(async(req:Request)=>{
         await sendcloudJson(orderCredentials,`/orders/${encodeURIComponent(remoteOrderId)}`,{method:'PATCH',body:JSON.stringify(patch)});
       }
 
-      const payload:any={integration_id:Number(order.integration_id),label_details:{mime_type:'application/pdf',dpi:72},order:{apply_shipping_rules:!selected}};
+      const payload:any={integration_id:labelIntegrationId,label_details:{mime_type:'application/pdf',dpi:72},order:{apply_shipping_rules:!selected}};
       if(order.order_id)payload.order.order_id=order.order_id;else if(order.order_number)payload.order.order_number=order.order_number;else return fail('El pedido no tiene identificador de origen.');
       if(selected?.code){payload.ship_with={type:'shipping_option_code',properties:{shipping_option_code:String(selected.code)}};if(selected.contractId!=null)payload.ship_with.properties.contract_id=Number(selected.contractId)}
       const {data}=await sendcloudJson(orderCredentials,'/orders/create-label-sync',{method:'POST',body:JSON.stringify(payload)}),created=Array.isArray(data?.data)?data.data[0]:null;if(!created?.parcel_id||!created?.label?.file)throw new Error('Sendcloud no devolvió la etiqueta creada.');

@@ -694,7 +694,7 @@ Deno.serve(async(req:Request)=>{
     let message=error instanceof Error?error.message:String(error||'Error interno.');
     if(/not enough money|insufficient (?:balance|funds)|saldo insuficiente/i.test(message)){
       message='Saldo insuficiente en Envia.com. Recarga saldo o revisa el crédito disponible en tu cuenta antes de generar la etiqueta.';
-
+    }
     const status=/Sesión no válida/.test(message)?401:/permiso|desactivado/.test(message)?403:/ya tiene una etiqueta/.test(message)?409:/Saldo insuficiente en Envia\.com/.test(message)?402:500;
     return fail(message,status);
   }

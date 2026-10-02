@@ -408,24 +408,24 @@ function shipmentCreatedAt(row:any){
 function shipmentDestination(row:any){
   const d=row?.destination||row?.to||row?.receiver||row?.shipment?.destination||{};
   return {
-    name:clean(d?.name||d?.receiverName),
-    company_name:clean(d?.company)||null,
-    phone_number:clean(d?.phone)||null,
-    email:clean(d?.email)||null,
-    address_line_1:clean(d?.street||d?.address||d?.address1),
-    address_line_2:clean(d?.address2)||null,
-    house_number:clean(d?.number)||null,
-    postal_code:clean(d?.postalCode||d?.postal_code||d?.zipCode),
-    city:clean(d?.city),
-    state_province_code:clean(d?.state)||null,
-    country_code:clean(d?.country||d?.countryCode).toUpperCase(),
+    name:clean(d?.name||d?.receiverName||row?.consignee_name),
+    company_name:clean(d?.company||row?.consignee_company_name)||null,
+    phone_number:clean(d?.phone||row?.consignee_phone)||null,
+    email:clean(d?.email||row?.consignee_email)||null,
+    address_line_1:clean(d?.street||d?.address||d?.address1||row?.consignee_street),
+    address_line_2:clean(d?.address2||row?.consignee_references)||null,
+    house_number:clean(d?.number||row?.consignee_number)||null,
+    postal_code:clean(d?.postalCode||d?.postal_code||d?.zipCode||row?.consignee_postal_code||row?.consignee_postalcode),
+    city:clean(d?.city||row?.consignee_city),
+    state_province_code:clean(d?.state||row?.consignee_state)||null,
+    country_code:clean(d?.country||d?.countryCode||row?.consignee_country).toUpperCase(),
   };
 }
 function shipmentStatus(row:any){return clean(row?.status?.name||row?.status?.description||row?.status||row?.shipmentStatus||row?.trackingStatus);}
-function shipmentCarrier(row:any){return clean(row?.carrierDescription||row?.carrierName||row?.carrier||row?.shipment?.carrier);}
+function shipmentCarrier(row:any){return clean(row?.carrierDescription||row?.carrierName||row?.carrier||row?.name||row?.shipment?.carrier);}
 function shipmentService(row:any){return clean(row?.serviceDescription||row?.serviceName||row?.service||row?.shipment?.service);}
 function shipmentPrice(row:any){
-  const value=number(row?.totalPrice??row?.total_price??row?.price??row?.amount,NaN);
+  const value=number(row?.grand_total??row?.totalPrice??row?.total_price??row?.total??row?.price??row?.amount,NaN);
   return Number.isFinite(value)?value:null;
 }
 function monthKeys(count:number){
@@ -452,28 +452,44 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
         console.warn('Envia shipment detail fallback',tracking,error instanceof Error?error.message:error);
       }
       const createdAt=shipmentCreatedAt(row),destination=shipmentDestination(row),status=shipmentStatus(row);
-      const carrierCode=clean(row?.carrier||row?.carrierCode||row?.shipment?.carrier);
+      const carrierCode=clean(row?.carrier||row?.carrierCode||row?.name||row?.shipment?.carrier);
       const carrierName=shipmentCarrier(row)||humanCarrier(carrierCode);
       const service=shipmentService(row);
       const price=shipmentPrice(row);
       const currency=clean(row?.currency||row?.currencyCode||row?.currency_code)||'EUR';
-      const labelUrl=clean(row?.label||row?.labelUrl||row?.label_url);
+      const labelUrl=clean(row?.label||row?.labelUrl||row?.label_url||row?.label_file);
       const trackingUrl=clean(row?.trackUrl||row?.trackingUrl||row?.tracking_url);
       const orderNumber=clean(row?.orderNumber||row?.order_number||row?.reference||row?.referenceNumber||row?.shipmentId)||`ENVIA-${tracking}`;
 
-      let {data:existing,error:existingError}=await admin.from('fulfillment_orders').select('id,shipping_provider')
+      let {data:existing,error:existingError}=await admin.from('fulfillment_orders').select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name')
         .eq('owner_id',ownerId).eq('shipping_remote_id',tracking).limit(1).maybeSingle();
       if(existingError)throw existingError;
       if(!existing){
-        const fallback=await admin.from('fulfillment_orders').select('id,shipping_provider')
+        const fallback=await admin.from('fulfillment_orders').select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name')
           .eq('owner_id',ownerId).eq('tracking_number',tracking).limit(1).maybeSingle();
         if(fallback.error)throw fallback.error;
         existing=fallback.data;
       }
+      // Labels created directly in Envia.com do not know the Amazon order ID.
+      // Reconcile them back to the original marketplace order before creating a
+      // standalone shipping row. Amazon relay email + destination postal code is
+      // a strong tenant-scoped identity for these pending orders.
+      if(!existing&&destination.email){
+        const candidate=await admin.from('fulfillment_orders')
+          .select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name')
+          .eq('owner_id',ownerId)
+          .ilike('customer_email',destination.email)
+          .is('tracking_number',null)
+          .order('order_created_at',{ascending:false})
+          .limit(10);
+        if(candidate.error)throw candidate.error;
+        const postal=clean(destination.postal_code);
+        existing=(candidate.data||[]).find((item:any)=>!postal||clean(item?.shipping_address?.postal_code)===postal)||candidate.data?.[0]||null;
+      }
       const patch:any={
         shipping_provider:'envia',
         shipping_remote_id:tracking,
-        shipping_label_url:labelUrl||null,
+        shipping_label_url:labelUrl||clean(row?.label_file)||null,
         shipping_integration_account_id:account.id,
         tracking_number:tracking,
         tracking_url:trackingUrl||null,
@@ -481,7 +497,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
         tracking_status_message:status||null,
         tracking_updated_at:new Date().toISOString(),
         shipping_option_code:clean(row?.service||row?.serviceCode)||service||null,
-        carrier_code:carrierCode||null,
+        carrier_code:carrierCode||clean(row?.name)||null,
         carrier_name:carrierName||null,
         shipping_service_name:service||null,
         shipping_cost_amount:price,

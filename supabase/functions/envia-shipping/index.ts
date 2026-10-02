@@ -435,6 +435,15 @@ function shipmentDestination(row:any){
 function shipmentStatus(row:any){return clean(row?.status?.name||row?.status?.description||row?.status||row?.shipmentStatus||row?.trackingStatus);}
 function shipmentCarrier(row:any){return clean(row?.carrierDescription||row?.carrierName||row?.carrier||row?.name||row?.shipment?.carrier);}
 function shipmentService(row:any){return clean(row?.serviceDescription||row?.serviceName||row?.service||row?.shipment?.service);}
+function normalizeMatchText(value:unknown){
+  return clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+}
+function shipmentReference(row:any){
+  return clean(
+    row?.orderReference||row?.order_reference||row?.reference||row?.referenceNumber||
+    row?.orderNumber||row?.order_number||row?.shipment?.orderReference||row?.shipment?.reference
+  );
+}
 function shipmentPrice(row:any){
   const value=number(row?.grand_total??row?.totalPrice??row?.total_price??row?.total??row?.price??row?.amount,NaN);
   return Number.isFinite(value)?value:null;
@@ -472,31 +481,74 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
       const trackingUrl=clean(row?.trackUrl||row?.trackingUrl||row?.tracking_url);
       const orderNumber=clean(row?.orderNumber||row?.order_number||row?.reference||row?.referenceNumber||row?.shipmentId)||`ENVIA-${tracking}`;
 
-      let {data:existing,error:existingError}=await admin.from('fulfillment_orders').select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,label_printed_at,label_print_state_known')
+      const selectFields='id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,label_printed_at,label_print_state_known';
+      let {data:existing,error:existingError}=await admin.from('fulfillment_orders').select(selectFields)
         .eq('owner_id',ownerId).eq('shipping_remote_id',tracking).limit(1).maybeSingle();
       if(existingError)throw existingError;
       if(!existing){
-        const fallback=await admin.from('fulfillment_orders').select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,label_printed_at,label_print_state_known')
+        const fallback=await admin.from('fulfillment_orders').select(selectFields)
           .eq('owner_id',ownerId).eq('tracking_number',tracking).limit(1).maybeSingle();
         if(fallback.error)throw fallback.error;
         existing=fallback.data;
       }
-      // Labels created directly in Envia.com do not know the Amazon order ID.
-      // Reconcile them back to the original marketplace order before creating a
-      // standalone shipping row. Amazon relay email + destination postal code is
-      // a strong tenant-scoped identity for these pending orders.
-      if(!existing&&destination.email){
-        const candidate=await admin.from('fulfillment_orders')
-          .select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,label_printed_at,label_print_state_known')
+
+      // A label purchased directly in Envia.com may arrive without the marketplace
+      // order id. Reconcile against ZENVIA before creating a synthetic MANUAL row.
+      // Priority: explicit reference -> email+postal -> recipient name+postal.
+      const reference=shipmentReference(row);
+      const postal=clean(destination.postal_code);
+      const destinationName=normalizeMatchText(destination.name);
+      let marketplaceMatch:any=null;
+
+      if(reference){
+        const exact=await admin.from('fulfillment_orders').select(selectFields)
+          .eq('owner_id',ownerId)
+          .or(`order_number.eq.${reference},order_id.eq.${reference}`)
+          .neq('source_channel','other')
+          .order('order_created_at',{ascending:false})
+          .limit(1)
+          .maybeSingle();
+        if(exact.error)throw exact.error;
+        marketplaceMatch=exact.data;
+      }
+
+      if(!marketplaceMatch&&destination.email){
+        const candidate=await admin.from('fulfillment_orders').select(selectFields)
           .eq('owner_id',ownerId)
           .ilike('customer_email',destination.email)
           .is('tracking_number',null)
+          .neq('source_channel','other')
           .order('order_created_at',{ascending:false})
-          .limit(10);
+          .limit(20);
         if(candidate.error)throw candidate.error;
-        const postal=clean(destination.postal_code);
-        existing=(candidate.data||[]).find((item:any)=>!postal||clean(item?.shipping_address?.postal_code)===postal)||candidate.data?.[0]||null;
+        marketplaceMatch=(candidate.data||[]).find((item:any)=>!postal||clean(item?.shipping_address?.postal_code)===postal)||candidate.data?.[0]||null;
       }
+
+      if(!marketplaceMatch&&postal&&destinationName){
+        const candidate=await admin.from('fulfillment_orders').select(selectFields)
+          .eq('owner_id',ownerId)
+          .is('tracking_number',null)
+          .neq('source_channel','other')
+          .order('order_created_at',{ascending:false})
+          .limit(80);
+        if(candidate.error)throw candidate.error;
+        marketplaceMatch=(candidate.data||[]).find((item:any)=>{
+          const itemPostal=clean(item?.shipping_address?.postal_code);
+          const itemName=normalizeMatchText(item?.customer_name||item?.shipping_address?.name);
+          return itemPostal===postal&&itemName===destinationName;
+        })||null;
+      }
+
+      // If a previous sync already created a synthetic Envia row, migrate the
+      // shipment to the real marketplace order and remove the duplicate.
+      let duplicateSyntheticId:string|null=null;
+      if(marketplaceMatch&&existing?.id&&existing.id!==marketplaceMatch.id&&existing.source_channel==='other'){
+        duplicateSyntheticId=existing.id;
+        existing=marketplaceMatch;
+      }else if(!existing&&marketplaceMatch){
+        existing=marketplaceMatch;
+      }
+
       const externallyDiscovered=!existing?.shipping_provider&&!existing?.label_created_at;
       const patch:any={
         shipping_provider:'envia',
@@ -524,6 +576,10 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
         if(existing.shipping_provider&&existing.shipping_provider!=='envia')continue;
         const {error:updateError}=await admin.from('fulfillment_orders').update(patch).eq('id',existing.id).eq('owner_id',ownerId);
         if(updateError)throw updateError;
+        if(duplicateSyntheticId){
+          const {error:deleteError}=await admin.from('fulfillment_orders').delete().eq('id',duplicateSyntheticId).eq('owner_id',ownerId);
+          if(deleteError)throw deleteError;
+        }
       }else{
         const insert={
           owner_id:ownerId,

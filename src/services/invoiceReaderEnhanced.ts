@@ -85,6 +85,22 @@ function normalizeInvoiceNumberCandidate(value: string | undefined | null) {
   return candidate;
 }
 
+function invoiceNumberDistance(a:string,b:string){
+  if(a===b)return 0;
+  const previous=Array.from({length:b.length+1},(_,index)=>index);
+  for(let i=1;i<=a.length;i+=1){
+    let diagonal=previous[0];
+    previous[0]=i;
+    for(let j=1;j<=b.length;j+=1){
+      const above=previous[j];
+      const cost=a[i-1]===b[j-1]?0:1;
+      previous[j]=Math.min(previous[j]+1,previous[j-1]+1,diagonal+cost);
+      diagonal=above;
+    }
+  }
+  return previous[b.length];
+}
+
 function invoiceNumberFromFilename(filename: string) {
   const base = filename.trim().replace(/\.[^.]+$/, '');
 
@@ -233,6 +249,30 @@ function extractLooseFiscalSummary(lines:string[]):FiscalSummary|null{
   return null;
 }
 
+function inferFiscalFromKnownSubtotal(lines:string[],subtotal:number):FiscalSummary|null{
+  if(!(subtotal>0))return null;
+  let marker=-1;
+  for(let index=lines.length-1;index>=0;index-=1){
+    if(/desglose\s+de\s+impuestos|%\s*(?:i\.?v\.?a\.?|iva)/i.test(lines[index])){marker=index;break;}
+  }
+  if(marker<0)return null;
+  const end=Math.min(lines.length,marker+14);
+  const window=lines.slice(marker,end);
+  const allValues=window.flatMap(line=>lineMoneyValues(line).map(value=>({value,line})));
+  const rates=window.flatMap(line=>[...line.matchAll(/(\d{1,2}(?:[.,]\d{1,2})?)\s*%/g)].map(match=>parseMoney(match[1]))).filter(rate=>rate>0&&rate<=30);
+  const uniqueRates=[...new Set(rates)];
+  for(const rate of uniqueRates){
+    const expectedVat=Math.round(subtotal*rate)/100;
+    const vatCandidate=allValues.find(item=>Math.abs(item.value-expectedVat)<=Math.max(.12,expectedVat*.02));
+    if(!vatCandidate)continue;
+    const vat=vatCandidate.value;
+    const expectedTotal=Math.round((subtotal+vat)*100)/100;
+    const totalCandidate=allValues.find(item=>Math.abs(item.value-expectedTotal)<=Math.max(.12,expectedTotal*.002));
+    return {subtotal,vat,total:totalCandidate?.value||expectedTotal,rate};
+  }
+  return null;
+}
+
 function normalizedCategoryName(value: string) {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
@@ -280,7 +320,12 @@ function enhanceInvoiceReadResult(
   const explicitNumber=explicitInvoiceNumber(base.text,textLines);
   const filenameNumber=options.allowFilenameNumber===false?'':invoiceNumberFromFilename(file.name);
   const baseNumber=normalizeInvoiceNumberCandidate(base.invoiceNumber);
-  const invoiceNumber=explicitNumber||filenameNumber||baseNumber;
+  const filenameAgreesWithOcr=Boolean(
+    explicitNumber&&filenameNumber&&
+    explicitNumber.length===filenameNumber.length&&
+    invoiceNumberDistance(explicitNumber,filenameNumber)<=1
+  );
+  const invoiceNumber=filenameAgreesWithOcr?filenameNumber:(explicitNumber||filenameNumber||baseNumber);
   const retailCorrection=getRetailInvoiceCorrection(textLines,base.text);
   const cashSierraLines=getCashSierraNevadaProductLines(textLines,base.text);
   const structuredLines=extractStructuredProductLines(textLines);
@@ -300,7 +345,9 @@ function enhanceInvoiceReadResult(
   const repaired=repairInvoiceAmounts(base.subtotal,base.vat,base.withholding,base.total,textLines);
   const explicitSubtotal=explicitTaxBase(base.text);
   const reverseCharge=/inv\.?\s*pasivo|reverse\s+charge|inversi[oó]n\s+del\s+sujeto\s+pasivo/i.test(base.text);
-  const fiscalSummary=reverseCharge?null:extractFiscalSummary(textLines)||extractLooseFiscalSummary(textLines);
+  const initialFiscalSummary=reverseCharge?null:extractFiscalSummary(textLines)||extractLooseFiscalSummary(textLines);
+  const knownSubtotal=initialFiscalSummary?.subtotal||explicitSubtotal||repaired.subtotal;
+  const fiscalSummary=reverseCharge?null:(initialFiscalSummary||inferFiscalFromKnownSubtotal(textLines,knownSubtotal));
   const effectiveSubtotal=retailCorrection
     ?retailCorrection.subtotal
     :fiscalSummary?.subtotal||explicitSubtotal||repaired.subtotal;

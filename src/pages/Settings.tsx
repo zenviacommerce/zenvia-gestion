@@ -1247,7 +1247,6 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     }finally{setSaving(false);}
   };
   const dateTime=(value:string|null)=>formatAppDateTime(value,settings.general,'Sin registro');
-  const sendcloudAccounts=accounts.filter(item=>item.provider==='sendcloud'&&item.status!=='disabled');
   const compatibilityMode=accounts.some(item=>item.legacy);
 
   const resetEditor=(nextProvider:IntegrationProvider,account:IntegrationAccount|null=null)=>{
@@ -1519,7 +1518,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                 <IntegrationBrandLogo provider={id}/>
                 <div><strong>{providerMeta[id].name}</strong><small>{providerMeta[id].description}</small></div>
               </div>
-              <button type="button" className="secondary" disabled={busy!==null||(id==='shopify'&&!sendcloudAccounts.length)} onClick={()=>resetEditor(id)}><Plus size={14}/> {providerMeta[id].addLabel}</button>
+              <button type="button" className="secondary" disabled={busy!==null} onClick={()=>resetEditor(id)}><Plus size={14}/> {providerMeta[id].addLabel}</button>
             </div>
             <div className="integrationAccountList">
               {!items.length?<div className="settingsEmptyMini">Todavía no hay cuentas configuradas.</div>:items.map(account=><div className={`integrationAccountRow ${account.status==='disabled'?'isDisabled':''}`} key={account.id}>
@@ -1547,7 +1546,6 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                 </div>
               </div>)}
             </div>
-            {id==='shopify'&&!sendcloudAccounts.length&&<div className="settingsHelpText">Conecta Sendcloud antes de añadir una tienda Shopify: ZENVIA detecta las tiendas desde esa cuenta logística.</div>}
           </div>;
 
             })}

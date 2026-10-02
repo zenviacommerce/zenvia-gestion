@@ -57,7 +57,7 @@ function extractRegisteredTaxId(lines:string[]){
   for(let index=0;index<lines.length;index+=1){
     if(!/registro\s+mercantil/i.test(lines[index]))continue;
     const window=lines.slice(index,Math.min(lines.length,index+3)).join(' ');
-    const value=window.match(/(?:C\.?\s*I\.?\s*F\.?|N\.?\s*I\.?\s*F\.?)\s*[:#-]?\s*([A-Z]{0,2}\s*[A-Z0-9](?:[\s.-]*[A-Z0-9]){6,14})/i)?.[1];
+    const value=window.match(/(?:C\.?\s*[IL1]\.?\s*F\.?|N\.?\s*[IL1]\.?\s*F\.?)\s*[:#-]?\s*([A-Z]{0,2}\s*[A-Z0-9](?:[\s.-]*[A-Z0-9]){6,14})/i)?.[1];
     if(value)return normalizeTaxId(value);
   }
   return undefined;

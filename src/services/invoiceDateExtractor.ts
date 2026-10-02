@@ -61,6 +61,11 @@ export function extractDateValues(value:string){
     add(second>12&&first<=12?iso(year,first,second):iso(year,second,first));
   }
 
+  const dayMonthSeparated=new RegExp('\\b(\\d{1,2})(?:st|nd|rd|th)?\\s*[-/.]\\s*('+monthAlternation+')\\.?\\s*[-/.]\\s*(20\\d{2}|\\d{2})\\b','g');
+  for(const match of text.matchAll(dayMonthSeparated)){
+    add(iso(modernYear(match[3]),months[match[2]],Number(match[1])));
+  }
+
   const dayMonth=new RegExp('\\b(\\d{1,2})(?:st|nd|rd|th)?\\s*(?:de\\s+|of\\s+)?('+monthAlternation+')\\.?\\s*(?:de\\s+|,\\s*)?(20\\d{2}|\\d{2})\\b','g');
   for(const match of text.matchAll(dayMonth)){
     add(iso(modernYear(match[3]),months[match[2]],Number(match[1])));

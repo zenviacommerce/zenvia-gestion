@@ -102,7 +102,7 @@ function invoiceNumberFromFilename(filename: string) {
   if (validPrefixed) return validPrefixed;
 
   // TRUFA_PET_585256540.pdf
-  const trailingDigits = base.match(/(?:^|[_-])(\d{6,20})$/)?.[1];
+  const trailingDigits = base.match(/(?:^|[\s_-])(\d{6,20})$/)?.[1];
   return normalizeInvoiceNumberCandidate(trailingDigits);
 }
 

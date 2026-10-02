@@ -43,6 +43,7 @@ import { DEFAULT_AUTOMATION_RULES, loadAutomationRules, saveAutomationRule, type
 import { applyExpenseInvoiceReprocess, findClientDuplicates, findInvoiceDuplicates, findProductDuplicates, findSupplierDuplicates, listClientsMissingTaxId, listProductsWithoutCost, listReprocessableInvoices, listSuppliersMissingTaxId, mergeClient, mergeSupplier, previewClientMerge, previewExpenseInvoiceReprocess, previewPriceHistoryRebuild, previewProductCostRecalculation, previewSupplierMerge, previewSupplierProductRebuild, rebuildPriceHistoryLinks, rebuildSupplierProductLinks, recalculateProductCosts, runAmazonSync, runSendcloudSync, type DuplicateCandidate, type ExpenseInvoiceReprocessPreview, type MaintenanceRepairPreview, type MergePreview, type ReprocessableInvoiceOption } from '../services/maintenance';
 import { downloadSettingsExport, previewSettingsReset, resetAllSettingsToDefaults, type SettingsResetPreview } from '../services/settingsExport';
 import { DASHBOARD_KPI_DEFAULTS, TABLE_COLUMN_DEFAULTS, type PreferenceTableKey } from '../services/uiPreferences';
+import { MRW_SERVICE_OPTIONS, mrwServiceName } from '../services/mrwCatalog';
 import { formatAppDateTime, formatAppMoney } from '../services/formatting';
 import type { AccessProfile } from '../services/access';
 import { importCustomerSubscriptionInvoiceAsExpense, loadCustomerBillingOverview, loadCustomerSubscriptionInvoices, startCustomerPayPalCheckout, type BillingCycle, type CustomerBillingOverview, type CustomerBillingPlan, type CustomerSubscriptionInvoice } from '../services/billing';
@@ -1164,8 +1165,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   const [mrwPassword,setMrwPassword]=useState('');
   const [mrwTrackingPassword,setMrwTrackingPassword]=useState('');
   const [mrwEnvironment,setMrwEnvironment]=useState<'test'|'production'>('production');
-  const [mrwServiceCode,setMrwServiceCode]=useState('0205');
-  const [mrwServiceName,setMrwServiceName]=useState('MRW Urgent 19:00');
+  const [mrwServiceCode,setMrwServiceCode]=useState('');
+  const [mrwServiceName,setMrwServiceName]=useState('');
   const [parentAccountId,setParentAccountId]=useState('');
   const [shopifyIntegrationId,setShopifyIntegrationId]=useState('');
   const [shopifyStores,setShopifyStores]=useState<ShopifyDiscovery[]>([]);
@@ -1263,8 +1264,10 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     setEnviaEnvironment(account?.provider==='envia'&&account?.config?.environment==='production'?'production':'sandbox');
     setMrwFranchiseCode('');setMrwSubscriberCode('');setMrwDepartmentCode('');setMrwUsername('');setMrwPassword('');setMrwTrackingPassword('');
     setMrwEnvironment(account?.provider==='mrw'&&account?.config?.environment==='test'?'test':'production');
-    setMrwServiceCode(account?.provider==='mrw'&&typeof account?.config?.serviceCode==='string'?String(account.config.serviceCode):'0205');
-    setMrwServiceName(account?.provider==='mrw'&&typeof account?.config?.serviceName==='string'?String(account.config.serviceName):'MRW Urgent 19:00');
+    const configuredMrwCode=account?.provider==='mrw'&&typeof account?.config?.serviceCode==='string'?String(account.config.serviceCode):'';
+    const configuredMrwName=account?.provider==='mrw'&&typeof account?.config?.serviceName==='string'?String(account.config.serviceName):'';
+    setMrwServiceCode(configuredMrwCode);
+    setMrwServiceName(configuredMrwName||mrwServiceName(configuredMrwCode));
     setParentAccountId(account?.parentAccountId||sendcloudAccounts.find(item=>item.isDefault)?.id||sendcloudAccounts[0]?.id||'');
     setShopifyIntegrationId(String(account?.config?.sendcloudIntegrationId||account?.externalAccountId||''));
     setShopifyStores([]);setAccountEnabled(account?.enabled??true);
@@ -1308,7 +1311,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     if(provider==='shopify')return {sendcloudIntegrationId:Number(shopifyIntegrationId),syncOrders};
     if(provider==='sendcloud')return {syncOrders,shippingEnabled:true};
     if(provider==='envia')return {shippingEnabled:true,environment:enviaEnvironment};
-    if(provider==='mrw')return {shippingEnabled:true,environment:mrwEnvironment,serviceCode:mrwServiceCode.trim()||'0205',serviceName:mrwServiceName.trim()||'MRW Urgent 19:00'};
+    if(provider==='mrw')return {shippingEnabled:true,environment:mrwEnvironment,serviceCode:mrwServiceCode.trim(),serviceName:mrwServiceName.trim()||mrwServiceName(mrwServiceCode.trim())};
     return {months:Math.max(1,Math.min(36,Number(gmailMonths)||12)),invoiceImportEnabled:true};
   };
 
@@ -1399,6 +1402,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
         showSuccess('Cuenta de Envia.com conectada.');
       }else if(provider==='mrw'){
         if(!mrwFranchiseCode.trim()||!mrwSubscriberCode.trim()||!mrwUsername.trim()||!mrwPassword.trim())throw new Error('Indica franquicia, abonado, usuario y contraseña de MRW.');
+        if(!mrwServiceCode.trim())throw new Error('Selecciona el servicio MRW predeterminado de esta cuenta.');
         await createIntegrationAccount({
           provider:'mrw',displayName:displayName.trim()||'MRW',
           credentials:{franchiseCode:mrwFranchiseCode.trim(),subscriberCode:mrwSubscriberCode.trim(),departmentCode:mrwDepartmentCode.trim(),username:mrwUsername.trim(),password:mrwPassword.trim(),trackingPassword:mrwTrackingPassword.trim()},
@@ -1635,8 +1639,10 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
               <label className="settingsField"><span>{editing?'Nueva contraseña (opcional)':'Contraseña'}</span><input type="password" autoComplete="new-password" value={mrwPassword} onChange={e=>setMrwPassword(e.target.value)} placeholder={editing?'Sin cambios':'Contraseña MRW'}/></label>
               <label className="settingsField"><span>{editing?'Nueva contraseña de seguimiento (opcional)':'Contraseña de seguimiento (opcional)'}</span><input type="password" autoComplete="new-password" value={mrwTrackingPassword} onChange={e=>setMrwTrackingPassword(e.target.value)} placeholder={editing?'Sin cambios':'Solo necesaria para POD'}/><small>La misma contraseña usada en el seguimiento de MRW; solo es necesaria para recuperar POD.</small></label>
               <label className="settingsField"><span>Entorno</span><SelectField ariaLabel="Entorno MRW" value={mrwEnvironment} options={[{value:'test',label:'Pruebas MRW'},{value:'production',label:'Producción MRW'}]} onChange={value=>setMrwEnvironment(value as 'test'|'production')}/></label>
-              <label className="settingsField"><span>Código de servicio</span><input value={mrwServiceCode} onChange={e=>setMrwServiceCode(e.target.value)} placeholder="0205"/></label>
-              <label className="settingsField"><span>Nombre del servicio</span><input value={mrwServiceName} onChange={e=>setMrwServiceName(e.target.value)} placeholder="MRW Urgent 19:00"/></label>
+              <label className="settingsField settingsFieldWide"><span>Servicio MRW predeterminado</span><SelectField ariaLabel="Servicio MRW predeterminado" allowEmpty emptyLabel="Selecciona el servicio asignado por MRW" value={mrwServiceCode} options={[
+                ...MRW_SERVICE_OPTIONS.map(item=>({value:item.code,label:`${item.code} · ${item.name}`})),
+                ...(mrwServiceCode&&!MRW_SERVICE_OPTIONS.some(item=>item.code===mrwServiceCode)?[{value:mrwServiceCode,label:`${mrwServiceCode} · ${mrwServiceName||'Servicio configurado'}`}]:[]),
+              ]} onChange={value=>{setMrwServiceCode(value);setMrwServiceName(mrwServiceName(value))}}/><small>Selecciona el servicio que tu franquicia MRW tenga habilitado como predeterminado para esta cuenta. No se impone ningún servicio desde ZENVIA.</small></label>
             </div>
           </>}
 

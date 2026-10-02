@@ -534,6 +534,15 @@ Deno.serve(async(req:Request)=>{
         const merged={...existing,...Object.fromEntries(Object.entries(credentials).filter(([,v])=>clean(v)))};
         patch.secret_id=await writeVault(admin,account.id,account.provider,merged,account.secret_id);
         patch.status='pending';patch.last_error=null;
+        if(account.provider==='shopify'){
+          const shopDomain=normalizeShopifyDomain((merged as any).shopDomain||(merged as any).shop_domain||body?.config?.shopDomain||account.external_account_id);
+          const accessToken=clean((merged as any).accessToken||(merged as any).access_token);
+          if(!shopDomain||!accessToken)throw new Error('Indica el dominio myshopify.com y el access token de Shopify.');
+          patch.external_account_id=shopDomain;
+          patch.parent_account_id=null;
+          patch.credential_source='vault';
+          patch.config={...(account.config||{}),...(body?.config||{}),shopDomain,apiVersion:clean(body?.config?.apiVersion||account.config?.apiVersion)||'2026-07',syncOrders:body?.config?.syncOrders!==false};
+        }
       }
       const saved=await admin.from('integration_accounts').update(patch).eq('id',id).eq('owner_id',caller.data_owner_id).select('*').single();
       if(saved.error)throw saved.error;

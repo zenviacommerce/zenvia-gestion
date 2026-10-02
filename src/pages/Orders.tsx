@@ -479,10 +479,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
         .filter(option=>option.price!=null&&Number(option.price)>0)
         .sort((a,b)=>Number(a.price)-Number(b.price))[0]||allowed[0]||null;
     }
-    const byRules=selectShippingOptionByRules(order,allowed,shippingRules);
-    if(byRules)return byRules;
-    const fallback=settings.orders.defaultCarrier?.trim().toLowerCase();
-    return fallback?allowed.find(option=>`${option.carrierCode||''} ${option.carrierName||''}`.toLowerCase().includes(fallback))||null:null;
+    return selectShippingOptionByRules(order,allowed,shippingRules);
   };
   const validationCarrier=(order:FulfillmentOrder)=>firstMatchingShippingRule(order,shippingRules)?.action.carrierContains||settings.orders.defaultCarrier||'';
 

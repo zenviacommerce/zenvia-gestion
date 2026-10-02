@@ -15,7 +15,7 @@ import {
   createManualOrder, createOrderLabel, fetchOrderLabel,
   getEnviaStatus, getSendcloudStatus, getShippingOptions, labelBlob, listFulfillmentOrders, listLocalPrinters, markOrderLabelPrinted,
   markEnviaHistorySyncDone, markHistorySyncDone, openLabelForPrint, printLabelWithClient,
-  shouldRunEnviaHistorySync, shouldRunHistorySync, syncEnviaShipments, syncSendcloudOrders, retryAmazonTrackingConfirmations, updateFulfillmentOrder,
+  shouldRunEnviaHistorySync, shouldRunHistorySync, syncEnviaShipments, syncSendcloudOrders, syncShopifyOrders, retryAmazonTrackingConfirmations, updateFulfillmentOrder,
   type FulfillmentOrder, type LocalPrinter, type ManualOrderItem, type OrderChannel, type OrderUpdateInput,
   type SendcloudStatus, type ShippingOption,
 } from '../services/orders';
@@ -411,16 +411,18 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     if(syncingRef.current)return;
     const runSendcloud=Boolean(settings.integrations.sendcloudEnabled&&status?.configured);
     const runEnvia=Boolean(settings.integrations.enviaEnabled&&enviaStatus?.configured);
-    if(!runSendcloud&&!runEnvia){
+    const runShopify=Boolean(settings.integrations.shopifyEnabled);
+    if(!runSendcloud&&!runEnvia&&!runShopify){
       await Promise.all([refresh(),settings.orders.retryTrackingConfirmation?retryAmazonTrackingConfirmations():Promise.resolve()]);
-      if(!silent)showSuccess('Pedidos actualizados. Amazon y los transportistas directos no dependen de Sendcloud para refrescar esta vista.');
+      if(!silent)showSuccess('Pedidos actualizados. Los canales directos y transportistas conectados no dependen de Sendcloud para refrescar esta vista.');
       return;
     }
     syncingRef.current=true;setSyncing(true);if(!silent)setError('');
     try{
-      const [sendcloudResult,enviaResult]=await Promise.allSettled([
+      const [sendcloudResult,enviaResult,shopifyResult]=await Promise.allSettled([
         runSendcloud?syncSendcloudOrders(history,settings.orders.retryTrackingConfirmation,automatic):Promise.resolve(null),
         runEnvia?syncEnviaShipments(enviaHistory?12:2):Promise.resolve(null),
+        runShopify?syncShopifyOrders(history):Promise.resolve(null),
       ]);
       const messages:string[]=[],failures:string[]=[];
       if(sendcloudResult.status==='fulfilled'&&sendcloudResult.value){
@@ -432,13 +434,16 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
         messages.push('Envia.com '+enviaResult.value.synced);
         if(enviaHistory)markEnviaHistorySyncDone();
       }else if(enviaResult.status==='rejected')failures.push('Envia.com: '+errorMessage(enviaResult.reason,'error de sincronización'));
+      if(shopifyResult.status==='fulfilled'&&shopifyResult.value?.configured){
+        messages.push('Shopify '+shopifyResult.value.synced);
+      }else if(shopifyResult.status==='rejected')failures.push('Shopify: '+errorMessage(shopifyResult.reason,'error de sincronización'));
       await refresh();
       if(!silent){
         if(messages.length)showSuccess('Pedidos actualizados · '+messages.join(' · ')+'.');
         if(failures.length)showInfo(failures.join(' · '));
       }
     }finally{syncingRef.current=false;setSyncing(false)}
-  },[refresh,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled,settings.orders.retryTrackingConfirmation,status?.configured,enviaStatus?.configured]);
+  },[refresh,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled,settings.integrations.shopifyEnabled,settings.orders.retryTrackingConfirmation,status?.configured,enviaStatus?.configured]);
   useEffect(()=>{
     const enabled=Boolean((settings.integrations.sendcloudEnabled&&status?.configured)||(settings.integrations.enviaEnabled&&enviaStatus?.configured));
     const tick=()=>enabled

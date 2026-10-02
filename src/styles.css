@@ -50,3 +50,8 @@
 th.right .sortableTableHeader{justify-content:flex-end}
 [data-theme='dark'] .sortableTableHeader:hover,
 [data-theme='dark'] .sortableTableHeader.isActive{color:#5eead4}
+
+.app>main{display:flex;flex-direction:column;min-height:100vh}
+.appLegalFooter{margin-top:auto;padding:18px 38px 22px;text-align:center;color:#94a3b8;font-size:11px;line-height:1.4;border-top:1px solid #e5e9f0;background:transparent}
+[data-theme="dark"] .appLegalFooter{color:#64748b;border-top-color:#243244}
+@media(max-width:760px){.appLegalFooter{padding:16px 18px 20px;font-size:10.5px}}

@@ -127,11 +127,12 @@ function sender(settings:any,config:any){
   };
 }
 function mrwOption(account:any){
-  const code=clean(account.config?.serviceCode)||'0205';
-  const name=clean(account.config?.serviceName)||'MRW Urgent 19:00';
+  const code=clean(account.config?.serviceCode);
+  const name=clean(account.config?.serviceName);
+  if(!code)return null;
   return {
     provider:'mrw',providerName:'MRW Directo',integrationAccountId:account.row.id,integrationAccountName:account.row.display_name,
-    code,name,carrierCode:'mrw',carrierName:'MRW',contractId:null,price:null,currency:'EUR',raw:{direct:true,serviceCode:code},
+    code,name:name||code,carrierCode:'mrw',carrierName:'MRW',contractId:null,price:null,currency:'EUR',raw:{direct:true,serviceCode:code},
   };
 }
 
@@ -150,7 +151,10 @@ Deno.serve(async(req:Request)=>{
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('owner_id',caller.data_owner_id).eq('id',orderId).maybeSingle();
     if(error)throw error;if(!order)return response({error:'Pedido no encontrado.'},404);
 
-    if(action==='options')return response({configured:true,options:[mrwOption(account)]});
+    if(action==='options'){
+      const option=mrwOption(account);
+      return response({configured:true,options:option?[option]:[],message:option?null:'Selecciona el servicio MRW predeterminado en Configuración > Integraciones.'});
+    }
 
     const base=mrwBase(account.config?.environment);
     if(action==='create_label'){
@@ -158,8 +162,9 @@ Deno.serve(async(req:Request)=>{
       const length=positive(order.package_length_cm),width=positive(order.package_width_cm),height=positive(order.package_height_cm),weight=orderWeight(order,settings.shipping?.fallbackWeightKg||1);
       if(!clean(address.name||order.customer_name)||!clean(address.address_line_1)||!clean(address.postal_code)||!clean(address.city))return response({error:'Faltan datos obligatorios del destinatario para MRW.'},409);
       if(!from.address||!from.postalCode||!from.city)return response({error:'Completa la dirección del remitente en Configuración > Envíos antes de usar MRW directo.'},409);
-      const serviceCode=clean(body?.shippingOption?.code||account.config?.serviceCode)||'0205';
-      const serviceName=clean(body?.shippingOption?.name||account.config?.serviceName)||'MRW Urgent 19:00';
+      const serviceCode=clean(body?.shippingOption?.code||account.config?.serviceCode);
+      const serviceName=clean(body?.shippingOption?.name||account.config?.serviceName)||serviceCode;
+      if(!serviceCode)return response({error:'Selecciona el servicio MRW predeterminado en Configuración > Integraciones antes de generar etiquetas.'},409);
       const requiresDimensions=/^(0200|0205|0220)$/.test(serviceCode)||/urgente\s*19/i.test(serviceName);
       if(requiresDimensions&&(!length||!width||!height))return response({error:'MRW requiere largo, ancho y alto para Urgente 19. Otros servicios pueden generarse solo con el peso.',code:'missing_dimensions'},409);
       const dimensionsXml=length&&width&&height?`<Alto>${height}</Alto><Largo>${length}</Largo><Ancho>${width}</Ancho><Dimension>cm</Dimension>`:'';

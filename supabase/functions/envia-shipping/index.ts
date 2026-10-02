@@ -641,50 +641,27 @@ Deno.serve(async(req:Request)=>{
       const normalizedService=service.toLowerCase();
       const correosExpressEpaq24=normalizedCarrier==='correosexpress'&&normalizedService==='epaq_24';
       const generateWeight=correosExpressEpaq24&&realWeight<1?1:realWeight;
-      const generateRequest=(weight:number)=>enviaJson(`${c.shipBase}/ship/generate/`,c.token,{
-        method:'POST',
-        body:JSON.stringify({
-          origin,destination:dest,packages:[{...pkg,weight}],
-          settings:{printFormat:'PDF',printSize},
-          shipment:{type:1,carrier,service},
-        }),
-      });
       let payload:any;
       try{
-        payload=await generateRequest(generateWeight);
+        payload=await enviaJson(`${c.shipBase}/ship/generate/`,c.token,{
+          method:'POST',
+          body:JSON.stringify({
+            origin,destination:dest,packages:[{...pkg,weight:generateWeight}],
+            settings:{printFormat:'PDF',printSize},
+            shipment:{type:1,carrier,service},
+          }),
+        });
       }catch(error){
         const detail=error instanceof Error?error.message:String(error);
-        if(!/KILOS BULTO.*FORMATO INCORRECTO|99999\.999/i.test(detail))throw error;
-
-        // Correos Express requires both a minimum 1 kg parcel for epaq_24 and
-        // a kilos value that reaches its adapter with three significant decimal
-        // positions. Envia's public JSON API normalizes 1.000 to 1, so retry
-        // this very specific adapter case as 1.001 kg (same 1 kg billing band).
-        if(correosExpressEpaq24&&realWeight<1){
-          const compatibilityWeight=1.001;
-          console.warn('ENVIA_CORREOS_EXPRESS_WEIGHT_COMPAT_RETRY',JSON.stringify({
-            carrier,service,realWeight,firstWeight:generateWeight,compatibilityWeight,
-            destinationCountry:dest.country,destinationPostalCode:dest.postalCode,
-          }));
-          try{
-            payload=await generateRequest(compatibilityWeight);
-          }catch(retryError){
-            const retryDetail=retryError instanceof Error?retryError.message:String(retryError);
-            console.error('ENVIA_CARRIER_WEIGHT_REJECTION',JSON.stringify({
-              carrier,service,realWeight,generateWeight,compatibilityWeight,weightUnit:pkg.weightUnit,
-              destinationCountry:dest.country,destinationPostalCode:dest.postalCode,
-              detail:retryDetail,
-            }));
-            throw new Error(`Envia.com / ${carrier}: Correos Express sigue rechazando el peso tras aplicar la compatibilidad de epaq_24 (1.001 kg para un peso real de ${realWeight.toFixed(3)} kg).`);
-          }
-        }else{
+        if(/KILOS BULTO.*FORMATO INCORRECTO|99999\.999/i.test(detail)){
           console.error('ENVIA_CARRIER_WEIGHT_REJECTION',JSON.stringify({
             carrier,service,realWeight,generateWeight,weightUnit:pkg.weightUnit,
             destinationCountry:dest.country,destinationPostalCode:dest.postalCode,
             detail,
           }));
-          throw new Error(`Envia.com / ${carrier}: el transportista rechazó el peso de generación ${generateWeight.toFixed(3)} kg (peso real ${realWeight.toFixed(3)} kg). Revisa la configuración del servicio en Envia.com.`);
+          throw new Error(`Envia.com / ${carrier}: Correos Express rechazó el peso enviado (${generateWeight} kg) para epaq_24.`);
         }
+        throw error;
       }
       const rows=asRows(payload);
       const data=rows[0]||(payload?.data&&typeof payload.data==='object'?payload.data:payload);

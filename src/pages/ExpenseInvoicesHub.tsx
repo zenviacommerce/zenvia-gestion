@@ -8,14 +8,14 @@ export function ExpenseInvoicesHub({invoices,suppliers,categories,onUpload,onBul
  const [tab,setTab]=useState<'invoices'|'gmail'>('invoices');
  return <div className="expenseInvoicesHub">
    <div className="expenseHubNavShell">
-     <div className="expenseHubNav" role="tablist" aria-label="Facturas de gastos">
+     <div className="expenseHubNav" role="tablist" aria-label="Facturas de gasto">
        <button role="tab" aria-selected={tab==='invoices'} className={tab==='invoices'?'active':''} onClick={()=>setTab('invoices')}>
          <span className="expenseHubTabIcon"><FileText size={18}/></span>
-         <span className="expenseHubTabText"><strong>Facturas</strong><small>Histórico, filtros y exportación</small></span>
+         <span className="expenseHubTabText"><strong>Facturas de gasto</strong><small>Histórico, filtros y exportación</small></span>
        </button>
        <button role="tab" aria-selected={tab==='gmail'} className={tab==='gmail'?'active':''} onClick={()=>setTab('gmail')}>
          <span className="expenseHubTabIcon"><Mail size={18}/></span>
-         <span className="expenseHubTabText"><strong>Importar con Gmail</strong><small>Buscar y añadir facturas recibidas</small></span>
+         <span className="expenseHubTabText"><strong>Importar desde Gmail</strong><small>Buscar y añadir facturas recibidas</small></span>
        </button>
      </div>
    </div>

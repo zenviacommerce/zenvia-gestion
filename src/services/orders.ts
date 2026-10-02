@@ -15,7 +15,7 @@ export interface FulfillmentOrder {
   packageLengthCm:number|null; packageWidthCm:number|null; packageHeightCm:number|null;
   sendcloudParcelId:number|null; sendcloudShipmentId:string|null;
   shippingProvider:'sendcloud'|'envia'|'mrw'|null; shippingRemoteId:string|null; shippingLabelUrl:string|null;
-  trackingNumber:string|null; trackingUrl:string|null; trackingStatusCode:string|null; trackingStatusMessage:string|null; trackingUpdatedAt:string|null;
+  trackingNumber:string|null; trackingUrl:string|null; carrierTrackingUrl?:string|null; trackingStatusCode:string|null; trackingStatusMessage:string|null; trackingUpdatedAt:string|null;
   shippingOptionCode:string|null; contractId:number|null;
   carrierCode:string|null; carrierName:string|null; shippingServiceName:string|null;
   shippingCostAmount:number|null; shippingCostCurrency:string|null; shippingCostSource:string|null;
@@ -106,6 +106,7 @@ function mapRow(row:any):FulfillmentOrder{
     shippingProvider:row.shipping_provider==='envia'?'envia':row.shipping_provider==='mrw'?'mrw':row.shipping_provider==='sendcloud'?'sendcloud':(row.sendcloud_parcel_id||row.sendcloud_shipment_id?'sendcloud':null),
     shippingRemoteId:row.shipping_remote_id||null, shippingLabelUrl:row.shipping_label_url||null,
     trackingNumber:row.tracking_number||null, trackingUrl:row.tracking_url||null,
+    carrierTrackingUrl:row.raw_payload?._zenvia_tracking?.number===row.tracking_number?row.raw_payload._zenvia_tracking.url||null:null,
     trackingStatusCode:row.tracking_status_code||null, trackingStatusMessage:row.tracking_status_message||null, trackingUpdatedAt:row.tracking_updated_at||null,
     shippingOptionCode:row.shipping_option_code||null, contractId:row.contract_id==null?null:Number(row.contract_id),
     carrierCode:row.carrier_code||null, carrierName:row.carrier_name||(balearicPending?'🏝 Baleares · usar Correos':null), shippingServiceName:row.shipping_service_name||null,
@@ -384,3 +385,7 @@ export async function printLabelWithClient(blob:Blob,printerId:string,labelSize:
 }
 export function getSavedPrinter(){return window.localStorage.getItem(PRINTER_KEY)||'';}
 export function savePrinter(printerId:string){if(printerId)window.localStorage.setItem(PRINTER_KEY,printerId);else window.localStorage.removeItem(PRINTER_KEY);}
+
+export function getOrderTrackingLink(orderId:string){
+  return invokeOrderState<{url:string|null;status:'ready'|'unavailable';message?:string}>({action:'resolve_tracking_link',orderId});
+}

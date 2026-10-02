@@ -1,3 +1,4 @@
+import { InvoiceEngineQueue } from '../components/InvoiceEngineQueue';
 import { useState } from 'react';
 import { FileText, Mail } from 'lucide-react';
 import type { ExpenseCategory, Invoice, InvoicePaymentStatus, Supplier } from '../types';
@@ -7,6 +8,7 @@ import { GmailPage } from './Gmail';
 export function ExpenseInvoicesHub({invoices,suppliers,categories,onUpload,onBulkUpload,onStatusChange,onPaymentStatusChange,onBulkPaymentStatusChange,onOpenFile,onDelete,onSupplierChange,onCategoryChange,onImported}:{invoices:Invoice[];suppliers:Supplier[];categories:ExpenseCategory[];onUpload:()=>void;onBulkUpload:()=>void;onStatusChange:(id:string,status:'pending'|'reviewed'|'accounted')=>Promise<void>;onPaymentStatusChange:(id:string,status:InvoicePaymentStatus,paidAt?:string|null)=>Promise<void>;onBulkPaymentStatusChange:(ids:string[],status:InvoicePaymentStatus,paidAt?:string|null)=>Promise<void>;onOpenFile:(invoice:Invoice)=>Promise<void>;onDelete:(invoice:Invoice)=>Promise<void>;onSupplierChange:(invoiceId:string,supplierId:string)=>Promise<void>;onCategoryChange:(invoiceId:string,categoryId:string)=>Promise<void>;onImported:()=>Promise<void>|void}){
  const [tab,setTab]=useState<'invoices'|'gmail'>('invoices');
  return <div className="expenseInvoicesHub">
+   <InvoiceEngineQueue categories={categories} onImported={onImported}/>
    <div className="expenseHubNavShell">
      <div className="expenseHubNav" role="tablist" aria-label="Facturas de gasto">
        <button role="tab" aria-selected={tab==='invoices'} className={tab==='invoices'?'active':''} onClick={()=>setTab('invoices')}>

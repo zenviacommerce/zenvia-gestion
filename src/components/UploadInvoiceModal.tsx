@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Camera, FileUp, X, ScanLine, CheckCircle2, AlertCircle, LoaderCircle } from 'lucide-react';
 import { imageFilesToPdf } from '../services/pdf';
 import { isMultiInvoiceDocumentError } from '../services/invoiceReaderEnhanced';
-import { classifyInvoiceCandidate, createManualInvoiceCandidate, invoiceCandidateToInput, prepareInvoiceCandidate } from '../services/invoiceImportPipeline';
+import { classifyInvoiceCandidate, createManualInvoiceCandidate, invoiceCandidateToInput, prepareInvoiceCandidate, prepareInvoiceCandidates } from '../services/invoiceImportPipeline';
 import { InvoiceCandidateForm } from './InvoiceCandidateForm';
 import { showSuccess } from '../services/toast';
 import type { ExpenseCategory, Invoice, InvoiceImportCandidate, InvoiceSource, NewInvoiceInput } from '../types';
@@ -31,14 +31,20 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
   },[open]);
   if(!open) return null;
 
-  const runReader = async (prepared: File, analysisFile: File = prepared) => {
+  const runReader = async (prepared: File, analysisFile: File = prepared, nextSource:InvoiceSource='manual') => {
     setReading(true);setReaderBlocked(false);setReaderMessage('Analizando factura…');setCandidate(null);
     try {
-      const preparedCandidate=await prepareInvoiceCandidate(prepared,categories,setReaderMessage,analysisFile,policy);
+      const candidates=await prepareInvoiceCandidates(prepared,categories,setReaderMessage,analysisFile,policy,nextSource);
+      let preparedCandidate:InvoiceImportCandidate|undefined;
+      for(const c of candidates){
+        if(c.status==='ready'){await onSave(invoiceCandidateToInput(c,nextSource));}
+        else preparedCandidate ||= c;
+      }
+      if(!preparedCandidate){showSuccess(`${candidates.length} factura(s) importada(s) automáticamente.`);onClose();return;}
       const result=classifyInvoiceCandidate(preparedCandidate,existingInvoices,policy);
       setCandidate(result);
       const percent=Math.round(result.confidence*100);
-      const intelligence=result.analysisEngine==='hybrid-ai-verified'
+      const intelligence=result.analysisEngine==='invoice-engine'||result.analysisEngine==='hybrid-ai-verified'
         ?('IA verificada'+(result.analysisModel?' · '+result.analysisModel:''))
         :'motor determinista';
       if(result.status==='duplicate'){
@@ -56,16 +62,7 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
         setError(e.message);
         setReaderMessage('Documento bloqueado: contiene varias facturas o abonos. Usa “Importar facturas de gasto” para separarlas y revisarlas individualmente.');
       } else {
-        const manualCandidate=classifyInvoiceCandidate(await createManualInvoiceCandidate(prepared),existingInvoices,policy);
-        setCandidate(manualCandidate);
-        if(manualCandidate.status==='duplicate'){
-          setReaderBlocked(true);
-          setError(manualCandidate.reviewReason||'Esta factura ya está importada.');
-          setReaderMessage('Documento bloqueado: se ha detectado como duplicado.');
-        }else{
-          setError('');
-          setReaderMessage(`No se pudo completar la lectura automática. ${e instanceof Error?e.message:''} Puedes rellenar los datos manualmente.`.trim());
-        }
+        setReaderBlocked(true);setCandidate(null);setError(e instanceof Error?e.message:'No se pudo preparar la importación.');setReaderMessage('No se puede guardar hasta que InvoiceEngine esté disponible en este entorno.');
       }
     } finally { setReading(false); }
   };
@@ -75,11 +72,13 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
     setError('');setReaderBlocked(false);setStatus('Preparando documento…');
     try {
       const allImages=files.every(f=>f.type.startsWith('image/'));
-      const prepared=allImages?await imageFilesToPdf(files):files[0];
+      const prepared=allImages&&files.length>1&&nextSource==='camera'?await imageFilesToPdf(files):files[0];
+      if(nextSource==='camera'&&files.length>1){const {archiveSourceDocument}=await import('../services/repository');for(const original of files)await archiveSourceDocument(original,'camera',{engineVersion:1,cameraBundle:prepared.name},'invoice-engine-originals');}
       const analysisFile=allImages&&files.length===1?files[0]:prepared;
       setFile(prepared);setSource(nextSource);
       setStatus(nextSource==='camera'?`Escaneo preparado (${files.length} página${files.length>1?'s':''}) · lectura sobre imagen original.`:'Documento listo.');
-      await runReader(prepared,analysisFile);
+      await runReader(prepared,analysisFile,nextSource);
+      if(nextSource!=='camera'||!allImages)for(const remaining of files.slice(1))await runReader(remaining,remaining,nextSource);
     } catch(e){setError(e instanceof Error?e.message:'No se pudo procesar el archivo.');}
   };
 
@@ -88,7 +87,7 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
     if(!file||!candidate||!candidate.supplierName.trim()||!candidate.invoiceDate){setError('Selecciona un archivo e indica proveedor y fecha.');return;}
     setSaving(true);setError('');
     try{
-      await onSave(invoiceCandidateToInput(candidate,source));
+      await onSave(invoiceCandidateToInput(candidate,source,true));
       showSuccess('Factura de gasto guardada correctamente.');
       onClose();
     }catch(e){setError(e instanceof Error?e.message:'No se pudo guardar la factura.');}
@@ -101,7 +100,7 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
       <button className="uploadChoice" onClick={()=>fileRef.current?.click()}><FileUp/><strong>Subir PDF o imagen</strong><span>Desde archivos del dispositivo</span></button>
       <button className="uploadChoice accent" onClick={()=>cameraRef.current?.click()}><Camera/><strong>Escanear con cámara</strong><span>Permite varias páginas</span></button>
     </div>
-    <input hidden ref={fileRef} type="file" accept="application/pdf,image/*" onChange={e=>handleFiles(Array.from(e.target.files??[]),'manual')}/>
+    <input hidden ref={fileRef} type="file" multiple accept="application/pdf,image/*,.heic,.heif" onChange={e=>handleFiles(Array.from(e.target.files??[]),'manual')}/>
     <input hidden ref={cameraRef} type="file" accept="image/*" capture="environment" multiple onChange={e=>handleFiles(Array.from(e.target.files??[]),'camera')}/>
     {file&&<div className="selectedFile"><CheckCircle2 size={18}/><div><strong>{file.name}</strong><span>{(file.size/1024/1024).toFixed(2)} MB · {source==='camera'?'Cámara':'Archivo'}</span></div></div>}
 

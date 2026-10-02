@@ -29,16 +29,7 @@ test('supplier editor persists configured default category',async()=>{
   assert.match(modal,/settings\.suppliers\.defaultCategoryId/);
 });
 
-test('expense supplier resolver combines expenses and supplier policies',async()=>{
-  const repository=await read('../src/services/repository.ts');
-  assert.match(repository,/SuppliersSettings/);
-  assert.match(repository,/supplierSettings\.detectDuplicates/);
-  assert.match(repository,/supplierSettings\.identityThreshold/);
-  assert.match(repository,/supplierSettings\.autoCreate/);
-  assert.match(repository,/supplierSettings\.enrichTaxId/);
-  assert.match(repository,/supplierSettings\.enrichEmail/);
-  assert.match(repository,/supplierSettings\.enrichPhone/);
-  assert.match(repository,/supplierSettings\.enrichWebsite/);
-  assert.match(repository,/supplierSettings\.enrichAddress/);
-  assert.match(repository,/supplierSettings\.onlyFillEmpty/);
+test('InvoiceEngine resolves VAT first and only fills missing supplier contact data',async()=>{
+const source=await read('../supabase/migrations/20261002190000_invoice_engine.sql');
+assert.match(source,/invoice_engine_tax_key\(tax_id\)=tax/);assert.match(source,/invoice_engine_name_similarity/);assert.match(source,/coalesce\(nullif\(email,''\)/);assert.match(source,/coalesce\(nullif\(phone,''\)/);
 });

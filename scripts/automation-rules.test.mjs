@@ -33,10 +33,7 @@ test('unknown automation config properties are rejected and missing rows use def
 });
 
 test('order and expense consumers load their automation rules',async()=>{
-  const orders=await read('src/services/orders.ts');
-  const repository=await read('src/services/repository.ts');
-  assert.match(orders,/loadAutomationRule\('order_label_created'\)/);
-  assert.match(repository,/loadAutomationRule\('expense_invoice_imported'\)/);
+const orders=await read('src/services/orders.ts');assert.match(orders,/loadAutomationRule\('order_label_created'\)/);const sql=await read('supabase/migrations/20261002190000_invoice_engine.sql');assert.match(sql,/public.automation_rules/);assert.match(sql,/rule_key='expense_invoice_imported'/);assert.match(sql,/auto_cfg->>'updateProductCosts'/);
 });
 
 test('settings exposes controlled automation rule editor without generic scripts',async()=>{

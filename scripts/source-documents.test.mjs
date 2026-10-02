@@ -15,23 +15,11 @@ test('expense originals live in an immutable source_documents archive',async()=>
 });
 
 test('creating or deleting an accounting interpretation never deletes the archived original',async()=>{
-  const repository=await read('src/services/repository.ts');
-  assert.match(repository,/export async function archiveSourceDocument/);
-  assert.match(repository,/source_document_id:archivedSource\.id/);
-  assert.match(repository,/return invoice\.id as string/);
-  const deleteBlock=repository.slice(repository.indexOf('export async function deleteInvoice'),repository.indexOf('export async function getInvoiceFileUrl'));
-  assert.doesNotMatch(deleteBlock,/storage\.from\(INVOICE_BUCKET\)\.remove/);
-  assert.match(deleteBlock,/evidencia inmutable/i);
+const repository=await read('src/services/repository.ts');assert.match(repository,/archiveSourceDocument/);assert.match(repository,/return InvoiceEngine.save\(input\)/);const deleteBlock=repository.slice(repository.indexOf('export async function deleteInvoice'),repository.indexOf('export async function getInvoiceFileUrl'));assert.doesNotMatch(deleteBlock,/storage.*remove/);const sql=await read('supabase/migrations/20261002190000_invoice_engine.sql');assert.match(sql,/on delete restrict/);assert.match(sql,/src.id,src.storage_path/);
 });
 
-test('Gmail archives the original attachment before classification and can link ignored documents',async()=>{
-  const gmail=await read('src/services/gmailImport.ts');
-  const download=gmail.indexOf('downloadGmailAttachment');
-  const archive=gmail.indexOf("archiveSourceDocument(file,'gmail'",download);
-  const classify=gmail.indexOf('classifyInvoiceFile',archive);
-  assert.ok(download>=0&&archive>download&&classify>archive);
-  assert.match(gmail,/source_document_id:archivedSource\.id/);
-  assert.match(gmail,/prepared\.sourceDocumentId=archivedSource\.id/);
+test('Gmail originals are archived before inference and linked to their email',async()=>{
+const engine=await read('src/services/invoiceEngine.ts');const archive=engine.indexOf('await archiveSourceDocument');const infer=engine.indexOf("fetch('/api/invoice-engine'");assert.ok(archive>0&&infer>archive);assert.match(engine,/source_document_id:archived.id/);
 });
 
 test('exports use the source-document path resolved by loadAppData and do not re-run extraction',async()=>{

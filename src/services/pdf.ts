@@ -23,7 +23,8 @@ export async function imageFilesToPdf(files: File[]): Promise<File> {
   let pdf: jsPDF | null = null;
 
   for (let index = 0; index < files.length; index += 1) {
-    const dataUrl = await readAsDataUrl(files[index]);
+    let original:File=files[index];if(/\.hei[cf]$/i.test(original.name)){const {heicTo}=await import('heic-to');const blob=await heicTo({blob:original,type:'image/jpeg',quality:.94}) as Blob;original=new File([blob],original.name+'.jpg',{type:'image/jpeg'});}
+    const dataUrl = await readAsDataUrl(original);
     const img = await loadImage(dataUrl);
     const orientation = img.width >= img.height ? 'landscape' : 'portrait';
     if (!pdf) pdf = new jsPDF({ orientation, unit: 'mm', format: 'a4' });

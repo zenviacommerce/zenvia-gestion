@@ -28,32 +28,17 @@ test('AI backend uses strict structured outputs and rejects unsupported claims',
   assert.match(edge,/OPENAI_API_KEY/);
 });
 
-test('expense upload, camera, Gmail and sales import all converge on the shared reader',async()=>{
-  const [upload,gmail,pipeline,sales]=await Promise.all([
-    read('src/components/UploadInvoiceModal.tsx'),
-    read('src/services/gmailImport.ts'),
-    read('src/services/invoiceImportPipeline.ts'),
-    read('src/services/salesInvoiceImport.ts'),
-  ]);
-  assert.match(upload,/prepareInvoiceCandidate/);
-  assert.match(upload,/source==='camera'/);
-  assert.match(gmail,/prepareInvoiceCandidate/);
-  assert.match(pipeline,/readInvoiceDocumentEnhanced/);
-  assert.match(sales,/readInvoiceDocumentEnhanced\(file,\[\],undefined,\{mode:'sales'\}\)/);
+test('all purchase and expense channels converge on InvoiceEngine',async()=>{
+const gmail=await read('src/services/gmailImport.ts');const pipeline=await read('src/services/invoiceImportPipeline.ts');assert.match(gmail,/InvoiceEngine.analyze/);assert.match(pipeline,/InvoiceEngine.analyze/);assert.doesNotMatch(gmail,/readInvoiceDocumentEnhanced/);
 });
 
 test('camera passes the original image to the intelligence layer rather than only the generated PDF',async()=>{
-  const upload=await read('src/components/UploadInvoiceModal.tsx');
-  assert.match(upload,/analysisFile=allImages&&files\.length===1\?files\[0\]:prepared/);
-  assert.match(upload,/prepareInvoiceCandidate\(prepared,categories,setReaderMessage,analysisFile,policy\)/);
+const upload=await read('src/components/UploadInvoiceModal.tsx');assert.match(upload,/analysisFile=allImages&&files.length===1\?files\[0\]:prepared/);assert.match(upload,/prepareInvoiceCandidates\(prepared,categories,setReaderMessage,analysisFile,policy,nextSource\)/);assert.match(upload,/archiveSourceDocument\(original/);
 });
 
 
 test('expense imports require human review when the AI verifier is unavailable',async()=>{
-  const pipeline=await read('src/services/invoiceImportPipeline.ts');
-  assert.match(pipeline,/aiUnavailable/);
-  assert.match(pipeline,/La validación IA documental no está disponible/);
-  assert.match(pipeline,/status='needs_review'/);
+const engine=await read('src/services/invoiceEngine.ts');assert.match(engine,/emptyDocument/);assert.match(engine,/extractionWarning:reason/);assert.match(engine,/invoice_engine_stage/);assert.match(engine,/validateDocument/);
 });
 
 test('sales invoice import accepts images and supports multi-page camera scanning',async()=>{

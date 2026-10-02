@@ -33,7 +33,7 @@ test('tenant-local ZENVIA agent authenticates the user and runs without paid mod
   assert.match(edge,/authorizedPages/);
   assert.match(edge,/loadBusinessContext/);
   assert.match(edge,/processLocalAgent/);
-  assert.match(edge,/zenvia-local-v1/);
+  assert.match(edge,/zenvia-local-router-v2/);
   assert.match(edge,/\.eq\('owner_id',ownerId\)/);
   assert.match(edge,/fulfillment_orders/);
   assert.match(edge,/sales_invoices/);

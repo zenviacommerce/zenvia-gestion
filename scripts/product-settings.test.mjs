@@ -27,15 +27,9 @@ test('new product modal consumes configured defaults and target margin',async()=
   assert.match(modal,/settings\.products\.priceRounding/);
 });
 
-test('expense product automation obeys product creation and cost settings',async()=>{
-  const repository=await read('../src/services/repository.ts');
-  assert.match(repository,/ProductsSettings/);
-  assert.match(repository,/productSettings\.autoCreateFromInvoice/);
-  assert.match(repository,/productSettings\.updateCostFromImports/);
-  assert.match(repository,/productSettings\.costMethod/);
-  assert.match(repository,/last_purchase/);
-  assert.match(repository,/average/);
-  assert.match(repository,/manual/);
+test('InvoiceEngine creates goods and records normalized latest purchase cost',async()=>{
+const source=await read('../supabase/migrations/20261002190000_invoice_engine.sql');
+assert.match(source,/l->>'kind'='product'/);assert.match(source,/insert into public.products/);assert.match(source,/insert into public.supplier_products/);assert.match(source,/old_date is null or issue>=old_date/);assert.match(source,/units_per_purchase/);
 });
 
 test('products page uses configured margin and cost increase thresholds',async()=>{

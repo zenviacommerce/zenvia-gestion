@@ -27,21 +27,21 @@ function authorizedPages(profile:any,requested:unknown){
 }
 
 async function safeRows(query:PromiseLike<any>){
-  try{const result=await query;if(result?.error)throw result.error;return result?.data||[];}catch{return [];}
+  try{const result=await query;if(result?.error)throw result.error;return result?.data||[];}catch{throw new Error('No se pudieron consultar los datos de ZENVIA.');}
 }
 async function safeCount(query:PromiseLike<any>){
-  try{const result=await query;if(result?.error)throw result.error;return Number(result?.count||0);}catch{return 0;}
+  try{const result=await query;if(result?.error)throw result.error;return Number(result?.count||0);}catch{throw new Error('No se pudieron consultar las cifras de ZENVIA.');}
 }
 async function loadAgentKnowledge(admin:any,query:string,allowedPages:string[]){
   if(!query.trim())return [];
   try{
-    const {data,error}=await admin.rpc('agent_knowledge_search',{p_app:'gestion',p_query:query,p_limit:5});
+    const {data,error}=await admin.rpc('agent_knowledge_search_authorized',{p_app:'gestion',p_query:query,p_permissions:allowedPages,p_limit:5});
     if(error)throw error;
     return (Array.isArray(data)?data:[]).filter((item:any)=>{
       const permissions=Array.isArray(item?.permissions)?item.permissions.map(String):[];
-      return !permissions.length||permissions.some((permission:string)=>allowedPages.includes(permission));
+      return !permissions.length||permissions.every((permission:string)=>allowedPages.includes(permission));
     });
-  }catch{return [];}
+  }catch{throw new Error('No se pudo consultar el conocimiento de ZENVIA.');}
 }
 async function loadAgentTools(admin:any,allowedPages:string[]){
   try{
@@ -50,7 +50,7 @@ async function loadAgentTools(admin:any,allowedPages:string[]){
       .eq('app','gestion').eq('enabled',true).order('tool_key');
     if(error)throw error;
     return (data||[]).filter((tool:any)=>!tool.permission||allowedPages.includes(String(tool.permission)));
-  }catch{return [];}
+  }catch{throw new Error('No se pudo consultar el registro de herramientas.');}
 }
 function agentToolEnabled(ctx:any,key:string){
   return Array.isArray(ctx?.tools)&&ctx.tools.some((tool:any)=>String(tool?.tool_key)===key);
@@ -98,7 +98,7 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
   const can=(page:string)=>allowedPages.includes(page);
   const tasks:Record<string,Promise<any>>={};
 
-  if(can('orders')||can('dashboard')){
+  if(can('orders')){
     let recentQuery=admin.from('fulfillment_orders')
       .select('id,order_number,source_channel,source_status,customer_name,total_amount,currency,tracking_number,sendcloud_parcel_id,shipping_remote_id,label_created_at,fulfilled_at,order_created_at,carrier_name,shipping_service_name')
       .eq('owner_id',ownerId);
@@ -113,7 +113,7 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
     totalQuery=applyDateRange(totalQuery,'order_created_at',periods.orders,true);
     tasks.ordersTotal=safeCount(totalQuery);
   }
-  if(can('invoices')||can('dashboard')){
+  if(can('invoices')){
     let recentQuery=admin.from('invoices')
       .select('id,invoice_number,supplier_id,issue_date,received_date,total_amount,net_amount,tax_amount,status,payment_status,paid_at')
       .eq('owner_id',ownerId);
@@ -132,26 +132,26 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
     paidQuery=applyDateRange(paidQuery,'issue_date',periods.expenses);
     tasks.expensesPaid=safeCount(paidQuery);
   }
-  if(can('products')||can('dashboard')){
+  if(can('products')){
     tasks.products=safeRows(admin.from('products')
       .select('id,name,sku,ean,category,base_unit,last_cost,sale_price,sales_tax_rate,active')
       .eq('owner_id',ownerId).eq('active',true).order('name').limit(60));
     tasks.productsTotal=safeCount(admin.from('products').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).eq('active',true));
     tasks.productsWithoutCost=safeCount(admin.from('products').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).eq('active',true).is('last_cost',null));
   }
-  if(can('suppliers')||can('invoices')||can('dashboard')){
+  if(can('suppliers')||can('invoices')){
     tasks.suppliers=safeRows(admin.from('suppliers')
       .select('id,name,tax_id,email,phone,supplier_type')
       .eq('owner_id',ownerId).order('name').limit(60));
     tasks.suppliersTotal=safeCount(admin.from('suppliers').select('id',{count:'exact',head:true}).eq('owner_id',ownerId));
   }
-  if(can('clients')||can('sales')||can('dashboard')){
+  if(can('clients')||can('sales')){
     tasks.clients=safeRows(admin.from('clients')
       .select('id,name,tax_id,email,phone,city,country_code,payment_terms_days')
       .eq('owner_id',ownerId).eq('active',true).order('name').limit(60));
     tasks.clientsTotal=safeCount(admin.from('clients').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).eq('active',true));
   }
-  if(can('sales')||can('dashboard')){
+  if(can('sales')){
     let recentQuery=admin.from('sales_invoices')
       .select('id,invoice_number,client_name,status,issue_date,due_date,total_amount,tax_amount,currency')
       .eq('owner_id',ownerId);
@@ -171,6 +171,14 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
     tasks.supportOpen=safeCount(admin.from('support_tickets').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).in('status',['open','in_progress','waiting_user']));
   }
 
+  if(can('admin')&&can('settings')){
+    tasks.integrationAccounts=safeRows(admin.from('integration_accounts').select('provider,display_name,enabled').eq('owner_id',ownerId).order('provider').limit(100));
+  }
+  if(can('admin')){
+    tasks.adminUsers=safeRows(admin.from('app_users').select('user_id,full_name,role,active').eq('data_owner_id',ownerId).limit(100));
+    tasks.audit=safeRows(admin.from('audit_logs').select('id,module,action,summary,created_at').eq('workspace_owner_id',ownerId).order('created_at',{ascending:false}).limit(10));
+  }
+
   const keys=Object.keys(tasks);
   const values=await Promise.all(keys.map(key=>tasks[key]));
   const raw=Object.fromEntries(keys.map((key,index)=>[key,values[index]])) as Record<string,any>;
@@ -187,6 +195,7 @@ async function loadBusinessContext(admin:any,ownerId:string,allowedPages:string[
     clients:raw.clients?{total:raw.clientsTotal,items:raw.clients}:undefined,
     sales:raw.salesRecent?{total:raw.salesTotal,open:raw.salesOpen,recent:raw.salesRecent}:undefined,
     support:raw.supportRecent?{open:raw.supportOpen,recent:raw.supportRecent}:undefined,
+    integrationAccounts:raw.integrationAccounts,adminUsers:raw.adminUsers,audit:raw.audit,
     periods,
   };
 }
@@ -238,14 +247,15 @@ type LocalActionParams={
   unit:string|null;sku:string|null;ean:string|null;category:string|null;price:number|null;salePrice:number|null;
   salesTaxRate:number|null;supplierType:'unclassified'|'goods'|'service'|'both'|null;
   invoiceId:string|null;status:'pending'|'reviewed'|'accounted'|null;
+  paymentStatus:'paid'|'unpaid'|null;subject:string|null;description:string|null;
 };
 type LocalAction={
-  type:'navigate'|'open_expense_upload'|'open_product_create'|'open_supplier_create'|'open_settings'|'refresh_data'|'sync_orders'|'create_client'|'create_product'|'create_supplier'|'set_expense_status'|'none';
+  type:'navigate'|'open_expense_upload'|'open_product_create'|'open_supplier_create'|'open_settings'|'refresh_data'|'sync_orders'|'create_client'|'create_product'|'create_supplier'|'set_expense_status'|'set_expense_payment'|'create_support_ticket'|'sync_amazon'|'none';
   target:string|null;
   params:LocalActionParams;
 };
 function localParams():LocalActionParams{
-  return {name:null,taxId:null,email:null,phone:null,city:null,countryCode:null,unit:null,sku:null,ean:null,category:null,price:null,salePrice:null,salesTaxRate:null,supplierType:null,invoiceId:null,status:null};
+  return {name:null,taxId:null,email:null,phone:null,city:null,countryCode:null,unit:null,sku:null,ean:null,category:null,price:null,salePrice:null,salesTaxRate:null,supplierType:null,invoiceId:null,status:null,paymentStatus:null,subject:null,description:null};
 }
 function localAction(type:LocalAction['type']='none',target:string|null=null,params:Partial<LocalActionParams>={}):LocalAction{
   return {type,target,params:{...localParams(),...params}};
@@ -380,16 +390,17 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:an
     return localReply('De nada. Dime qué quieres consultar o hacer en ZENVIA Gestión.');
   }
 
-  // Ámbito estricto: el agente no responde cultura general, programación,
-  // noticias, recetas ni otros productos. Solo cortesía básica queda fuera del dominio.
-  const appMetaIntent=hasAny(text,['que puedes hacer','qué puedes hacer','para que sirves','para qué sirves','ayuda','esta pantalla','esta seccion','esta sección','que puedo hacer aqui','qué puedo hacer aquí']);
-  if(!basicSocial(text)&&!appMetaIntent&&!appScopeEvidence(contextual)){
-    return localReply(outOfScopeReply());
-  }
-
   // Una sola pregunta aclaratoria cuando una orden corta no identifica objeto/acción.
   if(text.split(' ').length<=3&&hasAny(text,['hazlo','crealo','créalo','cambialo','cámbialo','borralo','bórralo','arreglalo','arréglalo'])&&!previousUser){
     return localReply('¿Qué elemento o acción concreta de ZENVIA quieres que gestione?');
+  }
+
+
+  // Ámbito estricto: el agente no responde cultura general, programación,
+  // noticias, recetas ni otros productos. Solo cortesía básica queda fuera del dominio.
+  const appMetaIntent=hasAny(text,['que puedes hacer','qué puedes hacer','para que sirves','para qué sirves','ayuda','esta pantalla','esta seccion','esta sección','que puedo hacer aqui','qué puedo hacer aquí','que tengo pendiente','qué tengo pendiente','que me queda','qué me queda']);
+  if(!basicSocial(text)&&!appMetaIntent&&!appScopeEvidence(contextual)){
+    return localReply(outOfScopeReply());
   }
 
   if(hasAny(text,['como funciona la aplicacion','cómo funciona la aplicación','explicame la aplicacion','explícame la aplicación','que es zenvia gestion','qué es zenvia gestión','como funciona zenvia gestion','cómo funciona zenvia gestión'])){
@@ -415,7 +426,7 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:an
     const rows=(ctx.expenses.recent||[]).filter((i:any)=>String(i.payment_status||'unpaid')!=='paid').slice(0,8);
     return localReply('Tienes '+String(ctx.expenses.unpaid||0)+' facturas de gasto por pagar.'+(rows.length?'\n'+rows.map((i:any)=>String(i.invoice_number||'sin número')+' · '+String(i.supplier_name||'proveedor')+' · '+euroLocal(i.total_amount)).join('\n'):''));
   }
-  if(hasAny(contextual,['facturas pagadas','gastos pagados','cuantas pagadas','cuántas pagadas'])&&ctx.expenses&&allowed.includes('invoices')){
+  if(hasAny(contextual,['facturas pagadas','facturas de gasto pagadas','gastos pagados','cuantas pagadas','cuántas pagadas'])&&ctx.expenses&&allowed.includes('invoices')){
     return localReply('Hay '+String(ctx.expenses.paid||0)+' facturas de gasto marcadas como pagadas en el periodo consultado.');
   }
   if(hasAny(contextual,['productos sin coste','sin coste','productos sin precio de coste'])&&ctx.products&&allowed.includes('products')){
@@ -454,7 +465,7 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:an
     const meaningful=text.split(' ').filter(word=>word.length>=4&&!['cliente','producto','proveedor','busca','dime','sobre','datos','cual','cuál','tiene'].includes(word));
     return items.filter(item=>meaningful.some(word=>fields.some(field=>norm(String(item?.[field]||'')).includes(word)))).slice(0,5);
   };
-  if(ctx.products&&allowed.includes('products')&&hasAny(text,['producto','sku','ean'])){
+  if(!hasAny(text,['crea','crear','nuevo','añade','anade'])&&ctx.products&&allowed.includes('products')&&hasAny(text,['producto','sku','ean'])){
     const matches=entitySearch(ctx.products.items||[],['name','sku','ean','category']);
     if(matches.length===1){const p=matches[0];return localReply(`${p.name}: SKU ${p.sku||'—'}, coste ${p.last_cost==null?'sin coste':euroLocal(p.last_cost)}, precio de venta ${p.sale_price==null?'sin precio':euroLocal(p.sale_price)}.`);}
     if(matches.length>1)return localReply('He encontrado varios productos: '+matches.map((p:any)=>String(p.name)).join(', ')+'.');
@@ -469,6 +480,21 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:an
     if(matches.length===1){const p=matches[0];return localReply(`${p.name}: ${p.tax_id||'sin NIF/CIF'}, tipo ${p.supplier_type||'sin clasificar'}, ${p.email||'sin email'}.`);}
     if(matches.length>1)return localReply('He encontrado varios proveedores: '+matches.map((p:any)=>String(p.name)).join(', ')+'.');
   }
+
+  if(hasAny(text,['marca','marcar'])&&hasAny(text,['pagada','pagado','sin pagar'])&&allowed.includes('invoices')&&agentToolEnabled(ctx,'expenses.set_payment')){
+    const matches=(ctx.expenses?.recent||[]).filter((inv:any)=>{const number=norm(String(inv.invoice_number||''));return number&&text.includes(number)});
+    if(matches.length!==1)return localReply('¿Qué número exacto de factura de gasto quieres cambiar?');
+    return localReply('He preparado el cambio de pago de la factura '+matches[0].invoice_number+'.',localAction('set_expense_payment','invoices',{invoiceId:String(matches[0].id),paymentStatus:hasAny(text,['sin pagar'])?'unpaid':'paid'}));
+  }
+  if(hasAny(text,['sincroniza amazon','sincronizar amazon','actualiza amazon'])&&allowed.includes('amazon')&&agentToolEnabled(ctx,'amazon.sync'))return localReply('He preparado la sincronización de Amazon. Necesita confirmación.',localAction('sync_amazon','amazon'));
+  if(hasAny(text,['crea un ticket','crear ticket','abre un ticket'])&&allowed.includes('support')&&agentToolEnabled(ctx,'support.create')){
+    const detail=raw.match(/(?:ticket)\s*[:：]\s*([^;\n]+)[;\n]\s*(.+)/i);
+    if(!detail)return localReply('¿Qué asunto y descripción quieres incluir en el ticket? Sepáralos con un punto y coma.');
+    return localReply('He preparado el ticket “'+detail[1].trim()+'”.',localAction('create_support_ticket','support',{subject:detail[1].trim(),description:detail[2].trim()}));
+  }
+  if(allowed.includes('settings')&&hasAny(text,['integraciones conectadas','integraciones activas','cuentas conectadas'])&&Array.isArray(ctx.integrationAccounts))return localReply(ctx.integrationAccounts.length?'Integraciones: '+ctx.integrationAccounts.map((a:any)=>a.provider+' · '+(a.display_name||'cuenta')+' · '+(a.enabled?'activa':'desactivada')).join('\n'):'No hay cuentas de integración configuradas.');
+  if(allowed.includes('admin')&&hasAny(text,['usuarios activos','cuantos usuarios'])&&Array.isArray(ctx.adminUsers))return localReply('Hay '+ctx.adminUsers.filter((u:any)=>u.active).length+' usuarios activos en este workspace.');
+  if(allowed.includes('admin')&&hasAny(text,['auditoria','ultimos cambios'])&&Array.isArray(ctx.audit))return localReply(ctx.audit.length?ctx.audit.map((a:any)=>a.created_at+' · '+a.summary).join('\n'):'No hay movimientos de auditoría disponibles.');
 
   if(hasAny(text,['sincroniza los pedidos','sincronizar pedidos','actualiza los pedidos','trae los pedidos'])&&allowed.includes('orders')){
     if(!agentToolEnabled(ctx,'orders.sync'))return localReply('La herramienta de sincronización de pedidos no está habilitada para tu sesión.');
@@ -509,6 +535,8 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:an
   if(hasAny(text,['modo oscuro','tema oscuro','modo claro']))return localReply('En Configuración defines el tema global preferido. El botón rápido de claro/oscuro aplica un cambio local al dispositivo actual, sin modificar los demás equipos.');
   if(hasAny(text,['sendcloud','envia.com','envia com','transportista','logistica','logística'])&&hasAny(text,['configurar','conectar','integracion','integración','donde']))return localReply('Sendcloud y Envia.com se gestionan en Configuración → Integraciones y pueden convivir.',localAction('open_settings','settings'));
 
+  const screenKnowledge=Array.isArray(ctx?.knowledge)?ctx.knowledge[0]:null;
+  if(hasAny(text,['como','explica','que significa','que es','para que','donde'])&&screenKnowledge?.content)return localReply(String(screenKnowledge.content),localAction(),screenKnowledge.domain);
   const mentionedPage=pageAlias(text);
   if(mentionedPage&&hasAny(text,['como funciona','cómo funciona','explica','explicame','explícame','para que sirve','para qué sirve','que hace','qué hace'])){
     if(!allowed.includes(mentionedPage))return localReply('No tienes acceso a '+pageTitle(mentionedPage)+'.');

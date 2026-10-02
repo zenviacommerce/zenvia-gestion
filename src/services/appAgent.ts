@@ -11,6 +11,9 @@ export type AgentActionType=
   |'create_client'
   |'create_product'
   |'create_supplier'
+  |'set_expense_payment'
+  |'create_support_ticket'
+  |'sync_amazon'
   |'set_expense_status'
   |'none';
 
@@ -31,6 +34,7 @@ export type AgentActionParams={
   supplierType:'unclassified'|'goods'|'service'|'both'|null;
   invoiceId:string|null;
   status:'pending'|'reviewed'|'accounted'|null;
+  paymentStatus:'paid'|'unpaid'|null;subject:string|null;description:string|null;
 };
 
 export type AgentAction={
@@ -49,7 +53,7 @@ export type AgentMessage={role:'user'|'assistant';content:string};
 
 const emptyParams:AgentActionParams={
   name:null,taxId:null,email:null,phone:null,city:null,countryCode:null,unit:null,sku:null,ean:null,category:null,
-  price:null,salePrice:null,salesTaxRate:null,supplierType:null,invoiceId:null,status:null,
+  price:null,salePrice:null,salesTaxRate:null,supplierType:null,invoiceId:null,status:null,paymentStatus:null,subject:null,description:null,
 };
 
 export async function askAppAgent(input:{
@@ -81,4 +85,10 @@ export async function askAppAgent(input:{
     },
     model:data.model?String(data.model):undefined,
   };
+}
+
+export async function authorizeAppAgentAction(type:string,params:Record<string,unknown>){
+  const args=Object.fromEntries(Object.entries(params).filter(([,value])=>value!=null));
+  const {data,error}=await supabase.functions.invoke('app-agent-tools',{body:{type,args,confirmed:true}});
+  if(error||!data?.ok)throw new Error(String(data?.error||error?.message||'La acción no está autorizada.'));
 }

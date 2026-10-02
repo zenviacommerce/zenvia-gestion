@@ -43,7 +43,7 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
   const patch=(id:string,update:Partial<BulkItem>)=>setItems(current=>current.map(item=>item.id===id?{...item,...update}:item));
 
   const analyzeFiles=async(files:File[])=>{
-    const pdfs=files.filter(file=>file.type==='application/pdf'||file.name.toLowerCase().endsWith('.pdf'));
+    const pdfs=files.filter(file=>file.type.startsWith('image/')||/\.(pdf|jpe?g|png|webp|hei[cf])$/i.test(file.name));
     const initial=pdfs.map(file=>({id:crypto.randomUUID(),file,status:'analyzing' as const}));
     setItems(initial);setSelectedId(null);
     let cursor=0;
@@ -54,7 +54,9 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
         const item=initial[index];
         try{
           const prepared=await prepareInvoiceCandidates(item.file,categories,undefined,item.file,policy);
-          const candidates=prepared.map(candidate=>classifyInvoiceCandidate(candidate,existingInvoices,policy));
+          const candidates=prepared;
+          for(const candidate of candidates){if(candidate.status==='ready'){try{await onSave(invoiceCandidateToInput(candidate,'manual'));candidate.status='imported';}catch(error){candidate.status='needs_review';candidate.reviewReason=error instanceof Error?error.message:'No se pudo guardar automáticamente.';}}}
+          await onFinished();
           setItems(current=>current.flatMap(existing=>existing.id===item.id
             ?candidates.map(candidate=>({id:candidate.id,file:item.file,status:candidate.status,candidate,error:undefined}))
             :[existing]));
@@ -77,7 +79,7 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
     if(!selected?.candidate)return;
     const candidate=selected.candidate;
     if(!candidate.supplierName.trim()||!candidate.invoiceDate)return;
-    const next={...candidate,status:'ready' as const,reviewReason:undefined};
+    const next={...candidate,status:'ready' as const,reviewReason:undefined,engineReviewed:true};
     patch(selected.id,{candidate:next,status:'ready',error:undefined});
   };
 
@@ -108,9 +110,9 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
   const pendingCount=items.filter(item=>item.status==='analyzing').length;
 
   return <div className="modalBackdrop"><div className="modal bulkInvoiceModal">
-    <div className="modalHead"><div><h3>Importar facturas de gasto</h3><p>Selecciona uno o varios PDF. Si un PDF contiene varias facturas completas, se separarán en candidatos independientes para revisarlos antes de importar.</p></div><button onClick={onClose}><X/></button></div>
-    <input hidden ref={inputRef} type="file" multiple accept="application/pdf" onChange={e=>chooseFiles(Array.from(e.target.files??[]))}/>
-    {!items.length?<button className="bulkInvoiceDrop" type="button" onClick={()=>inputRef.current?.click()}><Upload/><strong>Seleccionar PDFs</strong><span>Puedes elegir varios archivos a la vez</span></button>:<>
+    <div className="modalHead"><div><h3>Importar facturas de gasto</h3><p>Selecciona uno o varios PDF o imágenes. Si un PDF contiene varias facturas completas, se separarán en candidatos independientes para revisarlos antes de importar.</p></div><button onClick={onClose}><X/></button></div>
+    <input hidden ref={inputRef} type="file" multiple accept="application/pdf,image/*,.heic,.heif" onChange={e=>chooseFiles(Array.from(e.target.files??[]))}/>
+    {!items.length?<button className="bulkInvoiceDrop" type="button" onClick={()=>inputRef.current?.click()}><Upload/><strong>Seleccionar facturas</strong><span>Puedes elegir varios archivos a la vez</span></button>:<>
       <div className="bulkInvoiceSummary"><strong>{analyzed} de {items.length} analizadas</strong><span>{readyCount} listas · {reviewCount} requieren revisión · {pendingCount} pendientes</span><button className="secondary" type="button" disabled={busy} onClick={()=>inputRef.current?.click()}>Cambiar selección</button></div>
       <div className="bulkInvoiceList">{items.map(item=>{
         const candidate=item.candidate;

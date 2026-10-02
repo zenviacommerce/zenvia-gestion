@@ -1,0 +1,1349 @@
+[
+  {
+    "app": "gestion",
+    "route": "admin",
+    "domain": "settings_admin",
+    "entity": "audit_entry",
+    "module": "Administración",
+    "screen": "Auditoría",
+    "content": "Administración → Auditoría. Objetivo y comportamiento: Auditoría registra cambios relevantes realizados por usuarios y procesos para mantener trazabilidad. Es información de lectura salvo operaciones específicas de mantenimiento.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: auditoría; historial; cambios; trazabilidad.",
+    "version": "4",
+    "keywords": [
+      "auditoría",
+      "historial",
+      "cambios",
+      "trazabilidad"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "admin"
+    ],
+    "source_file": "src/pages/Admin.tsx",
+    "integrations": [],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "admin",
+    "domain": "settings_admin",
+    "entity": "app_user",
+    "module": "Administración",
+    "screen": "Usuarios",
+    "content": "Administración → Usuarios. Objetivo y comportamiento: Usuarios permite gestionar acceso al workspace, rol, permisos, invitaciones y acciones administrativas disponibles. Nunca se puede actuar sobre otro workspace.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: usuarios; rol; permisos; invitar.",
+    "version": "4",
+    "keywords": [
+      "usuarios",
+      "rol",
+      "permisos",
+      "invitar"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "admin"
+    ],
+    "source_file": "src/pages/Admin.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "admin",
+    "domain": "settings_admin",
+    "entity": "app_user",
+    "module": "Administración",
+    "screen": "Usuarios y permisos",
+    "content": "Administración → Usuarios y permisos. Objetivo y comportamiento: Administración gestiona usuarios, roles, permisos y auditoría. El agente no puede elevar permisos ni cruzar workspaces.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: administración; usuarios; permisos; auditoría.",
+    "version": "4",
+    "keywords": [
+      "administración",
+      "usuarios",
+      "permisos",
+      "auditoría"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "admin"
+    ],
+    "source_file": "src/pages/Admin.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "amazon",
+    "domain": "amazon",
+    "entity": "amazon_analytics",
+    "module": "Amazon",
+    "screen": "Amazon",
+    "content": "Amazon → Amazon. Objetivo y comportamiento: Amazon reúne sincronización y analítica del canal: pedidos, unidades, ventas, reembolsos, rentabilidad, inventario y vinculaciones de productos.\n\nDatos y reglas: Los resultados dependen del periodo y marketplace consultados. Se distinguen pedidos, unidades, ventas, reembolsos y beneficio; no son métricas intercambiables. Las vinculaciones relacionan ASIN/SKU con el producto interno. La sincronización solicita trabajos y puede continuar después de responder; no debe anunciarse como terminada hasta disponer de evidencia. Las preguntas de datos actuales usan RPC de analítica y respetan los permisos del workspace.\n\nPermisos y ejecución: requiere acceso a amazon. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: amazon; asin; marketplace; rentabilidad; reembolsos; inventario.",
+    "version": "4",
+    "keywords": [
+      "amazon",
+      "asin",
+      "marketplace",
+      "rentabilidad",
+      "reembolsos",
+      "inventario"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "amazon"
+    ],
+    "source_file": "src/pages/Amazon.tsx",
+    "integrations": [
+      "amazon"
+    ],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "amazon",
+    "domain": "amazon",
+    "entity": "amazon_filter",
+    "module": "Amazon",
+    "screen": "Filtros Amazon",
+    "content": "Amazon → Filtros Amazon. Objetivo y comportamiento: Los filtros de Amazon incluyen periodo y marketplaces. Por defecto puede usarse el mes actual y Todos los marketplaces según preferencias. Las cifras deben respetar siempre los filtros activos.\n\nDatos y reglas: Los resultados dependen del periodo y marketplace consultados. Se distinguen pedidos, unidades, ventas, reembolsos y beneficio; no son métricas intercambiables. Las vinculaciones relacionan ASIN/SKU con el producto interno. La sincronización solicita trabajos y puede continuar después de responder; no debe anunciarse como terminada hasta disponer de evidencia. Las preguntas de datos actuales usan RPC de analítica y respetan los permisos del workspace.\n\nPermisos y ejecución: requiere acceso a amazon. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: filtros amazon; mes actual; marketplaces; periodo.",
+    "version": "4",
+    "keywords": [
+      "filtros amazon",
+      "mes actual",
+      "marketplaces",
+      "periodo"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "amazon"
+    ],
+    "source_file": "src/components/amazon/AmazonFilters.tsx",
+    "integrations": [
+      "amazon"
+    ],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "amazon",
+    "domain": "amazon",
+    "entity": "amazon_inventory",
+    "module": "Amazon",
+    "screen": "Inventario",
+    "content": "Amazon → Inventario. Objetivo y comportamiento: Inventario muestra stock sincronizado por producto o marketplace cuando existe evidencia. Si la sincronización está incompleta el agente debe indicarlo en vez de inferir existencias.\n\nDatos y reglas: Los resultados dependen del periodo y marketplace consultados. Se distinguen pedidos, unidades, ventas, reembolsos y beneficio; no son métricas intercambiables. Las vinculaciones relacionan ASIN/SKU con el producto interno. La sincronización solicita trabajos y puede continuar después de responder; no debe anunciarse como terminada hasta disponer de evidencia. Las preguntas de datos actuales usan RPC de analítica y respetan los permisos del workspace.\n\nPermisos y ejecución: requiere acceso a amazon. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: inventario; stock; fba; fbm.",
+    "version": "4",
+    "keywords": [
+      "inventario",
+      "stock",
+      "fba",
+      "fbm"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "amazon"
+    ],
+    "source_file": "src/components/amazon/AmazonInventory.tsx",
+    "integrations": [
+      "amazon"
+    ],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "amazon",
+    "domain": "amazon",
+    "entity": "amazon_product",
+    "module": "Amazon",
+    "screen": "Productos Amazon",
+    "content": "Amazon → Productos Amazon. Objetivo y comportamiento: Productos Amazon muestra ASIN/SKU, imagen, nombre Amazon, nombre interno y vinculaciones. Los no vinculados se identifican aparte.\n\nDatos y reglas: Los resultados dependen del periodo y marketplace consultados. Se distinguen pedidos, unidades, ventas, reembolsos y beneficio; no son métricas intercambiables. Las vinculaciones relacionan ASIN/SKU con el producto interno. La sincronización solicita trabajos y puede continuar después de responder; no debe anunciarse como terminada hasta disponer de evidencia. Las preguntas de datos actuales usan RPC de analítica y respetan los permisos del workspace.\n\nPermisos y ejecución: requiere acceso a amazon. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: asin; sku amazon; vincular; sin vincular.",
+    "version": "4",
+    "keywords": [
+      "asin",
+      "sku amazon",
+      "vincular",
+      "sin vincular"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "amazon"
+    ],
+    "source_file": "src/components/amazon/AmazonProducts.tsx",
+    "integrations": [
+      "amazon"
+    ],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "amazon",
+    "domain": "amazon",
+    "entity": "amazon_analytics",
+    "module": "Amazon",
+    "screen": "Resumen",
+    "content": "Amazon → Resumen. Objetivo y comportamiento: Amazon Analytics usa filtros de periodo y marketplace y muestra ventas, unidades, reembolsos y rentabilidad con datos sincronizados.\n\nDatos y reglas: Los resultados dependen del periodo y marketplace consultados. Se distinguen pedidos, unidades, ventas, reembolsos y beneficio; no son métricas intercambiables. Las vinculaciones relacionan ASIN/SKU con el producto interno. La sincronización solicita trabajos y puede continuar después de responder; no debe anunciarse como terminada hasta disponer de evidencia. Las preguntas de datos actuales usan RPC de analítica y respetan los permisos del workspace.\n\nPermisos y ejecución: requiere acceso a amazon. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: amazon analytics; ventas; unidades; reembolsos; rentabilidad.",
+    "version": "4",
+    "keywords": [
+      "amazon analytics",
+      "ventas",
+      "unidades",
+      "reembolsos",
+      "rentabilidad"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "amazon"
+    ],
+    "source_file": "src/components/amazon/AmazonSummary.tsx",
+    "integrations": [
+      "amazon"
+    ],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "amazon",
+    "domain": "amazon",
+    "entity": "amazon_mapping",
+    "module": "Amazon",
+    "screen": "Sin vincular",
+    "content": "Amazon → Sin vincular. Objetivo y comportamiento: Sin vincular muestra referencias Amazon que todavía no están asociadas a productos internos. El flujo de vinculación permite elegir productos internos y puede incluir más de un componente cuando el modelo de coste lo requiere.\n\nDatos y reglas: Los resultados dependen del periodo y marketplace consultados. Se distinguen pedidos, unidades, ventas, reembolsos y beneficio; no son métricas intercambiables. Las vinculaciones relacionan ASIN/SKU con el producto interno. La sincronización solicita trabajos y puede continuar después de responder; no debe anunciarse como terminada hasta disponer de evidencia. Las preguntas de datos actuales usan RPC de analítica y respetan los permisos del workspace.\n\nPermisos y ejecución: requiere acceso a amazon. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: sin vincular; vincular; asin; producto interno.",
+    "version": "4",
+    "keywords": [
+      "sin vincular",
+      "vincular",
+      "asin",
+      "producto interno"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "amazon"
+    ],
+    "source_file": "src/components/amazon/AmazonUnmapped.tsx",
+    "integrations": [
+      "amazon"
+    ],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "clients",
+    "domain": "sales_clients",
+    "entity": "client",
+    "module": "Clientes",
+    "screen": "Clientes",
+    "content": "Clientes → Clientes. Objetivo y comportamiento: Clientes mantiene nombre o razón social, NIF/VAT, contacto, dirección, país y valores comerciales. El agente no inventa datos fiscales ausentes.\n\nDatos y reglas: Datos de venta y cliente: razón social, NIF/CIF, email, dirección, país, vencimiento, método de pago, serie, número, líneas e impuestos. Una consulta de facturas emitidas no debe usar las facturas de gasto. Los recibos registran cobros con su flujo específico. Crear un cliente prepara los campos conocidos para confirmar; no inventa su identidad fiscal ni comunica que existe antes de que el servicio guarde la ficha.\n\nPermisos y ejecución: requiere acceso a clients. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: clientes; cif; nif; vat.",
+    "version": "4",
+    "keywords": [
+      "clientes",
+      "cif",
+      "nif",
+      "vat"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "clients"
+    ],
+    "source_file": "src/pages/Clients.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "settings",
+    "domain": "settings_admin",
+    "entity": "automation_rule",
+    "module": "Configuración",
+    "screen": "Alertas y automatizaciones",
+    "content": "Configuración → Alertas y automatizaciones. Objetivo y comportamiento: Alertas y automatizaciones define avisos de negocio y acciones controladas. Las automatizaciones no deben ejecutar operaciones destructivas sin confirmación o permiso explícito.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: alertas; automatizaciones; notificaciones.",
+    "version": "4",
+    "keywords": [
+      "alertas",
+      "automatizaciones",
+      "notificaciones"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "admin"
+    ],
+    "source_file": "src/pages/Settings.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "settings",
+    "domain": "settings_admin",
+    "entity": "shipping_settings",
+    "module": "Configuración",
+    "screen": "Envíos",
+    "content": "Configuración → Envíos. Objetivo y comportamiento: Envíos controla modo de selección, número de opciones destacadas, reglas de selección, formatos de etiqueta y parámetros logísticos. No debe imponer preferencias hardcodeadas de ZENVIA COMMERCE.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: configuración envíos; reglas; más barato; a6; a4.",
+    "version": "4",
+    "keywords": [
+      "configuración envíos",
+      "reglas",
+      "más barato",
+      "a6",
+      "a4"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "admin"
+    ],
+    "source_file": "src/pages/Settings.tsx",
+    "integrations": [
+      "mrw",
+      "envia",
+      "sendcloud"
+    ],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "settings",
+    "domain": "settings_admin",
+    "entity": "expense_settings",
+    "module": "Configuración",
+    "screen": "Gastos e importación",
+    "content": "Configuración → Gastos e importación. Objetivo y comportamiento: Gastos e importación controla revisión, duplicados, Gmail, límites de adjuntos, categoría por defecto y reglas del motor de facturas recibidas.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: configuración gastos; duplicados; gmail; revisión.",
+    "version": "4",
+    "keywords": [
+      "configuración gastos",
+      "duplicados",
+      "gmail",
+      "revisión"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "admin"
+    ],
+    "source_file": "src/pages/Settings.tsx",
+    "integrations": [
+      "gmail"
+    ],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "settings",
+    "domain": "settings_admin",
+    "entity": "settings",
+    "module": "Configuración",
+    "screen": "General",
+    "content": "Configuración → General. Objetivo y comportamiento: General contiene identidad de empresa, moneda, zona horaria, idioma, formato de fecha, página inicial y branding corporativo disponible.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: configuración general; moneda; zona horaria; idioma; logo.",
+    "version": "4",
+    "keywords": [
+      "configuración general",
+      "moneda",
+      "zona horaria",
+      "idioma",
+      "logo"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "admin"
+    ],
+    "source_file": "src/pages/Settings.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "settings",
+    "domain": "settings_admin",
+    "entity": "integration_account",
+    "module": "Configuración",
+    "screen": "Integraciones",
+    "content": "Configuración → Integraciones. Objetivo y comportamiento: Integraciones permite múltiples cuentas. Cada conexión debe conservar su configuración y credenciales separadas. Las notificaciones de error deben aparecer por encima de modales y usar el estilo global.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: integraciones; cuentas; credenciales; probar conexión.",
+    "version": "4",
+    "keywords": [
+      "integraciones",
+      "cuentas",
+      "credenciales",
+      "probar conexión"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "admin"
+    ],
+    "source_file": "src/pages/Settings.tsx",
+    "integrations": [
+      "amazon",
+      "shopify",
+      "mrw",
+      "envia",
+      "sendcloud",
+      "gmail"
+    ],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "settings",
+    "domain": "settings_admin",
+    "entity": "maintenance",
+    "module": "Configuración",
+    "screen": "Mantenimiento",
+    "content": "Configuración → Mantenimiento. Objetivo y comportamiento: Mantenimiento contiene diagnósticos y reparaciones controladas como duplicados, reconstrucciones y exportación de configuración. Las reparaciones deben previsualizarse y respetar confirmación.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: mantenimiento; duplicados; reconstrucción; exportar configuración.",
+    "version": "4",
+    "keywords": [
+      "mantenimiento",
+      "duplicados",
+      "reconstrucción",
+      "exportar configuración"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "admin"
+    ],
+    "source_file": "src/pages/Settings.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "settings",
+    "domain": "settings_admin",
+    "entity": "order_settings",
+    "module": "Configuración",
+    "screen": "Pedidos",
+    "content": "Configuración → Pedidos. Objetivo y comportamiento: Pedidos contiene preferencias generales de pedidos, país de origen, comportamiento de etiquetas y valores predeterminados no específicos de un cliente salvo que el propio cliente los configure.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: configuración pedidos; origen; etiquetas; defaults.",
+    "version": "4",
+    "keywords": [
+      "configuración pedidos",
+      "origen",
+      "etiquetas",
+      "defaults"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "admin"
+    ],
+    "source_file": "src/pages/Settings.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "settings",
+    "domain": "settings_admin",
+    "entity": "subscription",
+    "module": "Configuración",
+    "screen": "Plan y facturación",
+    "content": "Configuración → Plan y facturación. Objetivo y comportamiento: Plan y facturación muestra plan, consumo, límites, caducidad, facturas de suscripción y opciones de cobro disponibles para el cliente.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: plan; facturación suscripción; caducidad; paypal.",
+    "version": "4",
+    "keywords": [
+      "plan",
+      "facturación suscripción",
+      "caducidad",
+      "paypal"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "admin"
+    ],
+    "source_file": "src/pages/Settings.tsx",
+    "integrations": [
+      "paypal"
+    ],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "settings",
+    "domain": "settings_admin",
+    "entity": "user_preferences",
+    "module": "Configuración",
+    "screen": "Preferencias",
+    "content": "Configuración → Preferencias. Objetivo y comportamiento: Mis preferencias contiene opciones de interfaz propias del usuario, como columnas, KPIs, filtros o presentación cuando estén disponibles. No deben alterar la configuración global de otros usuarios.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a settings. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: preferencias; columnas; kpi; filtros.",
+    "version": "4",
+    "keywords": [
+      "preferencias",
+      "columnas",
+      "kpi",
+      "filtros"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "settings"
+    ],
+    "source_file": "src/pages/Settings.tsx",
+    "integrations": [],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "settings",
+    "domain": "settings_admin",
+    "entity": null,
+    "module": "Configuración y administración",
+    "screen": "Configuración",
+    "content": "Configuración y administración → Configuración. Objetivo y comportamiento: Configuración concentra empresa, facturación, gastos, pedidos, envíos, productos, clientes, proveedores, integraciones, alertas y preferencias. Administración gestiona usuarios, permisos y auditoría.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a settings. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: configuracion; integraciones; usuarios; permisos; auditoria; tema.",
+    "version": "4",
+    "keywords": [
+      "configuracion",
+      "integraciones",
+      "usuarios",
+      "permisos",
+      "auditoria",
+      "tema"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "settings"
+    ],
+    "source_file": "src/pages/Settings.tsx",
+    "integrations": [
+      "amazon",
+      "shopify",
+      "mrw",
+      "envia",
+      "sendcloud",
+      "gmail"
+    ],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "orders",
+    "domain": "orders_shipping",
+    "entity": "shipping_option",
+    "module": "Envíos",
+    "screen": "Comparador",
+    "content": "Envíos → Comparador. Objetivo y comportamiento: ZENVIA compara opciones logísticas habilitadas y ordena por precio cuando existe. Las reglas pueden elegir proveedor, cuenta, transportista y servicio.\n\nDatos y reglas: Campos operativos: número de pedido, canal, estado, destinatario, dirección, teléfono, peso, dimensiones, cuenta logística, transportista, servicio, etiqueta y seguimiento. Una etiqueta creada no demuestra que el paquete haya sido entregado al transportista. No se debe inventar un precio cuando no se identifica una tarifa aplicable. El seguimiento usa enlaces registrados o suministrados por la integración.\n\nPermisos y ejecución: requiere acceso a orders. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: comparar envíos; tarifa; reglas; transportista.",
+    "version": "4",
+    "keywords": [
+      "comparar envíos",
+      "tarifa",
+      "reglas",
+      "transportista"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "orders"
+    ],
+    "source_file": "src/pages/Orders.tsx",
+    "integrations": [
+      "mrw",
+      "envia",
+      "sendcloud"
+    ],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "orders",
+    "domain": "orders_shipping",
+    "entity": "fulfillment_order",
+    "module": "Envíos",
+    "screen": "Etiquetados",
+    "content": "Envíos → Etiquetados. Objetivo y comportamiento: Etiquetados contiene pedidos con etiqueta creada que aún no han progresado según tracking reconocido. Enviados contiene progreso logístico y Cancelados se separa cuando corresponde.\n\nDatos y reglas: Campos operativos: número de pedido, canal, estado, destinatario, dirección, teléfono, peso, dimensiones, cuenta logística, transportista, servicio, etiqueta y seguimiento. Una etiqueta creada no demuestra que el paquete haya sido entregado al transportista. No se debe inventar un precio cuando no se identifica una tarifa aplicable. El seguimiento usa enlaces registrados o suministrados por la integración.\n\nPermisos y ejecución: requiere acceso a orders. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: etiquetados; enviados; cancelados; tracking.",
+    "version": "4",
+    "keywords": [
+      "etiquetados",
+      "enviados",
+      "cancelados",
+      "tracking"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "orders"
+    ],
+    "source_file": "src/pages/Orders.tsx",
+    "integrations": [
+      "mrw",
+      "envia",
+      "sendcloud"
+    ],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "orders",
+    "domain": "orders_shipping",
+    "entity": "shipping_label",
+    "module": "Envíos",
+    "screen": "Impresión de etiquetas",
+    "content": "Envíos → Impresión de etiquetas. Objetivo y comportamiento: La impresión admite formatos configurados. El estado de impresión se registra cuando ZENVIA conoce el evento; etiquetas creadas fuera pueden tener historial desconocido.\n\nDatos y reglas: Campos operativos: número de pedido, canal, estado, destinatario, dirección, teléfono, peso, dimensiones, cuenta logística, transportista, servicio, etiqueta y seguimiento. Una etiqueta creada no demuestra que el paquete haya sido entregado al transportista. No se debe inventar un precio cuando no se identifica una tarifa aplicable. El seguimiento usa enlaces registrados o suministrados por la integración.\n\nPermisos y ejecución: requiere acceso a orders. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: imprimir etiqueta; a6; a4; impresa.",
+    "version": "4",
+    "keywords": [
+      "imprimir etiqueta",
+      "a6",
+      "a4",
+      "impresa"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "orders"
+    ],
+    "source_file": "src/pages/Orders.tsx",
+    "integrations": [
+      "mrw",
+      "envia",
+      "sendcloud"
+    ],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "sales",
+    "domain": "sales_clients",
+    "entity": "sales_invoice",
+    "module": "Facturación",
+    "screen": "Facturas emitidas",
+    "content": "Facturación → Facturas emitidas. Objetivo y comportamiento: Facturación gestiona borradores, emisión, vencimientos, cobros, descarga y envío de facturas de venta. No debe confundirse con Facturas de gasto.\n\nDatos y reglas: Datos de venta y cliente: razón social, NIF/CIF, email, dirección, país, vencimiento, método de pago, serie, número, líneas e impuestos. Una consulta de facturas emitidas no debe usar las facturas de gasto. Los recibos registran cobros con su flujo específico. Crear un cliente prepara los campos conocidos para confirmar; no inventa su identidad fiscal ni comunica que existe antes de que el servicio guarde la ficha.\n\nPermisos y ejecución: requiere acceso a sales. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: factura venta; facturas emitidas; vencimiento; cobro.",
+    "version": "4",
+    "keywords": [
+      "factura venta",
+      "facturas emitidas",
+      "vencimiento",
+      "cobro"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "sales"
+    ],
+    "source_file": "src/pages/SalesInvoices.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "sales",
+    "domain": "sales_clients",
+    "entity": "sales_invoice",
+    "module": "Facturación y clientes",
+    "screen": "Facturación",
+    "content": "Facturación y clientes → Facturación. Objetivo y comportamiento: Facturación gestiona facturas emitidas, vencimientos, cobros y documentos de venta. Clientes mantiene identidad fiscal, contacto y valores comerciales reutilizados por la facturación.\n\nDatos y reglas: Datos de venta y cliente: razón social, NIF/CIF, email, dirección, país, vencimiento, método de pago, serie, número, líneas e impuestos. Una consulta de facturas emitidas no debe usar las facturas de gasto. Los recibos registran cobros con su flujo específico. Crear un cliente prepara los campos conocidos para confirmar; no inventa su identidad fiscal ni comunica que existe antes de que el servicio guarde la ficha.\n\nPermisos y ejecución: requiere acceso a sales, clients. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: facturacion; ventas; facturas emitidas; clientes; cobros.",
+    "version": "4",
+    "keywords": [
+      "facturacion",
+      "ventas",
+      "facturas emitidas",
+      "clientes",
+      "cobros"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "sales",
+      "clients"
+    ],
+    "source_file": "src/pages/SalesInvoices.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "invoices",
+    "domain": "expenses",
+    "entity": "invoice_import",
+    "module": "Gastos",
+    "screen": "Añadir factura",
+    "content": "Gastos → Añadir factura. Objetivo y comportamiento: Añadir factura procesa un documento individual. Importar facturas procesa varios. Ambos comparten el mismo motor de lectura y validación.\n\nDatos y reglas: Campos de factura recibida: número, proveedor, fecha de emisión, categoría, base, impuestos, retención, total, líneas y documento original. El estado de revisión (pendiente, revisada o contabilizada) es independiente del pago (pagada o sin pagar). Para cambiar una factura el agente exige identificación inequívoca y muestra el cambio antes de ejecutarlo. La importación fiscal debe solicitar revisión cuando la evidencia no permite cerrar los importes.\n\nPermisos y ejecución: requiere acceso a invoices. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: añadir factura; importar factura; ocr; pdf.",
+    "version": "4",
+    "keywords": [
+      "añadir factura",
+      "importar factura",
+      "ocr",
+      "pdf"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "invoices"
+    ],
+    "source_file": "src/components/UploadInvoiceModal.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "invoices",
+    "domain": "expenses",
+    "entity": "invoice",
+    "module": "Gastos",
+    "screen": "Centro de gastos",
+    "content": "Gastos → Centro de gastos. Objetivo y comportamiento: El centro de Gastos separa Facturas de gasto e Importar desde Gmail. La primera gestiona documentos ya incorporados y altas manuales o masivas; Gmail descubre adjuntos y los pasa por el mismo motor común.\n\nDatos y reglas: Campos de factura recibida: número, proveedor, fecha de emisión, categoría, base, impuestos, retención, total, líneas y documento original. El estado de revisión (pendiente, revisada o contabilizada) es independiente del pago (pagada o sin pagar). Para cambiar una factura el agente exige identificación inequívoca y muestra el cambio antes de ejecutarlo. La importación fiscal debe solicitar revisión cuando la evidencia no permite cerrar los importes.\n\nPermisos y ejecución: requiere acceso a invoices. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: centro gastos; gmail; facturas gasto.",
+    "version": "4",
+    "keywords": [
+      "centro gastos",
+      "gmail",
+      "facturas gasto"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "invoices"
+    ],
+    "source_file": "src/pages/ExpenseInvoicesHub.tsx",
+    "integrations": [
+      "gmail"
+    ],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "invoices",
+    "domain": "expenses",
+    "entity": "invoice",
+    "module": "Gastos",
+    "screen": "Detalle de factura",
+    "content": "Gastos → Detalle de factura. Objetivo y comportamiento: El detalle de una factura de gasto muestra proveedor, número, fecha, base, IVA, recargo, retención, total, estado, pago, líneas y documento cuando existe. Los cambios de estado o proveedor deben usar la factura identificada.\n\nDatos y reglas: Campos de factura recibida: número, proveedor, fecha de emisión, categoría, base, impuestos, retención, total, líneas y documento original. El estado de revisión (pendiente, revisada o contabilizada) es independiente del pago (pagada o sin pagar). Para cambiar una factura el agente exige identificación inequívoca y muestra el cambio antes de ejecutarlo. La importación fiscal debe solicitar revisión cuando la evidencia no permite cerrar los importes.\n\nPermisos y ejecución: requiere acceso a invoices. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: detalle factura; base; iva; retención; estado pago.",
+    "version": "4",
+    "keywords": [
+      "detalle factura",
+      "base",
+      "iva",
+      "retención",
+      "estado pago"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "invoices"
+    ],
+    "source_file": "src/components/InvoiceDetailModal.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "invoices",
+    "domain": "expenses",
+    "entity": "invoice",
+    "module": "Gastos",
+    "screen": "Facturas de gasto",
+    "content": "Gastos → Facturas de gasto. Objetivo y comportamiento: Facturas de gasto son facturas recibidas. Estados contables y de pago son independientes; se pueden filtrar, ordenar, revisar, contabilizar, pagar y exportar según permisos.\n\nDatos y reglas: Campos de factura recibida: número, proveedor, fecha de emisión, categoría, base, impuestos, retención, total, líneas y documento original. El estado de revisión (pendiente, revisada o contabilizada) es independiente del pago (pagada o sin pagar). Para cambiar una factura el agente exige identificación inequívoca y muestra el cambio antes de ejecutarlo. La importación fiscal debe solicitar revisión cuando la evidencia no permite cerrar los importes.\n\nPermisos y ejecución: requiere acceso a invoices. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: factura gasto; pendiente; revisada; contabilizada; pagada.",
+    "version": "4",
+    "keywords": [
+      "factura gasto",
+      "pendiente",
+      "revisada",
+      "contabilizada",
+      "pagada"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "invoices"
+    ],
+    "source_file": "src/pages/Invoices.tsx",
+    "integrations": [
+      "gmail"
+    ],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "invoices",
+    "domain": "expenses",
+    "entity": "gmail_import",
+    "module": "Gastos",
+    "screen": "Gmail",
+    "content": "Gastos → Gmail. Objetivo y comportamiento: Gmail usa el mismo pipeline de facturas de gasto. Si falta fecha, número, proveedor o cierre fiscal fiable debe pedir revisión y no inventar.\n\nDatos y reglas: Campos de factura recibida: número, proveedor, fecha de emisión, categoría, base, impuestos, retención, total, líneas y documento original. El estado de revisión (pendiente, revisada o contabilizada) es independiente del pago (pagada o sin pagar). Para cambiar una factura el agente exige identificación inequívoca y muestra el cambio antes de ejecutarlo. La importación fiscal debe solicitar revisión cuando la evidencia no permite cerrar los importes.\n\nPermisos y ejecución: requiere acceso a invoices. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: gmail; fecha factura; iva; adjunto.",
+    "version": "4",
+    "keywords": [
+      "gmail",
+      "fecha factura",
+      "iva",
+      "adjunto"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "invoices"
+    ],
+    "source_file": "src/pages/Gmail.tsx",
+    "integrations": [
+      "gmail"
+    ],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "invoices",
+    "domain": "expenses",
+    "entity": "invoice_import",
+    "module": "Gastos",
+    "screen": "Importación masiva",
+    "content": "Gastos → Importación masiva. Objetivo y comportamiento: La importación masiva procesa varios PDFs, detecta duplicados y presenta candidatos para revisión antes de guardar.\n\nDatos y reglas: Campos de factura recibida: número, proveedor, fecha de emisión, categoría, base, impuestos, retención, total, líneas y documento original. El estado de revisión (pendiente, revisada o contabilizada) es independiente del pago (pagada o sin pagar). Para cambiar una factura el agente exige identificación inequívoca y muestra el cambio antes de ejecutarlo. La importación fiscal debe solicitar revisión cuando la evidencia no permite cerrar los importes.\n\nPermisos y ejecución: requiere acceso a invoices. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: importación masiva; duplicado; varias facturas.",
+    "version": "4",
+    "keywords": [
+      "importación masiva",
+      "duplicado",
+      "varias facturas"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "invoices"
+    ],
+    "source_file": "src/components/BulkInvoiceImportModal.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "invoices",
+    "domain": "expenses",
+    "entity": "invoice_import",
+    "module": "Gastos",
+    "screen": "Motor fiscal",
+    "content": "Gastos → Motor fiscal. Objetivo y comportamiento: El motor reconcilia base, IVA, recargo, retención y total con evidencia y aritmética. IVA cero exige evidencia de exención o reverse charge.\n\nDatos y reglas: Campos de factura recibida: número, proveedor, fecha de emisión, categoría, base, impuestos, retención, total, líneas y documento original. El estado de revisión (pendiente, revisada o contabilizada) es independiente del pago (pagada o sin pagar). Para cambiar una factura el agente exige identificación inequívoca y muestra el cambio antes de ejecutarlo. La importación fiscal debe solicitar revisión cuando la evidencia no permite cerrar los importes.\n\nPermisos y ejecución: requiere acceso a invoices. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: iva; base imponible; recargo; retención; reverse charge.",
+    "version": "4",
+    "keywords": [
+      "iva",
+      "base imponible",
+      "recargo",
+      "retención",
+      "reverse charge"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "invoices"
+    ],
+    "source_file": "src/services/invoiceImportPipeline.ts",
+    "integrations": [],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "orders",
+    "domain": "orders_shipping",
+    "entity": "fulfillment_order",
+    "module": "Pedidos",
+    "screen": "Edición de pedido",
+    "content": "Pedidos → Edición de pedido. Objetivo y comportamiento: Antes de crear etiqueta se pueden corregir destinatario, teléfono, dirección, peso y medidas. Los cambios se guardan en ZENVIA y solo se envían al proveedor elegido cuando corresponde.\n\nDatos y reglas: Campos operativos: número de pedido, canal, estado, destinatario, dirección, teléfono, peso, dimensiones, cuenta logística, transportista, servicio, etiqueta y seguimiento. Una etiqueta creada no demuestra que el paquete haya sido entregado al transportista. No se debe inventar un precio cuando no se identifica una tarifa aplicable. El seguimiento usa enlaces registrados o suministrados por la integración.\n\nPermisos y ejecución: requiere acceso a orders. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: editar pedido; dirección; peso; medidas.",
+    "version": "4",
+    "keywords": [
+      "editar pedido",
+      "dirección",
+      "peso",
+      "medidas"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "orders"
+    ],
+    "source_file": "src/components/OrderEditModal.tsx",
+    "integrations": [
+      "mrw",
+      "envia",
+      "sendcloud"
+    ],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "orders",
+    "domain": "orders_shipping",
+    "entity": "fulfillment_order",
+    "module": "Pedidos",
+    "screen": "Listado de pedidos",
+    "content": "Pedidos → Listado de pedidos. Objetivo y comportamiento: Pedidos es la fuente operativa del pedido. El origen puede ser Amazon, Shopify u otro canal y el proveedor logístico se elige después.\n\nDatos y reglas: Campos operativos: número de pedido, canal, estado, destinatario, dirección, teléfono, peso, dimensiones, cuenta logística, transportista, servicio, etiqueta y seguimiento. Una etiqueta creada no demuestra que el paquete haya sido entregado al transportista. No se debe inventar un precio cuando no se identifica una tarifa aplicable. El seguimiento usa enlaces registrados o suministrados por la integración.\n\nPermisos y ejecución: requiere acceso a orders. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: pedidos; amazon; shopify; cliente.",
+    "version": "4",
+    "keywords": [
+      "pedidos",
+      "amazon",
+      "shopify",
+      "cliente"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "orders"
+    ],
+    "source_file": "src/pages/Orders.tsx",
+    "integrations": [
+      "amazon",
+      "shopify"
+    ],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "orders",
+    "domain": "orders_shipping",
+    "entity": "fulfillment_order",
+    "module": "Pedidos y envíos",
+    "screen": "Pedidos",
+    "content": "Pedidos y envíos → Pedidos. Objetivo y comportamiento: Pedidos centraliza pedidos de canales conectados, edición previa a etiqueta, comparación de opciones logísticas, generación de etiquetas y tracking. ZENVIA mantiene el pedido como fuente de verdad y usa el proveedor elegido cuando corresponde.\n\nDatos y reglas: Campos operativos: número de pedido, canal, estado, destinatario, dirección, teléfono, peso, dimensiones, cuenta logística, transportista, servicio, etiqueta y seguimiento. Una etiqueta creada no demuestra que el paquete haya sido entregado al transportista. No se debe inventar un precio cuando no se identifica una tarifa aplicable. El seguimiento usa enlaces registrados o suministrados por la integración.\n\nPermisos y ejecución: requiere acceso a orders. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: pedidos; envios; etiquetas; tracking; mrw; envia; sendcloud; shopify.",
+    "version": "4",
+    "keywords": [
+      "pedidos",
+      "envios",
+      "etiquetas",
+      "tracking",
+      "mrw",
+      "envia",
+      "sendcloud",
+      "shopify"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "orders"
+    ],
+    "source_file": "src/pages/Orders.tsx",
+    "integrations": [
+      "amazon",
+      "shopify",
+      "mrw",
+      "envia",
+      "sendcloud"
+    ],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "products",
+    "domain": "catalog_suppliers",
+    "entity": "product",
+    "module": "Productos",
+    "screen": "Editor de producto",
+    "content": "Productos → Editor de producto. Objetivo y comportamiento: El editor de producto permite nombre, SKU, EAN, categoría, unidad, coste, precio de venta, IVA y proveedor según configuración. No se deben inventar SKU, EAN ni costes ausentes.\n\nDatos y reglas: El catálogo utiliza nombre, SKU, EAN, unidad, categoría, coste y precio. Un coste ausente no equivale a coste cero. La ficha de proveedor mantiene identidad fiscal, contacto y tipo (mercancía, servicios, ambos o sin clasificar). Crear una ficha exige el nombre y la confirmación del usuario. Consultar una muestra de fichas no permite afirmar que representa todo el catálogo; los recuentos proceden de consultas específicas.\n\nPermisos y ejecución: requiere acceso a products. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: editar producto; sku; ean; coste; precio venta; iva.",
+    "version": "4",
+    "keywords": [
+      "editar producto",
+      "sku",
+      "ean",
+      "coste",
+      "precio venta",
+      "iva"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "products"
+    ],
+    "source_file": "src/components/ProductModal.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "products",
+    "domain": "catalog_suppliers",
+    "entity": "product",
+    "module": "Productos",
+    "screen": "Productos",
+    "content": "Productos → Productos. Objetivo y comportamiento: Productos mantiene nombre, SKU, EAN, unidad, categoría, coste, precio, IVA y proveedor.\n\nDatos y reglas: El catálogo utiliza nombre, SKU, EAN, unidad, categoría, coste y precio. Un coste ausente no equivale a coste cero. La ficha de proveedor mantiene identidad fiscal, contacto y tipo (mercancía, servicios, ambos o sin clasificar). Crear una ficha exige el nombre y la confirmación del usuario. Consultar una muestra de fichas no permite afirmar que representa todo el catálogo; los recuentos proceden de consultas específicas.\n\nPermisos y ejecución: requiere acceso a products. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: producto; sku; ean; coste; precio.",
+    "version": "4",
+    "keywords": [
+      "producto",
+      "sku",
+      "ean",
+      "coste",
+      "precio"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "products"
+    ],
+    "source_file": "src/pages/Products.tsx",
+    "integrations": [
+      "amazon"
+    ],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "products",
+    "domain": "catalog_suppliers",
+    "entity": "product",
+    "module": "Productos y proveedores",
+    "screen": "Productos",
+    "content": "Productos y proveedores → Productos. Objetivo y comportamiento: Productos mantiene catálogo, SKU, EAN, unidad, IVA, costes, precios y vinculaciones. Proveedores mantiene identidad fiscal, contacto, tipo y categoría habitual.\n\nDatos y reglas: El catálogo utiliza nombre, SKU, EAN, unidad, categoría, coste y precio. Un coste ausente no equivale a coste cero. La ficha de proveedor mantiene identidad fiscal, contacto y tipo (mercancía, servicios, ambos o sin clasificar). Crear una ficha exige el nombre y la confirmación del usuario. Consultar una muestra de fichas no permite afirmar que representa todo el catálogo; los recuentos proceden de consultas específicas.\n\nPermisos y ejecución: requiere acceso a products, suppliers. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: productos; sku; ean; costes; proveedores.",
+    "version": "4",
+    "keywords": [
+      "productos",
+      "sku",
+      "ean",
+      "costes",
+      "proveedores"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "products",
+      "suppliers"
+    ],
+    "source_file": "src/pages/Products.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "suppliers",
+    "domain": "catalog_suppliers",
+    "entity": "supplier",
+    "module": "Proveedores",
+    "screen": "Editor de proveedor",
+    "content": "Proveedores → Editor de proveedor. Objetivo y comportamiento: El editor de proveedor permite identidad fiscal, contacto, dirección, web, tipo de proveedor y categoría habitual. Tipo de proveedor no es lo mismo que categoría de gasto.\n\nDatos y reglas: El catálogo utiliza nombre, SKU, EAN, unidad, categoría, coste y precio. Un coste ausente no equivale a coste cero. La ficha de proveedor mantiene identidad fiscal, contacto y tipo (mercancía, servicios, ambos o sin clasificar). Crear una ficha exige el nombre y la confirmación del usuario. Consultar una muestra de fichas no permite afirmar que representa todo el catálogo; los recuentos proceden de consultas específicas.\n\nPermisos y ejecución: requiere acceso a suppliers. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: editar proveedor; tipo proveedor; categoría habitual; cif.",
+    "version": "4",
+    "keywords": [
+      "editar proveedor",
+      "tipo proveedor",
+      "categoría habitual",
+      "cif"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "suppliers"
+    ],
+    "source_file": "src/components/SupplierModal.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "suppliers",
+    "domain": "catalog_suppliers",
+    "entity": "supplier",
+    "module": "Proveedores",
+    "screen": "Proveedores",
+    "content": "Proveedores → Proveedores. Objetivo y comportamiento: Proveedores mantiene identidad fiscal, contacto, dirección, web, tipo y categoría habitual; se normalizan identidades para evitar duplicados.\n\nDatos y reglas: El catálogo utiliza nombre, SKU, EAN, unidad, categoría, coste y precio. Un coste ausente no equivale a coste cero. La ficha de proveedor mantiene identidad fiscal, contacto y tipo (mercancía, servicios, ambos o sin clasificar). Crear una ficha exige el nombre y la confirmación del usuario. Consultar una muestra de fichas no permite afirmar que representa todo el catálogo; los recuentos proceden de consultas específicas.\n\nPermisos y ejecución: requiere acceso a suppliers. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: proveedor; cif; web; tipo proveedor.",
+    "version": "4",
+    "keywords": [
+      "proveedor",
+      "cif",
+      "web",
+      "tipo proveedor"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "suppliers"
+    ],
+    "source_file": "src/pages/Suppliers.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "sales",
+    "domain": "sales_clients",
+    "entity": "receipt",
+    "module": "Recibos",
+    "screen": "Recibos",
+    "content": "Recibos → Recibos. Objetivo y comportamiento: Recibos registra cobros, incluso sin vincular a una factura cuando el flujo lo permite.\n\nDatos y reglas: Datos de venta y cliente: razón social, NIF/CIF, email, dirección, país, vencimiento, método de pago, serie, número, líneas e impuestos. Una consulta de facturas emitidas no debe usar las facturas de gasto. Los recibos registran cobros con su flujo específico. Crear un cliente prepara los campos conocidos para confirmar; no inventa su identidad fiscal ni comunica que existe antes de que el servicio guarde la ficha.\n\nPermisos y ejecución: requiere acceso a sales. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: recibos; cobros; pago.",
+    "version": "4",
+    "keywords": [
+      "recibos",
+      "cobros",
+      "pago"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "sales"
+    ],
+    "source_file": "src/pages/SalesReceipts.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "dashboard",
+    "domain": "general",
+    "entity": null,
+    "module": "Resumen",
+    "screen": "Resumen",
+    "content": "Resumen → Resumen. Objetivo y comportamiento: Resumen muestra KPIs, alertas, pendientes y accesos rápidos. Los filtros de periodo afectan a los indicadores compatibles y todo respeta permisos y workspace.\n\nDatos y reglas: Los indicadores son consultas de datos actuales con el alcance de la empresa y los filtros del usuario. No se deducen cifras desde documentación o mensajes anteriores. Si una consulta falla, el agente indica el error; no convierte el fallo en cero registros. Abrir una sección no guarda cambios. Las operaciones de escritura se preparan primero y utilizan el diálogo estándar de confirmación de la aplicación.\n\nPermisos y ejecución: requiere acceso a dashboard. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: resumen; dashboard; kpi; pendientes.",
+    "version": "4",
+    "keywords": [
+      "resumen",
+      "dashboard",
+      "kpi",
+      "pendientes"
+    ],
+    "action_type": "read",
+    "permissions": [
+      "dashboard"
+    ],
+    "source_file": "src/pages/Dashboard.tsx",
+    "integrations": [],
+    "requires_confirmation": false,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "support",
+    "domain": "support",
+    "entity": "support_ticket",
+    "module": "Soporte",
+    "screen": "Detalle de ticket",
+    "content": "Soporte → Detalle de ticket. Objetivo y comportamiento: El detalle de ticket reúne asunto, mensajes, adjuntos, estado y actividad. Antes de responder, editar o eliminar el agente debe identificar de forma inequívoca el ticket y verificar permisos.\n\nDatos y reglas: Se diferencian el número del ticket, asunto, descripción, prioridad, estado y conversación. Un ticket abierto y uno que espera respuesta son conceptos distintos. Crear o responder puede enviar notificaciones y requiere confirmación del contenido. El agente identifica el ticket concreto y no considera un envío completado si el servicio falla. La lectura y las acciones administrativas están limitadas por los permisos actuales.\n\nPermisos y ejecución: requiere acceso a support. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: detalle ticket; responder ticket; eliminar ticket; adjuntos.",
+    "version": "4",
+    "keywords": [
+      "detalle ticket",
+      "responder ticket",
+      "eliminar ticket",
+      "adjuntos"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "support"
+    ],
+    "source_file": "src/pages/Support.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "support",
+    "domain": "support",
+    "entity": "support_ticket",
+    "module": "Soporte",
+    "screen": "Soporte",
+    "content": "Soporte → Soporte. Objetivo y comportamiento: Soporte permite abrir y seguir tickets, adjuntos, estado y actividad. Las operaciones adicionales dependen del rol y permisos del usuario.\n\nDatos y reglas: Se diferencian el número del ticket, asunto, descripción, prioridad, estado y conversación. Un ticket abierto y uno que espera respuesta son conceptos distintos. Crear o responder puede enviar notificaciones y requiere confirmación del contenido. El agente identifica el ticket concreto y no considera un envío completado si el servicio falla. La lectura y las acciones administrativas están limitadas por los permisos actuales.\n\nPermisos y ejecución: requiere acceso a support. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: soporte; tickets; incidencias.",
+    "version": "4",
+    "keywords": [
+      "soporte",
+      "tickets",
+      "incidencias"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "support"
+    ],
+    "source_file": "src/pages/Support.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "route": "support",
+    "domain": "support",
+    "entity": "support_ticket",
+    "module": "Soporte",
+    "screen": "Tickets",
+    "content": "Soporte → Tickets. Objetivo y comportamiento: Soporte permite crear tickets, adjuntar archivos y seguir conversación y estado. Las acciones administrativas dependen de permisos y auditoría.\n\nDatos y reglas: Se diferencian el número del ticket, asunto, descripción, prioridad, estado y conversación. Un ticket abierto y uno que espera respuesta son conceptos distintos. Crear o responder puede enviar notificaciones y requiere confirmación del contenido. El agente identifica el ticket concreto y no considera un envío completado si el servicio falla. La lectura y las acciones administrativas están limitadas por los permisos actuales.\n\nPermisos y ejecución: requiere acceso a support. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: ticket; soporte; adjunto; respuesta.",
+    "version": "4",
+    "keywords": [
+      "ticket",
+      "soporte",
+      "adjunto",
+      "respuesta"
+    ],
+    "action_type": "write",
+    "permissions": [
+      "support"
+    ],
+    "source_file": "src/pages/Support.tsx",
+    "integrations": [],
+    "requires_confirmation": true,
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "module": "Configuración",
+    "screen": "Facturación",
+    "route": "settings",
+    "domain": "settings_admin",
+    "content": "Configuración → Facturación. Objetivo y comportamiento: Valores predeterminados, cobros, series y documentos de venta.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: configuración facturación; serie; cobros.",
+    "source_file": "src/pages/Settings.tsx",
+    "keywords": [
+      "configuración facturación",
+      "serie",
+      "cobros"
+    ],
+    "permissions": [
+      "admin"
+    ],
+    "entity": null,
+    "action_type": "read",
+    "requires_confirmation": false,
+    "integrations": [],
+    "version": "4",
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "module": "Configuración",
+    "screen": "Productos",
+    "route": "settings",
+    "domain": "settings_admin",
+    "content": "Configuración → Productos. Objetivo y comportamiento: IVA, costes, márgenes y preferencias de creación de productos.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: configuración productos; coste; margen.",
+    "source_file": "src/pages/Settings.tsx",
+    "keywords": [
+      "configuración productos",
+      "coste",
+      "margen"
+    ],
+    "permissions": [
+      "admin"
+    ],
+    "entity": null,
+    "action_type": "read",
+    "requires_confirmation": false,
+    "integrations": [],
+    "version": "4",
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "module": "Configuración",
+    "screen": "Clientes",
+    "route": "settings",
+    "domain": "settings_admin",
+    "content": "Configuración → Clientes. Objetivo y comportamiento: Valores predeterminados e identidad de clientes.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: configuración clientes; identidad; país.",
+    "source_file": "src/pages/Settings.tsx",
+    "keywords": [
+      "configuración clientes",
+      "identidad",
+      "país"
+    ],
+    "permissions": [
+      "admin"
+    ],
+    "entity": null,
+    "action_type": "read",
+    "requires_confirmation": false,
+    "integrations": [],
+    "version": "4",
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "module": "Configuración",
+    "screen": "Proveedores",
+    "route": "settings",
+    "domain": "settings_admin",
+    "content": "Configuración → Proveedores. Objetivo y comportamiento: Valores predeterminados, alias e identificación de proveedores.\n\nDatos y reglas: La configuración empresarial y las preferencias personales tienen alcances distintos. La interfaz determina las opciones disponibles; no se deben recomendar campos que no existen. La administración requiere permiso de administrador para consultar usuarios y auditoría. El agente nunca muestra tokens, contraseñas o secretos de integraciones. Las acciones del catálogo declaran permiso, tipo y confirmación; conocer una pantalla no habilita automáticamente todas sus modificaciones.\n\nPermisos y ejecución: requiere acceso a admin. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: configuración proveedores; alias; categoría.",
+    "source_file": "src/pages/Settings.tsx",
+    "keywords": [
+      "configuración proveedores",
+      "alias",
+      "categoría"
+    ],
+    "permissions": [
+      "admin"
+    ],
+    "entity": null,
+    "action_type": "read",
+    "requires_confirmation": false,
+    "integrations": [],
+    "version": "4",
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "module": "Amazon",
+    "screen": "Pedidos Amazon",
+    "route": "amazon",
+    "domain": "amazon",
+    "content": "Amazon → Pedidos Amazon. Objetivo y comportamiento: Consulta de pedidos Amazon con sus filtros y detalle disponible.\n\nDatos y reglas: Los resultados dependen del periodo y marketplace consultados. Se distinguen pedidos, unidades, ventas, reembolsos y beneficio; no son métricas intercambiables. Las vinculaciones relacionan ASIN/SKU con el producto interno. La sincronización solicita trabajos y puede continuar después de responder; no debe anunciarse como terminada hasta disponer de evidencia. Las preguntas de datos actuales usan RPC de analítica y respetan los permisos del workspace.\n\nPermisos y ejecución: requiere acceso a amazon. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: pedidos amazon; pedido; canal.",
+    "source_file": "src/components/amazon/AmazonOrders.tsx",
+    "keywords": [
+      "pedidos amazon",
+      "pedido",
+      "canal"
+    ],
+    "permissions": [
+      "amazon"
+    ],
+    "entity": null,
+    "action_type": "read",
+    "requires_confirmation": false,
+    "integrations": [],
+    "version": "4",
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "module": "Amazon",
+    "screen": "Marketplaces",
+    "route": "amazon",
+    "domain": "amazon",
+    "content": "Amazon → Marketplaces. Objetivo y comportamiento: Analítica por marketplace y etiquetas de países en la interfaz.\n\nDatos y reglas: Los resultados dependen del periodo y marketplace consultados. Se distinguen pedidos, unidades, ventas, reembolsos y beneficio; no son métricas intercambiables. Las vinculaciones relacionan ASIN/SKU con el producto interno. La sincronización solicita trabajos y puede continuar después de responder; no debe anunciarse como terminada hasta disponer de evidencia. Las preguntas de datos actuales usan RPC de analítica y respetan los permisos del workspace.\n\nPermisos y ejecución: requiere acceso a amazon. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: marketplace; país; ventas.",
+    "source_file": "src/components/amazon/AmazonMarketplaces.tsx",
+    "keywords": [
+      "marketplace",
+      "país",
+      "ventas"
+    ],
+    "permissions": [
+      "amazon"
+    ],
+    "entity": null,
+    "action_type": "read",
+    "requires_confirmation": false,
+    "integrations": [],
+    "version": "4",
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "module": "Amazon",
+    "screen": "Completitud",
+    "route": "amazon",
+    "domain": "amazon",
+    "content": "Amazon → Completitud. Objetivo y comportamiento: Estado de completitud de los datos sincronizados del periodo.\n\nDatos y reglas: Los resultados dependen del periodo y marketplace consultados. Se distinguen pedidos, unidades, ventas, reembolsos y beneficio; no son métricas intercambiables. Las vinculaciones relacionan ASIN/SKU con el producto interno. La sincronización solicita trabajos y puede continuar después de responder; no debe anunciarse como terminada hasta disponer de evidencia. Las preguntas de datos actuales usan RPC de analítica y respetan los permisos del workspace.\n\nPermisos y ejecución: requiere acceso a amazon. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: completitud amazon; datos incompletos; sincronización.",
+    "source_file": "src/components/amazon/AmazonCompleteness.tsx",
+    "keywords": [
+      "completitud amazon",
+      "datos incompletos",
+      "sincronización"
+    ],
+    "permissions": [
+      "amazon"
+    ],
+    "entity": null,
+    "action_type": "read",
+    "requires_confirmation": false,
+    "integrations": [],
+    "version": "4",
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  },
+  {
+    "app": "gestion",
+    "module": "Amazon",
+    "screen": "Vinculación de producto",
+    "route": "amazon",
+    "domain": "amazon",
+    "content": "Amazon → Vinculación de producto. Objetivo y comportamiento: Vinculación entre producto Amazon e interno mediante el editor existente.\n\nDatos y reglas: Los resultados dependen del periodo y marketplace consultados. Se distinguen pedidos, unidades, ventas, reembolsos y beneficio; no son métricas intercambiables. Las vinculaciones relacionan ASIN/SKU con el producto interno. La sincronización solicita trabajos y puede continuar después de responder; no debe anunciarse como terminada hasta disponer de evidencia. Las preguntas de datos actuales usan RPC de analítica y respetan los permisos del workspace.\n\nPermisos y ejecución: requiere acceso a amazon. Las herramientas de lectura consultan datos actuales; escribir o eliminar exige autorización y confirmación. Un error del servicio nunca equivale a éxito.\n\nEjemplos de consulta: vincular asin; sku; producto interno.",
+    "source_file": "src/components/amazon/AmazonMappingModal.tsx",
+    "keywords": [
+      "vincular asin",
+      "sku",
+      "producto interno"
+    ],
+    "permissions": [
+      "amazon"
+    ],
+    "entity": null,
+    "action_type": "read",
+    "requires_confirmation": false,
+    "integrations": [],
+    "version": "4",
+    "source_commit": "4d76f9af057b7e9e3b0504c5180894e26f5d42bb"
+  }
+]

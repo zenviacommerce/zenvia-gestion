@@ -19,24 +19,13 @@ test('currency detector identifies explicit USD symbols and ISO codes',async()=>
 });
 
 test('invoice import persists the detected currency instead of falling back to application EUR',async()=>{
-  const [types,reader,pipeline,repository]=await Promise.all([
-    read('../src/types.ts'),
-    read('../src/services/invoiceReader.ts'),
-    read('../src/services/invoiceImportPipeline.ts'),
-    read('../src/services/repository.ts'),
-  ]);
-  assert.match(types,/currency: string/);
-  assert.match(reader,/detectInvoiceCurrency/);
-  assert.match(pipeline,/currency:read\.currency/);
-  assert.match(pipeline,/currency:candidate\.currency/);
-  assert.match(repository,/currency:String\(input\.currency\|\|loadedSettings\.settings\.general\.currencyCode/);
+const source=await read('../supabase/migrations/20261002190000_invoice_engine.sql');
+assert.match(source,/p_document->>'currency'/);const engine=await read('../src/services/invoiceEngine.ts');assert.match(engine,/currency:d.currency/);
 });
 
 test('foreign currency invoice lines cannot silently overwrite base-currency product cost',async()=>{
-  const repository=await read('../src/services/repository.ts');
-  assert.match(repository,/foreignCurrency/);
-  assert.match(repository,/updateImportedCost\s*=\s*[^;]*&&\s*!foreignCurrency/);
-  assert.match(repository,/currency:invoiceCurrencyCode/);
+const source=await read('../supabase/migrations/20261002190000_invoice_engine.sql');
+assert.match(source,/p_document->>'currency'=base_currency/);assert.match(source,/else 'ignored'/);assert.match(source,/old_date is null or issue>=old_date/);
 });
 
 test('expense UI formats each invoice in its stored currency and separates mixed-currency KPIs',async()=>{

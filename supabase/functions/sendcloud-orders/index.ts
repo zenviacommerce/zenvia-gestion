@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { trackingCandidates } from '../_shared/shipmentTracking.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -172,7 +173,7 @@ async function fetchOrders(credentials:SendcloudCredentials,history:boolean){con
 async function fetchShipments(credentials:SendcloudCredentials,history:boolean){const min=history?yearStart():daysAgo(30);return fetchPaged(credentials,`/shipments?page_size=100&updated_after=${encodeURIComponent(`${min}T00:00:00Z`)}`,history?70:24);}
 function shipmentMeta(s:any){
   const parcel=Array.isArray(s?.parcels)?s.parcels[0]:null;const option=s?.ship_with?.properties?.shipping_option_code||null;const code=carrierCode(option,parcel?.tracking_url);const trackingStatus=parcel?.status||{};
-  return {sendcloud_parcel_id:parcel?.id==null?null:Number(parcel.id),sendcloud_shipment_id:s?.id==null?null:String(s.id),tracking_number:parcel?.tracking_number||null,tracking_url:parcel?.tracking_url||null,shipping_option_code:option,contract_id:s?.ship_with?.properties?.contract_id==null?null:Number(s.ship_with.properties.contract_id),carrier_code:code,carrier_name:friendlyCarrier(code),shipping_service_name:option,fulfilled_at:parcel?.announced_at||s?.updated_at||null,tracking_status_code:clean(trackingStatus?.code)||null,tracking_status_message:clean(trackingStatus?.message)||null,tracking_updated_at:s?.updated_at||parcel?.updated_at||null};
+  return {sendcloud_parcel_id:parcel?.id==null?null:Number(parcel.id),sendcloud_shipment_id:s?.id==null?null:String(s.id),tracking_number:parcel?.tracking_number||null,tracking_url:trackingCandidates(parcel||s)[0]||null,shipping_option_code:option,contract_id:s?.ship_with?.properties?.contract_id==null?null:Number(s.ship_with.properties.contract_id),carrier_code:code,carrier_name:friendlyCarrier(code),shipping_service_name:option,fulfilled_at:parcel?.announced_at||s?.updated_at||null,tracking_status_code:clean(trackingStatus?.code)||null,tracking_status_message:clean(trackingStatus?.message)||null,tracking_updated_at:s?.updated_at||parcel?.updated_at||null};
 }
 
 Deno.serve(async(req:Request)=>{
@@ -356,11 +357,11 @@ Deno.serve(async(req:Request)=>{
       const confirmShipmentAfterLabel=shippingConfig.confirmShipmentAfterLabel!==false;
       const shouldMarkSent=automation.markSent&&markSentAfterLabel&&confirmShipmentAfterLabel;
       const costPatch=persistShippingCost&&Number.isFinite(selectedPrice)?{shipping_cost_amount:selectedPrice,shipping_cost_currency:selectedCurrency||'EUR',shipping_cost_source:'sendcloud_quote',shipping_cost_net_amount:selectedPrice,shipping_cost_tax_amount:0,shipping_cost_recorded_at:now}:{};
-      const trackingPatch=automation.saveTracking?{tracking_number:created.tracking_number||null,tracking_url:created.tracking_url||null,tracking_status_code:'READY_TO_SEND',tracking_status_message:'Ready to send',tracking_updated_at:now}:{};
+      const trackingPatch=automation.saveTracking?{tracking_number:created.tracking_number||null,tracking_url:trackingCandidates(created)[0]||null,tracking_status_code:'READY_TO_SEND',tracking_status_message:'Ready to send',tracking_updated_at:now}:{};
       const shipmentPatch:any={sendcloud_parcel_id:Number(created.parcel_id),sendcloud_shipment_id:created.shipment_id==null?null:String(created.shipment_id),shipping_option_code:optionCode,contract_id:ship.contract_id??selected?.contractId??null,carrier_code:code,carrier_name:selected?.carrierName||friendlyCarrier(code),shipping_service_name:selected?.name||optionCode,label_created_at:now,...trackingPatch,...costPatch};
       if(shouldMarkSent){shipmentPatch.fulfilled_at=now;shipmentPatch.source_status='shipped';}
       const {error:updateError}=await admin.from('fulfillment_orders').update(shipmentPatch).eq('id',order.id).eq('owner_id',caller.data_owner_id);if(updateError)throw updateError;
-      return response({parcelId:Number(created.parcel_id),shipmentId:created.shipment_id==null?null:String(created.shipment_id),trackingNumber:created.tracking_number||null,trackingUrl:created.tracking_url||null,shippingOptionCode:optionCode,contractId:ship.contract_id??selected?.contractId??null,carrierCode:code,carrierName:selected?.carrierName||friendlyCarrier(code),shippingServiceName:selected?.name||optionCode,mimeType:created.label.mime_type||'application/pdf',base64:String(created.label.file)});
+      return response({parcelId:Number(created.parcel_id),shipmentId:created.shipment_id==null?null:String(created.shipment_id),trackingNumber:created.tracking_number||null,trackingUrl:trackingCandidates(created)[0]||null,shippingOptionCode:optionCode,contractId:ship.contract_id??selected?.contractId??null,carrierCode:code,carrierName:selected?.carrierName||friendlyCarrier(code),shippingServiceName:selected?.name||optionCode,mimeType:created.label.mime_type||'application/pdf',base64:String(created.label.file)});
     }
 
     if(action==='fetch_label'){

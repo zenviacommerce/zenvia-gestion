@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import test from 'node:test';
+import ts from 'typescript';
+const compile=s=>ts.transpileModule(s,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
+const url=s=>`data:text/javascript;base64,${Buffer.from(s).toString('base64')}`;
+const contract=url(compile(await readFile(new URL('../supabase/functions/_shared/agentTools.ts',import.meta.url),'utf8')));
+const code=compile((await readFile(new URL('../supabase/functions/app-agent-tools/index.ts',import.meta.url),'utf8')).replace(/import \{ createClient \}[^;]+;/,'const createClient=()=>globalThis.__executorAdmin;').replace("'../_shared/agentTools.ts'",JSON.stringify(contract)));
+const schemas=JSON.parse(await readFile(new URL('./agent-tool-fixtures.json',import.meta.url),'utf8'));
+const actions={sync_orders:['orders.sync','orders',{}],create_client:['clients.create','clients',{name:'Cliente Test'}],create_product:['products.create','products',{name:'Producto Test'}],create_supplier:['suppliers.create','suppliers',{name:'Proveedor Test'}],set_expense_status:['expenses.set_status','invoices',{invoiceId:'invoice-a',status:'reviewed'}],set_expense_payment:['expenses.set_payment','invoices',{invoiceId:'invoice-a',paymentStatus:'paid'}],create_support_ticket:['support.create','support',{subject:'Asunto Test',description:'Descripción Test'}],sync_amazon:['amazon.sync','amazon',{}]};
+async function run(type,args,{confirmed=true,permission=true,active=true,workspaceStatus='active',invoiceFound=true,validSession=true}={}){
+ const [tool_key,required]=actions[type]||[];const calls=[];let handler;
+ const previous=globalThis.Deno;globalThis.Deno={env:{get:key=>({SUPABASE_URL:'https://supabase.example',SUPABASE_SERVICE_ROLE_KEY:'secret'}[key])},serve:fn=>{handler=fn}};
+ globalThis.__executorAdmin={auth:{getUser:async()=>({data:{user:validSession?{id:'actor-a'}:null}})},from(table){const q={select(){return q},eq(k,v){calls.push([table,k,v]);return q},maybeSingle:async()=>({data:{app_users:{user_id:'actor-a',active,role:'user',permissions:permission?[required]:[],data_owner_id:'tenant-a'},workspaces:{status:workspaceStatus},agent_tool_registry:{tool_key,permission:required,enabled:true,action_type:'write',requires_confirmation:true,args_schema:schemas[tool_key]||{type:'object',additionalProperties:false,properties:{}}},invoices:invoiceFound?{id:'invoice-a'}:null}[table]})};return q}};
+ try{await import(url(code+'\n// '+Math.random()));const r=await handler(new Request('https://function.example/',{method:'POST',headers:{Authorization:'Bearer actor-token','Content-Type':'application/json'},body:JSON.stringify({type,args,confirmed})}));return {status:r.status,body:await r.json(),calls}}finally{globalThis.Deno=previous;delete globalThis.__executorAdmin}
+}
+for(const [type,[key,,args]] of Object.entries(actions))test('authorization gate: '+type,async()=>{const r=await run(type,args);assert.equal(r.status,200);assert.equal(r.body.authorized,true);assert.equal(r.body.toolKey,key);assert.ok(!r.body.executed)});
+for(const [name,options,status] of [['cancelled',{confirmed:false},409],['permission revoked',{permission:false},403],['disabled actor',{active:false},403],['suspended workspace',{workspaceStatus:'suspended'},403],['other tenant invoice',{invoiceFound:false},404],['expired session',{validSession:false},401]])test(name,async()=>{const r=await run('set_expense_payment',{invoiceId:'invoice-a',paymentStatus:'paid'},options);assert.equal(r.status,status);assert.ok(!r.body.authorized)});
+test('invoice lookup always uses authenticated tenant ownership',async()=>{const r=await run('set_expense_payment',{invoiceId:'invoice-a',paymentStatus:'paid'});assert.ok(r.calls.some(([table,key,value])=>table==='invoices'&&key==='owner_id'&&value==='tenant-a'))});
+test('action parameters cannot overwrite operation',async()=>{const r=await run('set_expense_payment',{invoiceId:'invoice-a',paymentStatus:'paid',action:'delete'});assert.equal(r.status,400);assert.equal(r.body.code,'invalid_arguments')});

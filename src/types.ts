@@ -1,3 +1,4 @@
+import type { EngineDocument } from '../shared/invoiceEngineCore.mjs';
 export type InvoiceStatus = 'pending' | 'reviewed' | 'accounted';
 export type InvoicePaymentStatus = 'unpaid' | 'paid';
 export type InvoiceSource = 'manual' | 'camera' | 'gmail';
@@ -28,6 +29,7 @@ export interface InvoiceLine {
   quantity: number;
   unitPrice?: number | null;
   normalizedUnitPrice?: number | null;
+  discountPercent?: number | null;
   lineTotal?: number | null;
   supplierSku?: string | null;
   productId?: string | null;
@@ -92,6 +94,7 @@ export interface NewInvoiceLineInput {
   supplierSku?: string | null;
   unitPrice?: number | null;
   normalizedUnitPrice?: number | null;
+  discountPercent?: number | null;
   lineNet?: number | null;
   taxRate?: number | null;
   taxAmount?: number | null;
@@ -139,6 +142,9 @@ export interface NewInvoiceInput {
 }
 
 export interface InvoiceImportCandidate {
+  engineDocument?: EngineDocument;
+  engineJobId?: string;
+  engineReviewed?: boolean;
   id: string;
   file: File;
   fileHash: string;

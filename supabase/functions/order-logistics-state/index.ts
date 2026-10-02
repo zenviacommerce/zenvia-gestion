@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { resolveShipmentTrackingLink } from '../_shared/shipmentTracking.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -91,6 +92,57 @@ Deno.serve(async(req:Request)=>{
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('owner_id',caller.data_owner_id).eq('id',orderId).maybeSingle();
     if(error)throw error;
     if(!order)return response({error:'Pedido no encontrado.'},404);
+
+    if(action==='resolve_tracking_link'){
+      const raw=order.raw_payload&&typeof order.raw_payload==='object'?order.raw_payload:{};
+      const number=clean(order.tracking_number);
+      const cached=raw._zenvia_tracking;
+      const payload={tracking_url:order.tracking_url,raw_payload:raw,
+        carrier_tracking_url:cached?.number===number?cached.url:null};
+      let result=await resolveShipmentTrackingLink(payload,fetch,number);
+      if(!result.url&&number){
+        const provider=clean(order.shipping_provider)||(order.sendcloud_parcel_id?'sendcloud':'');
+        if(['envia','sendcloud'].includes(provider)){
+          let query=admin.from('integration_accounts').select('*').eq('owner_id',caller.data_owner_id).eq('provider',provider).eq('enabled',true).neq('status','disabled');
+          if(order.shipping_integration_account_id)query=query.eq('id',order.shipping_integration_account_id);
+          const {data:account,error:accountError}=await query.order('is_default',{ascending:false}).limit(1).maybeSingle();
+          if(accountError)throw accountError;
+          if(account){
+            let secret:any={};
+            if(account.secret_id){const stored=await admin.rpc('integration_read_secret',{p_secret_id:account.secret_id});if(stored.error)throw stored.error;secret=JSON.parse(String(stored.data||'{}'))}
+            let endpoint='',authorization='';
+            if(provider==='envia'){
+              const base=account.config?.environment==='production'?'https://queries.envia.com':'https://queries.test.envia.com';
+              const token=clean(secret.token||secret.apiToken||secret.api_token);
+              if(token){endpoint=`${base}/guide/${encodeURIComponent(number)}`;authorization=`Bearer ${token}`}
+            }else if(order.sendcloud_shipment_id){
+              const environment=account.credential_source==='environment';
+              const publicKey=clean(secret.publicKey||secret.public_key||(environment?Deno.env.get('SENDCLOUD_PUBLIC_KEY')||Deno.env.get('SENDCLOUD_API_KEY'):''));
+              const secretKey=clean(secret.secretKey||secret.secret_key||(environment?Deno.env.get('SENDCLOUD_SECRET_KEY')||Deno.env.get('SENDCLOUD_API_SECRET'):''));
+              if(publicKey&&secretKey){endpoint=`https://panel.sendcloud.sc/api/v3/shipments/${encodeURIComponent(order.sendcloud_shipment_id)}`;authorization=`Basic ${btoa(`${publicKey}:${secretKey}`)}`}
+            }
+            if(endpoint){
+              const remote=await fetch(endpoint,{headers:{Authorization:authorization,Accept:'application/json'},redirect:'error',signal:AbortSignal.timeout(8000)});
+              if(!remote.ok)throw new Error(`La integración no pudo consultar el seguimiento (HTTP ${remote.status}).`);
+              if(remote.ok){
+                const metadata=await remote.json();
+                // Read the URL supplied by this shipment's provider. Carrier
+                // names and carrier codes never participate in link generation.
+                result=await resolveShipmentTrackingLink(metadata,fetch,number);
+              }
+            }
+          }
+        }
+      }
+      if(result.url){
+        const snapshot={number,url:result.url,resolvedAt:new Date().toISOString()};
+        // Avoid overwriting payload updates made by a concurrent sync.
+        await admin.from('fulfillment_orders').update({raw_payload:{...raw,_zenvia_tracking:snapshot}})
+          .eq('owner_id',caller.data_owner_id).eq('id',orderId).eq('tracking_number',number).eq('last_synced_at',order.last_synced_at);
+        return response(result);
+      }
+      return response({...result,message:'La integración todavía no facilita un enlace de seguimiento del transportista para este envío.'});
+    }
 
     if(action==='mark_label_printed'){
       if(!order.label_created_at&&!order.sendcloud_parcel_id&&!order.shipping_remote_id)return response({error:'Este pedido todavía no tiene una etiqueta creada.'},409);

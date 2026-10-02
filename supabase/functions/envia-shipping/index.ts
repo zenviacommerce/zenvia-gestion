@@ -655,13 +655,23 @@ Deno.serve(async(req:Request)=>{
       const generatePackage={...pkg,weight:generateWeight};
       let payload:any;
       try{
+        const generatePayload={
+          origin,destination:dest,packages:[generatePackage],
+          settings:{printFormat:'PDF',printSize},
+          shipment:{type:1,carrier,service},
+        };
+        // Correos Express' adapter validates KILOS BULTO lexically as 99999.999.
+        // JSON.stringify(1) emits "1", so for this exact adapter case preserve
+        // the value as the valid JSON numeric literal 1.000 (not a string).
+        let generateBody=JSON.stringify(generatePayload);
+        if(correosExpressEpaq24&&realWeight<1){
+          const marker='"weight":1';
+          const index=generateBody.indexOf(marker);
+          if(index>=0)generateBody=generateBody.slice(0,index)+generateBody.slice(index).replace(marker,'"weight":1.000');
+        }
         payload=await enviaJson(`${c.shipBase}/ship/generate/`,c.token,{
           method:'POST',
-          body:JSON.stringify({
-            origin,destination:dest,packages:[generatePackage],
-            settings:{printFormat:'PDF',printSize},
-            shipment:{type:1,carrier,service},
-          }),
+          body:generateBody,
         });
       }catch(error){
         const detail=error instanceof Error?error.message:String(error);

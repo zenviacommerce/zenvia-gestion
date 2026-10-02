@@ -211,23 +211,31 @@ function LabelModal({order,options,tariffs,message,loading,preferredOption,onClo
       {loading?<div className="ordersOptionsLoading"><LoaderCircle className="spin"/><span>Consultando proveedores, servicios y precios…</span></div>:<>
         {message&&<div className="ordersQuoteMessage"><AlertCircle size={15}/><span>{message}</span></div>}
         {options.length>0&&<section className="ordersComparison">
-          <div className="ordersComparisonHead"><div><strong>Comparativa</strong><span>Precio API frente a tu tarifa contratada cuando existe una asociación válida.</span></div><small>{priced.length?priced.length+' opciones con precio':'Sin precios en tiempo real'}</small></div>
+          <div className="ordersComparisonHead"><div><strong>Opciones de envío</strong><span>Ordenadas por precio final para que puedas elegir directamente la opción más conveniente.</span></div><small>{priced.length?priced.length+' opciones con precio':'Sin precios disponibles'}</small></div>
+          {priced.length>0&&<div className="ordersBestOptions">
+            <div className="ordersBestOptionsTitle"><strong>Mejores opciones</strong><span>Las 3 tarifas más económicas disponibles ahora mismo.</span></div>
+            <div className="ordersBestOptionsGrid">{priced.slice(0,3).map((option,index)=>{
+              const isSelected=shippingOptionKey(option)===selectedKey;
+              const tariff=estimateTransportTariffForOption(order,tariffs,option);
+              return <button type="button" className={'ordersBestOption '+(isSelected?'selected':'')} aria-pressed={isSelected} key={'best-'+shippingOptionKey(option)} onClick={()=>selectOption(option)}>
+                <div className="ordersBestRank">{index+1}º</div>
+                <div className="ordersBestIdentity"><span className={'ordersProviderBadge '+option.provider}>{option.providerName}</span><strong>{option.carrierName||option.carrierCode||'Transportista'}</strong><small>{option.name||option.code}</small></div>
+                <div className="ordersBestPriceValue"><strong>{money(option.price!,option.currency||'EUR')}</strong><small>{option.provider==='envia'?'IVA y combustible incluidos':option.provider==='mrw'?'Según tarifa MRW':tariff?.documentName?'Tarifa disponible':'Precio Sendcloud'}</small></div>
+              </button>;
+            })}</div>
+          </div>}
           <div className="ordersComparisonList">{comparison.slice().sort((a,b)=>{
-            const aPreferred=shippingOptionKey(a.option)===preferredKey?0:1,bPreferred=shippingOptionKey(b.option)===preferredKey?0:1;
-            if(aPreferred!==bPreferred)return aPreferred-bPreferred;
             const ap=a.option.price!=null&&a.option.price>0?a.option.price:Number.MAX_VALUE;
             const bp=b.option.price!=null&&b.option.price>0?b.option.price:Number.MAX_VALUE;
-            return ap-bp;
+            if(ap!==bp)return ap-bp;
+            return (a.option.carrierName||'').localeCompare(b.option.carrierName||'');
           }).map(({option,tariff},index)=>{
-            const delta=option.price!=null&&tariff?.totalAmount!=null?Math.round((option.price-tariff.totalAmount)*100)/100:null;
-            const isCheapest=cheapest===option;
-            const isPreferred=shippingOptionKey(option)===preferredKey;
             const isSelected=shippingOptionKey(option)===selectedKey;
+            const rank=option.price!=null?priced.findIndex(item=>shippingOptionKey(item)===shippingOptionKey(option))+1:0;
             return <button type="button" className={'ordersComparisonRow '+(isSelected?'selected':'')} aria-pressed={isSelected} key={'comparison-'+option.provider+'-'+(option.integrationAccountId||'')+'-'+option.carrierCode+'-'+option.code+'-'+index} onClick={()=>selectOption(option)}>
-              <div className="ordersComparisonIdentity"><span className={'ordersProviderBadge '+option.provider}>{option.providerName}</span><strong>{option.carrierName||option.carrierCode||'Transportista'}</strong><small>{option.name||option.code}{isPreferred?' · Predeterminada':''}</small></div>
-              <div><span>Precio API</span><strong>{option.price==null?'—':money(option.price,option.currency||'EUR')}</strong>{option.provider==='envia'&&option.price!=null&&<small>IVA y combustible incluidos</small>}{isCheapest&&<small className="ordersBestPrice">Más barato con precio</small>}</div>
-              <div><span>Tu tarifa</span><strong>{tariff?.totalAmount==null?'—':money(tariff.totalAmount,tariff.currency)}</strong><small>{tariff?.documentName||'Sin asociación'}</small></div>
-              <div><span>Diferencia</span><strong className={delta==null?'':delta<=0?'good':'bad'}>{delta==null?'—':(delta>0?'+':'')+money(delta,option.currency||tariff?.currency||'EUR')}</strong></div>
+              <div className="ordersComparisonIdentity"><span className={'ordersProviderBadge '+option.provider}>{option.providerName}</span><strong>{option.carrierName||option.carrierCode||'Transportista'}</strong><small>{option.name||option.code}{shippingOptionKey(option)===preferredKey?' · Predeterminada':''}</small></div>
+              <div><span>Precio final</span><strong>{option.price==null?'—':money(option.price,option.currency||'EUR')}</strong>{rank>0&&rank<=3&&<small className="ordersBestPrice">{rank===1?'Más barato':rank+'º más barato'}</small>}</div>
+              <div><span>Origen del precio</span><strong>{option.provider==='mrw'?'Tarifa MRW':option.provider==='envia'?'Envia.com':'Sendcloud'}</strong><small>{option.provider==='envia'&&option.price!=null?'IVA y combustible incluidos':option.provider==='mrw'?'Calculado con tu tarifa subida':option.price!=null?'Tarifa disponible':'Sin precio disponible'}</small></div>
             </button>;
           })}</div>
         </section>}

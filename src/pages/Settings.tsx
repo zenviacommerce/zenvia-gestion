@@ -1263,7 +1263,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     const configuredMrwName=account?.provider==='mrw'&&typeof account?.config?.serviceName==='string'?String(account.config.serviceName):'';
     setMrwServiceCode(configuredMrwCode);
     setMrwServiceName(configuredMrwName||getMrwServiceName(configuredMrwCode));
-    setShopifyDomain(account?.provider==='shopify'?String(account.externalAccountId||account.config?.shopDomain||''):'');
+    setShopifyDomain(account?.provider==='shopify'&&account.credentialSource!=='derived'?String(account.externalAccountId||account.config?.shopDomain||''):'');
     setShopifyAccessToken('');
     setAccountEnabled(account?.enabled??true);
     setSyncOrders(legacyAmazon?settings.amazon.autoSyncOrders:(typeof account?.config?.syncOrders==='boolean'?Boolean(account.config.syncOrders):true));
@@ -1447,12 +1447,15 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   };
 
   const syncAccount=async(account:IntegrationAccount)=>{
-    if(account.provider!=='amazon'&&account.provider!=='sendcloud')return;
+    if(account.provider!=='amazon'&&account.provider!=='sendcloud'&&account.provider!=='shopify')return;
     setBusy('sync:'+account.id);
     try{
       if(account.provider==='amazon'){
         const result=await requestAmazonSync(account.legacy?undefined:account.id);
         showSuccess(`Sincronización solicitada: ${result.jobs} trabajos para ${account.displayName}.`);
+      }else if(account.provider==='shopify'){
+        const result=await syncShopifyIntegrationAccount(account.id);
+        showSuccess(`Shopify sincronizado: ${result.synced} pedidos actualizados directamente en ZENVIA.`);
       }else if(account.legacy){
         const result=await syncSendcloudOrders(false,true,false);
         showSuccess(`Sendcloud sincronizado: ${result.synced} pedidos actualizados.`);
@@ -1539,7 +1542,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                 </div>
                 <div className="integrationAccountActions">
                   <button type="button" className="secondary" disabled={busy!==null||account.status==='disabled'} onClick={()=>void testAccount(account)}>{busy==='test:'+account.id?'Probando…':'Probar'}</button>
-                  {(account.provider==='amazon'||account.provider==='sendcloud')&&<button type="button" className="secondary" disabled={busy!==null||account.status!=='connected'} onClick={()=>void syncAccount(account)}>{busy==='sync:'+account.id?'Sincronizando…':'Sincronizar'}</button>}
+                  {(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='shopify')&&<button type="button" className="secondary" disabled={busy!==null||account.status!=='connected'} onClick={()=>void syncAccount(account)}>{busy==='sync:'+account.id?'Sincronizando…':'Sincronizar'}</button>}
                   <button type="button" className="secondary" disabled={busy!==null} onClick={()=>resetEditor(account.provider,account)}>Configurar</button>
                   {!account.isDefault&&account.status!=='disabled'&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void makeDefault(account)}>Predeterminada</button>}
                   {account.status!=='disabled'&&!account.legacy&&<button type="button" className="secondary dangerText" disabled={busy!==null} onClick={()=>void disconnect(account)}>Desconectar</button>}
@@ -1639,7 +1642,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
             <div className="settingsResetPreview"><strong>Shopify directo</strong><small>ZENVIA consulta Shopify Admin API directamente. Sendcloud no participa en la entrada de pedidos ni es necesario para mantener esta conexión.</small></div>
             <div className="settingsFormGrid">
               <label className="settingsField"><span>Dominio Shopify</span><input autoComplete="off" value={shopifyDomain} onChange={e=>setShopifyDomain(e.target.value)} placeholder="tienda.myshopify.com"/><small>Usa el dominio permanente myshopify.com, no el dominio comercial.</small></label>
-              <label className="settingsField"><span>{editing?'Nuevo access token (opcional)':'Admin API access token'}</span><input type="password" autoComplete="new-password" value={shopifyAccessToken} onChange={e=>setShopifyAccessToken(e.target.value)} placeholder={editing?'Sin cambios':'shpat_…'}/><small>Token de una app de Shopify con permiso read_orders. Se guarda cifrado.</small></label>
+              <label className="settingsField"><span>{editing?'Nuevo access token (opcional)':'Admin API access token'}</span><input type="password" autoComplete="new-password" value={shopifyAccessToken} onChange={e=>setShopifyAccessToken(e.target.value)} placeholder={editing?'Sin cambios':'shpat_…'}/><small>Token de una app de Shopify con permiso read_orders. Se guarda cifrado. Si esta tienda venía de Sendcloud, al guardar dominio y token quedará migrada a conexión directa.</small></label>
             </div>
             <label className="settingsToggleField"><input type="checkbox" checked={syncOrders} onChange={e=>setSyncOrders(e.target.checked)}/><span><strong>Sincronizar pedidos</strong><small>Importar pedidos de Shopify directamente en ZENVIA.</small></span></label>
           </>}

@@ -312,7 +312,7 @@ Deno.serve(async(req:Request)=>{
     const orderId=clean(body?.orderId);if(!orderId)return fail('Falta el pedido.');
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();if(error)throw error;if(!order)return fail('Pedido no encontrado.',404);
     const orderCredentials=await credentialsForOrder(admin,caller.data_owner_id,order.shipping_integration_account_id||null);
-    const sendcloudOrderId=remoteSendcloudId(order);if(!sendcloudOrderId)return fail('El pedido no tiene identificador remoto de Sendcloud.',409);
+    const sendcloudOrderId=remoteSendcloudId(order);
 
     if(action==='validate_address'){
       const address=order.shipping_address||{},carrierCode=clean(body?.carrierCode||ordersConfig.defaultCarrier||'mrw').toLowerCase();
@@ -372,13 +372,7 @@ Deno.serve(async(req:Request)=>{
       const weightKg=orderWeightKg(order,shippingConfig.fallbackWeightKg);
       const normalizedState=normalizeStateProvince(address.country_code,address.state_province_code);
       if(clean(address.state_province_code)!==clean(normalizedState)){
-        const correctedAddress={...address,state_province_code:normalizedState};
-        try{
-          const {data:patched}=await sendcloudJson(orderCredentials,`/orders/${encodeURIComponent(sendcloudOrderId)}`,{method:'PATCH',body:JSON.stringify({shipping_address:correctedAddress})});
-          address=patched?.data?.shipping_address||correctedAddress;
-          const raw=order.raw_payload||{},newRaw={...raw,...(patched?.data||{}),shipping_address:address};
-          await admin.from('fulfillment_orders').update({shipping_address:address,raw_payload:newRaw,last_synced_at:new Date().toISOString()}).eq('id',order.id).eq('owner_id',caller.data_owner_id);
-        }catch{/* La cotización seguirá con la dirección saneada */}
+        address={...address,state_province_code:normalizedState};
       }
       const toAddress:any={
         country_code:address.country_code||undefined,
@@ -456,6 +450,7 @@ Deno.serve(async(req:Request)=>{
     }
 
     if(action==='update_order'){
+      if(!sendcloudOrderId)return fail('El pedido no tiene identificador remoto de Sendcloud.',409);
       if(!canEdit(order.source_status)||order.sendcloud_parcel_id)return fail('Solo puedes editar pedidos pendientes antes de crear la etiqueta.',409);
       const input=body?.order||{},current=order.shipping_address||{};
       const name=clean(input.customerName||current.name||order.customer_name),companyName=clean(input.companyName??current.company_name),email=clean(input.email??current.email??order.customer_email),phone=clean(input.phone??current.phone_number??order.customer_phone);

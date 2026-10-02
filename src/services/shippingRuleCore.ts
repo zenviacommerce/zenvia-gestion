@@ -4,6 +4,8 @@ export type ShippingRuleConditions={
 };
 
 export type ShippingRuleAction={
+  provider?:'sendcloud'|'envia'|'mrw'|null;
+  integrationAccountId?:string|null;
   carrierContains:string;
   serviceIncludes:string[];
 };
@@ -22,6 +24,8 @@ type RuleOrder={
 };
 
 type RuleOption={
+  provider?:string|null;
+  integrationAccountId?:string|null;
   code?:string|null;
   name?:string|null;
   carrierCode?:string|null;
@@ -51,6 +55,10 @@ export function shippingRuleMatchesOrder(order:RuleOrder,rule:ShippingRule){
 }
 
 export function shippingRuleMatchesOption(option:RuleOption,rule:ShippingRule){
+  const wantedProvider=normalized(rule.action.provider);
+  if(wantedProvider&&normalized(option.provider)!==wantedProvider)return false;
+  const wantedAccount=String(rule.action.integrationAccountId||'').trim();
+  if(wantedAccount&&String(option.integrationAccountId||'').trim()!==wantedAccount)return false;
   const carrier=normalized(`${option.carrierCode||''} ${option.carrierName||''}`);
   const all=normalized(`${option.carrierCode||''} ${option.carrierName||''} ${option.name||''} ${option.code||''}`);
   const carrierNeedle=normalized(rule.action.carrierContains);

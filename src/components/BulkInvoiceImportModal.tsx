@@ -108,7 +108,7 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
   const pendingCount=items.filter(item=>item.status==='analyzing').length;
 
   return <div className="modalBackdrop"><div className="modal bulkInvoiceModal">
-    <div className="modalHead"><div><h3>Importar facturas</h3><p>Selecciona uno o varios PDF. Si un PDF contiene varias facturas completas, se separarán en candidatos independientes para revisarlos antes de importar.</p></div><button onClick={onClose}><X/></button></div>
+    <div className="modalHead"><div><h3>Importar facturas de gasto</h3><p>Selecciona uno o varios PDF. Si un PDF contiene varias facturas completas, se separarán en candidatos independientes para revisarlos antes de importar.</p></div><button onClick={onClose}><X/></button></div>
     <input hidden ref={inputRef} type="file" multiple accept="application/pdf" onChange={e=>chooseFiles(Array.from(e.target.files??[]))}/>
     {!items.length?<button className="bulkInvoiceDrop" type="button" onClick={()=>inputRef.current?.click()}><Upload/><strong>Seleccionar PDFs</strong><span>Puedes elegir varios archivos a la vez</span></button>:<>
       <div className="bulkInvoiceSummary"><strong>{analyzed} de {items.length} analizadas</strong><span>{readyCount} listas · {reviewCount} requieren revisión · {pendingCount} pendientes</span><button className="secondary" type="button" disabled={busy} onClick={()=>inputRef.current?.click()}>Cambiar selección</button></div>

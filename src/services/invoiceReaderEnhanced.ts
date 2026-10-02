@@ -392,10 +392,13 @@ function enhanceInvoiceReadResult(
   const explicitSubtotal=explicitTaxBase(base.text);
   const reverseCharge=/inv\.?\s*pasivo|reverse\s+charge|inversi[oó]n\s+del\s+sujeto\s+pasivo/i.test(base.text);
   const reverseChargeSummary=extractReverseChargeFiscalSummary(textLines);
-  const initialFiscalSummary=reverseCharge?reverseChargeSummary:extractFiscalSummary(textLines)||extractLooseFiscalSummary(textLines);
+  const reverseChargeFallback=reverseCharge&&base.total>0
+    ?{subtotal:base.total,vat:0,total:base.total,rate:0}
+    :null;
+  const initialFiscalSummary=reverseCharge?(reverseChargeSummary||reverseChargeFallback):extractFiscalSummary(textLines)||extractLooseFiscalSummary(textLines);
   const knownSubtotal=initialFiscalSummary?.subtotal||explicitSubtotal||repaired.subtotal;
   const fiscalSummary=reverseCharge
-    ?reverseChargeSummary
+    ?(reverseChargeSummary||reverseChargeFallback)
     :(initialFiscalSummary
       ||inferFiscalFromKnownSubtotal(textLines,knownSubtotal)
       ||inferFiscalClosureByArithmetic(textLines,knownSubtotal));

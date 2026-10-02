@@ -37,7 +37,7 @@ import { loadSupplierOptions, type SupplierOption } from '../services/supplierEd
 import { addShippingRule, deleteShippingRule, loadShippingRules, updateShippingRule, type ShippingRule } from '../services/shippingRules';
 import { AMAZON_KPI_KEYS, loadAmazonStatus, requestAmazonSync, type AmazonMarketplaceStatus } from '../services/amazon';
 import { getSendcloudStatus, syncSendcloudOrders } from '../services/orders';
-import { createIntegrationAccount, disconnectIntegrationAccount, discoverShopifyStores, loadAmazonAccountMarketplaces, loadIntegrationAccounts, setDefaultIntegrationAccount, syncSendcloudIntegrationAccount, testIntegrationAccount, updateIntegrationAccount, type IntegrationAccount, type IntegrationProvider, type ShopifyDiscovery } from '../services/integrationAccounts';
+import { createIntegrationAccount, disconnectIntegrationAccount, loadAmazonAccountMarketplaces, loadIntegrationAccounts, setDefaultIntegrationAccount, syncSendcloudIntegrationAccount, syncShopifyIntegrationAccount, testIntegrationAccount, updateIntegrationAccount, type IntegrationAccount, type IntegrationProvider } from '../services/integrationAccounts';
 import { connectGmail, disconnectGmail, getCachedGmailConnection, setActiveGmailConnection, testGmailConnection } from '../services/gmail';
 import { DEFAULT_AUTOMATION_RULES, loadAutomationRules, saveAutomationRule, type AutomationRule } from '../services/automationRules';
 import { applyExpenseInvoiceReprocess, findClientDuplicates, findInvoiceDuplicates, findProductDuplicates, findSupplierDuplicates, listClientsMissingTaxId, listProductsWithoutCost, listReprocessableInvoices, listSuppliersMissingTaxId, mergeClient, mergeSupplier, previewClientMerge, previewExpenseInvoiceReprocess, previewPriceHistoryRebuild, previewProductCostRecalculation, previewSupplierMerge, previewSupplierProductRebuild, rebuildPriceHistoryLinks, rebuildSupplierProductLinks, recalculateProductCosts, runAmazonSync, runSendcloudSync, type DuplicateCandidate, type ExpenseInvoiceReprocessPreview, type MaintenanceRepairPreview, type MergePreview, type ReprocessableInvoiceOption } from '../services/maintenance';
@@ -1167,9 +1167,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   const [mrwEnvironment,setMrwEnvironment]=useState<'test'|'production'>('production');
   const [mrwServiceCode,setMrwServiceCode]=useState('');
   const [mrwServiceName,setMrwServiceName]=useState('');
-  const [parentAccountId,setParentAccountId]=useState('');
-  const [shopifyIntegrationId,setShopifyIntegrationId]=useState('');
-  const [shopifyStores,setShopifyStores]=useState<ShopifyDiscovery[]>([]);
+  const [shopifyDomain,setShopifyDomain]=useState('');
+  const [shopifyAccessToken,setShopifyAccessToken]=useState('');
   const [accountEnabled,setAccountEnabled]=useState(true);
   const [syncOrders,setSyncOrders]=useState(true);
   const [syncInventory,setSyncInventory]=useState(true);
@@ -1198,8 +1197,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     },
     shopify:{
       name:'Shopify',
-      description:'Canal ecommerce conectado a ZENVIA a través de una cuenta de Sendcloud.',
-      addLabel:'Añadir Shopify',
+      description:'Conexión directa con Shopify Admin API. Los pedidos entran en ZENVIA sin pasar por Sendcloud.',
+      addLabel:'Conectar Shopify',
     },
     sendcloud:{
       name:'Sendcloud',
@@ -1222,9 +1221,6 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
       addLabel:'Autorizar Gmail',
     },
   };
-  // Shopify is not a standalone credential connection in the current architecture:
-  // it is a sales channel discovered through Sendcloud, so it is shown inside
-  // Sendcloud instead of pretending to be an independent integration.
   const integrationGroups:Array<{id:string;title:string;description:string;providers:IntegrationProvider[]}>= [
     {id:'ecommerce',title:'Ecommerce',description:'Canales de venta y marketplaces conectados a ZENVIA.',providers:['amazon','shopify']},
     {id:'shipping',title:'Transportistas y logística',description:'Plataformas logísticas y transportistas utilizados para tarifas, etiquetas y seguimiento.',providers:['sendcloud','envia','mrw']},
@@ -1268,9 +1264,9 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     const configuredMrwName=account?.provider==='mrw'&&typeof account?.config?.serviceName==='string'?String(account.config.serviceName):'';
     setMrwServiceCode(configuredMrwCode);
     setMrwServiceName(configuredMrwName||getMrwServiceName(configuredMrwCode));
-    setParentAccountId(account?.parentAccountId||sendcloudAccounts.find(item=>item.isDefault)?.id||sendcloudAccounts[0]?.id||'');
-    setShopifyIntegrationId(String(account?.config?.sendcloudIntegrationId||account?.externalAccountId||''));
-    setShopifyStores([]);setAccountEnabled(account?.enabled??true);
+    setShopifyDomain(account?.provider==='shopify'?String(account.externalAccountId||account.config?.shopDomain||''):'');
+    setShopifyAccessToken('');
+    setAccountEnabled(account?.enabled??true);
     setSyncOrders(legacyAmazon?settings.amazon.autoSyncOrders:(typeof account?.config?.syncOrders==='boolean'?Boolean(account.config.syncOrders):true));
     setSyncInventory(legacyAmazon?settings.amazon.autoSyncInventory:(typeof account?.config?.syncInventory==='boolean'?Boolean(account.config.syncInventory):true));
     setSyncFinance(legacyAmazon?settings.amazon.autoSyncFinance:(typeof account?.config?.syncFinance==='boolean'?Boolean(account.config.syncFinance):true));
@@ -1289,26 +1285,14 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     }
   };
 
-  const closeEditor=()=>{if(busy)return;setEditorOpen(false);setEditing(null);setShopifyStores([])};
-
-  const discoverShopify=async()=>{
-    if(!parentAccountId){showError('Selecciona primero una cuenta de Sendcloud.');return;}
-    setBusy('discover-shopify');
-    try{
-      const stores=await discoverShopifyStores(parentAccountId);
-      setShopifyStores(stores);
-      if(stores.length===1&&!shopifyIntegrationId)setShopifyIntegrationId(String(stores[0].id));
-      if(!stores.length)showError('No se ha encontrado ninguna tienda Shopify en esa cuenta de Sendcloud.');
-    }catch(e){showError(e instanceof Error?e.message:'No se pudieron consultar las tiendas Shopify.');}
-    finally{setBusy(null);}
-  };
+  const closeEditor=()=>{if(busy)return;setEditorOpen(false);setEditing(null)};
 
   const accountConfig=()=>{
     if(provider==='amazon')return {
       activeMarketplaceIds,primaryMarketplaceId:primaryMarketplaceId||null,
       syncOrders,syncInventory,syncFinance,syncImages,
     };
-    if(provider==='shopify')return {sendcloudIntegrationId:Number(shopifyIntegrationId),syncOrders};
+    if(provider==='shopify')return {shopDomain:shopifyDomain.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/+$/,''),apiVersion:'2026-07',syncOrders};
     if(provider==='sendcloud')return {syncOrders,shippingEnabled:true};
     if(provider==='envia')return {shippingEnabled:true,environment:enviaEnvironment};
     if(provider==='mrw')return {shippingEnabled:true,environment:mrwEnvironment,serviceCode:mrwServiceCode.trim(),serviceName:mrwServiceName.trim()||getMrwServiceName(mrwServiceCode.trim())};
@@ -1351,6 +1335,10 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           if(sendcloudSecretKey.trim())credentials.secretKey=sendcloudSecretKey.trim();
         }
         if(provider==='envia'&&enviaToken.trim())credentials.token=enviaToken.trim();
+        if(provider==='shopify'){
+          if(shopifyDomain.trim())credentials.shopDomain=shopifyDomain.trim();
+          if(shopifyAccessToken.trim())credentials.accessToken=shopifyAccessToken.trim();
+        }
         if(provider==='mrw'){
           if(mrwFranchiseCode.trim())credentials.franchiseCode=mrwFranchiseCode.trim();
           if(mrwSubscriberCode.trim())credentials.subscriberCode=mrwSubscriberCode.trim();
@@ -1411,13 +1399,15 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
         });
         showSuccess('Cuenta de MRW conectada directamente.');
       }else{
-        if(!parentAccountId||!shopifyIntegrationId)throw new Error('Selecciona la cuenta de Sendcloud y la tienda Shopify.');
-        const shop=shopifyStores.find(item=>String(item.id)===shopifyIntegrationId);
+        const domain=shopifyDomain.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/+$/,'');
+        if(!domain||!shopifyAccessToken.trim())throw new Error('Indica el dominio myshopify.com y el access token de Shopify.');
         await createIntegrationAccount({
-          provider:'shopify',displayName:displayName.trim()||shop?.shopName||undefined,parentAccountId,
-          externalAccountId:shopifyIntegrationId,config:{...accountConfig(),shopUrl:shop?.shopUrl||null},test:true,
+          provider:'shopify',displayName:displayName.trim()||domain.replace(/\.myshopify\.com$/i,''),
+          externalAccountId:domain,
+          credentials:{shopDomain:domain,accessToken:shopifyAccessToken.trim()},
+          config:accountConfig(),test:true,
         });
-        showSuccess('Tienda Shopify añadida.');
+        showSuccess('Tienda Shopify conectada directamente.');
       }
       await reload();setEditorOpen(false);setEditing(null);
     }catch(e){
@@ -1648,13 +1638,12 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           </>}
 
           {provider==='shopify'&&<>
-            <div className="settingsResetPreview"><strong>Shopify se conecta mediante Sendcloud</strong><small>ZENVIA usa la integración Shopify que ya exista en Sendcloud. Así se evita mantener dos conexiones distintas para los mismos pedidos.</small></div>
-            {sendcloudAccounts.length>1&&<label className="settingsField"><span>Cuenta logística</span><SelectField ariaLabel="Cuenta de Sendcloud para Shopify" value={parentAccountId} options={sendcloudAccounts.map(item=>({value:item.id,label:item.displayName}))} onChange={value=>{setParentAccountId(value);setShopifyStores([]);setShopifyIntegrationId('')}}/></label>}
-            {sendcloudAccounts.length===1&&<div className="integrationConnectionPath"><span>Shopify</span><span>→</span><strong>{sendcloudAccounts[0].displayName}</strong><span>→</span><span>ZENVIA</span></div>}
-            {!editing&&<div className="settingsInlineActions"><button type="button" className="secondary" disabled={busy!==null||!parentAccountId} onClick={()=>void discoverShopify()}>{busy==='discover-shopify'?'Buscando…':'Detectar tiendas en Sendcloud'}</button></div>}
-            {!editing&&shopifyStores.length>0&&<label className="settingsField"><span>Tienda Shopify detectada</span><SelectField ariaLabel="Tienda Shopify" value={shopifyIntegrationId} options={shopifyStores.map(item=>({value:String(item.id),label:item.shopName,description:item.shopUrl||undefined}))} onChange={value=>{setShopifyIntegrationId(value);const shop=shopifyStores.find(item=>String(item.id)===value);if(shop&&!displayName)setDisplayName(shop.shopName)}}/></label>}
-            {editing&&<div className="settingsResetPreview"><strong>{editing.displayName}</strong><small>{String(editing.config?.shopUrl||`Integración Sendcloud #${shopifyIntegrationId}`)}</small></div>}
-            <label className="settingsToggleField"><input type="checkbox" checked={syncOrders} onChange={e=>setSyncOrders(e.target.checked)}/><span><strong>Sincronizar pedidos</strong><small>Incluir los pedidos de esta tienda dentro de la sincronización de Sendcloud.</small></span></label>
+            <div className="settingsResetPreview"><strong>Shopify directo</strong><small>ZENVIA consulta Shopify Admin API directamente. Sendcloud no participa en la entrada de pedidos ni es necesario para mantener esta conexión.</small></div>
+            <div className="settingsFormGrid">
+              <label className="settingsField"><span>Dominio Shopify</span><input autoComplete="off" value={shopifyDomain} onChange={e=>setShopifyDomain(e.target.value)} placeholder="tienda.myshopify.com"/><small>Usa el dominio permanente myshopify.com, no el dominio comercial.</small></label>
+              <label className="settingsField"><span>{editing?'Nuevo access token (opcional)':'Admin API access token'}</span><input type="password" autoComplete="new-password" value={shopifyAccessToken} onChange={e=>setShopifyAccessToken(e.target.value)} placeholder={editing?'Sin cambios':'shpat_…'}/><small>Token de una app de Shopify con permiso read_orders. Se guarda cifrado.</small></label>
+            </div>
+            <label className="settingsToggleField"><input type="checkbox" checked={syncOrders} onChange={e=>setSyncOrders(e.target.checked)}/><span><strong>Sincronizar pedidos</strong><small>Importar pedidos de Shopify directamente en ZENVIA.</small></span></label>
           </>}
 
           {provider==='gmail'&&<>
@@ -1664,7 +1653,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
 
           {editing&&<label className="settingsToggleField"><input type="checkbox" checked={accountEnabled} onChange={e=>setAccountEnabled(e.target.checked)}/><span><strong>Cuenta activa</strong><small>Permite usar esta cuenta sin afectar a las demás del mismo proveedor.</small></span></label>}
         </div>
-        <div className="integrationEditorActions"><button type="button" className="secondary" disabled={busy!==null} onClick={closeEditor}>Cancelar</button><button type="button" className="primary" disabled={busy!==null} onClick={()=>void saveAccount()}>{busy==='save-account'?'Guardando…':provider==='gmail'&&!editing?'Autorizar Gmail':provider==='shopify'&&!editing?'Añadir tienda':'Guardar cuenta'}</button></div>
+        <div className="integrationEditorActions"><button type="button" className="secondary" disabled={busy!==null} onClick={closeEditor}>Cancelar</button><button type="button" className="primary" disabled={busy!==null} onClick={()=>void saveAccount()}>{busy==='save-account'?'Guardando…':provider==='gmail'&&!editing?'Autorizar Gmail':provider==='shopify'&&!editing?'Conectar Shopify':'Guardar cuenta'}</button></div>
       </div>
     </div>}
   </section>;

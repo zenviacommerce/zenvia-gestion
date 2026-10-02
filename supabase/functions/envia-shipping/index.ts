@@ -535,7 +535,10 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
         marketplaceMatch=(candidate.data||[]).find((item:any)=>{
           const itemPostal=clean(item?.shipping_address?.postal_code);
           const itemName=normalizeMatchText(item?.customer_name||item?.shipping_address?.name);
-          return itemPostal===postal&&itemName===destinationName;
+          const sameName=itemName===destinationName
+            ||(destinationName.length>=8&&itemName.startsWith(destinationName))
+            ||(itemName.length>=8&&destinationName.startsWith(itemName));
+          return itemPostal===postal&&sameName;
         })||null;
       }
 

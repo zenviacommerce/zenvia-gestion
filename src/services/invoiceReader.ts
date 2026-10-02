@@ -159,8 +159,19 @@ function extractLines(lines: string[]): NewInvoiceLineInput[] {
   return result;
 }
 
+function normalizeOcrNumericArtifacts(value:string){
+  return value
+    // OCR frequently drops the decimal separator before a two-digit currency
+    // fraction: "351 77 EUR" => "351,77 EUR".
+    .replace(/(\d{1,3}(?:[.\s]\d{3})*)\s+(\d{2})(?=\s*(?:€|EUR|EUROS?)\b)/gi,'$1,$2')
+    // Preserve European thousands grouping before decimal fractions:
+    // "2 026,85 EUR" => "2.026,85 EUR".
+    .replace(/\b(\d{1,3})\s+(\d{3})(?=[,.]\d{2}\s*(?:€|EUR|EUROS?)\b)/gi,'$1.$2');
+}
+
 export function parseInvoiceText(text: string, categories: ExpenseCategory[], usedOcr: boolean): InvoiceReadResult {
-  const lines = text.split(/\r?\n/).map(compact).filter(Boolean);
+  const normalizedInput=usedOcr?normalizeOcrNumericArtifacts(text):text;
+  const lines = normalizedInput.split(/\r?\n/).map(compact).filter(Boolean);
   const fullText = lines.join('\n');
   const supplierName = extractSupplier(lines);
   const invoiceNumber = extractInvoiceNumber(lines, fullText);
@@ -343,6 +354,23 @@ async function ocrPdf(pdf: any, onProgress?: (message: string) => void): Promise
           const headerText=headerResult.data.text||'';
           if(headerText.trim())pageText+='\n'+headerText;
         }
+
+        // Many invoice templates place date/number in a small top-right box.
+        // A full-header OCR pass can miss it because logos and recipient blocks
+        // dominate the layout. Read that quadrant separately and enlarged.
+        const identity=document.createElement('canvas');
+        const sx=Math.round(canvas.width*.58), sy=Math.round(canvas.height*.18);
+        const sw=Math.max(1,canvas.width-sx), sh=Math.max(1,Math.round(canvas.height*.25));
+        identity.width=Math.max(1,Math.round(sw*2.2));
+        identity.height=Math.max(1,Math.round(sh*2.2));
+        const identityContext=identity.getContext('2d',{willReadFrequently:true});
+        if(identityContext){
+          identityContext.drawImage(canvas,sx,sy,sw,sh,0,0,identity.width,identity.height);
+          const identityBlob=await new Promise<Blob>((resolve,reject)=>identity.toBlob(value=>value?resolve(value):reject(new Error('No se pudo preparar fecha y número para OCR.')),'image/png'));
+          const identityResult=await worker.recognize(identityBlob);
+          const identityText=identityResult.data.text||'';
+          if(identityText.trim())pageText+='\n'+identityText;
+        }
       }
 
       // In scanned supplier invoices the fiscal summary is often small and sits
@@ -352,12 +380,13 @@ async function ocrPdf(pdf: any, onProgress?: (message: string) => void): Promise
       const hasFiscalClosure=/\b(?:importe\s+iva|iva\s*[:€]|total\s+factura|importe\s+total|base\s+imponible)\b/i.test(pageText);
       if(!hasFiscalClosure||pageNumber===pdf.numPages){
         const footer=document.createElement('canvas');
-        footer.width=canvas.width;
-        footer.height=Math.max(1,Math.round(canvas.height*.44));
+        const sourceHeight=Math.max(1,Math.round(canvas.height*.44));
+        footer.width=Math.max(1,Math.round(canvas.width*1.8));
+        footer.height=Math.max(1,Math.round(sourceHeight*1.8));
         const footerContext=footer.getContext('2d',{willReadFrequently:true});
         if(footerContext){
-          const sourceY=Math.max(0,canvas.height-footer.height);
-          footerContext.drawImage(canvas,0,sourceY,canvas.width,footer.height,0,0,footer.width,footer.height);
+          const sourceY=Math.max(0,canvas.height-sourceHeight);
+          footerContext.drawImage(canvas,0,sourceY,canvas.width,sourceHeight,0,0,footer.width,footer.height);
           enhanceOcrCanvas(footer);
           const footerBlob=await new Promise<Blob>((resolve,reject)=>footer.toBlob(value=>value?resolve(value):reject(new Error('No se pudo preparar el cierre fiscal para OCR.')),'image/png'));
           const footerResult=await worker.recognize(footerBlob);

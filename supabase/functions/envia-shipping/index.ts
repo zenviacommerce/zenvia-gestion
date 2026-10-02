@@ -461,11 +461,11 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
       const trackingUrl=clean(row?.trackUrl||row?.trackingUrl||row?.tracking_url);
       const orderNumber=clean(row?.orderNumber||row?.order_number||row?.reference||row?.referenceNumber||row?.shipmentId)||`ENVIA-${tracking}`;
 
-      let {data:existing,error:existingError}=await admin.from('fulfillment_orders').select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name')
+      let {data:existing,error:existingError}=await admin.from('fulfillment_orders').select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,label_printed_at,label_print_state_known')
         .eq('owner_id',ownerId).eq('shipping_remote_id',tracking).limit(1).maybeSingle();
       if(existingError)throw existingError;
       if(!existing){
-        const fallback=await admin.from('fulfillment_orders').select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name')
+        const fallback=await admin.from('fulfillment_orders').select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,label_printed_at,label_print_state_known')
           .eq('owner_id',ownerId).eq('tracking_number',tracking).limit(1).maybeSingle();
         if(fallback.error)throw fallback.error;
         existing=fallback.data;
@@ -476,7 +476,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
       // a strong tenant-scoped identity for these pending orders.
       if(!existing&&destination.email){
         const candidate=await admin.from('fulfillment_orders')
-          .select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name')
+          .select('id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,label_printed_at,label_print_state_known')
           .eq('owner_id',ownerId)
           .ilike('customer_email',destination.email)
           .is('tracking_number',null)
@@ -486,6 +486,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
         const postal=clean(destination.postal_code);
         existing=(candidate.data||[]).find((item:any)=>!postal||clean(item?.shipping_address?.postal_code)===postal)||candidate.data?.[0]||null;
       }
+      const externallyDiscovered=!existing?.shipping_provider&&!existing?.label_created_at;
       const patch:any={
         shipping_provider:'envia',
         shipping_remote_id:tracking,
@@ -505,6 +506,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
         shipping_cost_source:price==null?null:'provider_actual',
         shipping_cost_recorded_at:price==null?null:createdAt,
         label_created_at:createdAt,
+        ...(externallyDiscovered?{label_print_state_known:false}:{}),
         last_synced_at:new Date().toISOString(),
       };
       if(existing?.id){

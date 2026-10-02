@@ -434,12 +434,19 @@ function fiscalTupleConsistent(result:Pick<InvoiceReadResult,'subtotal'|'vat'|'w
   return Math.abs(expected-result.total)<=Math.max(.08,result.total*.0025);
 }
 
+function zeroVatHasDocumentarySupport(result:InvoiceReadResult){
+  if(Math.abs(result.vat)>0.001)return true;
+  const text=result.text||'';
+  return /(?:inv\.?\s*pasivo|reverse\s+charge|inversi[oó]n\s+del\s+sujeto\s+pasivo|exent[oa]|tax\s+exempt|iva\s*0(?:[,.]0+)?\s*%|0(?:[,.]0+)?\s*%\s*(?:iva|vat))/i.test(text);
+}
+
 function shouldCrossCheckWithOcr(result:InvoiceReadResult){
   return !result.supplierName
     || !result.invoiceNumber
     || !result.invoiceDate
     || !(result.total>0)
     || !fiscalTupleConsistent(result)
+    || !zeroVatHasDocumentarySupport(result)
     || result.confidence<.80;
 }
 

@@ -211,40 +211,22 @@ export function estimateTransportTariffForOption(order:FulfillmentOrder,tariffs:
 }
 
 export function calculateDefaultShippingPreview(order:FulfillmentOrder,tariffs:TransportTariffDocument[],carrierCode='',vatRate=21):ShippingPricePreview|null{
-  if(!clean(carrierCode).toLowerCase().includes('mrw')||order.weightKg==null)return null;
-  const country=clean(order.shippingAddress?.country_code).toUpperCase();
-  if(!['ES','PT'].includes(country))return null;
-  const document=tariffs.filter(item=>(item.status==='active'||item.status==='superseded')&&item.shippingProvider==='sendcloud'&&item.carrierCode==='mrw'&&inDateRange(item,order)).sort((a,b)=>(b.effectiveFrom||'').localeCompare(a.effectiveFrom||''))[0];
-  if(!document)return null;
-  const orderDate=(order.orderCreatedAt||new Date().toISOString()).slice(0,10);
-  const revision=(document.revisions||[]).filter(item=>item.effectiveFrom<=orderDate).sort((a,b)=>b.effectiveFrom.localeCompare(a.effectiveFrom))[0];
-  const config=revision?.snapshot||document;
-  const service=config.services.find(item=>item.canonicalServiceKey==='manana-19h'||/19\s*h/i.test(item.serviceName));
-  if(!service)return null;
-  const zoneCode='peninsular';
-  const candidates=service.bands.filter(band=>band.countryCode===country&&band.zoneCode===zoneCode).sort((a,b)=>a.minWeightKg-b.minWeightKg);
-  const weight=order.weightKg;
-  let band=candidates.find(item=>weight>item.minWeightKg&&(item.maxWeightKg==null||weight<=item.maxWeightKg));
-  if(!band)band=candidates.find(item=>weight===0&&item.minWeightKg===0);
-  if(!band||band.basePrice==null)return null;
-  let base=band.basePrice;
-  if(band.maxWeightKg==null&&band.extraKgPrice!=null&&weight>band.minWeightKg){
-    base+=Math.ceil(weight-band.minWeightKg)*band.extraKgPrice;
-  }
-  const fuelPct=config.fuelSurchargeIncluded?0:(config.fuelSurchargePct??0);
-  const priced=base*(1+fuelPct/100);
-  let netAmount:number,totalAmount:number,taxAmount:number;
-  if(config.pricesIncludeVat){
-    totalAmount=priced;netAmount=priced/(1+vatRate/100);taxAmount=totalAmount-netAmount;
-  }else{
-    netAmount=priced;taxAmount=netAmount*(vatRate/100);totalAmount=netAmount+taxAmount;
-  }
-  const round=(value:number)=>Math.round((value+Number.EPSILON)*100)/100;
-  return {
-    totalAmount:round(totalAmount),netAmount:round(netAmount),taxAmount:round(taxAmount),currency:config.currencyCode||'EUR',
-    carrierName:'MRW',serviceName:service.serviceName,source:'tariff_estimate',
-    note:config.fuelSurchargeIncluded||config.fuelSurchargePct!=null?null:'Combustible pendiente de configurar',
-  };
+  const dispatched=Boolean(order.shippingProvider||order.sendcloudParcelId||order.shippingRemoteId||order.fulfilledAt||order.labelCreatedAt);
+  const actualCarrier=clean(order.carrierCode||order.carrierName||order.shippingOptionCode?.split(':')[0]);
+  const carrier=dispatched?actualCarrier:clean(carrierCode||actualCarrier);
+  if(!carrier||order.weightKg==null)return null;
+  const serviceName=clean(order.shippingServiceName);
+  const serviceCode=clean(order.shippingOptionCode);
+  // Only pending MRW orders may use the configured default service. An existing
+  // shipment must be valued against its own carrier and service.
+  const defaultService=!dispatched&&carrier.toLowerCase().includes('mrw')?'manana-19h':'';
+  if(dispatched&&!serviceName&&!serviceCode)return null;
+  return estimateTransportTariffForOption(order,tariffs,{
+    provider:order.shippingProvider||'sendcloud',providerName:'Tarifa contratada',
+    carrierCode:carrier,carrierName:order.carrierName||carrier,
+    code:serviceCode||defaultService,name:serviceName||defaultService,
+    contractId:order.contractId,price:null,currency:null,raw:{},
+  },vatRate);
 }
 
 export function previewFromShippingOption(option:ShippingOption|null):ShippingPricePreview|null{
@@ -267,4 +249,24 @@ export function shippingPriceForOrder(order:FulfillmentOrder,preview:ShippingPri
     };
   }
   return preview||null;
+}
+
+
+export function trackingUrlForOrder(order:FulfillmentOrder):string|null{
+  const stored=clean(order.trackingUrl);
+  if(stored){
+    try{const url=new URL(stored);if(['https:','http:'].includes(url.protocol))return url.href}catch{/* Use the shipment identifiers below. */}
+  }
+  const tracking=clean(order.trackingNumber);
+  if(!tracking)return null;
+  if(order.shippingProvider==='envia')return 'https://envia.com/es-ES/tracking';
+  const carrier=clean(order.carrierCode||order.carrierName||order.shippingOptionCode?.split(':')[0]).toLowerCase();
+  if(order.shippingProvider==='sendcloud'||(!order.shippingProvider&&order.sendcloudParcelId)){
+    if(!carrier)return null;
+    const params=new URLSearchParams({carrier,code:tracking,destination:clean(order.shippingAddress?.country_code),lang:'es-es',source:clean(order.shippingAddress?.country_code)||'ES',type:'parcel',verification:clean(order.shippingAddress?.postal_code)});
+    return `https://tracking.eu-central-1-0.sendcloud.sc/forward?${params}`;
+  }
+  if(carrier.includes('mrw'))return 'https://www.mrw.es/seguimiento/';
+  if(carrier.includes('correos'))return `https://www.correos.es/comun/localizador/track.asp?numero=${encodeURIComponent(tracking)}`;
+  return null;
 }

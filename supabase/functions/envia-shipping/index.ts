@@ -641,12 +641,15 @@ Deno.serve(async(req:Request)=>{
       const normalizedService=service.toLowerCase();
       const correosExpressEpaq24=normalizedCarrier==='correosexpress'&&normalizedService==='epaq_24';
       const generateWeight=correosExpressEpaq24&&realWeight<1?1:realWeight;
+      const generatePackage=correosExpressEpaq24
+        ?{...pkg,weight:generateWeight,weightUnit:'kg',lengthUnit:'cm'}
+        :{...pkg,weight:generateWeight};
       let payload:any;
       try{
         payload=await enviaJson(`${c.shipBase}/ship/generate/`,c.token,{
           method:'POST',
           body:JSON.stringify({
-            origin,destination:dest,packages:[{...pkg,weight:generateWeight}],
+            origin,destination:dest,packages:[generatePackage],
             settings:{printFormat:'PDF',printSize},
             shipment:{type:1,carrier,service},
           }),

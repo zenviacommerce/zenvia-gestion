@@ -308,6 +308,29 @@ async function sendcloudIntegrations(admin:any,account:any){
     };
   });
 }
+function normalizeShopifyDomain(value:unknown){
+  return clean(value).toLowerCase().replace(/^https?:\/\//,'').replace(/\/+$/,'');
+}
+async function shopifyCredentials(admin:any,account:any){
+  const stored=account.secret_id?await readVault(admin,account.secret_id):{};
+  const shopDomain=normalizeShopifyDomain((stored as any).shopDomain||(stored as any).shop_domain||account.external_account_id||account.config?.shopDomain);
+  const accessToken=clean((stored as any).accessToken||(stored as any).access_token);
+  const apiVersion=clean(account.config?.apiVersion)||'2026-07';
+  if(!shopDomain||!accessToken)throw new Error('Faltan dominio y access token de Shopify.');
+  return {shopDomain,accessToken,apiVersion};
+}
+async function shopifyGraphql(admin:any,account:any,query:string,variables:Record<string,unknown>={}){
+  const credentials=await shopifyCredentials(admin,account);
+  const res=await fetch(`https://${credentials.shopDomain}/admin/api/${credentials.apiVersion}/graphql.json`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Accept':'application/json','X-Shopify-Access-Token':credentials.accessToken},
+    body:JSON.stringify({query,variables}),
+  });
+  const text=await res.text();let data:any={};try{data=JSON.parse(text)}catch{}
+  if(!res.ok)throw new Error(`Shopify (${res.status}): ${sanitize(data?.errors?.[0]?.message||text)}`);
+  if(Array.isArray(data?.errors)&&data.errors.length)throw new Error(`Shopify: ${sanitize(data.errors.map((item:any)=>item?.message).filter(Boolean).join(' · '))}`);
+  return {data,credentials};
+}
 async function testAccount(admin:any,ownerId:string,account:any){
   const now=new Date().toISOString();
   try{
@@ -324,13 +347,10 @@ async function testAccount(admin:any,ownerId:string,account:any){
     }else if(account.provider==='mrw'){
       detail=await testMrw(admin,ownerId,account);
     }else if(account.provider==='shopify'){
-      if(!account.parent_account_id)throw new Error('La tienda Shopify no tiene una cuenta de Sendcloud asociada.');
-      const parent=await loadAccount(admin,ownerId,account.parent_account_id);
-      const integrations=await sendcloudIntegrations(admin,parent);
-      const wanted=Number(account.config?.sendcloudIntegrationId||account.external_account_id);
-      const shop=integrations.find((x:any)=>x.channel==='shopify'&&x.id===wanted);
-      if(!shop)throw new Error('La tienda Shopify ya no aparece entre las integraciones de Sendcloud.');
-      detail={shopName:shop.shopName,shopUrl:shop.shopUrl};
+      const result=await shopifyGraphql(admin,account,'query ZenviaShopIdentity { shop { id name myshopifyDomain } }');
+      const shop=result.data?.data?.shop;
+      if(!shop?.id)throw new Error('Shopify no devolvió la identidad de la tienda.');
+      detail={shopName:shop.name,shopUrl:shop.myshopifyDomain,apiVersion:result.credentials.apiVersion};
     }else if(account.provider==='gmail'){
       detail={requiresBrowserSession:true};
     }
@@ -426,16 +446,14 @@ Deno.serve(async(req:Request)=>{
         displayName=displayName||'MRW';
         config={...config,environment:config?.environment==='test'?'test':'production',shippingEnabled:true,serviceCode:clean(config?.serviceCode)||'0205',serviceName:clean(config?.serviceName)||'MRW Urgent 19:00'};
       }else if(provider==='shopify'){
-        if(!parentAccountId)throw new Error('Selecciona la cuenta de Sendcloud donde está conectada la tienda.');
-        const parent=await loadAccount(admin,caller.data_owner_id,parentAccountId);
-        if(parent.provider!=='sendcloud')throw new Error('La cuenta padre debe ser Sendcloud.');
-        const remoteId=Number(config?.sendcloudIntegrationId||externalAccountId);
-        if(!Number.isFinite(remoteId)||remoteId<=0)throw new Error('Selecciona una tienda Shopify detectada en Sendcloud.');
-        const linked=await sendcloudIntegrations(admin,parent);
-        const shop=linked.find((x:any)=>x.channel==='shopify'&&x.id===remoteId);
-        if(!shop)throw new Error('La tienda Shopify seleccionada no está disponible en Sendcloud.');
-        externalAccountId=String(remoteId);displayName=displayName||shop.shopName;
-        config={...config,sendcloudIntegrationId:remoteId,shopUrl:shop.shopUrl};credentialSource='derived';
+        const shopDomain=normalizeShopifyDomain((credentials as any).shopDomain||(credentials as any).shop_domain||externalAccountId);
+        const accessToken=clean((credentials as any).accessToken||(credentials as any).access_token);
+        if(!shopDomain||!accessToken)throw new Error('Indica el dominio myshopify.com y el access token de Shopify.');
+        externalAccountId=shopDomain;
+        parentAccountId=null;
+        displayName=displayName||shopDomain.replace(/\.myshopify\.com$/i,'');
+        config={...config,shopDomain,apiVersion:clean(config?.apiVersion)||'2026-07',syncOrders:config?.syncOrders!==false};
+        credentialSource='vault';
       }else{
         if(!externalAccountId)throw new Error('Indica el correo de la cuenta de Gmail.');
         displayName=displayName||externalAccountId;credentialSource='session';
@@ -454,7 +472,7 @@ Deno.serve(async(req:Request)=>{
       }).select('*').single();
       if(inserted.error)throw inserted.error;
       let account=inserted.data;
-      if(provider==='amazon'||provider==='sendcloud'||provider==='envia'||provider==='mrw'){
+      if(provider==='amazon'||provider==='sendcloud'||provider==='envia'||provider==='mrw'||provider==='shopify'){
         const secretId=await writeVault(admin,account.id,provider,credentials,null);
         const saved=await admin.from('integration_accounts').update({secret_id:secretId,updated_at:new Date().toISOString()})
           .eq('id',account.id).eq('owner_id',caller.data_owner_id).select('*').single();
@@ -511,7 +529,7 @@ Deno.serve(async(req:Request)=>{
       if(typeof body?.enabled==='boolean')patch.enabled=body.enabled;
       if(body?.config&&typeof body.config==='object'&&!Array.isArray(body.config))patch.config={...(account.config||{}),...body.config};
       const credentials=(body?.credentials&&typeof body.credentials==='object'&&!Array.isArray(body.credentials))?body.credentials:null;
-      if(credentials&&(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='envia'||account.provider==='mrw')){
+      if(credentials&&(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='envia'||account.provider==='mrw'||account.provider==='shopify')){
         const existing=account.secret_id?await readVault(admin,account.secret_id):{};
         const merged={...existing,...Object.fromEntries(Object.entries(credentials).filter(([,v])=>clean(v)))};
         patch.secret_id=await writeVault(admin,account.id,account.provider,merged,account.secret_id);

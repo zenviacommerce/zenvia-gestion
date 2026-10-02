@@ -296,7 +296,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     defaultChannel: 'manual',
     originCountryCode: 'ES',
     defaultCarrier: null,
-    shippingSelectionMode: 'rules',
+    shippingSelectionMode: 'cheapest',
     generateLabelAutomatically: false,
     downloadLabelAfterCreation: true,
     labelFilenameStrategy: 'order_number',

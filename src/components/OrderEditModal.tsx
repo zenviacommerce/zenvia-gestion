@@ -63,7 +63,7 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
 
   return <div className="modalBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}>
     <section className="modal ordersEditModal">
-      <div className="modalHead"><div><h3>Editar pedido · {order.orderNumber||order.orderId}</h3><p>Corrige los datos de envío y del paquete antes de generar la etiqueta. Los cambios se guardan también en el proveedor logístico cuando corresponde.</p></div><button onClick={onClose}><X size={18}/></button></div>
+      <div className="modalHead"><div><h3>Editar pedido · {order.orderNumber||order.orderId}</h3><p>Corrige los datos de envío y del paquete antes de generar la etiqueta. ZENVIA guarda estos datos como fuente principal y solo los envía al proveedor logístico que elijas cuando sea necesario.</p></div><button onClick={onClose}><X size={18}/></button></div>
       <div className="ordersEditBody">
         <div className="ordersEditHint">MRW valida estrictamente nombre, teléfono, dirección, código postal, peso y medidas del paquete. Revisa estos campos si una etiqueta da error.</div>
         {liveValidation.issues.length>0&&<div className="errorBox ordersValidationBox"><AlertCircle size={17}/><div><strong>Revisar antes de generar la etiqueta</strong>{liveValidation.issues.map((issue,index)=><span key={`${issue.field}-${index}`}>{issue.message}</span>)}</div></div>}

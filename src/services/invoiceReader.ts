@@ -161,9 +161,15 @@ function extractLines(lines: string[]): NewInvoiceLineInput[] {
 
 function normalizeOcrNumericArtifacts(value:string){
   return value
+    // Common OCR confusion inside numbers: O/o -> 0 when surrounded by digits,
+    // separators, currency or percentage context.
+    .replace(/(?<=\d)[oO](?=\d|[.,%\s]|\s*(?:€|EUR)\b)/g,'0')
+    .replace(/(?<=[.,\s])[oO](?=\d)/g,'0')
     // OCR frequently drops the decimal separator before a two-digit currency
     // fraction: "351 77 EUR" => "351,77 EUR".
     .replace(/(\d{1,3}(?:[.\s]\d{3})*)\s+(\d{2})(?=\s*(?:€|EUR|EUROS?)\b)/gi,'$1,$2')
+    // It does the same with tax rates: "21 00%" => "21,00%".
+    .replace(/\b(\d{1,2})\s+(\d{2})(?=\s*%)/g,'$1,$2')
     // Preserve European thousands grouping before decimal fractions:
     // "2 026,85 EUR" => "2.026,85 EUR".
     .replace(/\b(\d{1,3})\s+(\d{3})(?=[,.]\d{2}\s*(?:€|EUR|EUROS?)\b)/gi,'$1.$2');

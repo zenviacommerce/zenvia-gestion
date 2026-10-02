@@ -32,6 +32,17 @@ async function safeRows(query:PromiseLike<any>){
 async function safeCount(query:PromiseLike<any>){
   try{const result=await query;if(result?.error)throw result.error;return Number(result?.count||0);}catch{return 0;}
 }
+async function loadAgentKnowledge(admin:any,query:string,allowedPages:string[]){
+  if(!query.trim())return [];
+  try{
+    const {data,error}=await admin.rpc('agent_knowledge_search',{p_app:'gestion',p_query:query,p_limit:5});
+    if(error)throw error;
+    return (Array.isArray(data)?data:[]).filter((item:any)=>{
+      const permissions=Array.isArray(item?.permissions)?item.permissions.map(String):[];
+      return !permissions.length||permissions.some((permission:string)=>allowedPages.includes(permission));
+    });
+  }catch{return [];}
+}
 function orderStatusCodeRow(order:any){
   return clean(order?.source_status,120).toLowerCase();
 }
@@ -497,6 +508,8 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:an
 
   if(mentionedPage&&allowed.includes(mentionedPage))return localReply(helpForPage(mentionedPage));
 
+  const retrieved=Array.isArray(ctx?.knowledge)?ctx.knowledge[0]:null;
+  if(retrieved?.content)return localReply(String(retrieved.content),localAction(),routeAgentDomain(contextual,currentPage));
   const grounded=knowledgeAnswer(contextual,currentPage);
   if(grounded)return localReply(grounded,localAction(),routeAgentDomain(contextual,currentPage));
   return localReply('No tengo documentada una respuesta fiable para eso dentro de ZENVIA Gestión. Dime la pantalla, campo o mensaje exacto y te indicaré la alternativa disponible sin inventar funciones.');
@@ -536,7 +549,11 @@ Deno.serve(async(req:Request)=>{
       .select('preferences').eq('user_id',profile.user_id).maybeSingle();
     if(preferenceError)throw preferenceError;
     const periods=resolveAgentPeriods(preferenceRow?.preferences||{},currentPage);
-    const businessContext=await loadBusinessContext(admin,String(profile.data_owner_id),allowedPages,periods);
+    const [businessContext,knowledge]=await Promise.all([
+      loadBusinessContext(admin,String(profile.data_owner_id),allowedPages,periods),
+      loadAgentKnowledge(admin,message,allowedPages),
+    ]);
+    (businessContext as any).knowledge=knowledge;
     const history=sanitizedHistory(body?.history);
     const normalizedMessage=norm(message);
     if(allowedPages.includes('amazon')&&hasAny(normalizedMessage,['amazon','marketplace'])){

@@ -260,7 +260,10 @@ function packageFor(order:any,shipping:any){
     declaredValue:Math.max(0,number(order.total_amount,0)),
     lengthUnit:'CM',
     weightUnit:'KG',
-    weight:Number(orderWeightKg(order,shipping).toFixed(3)),
+    // Some Envia carrier adapters validate kilos with the literal
+    // 99999.999 format. A JSON number such as 1.000 is serialized as 1 and
+    // loses the required three decimal places, so keep it as a fixed string.
+    weight:orderWeightKg(order,shipping).toFixed(3),
     dimensions:{
       length:Math.max(1,number(shipping?.packageLengthCm,30)),
       width:Math.max(1,number(shipping?.packageWidthCm,20)),
@@ -676,6 +679,8 @@ Deno.serve(async(req:Request)=>{
     let message=error instanceof Error?error.message:String(error||'Error interno.');
     if(/not enough money|insufficient (?:balance|funds)|saldo insuficiente/i.test(message)){
       message='Saldo insuficiente en Envia.com. Recarga saldo o revisa el crédito disponible en tu cuenta antes de generar la etiqueta.';
+    }else if(/KILOS BULTO.*FORMATO INCORRECTO|99999\.999/i.test(message)){
+      message='Envia.com rechazó el formato del peso del bulto. ZENVIA envía ahora el peso en kilogramos con tres decimales (por ejemplo, 1.000 kg).';
     }
     const status=/Sesión no válida/.test(message)?401:/permiso|desactivado/.test(message)?403:/ya tiene una etiqueta/.test(message)?409:/Saldo insuficiente en Envia\.com/.test(message)?402:500;
     return fail(message,status);

@@ -23,11 +23,6 @@ test('matches OCR-corrupted supplier names without merging similarly named compa
   assert.equal(isLikelySameSupplier('Cash Sierra Nevada S.L','Sierra Nevada Compost and Paper S.L.'),false);
 });
 
-test('persistence can still resolve an invalid OCR name by an exact tax id but will not create it',async()=>{
-  const repository=await readFile(new URL('../src/services/repository.ts',import.meta.url),'utf8');
-  assert.match(repository,/const plausibleName=isPlausibleSupplierName\(clean\)/);
-  assert.match(repository,/contact\.taxId && existingTaxId && contact\.taxId === existingTaxId/);
-  assert.match(repository,/supplierSettings\.detectDuplicates && plausibleName && cleanKey/);
-  assert.match(repository,/if\(!plausibleName\)\{/);
-  assert.match(repository,/no parece una razón social válida/);
+test('missing supplier name goes to review and VAT precedes fuzzy matching',async()=>{
+const sql=await readFile(new URL('../supabase/migrations/20261002190000_invoice_engine.sql',import.meta.url),'utf8');assert.match(sql,/invoice_engine_tax_key\(tax_id\)=tax/);assert.match(sql,/invoice_engine_name_similarity/);assert.match(sql,/Coincidencia ambigua/);const {validateDocument}=await import('../shared/invoiceEngineCore.mjs');assert.equal(validateDocument({supplier:{name:''},lines:[],taxes:[],confidence:{}}).status,'needs_review');
 });

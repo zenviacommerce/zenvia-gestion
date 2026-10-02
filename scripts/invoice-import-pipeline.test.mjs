@@ -39,18 +39,8 @@ test('other recipients are not blocked by the historical exception rule',async()
   assert.equal(result.needsReview,false);
 });
 
-test('shared pipeline composes reader, supplier extraction, repair and recipient rules without Supabase writes',async()=>{
-  const source=await read('../src/services/invoiceImportPipeline.ts');
-  assert.match(source,/readInvoiceDocumentEnhanced/);
-  assert.match(source,/extractSupplierContactData/);
-  assert.match(source,/extractSupplierInvoiceDetails/);
-  assert.match(source,/repairInvoiceAmounts/);
-  assert.match(source,/repairInvoiceProductLines/);
-  assert.match(source,/validateInvoiceRecipient/);
-  assert.match(source,/export async function prepareInvoiceCandidate/);
-  assert.match(source,/export function classifyInvoiceCandidate/);
-  assert.match(source,/export function invoiceCandidateToInput/);
-  assert.doesNotMatch(source,/from ['"]\.\/supabase['"]/);
+test('shared pipeline delegates extraction and fiscal data to InvoiceEngine',async()=>{
+const source=await read('../src/services/invoiceImportPipeline.ts');assert.match(source,/InvoiceEngine.analyze/);assert.match(source,/documentFromCandidate/);assert.doesNotMatch(source,/readInvoiceDocumentEnhanced/);assert.doesNotMatch(source,/candidateFromRead/);
 });
 
 test('candidate model contains statuses, hash, recipient and surcharge',async()=>{

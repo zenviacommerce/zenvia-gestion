@@ -1,3 +1,4 @@
+import type { EngineDocument } from '../shared/invoiceEngineCore.mjs';
 export type InvoiceStatus = 'pending' | 'reviewed' | 'accounted';
 export type InvoicePaymentStatus = 'unpaid' | 'paid';
 export type InvoiceSource = 'manual' | 'camera' | 'gmail';
@@ -28,6 +29,7 @@ export interface InvoiceLine {
   quantity: number;
   unitPrice?: number | null;
   normalizedUnitPrice?: number | null;
+  discountPercent?: number | null;
   lineTotal?: number | null;
   supplierSku?: string | null;
   productId?: string | null;
@@ -92,6 +94,7 @@ export interface NewInvoiceLineInput {
   supplierSku?: string | null;
   unitPrice?: number | null;
   normalizedUnitPrice?: number | null;
+  discountPercent?: number | null;
   lineNet?: number | null;
   taxRate?: number | null;
   taxAmount?: number | null;
@@ -108,8 +111,23 @@ export interface NewInvoiceInput {
   supplierPhone?: string;
   supplierAddress?: string;
   supplierWebsite?: string;
+  supplierIban?: string;
+  invoiceType?: 'full'|'simplified'|'credit_note'|'receipt'|'unknown';
+  invoiceSeries?: string;
   invoiceNumber: string;
   invoiceDate: string;
+  dueDate?: string;
+  paymentMethod?: string;
+  orderReference?: string;
+  deliveryNoteReference?: string;
+  vatBreakdown?: Array<{rate:number|null;base:number|null;tax:number|null;exemptReason:string|null}>;
+  qrPayload?: string;
+  intracommunity?: boolean;
+  reverseCharge?: boolean;
+  fieldConfidence?: Record<string,number>;
+  engineRunId?: string;
+  engineOriginal?: Record<string,unknown>;
+  hasProducts?: boolean;
   categoryId?: string;
   subtotal: number;
   vat: number;
@@ -124,6 +142,9 @@ export interface NewInvoiceInput {
 }
 
 export interface InvoiceImportCandidate {
+  engineDocument?: EngineDocument;
+  engineJobId?: string;
+  engineReviewed?: boolean;
   id: string;
   file: File;
   fileHash: string;
@@ -136,10 +157,21 @@ export interface InvoiceImportCandidate {
   supplierPhone?: string;
   supplierAddress?: string;
   supplierWebsite?: string;
+  supplierIban?: string;
   recipientTaxId?: string;
   recipientName?: string;
+  invoiceType?: 'full'|'simplified'|'credit_note'|'receipt'|'unknown';
+  invoiceSeries?: string;
   invoiceNumber: string;
   invoiceDate: string;
+  dueDate?: string;
+  paymentMethod?: string;
+  orderReference?: string;
+  deliveryNoteReference?: string;
+  vatBreakdown?: Array<{rate:number|null;base:number|null;tax:number|null;exemptReason:string|null}>;
+  qrPayload?: string;
+  intracommunity?: boolean;
+  reverseCharge?: boolean;
   categoryId?: string;
   subtotal: number;
   vat: number;
@@ -153,6 +185,10 @@ export interface InvoiceImportCandidate {
   analysisEngine?: string;
   analysisModel?: string;
   analysisWarnings?: string[];
+  fieldConfidence?: Record<string,number>;
+  engineRunId?: string;
+  engineOriginal?: Record<string,unknown>;
+  hasProducts?: boolean;
   lines: NewInvoiceLineInput[];
   multiInvoiceSource?: boolean;
   bundleIndex?: number;

@@ -1,3 +1,4 @@
+import { InvoiceEngine } from './invoiceEngine';
 import { supabase, INVOICE_BUCKET } from './supabase';
 import type { AppData, ExpenseCategory, Invoice, InvoicePaymentStatus, NewInvoiceInput, Product, Supplier } from '../types';
 import { canonicalizeSupplierName, isLikelySameSupplier, isPlausibleSupplierName, supplierIdentityKey } from './supplierIdentity';
@@ -139,6 +140,7 @@ async function sha256(file: File) {
 export type ArchivedSourceDocument={
   id:string;
   storagePath:string;
+  storageBucket?:string;
   originalName:string;
   mimeType:string;
   fileHash:string;
@@ -151,7 +153,7 @@ function isUniqueViolation(error:unknown){
 
 export async function getSourceDocument(sourceDocumentId:string):Promise<ArchivedSourceDocument>{
   const {data,error}=await supabase.from('source_documents')
-    .select('id,storage_path,original_name,mime_type,file_hash')
+    .select('id,storage_bucket,storage_path,original_name,mime_type,file_hash')
     .eq('id',sourceDocumentId)
     .maybeSingle();
   if(error)throw error;
@@ -159,6 +161,7 @@ export async function getSourceDocument(sourceDocumentId:string):Promise<Archive
   return {
     id:String(data.id),
     storagePath:String(data.storage_path),
+    storageBucket:String(data.storage_bucket||INVOICE_BUCKET),
     originalName:String(data.original_name||'documento.pdf'),
     mimeType:String(data.mime_type||'application/pdf'),
     fileHash:String(data.file_hash||''),
@@ -169,6 +172,7 @@ export async function archiveSourceDocument(
   file:File,
   source:'manual'|'camera'|'gmail',
   metadata:Record<string,unknown>={},
+  storageBucket:string=INVOICE_BUCKET,
 ):Promise<ArchivedSourceDocument>{
   const {data:userData}=await supabase.auth.getUser();
   const user=userData.user;
@@ -177,7 +181,7 @@ export async function archiveSourceDocument(
   const fileHash=await sha256(file);
   if(fileHash){
     const {data:existing,error:existingError}=await supabase.from('source_documents')
-      .select('id,storage_path,original_name,mime_type,file_hash')
+      .select('id,storage_bucket,storage_path,original_name,mime_type,file_hash')
       .eq('file_hash',fileHash)
       .limit(1)
       .maybeSingle();
@@ -186,6 +190,7 @@ export async function archiveSourceDocument(
       return {
         id:String(existing.id),
         storagePath:String(existing.storage_path),
+        storageBucket:String(existing.storage_bucket||INVOICE_BUCKET),
         originalName:String(existing.original_name||file.name||'documento.pdf'),
         mimeType:String(existing.mime_type||file.type||'application/pdf'),
         fileHash:String(existing.file_hash||fileHash),
@@ -195,16 +200,16 @@ export async function archiveSourceDocument(
 
   const year=new Date().getFullYear();
   const safeName=(file.name||'documento.pdf').replace(/[^a-zA-Z0-9._-]+/g,'-').slice(-100);
-  const storagePath=`${user.id}/source/${year}/${crypto.randomUUID()}-${safeName}`;
+  const storagePath=`${user.id}/${storageBucket==='invoice-engine-originals'?'invoice-engine':'source'}/${year}/${crypto.randomUUID()}-${safeName}`;
   const mimeType=file.type||'application/pdf';
-  const {error:storageError}=await supabase.storage.from(INVOICE_BUCKET).upload(storagePath,file,{
+  const {error:storageError}=await supabase.storage.from(storageBucket).upload(storagePath,file,{
     contentType:mimeType,
     upsert:false,
   });
   if(storageError)throw storageError;
 
   const {data:created,error:createError}=await supabase.from('source_documents').insert({
-    storage_bucket:INVOICE_BUCKET,
+    storage_bucket:storageBucket,
     storage_path:storagePath,
     original_name:sanitizeDatabaseSingleLine(file.name)||'documento.pdf',
     mime_type:mimeType,
@@ -212,451 +217,44 @@ export async function archiveSourceDocument(
     document_kind:'expense_source',
     source_channel:source,
     metadata:sanitizeDatabaseValue(metadata),
-  }).select('id,storage_path,original_name,mime_type,file_hash').single();
+  }).select('id,storage_bucket,storage_path,original_name,mime_type,file_hash').single();
 
   if(createError){
     if(isUniqueViolation(createError)&&fileHash){
       const {data:existing,error:existingError}=await supabase.from('source_documents')
-        .select('id,storage_path,original_name,mime_type,file_hash')
+        .select('id,storage_bucket,storage_path,original_name,mime_type,file_hash')
         .eq('file_hash',fileHash)
         .limit(1)
         .maybeSingle();
-      await supabase.storage.from(INVOICE_BUCKET).remove([storagePath]).catch(()=>undefined);
+      await supabase.storage.from(storageBucket).remove([storagePath]).catch(()=>undefined);
       if(existingError)throw existingError;
       if(existing){
         return {
           id:String(existing.id),
           storagePath:String(existing.storage_path),
+        storageBucket:String(existing.storage_bucket||INVOICE_BUCKET),
           originalName:String(existing.original_name||file.name||'documento.pdf'),
           mimeType:String(existing.mime_type||mimeType),
           fileHash:String(existing.file_hash||fileHash),
         };
       }
     }
-    await supabase.storage.from(INVOICE_BUCKET).remove([storagePath]).catch(()=>undefined);
+    await supabase.storage.from(storageBucket).remove([storagePath]).catch(()=>undefined);
     throw createError;
   }
 
   return {
     id:String(created.id),
     storagePath:String(created.storage_path),
+    storageBucket:String(created.storage_bucket||INVOICE_BUCKET),
     originalName:String(created.original_name||file.name||'documento.pdf'),
     mimeType:String(created.mime_type||mimeType),
     fileHash:String(created.file_hash||fileHash),
   };
 }
 
-function cleanSupplierContact(contact: SupplierProfileData): SupplierProfileData {
-  const taxId = contact.taxId ? normalizeTaxId(contact.taxId) : '';
-  const email = contact.email ? normalizeEmail(contact.email) : '';
-  const phone = contact.phone ? normalizePhone(contact.phone) : '';
-  const address = sanitizeDatabaseSingleLine(contact.address).slice(0, 500);
-  const rawWebsite = sanitizeDatabaseSingleLine(contact.website).slice(0, 300);
-  const website = rawWebsite ? (/^https?:\/\//i.test(rawWebsite) ? rawWebsite : `https://${rawWebsite}`) : '';
-  return {
-    taxId: taxId && !taxIdError(taxId, false) ? taxId : undefined,
-    email: email && !emailError(email, false) ? email : undefined,
-    phone: phone && !phoneError(phone, false) ? phone : undefined,
-    address: address || undefined,
-    website: website || undefined,
-  };
-}
-
-async function ensureSupplier(name: string, contactInput: SupplierProfileData = {}, supplierTypeHint?: 'goods', policy:ExpenseImportPolicy=expenseImportPolicyFromSettings(undefined), supplierSettings:SuppliersSettings=DEFAULT_APP_SETTINGS.suppliers): Promise<{ id: string; created: boolean }> {
-  const clean = sanitizeDatabaseSingleLine(canonicalizeSupplierName(name) || name).slice(0, 120);
-  const cleanKey = supplierIdentityKey(clean);
-  const plausibleName=isPlausibleSupplierName(clean);
-  const contact = cleanSupplierContact(contactInput);
-
-  const { data: existing, error: findError } = await supabase
-    .from('suppliers')
-    .select('id,name,tax_id,email,phone,address,website,supplier_type,default_category_id');
-  if (findError) throw findError;
-
-  const alias=await resolveEntityAlias('supplier',clean);
-  const aliasMatch=alias?(existing??[]).find((supplier:any)=>supplier.id===alias.targetEntityId):null;
-  if(alias&&!aliasMatch){
-    throw new Error(`El alias “${alias.alias}” apunta a un proveedor que ya no existe. Revísalo en Configuración.`);
-  }
-
-  const ranked = (existing ?? [])
-    .map((supplier: any) => {
-      const existingKey = supplierIdentityKey(supplier.name || '');
-      const existingTaxId = supplier.tax_id ? normalizeTaxId(supplier.tax_id) : '';
-      let score = 0;
-      if (aliasMatch?.id===supplier.id) score = 200;
-      else if (supplierSettings.detectDuplicates && contact.taxId && existingTaxId && contact.taxId === existingTaxId) score = 140;
-      else if (supplierSettings.detectDuplicates && plausibleName && cleanKey && existingKey === cleanKey) score = 100;
-      else if (supplierSettings.detectDuplicates && plausibleName && isLikelySameSupplier(clean, supplier.name || '')) score = 80;
-      if(score>0 && score<supplierSettings.identityThreshold && aliasMatch?.id!==supplier.id) score = 0;
-      if (score && supplier.tax_id) score += 3;
-      if (score && supplier.email) score += 1;
-      return { supplier, score };
-    })
-    .filter(item => item.score > 0)
-    .sort((a, b) => b.score - a.score);
-
-  const bestMatch = ranked[0];
-  const match = bestMatch?.supplier;
-  if (match?.id) {
-    const patch: Record<string, string|null> = {};
-    // Solo enriquecemos datos fiscales/contacto cuando la identidad es exacta
-    // o coincide el propio identificador fiscal. Una coincidencia por nombre
-    // abreviado sirve para reutilizar el proveedor, pero no para copiar datos
-    // potencialmente pertenecientes al bloque del cliente de la factura.
-    const safeToEnrich = policy.fillMissingSupplierData && (bestMatch?.score ?? 0) >= Math.max(100,supplierSettings.identityThreshold);
-    const mayWrite=(current:unknown)=>!supplierSettings.onlyFillEmpty||!String(current||'').trim();
-    if (safeToEnrich && supplierSettings.enrichTaxId && contact.taxId && mayWrite(match.tax_id)) patch.tax_id = contact.taxId;
-    if (safeToEnrich && supplierSettings.enrichEmail && contact.email && mayWrite(match.email)) patch.email = contact.email;
-    if (safeToEnrich && supplierSettings.enrichPhone && contact.phone && mayWrite(match.phone)) patch.phone = contact.phone;
-    if (safeToEnrich && supplierSettings.enrichAddress && contact.address && mayWrite(match.address)) patch.address = contact.address;
-    if (safeToEnrich && supplierSettings.enrichWebsite && contact.website && mayWrite(match.website)) patch.website = contact.website;
-    if (!match.default_category_id && supplierSettings.defaultCategoryId) patch.default_category_id=supplierSettings.defaultCategoryId;
-    if (supplierTypeHint === 'goods') {
-      if (!match.supplier_type || match.supplier_type === 'unclassified') patch.supplier_type = 'goods';
-      else if (match.supplier_type === 'service') patch.supplier_type = 'both';
-    }
-    if (Object.keys(patch).length) {
-      const { error: updateError } = await supabase.from('suppliers').update(patch).eq('id', match.id);
-      if (updateError) throw updateError;
-    }
-    return { id: match.id as string, created: false };
-  }
-
-  if(!plausibleName){
-    throw new Error('El proveedor extraído no parece una razón social válida. Revisa la factura y selecciona el proveedor antes de guardarla.');
-  }
-  if(!policy.autoCreateSuppliers||!supplierSettings.autoCreate){
-    throw new Error('La creación automática de proveedores está desactivada. Selecciona o crea el proveedor antes de guardar la factura.');
-  }
-  const createdSupplierType=supplierTypeHint==='goods'?'goods':(supplierSettings.defaultType||policy.defaultSupplierType||'unclassified');
-  const { data, error } = await supabase.from('suppliers').insert({
-    name: clean,
-    tax_id: contact.taxId || null,
-    email: contact.email || null,
-    phone: contact.phone || null,
-    address: contact.address || null,
-    website: contact.website || null,
-    supplier_type: createdSupplierType,
-    default_category_id: supplierSettings.defaultCategoryId || policy.defaultCategoryId || null,
-  }).select('id').single();
-  if (error) throw error;
-  return { id: data.id, created: true };
-}
-
-async function cleanupCreatedSupplier(supplierId: string) {
-  const { count, error } = await supabase
-    .from('invoices')
-    .select('id', { count: 'exact', head: true })
-    .eq('supplier_id', supplierId);
-  if (error) {
-    console.warn('No se pudo comprobar si el proveedor nuevo estaba huérfano.', error);
-    return;
-  }
-  if ((count ?? 0) !== 0) return;
-  const { error: deleteError } = await supabase.from('suppliers').delete().eq('id', supplierId);
-  if (deleteError) console.warn('No se pudo limpiar el proveedor huérfano creado durante la importación.', deleteError);
-}
-
-async function isMerchandiseCategory(categoryId?: string) {
-  if (!categoryId) return false;
-  const { data, error } = await supabase.from('expense_categories').select('name').eq('id', categoryId).maybeSingle();
-  if (error) throw error;
-  return Boolean(data?.name && normalizeProductKey(data.name).includes('mercancia'));
-}
-
-async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: string, input: NewInvoiceInput, policy:ExpenseImportPolicy, productSettings:ProductsSettings, baseCurrencyCode:string) {
-  if (!input.lines?.length) return;
-
-  const merchandise = await isMerchandiseCategory(input.categoryId);
-  const manageProducts = merchandise && ((policy.autoCreateProducts && productSettings.autoCreateFromInvoice) || policy.createSupplierProductRelation);
-  const invoiceCurrencyCode=String(input.currency||baseCurrencyCode||'EUR').toUpperCase();
-  const foreignCurrency=invoiceCurrencyCode!==String(baseCurrencyCode||'EUR').toUpperCase();
-  const updateImportedCost = policy.updateProductCosts && productSettings.updateCostFromImports && productSettings.costMethod !== 'manual' && !foreignCurrency;
-  const writePriceHistory = policy.updatePriceHistory;
-  const roundCost=(value:number)=>Number(value.toFixed(productSettings.costDecimals));
-  const createdProductIds: string[] = [];
-  const createdSupplierProductIds: string[] = [];
-
-  const [productsResult, supplierProductsResult] = manageProducts
-    ? await Promise.all([
-        supabase.from('products').select('id,name,base_unit').eq('active', true),
-        supabase.from('supplier_products').select('id,product_id,supplier_description').eq('supplier_id', supplierId),
-      ])
-    : [{ data: [], error: null }, { data: [], error: null }];
-
-  if (productsResult.error) throw productsResult.error;
-  if (supplierProductsResult.error) throw supplierProductsResult.error;
-
-  const productByName = new Map<string, { id: string; unit: string }>();
-  for (const product of productsResult.data ?? []) {
-    const key = normalizeProductKey(product.name);
-    if (key && !productByName.has(key)) productByName.set(key, { id: product.id, unit: product.base_unit || 'ud' });
-  }
-
-  const supplierProductByDescription = new Map<string, { id: string; productId: string }>();
-  for (const supplierProduct of supplierProductsResult.data ?? []) {
-    const key = normalizeProductKey(supplierProduct.supplier_description);
-    if (key && !supplierProductByDescription.has(key)) {
-      supplierProductByDescription.set(key, { id: supplierProduct.id, productId: supplierProduct.product_id });
-    }
-  }
-
-  const lineRows: Record<string, unknown>[] = [];
-
-  try {
-    for (const line of input.lines) {
-      const description = sanitizeDatabaseSingleLine(line.description).slice(0, 250);
-      if (!description) continue;
-
-      const key = normalizeProductKey(description);
-      const unit = sanitizeDatabaseSingleLine(line.unit) || 'ud';
-      let productId: string | null = null;
-      let supplierProductId: string | null = null;
-
-      if (manageProducts && key) {
-        const supplierMatch = supplierProductByDescription.get(key);
-        if (supplierMatch) {
-          supplierProductId = supplierMatch.id;
-          productId = supplierMatch.productId;
-        } else {
-          let product = productByName.get(key);
-          if (!product && policy.autoCreateProducts && productSettings.autoCreateFromInvoice) {
-            const { data: created, error: productError } = await supabase.from('products').insert({
-              name: description,
-              sku: null,
-              category: productSettings.defaultCategoryId || 'Mercancía',
-              base_unit: unit || productSettings.defaultUnit,
-              sales_tax_rate: productSettings.defaultVatRate,
-              last_supplier_id: supplierId,
-            }).select('id,base_unit').single();
-            if (productError) throw productError;
-            product = { id: created.id, unit: created.base_unit || unit };
-            createdProductIds.push(created.id);
-            productByName.set(key, product);
-          }
-          if(product){
-            productId = product.id;
-            if(policy.createSupplierProductRelation){
-              const { data: supplierProduct, error: supplierProductError } = await supabase.from('supplier_products').insert({
-                supplier_id: supplierId,
-                product_id: productId,
-                supplier_sku: sanitizeDatabaseSingleLine(line.supplierSku) || null,
-                supplier_description: description,
-                purchase_unit: unit,
-                units_per_purchase: 1,
-              }).select('id').single();
-              if (supplierProductError) throw supplierProductError;
-              supplierProductId = supplierProduct.id;
-              createdSupplierProductIds.push(supplierProduct.id);
-              supplierProductByDescription.set(key, { id: supplierProduct.id, productId });
-            }
-          }
-        }
-      }
-
-      const normalizedPriceRaw = productId && line.unitPrice != null ? (line.normalizedUnitPrice ?? line.unitPrice) : null;
-      const normalizedPrice = normalizedPriceRaw == null ? null : roundCost(Number(normalizedPriceRaw));
-      lineRows.push({
-        invoice_id: invoiceId,
-        product_id: productId,
-        supplier_product_id: supplierProductId,
-        description,
-        supplier_sku: sanitizeDatabaseSingleLine(line.supplierSku) || null,
-        quantity: line.quantity || 1,
-        unit,
-        unit_price: line.unitPrice ?? null,
-        normalized_unit_price: normalizedPrice,
-        line_net: line.lineNet ?? line.lineTotal ?? null,
-        tax_rate: line.taxRate ?? null,
-        tax_amount: line.taxAmount ?? null,
-        line_total: line.lineTotal ?? null,
-        price_update_status: normalizedPrice != null && updateImportedCost && writePriceHistory && productSettings.costMethod==='last_purchase' ? 'confirmed' : normalizedPrice != null ? 'ignored' : 'pending',
-      });
-    }
-
-    if (!lineRows.length) return;
-    const { data:insertedLines,error: lineError } = await supabase.from('invoice_lines').insert(lineRows).select('id,product_id,unit_price,normalized_unit_price,unit');
-    if (lineError) throw lineError;
-
-    const priced=(insertedLines??[]).filter((line:any)=>line.product_id&&line.normalized_unit_price!=null) as any[];
-    const usesAutomaticHistoryTrigger=updateImportedCost&&writePriceHistory&&productSettings.costMethod==='last_purchase';
-
-    if(writePriceHistory&&!usesAutomaticHistoryTrigger){
-      for(const line of priced){
-        const {data:product,error:readError}=await supabase.from('products').select('base_unit').eq('id',line.product_id).single();
-        if(readError)throw readError;
-        const {error:historyError}=await supabase.from('product_price_history').upsert({
-          product_id:line.product_id,
-          supplier_id:supplierId,
-          invoice_id:invoiceId,
-          invoice_line_id:line.id,
-          price_date:input.invoiceDate||new Date().toISOString().slice(0,10),
-          purchase_unit_price:line.unit_price,
-          normalized_unit_price:line.normalized_unit_price,
-          base_unit:product?.base_unit||line.unit||productSettings.defaultUnit,
-          currency:invoiceCurrencyCode,
-        },{onConflict:'invoice_line_id'});
-        if(historyError)throw historyError;
-      }
-    }
-
-    if(updateImportedCost&&productSettings.costMethod==='last_purchase'&&!writePriceHistory){
-      for(const line of priced){
-        const {data:product,error:readError}=await supabase.from('products').select('last_cost,base_unit').eq('id',line.product_id).single();
-        if(readError)throw readError;
-        const nextCost=roundCost(Number(line.normalized_unit_price));
-        const oldCost=product?.last_cost==null?null:Number(product.last_cost);
-        const {error:updateError}=await supabase.from('products').update({
-          previous_cost:oldCost!=null&&oldCost!==nextCost?oldCost:null,
-          last_cost:nextCost,
-          cost_unit:product?.base_unit||line.unit||productSettings.defaultUnit,
-          last_supplier_id:supplierId,
-          last_purchase_date:input.invoiceDate||new Date().toISOString().slice(0,10),
-        }).eq('id',line.product_id);
-        if(updateError)throw updateError;
-      }
-    }
-
-    if(updateImportedCost&&productSettings.costMethod==='average'){
-      const byProduct=new Map<string,any[]>();
-      for(const line of priced){
-        const bucket=byProduct.get(line.product_id)||[];
-        bucket.push(line);
-        byProduct.set(line.product_id,bucket);
-      }
-      for(const [productId,lines] of byProduct){
-        const [{data:product,error:productError},{data:history,error:historyError}]=await Promise.all([
-          supabase.from('products').select('last_cost,base_unit').eq('id',productId).single(),
-          supabase.from('product_price_history').select('normalized_unit_price').eq('product_id',productId),
-        ]);
-        if(productError)throw productError;
-        if(historyError)throw historyError;
-        const historical=(history??[]).map((row:any)=>Number(row.normalized_unit_price)).filter((value:number)=>Number.isFinite(value));
-        const current=writePriceHistory?[]:lines.map(line=>Number(line.normalized_unit_price)).filter(Number.isFinite);
-        const values=[...historical,...current];
-        if(!values.length)continue;
-        const average=roundCost(values.reduce((sum,value)=>sum+value,0)/values.length);
-        const oldCost=product?.last_cost==null?null:Number(product.last_cost);
-        const latest=lines[lines.length-1];
-        const {error:updateError}=await supabase.from('products').update({
-          previous_cost:oldCost!=null&&oldCost!==average?oldCost:null,
-          last_cost:average,
-          cost_unit:product?.base_unit||latest?.unit||productSettings.defaultUnit,
-          last_supplier_id:supplierId,
-          last_purchase_date:input.invoiceDate||new Date().toISOString().slice(0,10),
-        }).eq('id',productId);
-        if(updateError)throw updateError;
-      }
-    }
-  } catch (error) {
-    if (createdSupplierProductIds.length) await supabase.from('supplier_products').delete().in('id', createdSupplierProductIds);
-    if (createdProductIds.length) await supabase.from('products').delete().in('id', createdProductIds);
-    throw error;
-  }
-}
-
 export async function createInvoice(input: NewInvoiceInput) {
-  const loadedSettings=await loadAppSettings();
-  const expenseAutomation=await loadAutomationRule('expense_invoice_imported');
-  const policy=applyExpenseInvoiceImportedAutomation(
-    expenseImportPolicyFromSettings(loadedSettings.settings.expenses),
-    expenseAutomation,
-  );
-  const { data: userData } = await supabase.auth.getUser();
-  const user = userData.user;
-  if (!user) throw new Error('Sesión no válida.');
-
-  const archivedSource=input.sourceDocumentId
-    ?await getSourceDocument(input.sourceDocumentId)
-    :await archiveSourceDocument(input.file,input.source,{
-      importIntent:'expense_invoice',
-      invoiceNumber:sanitizeDatabaseSingleLine(input.invoiceNumber)||null,
-    });
-  const fileHash=archivedSource.fileHash||await sha256(input.file);
-  const multiInvoiceSource=input.extraction?.multiInvoiceSource===true;
-  if(policy.detectDuplicates&&!multiInvoiceSource){
-    const { data: duplicates, error: duplicateError } = await supabase.from('invoices').select('id, invoice_number').eq('file_hash', fileHash).limit(1);
-    if (duplicateError) throw duplicateError;
-    if (duplicates?.length&&policy.blockHighConfidenceDuplicates) throw new Error(`Esta factura parece estar subida ya (${duplicates[0].invoice_number || 'sin número'}).`);
-  }
-
-  const repairedAmounts = repairInvoiceAmounts(input.ocrText || '', { subtotal: input.subtotal, vat: input.vat, total: input.total });
-  const preparedInput: NewInvoiceInput = {
-    ...input,
-    ...repairedAmounts,
-    categoryId:input.categoryId||policy.defaultCategoryId||undefined,
-    lines: repairInvoiceProductLines(input.ocrText || '', input.lines || []),
-  };
-  const extractedContact = input.ocrText ? extractSupplierContactData(input.ocrText, input.supplierName) : {};
-  const extractedDetails = input.ocrText ? extractSupplierInvoiceDetails(input.ocrText, input.supplierName) : {};
-  const merchandiseSupplier = await isMerchandiseCategory(preparedInput.categoryId);
-  const supplierResult = await ensureSupplier(input.supplierName, {
-    taxId: input.supplierTaxId || extractedContact.taxId || extractedDetails.taxId,
-    email: input.supplierEmail || extractedContact.email,
-    phone: input.supplierPhone || extractedContact.phone,
-    address: input.supplierAddress || extractedDetails.address,
-    website: input.supplierWebsite || extractedDetails.website,
-  }, merchandiseSupplier ? 'goods' : undefined, policy, loadedSettings.settings.suppliers);
-  const supplierId = supplierResult.id;
-  if(policy.detectDuplicates&&multiInvoiceSource&&sanitizeDatabaseSingleLine(input.invoiceNumber)){
-    const {data:duplicates,error:duplicateError}=await supabase
-      .from('invoices')
-      .select('id,invoice_number')
-      .eq('supplier_id',supplierId)
-      .eq('invoice_number',sanitizeDatabaseSingleLine(input.invoiceNumber))
-      .limit(1);
-    if(duplicateError)throw duplicateError;
-    if(duplicates?.length&&policy.blockHighConfidenceDuplicates){
-      if(supplierResult.created)await cleanupCreatedSupplier(supplierId);
-      throw new Error(`Esta factura parece estar subida ya (${duplicates[0].invoice_number || 'sin número'}).`);
-    }
-  }
-  const { data: invoice, error } = await supabase.from('invoices').insert({
-    supplier_id: supplierId,
-    invoice_number: sanitizeDatabaseSingleLine(input.invoiceNumber) || null,
-    issue_date: input.invoiceDate || null,
-    expense_category_id: preparedInput.categoryId || null,
-    net_amount: preparedInput.subtotal,
-    tax_amount: preparedInput.vat,
-    equivalence_surcharge_amount: preparedInput.equivalenceSurcharge ?? 0,
-    withholding_amount: input.withholding,
-    total_amount: preparedInput.total,
-    currency:String(input.currency||loadedSettings.settings.general.currencyCode||'EUR').toUpperCase(),
-    source: input.source,
-    status: policy.initialStatus,
-    source_document_id:archivedSource.id,
-    file_path: archivedSource.storagePath,
-    file_name: sanitizeDatabaseSingleLine(archivedSource.originalName),
-    mime_type: archivedSource.mimeType,
-    file_hash: fileHash,
-    ocr_text: sanitizeDatabaseText(input.ocrText) || null,
-    extraction: sanitizeDatabaseValue({
-      ...(input.extraction ?? {}),
-      supplierTaxId: input.supplierTaxId || extractedContact.taxId || extractedDetails.taxId || null,
-      supplierEmail: input.supplierEmail || extractedContact.email || null,
-      supplierPhone: input.supplierPhone || extractedContact.phone || null,
-      supplierAddress: input.supplierAddress || extractedDetails.address || null,
-      supplierWebsite: input.supplierWebsite || extractedDetails.website || null,
-      equivalenceSurcharge: preparedInput.equivalenceSurcharge ?? 0,
-      normalizedLineCount: preparedInput.lines?.length || 0,
-    }),
-    extraction_confidence: input.extractionConfidence ?? null,
-  }).select('id').single();
-
-  if (error) {
-    if (supplierResult.created) await cleanupCreatedSupplier(supplierId);
-    throw error;
-  }
-
-  try {
-    await createInvoiceLinesWithProducts(invoice.id, supplierId, preparedInput, policy, loadedSettings.settings.products, loadedSettings.settings.general.currencyCode);
-  } catch (lineError) {
-    await supabase.from('invoices').delete().eq('id', invoice.id);
-    if (supplierResult.created) await cleanupCreatedSupplier(supplierId);
-    throw lineError;
-  }
-  return invoice.id as string;
+  return InvoiceEngine.save(input);
 }
 
 export async function updateInvoiceStatus(invoiceId: string, status: 'pending' | 'reviewed' | 'accounted') {
@@ -689,7 +287,7 @@ export async function deleteInvoice(invoiceId: string, _filePath?: string | null
 }
 
 export async function getInvoiceFileUrl(path: string) {
-  const { data, error } = await supabase.storage.from(INVOICE_BUCKET).createSignedUrl(path, 300);
+  const { data, error } = await supabase.storage.from(path.includes('/invoice-engine/')?'invoice-engine-originals':INVOICE_BUCKET).createSignedUrl(path, 300);
   if (error) throw error;
   return data.signedUrl;
 }
@@ -753,7 +351,7 @@ export async function deleteSupplier(supplierId: string) {
 }
 
 export async function downloadInvoiceFile(path: string) {
-  const { data, error } = await supabase.storage.from(INVOICE_BUCKET).download(path);
+  const { data, error } = await supabase.storage.from(path.includes('/invoice-engine/')?'invoice-engine-originals':INVOICE_BUCKET).download(path);
   if (error) throw error;
   return data;
 }

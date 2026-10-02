@@ -15,10 +15,7 @@ test('invoice model and migration persist equivalence surcharge',async()=>{
 });
 
 test('repository maps and persists equivalence surcharge',async()=>{
-  const source=await read('../src/services/repository.ts');
-  assert.match(source,/equivalenceSurcharge:\s*numberOrZero\(i\.equivalence_surcharge_amount\)/);
-  assert.match(source,/equivalence_surcharge_amount:\s*preparedInput\.equivalenceSurcharge\s*\?\?\s*0/);
-  assert.match(source,/equivalenceSurcharge:\s*preparedInput\.equivalenceSurcharge\s*\?\?\s*0/);
+const repo=await read('../src/services/repository.ts');assert.match(repo,/equivalenceSurcharge:\s*numberOrZero\(i.equivalence_surcharge_amount\)/);const source=await read('../supabase/migrations/20261002190000_invoice_engine.sql');assert.match(source,/equivalence_surcharge_amount/);assert.match(source,/p_document->>'surcharge'/);
 });
 
 test('invoice detail shows equivalence surcharge only when non-zero',async()=>{
@@ -27,12 +24,7 @@ test('invoice detail shows equivalence surcharge only when non-zero',async()=>{
   assert.match(source,/Recargo de equivalencia/);
 });
 
-test('new supplier creation is tracked and rolled back when import fails',async()=>{
-  const source=await read('../src/services/repository.ts');
-  assert.match(source,/Promise<\{\s*id:\s*string;\s*created:\s*boolean\s*\}>/);
-  assert.match(source,/created:\s*false/);
-  assert.match(source,/created:\s*true/);
-  assert.match(source,/cleanupCreatedSupplier/);
-  assert.match(source,/supplierResult\.created/);
-  assert.match(source,/count:\s*'exact'/);
+test('single transactional RPC replaces compensating supplier cleanup',async()=>{
+const source=await read('../supabase/migrations/20261002190000_invoice_engine.sql');
+assert.match(source,/invoice_engine_commit/);assert.match(source,/insert into public.suppliers/);assert.match(source,/insert into public.invoice_lines/);assert.match(source,/pg_advisory_xact_lock/);assert.doesNotMatch(source,/delete from public.suppliers/);
 });

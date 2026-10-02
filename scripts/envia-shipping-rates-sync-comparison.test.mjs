@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import ts from 'typescript';
 
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 
@@ -15,7 +16,10 @@ test('Envia rate parsing keeps carrier and service identities separate',async()=
 test('Envia label response supports documented data arrays and trackUrl',async()=>{
   const edge=await read('supabase/functions/envia-shipping/index.ts');
   assert.match(edge,/const rows=asRows\(payload\)/);
-  assert.match(edge,/data\?\.trackUrl/);
+  const trackingSource=await read('supabase/functions/_shared/shipmentTracking.ts');
+  const output=ts.transpileModule(trackingSource,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
+  const {trackingCandidates}=await import(`data:text/javascript;base64,${Buffer.from(output).toString('base64')}`);
+  assert.deepEqual(trackingCandidates({data:[{trackUrl:'https://carrier.example/track/000123'}]}),['https://carrier.example/track/000123']);
   assert.match(edge,/data\?\.totalPrice/);
 });
 

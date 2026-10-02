@@ -253,31 +253,16 @@ export function shippingPriceForOrder(order:FulfillmentOrder,preview:ShippingPri
 
 
 export function trackingUrlForOrder(order:FulfillmentOrder):string|null{
-  const stored=clean(order.trackingUrl);
-  if(stored){
+  // The carrier is not a URL directory. Use the shipment's recorded link;
+  // provider links are resolved on the server, never guessed in the browser.
+  for(const value of [order.carrierTrackingUrl,order.trackingUrl]){
     try{
-      const url=new URL(stored);
+      if(!value)continue;
+      const url=new URL(value);
       const host=url.hostname.toLowerCase();
-      const aggregator=['envia.com','sendcloud.com','sendcloud.sc'].some(domain=>host===domain||host.endsWith(`.${domain}`));
-      // Preserve carrier deep links, but replace aggregator tracking pages with
-      // the actual carrier's public tracking site regardless of label provider.
-      if(['https:','http:'].includes(url.protocol)&&!aggregator)return url.href;
-    }catch{/* Use the carrier and shipment identifiers below. */}
+      const provider=['envia.com','sendcloud.com','sendcloud.sc'].some(domain=>host===domain||host.endsWith(`.${domain}`));
+      if(['https:','http:'].includes(url.protocol)&&!url.username&&!url.password&&!provider)return url.href;
+    }catch{/* The drawer will request fresh shipment metadata. */}
   }
-  const tracking=clean(order.trackingNumber);
-  if(!tracking)return null;
-  const carrier=tariffKey([order.carrierCode,order.carrierName].filter(Boolean).join(' ')||order.shippingOptionCode?.split(':')[0]);
-  const code=encodeURIComponent(tracking);
-  if(carrier.includes('mrw'))return 'https://www.mrw.es/seguimiento/';
-  // Correos Express and Correos are different carriers with different trackers.
-  if(/correos-?express/.test(carrier))return 'https://s.correosexpress.com/';
-  if(carrier.includes('correos'))return `https://www.correos.es/comun/localizador/track.asp?numero=${code}`;
-  if(carrier.includes('seur'))return 'https://www.seur.com/miseur/mis-envios';
-  if(carrier.includes('dhl'))return 'https://www.dhl.com/es-es/home/seguimiento.html';
-  if(/(?:^|-)ups(?:-|$)/.test(carrier))return 'https://www.ups.com/track?loc=es_ES';
-  if(carrier.includes('fedex'))return 'https://www.fedex.com/es-es/tracking.html';
-  if(/ctt-?express/.test(carrier))return 'https://www.cttexpress.com/localizador-de-envios/';
-  if(carrier.includes('ctt'))return 'https://www.ctt.pt/feapl_2/app/open/objectSearch/objectSearch.jspx';
-  if(carrier.includes('gls'))return `https://www.gls-spain.es/es/ayuda/seguimiento-envio/?match=${code}`;
   return null;
 }

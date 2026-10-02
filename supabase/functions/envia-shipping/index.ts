@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { trackingCandidates } from '../_shared/shipmentTracking.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -478,7 +479,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
       const price=shipmentPrice(row);
       const currency=clean(row?.currency||row?.currencyCode||row?.currency_code)||'EUR';
       const labelUrl=clean(row?.label||row?.labelUrl||row?.label_url||row?.label_file);
-      const trackingUrl=clean(row?.trackUrl||row?.trackingUrl||row?.tracking_url);
+      const trackingUrl=trackingCandidates(row)[0]||null;
       const orderNumber=clean(row?.orderNumber||row?.order_number||row?.reference||row?.referenceNumber||row?.shipmentId)||`ENVIA-${tracking}`;
 
       const selectFields='id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,label_printed_at,label_print_state_known';
@@ -766,7 +767,7 @@ Deno.serve(async(req:Request)=>{
         shipping_label_url:labelUrl,
         shipping_integration_account_id:account.id,
         tracking_number:tracking,
-        tracking_url:clean(data?.trackUrl||data?.trackingUrl||data?.tracking_url)||null,
+        tracking_url:trackingCandidates(data)[0]||null,
         shipping_option_code:service,
         carrier_code:carrier,
         carrier_name:clean(option?.carrierName)||humanCarrier(carrier),

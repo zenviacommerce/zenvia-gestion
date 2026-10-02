@@ -10,15 +10,9 @@ const tariff={id:'tariff',status:'active',carrierCode:'mrw',carrierName:'MRW',sh
 test('shipped MRW order uses actual carrier and contract tariff across providers',()=>{assert.equal(shipping.calculateDefaultShippingPreview(order,[tariff],'correos')?.totalAmount,4.84)});
 test('unknown dispatched service does not get the default 19h price',()=>{const second={...tariff.services[0],canonicalServiceKey:'manana-10h',serviceName:'Mañana 10h'};assert.equal(shipping.calculateDefaultShippingPreview({...order,shippingServiceName:'unknown',shippingOptionCode:'unknown'},[{...tariff,services:[...tariff.services,second]}],'mrw'),null)});
 test('recorded provider cost retains priority',()=>{assert.equal(shipping.shippingPriceForOrder({...order,shippingCostAmount:8}, {totalAmount:4.84})?.totalAmount,8)});
-test('tracking preserves provider link for every carrier',()=>{assert.equal(shipping.trackingUrlForOrder({...order,trackingUrl:'https://carrier.example/track/123'}),'https://carrier.example/track/123')});
-test('legacy Sendcloud shipment opens the actual carrier website',()=>{assert.equal(new URL(shipping.trackingUrlForOrder(order)).hostname,'www.mrw.es')});
-test('tracking does not generate an empty or unsafe URL',()=>{assert.equal(shipping.trackingUrlForOrder({...order,trackingNumber:null,trackingUrl:'javascript:alert(1)'}),null)});
 
-test('Envia Correos shipment opens Correos with its tracking number',()=>{
- const url=new URL(shipping.trackingUrlForOrder({...order,shippingProvider:'envia',carrierCode:'correos',carrierName:'Correos',trackingUrl:'https://envia.com/es-ES/tracking?label=123'}));
- assert.equal(url.hostname,'www.correos.es');assert.equal(url.searchParams.get('numero'),order.trackingNumber);
-});
-test('Envia MRW shipment does not open Envia or Sendcloud',()=>{assert.equal(new URL(shipping.trackingUrlForOrder({...order,shippingProvider:'envia',trackingUrl:'https://envia.com/es-ES/tracking'})).hostname,'www.mrw.es')});
-test('Correos Express must not be routed to Correos postal tracking',()=>{assert.equal(new URL(shipping.trackingUrlForOrder({...order,shippingProvider:'envia',carrierCode:'correosexpress',carrierName:'Correos Express'})).hostname,'s.correosexpress.com')});
-test('carrier-provided deep links are retained for Envia shipments',()=>{const link='https://www.mrw.es/seguimiento/envio.asp?code=123';assert.equal(shipping.trackingUrlForOrder({...order,shippingProvider:'envia',trackingUrl:link}),link)});
-test('unknown carrier never falls back to an aggregator page',()=>{assert.equal(shipping.trackingUrlForOrder({...order,shippingProvider:'envia',carrierCode:'unknown',carrierName:'Unknown',trackingUrl:'https://envia.com/es-ES/tracking'}),null)});
+test('tracking preserves recorded links for a carrier unknown to the application',()=>{assert.equal(shipping.trackingUrlForOrder({...order,carrierCode:'future-carrier',trackingUrl:'https://future-carrier.example/track/opaque'}),'https://future-carrier.example/track/opaque')});
+test('resolved carrier links take priority over branded provider URLs',()=>{assert.equal(shipping.trackingUrlForOrder({...order,trackingUrl:'https://envia.com/tracking',carrierTrackingUrl:'https://future-carrier.example/track/opaque'}),'https://future-carrier.example/track/opaque')});
+test('provider URLs request server resolution instead of a hardcoded carrier URL',()=>{assert.equal(shipping.trackingUrlForOrder({...order,trackingUrl:'https://tracking.sendcloud.sc/forward?code=000123'}),null);assert.equal(shipping.trackingUrlForOrder({...order,shippingProvider:'envia',trackingUrl:'https://envia.com/tracking'}),null)});
+test('a tracking number alone never generates an invented URL',()=>{assert.equal(shipping.trackingUrlForOrder({...order,trackingUrl:null}),null)});
+test('unsafe URLs are not exposed by the drawer',()=>{assert.equal(shipping.trackingUrlForOrder({...order,trackingUrl:'javascript:alert(1)'}),null)});

@@ -89,7 +89,16 @@ async function candidateFromRead(
   policy:ExpenseImportPolicy,
   bundle?:{index:number;count:number},
 ):Promise<InvoiceImportCandidate>{
-  const repairedAmounts=repairInvoiceAmounts(read.text,{subtotal:read.subtotal,vat:read.vat,total:read.total});
+  const readAmounts={
+    subtotal:Number(read.subtotal||0),
+    vat:Number(read.vat||0),
+    total:Number(read.total||0),
+    withholding:Number(read.withholding||0),
+    equivalenceSurcharge:Number(read.aiEquivalenceSurcharge||0),
+  };
+  const repairedAmounts=invoiceAmountsConsistent(readAmounts)
+    ?{subtotal:readAmounts.subtotal,vat:readAmounts.vat,total:readAmounts.total,equivalenceSurcharge:readAmounts.equivalenceSurcharge}
+    :repairInvoiceAmounts(read.text,{subtotal:readAmounts.subtotal,vat:readAmounts.vat,total:readAmounts.total});
   const repairedLines=repairInvoiceProductLines(read.text,read.lines);
   const party=extractInvoiceParty(read.text,{role:'supplier',nameHint:read.supplierName,invoiceNumber:read.invoiceNumber,invoiceDate:read.invoiceDate});
   const contact=extractSupplierContactData(read.text,read.supplierName);

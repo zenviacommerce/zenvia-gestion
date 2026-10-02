@@ -57,7 +57,7 @@ export interface LabelResult {
 export interface LocalPrinter { id:string; name:string; default?:boolean; }
 export interface ManualOrderItem { name:string; sku?:string; quantity:number; unitPrice:number; }
 export interface ManualOrderInput {
-  integrationId:number; shippingIntegrationAccountId?:string|null; orderNumber:string; customerName:string; companyName?:string; email?:string; phone?:string;
+  integrationId?:number; shippingIntegrationAccountId?:string|null; orderNumber:string; customerName:string; companyName?:string; email?:string; phone?:string;
   address:string; houseNumber?:string; address2?:string; postalCode:string; city:string; countryCode:string;
   weightKg:number; items:ManualOrderItem[];
 }
@@ -211,7 +211,7 @@ export async function syncSendcloudOrders(history=false,retryTracking=true,autom
   if(retryTracking)await retryAmazonTrackingConfirmations();
   return result;
 }
-export function createManualOrder(order:ManualOrderInput){return invokeSendcloud<{ok:true;id:string;sendcloudId:string;orderNumber:string}>({action:'create_manual_order',order});}
+export function createManualOrder(order:ManualOrderInput){return invokeOrderState<{ok:true;id:string;sendcloudId:string|null;orderNumber:string}>({action:'create_manual_order',order});}
 export async function getShippingOptions(orderId:string){
   const [sendcloudResult,enviaResult,mrwResult]=await Promise.allSettled([
     invokeOrderTools<{weightKg:number;options:Array<Omit<ShippingOption,'provider'|'providerName'>>;message?:string|null}>({action:'shipping_options',orderId}),

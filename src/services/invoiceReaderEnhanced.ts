@@ -78,6 +78,7 @@ function normalizeInvoiceNumberCandidate(value: string | undefined | null) {
   // Una fecha nunca debe convertirse en número de factura.
   if (/^\d{1,2}[-/.]\d{1,2}[-/.](?:\d{2}|\d{4})$/.test(candidate)) return '';
   if (/^20\d{2}[-/.]\d{1,2}[-/.]\d{1,2}$/.test(candidate)) return '';
+  if (/^\d{1,2}[-/.](?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec|ene|abr|ago|dic)[a-záéíóú]*[-/.](?:\d{2}|\d{4})$/i.test(candidate)) return '';
 
   // Rechazamos etiquetas conocidas aunque un OCR les haya añadido algún símbolo.
   if (/^(?:factura|invoice|original|copia|fecha|date|proforma)$/i.test(candidate)) return '';
@@ -306,9 +307,11 @@ function extractReverseChargeFiscalSummary(lines:string[]):FiscalSummary|null{
   const text=lines.join(' ');
   if(!/inv\.?\s*pasivo|reverse\s+charge|inversi[oó]n\s+del\s+sujeto\s+pasivo/i.test(text))return null;
   let subtotal=0,total=0;
-  for(const line of lines){
-    if(!subtotal&&/base\s+imponible|subtotal|importe\s+neto/i.test(line))subtotal=lineMoneyValues(line).at(-1)||0;
+  for(let index=lines.length-1;index>=0;index-=1){
+    const line=lines[index];
+    if(!subtotal&&/base\s+imponible(?:\s*\(sin\s+iva\))?|subtotal|importe\s+neto/i.test(line))subtotal=lineMoneyValues(line).at(-1)||0;
     if(!total&&/importe\s+total|total\s+factura|total\s+a\s+pagar/i.test(line))total=lineMoneyValues(line).at(-1)||0;
+    if(subtotal>0&&total>0)break;
   }
   if(subtotal>0&&total>0&&Math.abs(subtotal-total)<=Math.max(.08,total*.0025)){
     return {subtotal,vat:0,total,rate:0};

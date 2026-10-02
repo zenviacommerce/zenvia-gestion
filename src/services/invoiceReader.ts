@@ -344,6 +344,27 @@ async function ocrPdf(pdf: any, onProgress?: (message: string) => void): Promise
           if(headerText.trim())pageText+='\n'+headerText;
         }
       }
+
+      // In scanned supplier invoices the fiscal summary is often small and sits
+      // in the lower third. Full-page OCR can read the product row correctly but
+      // miss IVA/total completely. Re-read that region so fiscal validation has
+      // independent evidence instead of trusting a single OCR pass.
+      const hasFiscalClosure=/\b(?:importe\s+iva|iva\s*[:€]|total\s+factura|importe\s+total|base\s+imponible)\b/i.test(pageText);
+      if(!hasFiscalClosure||pageNumber===pdf.numPages){
+        const footer=document.createElement('canvas');
+        footer.width=canvas.width;
+        footer.height=Math.max(1,Math.round(canvas.height*.44));
+        const footerContext=footer.getContext('2d',{willReadFrequently:true});
+        if(footerContext){
+          const sourceY=Math.max(0,canvas.height-footer.height);
+          footerContext.drawImage(canvas,0,sourceY,canvas.width,footer.height,0,0,footer.width,footer.height);
+          enhanceOcrCanvas(footer);
+          const footerBlob=await new Promise<Blob>((resolve,reject)=>footer.toBlob(value=>value?resolve(value):reject(new Error('No se pudo preparar el cierre fiscal para OCR.')),'image/png'));
+          const footerResult=await worker.recognize(footerBlob);
+          const footerText=footerResult.data.text||'';
+          if(footerText.trim())pageText+='\n'+footerText;
+        }
+      }
       pages.push(pageText);
     }
   } finally {
@@ -378,11 +399,18 @@ async function ocrImage(file: File, onProgress?: (message: string) => void): Pro
   }
 }
 
+function fiscalTupleConsistent(result:Pick<InvoiceReadResult,'subtotal'|'vat'|'withholding'|'total'>){
+  if(!(result.total>0)||result.subtotal<0||result.vat<0)return false;
+  const expected=Math.round((result.subtotal+result.vat-result.withholding)*100)/100;
+  return Math.abs(expected-result.total)<=Math.max(.08,result.total*.0025);
+}
+
 function shouldCrossCheckWithOcr(result:InvoiceReadResult){
   return !result.supplierName
     || !result.invoiceNumber
     || !result.invoiceDate
     || !(result.total>0)
+    || !fiscalTupleConsistent(result)
     || result.confidence<.80;
 }
 
@@ -390,12 +418,13 @@ function mergeReadResults(primary:InvoiceReadResult,secondary:InvoiceReadResult)
   const supplierName=primary.supplierName||secondary.supplierName;
   const invoiceNumber=primary.invoiceNumber||secondary.invoiceNumber;
   const invoiceDate=primary.invoiceDate||secondary.invoiceDate;
-  const subtotal=primary.subtotal>0?primary.subtotal:secondary.subtotal;
-  const total=primary.total>0?primary.total:secondary.total;
-  const primaryZeroVatIsConsistent=primary.subtotal>0&&primary.total>0
-    &&Math.abs(primary.subtotal-primary.total)<=Math.max(.08,primary.total*.01);
-  const vat=primary.vat!==0||primaryZeroVatIsConsistent?primary.vat:secondary.vat;
-  const withholding=primary.withholding||secondary.withholding;
+  const primaryFiscalOk=fiscalTupleConsistent(primary);
+  const secondaryFiscalOk=fiscalTupleConsistent(secondary);
+  const fiscal=primaryFiscalOk?primary:secondaryFiscalOk?secondary:(primary.total>=secondary.total?primary:secondary);
+  const subtotal=fiscal.subtotal;
+  const vat=fiscal.vat;
+  const withholding=fiscal.withholding;
+  const total=fiscal.total;
   const lines=primary.lines.length>=secondary.lines.length?primary.lines:secondary.lines;
   const currency=primary.currency||secondary.currency;
   const merged=parseInvoiceText(
@@ -424,6 +453,7 @@ function mergeReadResults(primary:InvoiceReadResult,secondary:InvoiceReadResult)
     lines,
     confidence:Math.max(primary.confidence,secondary.confidence,merged.confidence),
     usedOcr:primary.usedOcr||secondary.usedOcr,
+    text:[primary.text,secondary.text].filter(Boolean).join('\n'),
   };
 }
 

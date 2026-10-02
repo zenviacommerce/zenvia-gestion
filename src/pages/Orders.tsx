@@ -248,7 +248,7 @@ function LabelModal({order,options,tariffs,message,loading,preferredOption,onClo
               return [key,{name:option.carrierName||option.carrierCode||'Transportista',options:providerOptions.filter(item=>(item.carrierCode||item.carrierName||'transportista').toLowerCase()===key)}];
             })).values());
             return <section className="ordersCarrierCard" key={provider}>
-              <div className="ordersCarrierHead"><Truck size={18}/><div><strong>{providerName}</strong><span>{provider==='envia'?'Comparativa multitransportista en tiempo real':'Servicios de tu cuenta Sendcloud'}</span></div></div>
+              <div className="ordersCarrierHead"><Truck size={18}/><div><strong>{providerName}</strong><span>{provider==='envia'?'Comparativa multitransportista en tiempo real':provider==='mrw'?'Conexión directa con MRW':'Servicios de tu cuenta Sendcloud'}</span></div></div>
               <div className="ordersCarrierGroups">{carrierGroups.map(group=><section className="ordersCarrierGroup" key={provider+'-'+group.name}>
                 <div className="ordersCarrierGroupHead"><strong>{group.name}</strong><small>{group.options.length} servicio{group.options.length===1?'':'s'}</small></div>
                 <div className="ordersOptionList">{group.options.map((option,index)=>{
@@ -262,7 +262,6 @@ function LabelModal({order,options,tariffs,message,loading,preferredOption,onClo
             </section>;
           })}
         </div>}
-        {options.some(option=>option.provider==='sendcloud')&&<button className="secondary ordersRulesButton" onClick={()=>onCreate(null)}><Settings2 size={16}/><span><strong>Usar reglas de Sendcloud</strong><small>Deja que Sendcloud resuelva el método según su configuración.</small></span><ChevronRight size={17}/></button>}
       </>}
     </div>
     <div className="modalActions"><button className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={loading||!selected} onClick={()=>selected&&onCreate(selected)}>{selected?'Crear etiqueta':'Selecciona un servicio'}</button></div>

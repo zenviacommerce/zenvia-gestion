@@ -260,10 +260,8 @@ function packageFor(order:any,shipping:any){
     declaredValue:Math.max(0,number(order.total_amount,0)),
     lengthUnit:'CM',
     weightUnit:'KG',
-    // Some Envia carrier adapters validate kilos with the literal
-    // 99999.999 format. A JSON number such as 1.000 is serialized as 1 and
-    // loses the required three decimal places, so keep it as a fixed string.
-    weight:orderWeightKg(order,shipping).toFixed(3),
+    // The rating API schema requires a JSON number here.
+    weight:Number(orderWeightKg(order,shipping).toFixed(3)),
     dimensions:{
       length:Math.max(1,number(shipping?.packageLengthCm,30)),
       width:Math.max(1,number(shipping?.packageWidthCm,20)),
@@ -615,10 +613,14 @@ Deno.serve(async(req:Request)=>{
       if(!carrier||!service)return fail('Selecciona un transportista y servicio de Envia.com.');
       const labelSize=clean(config.shipping?.labelSize);
       const printSize=labelSize==='A4'?'PAPER_A4':'PAPER_4X6';
+      // Rating requires numeric weight, while some carrier adapters used by
+      // Envia's generate endpoint (notably Correos/Correos Express routes)
+      // require the kilos value rendered with exactly three decimals.
+      const generatePackage={...pkg,weight:Number(pkg.weight).toFixed(3)};
       const payload=await enviaJson(`${c.shipBase}/ship/generate/`,c.token,{
         method:'POST',
         body:JSON.stringify({
-          origin,destination:dest,packages:[pkg],
+          origin,destination:dest,packages:[generatePackage],
           settings:{printFormat:'PDF',printSize},
           shipment:{type:1,carrier,service},
         }),

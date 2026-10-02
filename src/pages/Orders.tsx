@@ -110,35 +110,27 @@ function isProcessedOrder(order:FulfillmentOrder){
   const raw=`${order.trackingStatusCode||''} ${order.trackingStatusMessage||''}`.toLowerCase().replace(/[_-]+/g,' ').trim();
 
   if(hasShippingLabel(order)){
+    // Etiquetados must mean exactly this: label created, but the carrier has
+    // not yet registered a physical/logistical event.
+    const preDispatch=
+      !raw||
+      raw.includes('created')||
+      raw.includes('pending')||
+      raw.includes('ready to send')||
+      raw.includes('ready for shipment')||
+      raw.includes('announced')||
+      raw.includes('being announced')||
+      raw.includes('no label')||
+      raw.includes('announcement failed')||
+      raw.includes('error collecting');
+
+    if(preDispatch)return false;
     if(isCancelledOrder(order))return false;
 
-    // "Etiquetados" means the label exists but there is still no evidence that
-    // the carrier has physically taken the parcel. Administrative tracking
-    // changes (for example DELIVERY_DATE_CHANGED) do not imply collection.
-    const physicalMovement=
-      raw.includes('sorted')||
-      raw.includes('sorting centre')||
-      raw.includes('sorting center')||
-      raw.includes('shipment on route')||
-      raw.includes('parcel en route')||
-      raw.includes('in transit')||
-      raw.includes('picked up')||
-      raw.includes('shipment picked up')||
-      raw.includes('driver on route')||
-      raw.includes('driver en route')||
-      raw.includes('out for delivery')||
-      raw.includes('awaiting customer pickup')||
-      raw.includes('delivery failed')||
-      raw.includes('delivery attempt failed')||
-      raw.includes('unable to deliver')||
-      raw.includes('address invalid')||
-      raw.includes('refused')||
-      raw.includes('returned to sender')||
-      raw.includes('delivery delayed')||
-      raw.includes('delivered')||
-      raw.includes('shipment collected by customer');
-
-    return physicalMovement;
+    // Any other carrier event means the shipment has progressed beyond merely
+    // having a label: sorting, date changes, transit, delivery attempts,
+    // incidents, returns, delivery, etc. It belongs in Enviados.
+    return true;
   }
 
   const status=orderStatusCode(order);

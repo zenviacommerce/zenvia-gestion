@@ -194,3 +194,7 @@ html[data-theme='dark'] .ordersFieldError{color:#fca5a5}
     font-size:13px;
   }
 }
+
+.ordersCustomerCountry{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.ordersCountryFlag{display:inline-flex;align-items:center;justify-content:center;font-size:16px;line-height:1;flex:0 0 auto}
+.ordersMobileCustomer{display:flex!important;align-items:center;gap:5px;min-width:0;flex-wrap:wrap}

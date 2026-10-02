@@ -157,7 +157,7 @@ async function candidateFromRead(
     status,
     reviewReason,
     supplierName:read.supplierName,
-    supplierTaxId:read.aiIssuer?.taxId||contact.taxId||details.taxId||party.taxId,
+    supplierTaxId:details.taxId||read.aiIssuer?.taxId||contact.taxId||party.taxId,
     supplierEmail:read.aiIssuer?.email||contact.email||party.email,
     supplierPhone:read.aiIssuer?.phone||contact.phone||party.phone,
     supplierAddress:read.aiIssuer?.address||details.address||formatInvoicePartyAddress(party),

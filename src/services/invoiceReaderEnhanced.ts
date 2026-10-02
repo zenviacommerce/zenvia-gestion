@@ -273,6 +273,49 @@ function inferFiscalFromKnownSubtotal(lines:string[],subtotal:number):FiscalSumm
   return null;
 }
 
+function inferFiscalClosureByArithmetic(lines:string[],subtotal:number):FiscalSummary|null{
+  if(!(subtotal>0))return null;
+  let start=Math.max(0,lines.length-24);
+  const labelled=lines.findIndex(line=>/desglose\s+de\s+impuestos|importe\s+iva|total\s+factura|base\s+imponible/i.test(line));
+  if(labelled>=0)start=Math.max(0,labelled-2);
+  const window=lines.slice(start);
+  const values=window.flatMap((line,lineOffset)=>lineMoneyValues(line).map(value=>({value,lineOffset,line})))
+    .filter(item=>item.value>0&&item.value<10_000_000);
+  let best:{vat:number;total:number;score:number}|null=null;
+  for(const vatCandidate of values){
+    const rate=vatCandidate.value/subtotal;
+    if(rate<.01||rate>.30)continue;
+    const expectedTotal=Math.round((subtotal+vatCandidate.value)*100)/100;
+    for(const totalCandidate of values){
+      if(totalCandidate===vatCandidate)continue;
+      const tolerance=Math.max(.12,expectedTotal*.0015);
+      const diff=Math.abs(totalCandidate.value-expectedTotal);
+      if(diff>tolerance)continue;
+      let score=100-diff*100;
+      if(/iva|impuesto/i.test(vatCandidate.line))score+=20;
+      if(/total\s+factura|importe\s+total|a\s+pagar/i.test(totalCandidate.line))score+=24;
+      if(/desglose\s+de\s+impuestos/i.test(window.slice(0,Math.max(vatCandidate.lineOffset,totalCandidate.lineOffset)+1).join(' ')))score+=8;
+      if(!best||score>best.score)best={vat:vatCandidate.value,total:totalCandidate.value,score};
+    }
+  }
+  if(!best)return null;
+  return {subtotal,vat:best.vat,total:best.total,rate:best.vat/subtotal*100};
+}
+
+function extractReverseChargeFiscalSummary(lines:string[]):FiscalSummary|null{
+  const text=lines.join(' ');
+  if(!/inv\.?\s*pasivo|reverse\s+charge|inversi[oó]n\s+del\s+sujeto\s+pasivo/i.test(text))return null;
+  let subtotal=0,total=0;
+  for(const line of lines){
+    if(!subtotal&&/base\s+imponible|subtotal|importe\s+neto/i.test(line))subtotal=lineMoneyValues(line).at(-1)||0;
+    if(!total&&/importe\s+total|total\s+factura|total\s+a\s+pagar/i.test(line))total=lineMoneyValues(line).at(-1)||0;
+  }
+  if(subtotal>0&&total>0&&Math.abs(subtotal-total)<=Math.max(.08,total*.0025)){
+    return {subtotal,vat:0,total,rate:0};
+  }
+  return null;
+}
+
 function normalizedCategoryName(value: string) {
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 }
@@ -345,9 +388,14 @@ function enhanceInvoiceReadResult(
   const repaired=repairInvoiceAmounts(base.subtotal,base.vat,base.withholding,base.total,textLines);
   const explicitSubtotal=explicitTaxBase(base.text);
   const reverseCharge=/inv\.?\s*pasivo|reverse\s+charge|inversi[oó]n\s+del\s+sujeto\s+pasivo/i.test(base.text);
-  const initialFiscalSummary=reverseCharge?null:extractFiscalSummary(textLines)||extractLooseFiscalSummary(textLines);
+  const reverseChargeSummary=extractReverseChargeFiscalSummary(textLines);
+  const initialFiscalSummary=reverseCharge?reverseChargeSummary:extractFiscalSummary(textLines)||extractLooseFiscalSummary(textLines);
   const knownSubtotal=initialFiscalSummary?.subtotal||explicitSubtotal||repaired.subtotal;
-  const fiscalSummary=reverseCharge?null:(initialFiscalSummary||inferFiscalFromKnownSubtotal(textLines,knownSubtotal));
+  const fiscalSummary=reverseCharge
+    ?reverseChargeSummary
+    :(initialFiscalSummary
+      ||inferFiscalFromKnownSubtotal(textLines,knownSubtotal)
+      ||inferFiscalClosureByArithmetic(textLines,knownSubtotal));
   const effectiveSubtotal=retailCorrection
     ?retailCorrection.subtotal
     :fiscalSummary?.subtotal||explicitSubtotal||repaired.subtotal;

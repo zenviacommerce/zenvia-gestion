@@ -89,7 +89,11 @@ function weightValueLabel(weightKg:number|null|undefined,unit:ShippingSettings['
 function weightLabel(order:FulfillmentOrder,unit:ShippingSettings['weightUnit']){return weightValueLabel(order.weightKg,unit);}
 function orderAgeHours(order:FulfillmentOrder){if(!order.orderCreatedAt)return 0;const created=new Date(order.orderCreatedAt).getTime();return Number.isFinite(created)?Math.max(0,(Date.now()-created)/3600000):0;}
 function orderStatusCode(order:FulfillmentOrder){return String(order.sourceStatus||'').trim().toLowerCase();}
-function isCancelledOrder(order:FulfillmentOrder){return orderStatusCode(order).includes('cancel');}
+function isCancelledOrder(order:FulfillmentOrder){
+  const source=orderStatusCode(order);
+  const tracking=`${order.trackingStatusCode||''} ${order.trackingStatusMessage||''}`.toLowerCase().replace(/[_-]+/g,' ');
+  return source.includes('cancel')||tracking.includes('cancelled')||tracking.includes('canceled');
+}
 function hasShippingLabel(order:FulfillmentOrder){return Boolean(order.sendcloudParcelId||order.shippingRemoteId||order.labelCreatedAt);}
 function labelPrintState(order:FulfillmentOrder){
   if(!hasShippingLabel(order))return {label:'—',className:'none',sort:''};
@@ -103,48 +107,32 @@ function isReadyForDispatch(order:FulfillmentOrder){
   return raw.includes('ready to send')||raw.includes('ready for shipment')||raw.includes('announced')||raw.includes('being announced')||raw.includes('no label');
 }
 function isProcessedOrder(order:FulfillmentOrder){
-  const raw=`${order.trackingStatusCode||''} ${order.trackingStatusMessage||''}`.toLowerCase().replace(/[_-]+/g,' ');
-  // Once a logistics label exists, the physical carrier status is authoritative.
-  // Marketplaces such as Amazon can report "Shipped" as soon as tracking is
-  // confirmed, before the carrier has actually collected the parcel.
+  const raw=`${order.trackingStatusCode||''} ${order.trackingStatusMessage||''}`.toLowerCase().replace(/[_-]+/g,' ').trim();
+
   if(hasShippingLabel(order)){
-    if(
-      raw.includes('created')||
+    // Etiquetados must mean exactly this: label created, but the carrier has
+    // not yet registered a physical/logistical event.
+    const preDispatch=
+      !raw||
+      raw==='created'||
+      raw==='pending'||
       raw.includes('ready to send')||
       raw.includes('ready for shipment')||
       raw.includes('announced')||
       raw.includes('being announced')||
-      raw.includes('pending')||
       raw.includes('no label')||
       raw.includes('announcement failed')||
-      raw.includes('error collecting')
-    )return false;
-    if(
-      raw.includes('picked up')||
-      raw.includes('shipment picked up')||
-      raw.includes('in transit')||
-      raw.includes('parcel en route')||
-      raw.includes('sorting centre')||
-      raw.includes('sorting center')||
-      raw.includes('being sorted')||
-      raw==='sorted'||
-      raw.includes(' sorted')||
-      raw.includes('driver en route')||
-      raw.includes('out for delivery')||
-      raw.includes('awaiting customer pickup')||
-      raw.includes('delivery attempt failed')||
-      raw.includes('unable to deliver')||
-      raw.includes('address invalid')||
-      raw.includes('refused')||
-      raw.includes('returned to sender')||
-      raw.includes('delivery delayed')||
-      raw.includes('delivered')||
-      raw.includes('shipment collected by customer')
-    )return true;
-    // If the carrier has not given us a movement event yet, keep it in
-    // Etiquetados even if the marketplace source status already says Shipped.
-    return false;
+      raw.includes('error collecting');
+
+    if(preDispatch)return false;
+    if(isCancelledOrder(order))return false;
+
+    // Any other carrier event means the shipment has progressed beyond merely
+    // having a label: sorting, date changes, transit, delivery attempts,
+    // incidents, returns, delivery, etc. It belongs in Enviados.
+    return true;
   }
+
   const status=orderStatusCode(order);
   return status==='fulfilled'||status==='shipped'||status==='delivered';
 }

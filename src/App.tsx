@@ -523,6 +523,7 @@ export default function App(){
    {page==='support'&&can('support')&&<SupportPage isAdmin={access.role==='admin'} currentUserId={session.user.id}/>} 
    {page==='settings'&&<SettingsPage isAdmin={access.role==='admin'} access={access}/>} 
    {page==='admin'&&access.role==='admin'&&<AdminPage currentUserId={session.user.id} workspaceName={access.workspaceName}/>} 
+   <footer className="appLegalFooter">© {new Date().getFullYear()} ZENVIA COMMERCE. Todos los derechos reservados.</footer>
  </main>
  {can('invoices')&&<UploadInvoiceModal open={upload} onClose={()=>setUpload(false)} onSave={saveInvoice} categories={data.categories} existingInvoices={data.invoices}/>} 
  {can('invoices')&&<BulkInvoiceImportModal open={bulkUpload} onClose={()=>setBulkUpload(false)} categories={data.categories} existingInvoices={data.invoices} onSave={saveBulkInvoice} onFinished={finishBulkImport}/>} 

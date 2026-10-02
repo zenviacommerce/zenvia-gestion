@@ -658,7 +658,12 @@ Deno.serve(async(req:Request)=>{
         const generatePayload={
           origin,destination:dest,packages:[generatePackage],
           settings:{printFormat:'PDF',printSize},
-          shipment:{type:1,carrier,service},
+          shipment:{
+            type:1,
+            carrier,
+            service,
+            orderReference:clean(order.order_number||order.order_id)||undefined,
+          },
         };
         // Correos Express' adapter validates KILOS BULTO lexically as 99999.999.
         // JSON.stringify(1) emits "1", so for this exact adapter case preserve

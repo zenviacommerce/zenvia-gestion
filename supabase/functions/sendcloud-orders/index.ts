@@ -280,6 +280,27 @@ Deno.serve(async(req:Request)=>{
       const selected=body?.shippingOption||null;
       if(selected&&!enabledCarrier(selected,shippingConfig.enabledCarriers))return fail('El transportista seleccionado está deshabilitado en Configuración.',409);
       if(!selected&&Array.isArray(shippingConfig.enabledCarriers)&&shippingConfig.enabledCarriers.length)return fail('Selecciona un servicio de uno de los transportistas habilitados.',409);
+
+      // ZENVIA is the source of truth. Only when Sendcloud is actually selected
+      // do we push the latest local recipient/package data to its remote order.
+      const remoteOrderId=clean(order.sendcloud_remote_id);
+      if(remoteOrderId){
+        const raw=order.raw_payload||{},address=order.shipping_address||{};
+        const measurement={...(raw.shipping_details?.measurement||{})};
+        const weight=measurement.weight;
+        if(weight?.value)measurement.weight={value:Number(weight.value),unit:weight.unit||'kg'};
+        const length=Number(order.package_length_cm),width=Number(order.package_width_cm),height=Number(order.package_height_cm);
+        if([length,width,height].every(value=>Number.isFinite(value)&&value>0)){
+          measurement.dimension={length:Number(length.toFixed(1)),width:Number(width.toFixed(1)),height:Number(height.toFixed(1)),unit:'cm'};
+        }
+        const patch={
+          shipping_address:address,
+          customer_details:{...(raw.customer_details||{}),name:order.customer_name||address.name||undefined,email:order.customer_email||address.email||undefined,phone_number:order.customer_phone||address.phone_number||undefined},
+          shipping_details:{...(raw.shipping_details||{}),measurement},
+        };
+        await sendcloudJson(orderCredentials,`/orders/${encodeURIComponent(remoteOrderId)}`,{method:'PATCH',body:JSON.stringify(patch)});
+      }
+
       const payload:any={integration_id:Number(order.integration_id),label_details:{mime_type:'application/pdf',dpi:72},order:{apply_shipping_rules:!selected}};
       if(order.order_id)payload.order.order_id=order.order_id;else if(order.order_number)payload.order.order_number=order.order_number;else return fail('El pedido no tiene identificador de origen.');
       if(selected?.code){payload.ship_with={type:'shipping_option_code',properties:{shipping_option_code:String(selected.code)}};if(selected.contractId!=null)payload.ship_with.properties.contract_id=Number(selected.contractId)}

@@ -370,7 +370,8 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:an
 
   // Ámbito estricto: el agente no responde cultura general, programación,
   // noticias, recetas ni otros productos. Solo cortesía básica queda fuera del dominio.
-  if(!basicSocial(text)&&!appScopeEvidence(contextual)){
+  const appMetaIntent=hasAny(text,['que puedes hacer','qué puedes hacer','para que sirves','para qué sirves','ayuda','esta pantalla','esta seccion','esta sección','que puedo hacer aqui','qué puedo hacer aquí']);
+  if(!basicSocial(text)&&!appMetaIntent&&!appScopeEvidence(contextual)){
     return localReply(outOfScopeReply());
   }
 

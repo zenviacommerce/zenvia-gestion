@@ -9,14 +9,14 @@ export const DEFAULT_SHIPPING_RULES:Array<Omit<ShippingRule,'id'>>=[
     priority:100,
     active:true,
     conditions:{countryCode:'ES',postalPrefix:'07'},
-    action:{carrierContains:'correos',serviceIncludes:[]},
+    action:{provider:'sendcloud',carrierContains:'correos',serviceIncludes:[]},
   },
   {
     name:'MRW Urgent 19:00',
     priority:200,
     active:true,
     conditions:{},
-    action:{carrierContains:'mrw',serviceIncludes:['urgent','19','expedition']},
+    action:{provider:'mrw',carrierContains:'mrw',serviceIncludes:['urgent','19']},
   },
 ];
 
@@ -31,6 +31,8 @@ const mapRule=(row:any):ShippingRule=>({
   active:Boolean(row.active),
   conditions:(row.conditions||{}) as ShippingRuleConditions,
   action:{
+    provider:['sendcloud','envia','mrw'].includes(String(row.action?.provider||''))?String(row.action.provider) as ShippingRuleAction['provider']:null,
+    integrationAccountId:row.action?.integrationAccountId?String(row.action.integrationAccountId):null,
     carrierContains:String(row.action?.carrierContains||''),
     serviceIncludes:Array.isArray(row.action?.serviceIncludes)?row.action.serviceIncludes.map(String):[],
   },

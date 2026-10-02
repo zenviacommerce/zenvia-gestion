@@ -1,0 +1,66 @@
+/* Global responsive hardening.
+   Keep content inside its own container at every supported resolution. */
+html,body,#root{max-width:100%;overflow-x:hidden}
+img,video,canvas{max-width:100%;height:auto}
+button,input,select,textarea{max-width:100%}
+pre{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+
+.page,.pageContent,.main,.content,.settingsPage,.settingsContent,.settingsSectionCard,
+.card,.modal,.modalBody,.tableCard,.ordersPage{min-width:0;max-width:100%}
+
+/* Grid/flex children must be allowed to shrink instead of forcing the page wider. */
+.page :where(section,article,aside,form,label),
+.settingsContent :where(div,section,article,form,label),
+.card :where(div,section,article,form,label){min-width:0}
+
+.pageHead,.pageHead .actions,.settingsSectionActions,.settingsInlineActions,
+.integrationProviderHead,.integrationAccountActions,.modalActions{flex-wrap:wrap}
+
+/* Long external IDs, emails, references and integration metadata should wrap by
+   words/segments, never collapse the surrounding layout. */
+.integrationAccountMain strong,.integrationAccountMain small,
+.integrationProviderHead small,.settingsSectionHero p,
+.settingsHelpText,.settingsResetPreview small{
+  max-width:100%;
+  overflow-wrap:anywhere;
+  word-break:normal;
+}
+
+/* Responsive by available card width, not by viewport width. This is important
+   in Configuración because the navigation column reduces the actual content width. */
+.integrationProviderCard{container-type:inline-size}
+@container (max-width:620px){
+  .integrationAccountRow{
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    align-items:start;
+    gap:10px;
+  }
+  .integrationAccountActions{
+    width:100%;
+    max-width:none;
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(96px,1fr));
+    justify-content:stretch;
+  }
+  .integrationAccountActions button{width:100%;min-width:0}
+}
+@container (max-width:470px){
+  .integrationProviderHead{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+  .integrationProviderHead>.secondary{width:100%;justify-content:center;margin:0}
+}
+
+/* Prefer one usable column before controls become cramped. */
+@media(max-width:1280px){
+  .settingsLayout{grid-template-columns:minmax(190px,220px) minmax(0,1fr)}
+  .integrationProviderGrid{grid-template-columns:1fr}
+}
+@media(max-width:900px){
+  .settingsLayout{display:block}
+  .settingsNav{position:static}
+}
+@media(max-width:760px){
+  .pageHead .actions,.settingsSectionActions{width:100%}
+  .settingsSectionActions>button{flex:1 1 150px}
+  .integrationAccountActions{grid-template-columns:repeat(2,minmax(0,1fr))}
+}

@@ -47,10 +47,10 @@ Deno.serve(async(req:Request)=>{
       return response({ok:true,printedAt:now,printCount:nextCount});
     }
 
-    if(action==='update_native_order'){
-      if(order.sendcloud_remote_id)return response({error:'Este pedido sigue gestionado por Sendcloud y debe actualizarse mediante su conector.'},409);
+    if(action==='update_order'||action==='update_native_order'){
+      if(order.label_created_at||order.sendcloud_parcel_id||order.shipping_remote_id)return response({error:'Solo puedes editar pedidos antes de crear la etiqueta.'},409);
       const input=body?.order||{};
-      const name=clean(input.customerName),email=clean(input.email),phone=clean(input.phone),address1=clean(input.address1),houseNumber=clean(input.houseNumber),address2=clean(input.address2),postalCode=clean(input.postalCode),city=clean(input.city),stateProvince=clean(input.stateProvince),countryCode=clean(input.countryCode).toUpperCase();
+      const name=clean(input.customerName),email=clean(input.email),phone=clean(input.phone),address1=clean(input.address??input.address1),houseNumber=clean(input.houseNumber),address2=clean(input.address2),postalCode=clean(input.postalCode),city=clean(input.city),stateProvince=clean(input.stateProvince),countryCode=clean(input.countryCode).toUpperCase();
       const weightKg=Number(input.weightKg),lengthCm=Number(input.packageLengthCm),widthCm=Number(input.packageWidthCm),heightCm=Number(input.packageHeightCm);
       if(!name||!address1||!postalCode||!city||countryCode.length!==2)return response({error:'Completa nombre, dirección, código postal, ciudad y país.'},409);
       if(!Number.isFinite(weightKg)||weightKg<=0)return response({error:'El peso debe ser mayor que 0.'},409);

@@ -3,25 +3,10 @@ import type { ShippingRule, ShippingRuleAction, ShippingRuleConditions } from '.
 
 export type { ShippingRule, ShippingRuleAction, ShippingRuleConditions } from './shippingRuleCore';
 
-export const DEFAULT_SHIPPING_RULES:Array<Omit<ShippingRule,'id'>>=[
-  {
-    name:'Baleares · Correos',
-    priority:100,
-    active:true,
-    conditions:{countryCode:'ES',postalPrefix:'07'},
-    action:{provider:'sendcloud',carrierContains:'correos',serviceIncludes:[]},
-  },
-  {
-    name:'MRW Urgent 19:00',
-    priority:200,
-    active:true,
-    conditions:{},
-    action:{provider:'mrw',carrierContains:'mrw',serviceIncludes:['urgent','19']},
-  },
-];
+export const DEFAULT_SHIPPING_RULES:Array<Omit<ShippingRule,'id'>>=[];
 
 export function defaultShippingRules():ShippingRule[]{
-  return DEFAULT_SHIPPING_RULES.map((rule,index)=>({...rule,id:`default-${index+1}`}));
+  return [];
 }
 
 const mapRule=(row:any):ShippingRule=>({
@@ -38,24 +23,10 @@ const mapRule=(row:any):ShippingRule=>({
   },
 });
 
-export async function loadShippingRules({ensureDefaults=true}:{ensureDefaults?:boolean}={}):Promise<ShippingRule[]>{
+export async function loadShippingRules(_options:{ensureDefaults?:boolean}={}):Promise<ShippingRule[]>{
   const {data,error}=await supabase.from('shipping_rules').select('*').order('priority').order('name');
   if(error)throw error;
-  if((data??[]).length||!ensureDefaults)return (data??[]).map(mapRule);
-
-  const rows=DEFAULT_SHIPPING_RULES.map(rule=>({
-    name:rule.name,
-    priority:rule.priority,
-    active:rule.active,
-    conditions:rule.conditions,
-    action:rule.action,
-  }));
-  const {error:insertError}=await supabase.from('shipping_rules').insert(rows);
-  if(insertError)throw insertError;
-
-  const {data:created,error:reloadError}=await supabase.from('shipping_rules').select('*').order('priority').order('name');
-  if(reloadError)throw reloadError;
-  return (created??[]).map(mapRule);
+  return (data??[]).map(mapRule);
 }
 
 export async function addShippingRule(input:Omit<ShippingRule,'id'>){

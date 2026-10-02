@@ -153,21 +153,20 @@ function orderCompleteness(order:FulfillmentOrder){
   return score;
 }
 function dedupeMarketplaceOrders(orders:FulfillmentOrder[]){
-  const result:FulfillmentOrder[]=[],byAmazonOrder=new Map<string,number>();
+  const result:FulfillmentOrder[]=[],byMarketplaceOrder=new Map<string,number>();
   for(const order of orders){
-    const key=order.sourceChannel==='amazon'&&order.orderNumber?order.orderNumber.trim():'';
+    const channel=order.sourceChannel;
+    const key=(channel==='amazon'||channel==='shopify')&&order.orderNumber?`${channel}:${order.orderNumber.trim()}`:'';
     if(!key){result.push(order);continue}
-    const existingIndex=byAmazonOrder.get(key);
+    const existingIndex=byMarketplaceOrder.get(key);
     if(existingIndex==null){
-      byAmazonOrder.set(key,result.length);result.push(order);continue;
+      byMarketplaceOrder.set(key,result.length);result.push(order);continue;
     }
     const current=result[existingIndex];
     const preferred=orderCompleteness(order)>orderCompleteness(current)?order:current;
     const other=preferred===order?current:order;
-    // Amazon direct and Sendcloud can expose the same marketplace order with
-    // different internal IDs. Keep one logistics row, preferring the one that
-    // has the Sendcloud linkage/recipient data, while preserving marketplace
-    // linkage from the other source when necessary.
+    // During migration a marketplace order can temporarily exist both through
+    // Sendcloud and through the direct connector. Present one operational row.
     result[existingIndex]={
       ...preferred,
       sourceIntegrationAccountId:preferred.sourceIntegrationAccountId||other.sourceIntegrationAccountId,

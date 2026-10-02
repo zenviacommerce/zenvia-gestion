@@ -613,21 +613,31 @@ Deno.serve(async(req:Request)=>{
       if(!carrier||!service)return fail('Selecciona un transportista y servicio de Envia.com.');
       const labelSize=clean(config.shipping?.labelSize);
       const printSize=labelSize==='A4'?'PAPER_A4':'PAPER_4X6';
-      // Envia validates weight as a JSON number, but some Spanish carrier
-      // adapters also require the lexical kilos format 99999.999. JSON.stringify
-      // collapses 0.890 to 0.89, so build valid JSON with an unquoted numeric
-      // literal that preserves exactly three decimals.
-      const fixedWeight=Number(pkg.weight).toFixed(3);
-      const generateBody=JSON.stringify({
-        origin,destination:dest,
-        packages:[{...pkg,weight:'__ENVIA_WEIGHT__'}],
-        settings:{printFormat:'PDF',printSize},
-        shipment:{type:1,carrier,service},
-      }).replace('"__ENVIA_WEIGHT__"',fixedWeight);
-      const payload=await enviaJson(`${c.shipBase}/ship/generate/`,c.token,{
+      const generateRequest=async(weight:number)=>enviaJson(`${c.shipBase}/ship/generate/`,c.token,{
         method:'POST',
-        body:generateBody,
+        body:JSON.stringify({
+          origin,destination:dest,packages:[{...pkg,weight}],
+          settings:{printFormat:'PDF',printSize},
+          shipment:{type:1,carrier,service},
+        }),
       });
+      let payload:any;
+      try{
+        payload=await generateRequest(Number(pkg.weight));
+      }catch(error){
+        const detail=error instanceof Error?error.message:String(error);
+        if(!/KILOS BULTO.*FORMATO INCORRECTO|99999\.999/i.test(detail))throw error;
+        // Some Spanish carrier adapters behind Envia require the serialized
+        // numeric value to visibly contain three decimal positions. JSON has no
+        // decimal-scale type, so 0.890 is normally serialized as 0.89. Retry
+        // failed format validations with a 1 g safety increment (0.891), which
+        // remains a JSON number and preserves three decimals on the wire.
+        const original=Math.max(.001,Number(pkg.weight));
+        const thousandths=Math.round(original*1000);
+        const wireSafe=(thousandths%10===0?thousandths+1:thousandths)/1000;
+        console.warn('Envia carrier weight-format retry',{carrier,service,original,wireSafe});
+        payload=await generateRequest(wireSafe);
+      }
       const rows=asRows(payload);
       const data=rows[0]||(payload?.data&&typeof payload.data==='object'?payload.data:payload);
       const tracking=clean(data?.trackingNumber||data?.tracking_number||data?.tracking);
@@ -685,7 +695,7 @@ Deno.serve(async(req:Request)=>{
     if(/not enough money|insufficient (?:balance|funds)|saldo insuficiente/i.test(message)){
       message='Saldo insuficiente en Envia.com. Recarga saldo o revisa el crédito disponible en tu cuenta antes de generar la etiqueta.';
     }else if(/KILOS BULTO.*FORMATO INCORRECTO|99999\.999/i.test(message)){
-      message='Envia.com rechazó el formato del peso del bulto. ZENVIA envía ahora el peso en kilogramos con tres decimales (por ejemplo, 1.000 kg).';
+      message='Envia.com sigue rechazando el peso para este transportista aunque ZENVIA lo envía como número en kilogramos. Se ha aplicado automáticamente el reintento de compatibilidad de 3 decimales; el rechazo procede del adaptador del transportista en Envia.com.';
     }
     const status=/Sesión no válida/.test(message)?401:/permiso|desactivado/.test(message)?403:/ya tiene una etiqueta/.test(message)?409:/Saldo insuficiente en Envia\.com/.test(message)?402:500;
     return fail(message,status);

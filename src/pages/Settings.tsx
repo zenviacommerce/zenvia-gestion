@@ -1197,7 +1197,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     },
     shopify:{
       name:'Shopify',
-      description:'Conexión directa con Shopify Admin API. Los pedidos entran en ZENVIA sin pasar por Sendcloud.',
+      description:'Conexión directa con Shopify Admin API para importar y gestionar pedidos en ZENVIA.',
       addLabel:'Conectar Shopify',
     },
     sendcloud:{
@@ -1507,7 +1507,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     <div className="settingsSectionHero"><div className="settingsSectionIcon"><PlugZap size={22}/></div><div><h2>Integraciones</h2><p>Conecta y administra varias cuentas por servicio. Las credenciales se gestionan por cuenta; aquí no se muestran secretos guardados.</p></div></div>
 
     <div className="settingsSubsection">
-      <div className="settingsSubsectionHead"><div><h3>Cuentas conectadas</h3><p>Las integraciones se agrupan por función para que sea más fácil localizar canales de venta, transportistas y servicios documentales. Shopify se conecta directamente a ZENVIA y Sendcloud queda limitado a funciones logísticas.</p></div></div>
+      <div className="settingsSubsectionHead"><div><h3>Cuentas conectadas</h3><p>Las integraciones se agrupan por función para que sea más fácil localizar canales de venta, transportistas y servicios documentales.</p></div></div>
       {compatibilityMode&&<p className="settingsHelpText">Estás viendo conexiones actuales detectadas automáticamente. Ya puedes abrir el alta de nuevas cuentas; si este entorno todavía no tiene activado el backend multicuenta, al guardar se indicará de forma explícita.</p>}
       {loading?<div className="settingsInlineLoading">Cargando cuentas…</div>:<div className="integrationCategoryList">
         {integrationGroups.map(group=><section className="integrationCategory" key={group.id}>
@@ -1574,7 +1574,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     {editorOpen&&<div className="integrationEditorBackdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)closeEditor()}}>
       <div className="integrationEditor" role="dialog" aria-modal="true" aria-label={editing?'Configurar integración':'Añadir integración'}>
         <div className="integrationEditorHead"><div className="integrationEditorTitle"><IntegrationBrandLogo provider={provider}/><div><strong>{editing?'Configurar':provider==='shopify'?'Añadir':'Conectar'} {providerMeta[provider].name}</strong><small>{provider==='shopify'
-          ?'Shopify se conecta directamente mediante Admin API. ZENVIA importa los pedidos desde Shopify sin pasar por Sendcloud.'
+          ?'Shopify se conecta directamente mediante Admin API. ZENVIA importa y gestiona los pedidos de esta tienda.'
           :editing?.legacy?'Cuenta actual detectada en el sistema existente. Los secretos se mantienen en el backend actual hasta completar la migración multicuenta.'
           :editing?'Los secretos guardados nunca se vuelven a mostrar. Déjalos vacíos para conservarlos.'
           :provider==='amazon'?'Conexión directa con Amazon SP-API. Introduce las credenciales de la cuenta Seller Central que quieras añadir.'
@@ -1639,10 +1639,10 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           </>}
 
           {provider==='shopify'&&<>
-            <div className="settingsResetPreview"><strong>Shopify directo</strong><small>ZENVIA consulta Shopify Admin API directamente. Sendcloud no participa en la entrada de pedidos ni es necesario para mantener esta conexión.</small></div>
+            <div className="settingsResetPreview"><strong>Shopify directo</strong><small>ZENVIA consulta Shopify Admin API directamente para mantener los pedidos sincronizados.</small></div>
             <div className="settingsFormGrid">
               <label className="settingsField"><span>Dominio Shopify</span><input autoComplete="off" value={shopifyDomain} onChange={e=>setShopifyDomain(e.target.value)} placeholder="tienda.myshopify.com"/><small>Usa el dominio permanente myshopify.com, no el dominio comercial.</small></label>
-              <label className="settingsField"><span>{editing?'Nuevo access token (opcional)':'Admin API access token'}</span><input type="password" autoComplete="new-password" value={shopifyAccessToken} onChange={e=>setShopifyAccessToken(e.target.value)} placeholder={editing?'Sin cambios':'shpat_…'}/><small>Token de una app de Shopify con permiso read_orders. Se guarda cifrado. Si esta tienda venía de Sendcloud, al guardar dominio y token quedará migrada a conexión directa.</small></label>
+              <label className="settingsField"><span>{editing?'Nuevo access token (opcional)':'Admin API access token'}</span><input type="password" autoComplete="new-password" value={shopifyAccessToken} onChange={e=>setShopifyAccessToken(e.target.value)} placeholder={editing?'Sin cambios':'shpat_…'}/><small>Token de una app de Shopify con permiso read_orders. Se guarda cifrado y solo se utiliza para esta conexión.</small></label>
             </div>
             <label className="settingsToggleField"><input type="checkbox" checked={syncOrders} onChange={e=>setSyncOrders(e.target.checked)}/><span><strong>Sincronizar pedidos</strong><small>Importar pedidos de Shopify directamente en ZENVIA.</small></span></label>
           </>}

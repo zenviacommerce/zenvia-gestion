@@ -1534,8 +1534,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                     {account.legacy&&<small>Conexión existente detectada automáticamente.</small>}
                     {account.provider==='amazon'&&typeof account.config?.operationalOrdersDirect==='object'&&account.config.operationalOrdersDirect!==null&&<small className={(account.config.operationalOrdersDirect as {status?:string}).status==='ready'?'integrationReadinessOk':'integrationError'}>
                       {(account.config.operationalOrdersDirect as {status?:string}).status==='ready'
-                        ?'Pedidos directos Amazon: activos · destinatario disponible para logística sin Sendcloud.'
-                        :'Pedidos directos Amazon: falta autorización PII de destinatario en Amazon. Analytics sigue sincronizando, pero Pedidos todavía necesita el origen logístico existente.'}
+                        ?'Pedidos directos Amazon: activos · destinatario disponible para logística.'
+                        :'Pedidos directos Amazon: falta autorización PII de destinatario en Amazon. Analytics sigue sincronizando, pero Pedidos no puede recuperar todavía los datos completos del destinatario.'}
                     </small>}
                     {account.lastError&&<small className="integrationError">{account.lastError}</small>}
                   </div>
@@ -1622,7 +1622,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           </>}
 
           {provider==='mrw'&&<>
-            <div className="settingsResetPreview"><strong>MRW directo</strong><small>ZENVIA generará el envío y recuperará la etiqueta desde los Web Services de MRW, sin Sendcloud. No se activará en pedidos hasta que la conexión pase la prueba.</small></div>
+            <div className="settingsResetPreview"><strong>MRW directo</strong><small>ZENVIA generará el envío y recuperará la etiqueta directamente desde los Web Services de MRW. No se activará en pedidos hasta que la conexión pase la prueba.</small></div>
             <div className="settingsFormGrid">
               <label className="settingsField"><span>{editing?'Nueva franquicia (opcional)':'Código de franquicia'}</span><input inputMode="numeric" autoComplete="off" value={mrwFranchiseCode} onChange={e=>setMrwFranchiseCode(e.target.value)} placeholder={editing?'Sin cambios':'Franquicia'}/></label>
               <label className="settingsField"><span>{editing?'Nuevo suscriptor (opcional)':'Código de suscriptor'}</span><input inputMode="numeric" autoComplete="off" value={mrwSubscriberCode} onChange={e=>setMrwSubscriberCode(e.target.value)} placeholder={editing?'Sin cambios':'Abonado'}/></label>

@@ -17,7 +17,7 @@ export function AppAgent({
 }){
   const [open,setOpen]=useState(false);
   const [messages,setMessages]=useState<AgentMessage[]>([
-    {role:'assistant',content:'Soy ZENVIA IA. Conozco la aplicación, puedo consultar tus datos y ejecutar acciones dentro de ZENVIA Gestión cuando me lo pidas.'},
+    {role:'assistant',content:'Soy ZENVIA IA. Estoy especializada exclusivamente en ZENVIA Gestión: puedo explicar la aplicación, consultar tus datos y preparar o ejecutar acciones seguras dentro de ella.'},
   ]);
   const [input,setInput]=useState('');
   const [busy,setBusy]=useState(false);
@@ -93,7 +93,7 @@ export function AppAgent({
             {busy?<LoaderCircle className="spin" size={17}/>:<Send size={17}/>}
           </button>
         </form>
-        <footer className="appAgentFooter">Las operaciones que modifican datos usan la confirmación estándar de ZENVIA antes de ejecutarse.</footer>
+        <footer className="appAgentFooter">Ámbito exclusivo: ZENVIA Gestión · Las operaciones que modifican datos usan la confirmación estándar antes de ejecutarse.</footer>
       </aside>
     </div>}
   </>;

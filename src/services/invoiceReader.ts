@@ -165,6 +165,8 @@ function normalizeOcrNumericArtifacts(value:string){
     // separators, currency or percentage context.
     .replace(/(?<=\d)[oO](?=\d|[.,%\s]|\s*(?:€|EUR)\b)/g,'0')
     .replace(/(?<=[.,\s])[oO](?=\d)/g,'0')
+    // OCR can insert whitespace after the decimal separator: "1.675, 08".
+    .replace(/(\d[.,])\s+(\d{2})(?=\s*(?:€|EUR|EUROS?)\b)/gi,'$1$2')
     // OCR frequently drops the decimal separator before a two-digit currency
     // fraction: "351 77 EUR" => "351,77 EUR".
     .replace(/(\d{1,3}(?:[.\s]\d{3})*)\s+(\d{2})(?=\s*(?:€|EUR|EUROS?)\b)/gi,'$1,$2')

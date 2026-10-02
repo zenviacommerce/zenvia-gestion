@@ -73,6 +73,7 @@ export type OrdersSettings = {
   defaultChannel: string;
   originCountryCode: string;
   defaultCarrier: string | null;
+  shippingSelectionMode: 'rules' | 'cheapest' | 'none';
   generateLabelAutomatically: boolean;
   downloadLabelAfterCreation: boolean;
   labelFilenameStrategy: LabelFilenameStrategy;
@@ -102,6 +103,7 @@ export type ShippingSettings = {
   copies: number;
   autoDownload: boolean;
   enabledCarriers: string[];
+  topOptionsCount: number;
   noValidMethodBehavior: 'manual_selection' | 'error';
   confirmShipmentAfterLabel: boolean;
   persistShippingCost: boolean;
@@ -294,6 +296,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     defaultChannel: 'manual',
     originCountryCode: 'ES',
     defaultCarrier: null,
+    shippingSelectionMode: 'rules',
     generateLabelAutomatically: false,
     downloadLabelAfterCreation: true,
     labelFilenameStrategy: 'order_number',
@@ -322,6 +325,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     copies: 1,
     autoDownload: true,
     enabledCarriers: [],
+    topOptionsCount: 3,
     noValidMethodBehavior: 'manual_selection',
     confirmShipmentAfterLabel: true,
     persistShippingCost: true,
@@ -732,13 +736,14 @@ function normalizeExpenses(input: AnyRecord | null,warnings:SettingsWarning[]):E
 
 function normalizeOrders(input:AnyRecord|null,warnings:SettingsWarning[]):OrdersSettings{
   const d=DEFAULT_APP_SETTINGS.orders;if(!input)return clone(d);
-  const keys=['defaultManualStatus','defaultChannel','originCountryCode','defaultCarrier','generateLabelAutomatically','downloadLabelAfterCreation','labelFilenameStrategy','customLabelFilenameTemplate','bulkZipFilenameTemplate','bulkScope','pushTrackingToMarketplace','markSentAfterLabel','retryTrackingConfirmation','refreshSeconds','overdueHours'];
+  const keys=['defaultManualStatus','defaultChannel','originCountryCode','defaultCarrier','shippingSelectionMode','generateLabelAutomatically','downloadLabelAfterCreation','labelFilenameStrategy','customLabelFilenameTemplate','bulkZipFilenameTemplate','bulkScope','pushTrackingToMarketplace','markSentAfterLabel','retryTrackingConfirmation','refreshSeconds','overdueHours'];
   unknownKeys(input,keys,'orders',warnings);
   return {
     defaultManualStatus:stringValue(input,'defaultManualStatus',d.defaultManualStatus,'orders.defaultManualStatus',warnings,{min:1,max:80}),
     defaultChannel:stringValue(input,'defaultChannel',d.defaultChannel,'orders.defaultChannel',warnings,{min:1,max:80}),
     originCountryCode:stringValue(input,'originCountryCode',d.originCountryCode,'orders.originCountryCode',warnings,{min:2,max:2,upper:true,pattern:/^[A-Za-z]{2}$/}),
     defaultCarrier:nullableStringValue(input,'defaultCarrier',d.defaultCarrier,'orders.defaultCarrier',warnings),
+    shippingSelectionMode:enumValue(input,'shippingSelectionMode',d.shippingSelectionMode,'orders.shippingSelectionMode',warnings,['rules','cheapest','none']),
     generateLabelAutomatically:booleanValue(input,'generateLabelAutomatically',d.generateLabelAutomatically,'orders.generateLabelAutomatically',warnings),
     downloadLabelAfterCreation:booleanValue(input,'downloadLabelAfterCreation',d.downloadLabelAfterCreation,'orders.downloadLabelAfterCreation',warnings),
     labelFilenameStrategy:enumValue(input,'labelFilenameStrategy',d.labelFilenameStrategy,'orders.labelFilenameStrategy',warnings,['order_number','sku','product','customer_order','custom']),
@@ -755,7 +760,7 @@ function normalizeOrders(input:AnyRecord|null,warnings:SettingsWarning[]):Orders
 
 function normalizeShipping(input:AnyRecord|null,warnings:SettingsWarning[]):ShippingSettings{
   const d=DEFAULT_APP_SETTINGS.shipping;if(!input)return clone(d);
-  const keys=['senderName','senderAddress','senderPostalCode','senderCity','senderCountryCode','fallbackWeightKg','packageLengthCm','packageWidthCm','packageHeightCm','weightUnit','labelSize','labelOrientation','copies','autoDownload','enabledCarriers','noValidMethodBehavior','confirmShipmentAfterLabel','persistShippingCost'];
+  const keys=['senderName','senderAddress','senderPostalCode','senderCity','senderCountryCode','fallbackWeightKg','packageLengthCm','packageWidthCm','packageHeightCm','weightUnit','labelSize','labelOrientation','copies','autoDownload','enabledCarriers','topOptionsCount','noValidMethodBehavior','confirmShipmentAfterLabel','persistShippingCost'];
   unknownKeys(input,keys,'shipping',warnings);
   return {
     senderName:stringValue(input,'senderName',d.senderName,'shipping.senderName',warnings,{max:160}),
@@ -773,6 +778,7 @@ function normalizeShipping(input:AnyRecord|null,warnings:SettingsWarning[]):Ship
     copies:numberValue(input,'copies',d.copies,'shipping.copies',warnings,1,20,true),
     autoDownload:booleanValue(input,'autoDownload',d.autoDownload,'shipping.autoDownload',warnings),
     enabledCarriers:stringArrayValue(input,'enabledCarriers',d.enabledCarriers,'shipping.enabledCarriers',warnings),
+    topOptionsCount:numberValue(input,'topOptionsCount',d.topOptionsCount,'shipping.topOptionsCount',warnings,1,10,true),
     noValidMethodBehavior:enumValue(input,'noValidMethodBehavior',d.noValidMethodBehavior,'shipping.noValidMethodBehavior',warnings,['manual_selection','error']),
     confirmShipmentAfterLabel:booleanValue(input,'confirmShipmentAfterLabel',d.confirmShipmentAfterLabel,'shipping.confirmShipmentAfterLabel',warnings),
     persistShippingCost:booleanValue(input,'persistShippingCost',d.persistShippingCost,'shipping.persistShippingCost',warnings),

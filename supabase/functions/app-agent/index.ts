@@ -43,6 +43,18 @@ async function loadAgentKnowledge(admin:any,query:string,allowedPages:string[]){
     });
   }catch{return [];}
 }
+async function loadAgentTools(admin:any,allowedPages:string[]){
+  try{
+    const {data,error}=await admin.from('agent_tool_registry')
+      .select('tool_key,domain,display_name,description,permission,action_type,requires_confirmation,destructive,handler,args_schema,result_contract')
+      .eq('app','gestion').eq('enabled',true).order('tool_key');
+    if(error)throw error;
+    return (data||[]).filter((tool:any)=>!tool.permission||allowedPages.includes(String(tool.permission)));
+  }catch{return [];}
+}
+function agentToolEnabled(ctx:any,key:string){
+  return Array.isArray(ctx?.tools)&&ctx.tools.some((tool:any)=>String(tool?.tool_key)===key);
+}
 function orderStatusCodeRow(order:any){
   return clean(order?.source_status,120).toLowerCase();
 }
@@ -458,23 +470,26 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:an
     if(matches.length>1)return localReply('He encontrado varios proveedores: '+matches.map((p:any)=>String(p.name)).join(', ')+'.');
   }
 
-  if(hasAny(text,['sincroniza los pedidos','sincronizar pedidos','actualiza los pedidos','trae los pedidos'])&&allowed.includes('orders'))return localReply('He preparado la sincronización de pedidos. Te pediré confirmación antes de ejecutarla.',localAction('sync_orders','orders'));
+  if(hasAny(text,['sincroniza los pedidos','sincronizar pedidos','actualiza los pedidos','trae los pedidos'])&&allowed.includes('orders')){
+    if(!agentToolEnabled(ctx,'orders.sync'))return localReply('La herramienta de sincronización de pedidos no está habilitada para tu sesión.');
+    return localReply('He preparado la sincronización de pedidos. Te pediré confirmación antes de ejecutarla.',localAction('sync_orders','orders'));
+  }
 
-  if(hasAny(text,['crea un proveedor','crear proveedor','nuevo proveedor','añade un proveedor','anade un proveedor'])&&allowed.includes('suppliers')){
+  if(hasAny(text,['crea un proveedor','crear proveedor','nuevo proveedor','añade un proveedor','anade un proveedor'])&&allowed.includes('suppliers')&&agentToolEnabled(ctx,'suppliers.create')){
     const name=extractNamed(raw,'supplier');if(!name)return localReply('Dime al menos el nombre del proveedor que quieres crear.');
     return localReply('He preparado el alta del proveedor “'+name+'”.',localAction('create_supplier','suppliers',{name,taxId:taxIdFrom(raw)||null,email:emailFrom(raw)||null}));
   }
-  if(hasAny(text,['crea un cliente','crear cliente','nuevo cliente','añade un cliente','anade un cliente'])&&allowed.includes('clients')){
+  if(hasAny(text,['crea un cliente','crear cliente','nuevo cliente','añade un cliente','anade un cliente'])&&allowed.includes('clients')&&agentToolEnabled(ctx,'clients.create')){
     const name=extractNamed(raw,'client');if(!name)return localReply('Dime al menos el nombre del cliente que quieres crear.');
     return localReply('He preparado el alta del cliente “'+name+'”.',localAction('create_client','clients',{name,taxId:taxIdFrom(raw)||null,email:emailFrom(raw)||null}));
   }
-  if(hasAny(text,['crea un producto','crear producto','nuevo producto','añade un producto','anade un producto'])&&allowed.includes('products')){
+  if(hasAny(text,['crea un producto','crear producto','nuevo producto','añade un producto','anade un producto'])&&allowed.includes('products')&&agentToolEnabled(ctx,'products.create')){
     const name=extractNamed(raw,'product');if(!name)return localReply('Dime al menos el nombre del producto que quieres crear.');
     return localReply('He preparado el alta del producto “'+name+'”.',localAction('create_product','products',{name}));
   }
 
   const targetStatus:LocalActionParams['status']=hasAny(text,['contabilizada','contabilizado','contabilizar'])?'accounted':hasAny(text,['revisada','revisado','revisar'])?'reviewed':null;
-  if(targetStatus&&hasAny(text,['factura','gasto'])&&ctx.expenses&&allowed.includes('invoices')){
+  if(targetStatus&&hasAny(text,['factura','gasto'])&&ctx.expenses&&allowed.includes('invoices')&&agentToolEnabled(ctx,'expenses.set_status')){
     const matches=(ctx.expenses.recent||[]).filter((inv:any)=>{
       const number=norm(String(inv.invoice_number||'')),supplier=norm(String(inv.supplier_name||''));
       return (number&&text.includes(number))||(supplier&&text.includes(supplier));
@@ -550,11 +565,13 @@ Deno.serve(async(req:Request)=>{
       .select('preferences').eq('user_id',profile.user_id).maybeSingle();
     if(preferenceError)throw preferenceError;
     const periods=resolveAgentPeriods(preferenceRow?.preferences||{},currentPage);
-    const [businessContext,knowledge]=await Promise.all([
+    const [businessContext,knowledge,agentTools]=await Promise.all([
       loadBusinessContext(admin,String(profile.data_owner_id),allowedPages,periods),
       loadAgentKnowledge(admin,message,allowedPages),
+      loadAgentTools(admin,allowedPages),
     ]);
     (businessContext as any).knowledge=knowledge;
+    (businessContext as any).tools=agentTools;
     const history=sanitizedHistory(body?.history);
     const normalizedMessage=norm(message);
     if(allowedPages.includes('amazon')&&hasAny(normalizedMessage,['amazon','marketplace'])){

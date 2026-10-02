@@ -227,13 +227,63 @@ function localParams():LocalActionParams{
 function localAction(type:LocalAction['type']='none',target:string|null=null,params:Partial<LocalActionParams>={}):LocalAction{
   return {type,target,params:{...localParams(),...params}};
 }
-function localReply(answer:string,action=localAction()){
-  return {ok:true,answer,action,engine:'zenvia-local-v1'};
+function localReply(answer:string,action=localAction(),domain:AgentDomain='general'){
+  return {ok:true,answer,action,engine:'zenvia-local-router-v2',domain};
 }
 function norm(value:string){
   return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[¿?¡!.,;:()[\]{}"]/g,' ').replace(/\s+/g,' ').trim();
 }
 function hasAny(text:string,terms:string[]){return terms.some(term=>text.includes(norm(term)));}
+type AgentDomain='general'|'orders_shipping'|'expenses'|'sales_clients'|'catalog_suppliers'|'amazon'|'support'|'settings_admin';
+type KnowledgeArticle={domain:AgentDomain;page:string|null;keywords:string[];answer:string};
+
+const APP_KNOWLEDGE:KnowledgeArticle[]=[
+  {domain:'general',page:'dashboard',keywords:['resumen','dashboard','kpi','pendiente','inicio'],answer:'Resumen concentra KPIs, alertas y accesos rápidos. Los datos respetan los filtros y permisos del usuario.'},
+  {domain:'orders_shipping',page:'orders',keywords:['pedido','pedidos','envio','envíos','etiqueta','tracking','transportista','mrw','envia','sendcloud','shopify'],answer:'Pedidos centraliza pedidos de los canales conectados y la logística. ZENVIA mantiene los datos del pedido como fuente de verdad; al preparar un envío compara proveedores habilitados y solo usa el proveedor elegido para cotizar o generar la etiqueta.'},
+  {domain:'expenses',page:'invoices',keywords:['gasto','gastos','factura de gasto','facturas de gasto','gmail','iva','proveedor factura','importar factura'],answer:'Gastos gestiona facturas recibidas: importación individual o masiva, Gmail, revisión, categoría, proveedor, estado contable, pago, PDF y líneas detectadas. El motor de lectura debe pedir revisión cuando no puede demostrar un dato fiscal o identificativo.'},
+  {domain:'sales_clients',page:'sales',keywords:['facturacion','facturación','factura emitida','venta','cliente','cobro'],answer:'Facturación gestiona facturas emitidas, vencimientos, cobros y documentos de venta. Clientes mantiene identidad fiscal, contacto y valores comerciales reutilizados por la facturación.'},
+  {domain:'catalog_suppliers',page:'products',keywords:['producto','productos','sku','ean','coste','precio','proveedor','proveedores'],answer:'Productos mantiene catálogo, SKU/EAN, unidad, IVA, costes, precios y vinculaciones. Proveedores mantiene identidad fiscal, contacto, tipo y categoría habitual.'},
+  {domain:'amazon',page:'amazon',keywords:['amazon','asin','seller','marketplace','rentabilidad','reembolso','inventario'],answer:'Amazon reúne sincronización y analítica del canal: pedidos, unidades, ventas, reembolsos, rentabilidad, inventario y vinculaciones de productos, siempre limitado a los datos disponibles del workspace.'},
+  {domain:'support',page:'support',keywords:['soporte','ticket','tickets','incidencia'],answer:'Soporte permite abrir y seguir tickets, adjuntos, estados y actividad. Los administradores disponen de las acciones adicionales que permita su rol.'},
+  {domain:'settings_admin',page:'settings',keywords:['configuracion','configuración','integracion','integración','preferencias','usuario','permiso','administracion','auditoria','tema','modo oscuro'],answer:'Configuración concentra identidad, facturación, gastos, pedidos, envíos, productos, clientes, proveedores, integraciones, alertas y preferencias. Administración gestiona usuarios, permisos y auditoría; el agente nunca debe saltarse los permisos del usuario.'},
+];
+
+function basicSocial(text:string){
+  return /^(hola|buenas|buenos dias|buen dia|hey|hello|que tal|qué tal|gracias|muchas gracias|perfecto|genial|vale|ok|okay|adios|adiós|hasta luego)(\s+zenvia)?$/.test(text);
+}
+function routeAgentDomain(text:string,currentPage:string):AgentDomain{
+  let best:{domain:AgentDomain;score:number}|null=null;
+  for(const article of APP_KNOWLEDGE){
+    let score=article.page===currentPage?1:0;
+    for(const keyword of article.keywords)if(text.includes(norm(keyword)))score+=keyword.includes(' ')?3:2;
+    if(!best||score>best.score)best={domain:article.domain,score};
+  }
+  return best&&best.score>0?best.domain:'general';
+}
+function appScopeEvidence(text:string){
+  const appWords=[
+    'zenvia','pedido','envio','etiqueta','tracking','transportista','mrw','envia','sendcloud','shopify','amazon','marketplace',
+    'gasto','factura','iva','cliente','producto','sku','ean','proveedor','soporte','ticket','configuracion','integracion',
+    'usuario','permiso','auditoria','dashboard','resumen','kpi','gmail','cobro','venta','inventario','reembolso','rentabilidad'
+  ];
+  return appWords.some(word=>text.includes(norm(word)));
+}
+function outOfScopeReply(){
+  return 'Solo puedo ayudarte con ZENVIA Gestión y con los datos, procesos y acciones disponibles dentro de la aplicación. Si quieres, dime qué módulo o tarea de ZENVIA necesitas resolver.';
+}
+function knowledgeAnswer(text:string,currentPage:string){
+  const domain=routeAgentDomain(text,currentPage);
+  const candidates=APP_KNOWLEDGE.filter(item=>item.domain===domain);
+  let best=candidates[0];
+  let bestScore=-1;
+  for(const article of candidates){
+    let score=article.page===currentPage?1:0;
+    for(const keyword of article.keywords)if(text.includes(norm(keyword)))score+=keyword.includes(' ')?3:2;
+    if(score>bestScore){best=article;bestScore=score;}
+  }
+  return best?.answer||null;
+}
+
 function pageAlias(text:string){
   const aliases:Record<string,string[]>={
     dashboard:['resumen','inicio','dashboard','escritorio'],
@@ -305,6 +355,17 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:an
   }
   if(/^(gracias|muchas gracias|perfecto|genial|vale|ok|okay)$/.test(text)){
     return localReply('De nada. Dime qué quieres consultar o hacer en ZENVIA Gestión.');
+  }
+
+  // Ámbito estricto: el agente no responde cultura general, programación,
+  // noticias, recetas ni otros productos. Solo cortesía básica queda fuera del dominio.
+  if(!basicSocial(text)&&!appScopeEvidence(contextual)){
+    return localReply(outOfScopeReply());
+  }
+
+  // Una sola pregunta aclaratoria cuando una orden corta no identifica objeto/acción.
+  if(text.split(' ').length<=3&&hasAny(text,['hazlo','crealo','créalo','cambialo','cámbialo','borralo','bórralo','arreglalo','arréglalo'])&&!previousUser){
+    return localReply('¿Qué elemento o acción concreta de ZENVIA quieres que gestione?');
   }
 
   if(hasAny(text,['como funciona la aplicacion','cómo funciona la aplicación','explicame la aplicacion','explícame la aplicación','que es zenvia gestion','qué es zenvia gestión','como funciona zenvia gestion','cómo funciona zenvia gestión'])){
@@ -436,7 +497,9 @@ function processLocalAgent(raw:string,ctx:any,allowed:string[],ui:any,history:an
 
   if(mentionedPage&&allowed.includes(mentionedPage))return localReply(helpForPage(mentionedPage));
 
-  return localReply('No he encontrado una respuesta exacta para esa pregunta con el contexto disponible. Puedo ayudarte con cualquier módulo de ZENVIA Gestión; dime qué dato buscas o qué quieres hacer y, si puedo consultarlo o ejecutarlo de forma segura, lo haré.');
+  const grounded=knowledgeAnswer(contextual,currentPage);
+  if(grounded)return localReply(grounded,localAction(),routeAgentDomain(contextual,currentPage));
+  return localReply('No tengo documentada una respuesta fiable para eso dentro de ZENVIA Gestión. Dime la pantalla, campo o mensaje exacto y te indicaré la alternativa disponible sin inventar funciones.');
 }
 
 Deno.serve(async(req:Request)=>{

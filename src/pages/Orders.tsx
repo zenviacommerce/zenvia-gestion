@@ -103,8 +103,40 @@ function isReadyForDispatch(order:FulfillmentOrder){
   return raw.includes('ready to send')||raw.includes('ready for shipment')||raw.includes('announced')||raw.includes('being announced')||raw.includes('no label');
 }
 function isProcessedOrder(order:FulfillmentOrder){
-  if(isReadyForDispatch(order))return false;
-  const status=orderStatusCode(order);return status==='fulfilled'||status==='shipped'||status==='delivered';
+  const raw=`${order.trackingStatusCode||''} ${order.trackingStatusMessage||''}`.toLowerCase().replace(/[_-]+/g,' ');
+  // Once a logistics label exists, the physical carrier status is authoritative.
+  // Marketplaces such as Amazon can report "Shipped" as soon as tracking is
+  // confirmed, before the carrier has actually collected the parcel.
+  if(hasShippingLabel(order)){
+    if(
+      raw.includes('created')||
+      raw.includes('ready to send')||
+      raw.includes('ready for shipment')||
+      raw.includes('announced')||
+      raw.includes('being announced')||
+      raw.includes('pending')||
+      raw.includes('no label')
+    )return false;
+    if(
+      raw.includes('picked up')||
+      raw.includes('shipment picked up')||
+      raw.includes('in transit')||
+      raw.includes('parcel en route')||
+      raw.includes('sorting centre')||
+      raw.includes('sorting center')||
+      raw.includes('being sorted')||
+      raw.includes('driver en route')||
+      raw.includes('out for delivery')||
+      raw.includes('awaiting customer pickup')||
+      raw.includes('delivered')||
+      raw.includes('shipment collected by customer')
+    )return true;
+    // If the carrier has not given us a movement event yet, keep it in
+    // Etiquetados even if the marketplace source status already says Shipped.
+    return false;
+  }
+  const status=orderStatusCode(order);
+  return status==='fulfilled'||status==='shipped'||status==='delivered';
 }
 function isLabelledOrder(order:FulfillmentOrder){return hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);}
 function isPendingOrder(order:FulfillmentOrder){return !hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);}
@@ -125,8 +157,8 @@ function trackingState(order:FulfillmentOrder){
   if(raw.includes('parcel en route')||raw.includes('en route to sorting')||raw.includes('picked up by driver')||raw.includes('shipment picked up')||raw.includes('in transit'))return {label:'En tránsito',className:'transit'};
   if(raw.includes('address invalid')||raw.includes('attempt failed')||raw.includes('announcement failed')||raw.includes('unable to deliver')||raw.includes('exception')||raw.includes('error collecting')||raw.includes('refused')||raw.includes('returned to sender')||raw.includes('delivery delayed'))return {label:'Incidencia',className:'issue'};
   if(raw.includes('cancel'))return {label:'Cancelado',className:'cancelled'};
-  if(raw.includes('ready to send')||raw.includes('ready for shipment')||raw.includes('announced')||raw.includes('being announced')||raw.includes('no label'))return {label:'Preparado',className:'ready'};
-  if(order.trackingStatusMessage)return {label:order.trackingStatusMessage,className:'transit'};
+  if(raw.includes('created')||raw.includes('ready to send')||raw.includes('ready for shipment')||raw.includes('announced')||raw.includes('being announced')||raw.includes('no label'))return {label:'Preparado',className:'ready'};
+  if(order.trackingStatusMessage)return {label:order.trackingStatusMessage,className:'none'};
   return {label:'Pendiente de seguimiento',className:'none'};
 }
 function trackingFilterCode(order:FulfillmentOrder):Exclude<TrackingFilter,'all'>{

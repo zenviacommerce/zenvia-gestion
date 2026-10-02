@@ -6,16 +6,20 @@ export function isTextOverflowing(element:HTMLElement){
 }
 
 export function tooltipTextFor(element:HTMLElement){
+  const explicit=element.getAttribute('data-zenvia-tooltip');
+  if(explicit)return explicit.replace(/\s+/g,' ').trim();
   return (element.textContent||'').replace(/\s+/g,' ').trim();
 }
 
 export function isTooltipEligible(element:HTMLElement){
-  if(element.closest(INTERACTIVE_SELECTOR)||element.closest(ACTION_SELECTOR))return false;
+  const explicit=element.hasAttribute('data-zenvia-tooltip');
+  if(!explicit&&(element.closest(INTERACTIVE_SELECTOR)||element.closest(ACTION_SELECTOR)))return false;
   if(element.hidden||element.getAttribute('aria-hidden')==='true')return false;
   const text=tooltipTextFor(element);
   if(!text)return false;
   const style=window.getComputedStyle(element);
   if(style.display==='none'||style.visibility==='hidden')return false;
+  if(explicit)return true;
   const lineClamp=Number.parseInt(style.webkitLineClamp||'0',10)>0;
   const singleLineClip=style.textOverflow==='ellipsis'||((style.overflowX==='hidden'||style.overflowX==='clip')&&style.whiteSpace==='nowrap');
   return singleLineClip||lineClamp;

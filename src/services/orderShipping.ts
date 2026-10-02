@@ -255,18 +255,29 @@ export function shippingPriceForOrder(order:FulfillmentOrder,preview:ShippingPri
 export function trackingUrlForOrder(order:FulfillmentOrder):string|null{
   const stored=clean(order.trackingUrl);
   if(stored){
-    try{const url=new URL(stored);if(['https:','http:'].includes(url.protocol))return url.href}catch{/* Use the shipment identifiers below. */}
+    try{
+      const url=new URL(stored);
+      const host=url.hostname.toLowerCase();
+      const aggregator=['envia.com','sendcloud.com','sendcloud.sc'].some(domain=>host===domain||host.endsWith(`.${domain}`));
+      // Preserve carrier deep links, but replace aggregator tracking pages with
+      // the actual carrier's public tracking site regardless of label provider.
+      if(['https:','http:'].includes(url.protocol)&&!aggregator)return url.href;
+    }catch{/* Use the carrier and shipment identifiers below. */}
   }
   const tracking=clean(order.trackingNumber);
   if(!tracking)return null;
-  if(order.shippingProvider==='envia')return 'https://envia.com/es-ES/tracking';
-  const carrier=clean(order.carrierCode||order.carrierName||order.shippingOptionCode?.split(':')[0]).toLowerCase();
-  if(order.shippingProvider==='sendcloud'||(!order.shippingProvider&&order.sendcloudParcelId)){
-    if(!carrier)return null;
-    const params=new URLSearchParams({carrier,code:tracking,destination:clean(order.shippingAddress?.country_code),lang:'es-es',source:clean(order.shippingAddress?.country_code)||'ES',type:'parcel',verification:clean(order.shippingAddress?.postal_code)});
-    return `https://tracking.eu-central-1-0.sendcloud.sc/forward?${params}`;
-  }
+  const carrier=tariffKey([order.carrierCode,order.carrierName].filter(Boolean).join(' ')||order.shippingOptionCode?.split(':')[0]);
+  const code=encodeURIComponent(tracking);
   if(carrier.includes('mrw'))return 'https://www.mrw.es/seguimiento/';
-  if(carrier.includes('correos'))return `https://www.correos.es/comun/localizador/track.asp?numero=${encodeURIComponent(tracking)}`;
+  // Correos Express and Correos are different carriers with different trackers.
+  if(/correos-?express/.test(carrier))return 'https://s.correosexpress.com/';
+  if(carrier.includes('correos'))return `https://www.correos.es/comun/localizador/track.asp?numero=${code}`;
+  if(carrier.includes('seur'))return 'https://www.seur.com/miseur/mis-envios';
+  if(carrier.includes('dhl'))return 'https://www.dhl.com/es-es/home/seguimiento.html';
+  if(/(?:^|-)ups(?:-|$)/.test(carrier))return 'https://www.ups.com/track?loc=es_ES';
+  if(carrier.includes('fedex'))return 'https://www.fedex.com/es-es/tracking.html';
+  if(/ctt-?express/.test(carrier))return 'https://www.cttexpress.com/localizador-de-envios/';
+  if(carrier.includes('ctt'))return 'https://www.ctt.pt/feapl_2/app/open/objectSearch/objectSearch.jspx';
+  if(carrier.includes('gls'))return `https://www.gls-spain.es/es/ayuda/seguimiento-envio/?match=${code}`;
   return null;
 }

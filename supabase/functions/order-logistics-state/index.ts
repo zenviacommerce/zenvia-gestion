@@ -33,7 +33,60 @@ Deno.serve(async(req:Request)=>{
   const admin=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
   try{
     const caller=await authenticate(req,admin),body=await req.json().catch(()=>({}));
-    const action=clean(body?.action),orderId=clean(body?.orderId);
+    const action=clean(body?.action);
+
+    if(action==='create_manual_order'){
+      const input=body?.order||{};
+      const name=clean(input.customerName),email=clean(input.email),phone=clean(input.phone);
+      const address1=clean(input.address),houseNumber=clean(input.houseNumber),address2=clean(input.address2);
+      const postalCode=clean(input.postalCode),city=clean(input.city),countryCode=clean(input.countryCode||'ES').toUpperCase();
+      const weightKg=Number(input.weightKg);
+      if(!name||!address1||!postalCode||!city||countryCode.length!==2)return response({error:'Completa nombre, dirección, código postal, ciudad y país.'},409);
+      if(!Number.isFinite(weightKg)||weightKg<=0)return response({error:'El peso debe ser mayor que 0.'},409);
+      const items=(Array.isArray(input.items)?input.items:[]).map((item:any,index:number)=>{
+        const quantity=Math.max(1,Math.floor(Number(item?.quantity)||1));
+        const unitPrice=Math.max(0,Number(item?.unitPrice)||0);
+        return {name:clean(item?.name)||`Producto ${index+1}`,sku:clean(item?.sku)||null,quantity,unit_price:unitPrice,total_price:{value:Number((quantity*unitPrice).toFixed(2)),currency:'EUR'}};
+      });
+      if(!items.length)return response({error:'Añade al menos un producto al pedido.'},409);
+      const total=Number(items.reduce((sum:number,item:any)=>sum+Number(item.total_price.value||0),0).toFixed(2));
+      const now=new Date().toISOString(),localId=crypto.randomUUID();
+      const orderNumber=clean(input.orderNumber)||`MAN-${now.slice(0,10).replaceAll('-','')}-${localId.slice(0,6).toUpperCase()}`;
+      const orderIdValue=`manual-${localId}`;
+      const shippingAddress={name,company_name:clean(input.companyName)||null,address_line_1:address1,house_number:houseNumber||null,address_line_2:address2||null,postal_code:postalCode,city,state_province_code:null,country_code:countryCode,email:email||null,phone_number:phone||null};
+      const rawPayload={source:'zenvia',shipping_details:{measurement:{weight:{value:Number(weightKg.toFixed(3)),unit:'kg'}}}};
+      const row={
+        owner_id:caller.data_owner_id,
+        sendcloud_id:`zenvia:${localId}`,
+        sendcloud_remote_id:null,
+        shipping_integration_account_id:null,
+        source_integration_account_id:null,
+        order_id:orderIdValue,
+        order_number:orderNumber,
+        integration_id:0,
+        integration_name:'ZENVIA Gestión',
+        integration_type:'zenvia',
+        source_channel:'other',
+        source_status:'pending',
+        order_created_at:now,
+        order_updated_at:now,
+        customer_name:name,
+        customer_email:email||null,
+        customer_phone:phone||null,
+        shipping_address:shippingAddress,
+        billing_address:{},
+        items,
+        total_amount:total,
+        currency:'EUR',
+        raw_payload:rawPayload,
+        last_synced_at:now,
+      };
+      const {data:saved,error:saveError}=await admin.from('fulfillment_orders').insert(row).select('id').single();
+      if(saveError)throw saveError;
+      return response({ok:true,id:saved.id,sendcloudId:null,orderNumber});
+    }
+
+    const orderId=clean(body?.orderId);
     if(!orderId)return response({error:'Falta el pedido.'},400);
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('owner_id',caller.data_owner_id).eq('id',orderId).maybeSingle();
     if(error)throw error;

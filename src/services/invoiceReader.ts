@@ -321,7 +321,30 @@ async function ocrPdf(pdf: any, onProgress?: (message: string) => void): Promise
       enhanceOcrCanvas(canvas);
       const blob = await new Promise<Blob>((resolve, reject) => canvas.toBlob(value => value ? resolve(value) : reject(new Error('No se pudo preparar la página para OCR.')), 'image/png'));
       const { data } = await worker.recognize(blob);
-      pages.push(data.text);
+      let pageText=data.text||'';
+
+      // Scanned invoices often contain a small invoice-number/date box in the
+      // upper area that full-page OCR misses even when totals are read correctly.
+      // Re-read only that header region at higher effective resolution when the
+      // first pass has no reliable invoice/date evidence.
+      const hasInvoiceNumber=/\b(?:factura|invoice)\s*(?:n[ºo°]\.?|n[uú]m(?:ero)?\.?|no\.?|number|#)?\s*[:#-]?\s*[A-Z0-9][A-Z0-9._\/-]{2,}\b/i.test(pageText)
+        ||/\b\d{2}[\/-]\d{2}[\/-](?:\d{2}|\d{4})\s+\d{5,12}\b/.test(pageText);
+      const hasDate=/\b\d{1,2}[\/-]\d{1,2}[\/-](?:\d{2}|\d{4})\b/.test(pageText);
+      if(pageNumber===1&&(!hasInvoiceNumber||!hasDate)){
+        const header=document.createElement('canvas');
+        header.width=canvas.width;
+        header.height=Math.max(1,Math.round(canvas.height*.46));
+        const headerContext=header.getContext('2d',{willReadFrequently:true});
+        if(headerContext){
+          headerContext.drawImage(canvas,0,0,canvas.width,header.height,0,0,header.width,header.height);
+          enhanceOcrCanvas(header);
+          const headerBlob=await new Promise<Blob>((resolve,reject)=>header.toBlob(value=>value?resolve(value):reject(new Error('No se pudo preparar la cabecera para OCR.')),'image/png'));
+          const headerResult=await worker.recognize(headerBlob);
+          const headerText=headerResult.data.text||'';
+          if(headerText.trim())pageText+='\n'+headerText;
+        }
+      }
+      pages.push(pageText);
     }
   } finally {
     await worker.terminate();

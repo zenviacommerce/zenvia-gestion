@@ -204,6 +204,16 @@ function orderWeightKg(order:any,shipping:any){
   if(value>0)return unit==='g'?value/1000:(unit==='lb'||unit==='lbs'?value*0.45359237:value);
   return Math.max(.001,number(shipping?.fallbackWeightKg,1));
 }
+function addressNumber(explicit:unknown,street:unknown){
+  const direct=clean(explicit);
+  if(direct)return direct;
+  const value=clean(street);
+  if(!value)return 'S/N';
+  // Envia requires a separate address.number even when the number is already
+  // embedded in the street text (e.g. "Poligono ..., Nave 44").
+  const matches=[...value.matchAll(/\b\d+[A-Za-z]?\b/g)];
+  return matches.length?matches[matches.length-1][0]:'S/N';
+}
 function contentName(order:any){
   const items=Array.isArray(order?.items)?order.items:[];
   const labels=items.map((item:any)=>clean(item?.name||item?.description||item?.sku)).filter(Boolean);
@@ -212,12 +222,14 @@ function contentName(order:any){
 function sender(config:any){
   const s=config.shipping||{},b=config.business||{};
   const country=clean(s.senderCountryCode||b.country_code||'ES').toUpperCase();
+  const street=clean(s.senderAddress||b.address_line1);
   return {
     name:clean(s.senderName||b.trade_name||b.legal_name)||'Remitente',
     company:clean(b.trade_name||b.legal_name)||undefined,
     phone:normalizePhone(b.phone,country),
     email:clean(b.email)||undefined,
-    street:clean(s.senderAddress||b.address_line1),
+    street,
+    number:addressNumber(s.senderHouseNumber||s.senderNumber||b.house_number||b.address_number,street),
     city:clean(s.senderCity||b.city),
     state:clean(b.province)||undefined,
     country,
@@ -226,12 +238,14 @@ function sender(config:any){
 }
 function destination(order:any){
   const a=order.shipping_address||{},country=clean(a.country_code).toUpperCase();
+  const street=clean(a.address_line_1);
   return {
     name:clean(order.customer_name||a.name)||'Cliente',
     company:clean(a.company_name)||undefined,
     phone:normalizePhone(order.customer_phone||a.phone_number,country),
     email:clean(order.customer_email||a.email)||undefined,
-    street:[clean(a.address_line_1),clean(a.house_number)].filter(Boolean).join(' '),
+    street,
+    number:addressNumber(a.house_number,street),
     city:clean(a.city),
     state:clean(a.state_province_code||a.state)||undefined,
     country,
@@ -257,10 +271,12 @@ function packageFor(order:any,shipping:any){
 function validatePayload(origin:any,dest:any){
   const missing:string[]=[];
   if(!origin.street)missing.push('dirección del remitente');
+  if(!origin.number)missing.push('número del remitente');
   if(!origin.city)missing.push('ciudad del remitente');
   if(!origin.postalCode)missing.push('código postal del remitente');
   if(!origin.phone)missing.push('teléfono del remitente');
   if(!dest.street)missing.push('dirección del destinatario');
+  if(!dest.number)missing.push('número del destinatario');
   if(!dest.city)missing.push('ciudad del destinatario');
   if(!dest.postalCode)missing.push('código postal del destinatario');
   if(!dest.country)missing.push('país del destinatario');

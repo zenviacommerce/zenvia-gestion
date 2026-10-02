@@ -191,7 +191,10 @@ function LabelModal({order,options,tariffs,message,loading,preferredOption,onClo
   const priced=options.filter(option=>option.price!=null&&Number.isFinite(option.price)&&Number(option.price)>0).sort((a,b)=>(a.price??Number.MAX_VALUE)-(b.price??Number.MAX_VALUE));
   const cheapest=priced[0]||null;
   const preferredKey=shippingOptionKey(preferredOption);
-  const firstUsable=preferredOption||cheapest||options.find(option=>!/^unstamped(?:\s+letter)?$/i.test(option.name||''))||options[0]||null;
+  const selectionMode=settings.orders.shippingSelectionMode;
+  const firstUsable=selectionMode==='none'
+    ?null
+    :preferredOption||cheapest||options.find(option=>!/^unstamped(?:\s+letter)?$/i.test(option.name||''))||options[0]||null;
   const [selectedKey,setSelectedKey]=useState(()=>shippingOptionKey(firstUsable));
 
   useEffect(()=>{
@@ -213,8 +216,8 @@ function LabelModal({order,options,tariffs,message,loading,preferredOption,onClo
         {options.length>0&&<section className="ordersComparison">
           <div className="ordersComparisonHead"><div><strong>Opciones de envío</strong><span>Ordenadas por precio final para que puedas elegir directamente la opción más conveniente.</span></div><small>{priced.length?priced.length+' opciones con precio':'Sin precios disponibles'}</small></div>
           {priced.length>0&&<div className="ordersBestOptions">
-            <div className="ordersBestOptionsTitle"><strong>Mejores opciones</strong><span>Las 3 tarifas más económicas disponibles ahora mismo.</span></div>
-            <div className="ordersBestOptionsGrid">{priced.slice(0,3).map((option,index)=>{
+            <div className="ordersBestOptionsTitle"><strong>Mejores opciones</strong><span>Las {settings.shipping.topOptionsCount} tarifas más económicas disponibles ahora mismo.</span></div>
+            <div className="ordersBestOptionsGrid">{priced.slice(0,settings.shipping.topOptionsCount).map((option,index)=>{
               const isSelected=shippingOptionKey(option)===selectedKey;
               const tariff=estimateTransportTariffForOption(order,tariffs,option);
               return <button type="button" className={'ordersBestOption '+(isSelected?'selected':'')} aria-pressed={isSelected} key={'best-'+shippingOptionKey(option)} onClick={()=>selectOption(option)}>
@@ -234,7 +237,7 @@ function LabelModal({order,options,tariffs,message,loading,preferredOption,onClo
             const rank=option.price!=null?priced.findIndex(item=>shippingOptionKey(item)===shippingOptionKey(option))+1:0;
             return <button type="button" className={'ordersComparisonRow '+(isSelected?'selected':'')} aria-pressed={isSelected} key={'comparison-'+option.provider+'-'+(option.integrationAccountId||'')+'-'+option.carrierCode+'-'+option.code+'-'+index} onClick={()=>selectOption(option)}>
               <div className="ordersComparisonIdentity"><span className={'ordersProviderBadge '+option.provider}>{option.providerName}</span><strong>{option.carrierName||option.carrierCode||'Transportista'}</strong><small>{option.name||option.code}{shippingOptionKey(option)===preferredKey?' · Predeterminada':''}</small></div>
-              <div><span>Precio final</span><strong>{option.price==null?'—':money(option.price,option.currency||'EUR')}</strong>{rank>0&&rank<=3&&<small className="ordersBestPrice">{rank===1?'Más barato':rank+'º más barato'}</small>}</div>
+              <div><span>Precio final</span><strong>{option.price==null?'—':money(option.price,option.currency||'EUR')}</strong>{rank>0&&rank<=settings.shipping.topOptionsCount&&<small className="ordersBestPrice">{rank===1?'Más barato':rank+'º más barato'}</small>}</div>
               <div><span>Origen del precio</span><strong>{option.provider==='mrw'?'Tarifa MRW':option.provider==='envia'?'Envia.com':'Sendcloud'}</strong><small>{option.provider==='envia'&&option.price!=null?'IVA y combustible incluidos':option.provider==='mrw'?'Calculado con tu tarifa subida':option.price!=null?'Tarifa disponible':'Sin precio disponible'}</small></div>
             </button>;
           })}</div>
@@ -470,6 +473,12 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   });
   const automaticShippingOption=(order:FulfillmentOrder,available:ShippingOption[])=>{
     const allowed=enabledShippingOptions(available);
+    if(settings.orders.shippingSelectionMode==='none')return null;
+    if(settings.orders.shippingSelectionMode==='cheapest'){
+      return allowed
+        .filter(option=>option.price!=null&&Number(option.price)>0)
+        .sort((a,b)=>Number(a.price)-Number(b.price))[0]||allowed[0]||null;
+    }
     const byRules=selectShippingOptionByRules(order,allowed,shippingRules);
     if(byRules)return byRules;
     const fallback=settings.orders.defaultCarrier?.trim().toLowerCase();

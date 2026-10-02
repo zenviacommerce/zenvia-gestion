@@ -1,0 +1,400 @@
+{
+  "clients.create": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "taxId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "email": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 254,
+        "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+      },
+      "phone": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "city": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "countryCode": {
+        "type": "string",
+        "pattern": "^[A-Z]{2}$"
+      },
+      "unit": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 40
+      },
+      "sku": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "ean": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "category": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "price": {
+        "type": "number",
+        "minimum": 0
+      },
+      "salePrice": {
+        "type": "number",
+        "minimum": 0
+      },
+      "salesTaxRate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "supplierType": {
+        "type": "string",
+        "enum": [
+          "unclassified",
+          "goods",
+          "service",
+          "both"
+        ]
+      },
+      "invoiceId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "reviewed",
+          "accounted"
+        ]
+      },
+      "paymentStatus": {
+        "type": "string",
+        "enum": [
+          "paid",
+          "unpaid"
+        ]
+      },
+      "subject": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 200
+      },
+      "description": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 4000
+      }
+    },
+    "required": [
+      "name"
+    ]
+  },
+  "products.create": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "taxId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "email": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 254,
+        "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+      },
+      "phone": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "city": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "countryCode": {
+        "type": "string",
+        "pattern": "^[A-Z]{2}$"
+      },
+      "unit": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 40
+      },
+      "sku": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "ean": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "category": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "price": {
+        "type": "number",
+        "minimum": 0
+      },
+      "salePrice": {
+        "type": "number",
+        "minimum": 0
+      },
+      "salesTaxRate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "supplierType": {
+        "type": "string",
+        "enum": [
+          "unclassified",
+          "goods",
+          "service",
+          "both"
+        ]
+      },
+      "invoiceId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "reviewed",
+          "accounted"
+        ]
+      },
+      "paymentStatus": {
+        "type": "string",
+        "enum": [
+          "paid",
+          "unpaid"
+        ]
+      },
+      "subject": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 200
+      },
+      "description": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 4000
+      }
+    },
+    "required": [
+      "name"
+    ]
+  },
+  "suppliers.create": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 200
+      },
+      "taxId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "email": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 254,
+        "pattern": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$"
+      },
+      "phone": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "city": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "countryCode": {
+        "type": "string",
+        "pattern": "^[A-Z]{2}$"
+      },
+      "unit": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 40
+      },
+      "sku": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 120
+      },
+      "ean": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "category": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "price": {
+        "type": "number",
+        "minimum": 0
+      },
+      "salePrice": {
+        "type": "number",
+        "minimum": 0
+      },
+      "salesTaxRate": {
+        "type": "number",
+        "minimum": 0,
+        "maximum": 100
+      },
+      "supplierType": {
+        "type": "string",
+        "enum": [
+          "unclassified",
+          "goods",
+          "service",
+          "both"
+        ]
+      },
+      "invoiceId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "reviewed",
+          "accounted"
+        ]
+      },
+      "paymentStatus": {
+        "type": "string",
+        "enum": [
+          "paid",
+          "unpaid"
+        ]
+      },
+      "subject": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 200
+      },
+      "description": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 4000
+      }
+    },
+    "required": [
+      "name"
+    ]
+  },
+  "expenses.set_status": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "invoiceId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "status": {
+        "type": "string",
+        "enum": [
+          "pending",
+          "reviewed",
+          "accounted"
+        ]
+      }
+    },
+    "required": [
+      "invoiceId",
+      "status"
+    ]
+  },
+  "expenses.set_payment": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "invoiceId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 80
+      },
+      "paymentStatus": {
+        "type": "string",
+        "enum": [
+          "paid",
+          "unpaid"
+        ]
+      }
+    },
+    "required": [
+      "invoiceId",
+      "paymentStatus"
+    ]
+  },
+  "support.create": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "subject": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 200
+      },
+      "description": {
+        "type": "string",
+        "minLength": 3,
+        "maxLength": 4000
+      }
+    },
+    "required": [
+      "subject",
+      "description"
+    ]
+  }
+}

@@ -36,6 +36,9 @@ import { updateInvoiceCategory, updateInvoiceSupplier } from './services/invoice
 import { addProduct, updateProduct, type ProductInput } from './services/productEditor';
 import { deleteInvoiceWithGmailRecovery } from './services/invoiceLifecycle';
 import { errorMessage, showError, showSuccess } from './services/toast';
+import { authorizeAppAgentAction } from './services/appAgent';
+import { createSupportTicket } from './services/support';
+import { requestAmazonSync } from './services/amazon';
 import { confirmAction } from './services/actionDialog';
 import { safeStorageGet, safeStorageRemove, safeStorageSet } from './services/browserStorage';
 import { effectiveStartPage } from './services/uiPreferences';
@@ -371,6 +374,7 @@ export default function App(){
        details:['La operación actualizará los pedidos y su seguimiento con los datos disponibles en las integraciones.'],
      });
      if(!confirmed)return 'Sincronización cancelada.';
+     await authorizeAppAgentAction(action.type,action.params);
      const result=await syncSendcloudOrders(false,settings.orders.retryTrackingConfirmation,false);
      window.dispatchEvent(new CustomEvent('zenvia:orders-refresh'));
      await navigate('orders');
@@ -392,6 +396,7 @@ export default function App(){
        ],
      });
      if(!confirmed)return 'Creación de cliente cancelada.';
+     await authorizeAppAgentAction(action.type,action.params);
      await addClient({
        name:p.name,
        taxId:p.taxId,
@@ -422,6 +427,7 @@ export default function App(){
        ],
      });
      if(!confirmed)return 'Creación de producto cancelada.';
+     await authorizeAppAgentAction(action.type,action.params);
      await addProduct({
        name:p.name,
        sku:p.sku||undefined,
@@ -454,6 +460,7 @@ export default function App(){
        ],
      });
      if(!confirmed)return 'Creación de proveedor cancelada.';
+     await authorizeAppAgentAction(action.type,action.params);
      await addSupplier({
        name:p.name,
        taxId:p.taxId||undefined,
@@ -479,8 +486,36 @@ export default function App(){
        tone:'default',
      });
      if(!confirmed)return 'Cambio de estado cancelado.';
+     await authorizeAppAgentAction(action.type,action.params);
      await changeStatus(invoice.id,p.status);
      return `Factura marcada como ${statusLabel}.`;
+   }
+   if(action.type==='set_expense_payment'){
+     if(!can('invoices'))throw new Error('No tienes permiso para modificar gastos.');
+     const invoice=data.invoices.find(item=>item.id===action.params.invoiceId),paymentStatus=action.params.paymentStatus;
+     if(!invoice||!paymentStatus)throw new Error('No se ha identificado la factura o el estado de pago.');
+     if(!await confirmAction({title:'Cambiar pago de factura',message:`Cambiar el pago de ${invoice.invoiceNumber} a ${paymentStatus==='paid'?'pagada':'sin pagar'}.`,confirmLabel:'Cambiar pago',tone:'default'}))return 'Acción cancelada.';
+     await authorizeAppAgentAction(action.type,action.params);
+     await updateInvoicePaymentStatus(invoice.id,paymentStatus);
+     await refresh();
+     return 'Estado de pago actualizado.';
+   }
+   if(action.type==='sync_amazon'){
+     if(!can('amazon'))throw new Error('No tienes permiso para sincronizar Amazon.');
+     if(!await confirmAction({title:'Sincronizar Amazon',message:'Solicitar la sincronización de las cuentas Amazon configuradas.',confirmLabel:'Sincronizar',tone:'default'}))return 'Acción cancelada.';
+     await authorizeAppAgentAction(action.type,action.params);
+     const result=await requestAmazonSync();
+     return `Sincronización solicitada: ${result.jobs} trabajos para ${result.accounts} cuentas. Puedes seguir su progreso en Amazon.`;
+   }
+   if(action.type==='create_support_ticket'){
+     if(!can('support'))throw new Error('No tienes permiso para crear tickets.');
+     const {subject,description}=action.params;
+     if(!subject||!description)throw new Error('Falta el asunto o la descripción.');
+     if(!await confirmAction({title:'Crear ticket',message:subject,details:[description],confirmLabel:'Crear ticket',tone:'default'}))return 'Acción cancelada.';
+     await authorizeAppAgentAction(action.type,action.params);
+     const result=await createSupportTicket({type:'incident',subject,description});
+     await navigate('support');
+     return `Ticket ${result.ticket.ticketNumber} creado.`;
    }
    return null;
  };

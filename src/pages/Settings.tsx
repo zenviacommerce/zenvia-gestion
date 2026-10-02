@@ -892,14 +892,18 @@ function ShippingSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
   const {settings,updateSection,resetSection}=useSettings();
   const [draft,setDraft]=useState<ShippingSettings>(settings.shipping);
   const [rules,setRules]=useState<ShippingRule[]>([]);
-  const [newRule,setNewRule]=useState<Omit<ShippingRule,'id'>>({name:'Nueva regla',priority:300,active:true,conditions:{},action:{carrierContains:'',serviceIncludes:[]}});
+  const [shippingAccounts,setShippingAccounts]=useState<IntegrationAccount[]>([]);
+  const [newRule,setNewRule]=useState<Omit<ShippingRule,'id'>>({name:'Nueva regla',priority:300,active:true,conditions:{},action:{provider:null,integrationAccountId:null,carrierContains:'',serviceIncludes:[]}});
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
   const [ruleBusy,setRuleBusy]=useState<string|null>(null);
 
   useEffect(()=>{setDraft(settings.shipping);onDirtyChange(false)},[settings.shipping,onDirtyChange]);
   const reloadRules=async()=>setRules(await loadShippingRules());
-  useEffect(()=>{let active=true;setLoading(true);loadShippingRules().then(rows=>{if(active)setRules(rows)}).catch(e=>showError(e instanceof Error?e.message:'No se pudieron cargar las reglas de envío.')).finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[]);
+  useEffect(()=>{let active=true;setLoading(true);Promise.all([loadShippingRules(),loadIntegrationAccounts()])
+    .then(([rows,accounts])=>{if(active){setRules(rows);setShippingAccounts(accounts.filter(account=>account.enabled&&['sendcloud','envia','mrw'].includes(account.provider)))}})
+    .catch(e=>showError(e instanceof Error?e.message:'No se pudo cargar la configuración de envío.'))
+    .finally(()=>{if(active)setLoading(false)});return()=>{active=false}},[]);
 
   const update=<K extends keyof ShippingSettings>(key:K,value:ShippingSettings[K])=>{setDraft(current=>({...current,[key]:value}));onDirtyChange(true)};
   const patchRule=(id:string,patch:Partial<ShippingRule>)=>setRules(current=>current.map(rule=>rule.id===id?{...rule,...patch}:rule));
@@ -920,7 +924,7 @@ function ShippingSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
   const addRule=async()=>{
     if(!newRule.name.trim()||!newRule.action.carrierContains.trim()){showError('La regla necesita nombre y transportista.');return;}
     setRuleBusy('new');
-    try{await addShippingRule(newRule);await reloadRules();setNewRule({name:'Nueva regla',priority:Math.max(300,...rules.map(rule=>rule.priority+100)),active:true,conditions:{},action:{carrierContains:'',serviceIncludes:[]}});showSuccess('Regla de envío añadida.');}
+    try{await addShippingRule(newRule);await reloadRules();setNewRule({name:'Nueva regla',priority:Math.max(300,...rules.map(rule=>rule.priority+100)),active:true,conditions:{},action:{provider:null,integrationAccountId:null,carrierContains:'',serviceIncludes:[]}});showSuccess('Regla de envío añadida.');}
     catch(e){showError(e instanceof Error?e.message:'No se pudo añadir la regla.');}
     finally{setRuleBusy(null);}
   };
@@ -939,11 +943,31 @@ function ShippingSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
   };
 
   const enabledCarriersText=draft.enabledCarriers.join(', ');
-  const ruleEditor=(rule:ShippingRule,isNew=false)=><div className="settingsAliasRow" key={isNew?'new':rule.id}>
+  const providerOptions=[
+    {value:'',label:'Cualquier proveedor'},
+    {value:'sendcloud',label:'Sendcloud'},
+    {value:'envia',label:'Envia.com'},
+    {value:'mrw',label:'MRW Directo'},
+  ];
+  const accountOptions=(provider:string|null|undefined)=>[
+    {value:'',label:'Cualquier cuenta'},
+    ...shippingAccounts.filter(account=>!provider||account.provider===provider).map(account=>({value:account.id,label:`${account.displayName} · ${account.provider==='mrw'?'MRW Directo':account.provider==='envia'?'Envia.com':'Sendcloud'}`})),
+  ];
+  const ruleEditor=(rule:ShippingRule,isNew=false)=><div className="settingsAliasRow settingsShippingRuleRow" key={isNew?'new':rule.id}>
     <input value={rule.name} onChange={e=>isNew?setNewRule(current=>({...current,name:e.target.value})):patchRule(rule.id,{name:e.target.value})} placeholder="Nombre de regla" aria-label="Nombre de regla"/>
     <input value={rule.conditions.countryCode||''} maxLength={2} onChange={e=>{const value=e.target.value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,2);isNew?setNewRule(current=>({...current,conditions:{...current.conditions,countryCode:value||null}})):patchRule(rule.id,{conditions:{...rule.conditions,countryCode:value||null}})}} placeholder="País" aria-label="País de la regla"/>
     <input value={rule.conditions.postalPrefix||''} onChange={e=>{const value=e.target.value.replace(/\s+/g,'');isNew?setNewRule(current=>({...current,conditions:{...current.conditions,postalPrefix:value||null}})):patchRule(rule.id,{conditions:{...rule.conditions,postalPrefix:value||null}})}} placeholder="CP prefijo" aria-label="Prefijo postal"/>
-    <input value={rule.action.carrierContains} onChange={e=>{const value=e.target.value;isNew?setNewRule(current=>({...current,action:{...current.action,carrierContains:value}})):patchRule(rule.id,{action:{...rule.action,carrierContains:value}})}} placeholder="Transportista" aria-label="Transportista de la regla"/>
+    <SelectField ariaLabel="Proveedor de la regla" value={rule.action.provider||''} options={providerOptions} onChange={value=>{
+      const provider=(value||null) as ShippingRule['action']['provider'];
+      if(isNew)setNewRule(current=>({...current,action:{...current.action,provider,integrationAccountId:null}}));
+      else patchRule(rule.id,{action:{...rule.action,provider,integrationAccountId:null}});
+    }}/>
+    <SelectField ariaLabel="Cuenta de integración de la regla" value={rule.action.integrationAccountId||''} options={accountOptions(rule.action.provider)} onChange={value=>{
+      const integrationAccountId=value||null;
+      if(isNew)setNewRule(current=>({...current,action:{...current.action,integrationAccountId}}));
+      else patchRule(rule.id,{action:{...rule.action,integrationAccountId}});
+    }}/>
+    <input value={rule.action.carrierContains} onChange={e=>{const value=e.target.value;isNew?setNewRule(current=>({...current,action:{...current.action,carrierContains:value}})):patchRule(rule.id,{action:{...rule.action,carrierContains:value}})}} placeholder="Transportista (ej. correos)" aria-label="Transportista de la regla"/>
     <input value={rule.action.serviceIncludes.join(', ')} onChange={e=>{const values=e.target.value.split(',').map(value=>value.trim()).filter(Boolean);isNew?setNewRule(current=>({...current,action:{...current.action,serviceIncludes:values}})):patchRule(rule.id,{action:{...rule.action,serviceIncludes:values}})}} placeholder="Servicio contiene…" aria-label="Palabras del servicio"/>
     <input type="number" min="0" max="10000" value={rule.priority} onChange={e=>{const value=Number(e.target.value);isNew?setNewRule(current=>({...current,priority:value})):patchRule(rule.id,{priority:value})}} aria-label="Prioridad de regla"/>
     <label className="settingsInlineCheck"><input type="checkbox" checked={rule.active} onChange={e=>isNew?setNewRule(current=>({...current,active:e.target.checked})):patchRule(rule.id,{active:e.target.checked})}/> Activa</label>

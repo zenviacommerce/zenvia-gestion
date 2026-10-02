@@ -577,6 +577,13 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     if(result.automation?.downloadPdf!==false&&settings.orders.downloadLabelAfterCreation&&settings.shipping.autoDownload){
       const prepared=await prepareLabelPdf(blob,settings.shipping);
       downloadLabel(prepared,labelPdfFilename(fresh,labelFilenameOptions));
+      // En el flujo automático la etiqueta se entrega al usuario en el mismo
+      // momento de crearla. Ese es el equivalente funcional a "imprimir" para
+      // el estado operativo de ZENVIA; no la dejamos como "No impreso".
+      await markOrderLabelPrinted(order.id);
+      const printedOrders=await listFulfillmentOrders();
+      setOrders(printedOrders);
+      setSelected(printedOrders.find(item=>item.id===order.id)||fresh);
     }
     showSuccess(`Etiqueta creada${result.trackingNumber?` · ${result.trackingNumber}`:''}.`);
   }catch(e){showError(errorMessage(e,'No se pudo crear la etiqueta.'))}finally{setBusyOrder(null)}};

@@ -54,7 +54,7 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
       if(isMultiInvoiceDocumentError(e)) {
         setReaderBlocked(true);
         setError(e.message);
-        setReaderMessage('Documento bloqueado: contiene varias facturas o abonos. Usa “Importar facturas” para separarlas y revisarlas individualmente.');
+        setReaderMessage('Documento bloqueado: contiene varias facturas o abonos. Usa “Importar facturas de gasto” para separarlas y revisarlas individualmente.');
       } else {
         const manualCandidate=classifyInvoiceCandidate(await createManualInvoiceCandidate(prepared),existingInvoices,policy);
         setCandidate(manualCandidate);
@@ -89,14 +89,14 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
     setSaving(true);setError('');
     try{
       await onSave(invoiceCandidateToInput(candidate,source));
-      showSuccess('Factura guardada correctamente.');
+      showSuccess('Factura de gasto guardada correctamente.');
       onClose();
     }catch(e){setError(e instanceof Error?e.message:'No se pudo guardar la factura.');}
     finally{setSaving(false);}
   };
 
   return <div className="modalBackdrop"><div className="modal invoiceModal">
-    <div className="modalHead"><div><h3>Nueva factura</h3><p>Sube un PDF o escanea una o varias páginas con la cámara.</p></div><button onClick={onClose}><X/></button></div>
+    <div className="modalHead"><div><h3>Añadir factura de gasto</h3><p>Sube un PDF o escanea una o varias páginas con la cámara.</p></div><button onClick={onClose}><X/></button></div>
     <div className="uploadChoices">
       <button className="uploadChoice" onClick={()=>fileRef.current?.click()}><FileUp/><strong>Subir PDF o imagen</strong><span>Desde archivos del dispositivo</span></button>
       <button className="uploadChoice accent" onClick={()=>cameraRef.current?.click()}><Camera/><strong>Escanear con cámara</strong><span>Permite varias páginas</span></button>

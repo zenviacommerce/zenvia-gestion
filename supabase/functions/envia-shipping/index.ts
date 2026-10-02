@@ -631,15 +631,23 @@ Deno.serve(async(req:Request)=>{
       if(!carrier||!service)return fail('Selecciona un transportista y servicio de Envia.com.');
       const labelSize=clean(config.shipping?.labelSize);
       const printSize=labelSize==='A4'?'PAPER_A4':'PAPER_4X6';
-      // Keep the public Envia contract exactly as documented: package weight
-      // is a JSON number expressed in KG. Do not mutate the customer's real
-      // weight to work around downstream carrier adapters.
+      // Envia.com/Correos Express applies a minimum billable/generated weight
+      // of 1 kg for epaq_24. Labels created directly in Envia.com for sub-1 kg
+      // parcels are returned by its API with declared_weight/shipment_weight=1.
+      // Mirror that provider behavior only for label generation; rating keeps
+      // using the real parcel weight.
+      const realWeight=Number(pkg.weight);
+      const normalizedCarrier=carrier.toLowerCase();
+      const normalizedService=service.toLowerCase();
+      const generateWeight=normalizedCarrier==='correosexpress'&&normalizedService==='epaq_24'&&realWeight<1
+        ?1
+        :realWeight;
       let payload:any;
       try{
         payload=await enviaJson(`${c.shipBase}/ship/generate/`,c.token,{
           method:'POST',
           body:JSON.stringify({
-            origin,destination:dest,packages:[{...pkg,weight:Number(pkg.weight)}],
+            origin,destination:dest,packages:[{...pkg,weight:generateWeight}],
             settings:{printFormat:'PDF',printSize},
             shipment:{type:1,carrier,service},
           }),
@@ -648,11 +656,11 @@ Deno.serve(async(req:Request)=>{
         const detail=error instanceof Error?error.message:String(error);
         if(/KILOS BULTO.*FORMATO INCORRECTO|99999\.999/i.test(detail)){
           console.error('ENVIA_CARRIER_WEIGHT_REJECTION',JSON.stringify({
-            carrier,service,weight:Number(pkg.weight),weightUnit:pkg.weightUnit,
+            carrier,service,realWeight,generateWeight,weightUnit:pkg.weightUnit,
             destinationCountry:dest.country,destinationPostalCode:dest.postalCode,
             detail,
           }));
-          throw new Error(`Envia.com / ${carrier}: el transportista rechazó el peso ${Number(pkg.weight).toFixed(3)} kg al generar la etiqueta, aunque el payload cumple el formato numérico documentado por Envia.com. La cotización funciona, pero la generación está siendo rechazada por la integración Envia.com ↔ transportista.`);
+          throw new Error(`Envia.com / ${carrier}: el transportista rechazó el peso de generación ${generateWeight.toFixed(3)} kg (peso real ${realWeight.toFixed(3)} kg). Revisa la configuración del servicio en Envia.com.`);
         }
         throw error;
       }

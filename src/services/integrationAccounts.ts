@@ -286,3 +286,10 @@ export async function syncSendcloudIntegrationAccount(id:string,history=false){
   if(error||!data||data.error)throw new Error(message(data,error,'No se pudo sincronizar la cuenta de Sendcloud.'));
   return data as {ok:true;synced:number;enriched:number;accounts?:Array<{accountId:string|null;displayName:string;synced:number;enriched:number}>};
 }
+
+export async function syncShopifyIntegrationAccount(id:string,history=false){
+  const {data,error}=await supabase.functions.invoke('shopify-orders',{body:{integrationAccountId:id,history}});
+  if(error||!data||data.error)throw new Error(message(data,error,'No se pudo sincronizar la tienda Shopify.'));
+  return data as {ok:true;synced:number;accounts?:Array<{accountId:string;displayName:string;synced:number;shopDomain:string}>};
+}
+

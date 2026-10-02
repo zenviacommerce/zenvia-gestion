@@ -362,7 +362,13 @@ Deno.serve(async(req:Request)=>{
       // local address fields override the visible sender data.
       const remoteSender=await senderAddress(orderCredentials);
       const configured=configuredSender(shippingConfig);
-      const sender=configured?{...remoteSender,...configured,id:remoteSender?.id??null}:remoteSender;
+      // Do not let undefined local settings erase the real Sendcloud sender
+      // fields. This was leaving from_postal_code empty, which excludes zonal
+      // Correos / Correos Express rates from shipping_methods.
+      const configuredDefined=configured
+        ?Object.fromEntries(Object.entries(configured).filter(([,value])=>value!=null&&String(value).trim()!==''))
+        :{};
+      const sender=remoteSender?{...remoteSender,...configuredDefined,id:remoteSender.id}:configuredDefined;
       const weightKg=orderWeightKg(order,shippingConfig.fallbackWeightKg);
       const normalizedState=normalizeStateProvince(address.country_code,address.state_province_code);
       if(clean(address.state_province_code)!==clean(normalizedState)){
@@ -383,7 +389,13 @@ Deno.serve(async(req:Request)=>{
       };
       const toState=normalizeStateProvince(address.country_code,address.state_province_code);if(toState)toAddress.state_province_code=toState;
       const fromCountry=clean(sender?.country_code||shippingConfig.senderCountryCode||ordersConfig.originCountryCode||'ES').toUpperCase();
-      const fromPostal=clean(sender?.postal_code||shippingConfig.senderPostalCode);
+      const fromPostal=clean(
+        sender?.postal_code||
+        sender?.postalCode||
+        remoteSender?.postal_code||
+        remoteSender?.postalCode||
+        shippingConfig.senderPostalCode
+      );
       const fromAddress:any={
         country_code:fromCountry,
         postal_code:fromPostal||undefined,

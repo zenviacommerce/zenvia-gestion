@@ -1222,7 +1222,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     },
   };
   const integrationGroups:Array<{id:string;title:string;description:string;providers:IntegrationProvider[]}>= [
-    {id:'ecommerce',title:'Ecommerce',description:'Canales de venta y marketplaces conectados a ZENVIA.',providers:['amazon','shopify']},
+    {id:'ecommerce',title:'Ecommerce',description:'Canales de venta y marketplaces conectados directamente a ZENVIA.',providers:['amazon','shopify']},
     {id:'shipping',title:'Transportistas y logística',description:'Plataformas logísticas y transportistas utilizados para tarifas, etiquetas y seguimiento.',providers:['sendcloud','envia','mrw']},
     {id:'documents',title:'Documentos y correo',description:'Servicios utilizados para importar documentación y automatizar entradas.',providers:['gmail']},
   ];
@@ -1504,7 +1504,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     <div className="settingsSectionHero"><div className="settingsSectionIcon"><PlugZap size={22}/></div><div><h2>Integraciones</h2><p>Conecta y administra varias cuentas por servicio. Las credenciales se gestionan por cuenta; aquí no se muestran secretos guardados.</p></div></div>
 
     <div className="settingsSubsection">
-      <div className="settingsSubsectionHead"><div><h3>Cuentas conectadas</h3><p>Las integraciones se agrupan por función para que sea más fácil localizar canales de venta, transportistas y servicios documentales. Shopify sigue utilizando Sendcloud como conexión técnica, pero se muestra dentro de Ecommerce.</p></div></div>
+      <div className="settingsSubsectionHead"><div><h3>Cuentas conectadas</h3><p>Las integraciones se agrupan por función para que sea más fácil localizar canales de venta, transportistas y servicios documentales. Shopify se conecta directamente a ZENVIA y Sendcloud queda limitado a funciones logísticas.</p></div></div>
       {compatibilityMode&&<p className="settingsHelpText">Estás viendo conexiones actuales detectadas automáticamente. Ya puedes abrir el alta de nuevas cuentas; si este entorno todavía no tiene activado el backend multicuenta, al guardar se indicará de forma explícita.</p>}
       {loading?<div className="settingsInlineLoading">Cargando cuentas…</div>:<div className="integrationCategoryList">
         {integrationGroups.map(group=><section className="integrationCategory" key={group.id}>
@@ -1571,7 +1571,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     {editorOpen&&<div className="integrationEditorBackdrop" role="presentation" onMouseDown={e=>{if(e.target===e.currentTarget)closeEditor()}}>
       <div className="integrationEditor" role="dialog" aria-modal="true" aria-label={editing?'Configurar integración':'Añadir integración'}>
         <div className="integrationEditorHead"><div className="integrationEditorTitle"><IntegrationBrandLogo provider={provider}/><div><strong>{editing?'Configurar':provider==='shopify'?'Añadir':'Conectar'} {providerMeta[provider].name}</strong><small>{provider==='shopify'
-          ?'Shopify se añade como canal de venta de Sendcloud. No se solicita una contraseña de Shopify porque ZENVIA recibe esos pedidos desde Sendcloud.'
+          ?'Shopify se conecta directamente mediante Admin API. ZENVIA importa los pedidos desde Shopify sin pasar por Sendcloud.'
           :editing?.legacy?'Cuenta actual detectada en el sistema existente. Los secretos se mantienen en el backend actual hasta completar la migración multicuenta.'
           :editing?'Los secretos guardados nunca se vuelven a mostrar. Déjalos vacíos para conservarlos.'
           :provider==='amazon'?'Conexión directa con Amazon SP-API. Introduce las credenciales de la cuenta Seller Central que quieras añadir.'

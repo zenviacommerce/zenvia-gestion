@@ -114,8 +114,8 @@ function isProcessedOrder(order:FulfillmentOrder){
     // not yet registered a physical/logistical event.
     const preDispatch=
       !raw||
-      raw==='created'||
-      raw==='pending'||
+      raw.includes('created')||
+      raw.includes('pending')||
       raw.includes('ready to send')||
       raw.includes('ready for shipment')||
       raw.includes('announced')||

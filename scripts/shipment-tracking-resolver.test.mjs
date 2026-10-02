@@ -19,3 +19,9 @@ test('multiple parcels never select a link belonging to another tracking number'
  const result=await resolveShipmentTrackingLink({data:[{trackingNumber:'other',trackingUrl:'https://carrier.example/other'},{trackingNumber:'000123',trackingUrl:'https://carrier.example/000123'}]},async()=>{throw Error('should not fetch')},'000123');
  assert.equal(result.url,'https://carrier.example/000123');
 });
+
+test('a previously working carrier forwarding link is preserved when server-side resolution is unavailable',async()=>{
+ const link='https://tracking.sendcloud.sc/forward?carrier=future-carrier&code=000123';
+ const result=await resolveShipmentTrackingLink({tracking_url:link},async()=>new Response('unavailable',{status:403}));
+ assert.equal(result.url,link);assert.equal(result.status,'ready');
+});

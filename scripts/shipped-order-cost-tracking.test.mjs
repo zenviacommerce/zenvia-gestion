@@ -13,6 +13,7 @@ test('recorded provider cost retains priority',()=>{assert.equal(shipping.shippi
 
 test('tracking preserves recorded links for a carrier unknown to the application',()=>{assert.equal(shipping.trackingUrlForOrder({...order,carrierCode:'future-carrier',trackingUrl:'https://future-carrier.example/track/opaque'}),'https://future-carrier.example/track/opaque')});
 test('resolved carrier links take priority over branded provider URLs',()=>{assert.equal(shipping.trackingUrlForOrder({...order,trackingUrl:'https://envia.com/tracking',carrierTrackingUrl:'https://future-carrier.example/track/opaque'}),'https://future-carrier.example/track/opaque')});
-test('provider URLs request server resolution instead of a hardcoded carrier URL',()=>{assert.equal(shipping.trackingUrlForOrder({...order,trackingUrl:'https://tracking.sendcloud.sc/forward?code=000123'}),null);assert.equal(shipping.trackingUrlForOrder({...order,shippingProvider:'envia',trackingUrl:'https://envia.com/tracking'}),null)});
+test('recorded carrier forwarding links remain available before backend deployment',()=>{const link='https://tracking.sendcloud.sc/forward?code=000123&carrier=future-carrier';assert.equal(shipping.trackingUrlForOrder({...order,trackingUrl:link}),link)});
+test('branded provider pages still request server resolution',()=>{assert.equal(shipping.trackingUrlForOrder({...order,shippingProvider:'envia',trackingUrl:'https://envia.com/tracking'}),null)});
 test('a tracking number alone never generates an invented URL',()=>{assert.equal(shipping.trackingUrlForOrder({...order,trackingUrl:null}),null)});
 test('unsafe URLs are not exposed by the drawer',()=>{assert.equal(shipping.trackingUrlForOrder({...order,trackingUrl:'javascript:alert(1)'}),null)});

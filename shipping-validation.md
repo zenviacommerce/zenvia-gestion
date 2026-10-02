@@ -37,3 +37,11 @@ Existing failures:
 - tariff parser spends AI only when local extraction is insufficient and sends original PDF when needed
 - tenant-local ZENVIA agent authenticates the user and runs without paid model APIs
 - transport tariff parser can use AI but safely falls back without auto-activation
+
+## Tracking regression correction (2026-10-02)
+
+- Deployed order-logistics-state version 11 to Gestión with JWT verification enabled; verified deployed source contains resolve_tracking_link and its shared dependency.
+- Preserved existing Sendcloud carrier forwarding URLs, including MRW, when server-side resolution is unavailable. No carrier URL templates were added.
+- Drawer hides unavailable/error text and displays available stored tracking links immediately.
+- All 24 focused tracking and shipping-cost tests passed; frontend build and edge TypeScript check passed. Full-suite baseline failures recorded above remain outside this correction.
+- A carrier link still requires a recorded URL or metadata/redirect supplied by the integration.

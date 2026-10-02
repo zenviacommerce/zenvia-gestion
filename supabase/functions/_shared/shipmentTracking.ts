@@ -42,7 +42,10 @@ async function smallText(response:Response){
 }
 export async function resolveShipmentTrackingLink(payload:unknown,request:typeof fetch=fetch,expectedTrackingNumber=''):Promise<{url:string|null;status:'ready'|'unavailable'}>{
   let requests=0;
+  let forwardingFallback:string|null=null;
   for(const initial of trackingCandidates(payload,expectedTrackingNumber)){
+    const initialUrl=new URL(initial);
+    if(initialUrl.protocol==='https:'&&initialUrl.pathname==='/forward'&&['sendcloud.com','sendcloud.sc'].some(domain=>initialUrl.hostname===domain||initialUrl.hostname.endsWith(`.${domain}`)))forwardingFallback??=initial;
     let current:string|null=initial;
     const seen=new Set<string>();
     for(let hop=0;current&&hop<5&&!seen.has(current);hop++){
@@ -65,5 +68,5 @@ export async function resolveShipmentTrackingLink(payload:unknown,request:typeof
       }catch{current=null}
     }
   }
-  return {url:null,status:'unavailable'};
+  return forwardingFallback?{url:forwardingFallback,status:'ready'}:{url:null,status:'unavailable'};
 }

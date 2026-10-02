@@ -261,7 +261,8 @@ export function trackingUrlForOrder(order:FulfillmentOrder):string|null{
       const url=new URL(value);
       const host=url.hostname.toLowerCase();
       const provider=['envia.com','sendcloud.com','sendcloud.sc'].some(domain=>host===domain||host.endsWith(`.${domain}`));
-      if(['https:','http:'].includes(url.protocol)&&!url.username&&!url.password&&!provider)return url.href;
+      const forwarding=url.pathname==='/forward'&&['sendcloud.com','sendcloud.sc'].some(domain=>host===domain||host.endsWith(`.${domain}`));
+      if(['https:','http:'].includes(url.protocol)&&!url.username&&!url.password&&(!provider||forwarding))return url.href;
     }catch{/* The drawer will request fresh shipment metadata. */}
   }
   return null;

@@ -53,11 +53,30 @@ function extractTaxId(lines:string[]){
   return undefined;
 }
 
+function extractRegisteredTaxId(lines:string[]){
+  for(let index=0;index<lines.length;index+=1){
+    if(!/registro\s+mercantil/i.test(lines[index]))continue;
+    const window=lines.slice(index,Math.min(lines.length,index+3)).join(' ');
+    const value=window.match(/(?:C\.?\s*I\.?\s*F\.?|N\.?\s*I\.?\s*F\.?)\s*[:#-]?\s*([A-Z]{0,2}\s*[A-Z0-9](?:[\s.-]*[A-Z0-9]){6,14})/i)?.[1];
+    if(value)return normalizeTaxId(value);
+  }
+  return undefined;
+}
+
+
 function extractWebsite(lines:string[]){
-  const website=/\b((?:https?:\/\/)?(?:www\.)?[a-z0-9][a-z0-9.-]*\.[a-z]{2,}(?:\/[^\s]*)?)\b/i;
+  const explicit=/\b((?:https?:\/\/|www\.)[a-z0-9][a-z0-9.-]*\.[a-z]{2,}(?:\/[^\s]*)?)\b/i;
+  const plain=/\b([a-z0-9][a-z0-9.-]*\.[a-z]{2,}(?:\/[^\s]*)?)\b/i;
+  // Prefer an explicit web address. OCR often drops the @ from an email and
+  // turns "administracion@empresa.com" into a fake domain-like website.
   for(const line of lines){
-    if(line.includes('@'))continue;
-    const value=line.match(website)?.[1];
+    const value=line.match(explicit)?.[1];
+    if(!value)continue;
+    return /^https?:\/\//i.test(value)?value:`https://${value}`;
+  }
+  for(const line of lines){
+    if(line.includes('@')||/\b(?:mail|email|correo)\b/i.test(line))continue;
+    const value=line.match(plain)?.[1];
     if(!value)continue;
     return /^https?:\/\//i.test(value)?value:`https://${value}`;
   }
@@ -86,7 +105,7 @@ export function extractSupplierInvoiceDetails(text:string,supplierName:string):S
   if(!text.trim()||!supplierName.trim())return {};
   const block=supplierBlock(text,supplierName);
   return {
-    taxId:extractTaxId(block),
+    taxId:extractTaxId(block)||extractRegisteredTaxId(text.split(/\r?\n/).map(compact).filter(Boolean)),
     address:extractAddress(block,supplierName),
     website:extractWebsite(block),
   };

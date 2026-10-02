@@ -613,17 +613,20 @@ Deno.serve(async(req:Request)=>{
       if(!carrier||!service)return fail('Selecciona un transportista y servicio de Envia.com.');
       const labelSize=clean(config.shipping?.labelSize);
       const printSize=labelSize==='A4'?'PAPER_A4':'PAPER_4X6';
-      // Rating requires numeric weight, while some carrier adapters used by
-      // Envia's generate endpoint (notably Correos/Correos Express routes)
-      // require the kilos value rendered with exactly three decimals.
-      const generatePackage={...pkg,weight:Number(pkg.weight).toFixed(3)};
+      // Envia validates weight as a JSON number, but some Spanish carrier
+      // adapters also require the lexical kilos format 99999.999. JSON.stringify
+      // collapses 0.890 to 0.89, so build valid JSON with an unquoted numeric
+      // literal that preserves exactly three decimals.
+      const fixedWeight=Number(pkg.weight).toFixed(3);
+      const generateBody=JSON.stringify({
+        origin,destination:dest,
+        packages:[{...pkg,weight:'__ENVIA_WEIGHT__'}],
+        settings:{printFormat:'PDF',printSize},
+        shipment:{type:1,carrier,service},
+      }).replace('"__ENVIA_WEIGHT__"',fixedWeight);
       const payload=await enviaJson(`${c.shipBase}/ship/generate/`,c.token,{
         method:'POST',
-        body:JSON.stringify({
-          origin,destination:dest,packages:[generatePackage],
-          settings:{printFormat:'PDF',printSize},
-          shipment:{type:1,carrier,service},
-        }),
+        body:generateBody,
       });
       const rows=asRows(payload);
       const data=rows[0]||(payload?.data&&typeof payload.data==='object'?payload.data:payload);

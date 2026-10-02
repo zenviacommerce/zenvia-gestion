@@ -43,7 +43,7 @@ import { DEFAULT_AUTOMATION_RULES, loadAutomationRules, saveAutomationRule, type
 import { applyExpenseInvoiceReprocess, findClientDuplicates, findInvoiceDuplicates, findProductDuplicates, findSupplierDuplicates, listClientsMissingTaxId, listProductsWithoutCost, listReprocessableInvoices, listSuppliersMissingTaxId, mergeClient, mergeSupplier, previewClientMerge, previewExpenseInvoiceReprocess, previewPriceHistoryRebuild, previewProductCostRecalculation, previewSupplierMerge, previewSupplierProductRebuild, rebuildPriceHistoryLinks, rebuildSupplierProductLinks, recalculateProductCosts, runAmazonSync, runSendcloudSync, type DuplicateCandidate, type ExpenseInvoiceReprocessPreview, type MaintenanceRepairPreview, type MergePreview, type ReprocessableInvoiceOption } from '../services/maintenance';
 import { downloadSettingsExport, previewSettingsReset, resetAllSettingsToDefaults, type SettingsResetPreview } from '../services/settingsExport';
 import { DASHBOARD_KPI_DEFAULTS, TABLE_COLUMN_DEFAULTS, type PreferenceTableKey } from '../services/uiPreferences';
-import { MRW_SERVICE_OPTIONS, mrwServiceName } from '../services/mrwCatalog';
+import { MRW_SERVICE_OPTIONS, mrwServiceName as getMrwServiceName } from '../services/mrwCatalog';
 import { formatAppDateTime, formatAppMoney } from '../services/formatting';
 import type { AccessProfile } from '../services/access';
 import { importCustomerSubscriptionInvoiceAsExpense, loadCustomerBillingOverview, loadCustomerSubscriptionInvoices, startCustomerPayPalCheckout, type BillingCycle, type CustomerBillingOverview, type CustomerBillingPlan, type CustomerSubscriptionInvoice } from '../services/billing';
@@ -1267,7 +1267,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     const configuredMrwCode=account?.provider==='mrw'&&typeof account?.config?.serviceCode==='string'?String(account.config.serviceCode):'';
     const configuredMrwName=account?.provider==='mrw'&&typeof account?.config?.serviceName==='string'?String(account.config.serviceName):'';
     setMrwServiceCode(configuredMrwCode);
-    setMrwServiceName(configuredMrwName||mrwServiceName(configuredMrwCode));
+    setMrwServiceName(configuredMrwName||getMrwServiceName(configuredMrwCode));
     setParentAccountId(account?.parentAccountId||sendcloudAccounts.find(item=>item.isDefault)?.id||sendcloudAccounts[0]?.id||'');
     setShopifyIntegrationId(String(account?.config?.sendcloudIntegrationId||account?.externalAccountId||''));
     setShopifyStores([]);setAccountEnabled(account?.enabled??true);
@@ -1311,7 +1311,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     if(provider==='shopify')return {sendcloudIntegrationId:Number(shopifyIntegrationId),syncOrders};
     if(provider==='sendcloud')return {syncOrders,shippingEnabled:true};
     if(provider==='envia')return {shippingEnabled:true,environment:enviaEnvironment};
-    if(provider==='mrw')return {shippingEnabled:true,environment:mrwEnvironment,serviceCode:mrwServiceCode.trim(),serviceName:mrwServiceName.trim()||mrwServiceName(mrwServiceCode.trim())};
+    if(provider==='mrw')return {shippingEnabled:true,environment:mrwEnvironment,serviceCode:mrwServiceCode.trim(),serviceName:mrwServiceName.trim()||getMrwServiceName(mrwServiceCode.trim())};
     return {months:Math.max(1,Math.min(36,Number(gmailMonths)||12)),invoiceImportEnabled:true};
   };
 
@@ -1643,7 +1643,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
               <label className="settingsField settingsFieldWide"><span>Servicio MRW predeterminado</span><SelectField ariaLabel="Servicio MRW predeterminado" allowEmpty emptyLabel="Selecciona el servicio asignado por MRW" value={mrwServiceCode} options={[
                 ...MRW_SERVICE_OPTIONS.map(item=>({value:item.code,label:`${item.code} · ${item.name}`})),
                 ...(mrwServiceCode&&!MRW_SERVICE_OPTIONS.some(item=>item.code===mrwServiceCode)?[{value:mrwServiceCode,label:`${mrwServiceCode} · ${mrwServiceName||'Servicio configurado'}`}]:[]),
-              ]} onChange={value=>{setMrwServiceCode(value);setMrwServiceName(mrwServiceName(value))}}/><small>Selecciona el servicio que tu franquicia MRW tenga habilitado como predeterminado para esta cuenta. No se impone ningún servicio desde ZENVIA.</small></label>
+              ]} onChange={value=>{setMrwServiceCode(value);setMrwServiceName(getMrwServiceName(value))}}/><small>Selecciona el servicio que tu franquicia MRW tenga habilitado como predeterminado para esta cuenta. No se impone ningún servicio desde ZENVIA.</small></label>
             </div>
           </>}
 

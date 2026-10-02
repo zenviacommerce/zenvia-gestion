@@ -211,6 +211,9 @@ export async function syncSendcloudOrders(history=false,retryTracking=true,autom
   if(retryTracking)await retryAmazonTrackingConfirmations();
   return result;
 }
+export async function syncShopifyOrders(history=false){
+  return invokeFunction<{ok:true;configured:boolean;synced:number;history?:boolean;accounts?:Array<{accountId:string;displayName:string;synced:number;shopDomain:string}>}>('shopify-orders',{history});
+}
 export function createManualOrder(order:ManualOrderInput){return invokeOrderState<{ok:true;id:string;sendcloudId:string|null;orderNumber:string}>({action:'create_manual_order',order});}
 export async function getShippingOptions(orderId:string){
   const [sendcloudResult,enviaResult,mrwResult]=await Promise.allSettled([

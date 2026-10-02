@@ -1318,6 +1318,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   const saveAccount=async()=>{
     setBusy('save-account');
     try{
+      if(provider==='mrw'&&!mrwServiceCode.trim())throw new Error('Selecciona el servicio MRW predeterminado de esta cuenta.');
       if(editing?.legacy){
         if(provider==='amazon'){
           await updateSection('amazon',{

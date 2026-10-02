@@ -245,13 +245,10 @@ export async function getShippingOptions(orderId:string){
   const messages=[sendcloud?.message,envia?.message,mrw?.message].filter(Boolean).join(' · ');
   return {weightKg:sendcloud?.weightKg??null,options,message:messages||null,diagnostics:envia?.diagnostics||[]};
 }
-export async function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){
-  const {data,error}=await supabase.from('fulfillment_orders').select('sendcloud_remote_id,sendcloud_id,source_channel,integration_type').eq('id',orderId).maybeSingle();
-  if(error)throw error;
-  const nativeAmazon=data?.source_channel==='amazon'&&(data?.integration_type==='amazon-direct'||(!data?.sendcloud_remote_id&&String(data?.sendcloud_id||'').startsWith('amazon:')));
-  return nativeAmazon
-    ?invokeOrderState<{ok:true;weightKg:number}>({action:'update_native_order',orderId,order})
-    :invokeOrderTools<{ok:true;weightKg:number}>({action:'update_order',orderId,order});
+export function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){
+  // ZENVIA is the operational source of truth. Provider systems are only
+  // synchronized when that provider is actually used to quote/create a label.
+  return invokeOrderState<{ok:true;weightKg:number}>({action:'update_order',orderId,order});
 }
 export function markOrderLabelPrinted(orderId:string){return invokeOrderState<{ok:true;printedAt:string;printCount:number}>({action:'mark_label_printed',orderId});}
 export function validateOrderAddress(orderId:string,carrierCode='mrw'){return invokeOrderTools<OrderAddressValidation>({action:'validate_address',orderId,carrierCode});}

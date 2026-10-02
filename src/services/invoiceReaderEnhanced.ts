@@ -108,7 +108,13 @@ function invoiceNumberFromFilename(filename: string) {
   // PDFs cuyo nombre es el propio número: Google, FedEx, etc.
   if (/^\d{6,20}$/.test(base)) return base;
 
-  // Sendcloud_invoice_1-26-ES0047507_1-9-2026.pdf
+  // Sendcloud exports wrap the real invoice number with an internal "1-"
+  // segment before it: Sendcloud_invoice_1-26-ES0052942_1-10-2026.pdf.
+  const sendcloud = base.match(/(?:^|[_-])invoice[_-]+1-((?:\d{2}-)?[A-Z]{2}\d{5,}|\d{2}-[A-Z]{2}\d{5,})(?=[_-]\d)/i)?.[1];
+  const validSendcloud = normalizeInvoiceNumberCandidate(sendcloud);
+  if (validSendcloud) return validSendcloud;
+
+  // Generic labelled names.
   const labelled = base.match(/(?:invoice|factura)[_-]+((?:[A-Z0-9]+-){2,}[A-Z0-9]+)/i)?.[1];
   const validLabelled = normalizeInvoiceNumberCandidate(labelled);
   if (validLabelled) return validLabelled;

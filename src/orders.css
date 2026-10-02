@@ -198,3 +198,5 @@ html[data-theme='dark'] .ordersFieldError{color:#fca5a5}
 .ordersCustomerCountry{display:inline-flex;align-items:center;gap:6px;min-width:0}
 .ordersCountryFlag{display:inline-flex;align-items:center;justify-content:center;font-size:16px;line-height:1;flex:0 0 auto}
 .ordersMobileCustomer{display:flex!important;align-items:center;gap:5px;min-width:0;flex-wrap:wrap}
+
+.ordersTrackingIssueDetail{display:flex;align-items:flex-start;gap:10px;margin:0 0 12px;padding:11px 12px;border:1px solid #fecaca;border-radius:10px;background:#fef2f2;color:#991b1b}.ordersTrackingIssueDetail>svg{flex:0 0 auto;margin-top:1px}.ordersTrackingIssueDetail>div{display:grid;gap:3px;min-width:0}.ordersTrackingIssueDetail strong{font-size:11.5px}.ordersTrackingIssueDetail span{font-size:12px;line-height:1.45;overflow-wrap:anywhere}.ordersTrackingIssueDetail small{font-size:9.5px;color:#b91c1c;overflow-wrap:anywhere}[data-theme='dark'] .ordersTrackingIssueDetail{border-color:#7f1d1d;background:#450a0a;color:#fecaca}[data-theme='dark'] .ordersTrackingIssueDetail small{color:#fca5a5}

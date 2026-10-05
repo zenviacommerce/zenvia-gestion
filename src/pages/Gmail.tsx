@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, ExternalLink, Eye, FileText,
-  Link2, Link2Off, LoaderCircle, Mail, Paperclip, RefreshCw, Search, ShieldCheck,
+  Link2, LoaderCircle, Mail, Paperclip, RefreshCw, Search, ShieldCheck,
   Sparkles, X,
 } from 'lucide-react';
 import type { ExpenseCategory, InvoiceImportCandidate } from '../types';
 import {
-  connectGmail, disconnectGmail, downloadGmailAttachment, getCachedGmailConnection,
-  gmailMessageUrl, gmailOAuthConfigured, listCachedGmailConnections, setActiveGmailConnection, saveGmailCandidates, updateGmailImport,
+  downloadGmailAttachment, getCachedGmailConnection,
+  gmailMessageUrl, gmailOAuthConfigured, setActiveGmailConnection, saveGmailCandidates, updateGmailImport,
   type GmailCandidate, type GmailConnection,
 } from '../services/gmail';
 import { isDecorativeGmailImage, searchGmailInvoiceCandidatesStable } from '../services/gmailStableSearch';
@@ -15,6 +15,8 @@ import { importGmailCandidate, saveReviewedGmailCandidate } from '../services/gm
 import { loadRecoverableGmailImports } from '../services/invoiceLifecycle';
 import { SelectField } from '../components/forms/SelectField';
 import { InvoiceCandidateForm } from '../components/InvoiceCandidateForm';
+import { connectRegisteredGmail, ensureRegisteredGmailConnection, loadRegisteredGmailAccounts, selectDefaultGmailAccount } from '../services/gmailAccounts';
+import type { IntegrationAccount } from '../services/integrationAccounts';
 
 const PAGE_SIZE = 20;
 type GmailViewFilter = 'all' | 'pending' | 'imported' | 'not_imported' | 'ignored' | 'not_ignored' | 'error';
@@ -68,9 +70,11 @@ function gmailConnectionError(error: unknown) {
   return raw||'No se pudo conectar Gmail.';
 }
 
-export function GmailPage({ categories, onImported }:{ categories:ExpenseCategory[]; onImported:()=>Promise<void> | void }) {
-  const [connection,setConnection]=useState<GmailConnection|null>(()=>getCachedGmailConnection());
-  const [connections,setConnections]=useState<GmailConnection[]>(()=>listCachedGmailConnections());
+export function GmailPage({ categories, onImported, onManageAccounts, canManageAccounts }:{ categories:ExpenseCategory[]; onImported:()=>Promise<void> | void; onManageAccounts:()=>void; canManageAccounts:boolean }) {
+  const [connection,setConnection]=useState<GmailConnection|null>(null);
+  const [accounts,setAccounts]=useState<IntegrationAccount[]>([]);
+  const [selectedAccountId,setSelectedAccountId]=useState('');
+  const [loadingAccounts,setLoadingAccounts]=useState(true);
   const [imports,setImports]=useState<GmailCandidate[]>([]);
   const [query,setQuery]=useState('');
   const [statusFilter,setStatusFilter]=useState<GmailViewFilter>('all');
@@ -94,11 +98,24 @@ export function GmailPage({ categories, onImported }:{ categories:ExpenseCategor
     catch(e){ setError(e instanceof Error?e.message:'No se pudo cargar el historial de Gmail.'); }
   };
 
-  useEffect(()=>{ void refreshImports(); },[]);
+  const refreshAccounts=async(preferredId?:string)=>{
+    setLoadingAccounts(true);
+    try{
+      const next=await loadRegisteredGmailAccounts();
+      setAccounts(next);
+      const selected=next.find(account=>account.id===preferredId)||selectDefaultGmailAccount(next);
+      setSelectedAccountId(selected?.id||'');
+      setConnection(selected?.externalAccountId?getCachedGmailConnection(selected.externalAccountId):null);
+      if(selected)setMonths(Number(selected.config.months)||12);
+    }catch(e){setError(gmailConnectionError(e));}
+    finally{setLoadingAccounts(false);}
+  };
+  useEffect(()=>{ void refreshImports();void refreshAccounts(); },[]);
   useEffect(()=>()=>{ if(previewUrl) URL.revokeObjectURL(previewUrl); },[previewUrl]);
   useEffect(()=>{ setPage(1); },[query,statusFilter]);
 
-  const visibleImports=useMemo(()=>imports.filter(item=>item.status==='imported'||!isDecorativeGmailImage(item)),[imports]);
+  const selectedAccount=accounts.find(account=>account.id===selectedAccountId)||null;
+  const visibleImports=useMemo(()=>imports.filter(item=>(!item.integrationAccountId||item.integrationAccountId===selectedAccountId)&&(item.status==='imported'||!isDecorativeGmailImage(item))),[imports,selectedAccountId]);
   const shown=useMemo(()=>{
     const q=query.trim().toLowerCase();
     return visibleImports
@@ -112,39 +129,31 @@ export function GmailPage({ categories, onImported }:{ categories:ExpenseCategor
   const pageFrom=shown.length?(page-1)*PAGE_SIZE+1:0;
   const pageTo=Math.min(page*PAGE_SIZE,shown.length);
 
-  const connect=async(forceConsent=false)=>{
+  const connect=async()=>{
     setConnecting(true);setError('');setMessage('Abriendo autorización de Google…');
     try{
-      const next=await connectGmail(forceConsent);
-      setConnection(next);
-      setConnections(listCachedGmailConnections());
-      setMessage(`Gmail conectado: ${next.email}`);
+      const result=await connectRegisteredGmail({months,invoiceImportEnabled:true});
+      await refreshAccounts(result.account.id);
+      setConnection(result.connection);
+      setMessage(`Gmail conectado: ${result.connection.email}`);
     }catch(e){setError(gmailConnectionError(e));setMessage('');}
     finally{setConnecting(false);}
   };
 
-  const disconnect=async()=>{
-    setError('');
-    await disconnectGmail(connection?.email);
-    setConnection(getCachedGmailConnection());
-    setConnections(listCachedGmailConnections());
-    setMessage('Gmail desconectado de esta sesión.');
+  const selectAccount=(id:string)=>{
+    const account=accounts.find(item=>item.id===id);
+    if(!account?.externalAccountId)return;
+    const cached=getCachedGmailConnection(account.externalAccountId);
+    if(cached)setActiveGmailConnection(account.externalAccountId);
+    setSelectedAccountId(id);setConnection(cached);setMonths(Number(account.config.months)||12);
+    setPage(1);setError('');setMessage('');
   };
 
-  const selectAccount=(email:string)=>{
-    try{
-      setActiveGmailConnection(email);
-      setConnection(getCachedGmailConnection(email));
-      setError('');setMessage(`Cuenta activa: ${email}`);
-    }catch(e){setError(gmailConnectionError(e));setConnections(listCachedGmailConnections());}
-  };
-
-  const ensureConnection=async()=>{
-    const cached=getCachedGmailConnection();
-    if(cached){setConnection(cached);return cached;}
-    const next=await connectGmail(false);
+  const ensureConnection=async(candidate?:GmailCandidate)=>{
+    const account=candidate?.integrationAccountId?accounts.find(item=>item.id===candidate.integrationAccountId):selectedAccount;
+    if(!account)throw new Error('Selecciona una cuenta de Gmail conectada en Integraciones.');
+    const next=await ensureRegisteredGmailConnection(account);
     setConnection(next);
-    setConnections(listCachedGmailConnections());
     return next;
   };
 
@@ -152,9 +161,9 @@ export function GmailPage({ categories, onImported }:{ categories:ExpenseCategor
     setScanning(true);setError('');setMessage('Conectando con Gmail…');
     try{
       const active=await ensureConnection();
-      const knownMessageIds=new Set(imports.map(item=>item.messageId).filter(Boolean));
+      const knownMessageIds=new Set(visibleImports.map(item=>item.messageId).filter(Boolean));
       const result=await searchGmailInvoiceCandidatesStable(active.accessToken,months,active.email,knownMessageIds,setMessage);
-      const merged=await saveGmailCandidates(result.candidates);
+      const merged=await saveGmailCandidates(result.candidates.map(item=>({...item,metadata:{...item.metadata,gmailAccountEmail:active.email}})),selectedAccountId);
       setImports(merged);
       setPage(1);
 
@@ -176,7 +185,7 @@ export function GmailPage({ categories, onImported }:{ categories:ExpenseCategor
       }
     }catch(e){
       setError(gmailConnectionError(e));
-      setConnection(getCachedGmailConnection());
+      setConnection(selectedAccount?.externalAccountId?getCachedGmailConnection(selectedAccount.externalAccountId):null);
     }finally{setScanning(false);}
   };
 
@@ -184,7 +193,7 @@ export function GmailPage({ categories, onImported }:{ categories:ExpenseCategor
     if(!candidate.id)return;
     setImportingId(candidate.id);setError('');setMessage(`Importando ${candidate.attachmentName}…`);
     try{
-      const active=await ensureConnection();
+      const active=await ensureConnection(candidate);
       const result=await importGmailCandidate(active.accessToken,candidate,categories,setMessage);
       await refreshImports();
       if(result.kind==='review'){
@@ -236,16 +245,16 @@ export function GmailPage({ categories, onImported }:{ categories:ExpenseCategor
   const previewOne=async(candidate:GmailCandidate)=>{
     setPreviewItem(candidate);setPreviewUrl('');setPreviewError('');setPreviewLoading(true);
     try{
-      const active=await ensureConnection();
+      const active=await ensureConnection(candidate);
       const file=await downloadGmailAttachment(active.accessToken,candidate);
       setPreviewUrl(URL.createObjectURL(file));
     }catch(e){
       setPreviewError(gmailConnectionError(e));
-      setConnection(getCachedGmailConnection());
+      setConnection(selectedAccount?.externalAccountId?getCachedGmailConnection(selectedAccount.externalAccountId):null);
     }finally{setPreviewLoading(false);}
   };
 
-  const accountBusy=connecting||scanning||importingId!==null||reviewSaving||previewLoading;
+  const accountBusy=loadingAccounts||connecting||scanning||importingId!==null||reviewSaving||previewLoading;
   const pendingCount=visibleImports.filter(item=>item.status==='found'||item.status==='error').length;
   const importedCount=visibleImports.filter(item=>item.status==='imported').length;
   const previewIsPdf=Boolean(previewItem&&(previewItem.mimeType==='application/pdf'||previewItem.attachmentName.toLowerCase().endsWith('.pdf')));
@@ -254,12 +263,12 @@ export function GmailPage({ categories, onImported }:{ categories:ExpenseCategor
   return <div className="page">
     <div className="pageHead">
       <div><div className="eyebrow">AUTOMATIZACIÓN</div><h1>Facturas desde Gmail</h1><p>Busca adjuntos de facturas, revísalos e impórtalos directamente en ZENVIA Gestión.</p></div>
-      <div className="actions">{connection?<><button className="secondary" disabled={accountBusy} onClick={disconnect}><Link2Off size={16}/> Desconectar</button><button className="secondary" disabled={accountBusy||!gmailOAuthConfigured()} onClick={()=>connect(true)}>{connecting?<LoaderCircle className="spin" size={16}/>:<Link2 size={16}/>} Añadir otra cuenta</button><button className="primary" disabled={accountBusy} onClick={scan}>{scanning?<LoaderCircle className="spin" size={16}/>:<RefreshCw size={16}/>} Buscar facturas</button></>:<button className="primary" disabled={connecting||!gmailOAuthConfigured()} onClick={()=>connect(true)}>{connecting?<LoaderCircle className="spin" size={16}/>:<Link2 size={16}/>} Conectar Gmail</button>}</div>
+      <div className="actions">{canManageAccounts&&<button className="secondary" disabled={accountBusy} onClick={onManageAccounts}><Link2 size={16}/> Gestionar cuentas</button>}{selectedAccount?<button className="primary" disabled={accountBusy} onClick={scan}>{scanning?<LoaderCircle className="spin" size={16}/>:<RefreshCw size={16}/>} Buscar facturas</button>:canManageAccounts?<button className="primary" disabled={accountBusy||!gmailOAuthConfigured()} onClick={()=>void connect()}>{connecting?<LoaderCircle className="spin" size={16}/>:<Link2 size={16}/>} Conectar Gmail</button>:null}</div>
     </div>
 
     {!gmailOAuthConfigured()?<section className="gmailSetup card"><AlertCircle/><div><h3>Conexión con Google no disponible</h3><p>Contacta con el administrador de Zenvia para habilitar la conexión. No necesitas configurar claves ni servicios de Google.</p></div></section>:null}
 
-    <section className="gmailHero card"><div className="gmailIcon"><Mail/></div><div className="gmailHeroBody"><h2>{connection?`Conectado a ${connection.email}`:'Conecta el buzón de facturas'}</h2><p>Elige tu cuenta en la ventana oficial de Google y acepta el permiso de lectura. Puedes añadir otra cuenta cuando quieras. Zenvia busca PDFs e imágenes adjuntas sin eliminar, mover ni modificar correos.</p><div className="gmailControls">{connection&&connections.length>0&&<label>Cuenta de Gmail<SelectField value={connection.email} options={connections.map(account=>({value:account.email,label:account.email}))} onChange={selectAccount} disabled={accountBusy} ariaLabel="Cuenta de Gmail activa"/></label>}<label>Periodo<SelectField value={String(months)} options={[{value:'3',label:'3 meses'},{value:'6',label:'6 meses'},{value:'12',label:'12 meses'},{value:'24',label:'24 meses'}]} onChange={value=>setMonths(Number(value))} ariaLabel="Periodo de Gmail"/></label><span><ShieldCheck size={15}/> Acceso solo lectura</span></div></div></section>
+    <section className="gmailHero card"><div className="gmailIcon"><Mail/></div><div className="gmailHeroBody"><h2>{loadingAccounts?'Cargando cuentas de Gmail…':selectedAccount?`${connection?'Conectado a':'Cuenta seleccionada:'} ${selectedAccount.externalAccountId}`:'Conecta el buzón de facturas'}</h2><p>{selectedAccount?'Elige una de las cuentas conectadas en Integraciones para buscar sus facturas. Zenvia busca PDFs e imágenes adjuntas sin eliminar, mover ni modificar correos.':canManageAccounts?'Conecta Gmail aquí o desde Integraciones. Allí puedes añadir cuentas, desconectarlas y elegir la predeterminada.':'Pide al administrador que conecte una cuenta de Gmail en Integraciones.'}</p><div className="gmailControls">{accounts.length>0&&<label>Cuenta de Gmail<SelectField value={selectedAccountId} options={accounts.map(account=>({value:account.id,label:`${account.externalAccountId}${account.isDefault?' · Predeterminada':''}`}))} onChange={selectAccount} disabled={accountBusy} ariaLabel="Cuenta de Gmail activa"/></label>}<label>Periodo<SelectField value={String(months)} options={Array.from(new Set([3,6,12,24,months])).sort((a,b)=>a-b).map(value=>({value:String(value),label:`${value} meses`}))} onChange={value=>setMonths(Number(value))} disabled={accountBusy} ariaLabel="Periodo de Gmail"/></label><span><ShieldCheck size={15}/> Acceso solo lectura</span></div></div></section>
 
     <div className="stats gmailStats"><div className="stat"><div className="statIcon"><Paperclip/></div><div><span>Pendientes</span><strong>{pendingCount}</strong><small>Adjuntos por revisar</small></div></div><div className="stat"><div className="statIcon"><CheckCircle2/></div><div><span>Importadas</span><strong>{importedCount}</strong><small>Facturas creadas</small></div></div><div className="stat"><div className="statIcon"><Sparkles/></div><div><span>Automático</span><strong>IA/OCR</strong><small>Lectura de importes y líneas</small></div></div></div>
 
@@ -272,7 +281,7 @@ export function GmailPage({ categories, onImported }:{ categories:ExpenseCategor
         <SelectField className="gmailStatusFilter" value={statusFilter} onChange={value=>setStatusFilter(value as GmailViewFilter)} ariaLabel="Filtrar por estado" options={[{value:'all',label:'Todos los estados'},{value:'pending',label:'Pendientes'},{value:'imported',label:'Importadas'},{value:'not_imported',label:'No importadas'},{value:'ignored',label:'Ignoradas'},{value:'not_ignored',label:'No ignoradas'},{value:'error',label:'Con error'}]}/>
         <span className="gmailFilterSummary">{shown.length} resultado{shown.length===1?'':'s'}</span>
       </div>
-      {connection&&<button className="secondary" disabled={scanning} onClick={scan}><RefreshCw size={16}/> Actualizar Gmail</button>}
+      {selectedAccount&&<button className="secondary" disabled={accountBusy} onClick={scan}><RefreshCw size={16}/> Actualizar Gmail</button>}
     </div>
 
     <section className="card gmailImports">
@@ -287,7 +296,7 @@ export function GmailPage({ categories, onImported }:{ categories:ExpenseCategor
             <div className="gmailImportActions"><button className="secondary" disabled={busy||previewLoading} onClick={()=>previewOne(item)}><Eye size={15}/> Ver factura</button><a className="secondary gmailLink" href={gmailMessageUrl(item)} target="_blank" rel="noreferrer"><ExternalLink size={15}/> Ver correo</a>{!imported&&item.status!=='ignored'?<button className="primary" disabled={busy||scanning} onClick={()=>importOne(item)}>{busy?<LoaderCircle className="spin" size={15}/>:<Sparkles size={15}/>} {busy?'Analizando…':item.metadata?.reviewRequired?'Revisar':reimportable?'Reimportar':'Importar'}</button>:null}{!imported?<button className="link" disabled={busy} onClick={()=>ignore(item)}>{item.status==='ignored'?'Recuperar':'Ignorar'}</button>:null}</div>
           </article>})}</div>
         <div className="gmailPagination"><span>Mostrando <strong>{pageFrom}-{pageTo}</strong> de <strong>{shown.length}</strong></span><div><button className="secondary" disabled={page<=1} onClick={()=>setPage(current=>Math.max(1,current-1))}><ChevronLeft size={15}/> Anterior</button><span>Página {page} de {totalPages}</span><button className="secondary" disabled={page>=totalPages} onClick={()=>setPage(current=>Math.min(totalPages,current+1))}>Siguiente <ChevronRight size={15}/></button></div></div>
-      </>:<div className="emptyState large">{connection?'No hay adjuntos de factura que coincidan con los filtros.':'Conecta Gmail para empezar a localizar facturas.'}</div>}
+      </>:<div className="emptyState large">{selectedAccount?'No hay adjuntos de factura que coincidan con los filtros.':'Conecta Gmail para empezar a localizar facturas.'}</div>}
     </section>
 
     <div className="grid2 gmailFeatures"><section className="card feature"><Sparkles/><h3>Misma lectura inteligente</h3><p>Cada adjunto importado pasa por el mismo lector de PDF/OCR: proveedor, número, fecha, base, IVA, total y líneas de producto. Si es mercancía, los productos nuevos se crean automáticamente.</p></section><section className="card feature"><ShieldCheck/><h3>Siempre pendiente primero</h3><p>Importar desde Gmail crea la factura en estado pendiente. Después puedes abrir el documento original, revisar los datos y decidir cuándo marcarla como revisada o contabilizada.</p></section></div>

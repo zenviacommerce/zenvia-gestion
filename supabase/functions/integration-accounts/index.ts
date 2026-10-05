@@ -1,9 +1,10 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { enforceWorkspaceLimit, requireWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
+import { gmailAccessAllowed, gmailServerConfig, validateGmailOrigin, gmailTokenRequest, gmailProfileEmail, gmailConnectionFromToken } from '../_shared/gmailOAuth.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
-  'Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type, x-requested-with',
   'Access-Control-Allow-Methods':'POST, OPTIONS',
 };
 const headers={...corsHeaders,'Content-Type':'application/json'};
@@ -27,7 +28,7 @@ function sanitize(value:unknown){
     .replace(/("(?:client_secret|refresh_token|access_token|secretKey|secret_key|token|apiToken)"\s*:\s*")([^"]+)(")/gi,'$1[redacted]$3')
     .slice(0,700);
 }
-async function authenticate(req:Request,admin:any):Promise<Caller>{
+async function authenticate(req:Request,admin:any,action:string):Promise<Caller>{
   const token=clean(req.headers.get('Authorization')).replace(/^Bearer\s+/i,'');
   if(!token)throw new Error('Sesión no válida.');
   const {data:userData,error:userError}=await admin.auth.getUser(token);
@@ -40,7 +41,7 @@ async function authenticate(req:Request,admin:any):Promise<Caller>{
   const {data:workspace,error:workspaceError}=await admin.from('workspaces').select('status').eq('id',caller.data_owner_id).maybeSingle();
   if(workspaceError)throw workspaceError;
   if(!workspace||!['active','trialing'].includes(workspace.status))throw new Error('El acceso de tu empresa está suspendido.');
-  if(caller.role!=='admin')throw new Error('Solo un administrador puede gestionar integraciones.');
+  if(!gmailAccessAllowed(caller,action))throw new Error('Solo un administrador puede gestionar integraciones; consultar Gmail requiere permiso de Gastos.');
   return caller as Caller;
 }
 function publicAccount(row:any){
@@ -86,6 +87,19 @@ async function writeVault(admin:any,accountId:string,provider:Provider,credentia
   });
   if(error)throw error;
   return String(data);
+}
+
+async function renewGmail(admin:any,account:any,forceRefresh=false){
+  const config=gmailServerConfig();
+  if(!config.persistent)throw new Error('La conexión persistente de Google no está habilitada. Contacta con el administrador de Zenvia.');
+  const stored=await readVault(admin,account.secret_id);
+  if(!stored.refreshToken)throw new Error('Renueva la autorización de esta cuenta desde Integraciones.');
+  if(stored.clientId!==config.clientId)throw new Error('La configuración de Google ha cambiado. Renueva la cuenta en Integraciones.');
+  if(!forceRefresh&&stored.accessToken&&Number(stored.expiresAt)>Date.now()+300000)return {email:account.external_account_id,accessToken:stored.accessToken,expiresAt:stored.expiresAt};
+  const token=await gmailTokenRequest(new URLSearchParams({grant_type:'refresh_token',client_id:config.clientId,client_secret:config.clientSecret,refresh_token:stored.refreshToken}));
+  const connection=gmailConnectionFromToken(token,account.external_account_id);
+  await writeVault(admin,account.id,'gmail',{...stored,...connection,...(token.refresh_token?{refreshToken:token.refresh_token}:{})},account.secret_id);
+  return connection;
 }
 async function loadAccount(admin:any,ownerId:string,id:string){
   const {data,error}=await admin.from('integration_accounts').select('*').eq('owner_id',ownerId).eq('id',id).maybeSingle();
@@ -352,7 +366,11 @@ async function testAccount(admin:any,ownerId:string,account:any){
       if(!shop?.id)throw new Error('Shopify no devolvió la identidad de la tienda.');
       detail={shopName:shop.name,shopUrl:shop.myshopifyDomain,apiVersion:result.credentials.apiVersion};
     }else if(account.provider==='gmail'){
-      detail={requiresBrowserSession:true};
+      if(account.credential_source==='vault'){
+        const connection=await renewGmail(admin,account);
+        if(await gmailProfileEmail(connection.accessToken)!==account.external_account_id.toLowerCase())throw new Error('La autorización no corresponde al buzón guardado.');
+      }
+      detail={requiresBrowserSession:account.credential_source!=='vault'};
     }
     const nextConfig=account.provider==='mrw'&&detail?.apiMode?{...(account.config||{}),apiMode:detail.apiMode,soapVersion:detail.soap||null}:account.config;
     const update=await admin.from('integration_accounts').update({
@@ -375,9 +393,53 @@ Deno.serve(async(req:Request)=>{
   if(!url||!key)return response({error:'Configuración interna de Supabase no disponible.'},500);
   const admin=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
   try{
-    const caller=await authenticate(req,admin);
     const body=await req.json().catch(()=>({}));
     const action=clean(body?.action||'list');
+    const caller=await authenticate(req,admin,action);
+
+    if(action.startsWith('gmail_')){
+      await requireWorkspaceEntitlement(admin,caller.data_owner_id,'integration.gmail','Tu plan no incluye la integración con Gmail.');
+      if(action==='gmail_list')return response({accounts:(await listAccounts(admin,caller.data_owner_id)).filter((account:any)=>account.provider==='gmail')});
+      if(action==='gmail_config'){
+        const config=gmailServerConfig();
+        return response({persistent:config.persistent,...(config.persistent?{clientId:config.clientId}:{})});
+      }
+      if(action==='gmail_token'){
+        const account=await loadAccount(admin,caller.data_owner_id,clean(body.id));
+        if(account.provider!=='gmail'||!account.enabled||account.status==='disabled')throw new Error('La cuenta de Gmail está desactivada o no es válida.');
+        return response({connection:await renewGmail(admin,account,true)});
+      }
+      if(action==='gmail_exchange'){
+        const config=gmailServerConfig();
+        if(!config.persistent)throw new Error('La conexión persistente de Google no está habilitada.');
+        const origin=validateGmailOrigin(req.headers.get('Origin'),req.headers.get('X-Requested-With'),config.allowedOrigins);
+        const code=clean(body.code);
+        if(!code)throw new Error('Google no devolvió un código de autorización.');
+        const token=await gmailTokenRequest(new URLSearchParams({grant_type:'authorization_code',code,client_id:config.clientId,client_secret:config.clientSecret,redirect_uri:origin}));
+        const email=await gmailProfileEmail(token.access_token);
+        if(body.expectedEmail&&clean(body.expectedEmail).toLowerCase()!==email)throw new Error(`Selecciona ${clean(body.expectedEmail)} en Google para renovar esta cuenta.`);
+        const existing=await admin.from('integration_accounts').select('*').eq('owner_id',caller.data_owner_id).eq('provider','gmail').eq('external_account_id',email).maybeSingle();
+        if(existing.error)throw existing.error;
+        const previous=existing.data?.secret_id?await readVault(admin,existing.data.secret_id):{};
+        const refreshToken=token.refresh_token||(previous.clientId===config.clientId?previous.refreshToken:'');
+        if(!refreshToken)throw new Error('Google no concedió acceso persistente. Revoca el permiso de Zenvia en Google y vuelve a conectar la cuenta.');
+        const connection=gmailConnectionFromToken(token,email);
+        let account=existing.data;
+        if(!account){
+          const count=await admin.from('integration_accounts').select('id',{count:'exact',head:true}).eq('owner_id',caller.data_owner_id).eq('provider','gmail').eq('enabled',true);
+          if(count.error)throw count.error;
+          const inserted=await admin.from('integration_accounts').insert({owner_id:caller.data_owner_id,provider:'gmail',display_name:email,external_account_id:email,is_default:!count.count,credential_source:'vault',config:body.config||{}}).select('*').single();
+          if(inserted.error)throw inserted.error;
+          account=inserted.data;
+        }
+        const secretId=await writeVault(admin,account.id,'gmail',{clientId:config.clientId,refreshToken,...connection},account.secret_id);
+        const now=new Date().toISOString();
+        const saved=await admin.from('integration_accounts').update({secret_id:secretId,credential_source:'vault',enabled:true,status:'connected',last_error:null,last_success_at:now,updated_at:now,config:{...account.config,...body.config}}).eq('id',account.id).eq('owner_id',caller.data_owner_id).select('*').single();
+        if(saved.error)throw saved.error;
+        return response({account:publicAccount(saved.data),connection});
+      }
+      throw new Error('Acción de Gmail no válida.');
+    }
 
     if(action==='list')return response({accounts:await listAccounts(admin,caller.data_owner_id)});
 
@@ -550,6 +612,10 @@ Deno.serve(async(req:Request)=>{
       return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,id))});
     }
     if(action==='disconnect'){
+      if(account.provider==='gmail'&&account.secret_id){
+        const stored=await readVault(admin,account.secret_id);
+        if(stored.refreshToken){try{await fetch('https://oauth2.googleapis.com/revoke',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({token:stored.refreshToken})});}catch{/* Disable locally even if Google is unavailable. */}}
+      }
       if(account.secret_id){
         await writeVault(admin,account.id,account.provider,{revoked:true,revokedAt:new Date().toISOString()},account.secret_id);
       }

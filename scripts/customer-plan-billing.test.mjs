@@ -42,7 +42,7 @@ test('internal plan is never offered as a customer selectable plan',async()=>{
 
 test('App passes the loaded SaaS access profile into Settings',async()=>{
   const app=await read('src/App.tsx');
-  assert.match(app,/<SettingsPage isAdmin=\{access\.role==='admin'\} access=\{access\}\/>/);
+  assert.match(app,/<SettingsPage isAdmin=\{access\.role==='admin'\} access=\{access\}[^>]*\/>/);
 });
 
 

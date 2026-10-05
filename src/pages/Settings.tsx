@@ -38,7 +38,8 @@ import { addShippingRule, deleteShippingRule, loadShippingRules, updateShippingR
 import { AMAZON_KPI_KEYS, loadAmazonStatus, requestAmazonSync, type AmazonMarketplaceStatus } from '../services/amazon';
 import { getSendcloudStatus, syncSendcloudOrders } from '../services/orders';
 import { createIntegrationAccount, disconnectIntegrationAccount, loadAmazonAccountMarketplaces, loadIntegrationAccounts, setDefaultIntegrationAccount, syncSendcloudIntegrationAccount, syncShopifyIntegrationAccount, testIntegrationAccount, updateIntegrationAccount, type IntegrationAccount, type IntegrationProvider } from '../services/integrationAccounts';
-import { connectGmail, disconnectGmail, getCachedGmailConnection, setActiveGmailConnection, testGmailConnection } from '../services/gmail';
+import { disconnectGmail, getCachedGmailConnection, setActiveGmailConnection, testGmailConnection } from '../services/gmail';
+import { connectRegisteredGmail, ensureRegisteredGmailConnection } from '../services/gmailAccounts';
 import { DEFAULT_AUTOMATION_RULES, loadAutomationRules, saveAutomationRule, type AutomationRule } from '../services/automationRules';
 import { applyExpenseInvoiceReprocess, findClientDuplicates, findInvoiceDuplicates, findProductDuplicates, findSupplierDuplicates, listClientsMissingTaxId, listProductsWithoutCost, listReprocessableInvoices, listSuppliersMissingTaxId, mergeClient, mergeSupplier, previewClientMerge, previewExpenseInvoiceReprocess, previewPriceHistoryRebuild, previewProductCostRecalculation, previewSupplierMerge, previewSupplierProductRebuild, rebuildPriceHistoryLinks, rebuildSupplierProductLinks, recalculateProductCosts, runAmazonSync, runSendcloudSync, type DuplicateCandidate, type ExpenseInvoiceReprocessPreview, type MaintenanceRepairPreview, type MergePreview, type ReprocessableInvoiceOption } from '../services/maintenance';
 import { downloadSettingsExport, previewSettingsReset, resetAllSettingsToDefaults, type SettingsResetPreview } from '../services/settingsExport';
@@ -1359,10 +1360,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
         });
         showSuccess('Cuenta de integración actualizada.');
       }else if(provider==='gmail'){
-        const connection=await connectGmail(true);
-        const created=await createIntegrationAccount({
-          provider:'gmail',displayName:connection.email,externalAccountId:connection.email,config:accountConfig(),test:false,
-        });
+        const {connection,account:created}=await connectRegisteredGmail(accountConfig());
         setActiveGmailConnection(connection.email);
         await testGmailConnection(connection.email);
         await testIntegrationAccount(created.id);
@@ -1445,7 +1443,10 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
         showSuccess(`${providerMeta[account.provider].name}: conexión actual correcta.`);
         return;
       }
-      if(account.provider==='gmail')await testGmailConnection(account.externalAccountId||undefined);
+      if(account.provider==='gmail'){
+        await ensureRegisteredGmailConnection(account);
+        await testGmailConnection(account.externalAccountId||undefined);
+      }
       const result=await testIntegrationAccount(account.id);
       showSuccess(`${providerMeta[account.provider].name}: conexión correcta.`);
       setAccounts(current=>current.map(item=>item.id===account.id?result.account:item));
@@ -1485,13 +1486,23 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     finally{setBusy(null);}
   };
 
+  const renewGmailAccount=async(account:IntegrationAccount)=>{
+    setBusy('renew:'+account.id);
+    try{
+      await connectRegisteredGmail(account.config,account.externalAccountId||undefined);
+      await reload();
+      showSuccess('Autorización de Gmail renovada.');
+    }catch(e){showError(e instanceof Error?e.message:'No se pudo renovar Gmail.');}
+    finally{setBusy(null);}
+  };
+
   const disconnect=async(account:IntegrationAccount)=>{
     if(account.legacy){showError('La cuenta actual no se desconecta desde el modo de compatibilidad. Se habilitará al completar la migración multicuenta.');return;}
     if(!await confirmAction({title:'Desconectar integración',message:`Se desconectará “${account.displayName}”. El histórico ya importado se conservará.`,confirmLabel:'Desconectar',tone:'danger'}))return;
     setBusy('disconnect:'+account.id);
     try{
-      if(account.provider==='gmail'&&account.externalAccountId)await disconnectGmail(account.externalAccountId);
       setAccounts(await disconnectIntegrationAccount(account.id));
+      if(account.provider==='gmail'&&account.externalAccountId)await disconnectGmail(account.externalAccountId);
       showSuccess('Integración desconectada.');
     }catch(e){showError(e instanceof Error?e.message:'No se pudo desconectar la integración.');}
     finally{setBusy(null);}
@@ -1548,6 +1559,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                   </div>
                 </div>
                 <div className="integrationAccountActions">
+                  {account.provider==='gmail'&&!account.legacy&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void renewGmailAccount(account)}>{busy==='renew:'+account.id?'Autorizando…':'Renovar autorización'}</button>}
                   <button type="button" className="secondary" disabled={busy!==null||account.status==='disabled'} onClick={()=>void testAccount(account)}>{busy==='test:'+account.id?'Probando…':'Probar'}</button>
                   {(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='shopify')&&<button type="button" className="secondary" disabled={busy!==null||account.status!=='connected'} onClick={()=>void syncAccount(account)}>{busy==='sync:'+account.id?'Sincronizando…':'Sincronizar'}</button>}
                   <button type="button" className="secondary" disabled={busy!==null} onClick={()=>resetEditor(account.provider,account)}>Configurar</button>
@@ -1655,7 +1667,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           </>}
 
           {provider==='gmail'&&<>
-            <div className="settingsResetPreview"><strong>{editing?editing.externalAccountId||editing.displayName:'Autorización con Google'}</strong><small>{editing?'La autorización se conserva por cuenta durante la sesión del navegador.':'Al guardar se abrirá Google para elegir y autorizar una cuenta. Puedes repetirlo para añadir más cuentas.'}</small></div>
+            <div className="settingsResetPreview"><strong>{editing?editing.externalAccountId||editing.displayName:'Autorización con Google'}</strong><small>{editing?(editing.credentialSource==='vault'?'Autorización cifrada en el servidor, con renovación automática.':'La cuenta está registrada. Google puede pedir renovar el permiso al caducar la sesión.'):'Al guardar se abrirá Google para elegir y autorizar una cuenta. Esta misma cuenta estará disponible en Gastos.'}</small></div>
             <label className="settingsField"><span>Histórico al buscar facturas</span><div className="settingsNumberWithSuffix"><input type="number" min="1" max="36" value={gmailMonths} onChange={e=>setGmailMonths(Number(e.target.value))}/><em>meses</em></div></label>
           </>}
 
@@ -2502,10 +2514,10 @@ function MaintenanceSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void
   </section>;
 }
 
-export function SettingsPage({isAdmin,access}:{isAdmin:boolean;access:AccessProfile}){
+export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;access:AccessProfile;initialSection?:'integrations'}){
   const {warnings,error,loading}=useSettings();
   const visibleSections=useMemo(()=>sections.filter(section=>!section.adminOnly||isAdmin),[isAdmin]);
-  const [activeSection,setActiveSection]=useState<SettingsSectionId>(isAdmin?'general':'preferences');
+  const [activeSection,setActiveSection]=useState<SettingsSectionId>(isAdmin?(initialSection||'general'):'preferences');
   const [dirty,setDirty]=useState(false);
 
   useEffect(()=>{

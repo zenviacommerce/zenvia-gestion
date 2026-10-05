@@ -6,7 +6,7 @@ import { stripTypeScriptTypes } from 'node:module';
 
 test('Gmail authorization always offers account selection with optional consent',async()=>{
   const source=fs.readFileSync('src/services/gmail.ts','utf8');
-  const match=source.match(/export async function connectGmail[\s\S]*?\n}\n/);
+  const match=source.match(/export async function connectGmail\([\s\S]*?\n}\n/);
   assert.ok(match);
   const code=stripTypeScriptTypes(match[0].replace('export ',''));
   for(const consent of [true,false]){
@@ -40,4 +40,17 @@ test('requesting an unconnected Gmail account never falls back to another mailbo
   const get=vm.runInNewContext(code+'\ngetCachedGmailConnection',context);
   assert.equal(get('second@example.com'),null);
   assert.equal(get('first@example.com').email,'first@example.com');
+});
+
+test('a rejected authorization clears only its mailbox from the session cache',()=>{
+  const source=fs.readFileSync('src/services/gmail.ts','utf8');
+  const code=stripTypeScriptTypes(source.slice(source.indexOf('function connectionKey'),source.indexOf('const sleep =')).replaceAll('export ',''));
+  const first={email:'first@example.com',accessToken:'rejected',expiresAt:Date.now()+3600000};
+  const second={email:'second@example.com',accessToken:'valid',expiresAt:Date.now()+3600000};
+  const values=new Map([['accounts',JSON.stringify({'first@example.com':first,'second@example.com':second})],['legacy',JSON.stringify(first)]]);
+  const context={TOKEN_ACCOUNTS_STORAGE_KEY:'accounts',TOKEN_ACTIVE_STORAGE_KEY:'active',TOKEN_STORAGE_KEY:'legacy',TOKEN_REFRESH_BUFFER_MS:300000,sessionStorage:{getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)}};
+  const api=vm.runInNewContext(code+'\n({invalidateGmailAuthorization,getCachedGmailConnection})',context);
+  api.invalidateGmailAuthorization('rejected');
+  assert.equal(api.getCachedGmailConnection('first@example.com'),null);
+  assert.equal(api.getCachedGmailConnection('second@example.com').accessToken,'valid');
 });

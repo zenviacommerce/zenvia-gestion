@@ -40,6 +40,7 @@ export interface GmailConnection {
 
 export interface GmailCandidate {
   id?: string;
+  integrationAccountId?: string | null;
   messageId: string;
   threadId?: string | null;
   sender?: string | null;
@@ -110,6 +111,33 @@ function saveConnection(connection: GmailConnection) {
   // Legacy key remains populated so older screens keep working while the
   // application migrates to account-aware Gmail calls.
   sessionStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(connection));
+}
+
+export function rememberGmailConnection(connection:GmailConnection){saveConnection(connection);}
+
+export function invalidateGmailAuthorization(accessToken:string){
+  const map=loadConnectionMap();
+  for(const [key,connection] of Object.entries(map)){
+    if(connection.accessToken===accessToken){
+      delete map[key];
+      if(sessionStorage.getItem(TOKEN_ACTIVE_STORAGE_KEY)===key)sessionStorage.removeItem(TOKEN_ACTIVE_STORAGE_KEY);
+    }
+  }
+  persistConnectionMap(map);
+  try{if(JSON.parse(sessionStorage.getItem(TOKEN_STORAGE_KEY)||'null')?.accessToken===accessToken)sessionStorage.removeItem(TOKEN_STORAGE_KEY);}catch{sessionStorage.removeItem(TOKEN_STORAGE_KEY);}
+}
+
+export async function connectGmailPersistent(clientId:string,email?:string):Promise<string>{
+  await loadGoogleIdentityServices();
+  return new Promise((resolve,reject)=>{
+    const client=window.google.accounts.oauth2.initCodeClient({
+      client_id:clientId,scope:GMAIL_SCOPE,ux_mode:'popup',select_account:true,
+      ...(email?{login_hint:email}:{}),
+      callback:(result:any)=>result?.code?resolve(result.code):reject(new Error(result?.error_description||result?.error||'Google no concedió acceso a Gmail.')),
+      error_callback:(error:any)=>reject(new Error(error?.type||error?.message||'No se pudo abrir Google.')),
+    });
+    client.requestCode();
+  });
 }
 
 export function listCachedGmailConnections(): GmailConnection[] {
@@ -192,8 +220,8 @@ async function gmailFetch<T>(accessToken: string, path: string): Promise<T> {
       || normalizedMessage.includes('invalid credentials');
 
     if (isAuthError) {
-      sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-      throw new GmailAuthError('La autorización de Gmail ha caducado o ya no tiene el permiso de lectura. Pulsa «Conectar Gmail» para renovarla.');
+      invalidateGmailAuthorization(accessToken);
+      throw new GmailAuthError('La autorización de Gmail ha caducado o ya no tiene el permiso de lectura. Vuelve a intentarlo o renueva la autorización desde Integraciones.');
     }
 
     const isTemporary = response.status === 429
@@ -427,6 +455,7 @@ function mapImportRow(row: any): GmailCandidate {
     status: row.status,
     invoiceId: row.invoice_id,
     metadata,
+    integrationAccountId: row.integration_account_id || null,
   };
 }
 

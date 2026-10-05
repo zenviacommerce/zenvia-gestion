@@ -1,4 +1,4 @@
-import { downloadGmailAttachment, type GmailCandidate } from './gmail';
+import { downloadGmailAttachment, invalidateGmailAuthorization, type GmailCandidate } from './gmail';
 import { classifyInvoiceFile, shouldInspectInvoiceAttachment } from './invoiceCandidateClassifier';
 
 const MAX_RETRIES = 5;
@@ -76,7 +76,8 @@ async function gmailFetchJson<T>(accessToken: string, path: string): Promise<T> 
       || normalized.includes('insufficientpermissions');
 
     if (authError) {
-      throw new GmailAuthError('La autorización de Gmail ha caducado o ya no tiene permiso de lectura. Pulsa «Conectar Gmail» para renovarla.');
+      invalidateGmailAuthorization(accessToken);
+      throw new GmailAuthError('La autorización de Gmail ha caducado o ya no tiene permiso de lectura. Vuelve a buscar o renueva la autorización desde Integraciones.');
     }
 
     if (isTemporaryGmailError(response.status, reason, message) && attempt < MAX_RETRIES) {

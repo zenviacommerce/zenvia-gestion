@@ -82,6 +82,7 @@ export default function App(){
  const [loading,setLoading]=useState(false);
  const [error,setError]=useState('');
  const [page,setPage]=useState<Page>('dashboard');
+ const [settingsInitialSection,setSettingsInitialSection]=useState<'integrations'|undefined>();
  const [ordersPendingEntry,setOrdersPendingEntry]=useState(false);
  const [upload,setUpload]=useState(false);
  const [bulkUpload,setBulkUpload]=useState(false);
@@ -550,13 +551,13 @@ export default function App(){
    {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders',{pendingOrders:true}):undefined}/>} 
    {page==='sales'&&can('sales')&&<SalesInvoices/>}
    {page==='orders'&&can('orders')&&<Orders pendingOnly={ordersPendingEntry}/>} 
-   {page==='invoices'&&can('invoices')&&<ExpenseInvoicesHub invoices={data.invoices} suppliers={data.suppliers} categories={data.categories} onUpload={()=>setUpload(true)} onBulkUpload={()=>setBulkUpload(true)} onStatusChange={changeStatus} onPaymentStatusChange={changePaymentStatus} onBulkPaymentStatusChange={changePaymentStatuses} onOpenFile={openInvoice} onDelete={removeInvoice} onSupplierChange={changeInvoiceSupplier} onCategoryChange={changeInvoiceCategory} onImported={refresh}/>} 
+   {page==='invoices'&&can('invoices')&&<ExpenseInvoicesHub invoices={data.invoices} suppliers={data.suppliers} categories={data.categories} onUpload={()=>setUpload(true)} onBulkUpload={()=>setBulkUpload(true)} onStatusChange={changeStatus} onPaymentStatusChange={changePaymentStatus} onBulkPaymentStatusChange={changePaymentStatuses} onOpenFile={openInvoice} onDelete={removeInvoice} onSupplierChange={changeInvoiceSupplier} onCategoryChange={changeInvoiceCategory} onImported={refresh} canManageAccounts={access.role==='admin'} onManageAccounts={()=>{setSettingsInitialSection('integrations');void navigate('settings');}}/>}
    {page==='clients'&&can('clients')&&<Clients/>}
    {page==='products'&&can('products')&&<Products products={data.products} onAdd={openNewProduct} onEdit={openEditProduct} onDelete={removeProduct}/>} 
    {page==='suppliers'&&can('suppliers')&&<Suppliers suppliers={data.suppliers} onAdd={openNewSupplier} onEdit={openEditSupplier} onDelete={removeSupplier}/>} 
    {page==='amazon'&&can('amazon')&&<AmazonPage isAdmin={access.role==='admin'}/>} 
    {page==='support'&&can('support')&&<SupportPage isAdmin={access.role==='admin'} currentUserId={session.user.id}/>} 
-   {page==='settings'&&<SettingsPage isAdmin={access.role==='admin'} access={access}/>} 
+   {page==='settings'&&<SettingsPage isAdmin={access.role==='admin'} access={access} initialSection={settingsInitialSection}/>}
    {page==='admin'&&access.role==='admin'&&<AdminPage currentUserId={session.user.id} workspaceName={access.workspaceName}/>} 
    <footer className="appLegalFooter">© {new Date().getFullYear()} ZENVIA COMMERCE. Todos los derechos reservados.</footer>
  </main>

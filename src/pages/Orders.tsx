@@ -15,8 +15,8 @@ import { defaultDateFilter, periodLabel } from '../services/filters';
 import {
   createManualOrder, createOrderLabel, fetchOrderLabel,
   getEnviaStatus, getSendcloudStatus, getShippingOptions, getOrderTrackingLink, labelBlob, listFulfillmentOrders, listLocalPrinters, markOrderLabelPrinted,
-  markEnviaHistorySyncDone, markHistorySyncDone, openLabelForPrint, printLabelWithClient,
-  shouldRunEnviaHistorySync, shouldRunHistorySync, syncEnviaShipments, syncSendcloudOrders, syncShopifyOrders, retryAmazonTrackingConfirmations, updateFulfillmentOrder,
+  markEnviaHistorySyncDone, openLabelForPrint, printLabelWithClient,
+  shouldRunEnviaHistorySync, syncEnviaShipments, syncShopifyOrders, retryAmazonTrackingConfirmations, updateFulfillmentOrder,
   type FulfillmentOrder, type LocalPrinter, type ManualOrderItem, type OrderChannel, type OrderUpdateInput,
   type SendcloudStatus, type ShippingOption,
 } from '../services/orders';
@@ -427,19 +427,17 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
 
   const sync=useCallback(async(silent=false,history=false,automatic=false,enviaHistory=shouldRunEnviaHistorySync())=>{
     if(syncingRef.current)return;
-    const runSendcloud=Boolean(settings.integrations.sendcloudEnabled&&status?.configured);
     const runEnvia=Boolean(settings.integrations.enviaEnabled&&enviaStatus?.configured);
     const runShopify=Boolean(settings.integrations.shopifyEnabled);
     const runAmazon=Boolean(settings.integrations.amazonEnabled&&!automatic);
-    if(!runSendcloud&&!runEnvia&&!runShopify&&!runAmazon){
+    if(!runEnvia&&!runShopify&&!runAmazon){
       await Promise.all([refresh(),settings.orders.retryTrackingConfirmation?retryAmazonTrackingConfirmations():Promise.resolve()]);
       if(!silent)showSuccess('Pedidos actualizados. Los canales directos y transportistas conectados no dependen de Sendcloud para refrescar esta vista.');
       return;
     }
     syncingRef.current=true;setSyncing(true);if(!silent)setError('');
     try{
-      const [sendcloudResult,enviaResult,shopifyResult,amazonResult]=await Promise.allSettled([
-        runSendcloud?syncSendcloudOrders(history,settings.orders.retryTrackingConfirmation,automatic):Promise.resolve(null),
+      const [enviaResult,shopifyResult,amazonResult]=await Promise.allSettled([
         runEnvia?syncEnviaShipments(enviaHistory?12:2):Promise.resolve(null),
         runShopify?syncShopifyOrders(history):Promise.resolve(null),
         runAmazon?requestAmazonSync():Promise.resolve(null),
@@ -447,11 +445,6 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       const messages:string[]=[],failures:string[]=[];
       if(amazonResult.status==='fulfilled'&&amazonResult.value)messages.push('Amazon directo: sincronización solicitada');
       else if(amazonResult.status==='rejected')failures.push('Amazon: '+errorMessage(amazonResult.reason,'error de sincronización'));
-      if(sendcloudResult.status==='fulfilled'&&sendcloudResult.value){
-        setStatus({configured:true,integrations:sendcloudResult.value.integrations});
-        messages.push('Sendcloud '+sendcloudResult.value.synced);
-        if(history)markHistorySyncDone();
-      }else if(sendcloudResult.status==='rejected')failures.push('Sendcloud: '+errorMessage(sendcloudResult.reason,'error de sincronización'));
       if(enviaResult.status==='fulfilled'&&enviaResult.value){
         messages.push('Envia.com '+enviaResult.value.synced);
         if(enviaHistory)markEnviaHistorySyncDone();
@@ -467,11 +460,11 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     }finally{syncingRef.current=false;setSyncing(false)}
   },[refresh,settings.integrations.amazonEnabled,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled,settings.integrations.shopifyEnabled,settings.orders.retryTrackingConfirmation,status?.configured,enviaStatus?.configured]);
   useEffect(()=>{
-    const enabled=Boolean((settings.integrations.sendcloudEnabled&&status?.configured)||(settings.integrations.enviaEnabled&&enviaStatus?.configured));
+    const enabled=Boolean(settings.integrations.shopifyEnabled||(settings.integrations.enviaEnabled&&enviaStatus?.configured));
     const tick=()=>enabled
       ?sync(true,false,true)
       :Promise.all([refresh(),settings.orders.retryTrackingConfirmation?retryAmazonTrackingConfirmations():Promise.resolve()]);
-    if(enabled)void sync(true,shouldRunHistorySync(),true,shouldRunEnviaHistorySync());
+    if(enabled)void sync(true,false,true,shouldRunEnviaHistorySync());
     else void tick();
     const timer=window.setInterval(()=>void tick(),Math.max(30,settings.orders.refreshSeconds)*1000);
     return()=>window.clearInterval(timer);

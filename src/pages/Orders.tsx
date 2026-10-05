@@ -147,7 +147,7 @@ function orderState(order:FulfillmentOrder){
   return {label:'Pendiente',className:'pending'};
 }
 function trackingState(order:FulfillmentOrder){
-  if(!hasShippingLabel(order))return {label:'Sin etiqueta',className:'none'};
+  if(!hasShippingLabel(order)&&!order.trackingNumber)return {label:'Sin etiqueta',className:'none'};
   const raw=`${order.trackingStatusCode||''} ${order.trackingStatusMessage||''}`.toLowerCase().replace(/[_-]+/g,' ');
   if(raw.includes('delivered')||raw.includes('shipment collected by customer'))return {label:'Entregado',className:'delivered'};
   if(raw.includes('driver en route')||raw.includes('out for delivery'))return {label:'En reparto',className:'route'};
@@ -157,6 +157,7 @@ function trackingState(order:FulfillmentOrder){
   if(raw.includes('address invalid')||raw.includes('attempt failed')||raw.includes('announcement failed')||raw.includes('unable to deliver')||raw.includes('exception')||raw.includes('error collecting')||raw.includes('refused')||raw.includes('returned to sender')||raw.includes('delivery delayed'))return {label:'Incidencia',className:'issue'};
   if(raw.includes('cancel'))return {label:'Cancelado',className:'cancelled'};
   if(raw.includes('created')||raw.includes('ready to send')||raw.includes('ready for shipment')||raw.includes('announced')||raw.includes('being announced')||raw.includes('no label'))return {label:'Preparado',className:'ready'};
+  if(raw.includes('shipped'))return {label:'Enviado',className:'transit'};
   if(order.trackingStatusMessage)return {label:order.trackingStatusMessage,className:'none'};
   return {label:'Pendiente de seguimiento',className:'none'};
 }

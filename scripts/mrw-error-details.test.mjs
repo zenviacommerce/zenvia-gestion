@@ -10,3 +10,6 @@ test('MRW error includes explanation after numbered Message',()=>{
  const result=parse('<Errors><Message>1)</Message><Message>El peso no es válido</Message></Errors>');
  assert.match(result,/El peso no es válido/);
 });
+test('MRW success with informational message is not a SOAP fault',()=>{
+ assert.equal(parse('<Result><Estado>1</Estado><Mensaje>El separador no coincide</Mensaje><EtiquetaFile>JVBERi0=</EtiquetaFile></Result>'),'');
+});

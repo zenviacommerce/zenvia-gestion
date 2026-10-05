@@ -1,7 +1,7 @@
 import { spApiRequest } from './sp-api.ts';
 import { loadAmazonSpApiCredentials } from './config.ts';
 
-const INCLUDED_DATA=['PROCEEDS','EXPENSE','PROMOTION','CANCELLATION','FULFILLMENT','TAX'];
+const INCLUDED_DATA=['PROCEEDS','EXPENSE','PROMOTION','CANCELLATION','FULFILLMENT','PACKAGES','TAX'];
 const OPERATIONAL_INCLUDED_DATA=[...INCLUDED_DATA,'BUYER','RECIPIENT'];
 const SAFE_LAG_MS=2*60*1000;
 
@@ -103,7 +103,28 @@ async function fallbackWeightKg(admin:any,ownerId:string){
   const value=Number(data?.config?.shipping?.fallbackWeightKg);
   return Number.isFinite(value)&&value>0?value:1;
 }
+export async function reconcileOperationalAmazonStates(admin:any,orders:any[],ownerId:string){
+  for(const order of orders){
+    const status=clean(order?.fulfillment?.fulfillmentStatus);
+    if(!order?.orderId||!status)continue;
+    const shipment=(Array.isArray(order.packages)?order.packages:[]).find((p:any)=>clean(p?.trackingNumber));
+    const patch:any={source_status:status,order_updated_at:order.lastUpdatedTime||new Date().toISOString(),last_synced_at:new Date().toISOString()};
+    if(shipment){
+      patch.tracking_number=clean(shipment.trackingNumber);
+      const carrier=typeof shipment.carrier==='string'?shipment.carrier:shipment.carrier?.name||shipment.carrier?.carrierCode;
+      if(carrier){patch.carrier_name=clean(carrier);patch.carrier_code=clean(carrier).toLowerCase()}
+      if(shipment.shippingService)patch.shipping_service_name=typeof shipment.shippingService==='string'?shipment.shippingService:shipment.shippingService.name||null;
+      patch.tracking_updated_at=new Date().toISOString();
+      patch.tracking_status_code=clean(shipment.packageStatus?.status)||status;
+      patch.tracking_status_message=clean(shipment.packageStatus?.detailedStatus)||status;
+    }
+    if(status.toUpperCase()==='SHIPPED')patch.fulfilled_at=shipment?.shipTime||order.lastUpdatedTime||new Date().toISOString();
+    const {error}=await admin.from('fulfillment_orders').update(patch).eq('owner_id',ownerId).eq('source_channel','amazon').eq('order_number',String(order.orderId));
+    if(error)throw error;
+  }
+}
 async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
+  await reconcileOperationalAmazonStates(admin,orders,job.owner_id);
   const candidates=orders.filter(order=>order?.orderId&&merchantFulfilled(order)&&order?.recipient?.deliveryAddress);
   if(!candidates.length)return 0;
   const sourceIntegrationAccountId=await amazonIntegrationAccountId(admin,job);

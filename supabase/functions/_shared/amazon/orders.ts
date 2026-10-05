@@ -120,7 +120,7 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
   let synced=0;
   for(const order of candidates){
     const orderId=String(order.orderId),current=existingByOrder.get(orderId)||null;
-    const address=operationalAddress(order),freshItems=operationalItems(order);
+    const address=current?.raw_payload?._zenvia_local_shipping_updated_at?current.shipping_address:operationalAddress(order),freshItems=operationalItems(order);
     const grandTotal=order?.proceeds?.grandTotal||null;
     const rawPayload={
       ...(current?.raw_payload&&typeof current.raw_payload==='object'?current.raw_payload:{}),

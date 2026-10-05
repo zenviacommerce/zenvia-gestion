@@ -1,5 +1,4 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { trackingCandidates } from '../_shared/shipmentTracking.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -140,6 +139,14 @@ function enabledCarrier(option:any,enabled:unknown){
 function channelFor(i:any){const value=`${i?.type||''} ${i?.shop_name||''} ${i?.shop_url||''}`.toLowerCase();if(value.includes('amazon'))return 'amazon';if(value.includes('shopify'))return 'shopify';return 'other';}
 function apiIntegration(i:any){const value=`${i?.type||''} ${i?.shop_name||''}`.toLowerCase();return value.includes('api')||value.includes('zenvia');}
 function orderEmail(o:any){return o?.customer_details?.email||o?.shipping_address?.email||o?.billing_address?.email||null;}
+function preserveLocalOrderEdits(incoming:any,existing:any){
+  if(!existing?.raw_payload?._zenvia_local_shipping_updated_at)return incoming;
+  return {...incoming,customer_name:existing.customer_name,customer_email:existing.customer_email,customer_phone:existing.customer_phone,
+    shipping_address:existing.shipping_address,package_length_cm:existing.package_length_cm,package_width_cm:existing.package_width_cm,package_height_cm:existing.package_height_cm,
+    raw_payload:{...incoming.raw_payload,_zenvia_local_shipping_updated_at:existing.raw_payload._zenvia_local_shipping_updated_at,
+      shipping_address:existing.shipping_address,customer_details:{...(incoming.raw_payload?.customer_details||{}),name:existing.customer_name,email:existing.customer_email,phone_number:existing.customer_phone},
+      shipping_details:{...(incoming.raw_payload?.shipping_details||{}),measurement:existing.raw_payload.shipping_details?.measurement||incoming.raw_payload?.shipping_details?.measurement}}};
+}
 function orderPhone(o:any){return o?.customer_details?.phone_number||o?.shipping_address?.phone_number||o?.billing_address?.phone_number||null;}
 function orderName(o:any){return o?.customer_details?.name||o?.shipping_address?.name||o?.billing_address?.name||null;}
 function statusCode(v:unknown){return String(v||'').trim().toLowerCase();}
@@ -173,7 +180,7 @@ async function fetchOrders(credentials:SendcloudCredentials,history:boolean){con
 async function fetchShipments(credentials:SendcloudCredentials,history:boolean){const min=history?yearStart():daysAgo(30);return fetchPaged(credentials,`/shipments?page_size=100&updated_after=${encodeURIComponent(`${min}T00:00:00Z`)}`,history?70:24);}
 function shipmentMeta(s:any){
   const parcel=Array.isArray(s?.parcels)?s.parcels[0]:null;const option=s?.ship_with?.properties?.shipping_option_code||null;const code=carrierCode(option,parcel?.tracking_url);const trackingStatus=parcel?.status||{};
-  return {sendcloud_parcel_id:parcel?.id==null?null:Number(parcel.id),sendcloud_shipment_id:s?.id==null?null:String(s.id),tracking_number:parcel?.tracking_number||null,tracking_url:trackingCandidates(parcel||s)[0]||null,shipping_option_code:option,contract_id:s?.ship_with?.properties?.contract_id==null?null:Number(s.ship_with.properties.contract_id),carrier_code:code,carrier_name:friendlyCarrier(code),shipping_service_name:option,fulfilled_at:parcel?.announced_at||s?.updated_at||null,tracking_status_code:clean(trackingStatus?.code)||null,tracking_status_message:clean(trackingStatus?.message)||null,tracking_updated_at:s?.updated_at||parcel?.updated_at||null};
+  return {sendcloud_parcel_id:parcel?.id==null?null:Number(parcel.id),sendcloud_shipment_id:s?.id==null?null:String(s.id),tracking_number:parcel?.tracking_number||null,tracking_url:parcel?.tracking_url||null,shipping_option_code:option,contract_id:s?.ship_with?.properties?.contract_id==null?null:Number(s.ship_with.properties.contract_id),carrier_code:code,carrier_name:friendlyCarrier(code),shipping_service_name:option,fulfilled_at:parcel?.announced_at||s?.updated_at||null,tracking_status_code:clean(trackingStatus?.code)||null,tracking_status_message:clean(trackingStatus?.message)||null,tracking_updated_at:s?.updated_at||parcel?.updated_at||null};
 }
 
 Deno.serve(async(req:Request)=>{
@@ -222,7 +229,7 @@ Deno.serve(async(req:Request)=>{
         const orders=await fetchOrders(account.credentials,history),now=new Date().toISOString();
         let shipments:any[]=[];try{shipments=await fetchShipments(account.credentials,history)}catch{/* sincronización base continúa */}
         const shipmentMap=new Map<string,any>();for(const shipment of shipments){const key=clean(shipment?.order_number);if(key&&!shipmentMap.has(key))shipmentMap.set(key,shipment)}
-        const rows=orders.map((order:any)=>{
+        let rows=orders.map((order:any)=>{
           const integrationId=Number(order?.order_details?.integration?.id||0),integration=integrationMap.get(integrationId),total=order?.payment_details?.total_price,remoteId=String(order.id);
           const sourceChannel=integration?.channel||'other';
           const sourceIntegrationAccountId=sourceChannel==='shopify'?shopifyMap.get(String(integrationId))||null:sourceChannel==='amazon'?(amazonByRemote.get(String(integrationId))||defaultAmazon?.id||null):account.id;
@@ -240,7 +247,16 @@ Deno.serve(async(req:Request)=>{
             total_amount:total?.value==null?null:Number(total.value),currency:total?.currency||null,raw_payload:order,last_synced_at:now
           };
         }).filter((r:any)=>r.integration_id&&r.sendcloud_id&&(!automatic||allowedChannels.has(r.source_channel)));
-        if(rows.length){const {error}=await admin.from('fulfillment_orders').upsert(rows,{onConflict:'owner_id,sendcloud_id'});if(error)throw error;}
+        if(rows.length){
+          const localById=new Map<string,any>();
+          for(let offset=0;offset<rows.length;offset+=100){
+            const {data:existing,error:readError}=await admin.from('fulfillment_orders').select('sendcloud_id,customer_name,customer_email,customer_phone,shipping_address,package_length_cm,package_width_cm,package_height_cm,raw_payload').eq('owner_id',caller.data_owner_id).in('sendcloud_id',rows.slice(offset,offset+100).map((r:any)=>r.sendcloud_id));
+            if(readError)throw readError;
+            for(const saved of existing||[])localById.set(saved.sendcloud_id,saved);
+          }
+          rows=rows.map((row:any)=>preserveLocalOrderEdits(row,localById.get(row.sendcloud_id)));
+          const {error}=await admin.from('fulfillment_orders').upsert(rows,{onConflict:'owner_id,sendcloud_id'});if(error)throw error;
+        }
         const enriched=rows.map((r:any)=>{const shipment=shipmentMap.get(clean(r.order_number));return shipment?{...r,...shipmentMeta(shipment)}:null}).filter(Boolean);
         if(enriched.length){const {error}=await admin.from('fulfillment_orders').upsert(enriched,{onConflict:'owner_id,sendcloud_id'});if(error)throw error;}
         totalSynced+=rows.length;totalEnriched+=enriched.length;
@@ -357,11 +373,11 @@ Deno.serve(async(req:Request)=>{
       const confirmShipmentAfterLabel=shippingConfig.confirmShipmentAfterLabel!==false;
       const shouldMarkSent=automation.markSent&&markSentAfterLabel&&confirmShipmentAfterLabel;
       const costPatch=persistShippingCost&&Number.isFinite(selectedPrice)?{shipping_cost_amount:selectedPrice,shipping_cost_currency:selectedCurrency||'EUR',shipping_cost_source:'sendcloud_quote',shipping_cost_net_amount:selectedPrice,shipping_cost_tax_amount:0,shipping_cost_recorded_at:now}:{};
-      const trackingPatch=automation.saveTracking?{tracking_number:created.tracking_number||null,tracking_url:trackingCandidates(created)[0]||null,tracking_status_code:'READY_TO_SEND',tracking_status_message:'Ready to send',tracking_updated_at:now}:{};
+      const trackingPatch=automation.saveTracking?{tracking_number:created.tracking_number||null,tracking_url:created.tracking_url||null,tracking_status_code:'READY_TO_SEND',tracking_status_message:'Ready to send',tracking_updated_at:now}:{};
       const shipmentPatch:any={sendcloud_parcel_id:Number(created.parcel_id),sendcloud_shipment_id:created.shipment_id==null?null:String(created.shipment_id),shipping_option_code:optionCode,contract_id:ship.contract_id??selected?.contractId??null,carrier_code:code,carrier_name:selected?.carrierName||friendlyCarrier(code),shipping_service_name:selected?.name||optionCode,label_created_at:now,...trackingPatch,...costPatch};
       if(shouldMarkSent){shipmentPatch.fulfilled_at=now;shipmentPatch.source_status='shipped';}
       const {error:updateError}=await admin.from('fulfillment_orders').update(shipmentPatch).eq('id',order.id).eq('owner_id',caller.data_owner_id);if(updateError)throw updateError;
-      return response({parcelId:Number(created.parcel_id),shipmentId:created.shipment_id==null?null:String(created.shipment_id),trackingNumber:created.tracking_number||null,trackingUrl:trackingCandidates(created)[0]||null,shippingOptionCode:optionCode,contractId:ship.contract_id??selected?.contractId??null,carrierCode:code,carrierName:selected?.carrierName||friendlyCarrier(code),shippingServiceName:selected?.name||optionCode,mimeType:created.label.mime_type||'application/pdf',base64:String(created.label.file)});
+      return response({parcelId:Number(created.parcel_id),shipmentId:created.shipment_id==null?null:String(created.shipment_id),trackingNumber:created.tracking_number||null,trackingUrl:created.tracking_url||null,shippingOptionCode:optionCode,contractId:ship.contract_id??selected?.contractId??null,carrierCode:code,carrierName:selected?.carrierName||friendlyCarrier(code),shippingServiceName:selected?.name||optionCode,mimeType:created.label.mime_type||'application/pdf',base64:String(created.label.file)});
     }
 
     if(action==='fetch_label'){

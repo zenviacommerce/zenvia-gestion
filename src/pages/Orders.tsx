@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import JSZip from 'jszip';
+import { requestAmazonSync } from '../services/amazon';
 import {
   AlertCircle, Calculator, CheckCircle2, ChevronRight, Download, Euro,
   ExternalLink, ImageOff, LoaderCircle, MapPin, PackageCheck, Percent, Pencil, Plus, Printer, RefreshCw,
@@ -429,19 +430,23 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     const runSendcloud=Boolean(settings.integrations.sendcloudEnabled&&status?.configured);
     const runEnvia=Boolean(settings.integrations.enviaEnabled&&enviaStatus?.configured);
     const runShopify=Boolean(settings.integrations.shopifyEnabled);
-    if(!runSendcloud&&!runEnvia&&!runShopify){
+    const runAmazon=Boolean(settings.integrations.amazonEnabled&&!automatic);
+    if(!runSendcloud&&!runEnvia&&!runShopify&&!runAmazon){
       await Promise.all([refresh(),settings.orders.retryTrackingConfirmation?retryAmazonTrackingConfirmations():Promise.resolve()]);
       if(!silent)showSuccess('Pedidos actualizados. Los canales directos y transportistas conectados no dependen de Sendcloud para refrescar esta vista.');
       return;
     }
     syncingRef.current=true;setSyncing(true);if(!silent)setError('');
     try{
-      const [sendcloudResult,enviaResult,shopifyResult]=await Promise.allSettled([
+      const [sendcloudResult,enviaResult,shopifyResult,amazonResult]=await Promise.allSettled([
         runSendcloud?syncSendcloudOrders(history,settings.orders.retryTrackingConfirmation,automatic):Promise.resolve(null),
         runEnvia?syncEnviaShipments(enviaHistory?12:2):Promise.resolve(null),
         runShopify?syncShopifyOrders(history):Promise.resolve(null),
+        runAmazon?requestAmazonSync():Promise.resolve(null),
       ]);
       const messages:string[]=[],failures:string[]=[];
+      if(amazonResult.status==='fulfilled'&&amazonResult.value)messages.push('Amazon directo: sincronización solicitada');
+      else if(amazonResult.status==='rejected')failures.push('Amazon: '+errorMessage(amazonResult.reason,'error de sincronización'));
       if(sendcloudResult.status==='fulfilled'&&sendcloudResult.value){
         setStatus({configured:true,integrations:sendcloudResult.value.integrations});
         messages.push('Sendcloud '+sendcloudResult.value.synced);
@@ -460,7 +465,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
         if(failures.length)showInfo(failures.join(' · '));
       }
     }finally{syncingRef.current=false;setSyncing(false)}
-  },[refresh,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled,settings.integrations.shopifyEnabled,settings.orders.retryTrackingConfirmation,status?.configured,enviaStatus?.configured]);
+  },[refresh,settings.integrations.amazonEnabled,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled,settings.integrations.shopifyEnabled,settings.orders.retryTrackingConfirmation,status?.configured,enviaStatus?.configured]);
   useEffect(()=>{
     const enabled=Boolean((settings.integrations.sendcloudEnabled&&status?.configured)||(settings.integrations.enviaEnabled&&enviaStatus?.configured));
     const tick=()=>enabled

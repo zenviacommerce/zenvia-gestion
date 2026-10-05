@@ -38,6 +38,15 @@ function operationalAddress(order:any){
     phone_number:clean(address.phone)||null,
   };
 }
+function mergeOperationalAddress(current:any,fresh:any){
+  const original=current?.raw_payload?.shipping_address||{},saved=current?.shipping_address||{};
+  const result:any={};
+  for(const [key,value] of Object.entries(original))if(clean(value))result[key]=value;
+  for(const [key,value] of Object.entries(saved))if(clean(value))result[key]=value;
+  if(current?.raw_payload?._zenvia_local_shipping_updated_at)return {...result,...saved};
+  for(const [key,value] of Object.entries(fresh||{}))if(clean(value))result[key]=value;
+  return result;
+}
 function operationalItems(order:any){
   return (Array.isArray(order?.orderItems)?order.orderItems:[]).map((item:any)=>{
     const product=item?.product||{},proceeds=item?.proceeds||null;
@@ -141,7 +150,7 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
   let synced=0;
   for(const order of candidates){
     const orderId=String(order.orderId),current=existingByOrder.get(orderId)||null;
-    const address=current?.raw_payload?._zenvia_local_shipping_updated_at?current.shipping_address:operationalAddress(order),freshItems=operationalItems(order);
+    const address=mergeOperationalAddress(current,operationalAddress(order)),freshItems=operationalItems(order);
     const grandTotal=order?.proceeds?.grandTotal||null;
     const rawPayload={
       ...(current?.raw_payload&&typeof current.raw_payload==='object'?current.raw_payload:{}),
@@ -164,11 +173,11 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
       integration_name:'Amazon',integration_type:'amazon-direct',source_channel:'amazon',
       source_status:clean(order?.fulfillment?.fulfillmentStatus)||null,
       order_created_at:order?.createdTime||null,order_updated_at:order?.lastUpdatedTime||null,
-      customer_name:address.name||clean(order?.buyer?.buyerName)||null,
-      customer_email:address.email||null,customer_phone:address.phone_number||null,
+      customer_name:address.name||clean(order?.buyer?.buyerName)||current?.customer_name||null,
+      customer_email:address.email||current?.customer_email||null,customer_phone:address.phone_number||current?.customer_phone||null,
       shipping_address:address,
-      items:mergeOperationalItems(current?.items||[],freshItems),
-      total_amount:money(grandTotal),currency:currency(grandTotal)||null,
+      items:freshItems.length?mergeOperationalItems(current?.items||[],freshItems):(current?.items||[]),
+      total_amount:grandTotal?money(grandTotal):(current?.total_amount??null),currency:currency(grandTotal)||current?.currency||null,
       raw_payload:rawPayload,last_synced_at:new Date().toISOString(),
     };
     if(current?.id){

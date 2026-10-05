@@ -16,7 +16,7 @@ import {
   createManualOrder, createOrderLabel, fetchOrderLabel,
   getEnviaStatus, getSendcloudStatus, getShippingOptions, getOrderTrackingLink, labelBlob, listFulfillmentOrders, listLocalPrinters, markOrderLabelPrinted,
   markEnviaHistorySyncDone, openLabelForPrint, printLabelWithClient,
-  shouldRunEnviaHistorySync, syncEnviaShipments, syncShopifyOrders, retryAmazonTrackingConfirmations, updateFulfillmentOrder,
+  shouldRunEnviaHistorySync, syncEnviaShipments, syncShopifyOrders, reconcileAmazonOrders, retryAmazonTrackingConfirmations, updateFulfillmentOrder,
   type FulfillmentOrder, type LocalPrinter, type ManualOrderItem, type OrderChannel, type OrderUpdateInput,
   type SendcloudStatus, type ShippingOption,
 } from '../services/orders';
@@ -429,7 +429,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     if(syncingRef.current)return;
     const runEnvia=Boolean(settings.integrations.enviaEnabled&&enviaStatus?.configured);
     const runShopify=Boolean(settings.integrations.shopifyEnabled);
-    const runAmazon=Boolean(settings.integrations.amazonEnabled&&!automatic);
+    const runAmazon=Boolean(settings.integrations.amazonEnabled);
     if(!runEnvia&&!runShopify&&!runAmazon){
       await Promise.all([refresh(),settings.orders.retryTrackingConfirmation?retryAmazonTrackingConfirmations():Promise.resolve()]);
       if(!silent)showSuccess('Pedidos actualizados. Los canales directos y transportistas conectados no dependen de Sendcloud para refrescar esta vista.');
@@ -440,10 +440,10 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       const [enviaResult,shopifyResult,amazonResult]=await Promise.allSettled([
         runEnvia?syncEnviaShipments(enviaHistory?12:2):Promise.resolve(null),
         runShopify?syncShopifyOrders(history):Promise.resolve(null),
-        runAmazon?requestAmazonSync():Promise.resolve(null),
+        runAmazon?Promise.all([reconcileAmazonOrders(),automatic?Promise.resolve(null):requestAmazonSync()]).then(([result])=>result):Promise.resolve(null),
       ]);
       const messages:string[]=[],failures:string[]=[];
-      if(amazonResult.status==='fulfilled'&&amazonResult.value)messages.push('Amazon directo: sincronización solicitada');
+      if(amazonResult.status==='fulfilled'&&amazonResult.value)messages.push('Amazon directo: '+amazonResult.value.processed+' pedidos comprobados');
       else if(amazonResult.status==='rejected')failures.push('Amazon: '+errorMessage(amazonResult.reason,'error de sincronización'));
       if(enviaResult.status==='fulfilled'&&enviaResult.value){
         messages.push('Envia.com '+enviaResult.value.synced);
@@ -460,7 +460,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     }finally{syncingRef.current=false;setSyncing(false)}
   },[refresh,settings.integrations.amazonEnabled,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled,settings.integrations.shopifyEnabled,settings.orders.retryTrackingConfirmation,status?.configured,enviaStatus?.configured]);
   useEffect(()=>{
-    const enabled=Boolean(settings.integrations.shopifyEnabled||(settings.integrations.enviaEnabled&&enviaStatus?.configured));
+    const enabled=Boolean(settings.integrations.amazonEnabled||settings.integrations.shopifyEnabled||(settings.integrations.enviaEnabled&&enviaStatus?.configured));
     const tick=()=>enabled
       ?sync(true,false,true)
       :Promise.all([refresh(),settings.orders.retryTrackingConfirmation?retryAmazonTrackingConfirmations():Promise.resolve()]);
@@ -761,7 +761,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const saveEdit=async(value:OrderUpdateInput)=>{if(!editOrder)return;setEditSaving(true);try{await updateFulfillmentOrder(editOrder.id,value);const freshOrders=await listFulfillmentOrders();setOrders(freshOrders);const fresh=freshOrders.find(item=>item.id===editOrder.id)||editOrder;setSelected(fresh);setEditValidationIssues([]);setEditOrder(null);showSuccess('Pedido actualizado en ZENVIA.')}catch(e){showError(errorMessage(e,'No se pudo actualizar el pedido.'))}finally{setEditSaving(false)}};
 
   return <div className="page ordersPage">
-    <div className="pageHead"><div><div className="eyebrow">LOGÍSTICA</div><h1>Pedidos</h1><p>Amazon, Shopify y pedidos manuales, etiquetas y seguimiento desde un único sitio.</p></div><div className="actions"><button className="secondary" onClick={detectPrinters} disabled={printerChecking} title="Opcional: usa ZENVIA Print Agent para imprimir directamente en una impresora instalada en este equipo. No es necesario para generar ni descargar etiquetas.">{printerChecking?<LoaderCircle className="spin" size={16}/>:<Printer size={16}/>} Impresión directa</button><label className="ordersQuickLabelFormat"><span>Formato</span><SelectField value={settings.shipping.labelSize} onChange={value=>void changeLabelSize(value as ShippingSettings['labelSize'])} ariaLabel="Formato rápido de etiqueta" options={[{value:'AUTO',label:'Original'},{value:'A6',label:'A6'},{value:'10x15',label:'10 × 15'},{value:'A5',label:'A5'},{value:'A4',label:'A4'}]}/></label><button className="secondary" onClick={()=>setManualOpen(true)}><Plus size={16}/> Nuevo pedido</button><button className="secondary" onClick={()=>void generateConfiguredLabels()} disabled={bulkGenerating||configuredBulkTargets.length===0}>{bulkGenerating?<LoaderCircle className="spin" size={16}/>:<Download size={16}/>} {bulkGenerating?`Generando ${bulkProgress}`:settings.orders.bulkScope==='selected'?`Generar etiquetas seleccionadas (${selectedOrders.length})`:`Generar etiquetas pendientes (${pending})`}</button><button className="primary" onClick={()=>sync(false,false)} disabled={syncing||bulkGenerating||!(status?.configured||enviaStatus?.configured)}>{syncing?<LoaderCircle className="spin" size={16}/>:<RefreshCw size={16}/>} Actualizar pedidos</button></div></div>
+    <div className="pageHead"><div><div className="eyebrow">LOGÍSTICA</div><h1>Pedidos</h1><p>Amazon, Shopify y pedidos manuales, etiquetas y seguimiento desde un único sitio.</p></div><div className="actions"><button className="secondary" onClick={detectPrinters} disabled={printerChecking} title="Opcional: usa ZENVIA Print Agent para imprimir directamente en una impresora instalada en este equipo. No es necesario para generar ni descargar etiquetas.">{printerChecking?<LoaderCircle className="spin" size={16}/>:<Printer size={16}/>} Impresión directa</button><label className="ordersQuickLabelFormat"><span>Formato</span><SelectField value={settings.shipping.labelSize} onChange={value=>void changeLabelSize(value as ShippingSettings['labelSize'])} ariaLabel="Formato rápido de etiqueta" options={[{value:'AUTO',label:'Original'},{value:'A6',label:'A6'},{value:'10x15',label:'10 × 15'},{value:'A5',label:'A5'},{value:'A4',label:'A4'}]}/></label><button className="secondary" onClick={()=>setManualOpen(true)}><Plus size={16}/> Nuevo pedido</button><button className="secondary" onClick={()=>void generateConfiguredLabels()} disabled={bulkGenerating||configuredBulkTargets.length===0}>{bulkGenerating?<LoaderCircle className="spin" size={16}/>:<Download size={16}/>} {bulkGenerating?`Generando ${bulkProgress}`:settings.orders.bulkScope==='selected'?`Generar etiquetas seleccionadas (${selectedOrders.length})`:`Generar etiquetas pendientes (${pending})`}</button><button className="primary" onClick={()=>sync(false,false)} disabled={syncing||bulkGenerating||!(settings.integrations.amazonEnabled||settings.integrations.shopifyEnabled||enviaStatus?.configured)}>{syncing?<LoaderCircle className="spin" size={16}/>:<RefreshCw size={16}/>} Actualizar pedidos</button></div></div>
     {(status?.configured||enviaStatus?.configured)&&<section className="ordersConnection"><CheckCircle2 size={16}/><span>Logística conectada</span><small>{[status?.configured?'Sendcloud':null,enviaStatus?.configured?'Envia.com · '+(enviaStatus.accounts.map(account=>account.displayName).join(', ')||'conectado'):null].filter(Boolean).join(' · ')}</small></section>}
     {status&&!status.configured&&!enviaStatus?.configured&&<section className="card ordersSetup"><AlertCircle/><div><h3>Falta conectar un proveedor logístico</h3><p>Conecta Sendcloud o Envia.com para sincronizar envíos y generar etiquetas.</p></div></section>}{error&&<div className="errorBox"><AlertCircle size={17}/>{error}</div>}
 

@@ -21,6 +21,12 @@ function discountMoney(proceeds:any){return proceedsBreakdown(proceeds,type=>typ
 
 function clean(value:unknown){return String(value??'').trim();}
 function merchantFulfilled(order:any){return clean(order?.fulfillment?.fulfilledBy).toUpperCase()==='MERCHANT';}
+function operationalRecipientReadiness(orders:any[]){
+  const eligible=orders.filter((order:any)=>merchantFulfilled(order)&&['UNSHIPPED','PARTIALLY_SHIPPED'].includes(clean(order?.fulfillment?.fulfillmentStatus).toUpperCase()));
+  if(!eligible.length)return null;
+  const complete=eligible.some((order:any)=>clean(order?.recipient?.deliveryAddress?.name)&&clean(order?.recipient?.deliveryAddress?.addressLine1));
+  return complete?'ready':'pii_permission_missing';
+}
 function operationalAddress(order:any){
   const address=order?.recipient?.deliveryAddress||{};
   const extended=address?.extendedFields||{};
@@ -304,7 +310,6 @@ export async function syncOrdersJob(admin:any,job:any){
     let data:any;
     try{
       data=await spApiRequest('/orders/2026-01-01/orders',{query},credentials);
-      await markOperationalReadiness(admin,job,'ready');
     }catch(error){
       const message=error instanceof Error?error.message:String(error);
       if(!/Amazon SP-API \(403\)/.test(message))throw error;
@@ -317,6 +322,8 @@ export async function syncOrdersJob(admin:any,job:any){
       data=await spApiRequest('/orders/2026-01-01/orders',{query:{...query,includedData:INCLUDED_DATA}},credentials);
     }
     const orders=Array.isArray(data?.orders)?data.orders:[];
+    const readiness=operationalRecipientReadiness(orders);
+    if(readiness)await markOperationalReadiness(admin,job,readiness,readiness==='ready'?'':'Amazon devuelve pedidos listos para enviar sin nombre ni calle del destinatario. Revisa los roles restringidos y la autorización de esta aplicación en Amazon.');
     processed+=await upsertPage(admin,orders,job);
     paginationToken=data?.pagination?.nextToken||undefined;
   }while(paginationToken);

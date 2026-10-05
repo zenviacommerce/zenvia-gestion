@@ -213,7 +213,7 @@ Deno.serve(async(req:Request)=>{
       if(automatic&&integrationConfig.sendcloudEnabled===false)return response({ok:true,synced:0,enriched:0,history,integrations:[],disabled:true});
       const accounts=await loadSendcloudAccounts(admin,caller.data_owner_id,requestedIntegrationAccountId);
       const allowedChannels=new Set<string>(['other']);
-      if(!automatic||integrationConfig.amazonEnabled!==false)allowedChannels.add('amazon');
+      // Amazon orders are imported exclusively through the direct Amazon integration.
       if(!automatic||integrationConfig.shopifyEnabled!==false)allowedChannels.add('shopify');
       let totalSynced=0,totalEnriched=0;const allIntegrations:any[]=[];const accountResults:any[]=[];
       const {data:amazonAccounts}=await admin.from('integration_accounts').select('id,config,is_default').eq('owner_id',caller.data_owner_id).eq('provider','amazon').eq('enabled',true).neq('status','disabled');
@@ -246,7 +246,7 @@ Deno.serve(async(req:Request)=>{
             shipping_address:order?.shipping_address||{},billing_address:order?.billing_address||{},items:Array.isArray(order?.order_details?.order_items)?order.order_details.order_items:[],
             total_amount:total?.value==null?null:Number(total.value),currency:total?.currency||null,raw_payload:order,last_synced_at:now
           };
-        }).filter((r:any)=>r.integration_id&&r.sendcloud_id&&(!automatic||allowedChannels.has(r.source_channel)));
+        }).filter((r:any)=>r.source_channel!=='amazon'&&r.integration_id&&r.sendcloud_id&&(!automatic||allowedChannels.has(r.source_channel)));
         if(rows.length){
           const localById=new Map<string,any>();
           for(let offset=0;offset<rows.length;offset+=100){

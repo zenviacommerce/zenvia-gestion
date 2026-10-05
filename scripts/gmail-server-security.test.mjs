@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import { stripTypeScriptTypes } from 'node:module';
 function helper(){
   const source=fs.existsSync('supabase/functions/_shared/gmailOAuth.ts')?fs.readFileSync('supabase/functions/_shared/gmailOAuth.ts','utf8'):'';
-  return vm.runInNewContext(stripTypeScriptTypes(source.replaceAll('export ',''))+'\n({gmailAccessAllowed,validateGmailOrigin,gmailConnectionFromToken})',{Error,URL});
+  return vm.runInNewContext(stripTypeScriptTypes(source.replaceAll('export ',''))+'\n({gmailAccessAllowed,validateGmailOrigin,gmailConnectionFromToken,legacyGmailMigrationPlan})',{Error,URL});
 }
 test('expense users can read Gmail accounts but cannot manage authorization',()=>{
   const {gmailAccessAllowed:allowed}=helper();
@@ -15,6 +15,15 @@ test('expense users can read Gmail accounts but cannot manage authorization',()=
   assert.equal(allowed(user,'gmail_exchange'),false);
   assert.equal(allowed(user,'disconnect'),false);
   assert.equal(allowed({role:'user',permissions:['orders']},'gmail_token'),false);
+});
+
+test('legacy migration transfers the old default only to a real mailbox in the same workspace',()=>{
+  const {legacyGmailMigrationPlan:plan}=helper();
+  const old={id:'old',owner_id:'workspace',provider:'gmail',external_account_id:'legacy',credential_source:'session',is_default:true,config:{}};
+  const target={id:'new',owner_id:'workspace',provider:'gmail',external_account_id:'me@example.com',enabled:true};
+  const result=plan([old,{...old,id:'foreign',owner_id:'other'}],target);
+  assert.deepEqual(Array.from(result.ids),['old']);assert.equal(result.transferDefault,true);
+  assert.throws(()=>plan([old],{...target,external_account_id:'legacy'}),/cuenta/i);
 });
 test('OAuth exchange rejects missing CSRF header and foreign origins',()=>{
   const {validateGmailOrigin:validate}=helper();

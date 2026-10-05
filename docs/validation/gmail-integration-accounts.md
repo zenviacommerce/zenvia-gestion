@@ -5,8 +5,8 @@ Accounts are managed in Integrations and consumed by the expense importer. The i
 ## Verification
 
 - Production build: passed (existing bundle size warning).
-- Gmail focused tests: 17 passed.
-- Full suite: 785 tests, 759 passed, 26 failed. All 26 failures also reproduce on the previous main commit `1d11744ba63a420596bcc1b53620a3644e2f33d3`. No new failures.
+- Gmail focused tests: 18 passed.
+- Full suite: 786 tests, 760 passed, 26 failed. All 26 failures also reproduce on the previous main commit `1d11744ba63a420596bcc1b53620a3644e2f33d3`. No new failures.
 - Existing deployed integration-accounts source was compared with the repository before deployment; it matched apart from the trailing newline. Its existing authentication and transport behavior are preserved.
 - Browser check reached the sign-in page. No authenticated Google consent or invoice import was performed.
 
@@ -42,3 +42,7 @@ The server implements code exchange, encrypted refresh-token storage through the
 - tariff parser is generic and preserves document table structure
 - tariff parser spends AI only when local extraction is insufficient and sends original PDF when needed
 - transport tariff parser can use AI but safely falls back without auto-activation
+
+## Legacy placeholder correction
+
+The old Gmail migration placeholder was archived and its linked history reassigned to the verified mailbox. The real mailbox becomes default when the placeholder was default. Subsequent Google connections consolidate only session placeholders from the same workspace; migrated placeholders are omitted from the account list. Full-suite failures remain the same 26 listed above.

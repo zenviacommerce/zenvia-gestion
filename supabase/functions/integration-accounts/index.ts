@@ -1,6 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { enforceWorkspaceLimit, requireWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
-import { gmailAccessAllowed, gmailServerConfig, validateGmailOrigin, gmailTokenRequest, gmailProfileEmail, gmailConnectionFromToken } from '../_shared/gmailOAuth.ts';
+import { gmailAccessAllowed, gmailServerConfig, validateGmailOrigin, gmailTokenRequest, gmailProfileEmail, gmailConnectionFromToken, legacyGmailMigrationPlan } from '../_shared/gmailOAuth.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -69,7 +69,22 @@ async function listAccounts(admin:any,ownerId:string){
   const {data,error}=await admin.from('integration_accounts')
     .select('*').eq('owner_id',ownerId).order('provider').order('is_default',{ascending:false}).order('display_name');
   if(error)throw error;
-  return (data||[]).map(publicAccount);
+  return (data||[]).filter((account:any)=>!(account.provider==='gmail'&&account.config?.migratedToAccountId)).map(publicAccount);
+}
+
+async function consolidateLegacyGmail(admin:any,ownerId:string,target:any){
+  const rows=await admin.from('integration_accounts').select('*').eq('owner_id',ownerId).eq('provider','gmail');
+  if(rows.error)throw rows.error;
+  const plan=legacyGmailMigrationPlan(rows.data||[],target);
+  for(const id of plan.ids){
+    const history=await admin.from('gmail_imports').update({integration_account_id:target.id}).eq('owner_id',ownerId).eq('integration_account_id',id);
+    if(history.error)throw history.error;
+    const old=rows.data.find((account:any)=>account.id===id);
+    const archived=await admin.from('integration_accounts').update({enabled:false,status:'disabled',is_default:false,config:{...old.config,migratedToAccountId:target.id},updated_at:new Date().toISOString()}).eq('owner_id',ownerId).eq('id',id);
+    if(archived.error)throw archived.error;
+  }
+  if(plan.transferDefault)await makeDefault(admin,ownerId,'gmail',target.id);
+  return loadAccount(admin,ownerId,target.id);
 }
 async function readVault(admin:any,secretId:string|null){
   if(!secretId)return {};
@@ -404,6 +419,10 @@ Deno.serve(async(req:Request)=>{
         const config=gmailServerConfig();
         return response({persistent:config.persistent,...(config.persistent?{clientId:config.clientId}:{})});
       }
+      if(action==='gmail_consolidate'){
+        const account=await loadAccount(admin,caller.data_owner_id,clean(body.id));
+        return response({account:publicAccount(await consolidateLegacyGmail(admin,caller.data_owner_id,account))});
+      }
       if(action==='gmail_token'){
         const account=await loadAccount(admin,caller.data_owner_id,clean(body.id));
         if(account.provider!=='gmail'||!account.enabled||account.status==='disabled')throw new Error('La cuenta de Gmail está desactivada o no es válida.');
@@ -436,7 +455,7 @@ Deno.serve(async(req:Request)=>{
         const now=new Date().toISOString();
         const saved=await admin.from('integration_accounts').update({secret_id:secretId,credential_source:'vault',enabled:true,status:'connected',last_error:null,last_success_at:now,updated_at:now,config:{...account.config,...body.config}}).eq('id',account.id).eq('owner_id',caller.data_owner_id).select('*').single();
         if(saved.error)throw saved.error;
-        return response({account:publicAccount(saved.data),connection});
+        return response({account:publicAccount(await consolidateLegacyGmail(admin,caller.data_owner_id,saved.data)),connection});
       }
       throw new Error('Acción de Gmail no válida.');
     }

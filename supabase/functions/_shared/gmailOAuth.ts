@@ -2,6 +2,12 @@ export function gmailAccessAllowed(caller:{role:string;permissions:string[]|null
   return caller.role==='admin'||(['gmail_list','gmail_token'].includes(action)&&Boolean(caller.permissions?.includes('invoices')));
 }
 
+export function legacyGmailMigrationPlan(accounts:any[],target:any){
+  if(target.provider!=='gmail'||!target.enabled||!String(target.external_account_id||'').includes('@'))throw new Error('Selecciona una cuenta real de Gmail.');
+  const placeholders=accounts.filter(account=>account.owner_id===target.owner_id&&account.provider==='gmail'&&account.external_account_id==='legacy'&&account.credential_source==='session'&&!account.config?.migratedToAccountId);
+  return {ids:placeholders.map(account=>account.id),transferDefault:placeholders.some(account=>account.is_default)};
+}
+
 export function validateGmailOrigin(origin:string|null,requestedWith:string|null,allowed:string[]){
   if(requestedWith!=='XmlHttpRequest')throw new Error('Solicitud de autorización no válida.');
   if(!origin||!allowed.includes(origin))throw new Error('El origen de la autorización no está permitido.');

@@ -17,6 +17,7 @@ test('importer uses the registered default and excludes disabled mailboxes',()=>
   assert.equal(choose([first,second]).id,'b');
   assert.equal(choose([first,{...second,enabled:false}]).id,'a');
   assert.equal(choose([{...first,status:'disabled'}]),null);
+  assert.equal(choose([{...first,id:'old',externalAccountId:'legacy',isDefault:true},second]).id,'b');
 });
 
 test('renewing a saved mailbox rejects a different Google account',async()=>{

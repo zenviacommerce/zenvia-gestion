@@ -14,13 +14,13 @@ export async function gmailAccountRequest<T>(action:string,body:Record<string,un
 }
 
 export function selectDefaultGmailAccount(accounts:IntegrationAccount[]):IntegrationAccount|null{
-  const enabled=accounts.filter(account=>account.provider==='gmail'&&account.enabled&&account.status!=='disabled'&&account.externalAccountId);
+  const enabled=accounts.filter(account=>account.provider==='gmail'&&account.enabled&&account.status!=='disabled'&&account.externalAccountId?.includes('@'));
   return enabled.find(account=>account.isDefault)||enabled[0]||null;
 }
 
 export async function loadRegisteredGmailAccounts():Promise<IntegrationAccount[]>{
   const result=await gmailAccountRequest<{accounts:IntegrationAccount[]}>('gmail_list');
-  return result.accounts.filter(account=>account.enabled&&account.status!=='disabled');
+  return result.accounts.filter(account=>account.enabled&&account.status!=='disabled'&&account.externalAccountId?.includes('@'));
 }
 
 export async function connectRegisteredGmail(config:Record<string,unknown>={months:12,invoiceImportEnabled:true},expectedEmail?:string){
@@ -39,7 +39,8 @@ export async function connectRegisteredGmail(config:Record<string,unknown>={mont
     ?await updateIntegrationAccount(existing.id,{enabled:true,config})
     :await createIntegrationAccount({provider:'gmail',displayName:connection.email,externalAccountId:connection.email,config,test:false});
   const tested=await testIntegrationAccount(account.id);
-  return {account:tested.account,connection};
+  const consolidated=await gmailAccountRequest<{account:IntegrationAccount}>('gmail_consolidate',{id:tested.account.id});
+  return {account:consolidated.account,connection};
 }
 
 export async function ensureRegisteredGmailConnection(account:IntegrationAccount):Promise<GmailConnection>{

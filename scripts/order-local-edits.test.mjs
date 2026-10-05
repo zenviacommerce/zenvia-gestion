@@ -1,0 +1,20 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+const source=fs.readFileSync('supabase/functions/sendcloud-orders/index.ts','utf8');
+test('remote synchronization retains local phone, address and package corrections',()=>{
+ const match=source.match(/function preserveLocalOrderEdits[\s\S]*?\n}\n/);
+ assert.ok(match,'sync must preserve saved local edits');
+ const fn=vm.runInNewContext(ts.transpile(match[0])+'\npreserveLocalOrderEdits');
+ const incoming={customer_phone:'original',shipping_address:{phone_number:'original'},raw_payload:{order_details:{status:'changed'},shipping_details:{measurement:{weight:{value:9}}}},total_amount:20};
+ const existing={customer_phone:'corrected',shipping_address:{phone_number:'corrected'},package_height_cm:5,raw_payload:{_zenvia_local_shipping_updated_at:'2026-10-05',shipping_details:{measurement:{weight:{value:2.3,unit:'kg'}}}}};
+ const merged=fn(incoming,existing);
+ assert.equal(merged.customer_phone,'corrected');
+ assert.equal(merged.shipping_address.phone_number,'corrected');
+ assert.equal(merged.raw_payload.shipping_details.measurement.weight.value,2.3);
+ assert.equal(merged.raw_payload.order_details.status,'changed');
+ assert.equal(merged.total_amount,20);
+ assert.equal(fn(incoming,{}),incoming);
+});

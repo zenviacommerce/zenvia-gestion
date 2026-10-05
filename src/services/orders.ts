@@ -193,9 +193,12 @@ export async function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
   const orders=dedupeMarketplaceOrders((data||[]).map(mapRow));
   const accountIds=[...new Set(orders.map(order=>order.sourceIntegrationAccountId).filter((id):id is string=>Boolean(id)))];
   if(!accountIds.length)return orders;
-  const {data:accounts,error:accountError}=await supabase.from('integration_accounts').select('id,display_name').in('id',accountIds);
-  if(accountError)throw accountError;
-  const names=new Map((accounts||[]).map(account=>[String(account.id),String(account.display_name||'').trim()]));
+  let accounts:Array<{id:string;displayName:string}>=[];
+  try{
+    const result=await invokeFunction<{accounts:Array<{id:string;displayName:string}>}>('integration-accounts',{action:'list'});
+    accounts=result.accounts||[];
+  }catch{return orders;}
+  const names=new Map(accounts.map(account=>[String(account.id),String(account.displayName||'').trim()]));
   return orders.map(order=>({...order,integrationName:names.get(order.sourceIntegrationAccountId||'')||order.integrationName}));
 }
 export function getSendcloudStatus(){return invokeSendcloud<SendcloudStatus>({action:'status'});}

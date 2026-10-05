@@ -111,7 +111,8 @@ export async function saveSettingsSection<K extends SettingsSection>(
   const {ownerId}=await loadWorkspaceContext();
   const current=await loadRawAppSettings(ownerId);
   const rawConfig=isRecord(current?.config)?current!.config:{};
-  const nextConfig={...rawConfig,[section]:clone(value)};
+  const persistedValue=section==='shipping'?normalizeAppSettings({shipping:value}).value.shipping:value;
+  const nextConfig={...rawConfig,[section]:clone(persistedValue)};
 
   const {error}=await supabase
     .from('app_settings')

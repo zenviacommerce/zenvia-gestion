@@ -1,3 +1,5 @@
+import {useSettings} from '../context/SettingsContext';
+import {SelectField} from './forms/SelectField';
 import { AlertCircle, LoaderCircle, Save, X } from 'lucide-react';
 import { useState } from 'react';
 import type { FulfillmentOrder, OrderUpdateInput } from '../services/orders';
@@ -8,6 +10,8 @@ const text=(value:unknown)=>typeof value==='string'?value:'';
 export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[],onClose,onSave}:{
   order:FulfillmentOrder; fallbackWeightKg:number; saving:boolean; validationIssues?:OrderValidationIssue[]; onClose:()=>void; onSave:(value:OrderUpdateInput)=>void;
 }){
+  const {settings}=useSettings();
+  const shipping=settings.shipping;
   const address=order.shippingAddress||{};
   const [customerName,setCustomerName]=useState(order.customerName||text(address.name));
   const [companyName,setCompanyName]=useState(text(address.company_name));
@@ -21,9 +25,9 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
   const [stateProvince,setStateProvince]=useState(text(address.state_province_code));
   const [countryCode,setCountryCode]=useState(text(address.country_code)||'ES');
   const [weightKg,setWeightKg]=useState(order.weightKg||fallbackWeightKg||1);
-  const [packageLengthCm,setPackageLengthCm]=useState(order.packageLengthCm||0);
-  const [packageWidthCm,setPackageWidthCm]=useState(order.packageWidthCm||0);
-  const [packageHeightCm,setPackageHeightCm]=useState(order.packageHeightCm||0);
+  const [packageLengthCm,setPackageLengthCm]=useState(order.packageLengthCm??shipping.packageLengthCm);
+  const [packageWidthCm,setPackageWidthCm]=useState(order.packageWidthCm??shipping.packageWidthCm);
+  const [packageHeightCm,setPackageHeightCm]=useState(order.packageHeightCm??shipping.packageHeightCm);
 
   const liveOrder:FulfillmentOrder={
     ...order,
@@ -80,6 +84,7 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
           <label><span>Provincia / Estado</span><input value={stateProvince} onChange={e=>setStateProvince(e.target.value)}/></label>
           <label className={fieldIssue('country_code')?'ordersFieldInvalid':''}><span>País *</span><input aria-invalid={Boolean(fieldIssue('country_code'))} maxLength={2} value={countryCode} onChange={e=>setCountryCode(e.target.value.toUpperCase())}/>{fieldError('country_code')&&<small className="ordersFieldError">{fieldError('country_code')}</small>}</label>
           <label className={fieldIssue('weight')?'ordersFieldInvalid':''}><span>Peso (kg) *</span><input aria-invalid={Boolean(fieldIssue('weight'))} type="number" min="0.01" step="0.01" value={weightKg} onChange={e=>setWeightKg(Number(e.target.value)||0)}/>{fieldError('weight')&&<small className="ordersFieldError">{fieldError('weight')}</small>}</label>
+          <label><span>Formato de paquete</span><SelectField ariaLabel="Formato de paquete" value={(shipping.packagePresets.find(p=>p.lengthCm===packageLengthCm&&p.widthCm===packageWidthCm&&p.heightCm===packageHeightCm)?.id)||''} options={[{value:'',label:'Medidas personalizadas'},...shipping.packagePresets.map(p=>({value:p.id,label:`${p.name} · ${p.lengthCm} × ${p.widthCm} × ${p.heightCm} cm${p.id===shipping.defaultPackagePresetId?' · Predeterminado':''}`}))]} onChange={id=>{const p=shipping.packagePresets.find(p=>p.id===id);if(p){setPackageLengthCm(p.lengthCm);setPackageWidthCm(p.widthCm);setPackageHeightCm(p.heightCm)}}}/></label>
           <label className={fieldIssue('package_length_cm')?'ordersFieldInvalid':''}><span>Largo paquete (cm)</span><input aria-invalid={Boolean(fieldIssue('package_length_cm'))} type="number" min="1" step="0.1" value={packageLengthCm||''} onChange={e=>setPackageLengthCm(Number(e.target.value)||0)}/>{fieldError('package_length_cm')&&<small className="ordersFieldError">{fieldError('package_length_cm')}</small>}</label>
           <label className={fieldIssue('package_width_cm')?'ordersFieldInvalid':''}><span>Ancho paquete (cm)</span><input aria-invalid={Boolean(fieldIssue('package_width_cm'))} type="number" min="1" step="0.1" value={packageWidthCm||''} onChange={e=>setPackageWidthCm(Number(e.target.value)||0)}/>{fieldError('package_width_cm')&&<small className="ordersFieldError">{fieldError('package_width_cm')}</small>}</label>
           <label className={fieldIssue('package_height_cm')?'ordersFieldInvalid':''}><span>Alto paquete (cm)</span><input aria-invalid={Boolean(fieldIssue('package_height_cm'))} type="number" min="1" step="0.1" value={packageHeightCm||''} onChange={e=>setPackageHeightCm(Number(e.target.value)||0)}/>{fieldError('package_height_cm')&&<small className="ordersFieldError">{fieldError('package_height_cm')}</small>}</label>

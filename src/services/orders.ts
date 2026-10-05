@@ -389,3 +389,5 @@ export function savePrinter(printerId:string){if(printerId)window.localStorage.s
 export function getOrderTrackingLink(orderId:string){
   return invokeOrderState<{url:string|null;status:'ready'|'unavailable';message?:string}>({action:'resolve_tracking_link',orderId});
 }
+
+export function reconcileAmazonOrders(){return invokeFunction<{ok:boolean;processed:number;failures:Array<{orderId:string;error:string}>}>('amazon-reconcile-orders',{});}

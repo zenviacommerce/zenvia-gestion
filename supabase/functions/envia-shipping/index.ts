@@ -1,5 +1,4 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { trackingCandidates } from '../_shared/shipmentTracking.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -479,7 +478,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
       const price=shipmentPrice(row);
       const currency=clean(row?.currency||row?.currencyCode||row?.currency_code)||'EUR';
       const labelUrl=clean(row?.label||row?.labelUrl||row?.label_url||row?.label_file);
-      const trackingUrl=trackingCandidates(row)[0]||null;
+      const trackingUrl=clean(row?.trackUrl||row?.trackingUrl||row?.tracking_url);
       const orderNumber=clean(row?.orderNumber||row?.order_number||row?.reference||row?.referenceNumber||row?.shipmentId)||`ENVIA-${tracking}`;
 
       const selectFields='id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,label_printed_at,label_print_state_known';
@@ -584,35 +583,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
           const {error:deleteError}=await admin.from('fulfillment_orders').delete().eq('id',duplicateSyntheticId).eq('owner_id',ownerId);
           if(deleteError)throw deleteError;
         }
-      }else{
-        const insert={
-          owner_id:ownerId,
-          sendcloud_id:`envia:${account.id}:${tracking}`,
-          order_id:null,
-          order_number:orderNumber,
-          integration_id:0,
-          integration_name:`Envia.com · ${account.display_name||'Cuenta'}`,
-          integration_type:'API',
-          source_channel:'other',
-          source_status:status||'shipment',
-          order_created_at:createdAt,
-          order_updated_at:createdAt,
-          customer_name:destination.name||null,
-          customer_email:destination.email||null,
-          customer_phone:destination.phone_number||null,
-          shipping_address:destination,
-          billing_address:{},
-          items:[],
-          total_amount:null,
-          currency,
-          raw_payload:{...row,provider:'envia',integration_account_id:account.id},
-          ...patch,
-        };
-        const {error:insertError}=await admin.from('fulfillment_orders').insert(insert);
-        if(insertError){
-          if(!String(insertError.message||'').toLowerCase().includes('duplicate'))throw insertError;
-        }
-      }
+      }else{continue;}
       synced+=1;
     }
   }
@@ -767,7 +738,7 @@ Deno.serve(async(req:Request)=>{
         shipping_label_url:labelUrl,
         shipping_integration_account_id:account.id,
         tracking_number:tracking,
-        tracking_url:trackingCandidates(data)[0]||null,
+        tracking_url:clean(data?.trackUrl||data?.trackingUrl||data?.tracking_url)||null,
         shipping_option_code:service,
         carrier_code:carrier,
         carrier_name:clean(option?.carrierName)||humanCarrier(carrier),

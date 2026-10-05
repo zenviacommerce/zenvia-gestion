@@ -58,7 +58,7 @@ export interface GmailCandidate {
 
 function getClientId() {
   if (!GOOGLE_CLIENT_ID) {
-    throw new Error('Falta configurar VITE_GOOGLE_CLIENT_ID en Vercel para conectar Gmail.');
+    throw new Error('La conexión con Google no está disponible. Contacta con el administrador de Zenvia.');
   }
   return GOOGLE_CLIENT_ID;
 }
@@ -132,11 +132,11 @@ export function getCachedGmailConnection(email?: string): GmailConnection | null
 
   try {
     const raw = sessionStorage.getItem(TOKEN_STORAGE_KEY);
-    if (!raw) return listCachedGmailConnections()[0] || null;
+    if (!raw) return email ? null : listCachedGmailConnections()[0] || null;
     const parsed = JSON.parse(raw) as GmailConnection;
     if (!parsed.accessToken || parsed.expiresAt <= Date.now() + TOKEN_REFRESH_BUFFER_MS) {
       sessionStorage.removeItem(TOKEN_STORAGE_KEY);
-      return listCachedGmailConnections()[0] || null;
+      return email ? null : listCachedGmailConnections()[0] || null;
     }
     if (!email || connectionKey(parsed.email) === connectionKey(email)) {
       saveConnection(parsed);
@@ -250,10 +250,10 @@ export async function connectGmail(forceConsent = false): Promise<GmailConnectio
           reject(error);
         }
       },
-      error_callback: (error: any) => reject(new Error(error?.message || 'No se pudo abrir la autorización de Google.')),
+      error_callback: (error: any) => reject(new Error(error?.type || error?.message || 'No se pudo abrir la autorización de Google.')),
     });
 
-    client.requestAccessToken({ prompt: forceConsent ? 'consent' : '' });
+    client.requestAccessToken({ prompt: forceConsent ? 'select_account consent' : 'select_account' });
   });
 }
 

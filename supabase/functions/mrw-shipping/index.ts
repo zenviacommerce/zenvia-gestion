@@ -65,6 +65,7 @@ function xmlValue(xml:string,tag:string){
 }
 function soapError(xml:string){
   const fault=xmlValue(xml,'faultstring');
+  if(!fault&&xmlValue(xml,'Estado')==='1')return '';
   const messages=[...xml.matchAll(/<(?:\w+:)?(?:Message|Mensaje|DescripcionError)(?:\s[^>]*)?>([\s\S]*?)<\/(?:\w+:)?(?:Message|Mensaje|DescripcionError)>/gi)].map(match=>match[1].trim()).filter(Boolean);
   return [fault,...messages].filter(Boolean).join(' · ');
 }
@@ -144,7 +145,7 @@ Deno.serve(async(req:Request)=>{
   const url=clean(Deno.env.get('SUPABASE_URL')),key=getAdminKey();if(!url||!key)return response({error:'Configuración interna no disponible.'},500);
   const admin=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
   try{
-    const caller=await authenticate(req,admin),body=await req.json().catch(()=>({})),action=clean(body?.action);
+    const caller=await authenticate(req,admin),body=await req.json().catch(()=>({}));let action=clean(body?.action);
     const account=await mrwAccount(admin,caller.data_owner_id,clean(body?.integrationAccountId||body?.shippingOption?.integrationAccountId));
     if(action==='status')return response({ok:true,configured:Boolean(account),accounts:account?[{id:account.row.id,displayName:account.row.display_name,environment:account.config?.environment==='test'?'test':'production',isDefault:Boolean(account.row.is_default)}]:[]});
     if(!account)return response({configured:false,options:[],message:'MRW directo no está configurado.'});
@@ -152,6 +153,14 @@ Deno.serve(async(req:Request)=>{
     const orderId=clean(body?.orderId);if(!orderId)return response({error:'Falta el pedido.'},400);
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('owner_id',caller.data_owner_id).eq('id',orderId).maybeSingle();
     if(error)throw error;if(!order)return response({error:'Pedido no encontrado.'},404);
+    if(action==='create_label'){
+      if(order.shipping_remote_id&&order.shipping_provider==='mrw')action='fetch_label';
+      else if(order.order_number){
+        const {data:related,error:relatedError}=await admin.from('fulfillment_orders').select('shipping_remote_id,tracking_number,shipping_integration_account_id').eq('owner_id',caller.data_owner_id).eq('order_number',order.order_number).eq('shipping_provider','mrw').not('shipping_remote_id','is',null).limit(1).maybeSingle();
+        if(relatedError)throw relatedError;
+        if(related){Object.assign(order,related);action='fetch_label'}
+      }
+    }
 
     if(action==='options'){
       const option=mrwOption(account);
@@ -171,6 +180,9 @@ Deno.serve(async(req:Request)=>{
       if(requiresDimensions&&(!length||!width||!height))return response({error:'MRW requiere largo, ancho y alto para Urgente 19. Otros servicios pueden generarse solo con el peso.',code:'missing_dimensions'},409);
       const dimensionsXml=length&&width&&height?`<Alto>${height}</Alto><Largo>${length}</Largo><Ancho>${width}</Ancho><Dimension>cm</Dimension>`:'';
       const request=`<TransmEnvio xmlns="http://www.mrw.es/"><request><DatosRecogida><Direccion><Via>${esc(from.address)}</Via><CodigoPostal>${esc(from.postalCode)}</CodigoPostal><Poblacion>${esc(from.city)}</Poblacion><CodigoPais>${esc(from.countryCode)}</CodigoPais></Direccion><Nombre>${esc(from.name)}</Nombre><Telefono>${esc(from.phone)}</Telefono></DatosRecogida><DatosEntrega><Direccion><Via>${esc(address.address_line_1)}</Via><Numero>${esc(address.house_number)}</Numero><Resto>${esc(address.address_line_2)}</Resto><CodigoPostal>${esc(address.postal_code)}</CodigoPostal><Poblacion>${esc(address.city)}</Poblacion><Provincia>${esc(address.state_province_code)}</Provincia><CodigoPais>${esc(address.country_code||'ES')}</CodigoPais></Direccion><Nombre>${esc(address.name||order.customer_name)}</Nombre><Telefono>${esc(address.phone_number||order.customer_phone)}</Telefono><ALaAtencionDe>${esc(address.company_name)}</ALaAtencionDe></DatosEntrega><DatosServicio><Fecha>${todayMrw()}</Fecha><Referencia>${esc(order.order_number||order.order_id||order.id)}</Referencia><CodigoServicio>${esc(serviceCode)}</CodigoServicio><Bultos><BultoRequest>${dimensionsXml}<Referencia>${esc(order.order_number||'')}</Referencia><Peso>${weight.toFixed(3).replace('.',',')}</Peso><NumeroBulto>1</NumeroBulto></BultoRequest></Bultos><NumeroBultos>1</NumeroBultos><Peso>${weight.toFixed(3).replace('.',',')}</Peso><TipoMercancia>Documentos y mercancía</TipoMercancia><CodigoMoneda>EUR</CodigoMoneda></DatosServicio></request></TransmEnvio>`;
+      const {data:claimed,error:claimError}=await admin.from('fulfillment_orders').update({tracking_status_code:'MRW_CREATING'}).eq('owner_id',caller.data_owner_id).eq('id',order.id).is('shipping_remote_id',null).or('tracking_status_code.is.null,tracking_status_code.neq.MRW_CREATING').select('id').maybeSingle();
+      if(claimError)throw claimError;
+      if(!claimed)return response({error:'La creación de este envío MRW ya está en curso o pendiente de comprobar. No se ha creado otro envío.'},409);
       let transmit:string;
       try{transmit=await soapCall(base,account.credentials,'TransmEnvio',request)}
       catch(error){
@@ -180,14 +192,11 @@ Deno.serve(async(req:Request)=>{
         throw new Error(`${detail} · Datos enviados: ${weight} kg; ${length||'?'} × ${width||'?'} × ${height||'?'} cm; servicio ${serviceCode}.`);
       }
       const shipment=xmlValue(transmit,'NumeroEnvio');if(!shipment)throw new Error('MRW no devolvió número de envío.');
-      const labelRequest=`<GetEtiquetaEnvio xmlns="http://www.mrw.es/"><request><NumeroEnvio>${esc(shipment)}</NumeroEnvio><NumerosEtiqueta></NumerosEtiqueta><SeparadorNumerosEnvio></SeparadorNumerosEnvio><FechaInicioEnvio></FechaInicioEnvio><FechaFinEnvio></FechaFinEnvio><TipoEtiquetaEnvio>PDF</TipoEtiquetaEnvio><ReportTopMargin>0</ReportTopMargin><ReportLeftMargin>0</ReportLeftMargin></request></GetEtiquetaEnvio>`;
-      const labelXml=await soapCall(base,account.credentials,'GetEtiquetaEnvio',labelRequest);
-      const base64=xmlValue(labelXml,'EtiquetaFile');if(!base64)throw new Error('MRW creó el envío pero no devolvió el PDF de etiqueta.');
       const now=new Date().toISOString();
       const {error:updateError}=await admin.from('fulfillment_orders').update({
         shipping_provider:'mrw',shipping_integration_account_id:account.row.id,shipping_remote_id:shipment,
         tracking_number:shipment,tracking_status_code:'READY_TO_SEND',tracking_status_message:'Ready to send',tracking_updated_at:now,
-        carrier_code:'mrw',carrier_name:'MRW',shipping_option_code:serviceCode,shipping_service_name:serviceName,label_created_at:now,
+        carrier_code:'mrw',carrier_name:'MRW',shipping_option_code:serviceCode,shipping_service_name:serviceName,
         ...(Number(body?.shippingOption?.price)>0?{
           shipping_cost_amount:Number(body.shippingOption.price),
           shipping_cost_currency:clean(body?.shippingOption?.currency)||'EUR',
@@ -196,12 +205,17 @@ Deno.serve(async(req:Request)=>{
         }:{}),
       }).eq('owner_id',caller.data_owner_id).eq('id',order.id);
       if(updateError)throw updateError;
+      const labelRequest=`<GetEtiquetaEnvio xmlns="http://www.mrw.es/"><request><NumeroEnvio>${esc(shipment)}</NumeroEnvio><NumerosEtiqueta></NumerosEtiqueta><SeparadorNumerosEnvio></SeparadorNumerosEnvio><FechaInicioEnvio></FechaInicioEnvio><FechaFinEnvio></FechaFinEnvio><TipoEtiquetaEnvio>0</TipoEtiquetaEnvio><ReportTopMargin>0</ReportTopMargin><ReportLeftMargin>0</ReportLeftMargin></request></GetEtiquetaEnvio>`;
+      const labelXml=await soapCall(base,account.credentials,'GetEtiquetaEnvio',labelRequest);
+      const base64=xmlValue(labelXml,'EtiquetaFile');if(!base64)throw new Error('MRW creó el envío pero no devolvió el PDF de etiqueta.');
+      const {error:labelError}=await admin.from('fulfillment_orders').update({label_created_at:now}).eq('owner_id',caller.data_owner_id).eq('id',order.id);
+      if(labelError)throw labelError;
       return response({parcelId:0,shipmentId:shipment,trackingNumber:shipment,trackingUrl:null,shippingOptionCode:serviceCode,contractId:null,carrierCode:'mrw',carrierName:'MRW',shippingServiceName:serviceName,mimeType:'application/pdf',base64});
     }
 
     if(action==='fetch_label'){
       const shipment=clean(order.shipping_remote_id||order.tracking_number);if(!shipment)return response({error:'El pedido no tiene número de envío MRW.'},409);
-      const labelRequest=`<GetEtiquetaEnvio xmlns="http://www.mrw.es/"><request><NumeroEnvio>${esc(shipment)}</NumeroEnvio><NumerosEtiqueta></NumerosEtiqueta><SeparadorNumerosEnvio></SeparadorNumerosEnvio><FechaInicioEnvio></FechaInicioEnvio><FechaFinEnvio></FechaFinEnvio><TipoEtiquetaEnvio>PDF</TipoEtiquetaEnvio><ReportTopMargin>0</ReportTopMargin><ReportLeftMargin>0</ReportLeftMargin></request></GetEtiquetaEnvio>`;
+      const labelRequest=`<GetEtiquetaEnvio xmlns="http://www.mrw.es/"><request><NumeroEnvio>${esc(shipment)}</NumeroEnvio><NumerosEtiqueta></NumerosEtiqueta><SeparadorNumerosEnvio></SeparadorNumerosEnvio><FechaInicioEnvio></FechaInicioEnvio><FechaFinEnvio></FechaFinEnvio><TipoEtiquetaEnvio>0</TipoEtiquetaEnvio><ReportTopMargin>0</ReportTopMargin><ReportLeftMargin>0</ReportLeftMargin></request></GetEtiquetaEnvio>`;
       const labelXml=await soapCall(base,account.credentials,'GetEtiquetaEnvio',labelRequest),base64=xmlValue(labelXml,'EtiquetaFile');
       if(!base64)throw new Error('MRW no devolvió el PDF de etiqueta.');
       return response({parcelId:0,shipmentId:shipment,trackingNumber:shipment,trackingUrl:order.tracking_url||null,shippingOptionCode:order.shipping_option_code||null,contractId:null,carrierCode:'mrw',carrierName:'MRW',shippingServiceName:order.shipping_service_name||null,mimeType:'application/pdf',base64});

@@ -87,7 +87,11 @@ export type OrdersSettings = {
   overdueHours: number;
 };
 
+export type PackagePreset = {id:string;name:string;lengthCm:number;widthCm:number;heightCm:number};
+
 export type ShippingSettings = {
+  packagePresets: PackagePreset[];
+  defaultPackagePresetId: string | null;
   senderName: string;
   senderAddress: string;
   senderPostalCode: string;
@@ -316,6 +320,8 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     senderCity: '',
     senderCountryCode: 'ES',
     fallbackWeightKg: 1,
+    packagePresets: [],
+    defaultPackagePresetId: null,
     packageLengthCm: 30,
     packageWidthCm: 20,
     packageHeightCm: 10,
@@ -760,18 +766,26 @@ function normalizeOrders(input:AnyRecord|null,warnings:SettingsWarning[]):Orders
 
 function normalizeShipping(input:AnyRecord|null,warnings:SettingsWarning[]):ShippingSettings{
   const d=DEFAULT_APP_SETTINGS.shipping;if(!input)return clone(d);
-  const keys=['senderName','senderAddress','senderPostalCode','senderCity','senderCountryCode','fallbackWeightKg','packageLengthCm','packageWidthCm','packageHeightCm','weightUnit','labelSize','labelOrientation','copies','autoDownload','enabledCarriers','topOptionsCount','noValidMethodBehavior','confirmShipmentAfterLabel','persistShippingCost'];
+  const keys=['packagePresets','defaultPackagePresetId','senderName','senderAddress','senderPostalCode','senderCity','senderCountryCode','fallbackWeightKg','packageLengthCm','packageWidthCm','packageHeightCm','weightUnit','labelSize','labelOrientation','copies','autoDownload','enabledCarriers','topOptionsCount','noValidMethodBehavior','confirmShipmentAfterLabel','persistShippingCost'];
   unknownKeys(input,keys,'shipping',warnings);
+  const packagePresets:PackagePreset[]=Array.isArray(input.packagePresets)?input.packagePresets.slice(0,50).filter((p:any)=>p&&typeof p.id==='string'&&p.id.trim()).map((p:any,i:number)=>({
+    id:String(p.id).slice(0,80),name:stringValue(p,'name','Paquete',`shipping.packagePresets.${i}.name`,warnings,{min:1,max:80}),
+    lengthCm:numberValue(p,'lengthCm',30,`shipping.packagePresets.${i}.lengthCm`,warnings,1,300),
+    widthCm:numberValue(p,'widthCm',20,`shipping.packagePresets.${i}.widthCm`,warnings,1,300),
+    heightCm:numberValue(p,'heightCm',10,`shipping.packagePresets.${i}.heightCm`,warnings,1,300),
+  })).filter((p:PackagePreset,i:number,a:PackagePreset[])=>a.findIndex(x=>x.id===p.id)===i):[];
+  const selected=packagePresets.find(p=>p.id===input.defaultPackagePresetId)||packagePresets[0];
   return {
+    packagePresets,defaultPackagePresetId:selected?.id||null,
     senderName:stringValue(input,'senderName',d.senderName,'shipping.senderName',warnings,{max:160}),
     senderAddress:stringValue(input,'senderAddress',d.senderAddress,'shipping.senderAddress',warnings,{max:240}),
     senderPostalCode:stringValue(input,'senderPostalCode',d.senderPostalCode,'shipping.senderPostalCode',warnings,{max:30}),
     senderCity:stringValue(input,'senderCity',d.senderCity,'shipping.senderCity',warnings,{max:120}),
     senderCountryCode:stringValue(input,'senderCountryCode',d.senderCountryCode,'shipping.senderCountryCode',warnings,{min:2,max:2,upper:true,pattern:/^[A-Za-z]{2}$/}),
     fallbackWeightKg:numberValue(input,'fallbackWeightKg',d.fallbackWeightKg,'shipping.fallbackWeightKg',warnings,0.001,1000),
-    packageLengthCm:numberValue(input,'packageLengthCm',d.packageLengthCm,'shipping.packageLengthCm',warnings,1,300),
-    packageWidthCm:numberValue(input,'packageWidthCm',d.packageWidthCm,'shipping.packageWidthCm',warnings,1,300),
-    packageHeightCm:numberValue(input,'packageHeightCm',d.packageHeightCm,'shipping.packageHeightCm',warnings,1,300),
+    packageLengthCm:selected?.lengthCm??numberValue(input,'packageLengthCm',d.packageLengthCm,'shipping.packageLengthCm',warnings,1,300),
+    packageWidthCm:selected?.widthCm??numberValue(input,'packageWidthCm',d.packageWidthCm,'shipping.packageWidthCm',warnings,1,300),
+    packageHeightCm:selected?.heightCm??numberValue(input,'packageHeightCm',d.packageHeightCm,'shipping.packageHeightCm',warnings,1,300),
     weightUnit:enumValue(input,'weightUnit',d.weightUnit,'shipping.weightUnit',warnings,['kg','g']),
     labelSize:enumValue(input,'labelSize',d.labelSize,'shipping.labelSize',warnings,['AUTO','A4','A5','A6','10x15']),
     labelOrientation:enumValue(input,'labelOrientation',d.labelOrientation,'shipping.labelOrientation',warnings,['portrait','landscape']),

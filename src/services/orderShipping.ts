@@ -47,7 +47,7 @@ function addEmailIssue(issues:OrderValidationIssue[],value:unknown,required=fals
   if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))issues.push({field:'email',severity:'error',message:'Email: formato no válido.'});
 }
 
-export function validateOrderForCarrier(order:FulfillmentOrder,carrierCode=''):OrderValidationResult{
+export function validateOrderForCarrier(order:FulfillmentOrder,carrierCode='',shipping?:{packageLengthCm:number;packageWidthCm:number;packageHeightCm:number}):OrderValidationResult{
   const address=order.shippingAddress||{},issues:OrderValidationIssue[]=[];
   const carrierHint=clean(carrierCode||order.carrierCode||order.carrierName||order.shippingOptionCode||order.shippingServiceName).toLowerCase();
   const isMrw=carrierHint.includes('mrw');
@@ -71,9 +71,9 @@ export function validateOrderForCarrier(order:FulfillmentOrder,carrierCode=''):O
   if(order.weightKg==null||!Number.isFinite(order.weightKg)||order.weightKg<=0)issues.push({field:'weight',severity:'error',message:'Peso: debe ser mayor que 0 kg.'});
   if(requiresMrwDimensions){
     const dimensions=[
-      ['package_length_cm','Largo',order.packageLengthCm],
-      ['package_width_cm','Ancho',order.packageWidthCm],
-      ['package_height_cm','Alto',order.packageHeightCm],
+      ['package_length_cm','Largo',order.packageLengthCm??shipping?.packageLengthCm],
+      ['package_width_cm','Ancho',order.packageWidthCm??shipping?.packageWidthCm],
+      ['package_height_cm','Alto',order.packageHeightCm??shipping?.packageHeightCm],
     ] as const;
     for(const [field,label,value] of dimensions){
       if(value==null||!Number.isFinite(value)||value<=0)issues.push({field,severity:'error',message:`${label} del paquete: obligatorio para MRW.`});

@@ -1,0 +1,8 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import ts from 'typescript';
+async function load(path){const src=await readFile(new URL(path,import.meta.url),'utf8');return import('data:text/javascript;base64,'+Buffer.from(ts.transpileModule(src,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText).toString('base64'));}
+const envelope={id:'envelope',name:'Sobre',lengthCm:35,widthCm:45,heightCm:5};
+test('default package controls shipping fallback and multiple formats survive normalization',async()=>{const {normalizeAppSettings}=await load('../src/services/settingsSchema.ts');const {value}=normalizeAppSettings({shipping:{packagePresets:[envelope,{id:'box',name:'Caja',lengthCm:40,widthCm:30,heightCm:20}],defaultPackagePresetId:'envelope'}});assert.equal(value.shipping.packagePresets.length,2);assert.equal(value.shipping.packageLengthCm,35);assert.equal(value.shipping.packageWidthCm,45);assert.equal(value.shipping.packageHeightCm,5);});
+test('MRW accepts defaults for orders without dimensions and respects specific dimensions',async()=>{const {validateOrderForCarrier}=await load('../src/services/orderShipping.ts');const order={customerName:'Cliente',customerPhone:'612345678',weightKg:1,shippingAddress:{address_line_1:'Calle Uno',city:'Cádiz',postal_code:'11001',country_code:'ES'}};const shipping={packageLengthCm:35,packageWidthCm:45,packageHeightCm:5};assert.equal(validateOrderForCarrier(order,'mrw 0200',shipping).issues.some(i=>i.field.startsWith('package_')),false);assert.equal(validateOrderForCarrier({...order,packageHeightCm:-2},'mrw 0200',shipping).issues.some(i=>i.field==='package_height_cm'),true);});

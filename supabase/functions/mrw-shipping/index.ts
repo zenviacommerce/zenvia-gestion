@@ -159,7 +159,7 @@ Deno.serve(async(req:Request)=>{
     const base=mrwBase(account.config?.environment);
     if(action==='create_label'){
       const address=order.shipping_address||{},settings=await workspaceSettings(admin,caller.data_owner_id),from=sender(settings,account.config);
-      const length=positive(order.package_length_cm),width=positive(order.package_width_cm),height=positive(order.package_height_cm),weight=orderWeight(order,settings.shipping?.fallbackWeightKg||1);
+      const length=positive(order.package_length_cm??settings.shipping?.packageLengthCm),width=positive(order.package_width_cm??settings.shipping?.packageWidthCm),height=positive(order.package_height_cm??settings.shipping?.packageHeightCm),weight=orderWeight(order,settings.shipping?.fallbackWeightKg||1);
       if(!clean(address.name||order.customer_name)||!clean(address.address_line_1)||!clean(address.postal_code)||!clean(address.city))return response({error:'Faltan datos obligatorios del destinatario para MRW.'},409);
       if(!from.address||!from.postalCode||!from.city)return response({error:'Completa la dirección del remitente en Configuración > Envíos antes de usar MRW directo.'},409);
       const serviceCode=clean(body?.shippingOption?.code||account.config?.serviceCode);

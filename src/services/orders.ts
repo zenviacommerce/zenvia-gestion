@@ -190,7 +190,13 @@ function dedupeMarketplaceOrders(orders:FulfillmentOrder[]){
 export async function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
   const {data,error}=await supabase.from('fulfillment_orders').select('*').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000);
   if(error)throw error;
-  return dedupeMarketplaceOrders((data||[]).map(mapRow));
+  const orders=dedupeMarketplaceOrders((data||[]).map(mapRow));
+  const accountIds=[...new Set(orders.map(order=>order.sourceIntegrationAccountId).filter((id):id is string=>Boolean(id)))];
+  if(!accountIds.length)return orders;
+  const {data:accounts,error:accountError}=await supabase.from('integration_accounts').select('id,display_name').in('id',accountIds);
+  if(accountError)throw accountError;
+  const names=new Map((accounts||[]).map(account=>[String(account.id),String(account.display_name||'').trim()]));
+  return orders.map(order=>({...order,integrationName:names.get(order.sourceIntegrationAccountId||'')||order.integrationName}));
 }
 export function getSendcloudStatus(){return invokeSendcloud<SendcloudStatus>({action:'status'});}
 export interface EnviaSyncResult{

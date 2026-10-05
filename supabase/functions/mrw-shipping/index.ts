@@ -64,7 +64,9 @@ function xmlValue(xml:string,tag:string){
   return match?match[1].replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,'$1').trim():'';
 }
 function soapError(xml:string){
-  return xmlValue(xml,'faultstring')||xmlValue(xml,'Message')||xmlValue(xml,'Mensaje')||xmlValue(xml,'DescripcionError')||'';
+  const fault=xmlValue(xml,'faultstring');
+  const messages=[...xml.matchAll(/<(?:\w+:)?(?:Message|Mensaje|DescripcionError)(?:\s[^>]*)?>([\s\S]*?)<\/(?:\w+:)?(?:Message|Mensaje|DescripcionError)>/gi)].map(match=>match[1].trim()).filter(Boolean);
+  return [fault,...messages].filter(Boolean).join(' · ');
 }
 function envelope12(c:any,body:string){
   return `<?xml version="1.0" encoding="utf-8"?><soap12:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap12="http://www.w3.org/2003/05/soap-envelope"><soap12:Header>${authXml(c)}</soap12:Header><soap12:Body>${body}</soap12:Body></soap12:Envelope>`;

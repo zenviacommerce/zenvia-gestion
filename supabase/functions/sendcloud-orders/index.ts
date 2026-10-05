@@ -208,63 +208,7 @@ Deno.serve(async(req:Request)=>{
       }catch(error){return response({configured:false,accounts:[],integrations:[],message:error instanceof Error?error.message:String(error)})}
     }
 
-    if(action==='sync'){
-      const history=Boolean(body?.history),automatic=Boolean(body?.automatic);
-      if(automatic&&integrationConfig.sendcloudEnabled===false)return response({ok:true,synced:0,enriched:0,history,integrations:[],disabled:true});
-      const accounts=await loadSendcloudAccounts(admin,caller.data_owner_id,requestedIntegrationAccountId);
-      const allowedChannels=new Set<string>(['other']);
-      // Amazon orders are imported exclusively through the direct Amazon integration.
-      if(!automatic||integrationConfig.shopifyEnabled!==false)allowedChannels.add('shopify');
-      let totalSynced=0,totalEnriched=0;const allIntegrations:any[]=[];const accountResults:any[]=[];
-      const {data:amazonAccounts}=await admin.from('integration_accounts').select('id,config,is_default').eq('owner_id',caller.data_owner_id).eq('provider','amazon').eq('enabled',true).neq('status','disabled');
-      for(const account of accounts){
-        if(account.config?.syncOrders===false){accountResults.push({accountId:account.id,displayName:account.displayName,synced:0,enriched:0,disabled:true});continue;}
-        const linked=await integrations(account.credentials);
-        allIntegrations.push(...linked.map(item=>({...item,sendcloudAccountId:account.id,sendcloudAccountName:account.displayName})));
-        const integrationMap=new Map(linked.map(i=>[i.id,i]));
-        const {data:shopifyAccounts}=account.id?await admin.from('integration_accounts').select('id,external_account_id').eq('owner_id',caller.data_owner_id).eq('provider','shopify').eq('parent_account_id',account.id).neq('status','disabled'):{data:[]};
-        const shopifyMap=new Map((shopifyAccounts||[]).map((item:any)=>[String(item.external_account_id),String(item.id)]));
-        const amazonByRemote=new Map((amazonAccounts||[]).map((item:any)=>[String(item?.config?.sendcloudIntegrationId||''),String(item.id)]).filter(([key]:any)=>key));
-        const defaultAmazon=(amazonAccounts||[]).length===1?(amazonAccounts||[])[0]:null;
-        const orders=await fetchOrders(account.credentials,history),now=new Date().toISOString();
-        let shipments:any[]=[];try{shipments=await fetchShipments(account.credentials,history)}catch{/* sincronización base continúa */}
-        const shipmentMap=new Map<string,any>();for(const shipment of shipments){const key=clean(shipment?.order_number);if(key&&!shipmentMap.has(key))shipmentMap.set(key,shipment)}
-        let rows=orders.map((order:any)=>{
-          const integrationId=Number(order?.order_details?.integration?.id||0),integration=integrationMap.get(integrationId),total=order?.payment_details?.total_price,remoteId=String(order.id);
-          const sourceChannel=integration?.channel||'other';
-          const sourceIntegrationAccountId=sourceChannel==='shopify'?shopifyMap.get(String(integrationId))||null:sourceChannel==='amazon'?(amazonByRemote.get(String(integrationId))||defaultAmazon?.id||null):account.id;
-          return {
-            owner_id:caller.data_owner_id,
-            sendcloud_id:storedSendcloudId(account,remoteId),
-            sendcloud_remote_id:remoteId,
-            shipping_integration_account_id:account.id,
-            source_integration_account_id:sourceIntegrationAccountId,
-            order_id:order.order_id==null?null:String(order.order_id),order_number:order.order_number==null?null:String(order.order_number),
-            integration_id:integrationId,integration_name:integration?.shopName||null,integration_type:integration?.type||null,source_channel:sourceChannel,
-            source_status:order?.order_details?.status?.code||null,order_created_at:order?.order_details?.order_created_at||order?.created_at||null,
-            order_updated_at:order?.order_details?.order_updated_at||order?.modified_at||null,customer_name:orderName(order),customer_email:orderEmail(order),customer_phone:orderPhone(order),
-            shipping_address:order?.shipping_address||{},billing_address:order?.billing_address||{},items:Array.isArray(order?.order_details?.order_items)?order.order_details.order_items:[],
-            total_amount:total?.value==null?null:Number(total.value),currency:total?.currency||null,raw_payload:order,last_synced_at:now
-          };
-        }).filter((r:any)=>r.source_channel!=='amazon'&&r.integration_id&&r.sendcloud_id&&(!automatic||allowedChannels.has(r.source_channel)));
-        if(rows.length){
-          const localById=new Map<string,any>();
-          for(let offset=0;offset<rows.length;offset+=100){
-            const {data:existing,error:readError}=await admin.from('fulfillment_orders').select('sendcloud_id,customer_name,customer_email,customer_phone,shipping_address,package_length_cm,package_width_cm,package_height_cm,raw_payload').eq('owner_id',caller.data_owner_id).in('sendcloud_id',rows.slice(offset,offset+100).map((r:any)=>r.sendcloud_id));
-            if(readError)throw readError;
-            for(const saved of existing||[])localById.set(saved.sendcloud_id,saved);
-          }
-          rows=rows.map((row:any)=>preserveLocalOrderEdits(row,localById.get(row.sendcloud_id)));
-          const {error}=await admin.from('fulfillment_orders').upsert(rows,{onConflict:'owner_id,sendcloud_id'});if(error)throw error;
-        }
-        const enriched=rows.map((r:any)=>{const shipment=shipmentMap.get(clean(r.order_number));return shipment?{...r,...shipmentMeta(shipment)}:null}).filter(Boolean);
-        if(enriched.length){const {error}=await admin.from('fulfillment_orders').upsert(enriched,{onConflict:'owner_id,sendcloud_id'});if(error)throw error;}
-        totalSynced+=rows.length;totalEnriched+=enriched.length;
-        accountResults.push({accountId:account.id,displayName:account.displayName,synced:rows.length,enriched:enriched.length});
-      }
-      return response({ok:true,synced:totalSynced,enriched:totalEnriched,history,integrations:allIntegrations,accounts:accountResults});
-    }
-
+    if(action==='sync')return response({ok:true,synced:0,enriched:0,history:Boolean(body?.history),integrations:[],disabled:true,message:'Los pedidos se importan exclusivamente desde Amazon y Shopify.'});
     if(action==='create_manual_order'){
       const manual=body?.order||{},account=await loadSendcloudAccount(admin,caller.data_owner_id,clean(body?.integrationAccountId||manual.shippingIntegrationAccountId)||null),linked=await integrations(account.credentials),integrationId=Number(manual.integrationId||0),integration=linked.find(i=>i.id===integrationId);
       if(!integration)return fail('Selecciona una integración API de Sendcloud válida.');if(integration.channel!=='other')return fail('Los pedidos manuales deben crearse en una integración API de Sendcloud, no en Amazon o Shopify.');

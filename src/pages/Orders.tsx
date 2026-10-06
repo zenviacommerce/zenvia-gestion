@@ -447,11 +447,11 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       if(amazonResult.status==='fulfilled'&&amazonResult.value)messages.push('Amazon directo: '+amazonResult.value.processed+' pedidos comprobados');
       else if(amazonResult.status==='rejected')failures.push('Amazon: '+errorMessage(amazonResult.reason,'error de sincronización'));
       if(enviaResult.status==='fulfilled'&&enviaResult.value){
-        messages.push('Envia.com '+enviaResult.value.synced);
-        if(enviaHistory)markEnviaHistorySyncDone();
+        messages.push(enviaResult.value.queued?'Envia.com en segundo plano':'Envia.com '+enviaResult.value.synced);
+        if(enviaHistory&&!enviaResult.value.queued)markEnviaHistorySyncDone();
       }else if(enviaResult.status==='rejected')failures.push('Envia.com: '+errorMessage(enviaResult.reason,'error de sincronización'));
       if(shopifyResult.status==='fulfilled'&&shopifyResult.value?.configured){
-        messages.push('Shopify '+shopifyResult.value.synced);
+        messages.push(shopifyResult.value.queued?'Shopify en segundo plano':'Shopify '+shopifyResult.value.synced);
       }else if(shopifyResult.status==='rejected')failures.push('Shopify: '+errorMessage(shopifyResult.reason,'error de sincronización'));
       await refresh();
       if(!silent){
@@ -471,6 +471,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     return()=>window.clearInterval(timer);
   },[status?.configured,enviaStatus?.configured,sync,refresh,settings.orders.refreshSeconds,settings.orders.retryTrackingConfirmation,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled]);
 
+  useEffect(()=>{const changed=(event:Event)=>{const jobs=(event as CustomEvent).detail?.jobs||[];if(jobs.some((j:any)=>j.kind==='envia_shipments'&&j.options.months>=12&&j.status==='completed'))markEnviaHistorySyncDone()};window.addEventListener('zenvia:import-results',changed);return()=>window.removeEventListener('zenvia:import-results',changed)},[]);
   const dateFrom=dateFilter.from,dateTo=dateFilter.to;
   const selectedPeriod=periodLabel(dateFilter);
   const orderPeriodOrders=useMemo(()=>orders.filter(order=>inPeriod(orderDateKey(order),dateFrom,dateTo)),[orders,dateFrom,dateTo]);

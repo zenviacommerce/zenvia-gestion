@@ -1,3 +1,5 @@
+import {ImportJobsProvider} from './context/ImportJobsContext';
+import {ImportJobCenter} from './components/PersistentImports';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { LoaderCircle, LockKeyhole, LogOut, Moon, Sun } from 'lucide-react';
@@ -26,7 +28,7 @@ import { AmazonPage } from './pages/Amazon';
 import { AdminPage } from './pages/Admin';
 import { SettingsPage } from './pages/Settings';
 import { SupportPage } from './pages/Support';
-import { bootstrapTenantFromLocation, supabase } from './services/supabase';
+import { bootstrapTenantFromLocation, getActiveTenant, supabase } from './services/supabase';
 import { loadAccessProfile, type AccessProfile, type MenuPermission } from './services/access';
 import { bootstrapUser, createInvoice, deleteProduct, deleteSupplier, getInvoiceFileUrl, loadAppData, updateInvoicePaymentStatus, updateInvoicesPaymentStatus, updateInvoiceStatus } from './services/repository';
 import { addSupplier, updateSupplier, type SupplierInput } from './services/supplierEditor';
@@ -521,8 +523,8 @@ export default function App(){
    return null;
  };
 
- return <div className="app"><ToastHost/><Sidebar page={page} onChange={next=>void navigate(next)} onLogout={()=>supabase.auth.signOut()} theme={theme} onThemeChange={changeTheme} allowedPages={allowedPages} isAdmin={access.role==='admin'} user={{fullName:access.fullName,email:access.email||session.user.email||'',role:access.role}} logoSrc={workspaceLogo}/><main className={passkeySetupVisible?'hasPasskeySetup':''}>
-   <div className="appGlobalTools">
+ return <ImportJobsProvider key={session.user.id+access.workspaceId+getActiveTenant()?.supabase_url} identity={session.user.id+':'+access.workspaceId+':'+getActiveTenant()?.supabase_url} onChanged={refresh}><div className="app"><ToastHost/><Sidebar page={page} onChange={next=>void navigate(next)} onLogout={()=>supabase.auth.signOut()} theme={theme} onThemeChange={changeTheme} allowedPages={allowedPages} isAdmin={access.role==='admin'} user={{fullName:access.fullName,email:access.email||session.user.email||'',role:access.role}} logoSrc={workspaceLogo}/><main className={passkeySetupVisible?'hasPasskeySetup':''}>
+   <div className="appGlobalTools"><ImportJobCenter categories={data.categories}/>
      <AppAgent
        allowedPages={allowedPages}
        currentPage={page}
@@ -565,5 +567,5 @@ export default function App(){
  {can('invoices')&&<BulkInvoiceImportModal open={bulkUpload} onClose={()=>setBulkUpload(false)} categories={data.categories} existingInvoices={data.invoices} onSave={saveBulkInvoice} onFinished={finishBulkImport}/>} 
  {can('products')&&<ProductModal open={productModal} product={productToEdit} suppliers={data.suppliers} onClose={closeProductModal} onSave={saveProduct}/>} 
  {can('suppliers')&&<SupplierModal open={supplierModal} supplier={supplierToEdit} categories={data.categories} onClose={closeSupplierModal} onSave={saveSupplier}/>} 
- </div>
+ </div></ImportJobsProvider>
 }

@@ -1,0 +1,13 @@
+[Unit]
+Description=Zenvia local document analysis
+After=network-online.target
+[Service]
+Type=simple
+User=zenvia
+WorkingDirectory=/opt/zenvia/tools/document-worker
+EnvironmentFile=/etc/zenvia-documents.env
+ExecStart=/opt/zenvia/tools/document-worker/.venv/bin/python /opt/zenvia/tools/document-worker/app.py
+Restart=on-failure
+RestartSec=10
+[Install]
+WantedBy=multi-user.target

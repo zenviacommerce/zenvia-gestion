@@ -28,24 +28,12 @@ test('AI backend uses strict structured outputs and rejects unsupported claims',
   assert.match(edge,/OPENAI_API_KEY/);
 });
 
-test('expense upload, camera, Gmail and sales import all converge on the shared reader',async()=>{
-  const [upload,gmail,pipeline,sales]=await Promise.all([
-    read('src/components/UploadInvoiceModal.tsx'),
-    read('src/services/gmailImport.ts'),
-    read('src/services/invoiceImportPipeline.ts'),
-    read('src/services/salesInvoiceImport.ts'),
-  ]);
-  assert.match(upload,/prepareInvoiceCandidate/);
-  assert.match(upload,/source==='camera'/);
-  assert.match(gmail,/prepareInvoiceCandidate/);
-  assert.match(pipeline,/readInvoiceDocumentEnhanced/);
-  assert.match(sales,/readInvoiceDocumentEnhanced\(file,\[\],undefined,\{mode:'sales'\}\)/);
+test('expense upload camera Gmail and sales use one server analysis engine',async()=>{
+  const registry=await read('supabase/functions/_shared/imports/registry.ts');const gmail=await read('supabase/functions/_shared/imports/gmailAdapter.ts');const ui=await read('src/components/PersistentImports.tsx');assert.match(registry,/executeDocument/);assert.match(gmail,/executeDocument/);assert.match(ui,/startDocumentImport/);assert.doesNotMatch(ui,/invoice-document-intelligence/);
 });
 
-test('camera passes the original image to the intelligence layer rather than only the generated PDF',async()=>{
-  const upload=await read('src/components/UploadInvoiceModal.tsx');
-  assert.match(upload,/analysisFile=allImages&&files\.length===1\?files\[0\]:prepared/);
-  assert.match(upload,/prepareInvoiceCandidate\(prepared,categories,setReaderMessage,analysisFile,policy\)/);
+test('camera uploads a multipage original and local analysis renders every PDF page',async()=>{
+  const ui=await read('src/components/PersistentImports.tsx');const reader=await read('tools/document-worker/documents.py');assert.match(ui,/imageFilesToPdf\(files\)/);assert.match(reader,/for index,page in enumerate\(pdf\)/);assert.match(reader,/page.get_pixmap/);
 });
 
 
@@ -56,11 +44,6 @@ test('expense imports require human review when the AI verifier is unavailable',
   assert.match(pipeline,/status='needs_review'/);
 });
 
-test('sales invoice import accepts images and supports multi-page camera scanning',async()=>{
-  const modal=await read('src/components/SalesInvoiceImportModal.tsx');
-  assert.match(modal,/imageFilesToPdf/);
-  assert.match(modal,/cameraRef/);
-  assert.match(modal,/capture="environment"/);
-  assert.match(modal,/accept="application\/pdf,image\/\*"/);
-  assert.match(modal,/Escanear con cámara/);
+test('sales invoice import delegates to the common camera and document flow',async()=>{
+  const modal=await read('src/components/SalesInvoiceImportModal.tsx');const ui=await read('src/components/PersistentImports.tsx');assert.match(modal,/kind="sales_document"/);assert.match(ui,/capture="environment"/);assert.match(ui,/accept="application\/pdf,image\/\*"/);assert.match(ui,/Escanear con cámara/);
 });

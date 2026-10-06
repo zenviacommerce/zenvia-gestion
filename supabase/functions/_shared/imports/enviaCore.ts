@@ -1,0 +1,607 @@
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
+const corsHeaders={
+  'Access-Control-Allow-Origin':'*',
+  'Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods':'POST, OPTIONS',
+};
+const headers={...corsHeaders,'Content-Type':'application/json'};
+
+type Caller={user_id:string;data_owner_id:string;role:string;active:boolean;permissions:string[]|null};
+
+function response(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers});}
+const carrierCache=new Map<string,{expires:number,items:string[]}>();
+const geocodeCache=new Map<string,{expires:number,row:any}>();
+async function withTimeout<T>(promise:Promise<T>,ms:number,label:string):Promise<T>{
+  let timer:number|undefined;
+  try{return await Promise.race([promise,new Promise<T>((_,reject)=>{timer=setTimeout(()=>reject(new Error(label)),ms) as unknown as number;})]);}
+  finally{if(timer!==undefined)clearTimeout(timer);}
+}
+function fail(message:string,status=400){return response({error:message},status);}
+function clean(value:unknown){return String(value??'').trim();}
+function number(value:unknown,fallback=0){const n=Number(value);return Number.isFinite(n)?n:fallback;}
+function asRows(payload:any){
+  if(Array.isArray(payload))return payload;
+  const direct=[
+    payload?.data,payload?.rates,payload?.guides,payload?.shipments,payload?.rows,payload?.results,payload?.items,
+    payload?.data?.rates,payload?.data?.guides,payload?.data?.shipments,payload?.data?.rows,payload?.data?.results,payload?.data?.items,payload?.data?.data,
+  ];
+  for(const value of direct)if(Array.isArray(value))return value;
+  return [];
+}
+function responseMetaError(payload:any){
+  if(!payload||typeof payload!=='object')return '';
+  if(String(payload?.meta||'').toLowerCase()!=='error')return '';
+  const error=payload?.error;
+  return clean(error?.message||error?.description||payload?.message||'Envia.com devolvió un error.');
+}
+function getAdminKey(){
+  const raw=Deno.env.get('SUPABASE_SECRET_KEYS');
+  if(raw){try{const parsed=JSON.parse(raw);if(typeof parsed?.default==='string'&&parsed.default.trim())return parsed.default.trim()}catch{}}
+  return clean(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+}
+async function authenticate(req:Request,admin:any):Promise<Caller>{
+  const token=clean(req.headers.get('Authorization')).replace(/^Bearer\s+/i,'');
+  if(!token)throw new Error('Sesión no válida.');
+  const {data:userData,error:userError}=await admin.auth.getUser(token);
+  if(userError||!userData?.user)throw new Error('Sesión no válida.');
+  const {data:caller,error}=await admin.from('app_users')
+    .select('user_id,data_owner_id,role,active,permissions')
+    .eq('user_id',userData.user.id).maybeSingle();
+  if(error)throw error;
+  if(!caller?.active)throw new Error('Tu acceso está desactivado.');
+  const permissions=Array.isArray(caller.permissions)?caller.permissions:[];
+  if(caller.role!=='admin'&&!permissions.includes('orders'))throw new Error('No tienes permiso para gestionar pedidos.');
+  return caller as Caller;
+}
+async function readVault(admin:any,secretId:string|null){
+  if(!secretId)return {};
+  const {data,error}=await admin.rpc('integration_read_secret',{p_secret_id:secretId});
+  if(error)throw error;
+  try{return JSON.parse(String(data||'{}'))}catch{throw new Error('Las credenciales de Envia.com no tienen un formato válido.')}
+}
+async function enviaAccounts(admin:any,ownerId:string,preferredId=''){
+  let query=admin.from('integration_accounts').select('*').eq('owner_id',ownerId).eq('provider','envia').eq('enabled',true).neq('status','disabled');
+  if(preferredId)query=query.eq('id',preferredId);
+  else query=query.order('is_default',{ascending:false}).order('updated_at',{ascending:false});
+  const {data,error}=await query;
+  if(error)throw error;
+  return data||[];
+}
+async function credentials(admin:any,account:any){
+  const stored=await readVault(admin,account.secret_id);
+  const token=clean(stored?.token||stored?.apiToken||stored?.api_token);
+  if(!token)throw new Error(`Falta el token API de Envia.com para ${account.display_name||'la cuenta'}.`);
+  const production=account.config?.environment==='production';
+  return {
+    token,
+    shipBase:production?'https://api.envia.com':'https://api-test.envia.com',
+    queryBase:production?'https://queries.envia.com':'https://queries.test.envia.com',
+    environment:production?'production':'sandbox',
+  };
+}
+async function enviaJson(url:string,token:string,init:RequestInit={}){
+  const h=new Headers(init.headers||{});
+  h.set('Authorization',`Bearer ${token}`);
+  h.set('Accept','application/json');
+  if(init.body)h.set('Content-Type','application/json');
+  const res=await fetch(url,{...init,headers:h});
+  const raw=await res.text();
+  let data:any=null;try{data=raw?JSON.parse(raw):null}catch{data=raw}
+  if(!res.ok){
+    const detail=data?.message||data?.error?.message||data?.error?.description||data?.error||data?.meta?.message||raw||'Error desconocido';
+    throw new Error(`Envia.com (${res.status}): ${String(detail).slice(0,800)}`);
+  }
+  const metaError=responseMetaError(data);
+  if(metaError)throw new Error(`Envia.com: ${metaError}`);
+  return data;
+}
+async function workspaceConfig(admin:any,ownerId:string){
+  const [{data:settings,error:settingsError},{data:business,error:businessError}]=await Promise.all([
+    admin.from('app_settings').select('config').eq('owner_id',ownerId).maybeSingle(),
+    admin.from('business_settings').select('*').eq('owner_id',ownerId).maybeSingle(),
+  ]);
+  if(settingsError)throw settingsError;if(businessError)throw businessError;
+  const config=settings?.config&&typeof settings.config==='object'?settings.config:{};
+  return {shipping:(config as any).shipping||{},business:business||{}};
+}
+function normalizePhone(value:unknown,countryCode:string){
+  const raw=clean(value);if(!raw)return '';
+  if(raw.startsWith('+'))return '+'+raw.slice(1).replace(/\D/g,'');
+  const digits=raw.replace(/\D/g,'');
+  const country=clean(countryCode).toUpperCase();
+  if(country==='ES'){
+    if(digits.startsWith('0034'))return '+'+digits.slice(2);
+    if(digits.startsWith('34')&&digits.length===11)return '+'+digits;
+    if(digits.length===9)return '+34'+digits;
+  }
+  return digits;
+}
+function enviaStateCode(value:unknown){
+  const raw=clean(typeof value==='object'&&value?(value as any).code:value).toUpperCase();
+  return /^[A-Z0-9]{2}$/.test(raw)?raw:'';
+}
+function normalizeEnviaAddress(address:any){
+  const normalized={...address};
+  const state=enviaStateCode(address?.state);
+  if(state)normalized.state=state;
+  else delete normalized.state;
+  return normalized;
+}
+function geocodeRows(payload:any):any[]{
+  const found:any[]=[];
+  const seen=new Set<any>();
+  const visit=(value:any,depth=0)=>{
+    if(value==null||depth>5||seen.has(value))return;
+    if(typeof value!=='object')return;
+    seen.add(value);
+    if(Array.isArray(value)){for(const item of value)visit(item,depth+1);return}
+    const state=enviaStateCode(
+      value.stateCode||value.state_code||value.state?.code?.['2digit']||value.state?.code?.['1digit']||
+      value.state?.code||value.state?.abbreviation||value.state?.shortCode||value.state?.short_name||value.state||
+      value.provinceCode||value.province_code||value.province?.code?.['2digit']||value.province?.code||value.province?.abbreviation
+    );
+    const city=clean(value.city||value.locality||value.municipality||value.regions?.region_4);
+    const postalCode=clean(value.zipcode||value.zip_code||value.postalCode||value.postal_code||value.zipCode||value.zip);
+    if(state||city||postalCode)found.push({...value,__state:state,__city:city,__postalCode:postalCode});
+    for(const key of ['data','result','results','locations','location','zip_codes','zipCodes','items'])visit(value[key],depth+1);
+  };
+  visit(payload);
+  return found;
+}
+function bestGeocodeRow(payload:any,postal:string,city:string){
+  const rows=geocodeRows(payload);
+  if(!rows.length)return null;
+  const wantedPostal=clean(postal).replace(/\s+/g,'').toUpperCase();
+  const wantedCity=clean(city).toLowerCase();
+  return rows.sort((a,b)=>{
+    const score=(row:any)=>{
+      let value=0;
+      if(row.__state)value+=8;
+      if(wantedPostal&&clean(row.__postalCode).replace(/\s+/g,'').toUpperCase()===wantedPostal)value+=6;
+      if(wantedCity&&clean(row.__city).toLowerCase()===wantedCity)value+=3;
+      return value;
+    };
+    return score(b)-score(a);
+  })[0]||null;
+}
+async function geocodeLookup(country:string,postal:string,city:string){
+  const cacheKey=`${country}|${postal}|${city}`.toUpperCase();
+  const cached=geocodeCache.get(cacheKey);
+  if(cached&&cached.expires>Date.now())return cached.row;
+  const urls:string[]=[];
+  if(postal)urls.push(`https://geocodes.envia.com/zipcode/${encodeURIComponent(country)}/${encodeURIComponent(postal)}`);
+  if(city)urls.push(`https://geocodes.envia.com/locate/${encodeURIComponent(country)}/${encodeURIComponent(city)}`);
+  for(const url of urls){
+    try{
+      const res=await fetch(url,{headers:{Accept:'application/json'}});
+      if(!res.ok)continue;
+      const payload=await res.json().catch(()=>null);
+      const row=bestGeocodeRow(payload,postal,city);
+      if(row?.__state){geocodeCache.set(cacheKey,{expires:Date.now()+60*60*1000,row});return row;}
+    }catch{/* try the next canonical Envia geocoder */}
+  }
+  return null;
+}
+async function geocodeAddress(address:any){
+  const country=clean(address?.country).toUpperCase(),postal=clean(address?.postalCode),city=clean(address?.city);
+  const fallback=normalizeEnviaAddress(address);
+  if(!country)return fallback;
+  const row=await geocodeLookup(country,postal,city);
+  if(!row)return fallback;
+  return normalizeEnviaAddress({
+    ...address,
+    city:row.__city||address.city,
+    state:row.__state||address.state,
+    country:clean(row.country?.code||row.countryCode||row.country).toUpperCase()||address.country,
+    postalCode:row.__postalCode||address.postalCode,
+    district:clean(row.district||row.locality)||address.district,
+  });
+}
+function orderWeightKg(order:any,shipping:any){
+  const raw=order?.raw_payload?.shipping_details?.measurement?.weight;
+  const value=number(raw?.value,0),unit=clean(raw?.unit).toLowerCase();
+  if(value>0)return unit==='g'?value/1000:(unit==='lb'||unit==='lbs'?value*0.45359237:value);
+  return Math.max(.001,number(shipping?.fallbackWeightKg,1));
+}
+function addressNumber(explicit:unknown,street:unknown){
+  const direct=clean(explicit);
+  if(direct)return direct;
+  const value=clean(street);
+  if(!value)return 'S/N';
+  // Envia requires a separate address.number even when the number is already
+  // embedded in the street text (e.g. "Poligono ..., Nave 44").
+  const matches=[...value.matchAll(/\b\d+[A-Za-z]?\b/g)];
+  return matches.length?matches[matches.length-1][0]:'S/N';
+}
+function contentName(order:any){
+  const items=Array.isArray(order?.items)?order.items:[];
+  const labels=items.map((item:any)=>clean(item?.name||item?.description||item?.sku)).filter(Boolean);
+  return labels.slice(0,3).join(', ').slice(0,80)||'Mercancía';
+}
+function sender(config:any){
+  const s=config.shipping||{},b=config.business||{};
+  const country=clean(s.senderCountryCode||b.country_code||'ES').toUpperCase();
+  const street=clean(s.senderAddress||b.address_line1);
+  return {
+    name:clean(s.senderName||b.trade_name||b.legal_name)||'Remitente',
+    company:clean(b.trade_name||b.legal_name)||undefined,
+    phone:normalizePhone(b.phone,country),
+    email:clean(b.email)||undefined,
+    street,
+    number:addressNumber(s.senderHouseNumber||s.senderNumber||b.house_number||b.address_number,street),
+    city:clean(s.senderCity||b.city),
+    state:clean(b.province)||undefined,
+    country,
+    postalCode:clean(s.senderPostalCode||b.postal_code),
+  };
+}
+function destination(order:any){
+  const a=order.shipping_address||{},country=clean(a.country_code).toUpperCase();
+  const street=clean(a.address_line_1);
+  return {
+    name:clean(order.customer_name||a.name)||'Cliente',
+    company:clean(a.company_name)||undefined,
+    phone:normalizePhone(order.customer_phone||a.phone_number,country),
+    email:clean(order.customer_email||a.email)||undefined,
+    street,
+    // Envia's own dashboard maps the second address line into consignee_number
+    // for Spanish carrier labels when no explicit house number is available.
+    number:addressNumber(a.house_number||a.address_line_2,street),
+    city:clean(a.city),
+    state:clean(a.state_province_code||a.state)||undefined,
+    country,
+    postalCode:clean(a.postal_code),
+  };
+}
+function packageFor(order:any,shipping:any){
+  const rawDimension=order?.raw_payload?.shipping_details?.measurement?.dimension||{};
+  const rawUnit=clean(rawDimension?.unit).toLowerCase();
+  const dimensionFactor=rawUnit==='in'||rawUnit==='inch'||rawUnit==='inches'?2.54:(rawUnit==='mm'?0.1:1);
+  const dim=(direct:any,raw:any,fallback:number)=>{
+    const directValue=number(direct,0);
+    if(directValue>0)return Number(directValue.toFixed(2));
+    const rawValue=number(raw,0);
+    if(rawValue>0)return Number((rawValue*dimensionFactor).toFixed(2));
+    return fallback;
+  };
+  return {
+    type:'box',
+    content:contentName(order),
+    amount:1,
+    declaredValue:Math.max(0,number(order.total_amount,0)),
+    lengthUnit:'CM',
+    weightUnit:'KG',
+    weight:Number(orderWeightKg(order,shipping).toFixed(3)),
+    dimensions:{
+      length:Math.max(1,dim(order?.package_length_cm,rawDimension?.length,number(shipping?.packageLengthCm,30))),
+      width:Math.max(1,dim(order?.package_width_cm,rawDimension?.width,number(shipping?.packageWidthCm,20))),
+      height:Math.max(1,dim(order?.package_height_cm,rawDimension?.height,number(shipping?.packageHeightCm,10))),
+    },
+  };
+}
+function validatePayload(origin:any,dest:any){
+  const missing:string[]=[];
+  if(!origin.street)missing.push('dirección del remitente');
+  if(!origin.number)missing.push('número del remitente');
+  if(!origin.city)missing.push('ciudad del remitente');
+  if(!origin.postalCode)missing.push('código postal del remitente');
+  if(!origin.phone)missing.push('teléfono del remitente');
+  if(!dest.street)missing.push('dirección del destinatario');
+  if(!dest.number)missing.push('número del destinatario');
+  if(!dest.city)missing.push('ciudad del destinatario');
+  if(!dest.postalCode)missing.push('código postal del destinatario');
+  if(!dest.country)missing.push('país del destinatario');
+  if(!dest.phone)missing.push('teléfono del destinatario');
+  if(missing.length)throw new Error(`Faltan datos para cotizar en Envia.com: ${missing.join(', ')}.`);
+}
+function humanCarrier(value:string){
+  return value.replace(/[-_]+/g,' ').replace(/\b\w/g,letter=>letter.toUpperCase());
+}
+function parseEtaDays(item:any){
+  const direct=Number(item?.deliveryDate?.dateDifference??item?.days??item?.estimatedDays);
+  if(Number.isFinite(direct)&&direct>0)return direct;
+  const raw=clean(item?.deliveryEstimate??item?.delivery_estimate);
+  const nums=(raw.match(/\d+(?:[.,]\d+)?/g)||[]).map(value=>Number(value.replace(',','.'))).filter(Number.isFinite);
+  return nums.length?Math.max(...nums):null;
+}
+function normalizeRate(item:any,account:any){
+  const carrier=clean(item?.carrier||item?.carrierName||item?.carrier_code||item?.carrierCode||item?.provider);
+  const service=clean(item?.service||item?.serviceName||item?.service_code||item?.serviceCode||item?.product);
+  const name=clean(item?.serviceDescription||item?.service_description||item?.description||service)||'Servicio';
+  const price=number(item?.totalPrice??item?.total_price??item?.price??item?.amount,NaN);
+  const currency=clean(item?.currency||item?.currencyCode||item?.currency_code)||'EUR';
+  const carrierLabel=clean(item?.carrierDescription||item?.carrier_description||item?.carrierDisplayName||item?.carrierName)||humanCarrier(carrier)||'Transportista';
+  return {
+    provider:'envia',
+    providerName:'Envia.com',
+    integrationAccountId:String(account.id),
+    integrationAccountName:String(account.display_name||'Envia.com'),
+    code:service,
+    name,
+    carrierCode:carrier,
+    carrierName:carrierLabel,
+    contractId:null,
+    price:Number.isFinite(price)?price:null,
+    currency,
+    billedWeightKg:null,
+    etaDays:parseEtaDays(item),
+    raw:{...item,priceIncludesVat:true,fuelSurchargeIncluded:true,priceSemantics:'final_quote'},
+  };
+}
+async function listCarriers(c:any,originCountry:string,destinationCountry:string){
+  const international=originCountry!==destinationCountry?'1':'0';
+  const cacheKey=`${c.environment}|${originCountry}|${destinationCountry}`;
+  const cached=carrierCache.get(cacheKey);
+  if(cached&&cached.expires>Date.now())return [...cached.items];
+  let names:string[]=[];
+  try{
+    const detailed=await withTimeout(enviaJson(`${c.queryBase}/available-carrier/${encodeURIComponent(originCountry)}/${international}/1`,c.token),2500,'Timeout consultando transportistas Envia');
+    const rows=asRows(detailed);
+    names=rows.filter((x:any)=>x?.active!==false).map((x:any)=>clean(x?.carrier||x?.code||x?.carrierCode||x?.name)).filter(Boolean);
+  }catch(error){console.warn('Envia available-carrier fallback',error instanceof Error?error.message:error)}
+  if(!names.length){
+    const payload=await withTimeout(enviaJson(`${c.queryBase}/carrier?country_code=${encodeURIComponent(originCountry)}`,c.token),2500,'Timeout consultando catálogo Envia');
+    const rows=asRows(payload);
+    names=rows.filter((x:any)=>x?.active!==false).map((x:any)=>clean(x?.carrier||x?.code||x?.carrierCode||x?.name)).filter(Boolean);
+  }
+  if(originCountry==='ES'&&destinationCountry==='ES'&&!names.some(name=>/^correos$/i.test(name)))names.push('correos');
+  const unique=[...new Set(names)];
+  carrierCache.set(cacheKey,{expires:Date.now()+10*60*1000,items:unique});
+  return unique;
+}
+async function quoteAccount(admin:any,account:any,order:any,config:any){
+  const c=await credentials(admin,account);
+  let origin=sender(config),dest=destination(order);const pkg=packageFor(order,config.shipping);
+  validatePayload(origin,dest);
+  [origin,dest]=await Promise.all([geocodeAddress(origin),geocodeAddress(dest)]);
+  if(!origin.state)throw new Error(`Envia.com no pudo resolver el código de provincia/estado del remitente (${origin.postalCode||origin.city||origin.country}).`);
+  if(!dest.state)throw new Error(`Envia.com no pudo resolver el código de provincia/estado del destinatario (${dest.postalCode||dest.city||dest.country}).`);
+  const enabled=Array.isArray(config.shipping?.enabledCarriers)?config.shipping.enabledCarriers.map((x:any)=>clean(x).toLowerCase()).filter(Boolean):[];
+
+  // Envia's rate endpoint can return all available carriers/services in one call
+  // when shipment.carrier is omitted. This is substantially faster than N carrier
+  // requests and is also the authoritative route-level availability source.
+  try{
+    const data=await withTimeout(enviaJson(`${c.shipBase}/ship/rate/`,c.token,{
+      method:'POST',
+      body:JSON.stringify({origin,destination:dest,packages:[pkg],shipment:{type:1}}),
+    }),5000,'Timeout cotizando Envia.com');
+    let options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
+    if(enabled.length)options=options.filter((option:any)=>{
+      const carrier=clean(option.carrierCode).toLowerCase(),name=clean(option.carrierName).toLowerCase();
+      return enabled.some((wanted:string)=>carrier.includes(wanted)||wanted.includes(carrier)||name.includes(wanted)||wanted.includes(name));
+    });
+    const unique=new Map<string,any>();
+    for(const option of options){
+      const key=`${clean(option.carrierCode).toLowerCase()}|${clean(option.code).toLowerCase()}|${Number(option.price)||''}`;
+      if(!unique.has(key))unique.set(key,option);
+    }
+    if(unique.size)return {options:[...unique.values()],errors:[],carriers:[...new Set([...unique.values()].map((option:any)=>option.carrierCode))],environment:c.environment};
+  }catch(error){
+    console.warn('Envia all-carrier quote fallback',error instanceof Error?error.message:error);
+  }
+
+  // Compatibility fallback for accounts/routes where the all-carrier quote is
+  // unavailable: discover carriers and quote them independently with short timeouts.
+  let carriers=await listCarriers(c,origin.country||'ES',dest.country||origin.country||'ES');
+  if(enabled.length)carriers=carriers.filter((carrier:string)=>enabled.some((wanted:string)=>carrier.toLowerCase().includes(wanted)||wanted.includes(carrier.toLowerCase())));
+  carriers=carriers.slice(0,30);
+  const settled=await Promise.all(carriers.map(async(carrier:string)=>{
+    try{
+      const data=await withTimeout(enviaJson(`${c.shipBase}/ship/rate/`,c.token,{
+        method:'POST',
+        body:JSON.stringify({origin,destination:dest,packages:[pkg],shipment:{type:1,carrier}}),
+      }),3500,`Timeout cotizando ${carrier}`);
+      const options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
+      return {carrier,options,error:null};
+    }catch(error){
+      const message=error instanceof Error?error.message:String(error);
+      console.warn('Envia rate failed',carrier,message);
+      return {carrier,options:[],error:message};
+    }
+  }));
+  const options=settled.flatMap(item=>item.options);
+  const unique=new Map<string,any>();
+  for(const option of options){
+    const key=`${clean(option.carrierCode).toLowerCase()}|${clean(option.code).toLowerCase()}|${Number(option.price)||''}`;
+    if(!unique.has(key))unique.set(key,option);
+  }
+  const errors=settled.filter(item=>item.error).map(item=>({carrier:item.carrier,message:item.error as string}));
+  return {options:[...unique.values()],errors,carriers,environment:c.environment};
+}
+function trackingOf(row:any){return clean(row?.tracking_number||row?.trackingNumber||row?.tracking||row?.guideNumber||row?.guide||row?.shipment?.trackingNumber);}
+function shipmentCreatedAt(row:any){
+  const raw=clean(row?.created_at||row?.createdAt||row?.creationDate||row?.dateCreated||row?.date||row?.shipment?.createdAt);
+  const parsed=raw?new Date(raw):null;
+  return parsed&&!Number.isNaN(parsed.getTime())?parsed.toISOString():new Date().toISOString();
+}
+function shipmentDestination(row:any){
+  const d=row?.destination||row?.to||row?.receiver||row?.shipment?.destination||{};
+  return {
+    name:clean(d?.name||d?.receiverName||row?.consignee_name),
+    company_name:clean(d?.company||row?.consignee_company_name)||null,
+    phone_number:clean(d?.phone||row?.consignee_phone)||null,
+    email:clean(d?.email||row?.consignee_email)||null,
+    address_line_1:clean(d?.street||d?.address||d?.address1||row?.consignee_street),
+    address_line_2:clean(d?.address2||row?.consignee_references)||null,
+    house_number:clean(d?.number||row?.consignee_number)||null,
+    postal_code:clean(d?.postalCode||d?.postal_code||d?.zipCode||row?.consignee_postal_code||row?.consignee_postalcode),
+    city:clean(d?.city||row?.consignee_city),
+    state_province_code:clean(d?.state||row?.consignee_state)||null,
+    country_code:clean(d?.country||d?.countryCode||row?.consignee_country).toUpperCase(),
+  };
+}
+function shipmentStatus(row:any){return clean(row?.status?.name||row?.status?.description||row?.status||row?.shipmentStatus||row?.trackingStatus);}
+function shipmentCarrier(row:any){return clean(row?.carrierDescription||row?.carrierName||row?.carrier||row?.name||row?.shipment?.carrier);}
+function shipmentService(row:any){return clean(row?.serviceDescription||row?.serviceName||row?.service||row?.shipment?.service);}
+function normalizeMatchText(value:unknown){
+  return clean(value).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
+}
+function shipmentReference(row:any){
+  return clean(
+    row?.orderReference||row?.order_reference||row?.reference||row?.referenceNumber||
+    row?.orderNumber||row?.order_number||row?.shipment?.orderReference||row?.shipment?.reference
+  );
+}
+function shipmentPrice(row:any){
+  const value=number(row?.grand_total??row?.totalPrice??row?.total_price??row?.total??row?.price??row?.amount,NaN);
+  return Number.isFinite(value)?value:null;
+}
+function monthKeys(count:number){
+  const result:Array<{month:string;year:string}>=[];
+  const now=new Date();
+  for(let index=0;index<count;index+=1){
+    const date=new Date(Date.UTC(now.getUTCFullYear(),now.getUTCMonth()-index,1));
+    result.push({month:String(date.getUTCMonth()+1).padStart(2,'0'),year:String(date.getUTCFullYear())});
+  }
+  return result;
+}
+async function syncAccountShipments(admin:any,ownerId:string,account:any,months:number,batch?:{period:{month:number;year:number};offset:number;limit:number;guard:()=>Promise<void>;write?:(id:string,patch:any)=>Promise<void>;remove?:(id:string)=>Promise<void>}){
+  const c=await credentials(admin,account);let synced=0,found=0;
+  let nextOffset:number|null=null;
+  for(const period of (batch?[batch.period]:monthKeys(Math.max(1,Math.min(months,12))))){
+    const payload=await enviaJson(`${c.queryBase}/guide/${period.month}/${period.year}`,c.token);
+    const allRows=asRows(payload);const rows=batch?allRows.slice(batch.offset,batch.offset+batch.limit):allRows;found+=rows.length;nextOffset=batch&&batch.offset+batch.limit<allRows.length?batch.offset+batch.limit:null;
+    for(const summary of rows){
+      if(batch)await batch.guard();
+      const tracking=trackingOf(summary);if(!tracking)continue;
+      let row=summary;
+      try{
+        const detail=await enviaJson(`${c.queryBase}/guide/${encodeURIComponent(tracking)}`,c.token);
+        row=asRows(detail)[0]||(detail?.data&&typeof detail.data==='object'&&!Array.isArray(detail.data)?detail.data:detail)||summary;
+      }catch(error){
+        console.warn('Envia shipment detail fallback',tracking,error instanceof Error?error.message:error);
+      }
+      const createdAt=shipmentCreatedAt(row),destination=shipmentDestination(row),status=shipmentStatus(row);
+      const carrierCode=clean(row?.carrier||row?.carrierCode||row?.name||row?.shipment?.carrier);
+      const carrierName=shipmentCarrier(row)||humanCarrier(carrierCode);
+      const service=shipmentService(row);
+      const price=shipmentPrice(row);
+      const currency=clean(row?.currency||row?.currencyCode||row?.currency_code)||'EUR';
+      const labelUrl=clean(row?.label||row?.labelUrl||row?.label_url||row?.label_file);
+      const trackingUrl=clean(row?.trackUrl||row?.trackingUrl||row?.tracking_url);
+      const orderNumber=clean(row?.orderNumber||row?.order_number||row?.reference||row?.referenceNumber||row?.shipmentId)||`ENVIA-${tracking}`;
+
+      const selectFields='id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,label_printed_at,label_print_state_known';
+      let {data:existing,error:existingError}=await admin.from('fulfillment_orders').select(selectFields)
+        .eq('owner_id',ownerId).eq('shipping_remote_id',tracking).limit(1).maybeSingle();
+      if(existingError)throw existingError;
+      if(!existing){
+        const fallback=await admin.from('fulfillment_orders').select(selectFields)
+          .eq('owner_id',ownerId).eq('tracking_number',tracking).limit(1).maybeSingle();
+        if(fallback.error)throw fallback.error;
+        existing=fallback.data;
+      }
+
+      // A label purchased directly in Envia.com may arrive without the marketplace
+      // order id. Reconcile against ZENVIA before creating a synthetic MANUAL row.
+      // Priority: explicit reference -> email+postal -> recipient name+postal.
+      const reference=shipmentReference(row);
+      const postal=clean(destination.postal_code);
+      const destinationName=normalizeMatchText(destination.name);
+      let marketplaceMatch:any=null;
+
+      if(reference){
+        const exact=await admin.from('fulfillment_orders').select(selectFields)
+          .eq('owner_id',ownerId)
+          .or(`order_number.eq.${reference},order_id.eq.${reference}`)
+          .neq('source_channel','other')
+          .order('order_created_at',{ascending:false})
+          .limit(1)
+          .maybeSingle();
+        if(exact.error)throw exact.error;
+        marketplaceMatch=exact.data;
+      }
+
+      if(!marketplaceMatch&&destination.email){
+        const candidate=await admin.from('fulfillment_orders').select(selectFields)
+          .eq('owner_id',ownerId)
+          .ilike('customer_email',destination.email)
+          .is('tracking_number',null)
+          .neq('source_channel','other')
+          .order('order_created_at',{ascending:false})
+          .limit(20);
+        if(candidate.error)throw candidate.error;
+        marketplaceMatch=(candidate.data||[]).find((item:any)=>!postal||clean(item?.shipping_address?.postal_code)===postal)||candidate.data?.[0]||null;
+      }
+
+      if(!marketplaceMatch&&postal&&destinationName){
+        const candidate=await admin.from('fulfillment_orders').select(selectFields)
+          .eq('owner_id',ownerId)
+          .is('tracking_number',null)
+          .neq('source_channel','other')
+          .order('order_created_at',{ascending:false})
+          .limit(80);
+        if(candidate.error)throw candidate.error;
+        marketplaceMatch=(candidate.data||[]).find((item:any)=>{
+          const itemPostal=clean(item?.shipping_address?.postal_code);
+          const itemName=normalizeMatchText(item?.customer_name||item?.shipping_address?.name);
+          const sameName=itemName===destinationName
+            ||(destinationName.length>=8&&itemName.startsWith(destinationName))
+            ||(itemName.length>=8&&destinationName.startsWith(itemName));
+          return itemPostal===postal&&sameName;
+        })||null;
+      }
+
+      // If a previous sync already created a synthetic Envia row, migrate the
+      // shipment to the real marketplace order and remove the duplicate.
+      let duplicateSyntheticId:string|null=null;
+      if(marketplaceMatch&&existing?.id&&existing.id!==marketplaceMatch.id&&existing.source_channel==='other'){
+        duplicateSyntheticId=existing.id;
+        existing=marketplaceMatch;
+      }else if(!existing&&marketplaceMatch){
+        existing=marketplaceMatch;
+      }
+
+      const externallyDiscovered=!existing?.shipping_provider&&!existing?.label_created_at;
+      const patch:any={
+        shipping_provider:'envia',
+        shipping_remote_id:tracking,
+        shipping_label_url:labelUrl||clean(row?.label_file)||null,
+        shipping_integration_account_id:account.id,
+        tracking_number:tracking,
+        tracking_url:trackingUrl||null,
+        tracking_status_code:clean(row?.status?.code||row?.statusCode)||status||null,
+        tracking_status_message:status||null,
+        tracking_updated_at:new Date().toISOString(),
+        shipping_option_code:clean(row?.service||row?.serviceCode)||service||null,
+        carrier_code:carrierCode||clean(row?.name)||null,
+        carrier_name:carrierName||null,
+        shipping_service_name:service||null,
+        shipping_cost_amount:price,
+        shipping_cost_currency:price==null?null:currency,
+        shipping_cost_source:price==null?null:'provider_actual',
+        shipping_cost_recorded_at:price==null?null:createdAt,
+        label_created_at:createdAt,
+        ...(externallyDiscovered?{label_print_state_known:false}:{}),
+        last_synced_at:new Date().toISOString(),
+      };
+      if(existing?.id){
+        if(batch)await batch.guard();
+        if(existing.shipping_provider&&existing.shipping_provider!=='envia')continue;
+        if(batch?.write)await batch.write(existing.id,patch);else{const {error:updateError}=await admin.from('fulfillment_orders').update(patch).eq('id',existing.id).eq('owner_id',ownerId);if(updateError)throw updateError;}
+        if(duplicateSyntheticId){
+          if(batch?.remove)await batch.remove(duplicateSyntheticId);else{const {error:deleteError}=await admin.from('fulfillment_orders').delete().eq('id',duplicateSyntheticId).eq('owner_id',ownerId);if(deleteError)throw deleteError;}
+        }
+      }else{continue;}
+      synced+=1;
+    }
+  }
+  return {accountId:String(account.id),accountName:String(account.display_name||'Envia.com'),environment:c.environment,found,synced,nextOffset};
+}
+function bytesToBase64(bytes:Uint8Array){
+  let binary='';const chunk=0x8000;
+  for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));
+  return btoa(binary);
+}
+async function labelPdf(url:string){
+  if(!url)return {mimeType:'application/pdf',base64:''};
+  const res=await fetch(url);
+  if(!res.ok)throw new Error(`No se pudo descargar la etiqueta de Envia.com (${res.status}).`);
+  const bytes=new Uint8Array(await res.arrayBuffer());
+  return {mimeType:res.headers.get('content-type')||'application/pdf',base64:bytesToBase64(bytes)};
+}
+
+
+export {response,withTimeout,fail,clean,number,asRows,responseMetaError,getAdminKey,authenticate,readVault,enviaAccounts,credentials,enviaJson,workspaceConfig,normalizePhone,enviaStateCode,normalizeEnviaAddress,geocodeRows,bestGeocodeRow,geocodeLookup,geocodeAddress,orderWeightKg,addressNumber,contentName,sender,destination,packageFor,validatePayload,humanCarrier,parseEtaDays,normalizeRate,listCarriers,quoteAccount,trackingOf,shipmentCreatedAt,shipmentDestination,shipmentStatus,shipmentCarrier,shipmentService,normalizeMatchText,shipmentReference,shipmentPrice,monthKeys,syncAccountShipments,bytesToBase64,labelPdf,corsHeaders,headers,carrierCache,geocodeCache};

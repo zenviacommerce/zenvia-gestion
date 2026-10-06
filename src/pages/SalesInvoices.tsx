@@ -152,6 +152,7 @@ export function SalesInvoices(){
 
   const exportLabel=selectedInvoiceIds.length?`Exportar seleccionadas (${selectedInvoiceIds.length})`:`Exportar (${listFilteredCount})`;
 
+  useEffect(()=>{const changed=()=>{void refreshTools();setEpoch(x=>x+1)};window.addEventListener('zenvia:import-results',changed);return()=>window.removeEventListener('zenvia:import-results',changed)},[refreshTools]);
   return <div className="salesBillingHub">
     <div className="expenseHubNavShell"><div className="expenseHubNav" role="tablist" aria-label="Facturación">
       <button type="button" className={section==='invoices'?'active':''} onClick={()=>setSection('invoices')}><span className="expenseHubTabIcon"><FileText size={18}/></span><span className="expenseHubTabText"><strong>Facturas</strong><small>Emitidas, cobros y rectificativas</small></span></button>

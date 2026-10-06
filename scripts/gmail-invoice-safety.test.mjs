@@ -15,12 +15,8 @@ test('Gmail invoice import uses the shared candidate pipeline and stops uncertai
   assert.doesNotMatch(source,/extraction\.supplierName \|\| senderFallback/);
 });
 
-test('Gmail review UI edits the shared candidate before explicitly saving it',async()=>{
-  const source=await read('../src/pages/Gmail.tsx');
-  assert.match(source,/InvoiceCandidateForm/);
-  assert.match(source,/saveReviewedGmailCandidate/);
-  assert.match(source,/REVISIÓN SEGURA/);
-  assert.match(source,/No se creará la factura ni el proveedor hasta que confirmes estos datos/);
+test('Gmail restores a persisted review and submits an explicit versioned confirmation',async()=>{
+  const source=await read('../src/pages/Gmail.tsx');const ui=await read('../src/components/PersistentImports.tsx');assert.match(source,/persistentJobId/);assert.match(source,/ImportJobDetail/);assert.match(ui,/InvoiceCandidateForm/);assert.match(ui,/reviewImportItem/);assert.match(ui,/Confirmar datos e importar/);
 });
 
 test('shared pipeline validates supplier number date total and fiscal consistency',async()=>{

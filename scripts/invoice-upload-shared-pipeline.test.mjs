@@ -4,13 +4,8 @@ import test from 'node:test';
 
 const read=(path)=>readFile(new URL(path,import.meta.url),'utf8');
 
-test('single invoice upload uses the shared candidate pipeline and form',async()=>{
-  const source=await read('../src/components/UploadInvoiceModal.tsx');
-  assert.match(source,/prepareInvoiceCandidate/);
-  assert.match(source,/classifyInvoiceCandidate/);
-  assert.match(source,/invoiceCandidateToInput/);
-  assert.match(source,/InvoiceCandidateForm/);
-  assert.doesNotMatch(source,/readInvoiceDocumentEnhanced/);
+test('single invoice upload uses the persistent document flow and shared review form',async()=>{
+  const modal=await read('../src/components/UploadInvoiceModal.tsx');const ui=await read('../src/components/PersistentImports.tsx');assert.match(modal,/PersistentDocumentImportModal/);assert.match(ui,/InvoiceCandidateForm/);assert.doesNotMatch(modal,/readInvoiceDocumentEnhanced/);
 });
 
 test('shared candidate form includes equivalence surcharge and editable invoice header',async()=>{

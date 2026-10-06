@@ -203,7 +203,7 @@ export async function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
 }
 export function getSendcloudStatus(){return invokeSendcloud<SendcloudStatus>({action:'status'});}
 export interface EnviaSyncResult{
-  ok:true;configured:boolean;found:number;synced:number;
+  ok:true;configured:boolean;found:number;synced:number;queued?:boolean;jobId?:string;
   accounts:Array<{accountId:string;accountName:string;environment:string;found:number;synced:number}>;
   message?:string|null;
 }
@@ -221,7 +221,7 @@ export async function syncSendcloudOrders(history=false,retryTracking=true,autom
   return result;
 }
 export async function syncShopifyOrders(history=false){
-  return invokeFunction<{ok:true;configured:boolean;synced:number;history?:boolean;accounts?:Array<{accountId:string;displayName:string;synced:number;shopDomain:string}>}>('shopify-orders',{history});
+  return invokeFunction<{ok:true;configured:boolean;synced:number;queued?:boolean;jobId?:string;history?:boolean;accounts?:Array<{accountId:string;displayName:string;synced:number;shopDomain:string}>}>('shopify-orders',{history});
 }
 export function createManualOrder(order:ManualOrderInput){return invokeOrderState<{ok:true;id:string;sendcloudId:string|null;orderNumber:string}>({action:'create_manual_order',order});}
 export async function getShippingOptions(orderId:string){

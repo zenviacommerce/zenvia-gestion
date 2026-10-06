@@ -19,7 +19,7 @@ test('shipping data model supports Sendcloud and Envia side by side',async()=>{
 test('Envia credentials are vaulted and sandbox is the default environment',async()=>{
   const [integrations,edge]=await Promise.all([
     read('supabase/functions/integration-accounts/index.ts'),
-    read('supabase/functions/envia-shipping/index.ts'),
+    Promise.all([read('supabase/functions/envia-shipping/index.ts'),read('supabase/functions/_shared/imports/enviaCore.ts')]).then(parts=>parts.join('\n')),
   ]);
   assert.match(integrations,/provider==='envia'/);
   assert.match(integrations,/writeVault/);
@@ -49,7 +49,7 @@ test('Orders compares providers and routes label creation to the selected provid
 test('Envia quotations use explicit package dimensions and never invent phone numbers',async()=>{
   const [settings,edge]=await Promise.all([
     read('src/services/settingsSchema.ts'),
-    read('supabase/functions/envia-shipping/index.ts'),
+    Promise.all([read('supabase/functions/envia-shipping/index.ts'),read('supabase/functions/_shared/imports/enviaCore.ts')]).then(parts=>parts.join('\n')),
   ]);
   assert.match(settings,/packageLengthCm/);
   assert.match(settings,/packageWidthCm/);

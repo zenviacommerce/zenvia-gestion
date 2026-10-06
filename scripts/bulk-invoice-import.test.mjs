@@ -4,31 +4,16 @@ import test from 'node:test';
 
 const read=(path)=>readFile(new URL(path,import.meta.url),'utf8');
 
-test('bulk invoice modal accepts multiple PDFs and uses exactly two analysis workers',async()=>{
-  const source=await read('../src/components/BulkInvoiceImportModal.tsx');
-  assert.match(source,/multiple/);
-  assert.match(source,/accept=["']application\/pdf["']/);
-  assert.match(source,/ANALYSIS_CONCURRENCY\s*=\s*2/);
-  assert.match(source,/prepareInvoiceCandidate/);
-  assert.match(source,/classifyInvoiceCandidate/);
+test('bulk invoice modal submits multiple originals to the durable queue',async()=>{
+  const modal=await read('../src/components/BulkInvoiceImportModal.tsx');const ui=await read('../src/components/PersistentImports.tsx');assert.match(modal,/PersistentDocumentImportModal/);assert.match(ui,/multiple=\{multiple\}/);assert.match(ui,/startDocumentImport/);assert.doesNotMatch(modal,/prepareInvoiceCandidate/);
 });
 
-test('bulk import only imports ready candidates sequentially and keeps failures isolated',async()=>{
-  const source=await read('../src/components/BulkInvoiceImportModal.tsx');
-  assert.match(source,/status===['"]ready['"]/);
-  assert.match(source,/for\s*\(const\s+candidate\s+of\s+ready/);
-  assert.match(source,/status:['"]importing['"]/);
-  assert.match(source,/status:['"]imported['"]/);
-  assert.match(source,/status:['"]error['"]/);
-  assert.match(source,/Importar .*factura/);
+test('bulk worker isolates each item and reviews through versioned API',async()=>{
+  const worker=await read('../shared/imports/worker.ts');const ui=await read('../src/components/PersistentImports.tsx');assert.match(worker,/try\{outcome=await execute\(item\)/);assert.match(worker,/errorOutcome/);assert.match(ui,/reviewImportItem\(selected,candidate\)/);
 });
 
-test('bulk modal shows candidate fiscal data and reuses shared candidate form for review',async()=>{
-  const source=await read('../src/components/BulkInvoiceImportModal.tsx');
-  assert.match(source,/InvoiceCandidateForm/);
-  assert.match(source,/equivalenceSurcharge/);
-  assert.match(source,/reviewReason/);
-  assert.match(source,/lines\.length/);
+test('bulk review restores fiscal candidate through the common form',async()=>{
+  const ui=await read('../src/components/PersistentImports.tsx');const form=await read('../src/components/InvoiceCandidateForm.tsx');assert.match(ui,/InvoiceCandidateForm/);assert.match(form,/equivalenceSurcharge/);assert.match(ui,/item.result.candidate/);assert.match(ui,/candidate.lines/);
 });
 
 test('bulk invoice list uses polished card hierarchy, status badges and responsive dark styling',async()=>{

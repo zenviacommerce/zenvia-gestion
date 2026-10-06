@@ -6,7 +6,7 @@ import ts from 'typescript';
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 
 test('Envia rate parsing keeps carrier and service identities separate',async()=>{
-  const edge=await read('supabase/functions/envia-shipping/index.ts');
+  const edge=(await read('supabase/functions/envia-shipping/index.ts')+'\n'+await read('supabase/functions/_shared/imports/enviaCore.ts'));
   assert.match(edge,/carrierDescription/);
   assert.match(edge,/serviceDescription/);
   assert.doesNotMatch(edge,/function carrierName\(item:any\)\{return clean\(item\?\.description/);
@@ -14,7 +14,7 @@ test('Envia rate parsing keeps carrier and service identities separate',async()=
 });
 
 test('Envia label response supports documented data arrays and trackUrl',async()=>{
-  const edge=await read('supabase/functions/envia-shipping/index.ts');
+  const edge=(await read('supabase/functions/envia-shipping/index.ts')+'\n'+await read('supabase/functions/_shared/imports/enviaCore.ts'));
   assert.match(edge,/const rows=asRows\(payload\)/);
   const trackingSource=await read('supabase/functions/_shared/shipmentTracking.ts');
   const output=ts.transpileModule(trackingSource,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
@@ -25,7 +25,7 @@ test('Envia label response supports documented data arrays and trackUrl',async()
 
 test('Envia shipments are synchronized independently from Sendcloud',async()=>{
   const [edge,orders,page]=await Promise.all([
-    read('supabase/functions/envia-shipping/index.ts'),
+    Promise.all([read('supabase/functions/envia-shipping/index.ts'),read('supabase/functions/_shared/imports/enviaCore.ts')]).then(parts=>parts.join('\n')),
     read('src/services/orders.ts'),
     read('src/pages/Orders.tsx'),
   ]);
@@ -73,7 +73,7 @@ test('tariff fallback does not invent expiry or fuel inclusion from unrelated do
 
 
 test('Envia quotes sanitize state values and quote one carrier per request',async()=>{
-  const edge=await read('supabase/functions/envia-shipping/index.ts');
+  const edge=(await read('supabase/functions/envia-shipping/index.ts')+'\n'+await read('supabase/functions/_shared/imports/enviaCore.ts'));
   assert.match(edge,/function enviaStateCode/);
   assert.match(edge,/\^\[A-Z0-9\]\{2\}\$/);
   assert.match(edge,/delete normalized\.state/);
@@ -157,7 +157,7 @@ test('Sendcloud falls back to v2 rate APIs when v3 options contain no quote',asy
 
 
 test('Envia geocoder reads the real Spain response shape',async()=>{
-  const edge=await read('supabase/functions/envia-shipping/index.ts');
+  const edge=(await read('supabase/functions/envia-shipping/index.ts')+'\n'+await read('supabase/functions/_shared/imports/enviaCore.ts'));
   assert.match(edge,/state\?\.code\?\.\['2digit'\]/);
   assert.match(edge,/value\.zip_code/);
   assert.match(edge,/row\.country\?\.code/);

@@ -1,20 +1,20 @@
+import {enqueueImport} from '../services/importJobs';
+import {ImportJobDetail,ImportJobHistory} from '../components/PersistentImports';
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, ExternalLink, Eye, FileText,
   Link2, LoaderCircle, Mail, Paperclip, RefreshCw, Search, ShieldCheck,
   Sparkles, X,
 } from 'lucide-react';
-import type { ExpenseCategory, InvoiceImportCandidate } from '../types';
+import type { ExpenseCategory } from '../types';
 import {
   downloadGmailAttachment, getCachedGmailConnection,
-  gmailMessageUrl, gmailOAuthConfigured, setActiveGmailConnection, saveGmailCandidates, updateGmailImport,
+  gmailMessageUrl, gmailOAuthConfigured, setActiveGmailConnection, updateGmailImport,
   type GmailCandidate, type GmailConnection,
 } from '../services/gmail';
-import { isDecorativeGmailImage, searchGmailInvoiceCandidatesStable } from '../services/gmailStableSearch';
-import { importGmailCandidate, saveReviewedGmailCandidate } from '../services/gmailImport';
+import { isDecorativeGmailImage } from '../services/gmailStableSearch';
 import { loadRecoverableGmailImports } from '../services/invoiceLifecycle';
 import { SelectField } from '../components/forms/SelectField';
-import { InvoiceCandidateForm } from '../components/InvoiceCandidateForm';
 import { connectRegisteredGmail, ensureRegisteredGmailConnection, loadRegisteredGmailAccounts, selectDefaultGmailAccount } from '../services/gmailAccounts';
 import type { IntegrationAccount } from '../services/integrationAccounts';
 
@@ -89,9 +89,7 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
   const [previewUrl,setPreviewUrl]=useState('');
   const [previewLoading,setPreviewLoading]=useState(false);
   const [previewError,setPreviewError]=useState('');
-  const [reviewCandidate,setReviewCandidate]=useState<InvoiceImportCandidate|null>(null);
-  const [reviewSource,setReviewSource]=useState<GmailCandidate|null>(null);
-  const [reviewSaving,setReviewSaving]=useState(false);
+  const [reviewJobId,setReviewJobId]=useState<string|null>(null);
 
   const refreshImports=async()=>{
     try { setImports(await loadRecoverableGmailImports()); }
@@ -110,7 +108,7 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
     }catch(e){setError(gmailConnectionError(e));}
     finally{setLoadingAccounts(false);}
   };
-  useEffect(()=>{ void refreshImports();void refreshAccounts(); },[]);
+  useEffect(()=>{ void refreshImports();void refreshAccounts();const update=()=>{void refreshImports();void onImported()};window.addEventListener('zenvia:import-results',update);return()=>window.removeEventListener('zenvia:import-results',update); },[onImported]);
   useEffect(()=>()=>{ if(previewUrl) URL.revokeObjectURL(previewUrl); },[previewUrl]);
   useEffect(()=>{ setPage(1); },[query,statusFilter]);
 
@@ -158,54 +156,16 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
   };
 
   const scan=async()=>{
-    setScanning(true);setError('');setMessage('Conectando con Gmail…');
-    try{
-      const active=await ensureConnection();
-      const knownMessageIds=new Set(visibleImports.map(item=>item.messageId).filter(Boolean));
-      const result=await searchGmailInvoiceCandidatesStable(active.accessToken,months,active.email,knownMessageIds,setMessage);
-      const merged=await saveGmailCandidates(result.candidates.map(item=>({...item,metadata:{...item.metadata,gmailAccountEmail:active.email}})),selectedAccountId);
-      setImports(merged);
-      setPage(1);
-
-      const totalLabel=`${result.truncated?'al menos ':''}${result.totalMessages}`;
-      const foundLabel=result.candidates.length
-        ? ` Se encontraron ${result.candidates.length} adjunto${result.candidates.length===1?'':'s'} candidato${result.candidates.length===1?'':'s'} nuevo${result.candidates.length===1?'':'s'}.`
-        : '';
-
-      if(result.remainingMessages>0){
-        setMessage(`Gmail encontró ${totalLabel} correos con adjuntos compatibles en el periodo. En esta pasada se revisaron ${result.newMessages} nuevos; ${result.cachedMessages} ya estaban revisados y quedan ${result.remainingMessages} por revisar.${foundLabel} Pulsa «Actualizar Gmail» para continuar.`);
-      }else if(result.skippedMessages>0){
-        setMessage(`Actualización completada sobre ${totalLabel} correos localizados. ${result.skippedMessages} correo${result.skippedMessages===1?'':'s'} se omitieron temporalmente por límites de Gmail.${foundLabel} Puedes volver a actualizar más tarde.`);
-      }else if(result.newMessages===0){
-        setMessage(`Gmail al día. Se localizaron ${totalLabel} correos con adjuntos compatibles y todos ya estaban revisados.`);
-      }else if(result.candidates.length){
-        setMessage(`Búsqueda completada: ${totalLabel} correos con adjuntos compatibles en el periodo; se revisaron ${result.newMessages} nuevos y se encontraron ${result.candidates.length} adjunto${result.candidates.length===1?'':'s'} candidato${result.candidates.length===1?'':'s'}.`);
-      }else{
-        setMessage(`Gmail actualizado. Se localizaron ${totalLabel} correos con adjuntos compatibles; se revisaron ${result.newMessages} nuevos y no contenían nuevas facturas.`);
-      }
-    }catch(e){
-      setError(gmailConnectionError(e));
-      setConnection(selectedAccount?.externalAccountId?getCachedGmailConnection(selectedAccount.externalAccountId):null);
-    }finally{setScanning(false);}
+    setScanning(true);setError('');
+    try{await enqueueImport({kind:'gmail_scan',accountId:selectedAccountId,options:{months}});setMessage('Búsqueda registrada. Continúa en segundo plano aunque salgas de Gmail.');}
+    catch(e){setError(gmailConnectionError(e));}finally{setScanning(false);}
   };
-
   const importOne=async(candidate:GmailCandidate)=>{
     if(!candidate.id)return;
-    setImportingId(candidate.id);setError('');setMessage(`Importando ${candidate.attachmentName}…`);
-    try{
-      const active=await ensureConnection(candidate);
-      const result=await importGmailCandidate(active.accessToken,candidate,categories,setMessage);
-      await refreshImports();
-      if(result.kind==='review'){
-        setReviewSource(candidate);
-        setReviewCandidate(result.candidate);
-        setMessage(`${candidate.attachmentName} necesita revisión antes de crear la factura.`);
-      }else{
-        await onImported();
-        setMessage(`${candidate.attachmentName} importada como factura pendiente.`);
-      }
-    }catch(e){setError(gmailConnectionError(e));await refreshImports();}
-    finally{setImportingId(null);}
+    if(candidate.metadata?.reviewRequired&&typeof candidate.metadata.persistentJobId==='string'){setReviewJobId(candidate.metadata.persistentJobId);return;}
+    setImportingId(candidate.id);setError('');
+    try{await enqueueImport({kind:'expense_document',accountId:candidate.integrationAccountId||selectedAccountId,gmailIds:[candidate.id]});setMessage('Importación registrada. Puedes seguir trabajando.');}
+    catch(e){setError(gmailConnectionError(e));}finally{setImportingId(null);}
   };
 
   const ignore=async(candidate:GmailCandidate)=>{
@@ -217,29 +177,6 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
 
   const closePreview=()=>{
     setPreviewItem(null);setPreviewUrl('');setPreviewError('');setPreviewLoading(false);
-  };
-
-  const closeReview=()=>{
-    if(reviewSaving)return;
-    setReviewCandidate(null);
-    setReviewSource(null);
-  };
-
-  const saveReview=async()=>{
-    if(!reviewCandidate||!reviewSource)return;
-    setReviewSaving(true);setError('');setMessage('Guardando factura revisada…');
-    try{
-      await saveReviewedGmailCandidate(reviewSource,reviewCandidate,setMessage);
-      await refreshImports();
-      await onImported();
-      setReviewCandidate(null);
-      setReviewSource(null);
-      setMessage(`${reviewSource.attachmentName} importada después de la revisión.`);
-    }catch(e){
-      setError(gmailConnectionError(e));
-    }finally{
-      setReviewSaving(false);
-    }
   };
 
   const previewOne=async(candidate:GmailCandidate)=>{
@@ -254,7 +191,7 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
     }finally{setPreviewLoading(false);}
   };
 
-  const accountBusy=loadingAccounts||connecting||scanning||importingId!==null||reviewSaving||previewLoading;
+  const accountBusy=loadingAccounts||connecting||scanning||importingId!==null||previewLoading;
   const pendingCount=visibleImports.filter(item=>item.status==='found'||item.status==='error').length;
   const importedCount=visibleImports.filter(item=>item.status==='imported').length;
   const previewIsPdf=Boolean(previewItem&&(previewItem.mimeType==='application/pdf'||previewItem.attachmentName.toLowerCase().endsWith('.pdf')));
@@ -301,7 +238,8 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
 
     <div className="grid2 gmailFeatures"><section className="card feature"><Sparkles/><h3>Misma lectura inteligente</h3><p>Cada adjunto importado pasa por el mismo lector de PDF/OCR: proveedor, número, fecha, base, IVA, total y líneas de producto. Si es mercancía, los productos nuevos se crean automáticamente.</p></section><section className="card feature"><ShieldCheck/><h3>Siempre pendiente primero</h3><p>Importar desde Gmail crea la factura en estado pendiente. Después puedes abrir el documento original, revisar los datos y decidir cuándo marcarla como revisada o contabilizada.</p></section></div>
 
-    {reviewCandidate&&reviewSource&&<div className="modalBackdrop gmailReviewBackdrop" onMouseDown={closeReview}><section className="modal gmailReviewModal" onMouseDown={e=>e.stopPropagation()}><div className="modalHead"><div><div className="eyebrow">REVISIÓN SEGURA</div><h3>Revisar datos antes de importar</h3><p>El motor no ha podido validar todos los campos con suficiente seguridad. No se creará la factura ni el proveedor hasta que confirmes estos datos.</p></div><button className="iconBtn" disabled={reviewSaving} onClick={closeReview} aria-label="Cerrar revisión"><X size={18}/></button></div>{reviewCandidate.reviewReason&&<div className="gmailReviewWarning"><AlertCircle size={17}/><span>{reviewCandidate.reviewReason}</span></div>}<InvoiceCandidateForm candidate={reviewCandidate} categories={categories} onChange={setReviewCandidate}/><div className="modalActions"><button className="secondary" disabled={reviewSaving} onClick={closeReview}>Cancelar</button><button className="primary" disabled={reviewSaving} onClick={()=>void saveReview()}>{reviewSaving?<LoaderCircle className="spin" size={15}/>:<CheckCircle2 size={15}/>} {reviewSaving?'Guardando…':'Guardar factura revisada'}</button></div></section></div>}
+    <ImportJobHistory kinds={['gmail_scan','expense_document']} categories={categories}/>
+    {reviewJobId&&<ImportJobDetail jobId={reviewJobId} categories={categories} onClose={()=>setReviewJobId(null)}/>}
 
     {previewItem&&<div className="modalBackdrop gmailPreviewBackdrop" onMouseDown={closePreview}><section className="modal gmailPreviewModal" onMouseDown={e=>e.stopPropagation()}><div className="gmailPreviewHead"><div><span className={`gmailStatus ${previewItem.metadata?.reviewRequired?'review':previewItem.status}`}>{statusLabel(previewItem)}</span><h3>{previewItem.attachmentName}</h3><small>{previewItem.sender||'Remitente desconocido'}{previewItem.receivedAt?` · ${new Date(previewItem.receivedAt).toLocaleDateString('es-ES')}`:''}</small></div><button className="iconBtn" onClick={closePreview} aria-label="Cerrar vista previa"><X size={18}/></button></div><div className="gmailPreviewBody">{previewLoading?<div className="gmailPreviewLoading"><LoaderCircle className="spin"/><span>Descargando adjunto desde Gmail…</span></div>:previewError?<div className="gmailPreviewError"><AlertCircle/><span>{previewError}</span></div>:previewUrl?(previewIsPdf?<iframe className="gmailPdfFrame" src={previewUrl} title={`Vista previa de ${previewItem.attachmentName}`}/>:<img className="gmailImagePreview" src={previewUrl} alt={previewItem.attachmentName}/>):null}</div><div className="gmailPreviewActions"><a className="secondary gmailLink" href={gmailMessageUrl(previewItem)} target="_blank" rel="noreferrer"><ExternalLink size={15}/> Ver correo</a>{previewUrl&&<a className="secondary gmailLink" href={previewUrl} target="_blank" rel="noreferrer"><ExternalLink size={15}/> Abrir aparte</a>}{previewCanImport&&<button className="primary" disabled={importingId===previewItem.id||previewLoading||Boolean(previewError)} onClick={()=>{const item=previewItem;closePreview();void importOne(item)}}><Sparkles size={15}/> {previewItem.metadata?.reopenReason==='invoice_deleted'?'Reimportar':'Importar'}</button>}<button className="link" onClick={closePreview}>Cerrar</button></div></section></div>}
   </div>;

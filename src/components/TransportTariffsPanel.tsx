@@ -1,3 +1,4 @@
+import {useImportActivity} from './useImportActivity';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Check, FileSpreadsheet, LoaderCircle, Plus, RefreshCw, Trash2, Upload, X } from 'lucide-react';
 import { SelectField } from './forms/SelectField';
@@ -29,6 +30,7 @@ export function TransportTariffsPanel({open,onClose}:Props){
   useEffect(()=>{const doc=documents.find(item=>item.id===selectedId);if(!doc||doc.status!=='active'){setActiveApplyFrom('');return}const today=new Date().toISOString().slice(0,10);let next=today;if(doc.effectiveFrom&&next<doc.effectiveFrom)next=doc.effectiveFrom;if(doc.effectiveTo&&next>doc.effectiveTo)next=doc.effectiveTo;setActiveApplyFrom(next)},[selectedId,documents]);
   const selected=useMemo(()=>documents.find(item=>item.id===selectedId)||null,[documents,selectedId]);
 
+  useImportActivity(reading,'Importar tarifa de transporte','Analizando documento…');
   if(!open)return null;
   const editable=draft?.status==='draft'||draft?.status==='active';
 

@@ -1,3 +1,4 @@
+import {RetainedImportPage} from '../components/RetainedImportPage';
 import { useState } from 'react';
 import { FileText, Mail } from 'lucide-react';
 import type { ExpenseCategory, Invoice, InvoicePaymentStatus, Supplier } from '../types';
@@ -19,6 +20,6 @@ export function ExpenseInvoicesHub({invoices,suppliers,categories,onUpload,onBul
        </button>
      </div>
    </div>
-   {tab==='invoices'?<Invoices invoices={invoices} suppliers={suppliers} categories={categories} onUpload={onUpload} onBulkUpload={onBulkUpload} onStatusChange={onStatusChange} onPaymentStatusChange={onPaymentStatusChange} onBulkPaymentStatusChange={onBulkPaymentStatusChange} onOpenFile={onOpenFile} onDelete={onDelete} onSupplierChange={onSupplierChange} onCategoryChange={onCategoryChange}/>:<GmailPage categories={categories} onImported={onImported} onManageAccounts={onManageAccounts} canManageAccounts={canManageAccounts}/>}
+   <RetainedImportPage active={tab==='invoices'}><Invoices invoices={invoices} suppliers={suppliers} categories={categories} onUpload={onUpload} onBulkUpload={onBulkUpload} onStatusChange={onStatusChange} onPaymentStatusChange={onPaymentStatusChange} onBulkPaymentStatusChange={onBulkPaymentStatusChange} onOpenFile={onOpenFile} onDelete={onDelete} onSupplierChange={onSupplierChange} onCategoryChange={onCategoryChange}/></RetainedImportPage><RetainedImportPage active={tab==='gmail'}><GmailPage categories={categories} onImported={onImported} onManageAccounts={onManageAccounts} canManageAccounts={canManageAccounts}/></RetainedImportPage>
  </div>
 }

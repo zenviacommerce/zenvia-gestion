@@ -1,3 +1,4 @@
+import {useImportActivity} from '../components/useImportActivity';
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, ExternalLink, Eye, FileText,
@@ -92,6 +93,7 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
   const [reviewCandidate,setReviewCandidate]=useState<InvoiceImportCandidate|null>(null);
   const [reviewSource,setReviewSource]=useState<GmailCandidate|null>(null);
   const [reviewSaving,setReviewSaving]=useState(false);
+  useImportActivity(scanning||importingId!==null||reviewSaving||Boolean(reviewCandidate),'Importar desde Gmail',scanning?message||'Buscando facturas…':importingId?'Analizando adjunto…':reviewSaving?'Guardando…':'Revisión preparada');
 
   const refreshImports=async()=>{
     try { setImports(await loadRecoverableGmailImports()); }

@@ -1,3 +1,4 @@
+import {useImportActivity} from './useImportActivity';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Camera, CheckCircle2, FileText, LoaderCircle, Plus, Trash2, Upload, X } from 'lucide-react';
 import { ensureSalesSeries, type Client, type SalesInvoice, type SalesInvoiceSeries } from '../services/sales';
@@ -30,8 +31,11 @@ export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,o
   const [selectedId,setSelectedId]=useState<string|null>(null);
   const [checkedIds,setCheckedIds]=useState<Set<string>>(()=>new Set());
   const [busy,setBusy]=useState(false);
+  const [preparing,setPreparing]=useState(false);
 
-  useEffect(()=>{if(!open){setItems([]);setSelectedId(null);setCheckedIds(new Set());setBusy(false);}},[open]);
+  const pendingAnalysis=items.filter(i=>i.status==='analyzing').length;
+  const pendingReview=items.filter(i=>!i.excluded&&!['imported','duplicate'].includes(i.status)).length;
+  useImportActivity(preparing||busy||pendingAnalysis>0||pendingReview>0,'Importar facturas de venta',preparing?'Preparando escaneo…':busy?'Guardando…':pendingAnalysis?'Analizando documentos…':'Revisión preparada',items.length-pendingAnalysis,items.length);
   const patch=(id:string,change:Partial<Item>)=>setItems(current=>current.map(item=>item.id===id?{...item,...change}:item));
   const patchCandidate=(id:string,change:Partial<SalesInvoiceImportCandidate>)=>setItems(current=>current.map(item=>item.id===id&&item.candidate?{...item,status:item.status==='duplicate'?'duplicate':'needs_review',candidate:recalculateSalesImportCandidate({...item.candidate,...change,status:'needs_review'})}:item));
   const patchProposedClient=(id:string,change:Partial<NonNullable<SalesInvoiceImportCandidate['proposedClient']>>)=>setItems(current=>current.map(item=>item.id===id&&item.candidate?.proposedClient?{...item,status:item.status==='duplicate'?'duplicate':'needs_review',candidate:{...item.candidate,status:'needs_review',proposedClient:{...item.candidate.proposedClient,...change}}}:item));
@@ -66,10 +70,11 @@ export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,o
 
   const analyzeCameraPages=async(files:File[])=>{
     if(!files.length)return;
+    setPreparing(true);
     try{
       const pdf=await imageFilesToPdf(files);
       await analyzeFiles([pdf]);
-    }catch(error){showError(error instanceof Error?error.message:'No se pudo preparar el escaneo.');}
+    }catch(error){showError(error instanceof Error?error.message:'No se pudo preparar el escaneo.');}finally{setPreparing(false);}
   };
 
   const selected=items.find(item=>item.id===selectedId);
@@ -175,8 +180,8 @@ export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,o
     <div className="modalHead"><div><h3>Importar facturas de venta</h3><p>Sube PDF o imágenes, o escanea varias páginas con la cámara. Todo pasa por el mismo motor documental y siempre se crea como borrador.</p></div><button onClick={onClose}><X/></button></div>
     <input hidden ref={inputRef} type="file" multiple accept="application/pdf,image/*" onChange={event=>void analyzeFiles(Array.from(event.target.files||[]))}/>
     <input hidden ref={cameraRef} type="file" multiple accept="image/*" capture="environment" onChange={event=>void analyzeCameraPages(Array.from(event.target.files||[]))}/>
-    {!items.length?<div className="salesImportSources"><button className="bulkInvoiceDrop" type="button" onClick={()=>inputRef.current?.click()}><Upload/><strong>Seleccionar PDFs e imágenes</strong><span>Puedes elegir varios archivos</span></button><button className="secondary" type="button" onClick={()=>cameraRef.current?.click()}><Camera size={17}/> Escanear con cámara</button></div>:<>
-      <div className="bulkInvoiceSummary"><strong>{items.length-pendingCount} de {items.length} analizadas</strong><span>{readyCount} revisadas · {reviewCount} por revisar · {pendingCount} analizando</span><button className="secondary" type="button" disabled={busy} onClick={()=>inputRef.current?.click()}>Cambiar selección</button></div>
+    {!items.length?<div className="salesImportSources"><button className="bulkInvoiceDrop" type="button" disabled={preparing||busy||pendingAnalysis>0} onClick={()=>inputRef.current?.click()}><Upload/><strong>Seleccionar PDFs e imágenes</strong><span>Puedes elegir varios archivos</span></button><button className="secondary" type="button" disabled={preparing||busy||pendingAnalysis>0} onClick={()=>cameraRef.current?.click()}><Camera size={17}/> Escanear con cámara</button></div>:<>
+      <div className="bulkInvoiceSummary"><strong>{items.length-pendingCount} de {items.length} analizadas</strong><span>{readyCount} revisadas · {reviewCount} por revisar · {pendingCount} analizando</span><button className="secondary" type="button" disabled={busy||pendingAnalysis>0} onClick={()=>inputRef.current?.click()}>Cambiar selección</button></div>
       <BulkSelectionToolbar selectedCount={selectedBulkItems.length} totalCount={selectableItems.length} allSelected={allSelectableSelected} onToggleAll={toggleAll} label="facturas">
         <button className="secondary" type="button" disabled={!selectedBulkItems.length||busy} onClick={excludeSelected}>Excluir seleccionadas</button>
         <button className="secondary" type="button" disabled={!selectableItems.length||busy} onClick={validateAll}><CheckCircle2 size={15}/> Validar todas</button>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { LoaderCircle } from 'lucide-react';
+import { FileCheck, LoaderCircle } from 'lucide-react';
 import { ACTIVITY_EVENT, getActiveActivities, type ActivityRecord } from '../services/activity';
 
 function clampProgress(value:number|undefined){
@@ -74,7 +74,7 @@ export function ActivityCenter(){
         ?Math.max(0,activity.total-activity.current)
         :null;
       return <section className="activityItem" key={activity.id} role="status">
-        <div className="activityIcon"><LoaderCircle className="spin" size={18}/></div>
+        <div className="activityIcon">{activity.waitingReview?<FileCheck size={18}/>:<LoaderCircle className="spin" size={18}/>}</div>
         <div className="activityBody">
           <div className="activityTitle"><strong>{activity.label}</strong>{progress!=null&&<span>{Math.round(progress)}%</span>}</div>
           {activity.detail&&<div className="activityDetail">{activity.detail}</div>}

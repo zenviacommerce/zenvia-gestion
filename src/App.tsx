@@ -1,3 +1,4 @@
+import {RetainedImportPage} from './components/RetainedImportPage';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { LoaderCircle, LockKeyhole, LogOut, Moon, Sun } from 'lucide-react';
@@ -548,22 +549,22 @@ export default function App(){
    <button className="mobileThemeToggle" onClick={toggleTheme} title={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'} aria-label={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'}>{theme==='dark'?<Sun size={19}/>:<Moon size={19}/>}</button>
    <PasskeySetup userId={session.user.id} onVisibilityChange={setPasskeySetupVisible}/>
    {error&&<div className="globalError">{error}<button onClick={refresh}>Reintentar</button></div>}
-   {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders',{pendingOrders:true}):undefined}/>} 
-   {page==='sales'&&can('sales')&&<SalesInvoices/>}
-   {page==='orders'&&can('orders')&&<Orders pendingOnly={ordersPendingEntry}/>} 
-   {page==='invoices'&&can('invoices')&&<ExpenseInvoicesHub invoices={data.invoices} suppliers={data.suppliers} categories={data.categories} onUpload={()=>setUpload(true)} onBulkUpload={()=>setBulkUpload(true)} onStatusChange={changeStatus} onPaymentStatusChange={changePaymentStatus} onBulkPaymentStatusChange={changePaymentStatuses} onOpenFile={openInvoice} onDelete={removeInvoice} onSupplierChange={changeInvoiceSupplier} onCategoryChange={changeInvoiceCategory} onImported={refresh} canManageAccounts={access.role==='admin'} onManageAccounts={()=>{setSettingsInitialSection('integrations');void navigate('settings');}}/>}
+   {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders',{pendingOrders:true}):undefined}/>}
+   {can('sales')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':sales'} active={page==='sales'}><SalesInvoices/></RetainedImportPage>}
+   {can('orders')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':orders'} active={page==='orders'}><Orders pendingOnly={ordersPendingEntry}/></RetainedImportPage>}
+   {can('invoices')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':invoices'} active={page==='invoices'}><ExpenseInvoicesHub invoices={data.invoices} suppliers={data.suppliers} categories={data.categories} onUpload={()=>setUpload(true)} onBulkUpload={()=>setBulkUpload(true)} onStatusChange={changeStatus} onPaymentStatusChange={changePaymentStatus} onBulkPaymentStatusChange={changePaymentStatuses} onOpenFile={openInvoice} onDelete={removeInvoice} onSupplierChange={changeInvoiceSupplier} onCategoryChange={changeInvoiceCategory} onImported={refresh} canManageAccounts={access.role==='admin'} onManageAccounts={()=>{setSettingsInitialSection('integrations');void navigate('settings');}}/></RetainedImportPage>}
    {page==='clients'&&can('clients')&&<Clients/>}
-   {page==='products'&&can('products')&&<Products products={data.products} onAdd={openNewProduct} onEdit={openEditProduct} onDelete={removeProduct}/>} 
-   {page==='suppliers'&&can('suppliers')&&<Suppliers suppliers={data.suppliers} onAdd={openNewSupplier} onEdit={openEditSupplier} onDelete={removeSupplier}/>} 
-   {page==='amazon'&&can('amazon')&&<AmazonPage isAdmin={access.role==='admin'}/>} 
-   {page==='support'&&can('support')&&<SupportPage isAdmin={access.role==='admin'} currentUserId={session.user.id}/>} 
+   {page==='products'&&can('products')&&<Products products={data.products} onAdd={openNewProduct} onEdit={openEditProduct} onDelete={removeProduct}/>}
+   {page==='suppliers'&&can('suppliers')&&<Suppliers suppliers={data.suppliers} onAdd={openNewSupplier} onEdit={openEditSupplier} onDelete={removeSupplier}/>}
+   {page==='amazon'&&can('amazon')&&<AmazonPage isAdmin={access.role==='admin'}/>}
+   {page==='support'&&can('support')&&<SupportPage isAdmin={access.role==='admin'} currentUserId={session.user.id}/>}
    {page==='settings'&&<SettingsPage isAdmin={access.role==='admin'} access={access} initialSection={settingsInitialSection}/>}
-   {page==='admin'&&access.role==='admin'&&<AdminPage currentUserId={session.user.id} workspaceName={access.workspaceName}/>} 
+   {page==='admin'&&access.role==='admin'&&<AdminPage currentUserId={session.user.id} workspaceName={access.workspaceName}/>}
    <footer className="appLegalFooter">© {new Date().getFullYear()} ZENVIA COMMERCE. Todos los derechos reservados.</footer>
  </main>
- {can('invoices')&&<UploadInvoiceModal open={upload} onClose={()=>setUpload(false)} onSave={saveInvoice} categories={data.categories} existingInvoices={data.invoices}/>} 
- {can('invoices')&&<BulkInvoiceImportModal open={bulkUpload} onClose={()=>setBulkUpload(false)} categories={data.categories} existingInvoices={data.invoices} onSave={saveBulkInvoice} onFinished={finishBulkImport}/>} 
- {can('products')&&<ProductModal open={productModal} product={productToEdit} suppliers={data.suppliers} onClose={closeProductModal} onSave={saveProduct}/>} 
- {can('suppliers')&&<SupplierModal open={supplierModal} supplier={supplierToEdit} categories={data.categories} onClose={closeSupplierModal} onSave={saveSupplier}/>} 
+ {can('invoices')&&<UploadInvoiceModal key={session.user.id+':'+access.workspaceId+':upload'} open={upload} onClose={()=>setUpload(false)} onSave={saveInvoice} categories={data.categories} existingInvoices={data.invoices}/>}
+ {can('invoices')&&<BulkInvoiceImportModal key={session.user.id+':'+access.workspaceId+':bulk'} open={bulkUpload} onClose={()=>setBulkUpload(false)} categories={data.categories} existingInvoices={data.invoices} onSave={saveBulkInvoice} onFinished={finishBulkImport}/>}
+ {can('products')&&<ProductModal open={productModal} product={productToEdit} suppliers={data.suppliers} onClose={closeProductModal} onSave={saveProduct}/>}
+ {can('suppliers')&&<SupplierModal open={supplierModal} supplier={supplierToEdit} categories={data.categories} onClose={closeSupplierModal} onSave={saveSupplier}/>}
  </div>
 }

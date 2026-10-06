@@ -1,5 +1,6 @@
 export type ActivityInput={
   label:string;
+  waitingReview?:boolean;
   detail?:string;
   progress?:number;
   current?:number;

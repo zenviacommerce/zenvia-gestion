@@ -1,3 +1,4 @@
+import {useImportActivity} from './useImportActivity';
 import { useEffect, useRef, useState } from 'react';
 import { AlertCircle, CheckCircle2, FileText, LoaderCircle, Upload, X } from 'lucide-react';
 import { classifyInvoiceCandidate, invoiceCandidateToInput, prepareInvoiceCandidates } from '../services/invoiceImportPipeline';
@@ -37,7 +38,9 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
   const [selectedId,setSelectedId]=useState<string|null>(null);
   const [busy,setBusy]=useState(false);
 
-  useEffect(()=>{if(!open){setItems([]);setSelectedId(null);setBusy(false)}},[open]);
+  const pendingAnalysis=items.filter(i=>i.status==='analyzing').length;
+  const pendingReview=items.filter(i=>!i.excluded&&!['imported','duplicate'].includes(i.status)).length;
+  useImportActivity(busy||pendingAnalysis>0||pendingReview>0,'Importar facturas de gasto',busy?'Guardando…':pendingAnalysis?'Analizando documentos…':'Revisión preparada',items.length-pendingAnalysis,items.length);
   if(!open)return null;
 
   const patch=(id:string,update:Partial<BulkItem>)=>setItems(current=>current.map(item=>item.id===id?{...item,...update}:item));
@@ -111,7 +114,7 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
     <div className="modalHead"><div><h3>Importar facturas de gasto</h3><p>Selecciona uno o varios PDF. Si un PDF contiene varias facturas completas, se separarán en candidatos independientes para revisarlos antes de importar.</p></div><button onClick={onClose}><X/></button></div>
     <input hidden ref={inputRef} type="file" multiple accept="application/pdf" onChange={e=>chooseFiles(Array.from(e.target.files??[]))}/>
     {!items.length?<button className="bulkInvoiceDrop" type="button" onClick={()=>inputRef.current?.click()}><Upload/><strong>Seleccionar PDFs</strong><span>Puedes elegir varios archivos a la vez</span></button>:<>
-      <div className="bulkInvoiceSummary"><strong>{analyzed} de {items.length} analizadas</strong><span>{readyCount} listas · {reviewCount} requieren revisión · {pendingCount} pendientes</span><button className="secondary" type="button" disabled={busy} onClick={()=>inputRef.current?.click()}>Cambiar selección</button></div>
+      <div className="bulkInvoiceSummary"><strong>{analyzed} de {items.length} analizadas</strong><span>{readyCount} listas · {reviewCount} requieren revisión · {pendingCount} pendientes</span><button className="secondary" type="button" disabled={busy||pendingAnalysis>0} onClick={()=>inputRef.current?.click()}>Cambiar selección</button></div>
       <div className="bulkInvoiceList">{items.map(item=>{
         const candidate=item.candidate;
         return <div key={item.id} className={`bulkInvoiceRow ${item.status} ${item.excluded?'excluded':''}`}>

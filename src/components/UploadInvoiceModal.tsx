@@ -1,3 +1,4 @@
+import {useImportActivity} from './useImportActivity';
 import { useEffect, useRef, useState } from 'react';
 import { Camera, FileUp, X, ScanLine, CheckCircle2, AlertCircle, LoaderCircle } from 'lucide-react';
 import { imageFilesToPdf } from '../services/pdf';
@@ -24,11 +25,7 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
   const [readerMessage,setReaderMessage]=useState('');
   const [candidate,setCandidate]=useState<InvoiceImportCandidate|null>(null);
 
-  useEffect(()=>{
-    if(!open){
-      setFile(null);setStatus('');setError('');setReaderMessage('');setCandidate(null);setReading(false);setReaderBlocked(false);
-    }
-  },[open]);
+  useImportActivity(reading||saving||Boolean(candidate),'Importar factura de gasto',reading?readerMessage||'Analizando…':saving?'Guardando…':'Revisión preparada');
   if(!open) return null;
 
   const runReader = async (prepared: File, analysisFile: File = prepared) => {
@@ -72,7 +69,7 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
 
   const handleFiles = async (files: File[], nextSource: InvoiceSource) => {
     if(!files.length)return;
-    setError('');setReaderBlocked(false);setStatus('Preparando documento…');
+    setReading(true);setReaderMessage('Preparando documento…');setError('');setReaderBlocked(false);setStatus('Preparando documento…');
     try {
       const allImages=files.every(f=>f.type.startsWith('image/'));
       const prepared=allImages?await imageFilesToPdf(files):files[0];
@@ -80,7 +77,7 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
       setFile(prepared);setSource(nextSource);
       setStatus(nextSource==='camera'?`Escaneo preparado (${files.length} página${files.length>1?'s':''}) · lectura sobre imagen original.`:'Documento listo.');
       await runReader(prepared,analysisFile);
-    } catch(e){setError(e instanceof Error?e.message:'No se pudo procesar el archivo.');}
+    } catch(e){setError(e instanceof Error?e.message:'No se pudo procesar el archivo.');}finally{setReading(false);}
   };
 
   const submit = async () => {
@@ -90,7 +87,7 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
     try{
       await onSave(invoiceCandidateToInput(candidate,source));
       showSuccess('Factura de gasto guardada correctamente.');
-      onClose();
+      setCandidate(null);onClose();
     }catch(e){setError(e instanceof Error?e.message:'No se pudo guardar la factura.');}
     finally{setSaving(false);}
   };
@@ -98,8 +95,8 @@ export function UploadInvoiceModal({open,onClose,onSave,categories,existingInvoi
   return <div className="modalBackdrop"><div className="modal invoiceModal">
     <div className="modalHead"><div><h3>Añadir factura de gasto</h3><p>Sube un PDF o escanea una o varias páginas con la cámara.</p></div><button onClick={onClose}><X/></button></div>
     <div className="uploadChoices">
-      <button className="uploadChoice" onClick={()=>fileRef.current?.click()}><FileUp/><strong>Subir PDF o imagen</strong><span>Desde archivos del dispositivo</span></button>
-      <button className="uploadChoice accent" onClick={()=>cameraRef.current?.click()}><Camera/><strong>Escanear con cámara</strong><span>Permite varias páginas</span></button>
+      <button className="uploadChoice" disabled={reading||saving} onClick={()=>fileRef.current?.click()}><FileUp/><strong>Subir PDF o imagen</strong><span>Desde archivos del dispositivo</span></button>
+      <button className="uploadChoice accent" disabled={reading||saving} onClick={()=>cameraRef.current?.click()}><Camera/><strong>Escanear con cámara</strong><span>Permite varias páginas</span></button>
     </div>
     <input hidden ref={fileRef} type="file" accept="application/pdf,image/*" onChange={e=>handleFiles(Array.from(e.target.files??[]),'manual')}/>
     <input hidden ref={cameraRef} type="file" accept="image/*" capture="environment" multiple onChange={e=>handleFiles(Array.from(e.target.files??[]),'camera')}/>

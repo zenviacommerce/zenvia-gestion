@@ -334,7 +334,7 @@ function headerValue(headers: Array<{ name?: string; value?: string }> | undefin
 
 function isSupportedAttachment(filename: string, mimeType: string) {
   const name = filename.toLowerCase();
-  return mimeType === 'application/pdf' || mimeType.startsWith('image/') || /\.(pdf|png|jpe?g|webp)$/i.test(name);
+  return mimeType === 'application/pdf' || mimeType.startsWith('image/') || /\.(pdf|png|jpe?g|webp|hei[cf])$/i.test(name);
 }
 
 function looksLikeInvoice(filename: string, subject: string, snippet: string, mimeType: string) {
@@ -356,6 +356,7 @@ function collectAttachmentParts(part: any, result: Array<{ attachmentId: string;
       size: Number(part.body.size || 0) || undefined,
     });
   }
+  if(!filename&&mimeType==='text/html'&&(part?.body?.data||part?.body?.attachmentId))result.push({attachmentId:part.body.attachmentId||`inline:${part.partId||'html-body'}`,partId:part.partId||'html-body',filename:'factura-email.html',mimeType,size:Number(part.body.size||0)});
   for (const child of part?.parts || []) collectAttachmentParts(child, result);
 }
 
@@ -381,8 +382,8 @@ export async function searchGmailInvoiceCandidates(
   const loadedSettings=await loadAppSettings();
   const policy=expenseImportPolicyFromSettings(loadedSettings.settings.expenses);
   const period = months >= 12 && months % 12 === 0 ? `${months / 12}y` : `${months}m`;
-  const attachmentQuery=policy.gmailPdfOnly?'filename:pdf':'{filename:pdf filename:jpg filename:jpeg filename:png filename:webp}';
-  const q = encodeURIComponent(`has:attachment newer_than:${period} ${attachmentQuery}`);
+  const attachmentQuery=policy.gmailPdfOnly?'filename:pdf':'filename:pdf filename:jpg filename:jpeg filename:png filename:webp filename:heic filename:heif';
+  const q = encodeURIComponent(`newer_than:${period} {${attachmentQuery} subject:factura subject:invoice subject:receipt subject:ticket}`);
   onProgress?.('Buscando correos con adjuntos…');
   const list = await gmailFetch<{ messages?: Array<{ id: string; threadId?: string }> }>(accessToken, `messages?maxResults=100&q=${q}`);
   const messages = list.messages || [];
@@ -404,7 +405,7 @@ export async function searchGmailInvoiceCandidates(
       const receivedAt = full.internalDate ? new Date(Number(full.internalDate)).toISOString() : null;
 
       return attachments
-        .filter(attachment => !policy.gmailPdfOnly || attachment.mimeType==='application/pdf' || attachment.filename.toLowerCase().endsWith('.pdf'))
+        .filter(attachment => attachment.mimeType==='text/html' || !policy.gmailPdfOnly || attachment.mimeType==='application/pdf' || attachment.filename.toLowerCase().endsWith('.pdf'))
         .filter(attachment => !attachment.size || attachment.size<=policy.maxAttachmentMb*1024*1024)
         .filter(attachment => looksLikeInvoice(attachment.filename, subject, snippet, attachment.mimeType))
         .map(attachment => ({
@@ -514,7 +515,7 @@ function decodeBase64Url(data: string) {
 }
 
 function findInlinePart(part: any, partId: string | null | undefined): any | null {
-  if (partId && part?.partId === partId && part?.body?.data) return part;
+  if ((part?.partId === partId || partId==='html-body'&&!part?.partId&&part?.mimeType==='text/html') && part?.body?.data) return part;
   for (const child of part?.parts || []) {
     const found = findInlinePart(child, partId);
     if (found) return found;

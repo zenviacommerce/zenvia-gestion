@@ -95,13 +95,8 @@ test('repairs invoice header amounts from inclusive tax summary', async()=>{
   });
 });
 
-test('repository persists normalized net cost instead of gross printed price', async()=>{
-  const source=await readFile(new URL('../src/services/repository.ts',import.meta.url),'utf8');
-  assert.match(source,/line\.normalizedUnitPrice\s*\?\?\s*line\.unitPrice/);
-  assert.match(source,/line_net:\s*line\.lineNet\s*\?\?\s*line\.lineTotal/);
-  assert.match(source,/tax_rate:\s*line\.taxRate/);
-  assert.match(source,/tax_amount:\s*line\.taxAmount/);
-  assert.match(source,/repairInvoiceAmounts/);
+test('repository persists normalized net cost instead of gross printed price',async()=>{
+const sql=await readFile(new URL('../supabase/migrations/20261002190000_invoice_engine.sql',import.meta.url),'utf8');assert.match(sql,/normalized_unit_price/);assert.match(sql,/discountPercent/);assert.match(sql,/\/coalesce\(units,1\)/);assert.match(sql,/l->>'net'/);assert.match(sql,/l->>'vatRate'/);
 });
 
 test('product list leaves complete-name hover handling to the global truncated-text tooltip', async () => {

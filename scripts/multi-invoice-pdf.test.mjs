@@ -59,30 +59,15 @@ TOTAL FACTURA 121,00
 
 
 test('bulk expense import expands bundled PDFs into separate candidates',async()=>{
-  const modal=await readFile(new URL('../src/components/BulkInvoiceImportModal.tsx',import.meta.url),'utf8');
-  const pipeline=await readFile(new URL('../src/services/invoiceImportPipeline.ts',import.meta.url),'utf8');
-  assert.match(modal,/prepareInvoiceCandidates/);
-  assert.match(modal,/Factura \$\{candidate\.bundleIndex\}\/\$\{candidate\.bundleCount\}/);
-  assert.match(pipeline,/readInvoiceDocumentsEnhanced/);
-  assert.match(pipeline,/multiInvoiceSource:Boolean\(bundle&&bundle\.count>1\)/);
-  assert.match(pipeline,/PDF con varias facturas: revisa e indica el número/);
+const engine=await readFile(new URL('../src/services/invoiceEngine.ts',import.meta.url),'utf8');assert.match(engine,/mergeDocuments/);assert.match(engine,/bundleIndex=i\+1/);assert.match(engine,/bundleCount=documents.length/);assert.match(engine,/p_key:/);
 });
 
 test('bundled invoices may share the source file hash but still check supplier and invoice number',async()=>{
-  const repository=await readFile(new URL('../src/services/repository.ts',import.meta.url),'utf8');
-  const pipeline=await readFile(new URL('../src/services/invoiceImportPipeline.ts',import.meta.url),'utf8');
-  assert.match(repository,/multiInvoiceSource=input\.extraction\?\.multiInvoiceSource===true/);
-  assert.match(repository,/policy\.detectDuplicates&&!multiInvoiceSource/);
-  assert.match(repository,/\.eq\('supplier_id',supplierId\)/);
-  assert.match(repository,/\.eq\('invoice_number',sanitizeDatabaseSingleLine\(input\.invoiceNumber\)\)/);
-  assert.match(pipeline,/!candidate\.multiInvoiceSource && existing\.fileHash/);
+const sql=await readFile(new URL('../supabase/migrations/20261002190000_invoice_engine.sql',import.meta.url),'utf8');assert.match(sql,/supplier_id=s.id and public.invoice_engine_name_key\(invoice_number\)=public.invoice_engine_name_key\(full_number\) and issue_date=issue/);assert.match(sql,/abs\(total_amount-total\)/);assert.match(sql,/unique\(owner_id,source_document_id,document_key\)/);
 });
 
-test('single expense upload blocks bundled PDFs and redirects to the normalized bulk flow',async()=>{
-  const modal=await readFile(new URL('../src/components/UploadInvoiceModal.tsx',import.meta.url),'utf8');
-  assert.match(modal,/isMultiInvoiceDocumentError/);
-  assert.match(modal,/Usa “Importar facturas”/);
-  assert.match(modal,/setReaderBlocked\(true\)/);
+test('single upload processes multiple invoices and retains uncertain candidates in review',async()=>{
+const source=await readFile(new URL('../src/components/UploadInvoiceModal.tsx',import.meta.url),'utf8');assert.match(source,/prepareInvoiceCandidates/);assert.match(source,/for\(const c of candidates\)/);assert.match(source,/preparedCandidate \|\|= c/);
 });
 
 

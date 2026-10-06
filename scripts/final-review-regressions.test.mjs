@@ -4,15 +4,9 @@ import test from 'node:test';
 
 const read=(path)=>readFile(new URL(path,import.meta.url),'utf8');
 
-test('single invoice upload keeps a manual-review fallback when automatic reading fails',async()=>{
-  const [pipeline,upload]=await Promise.all([
-    read('../src/services/invoiceImportPipeline.ts'),
-    read('../src/components/UploadInvoiceModal.tsx'),
-  ]);
-  assert.match(pipeline,/export\s+async\s+function\s+createManualInvoiceCandidate\s*\(/);
-  assert.match(pipeline,/status:\s*['"]needs_review['"]/);
-  assert.match(upload,/createManualInvoiceCandidate/);
-  assert.match(upload,/setCandidate\(manualCandidate\)/);
+test('model failure persists review and setup failure blocks legacy bypass',async()=>{
+const source=await read('../src/services/invoiceEngine.ts');
+assert.match(source,/emptyDocument/);assert.match(source,/invoice_engine_stage/);const upload=await read('../src/components/UploadInvoiceModal.tsx');assert.match(upload,/setReaderBlocked\(true\)/);assert.doesNotMatch(upload,/setCandidate\(manualCandidate\)/);
 });
 
 test('bulk import always clears busy state even when final refresh fails',async()=>{

@@ -5,6 +5,9 @@
   "functions": {
     "api/mrw-gateway.mjs": {
       "maxDuration": 30
+    },
+    "api/invoice-engine.mjs": {
+      "maxDuration": 300
     }
   }
 }

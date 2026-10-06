@@ -31,9 +31,7 @@ test('matches a safe abbreviated supplier name against its full legal name',asyn
 });
 
 test('expense duplicate detection uses shared supplier identity matching',async()=>{
-  const source=await read('../src/services/invoiceImportPipeline.ts');
-  assert.match(source,/isLikelySameSupplier\(existing\.supplierName,candidate\.supplierName\)/);
-  assert.match(source,/supplierTaxId:read\.aiIssuer\?\.taxId\|\|contact\.taxId\|\|details\.taxId\|\|party\.taxId/);
+const {fingerprint}=await import('../shared/invoiceEngineCore.mjs');const d={supplier:{name:'Prueba SL',taxId:'ES B-12345674'},number:'F-001',issueDate:'2026-09-20',total:121};assert.equal(fingerprint(d),fingerprint({...d,supplier:{name:'Otro texto OCR',taxId:'B12345674'}}));assert.notEqual(fingerprint(d),fingerprint({...d,total:122}));
 });
 
 test('supplier contact extraction tolerates OCR variants of CIF',async()=>{

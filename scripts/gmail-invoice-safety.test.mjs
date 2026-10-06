@@ -5,14 +5,7 @@ import test from 'node:test';
 const read=path=>readFile(new URL(path,import.meta.url),'utf8');
 
 test('Gmail invoice import uses the shared candidate pipeline and stops uncertain data before persistence',async()=>{
-  const source=await read('../src/services/gmailImport.ts');
-  assert.match(source,/prepareInvoiceCandidate/);
-  assert.match(source,/invoiceCandidateToInput/);
-  assert.match(source,/prepared\.status==='needs_review'/);
-  assert.match(source,/reviewRequired:true/);
-  assert.match(source,/kind:'review'/);
-  assert.doesNotMatch(source,/import \{ readInvoiceDocumentEnhanced \}/);
-  assert.doesNotMatch(source,/extraction\.supplierName \|\| senderFallback/);
+const source=await read('../src/services/gmailImport.ts');assert.match(source,/InvoiceEngine.analyze/);assert.match(source,/candidate.status==='needs_review'/);assert.match(source,/InvoiceEngine.save/);assert.match(source,/reviewRequired:true/);assert.doesNotMatch(source,/lines:\[\]/);
 });
 
 test('Gmail review UI edits the shared candidate before explicitly saving it',async()=>{
@@ -23,14 +16,8 @@ test('Gmail review UI edits the shared candidate before explicitly saving it',as
   assert.match(source,/No se creará la factura ni el proveedor hasta que confirmes estos datos/);
 });
 
-test('shared pipeline validates supplier number date total and fiscal consistency',async()=>{
-  const source=await read('../src/services/invoiceImportPipeline.ts');
-  assert.match(source,/validateInvoiceCandidateIntegrity/);
-  assert.match(source,/saneSupplierName/);
-  assert.match(source,/saneInvoiceNumber/);
-  assert.match(source,/saneInvoiceDate/);
-  assert.match(source,/invoiceAmountsConsistent/);
-  assert.match(source,/status='needs_review'/);
+test('common validation checks fiscal identity dates lines and totals',async()=>{
+const source=await read('../shared/invoiceEngineCore.mjs');assert.match(source,/validateDocument/);assert.match(source,/validSpanishTaxId/);assert.match(source,/dateValid/);assert.match(source,/Las líneas no suman/);assert.match(source,/El total no cuadra/);
 });
 
 test('date parser uses the shared evidence extractor with OCR-tolerant separators',async()=>{
@@ -51,11 +38,8 @@ test('merchandise detection is based on generic table structure rather than supp
 });
 
 test('Gmail persistence revalidates integrity immediately before writing',async()=>{
-  const source=await read('../src/services/gmailImport.ts');
-  const persist=source.slice(source.indexOf('async function persistPreparedGmailInvoice'),source.indexOf('export async function saveReviewedGmailCandidate'));
-  assert.match(persist,/validateInvoiceCandidateIntegrity\(prepared\)/);
-  assert.match(persist,/La factura no supera la validación final/);
-  assert.ok(persist.indexOf('validateInvoiceCandidateIntegrity(prepared)')<persist.indexOf('createInvoice(invoiceInput)'));
+const source=await read('../src/services/invoiceEngine.ts');
+const validate=source.indexOf('const validation=validateDocument(d,{reviewed})');const commit=source.indexOf("rpc('invoice_engine_commit'",validate);assert.ok(validate>0&&commit>validate);assert.match(source,/validation.status!=='ready'/);
 });
 
 test('customer orders remain a hard-negative document type',async()=>{

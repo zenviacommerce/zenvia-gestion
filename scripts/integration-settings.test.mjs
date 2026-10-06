@@ -85,7 +85,7 @@ test('legacy compatibility no longer disables adding another integration account
   assert.match(page,/backend multicuenta todavía no está activado/i);
 });
 
-test('integration UI shows provider logos and models Shopify honestly as a Sendcloud channel',async()=>{
+test('integration UI shows provider logos and models Shopify as a direct Admin API integration',async()=>{
   const [page,css]=await Promise.all([
     read('src/pages/Settings.tsx'),
     read('src/settings.css'),
@@ -102,7 +102,9 @@ test('integration UI shows provider logos and models Shopify honestly as a Sendc
   assert.match(page,/title:'Transportistas y logística'/);
   assert.match(page,/providers:\['sendcloud','envia','mrw'\]/);
   assert.match(page,/title:'Documentos y correo'/);
-  assert.match(page,/no usa credenciales Shopify|no se solicita una contraseña de Shopify/i);
+  assert.match(page,/Conexión directa con Shopify Admin API/i);
+  assert.match(page,/shopifyAccessToken/);
+  assert.match(page,/permiso read_orders/);
   assert.match(page,/Conexión directa con Amazon SP-API/i);
   assert.match(css,/\.integrationProviderLogo/);
   assert.match(css,/\.integrationCategoryList/);
@@ -162,15 +164,13 @@ test('MRW integration card uses concise copy without the Sendcloud tagline',asyn
 });
 
 
-test('MRW connection validation supports both AuthInfo and legacy AuthInfoSWGE contracts',async()=>{
+test('MRW connection validation persists the read-only modern SAGEC result',async()=>{
   const edge=await read('supabase/functions/integration-accounts/index.ts');
-  assert.match(edge,/AuthInfoSWGE/);
-  assert.match(edge,/TransmitirEnvio/);
-  assert.match(edge,/apiMode:'swge'/);
-  assert.match(edge,/apiMode:'modern'/);
-  assert.match(edge,/Cliente>\$\{mrwEsc\(c\.subscriberCode\)\}/);
-  assert.match(edge,/Franquicia>\$\{mrwEsc\(c\.franchiseCode\)\}/);
-  assert.match(edge,/Usuario>\$\{mrwEsc\(c\.username\)\}/);
-  assert.match(edge,/VALIDACION-ZENVIA/);
+  const validation=edge.slice(edge.indexOf('async function testMrw('),edge.indexOf('async function enviaCarriers('));
+  assert.match(validation,/AuthInfo xmlns/);
+  assert.match(validation,/CodigoAbonado>\$\{mrwEsc\(creds\.subscriberCode\)\}/);
+  assert.match(validation,/apiMode:'modern'/);
+  assert.match(validation,/validationOperation:'GetPointsDB'/);
+  assert.doesNotMatch(validation,/TransmitirEnvio|GetEtiquetaEnvio|AuthInfoSWGE/);
   assert.match(edge,/config:nextConfig/);
 });

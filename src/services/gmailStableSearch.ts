@@ -1,10 +1,11 @@
+import { errorMessage } from './toast';
 import { downloadGmailAttachment, invalidateGmailAuthorization, type GmailCandidate } from './gmail';
 import { classifyInvoiceFile, shouldInspectInvoiceAttachment } from './invoiceCandidateClassifier';
 
 const MAX_RETRIES = 5;
 const BASE_DELAY_MS = 1200;
 const MAX_DELAY_MS = 15000;
-const CACHE_PREFIX = 'zenvia-gmail-scanned-v3:';
+const CACHE_PREFIX = 'zenvia-gmail-scanned-v4:';
 const LIST_PAGE_SIZE = 500;
 const MAX_LIST_PAGES = 20;
 const MAX_MESSAGES_PER_SCAN = 200;
@@ -22,6 +23,8 @@ export interface GmailStableScanResult {
   pagesLoaded: number;
   truncated: boolean;
 }
+
+class GmailPersistenceError extends Error {}
 
 class GmailAuthError extends Error {
   constructor(message: string) {
@@ -244,6 +247,7 @@ export async function searchGmailInvoiceCandidatesStable(
   account: string,
   knownMessageIds: Iterable<string>,
   onProgress?: (message: string) => void,
+  persistCandidates?: (candidates: GmailCandidate[]) => Promise<void>,
 ): Promise<GmailStableScanResult> {
   const period = months >= 12 && months % 12 === 0 ? `${months / 12}y` : `${months}m`;
   const q = encodeURIComponent(`has:attachment newer_than:${period} {filename:pdf filename:jpg filename:jpeg filename:png filename:webp}`);
@@ -284,6 +288,8 @@ export async function searchGmailInvoiceCandidatesStable(
       const attachments: AttachmentPart[] = [];
       collectAttachmentParts(full.payload, attachments);
 
+      const messageCandidates: GmailCandidate[] = [];
+      let inspectionFailed = false;
       const possible = attachments.filter(item => looksLikePossibleInvoice(item.filename, subject, snippet, item.mimeType, item.size));
       for (let attachmentIndex = 0; attachmentIndex < possible.length; attachmentIndex += 1) {
         const attachment = possible[attachmentIndex];
@@ -322,17 +328,26 @@ export async function searchGmailInvoiceCandidatesStable(
             invoiceClassificationSignals: classification.signals,
             invoiceClassificationNegativeSignals: classification.negativeSignals,
           };
-          candidates.push(candidate);
+          messageCandidates.push(candidate);
         } catch (classificationError) {
+          inspectionFailed = true;
           console.warn(`No se pudo validar ${attachment.filename} como factura.`, classificationError);
         }
       }
 
-      scannedIds.add(message.id);
+      // A message is complete only after every discovered attachment is stored.
+      if (persistCandidates && messageCandidates.length) {
+        try { await persistCandidates(messageCandidates); }
+        catch (error) { throw new GmailPersistenceError(`No se pudieron guardar los adjuntos encontrados: ${errorMessage(error,'Error de guardado.')} Lo ya guardado se conserva. Vuelve a buscar facturas para reintentar.`); }
+      }
+      candidates.push(...messageCandidates);
+      // Without a storage acknowledgement, only cache messages with no candidates.
+      if (!inspectionFailed && (persistCandidates || !messageCandidates.length)) scannedIds.add(message.id);
+      if (inspectionFailed) skippedMessages += 1;
       if ((index + 1) % 10 === 0) saveScannedMessageIds(account, scannedIds);
       await sleep(140);
     } catch (error) {
-      if (error instanceof GmailAuthError) throw error;
+      if (error instanceof GmailAuthError || error instanceof GmailPersistenceError) throw error;
       skippedMessages += 1;
       console.warn(`No se pudo revisar temporalmente el correo ${message.id}.`, error);
       await sleep(900);

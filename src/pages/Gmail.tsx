@@ -8,9 +8,10 @@ import {
 import type { ExpenseCategory, InvoiceImportCandidate } from '../types';
 import {
   downloadGmailAttachment, getCachedGmailConnection,
-  gmailMessageUrl, gmailOAuthConfigured, setActiveGmailConnection, saveGmailCandidates, updateGmailImport,
+  gmailMessageUrl, gmailOAuthConfigured, setActiveGmailConnection, saveGmailCandidates, persistGmailCandidates, updateGmailImport,
   type GmailCandidate, type GmailConnection,
 } from '../services/gmail';
+import { errorMessage } from '../services/toast';
 import { isDecorativeGmailImage, searchGmailInvoiceCandidatesStable } from '../services/gmailStableSearch';
 import { importGmailCandidate, saveReviewedGmailCandidate } from '../services/gmailImport';
 import { loadRecoverableGmailImports } from '../services/invoiceLifecycle';
@@ -54,7 +55,7 @@ function matchesStatusFilter(item: GmailCandidate, filter: GmailViewFilter) {
 }
 
 function gmailConnectionError(error: unknown) {
-  const raw=error instanceof Error?error.message:String(error||'');
+  const raw=errorMessage(error,'No se pudo completar la operación de Gmail.');
   const normalized=raw.toLowerCase();
   if(normalized.includes('popup window closed')||normalized.includes('popup_closed')){
     return 'Has cerrado la ventana de Google. Pulsa «Conectar Gmail» o «Añadir otra cuenta» para volver a intentarlo.';
@@ -163,8 +164,11 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
     setScanning(true);setError('');setMessage('Conectando con Gmail…');
     try{
       const active=await ensureConnection();
-      const knownMessageIds=new Set(visibleImports.map(item=>item.messageId).filter(Boolean));
-      const result=await searchGmailInvoiceCandidatesStable(active.accessToken,months,active.email,knownMessageIds,setMessage);
+      // A saved attachment does not prove that every attachment in its message was inspected.
+      const knownMessageIds=new Set<string>();
+      const result=await searchGmailInvoiceCandidatesStable(active.accessToken,months,active.email,knownMessageIds,setMessage,async candidates=>{
+        await persistGmailCandidates(candidates.map(item=>({...item,metadata:{...item.metadata,gmailAccountEmail:active.email}})),selectedAccountId);
+      });
       const merged=await saveGmailCandidates(result.candidates.map(item=>({...item,metadata:{...item.metadata,gmailAccountEmail:active.email}})),selectedAccountId);
       setImports(merged);
       setPage(1);
@@ -186,7 +190,9 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
         setMessage(`Gmail actualizado. Se localizaron ${totalLabel} correos con adjuntos compatibles; se revisaron ${result.newMessages} nuevos y no contenían nuevas facturas.`);
       }
     }catch(e){
-      setError(gmailConnectionError(e));
+      setError(`${gmailConnectionError(e)} Los adjuntos guardados siguen disponibles; puedes volver a buscar facturas.`);
+      setMessage('');
+      await refreshImports();
       setConnection(selectedAccount?.externalAccountId?getCachedGmailConnection(selectedAccount.externalAccountId):null);
     }finally{setScanning(false);}
   };
@@ -274,7 +280,7 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
 
     <div className="stats gmailStats"><div className="stat"><div className="statIcon"><Paperclip/></div><div><span>Pendientes</span><strong>{pendingCount}</strong><small>Adjuntos por revisar</small></div></div><div className="stat"><div className="statIcon"><CheckCircle2/></div><div><span>Importadas</span><strong>{importedCount}</strong><small>Facturas creadas</small></div></div><div className="stat"><div className="statIcon"><Sparkles/></div><div><span>Automático</span><strong>IA/OCR</strong><small>Lectura de importes y líneas</small></div></div></div>
 
-    {message&&<div className="success"><CheckCircle2 size={17}/>{message}</div>}
+    {message&&!error&&<div className="success">{scanning||importingId?<LoaderCircle className="spin" size={17}/>:<CheckCircle2 size={17}/>} {message}</div>}
     {error&&<div className="errorBox"><AlertCircle size={17}/>{error}</div>}
 
     <div className="toolbar gmailToolbar">

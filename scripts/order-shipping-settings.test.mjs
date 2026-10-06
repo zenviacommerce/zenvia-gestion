@@ -15,33 +15,35 @@ test('Pedidos and Envíos settings expose operational controls',async()=>{
   assert.match(page,/function OrdersSection/);
   assert.match(page,/function ShippingSection/);
   for(const label of [
-    'Estado inicial','Canal por defecto','País de origen','Transportista por defecto',
+    'Estado inicial','Canal por defecto','País de origen','Preselección al preparar etiqueta',
     'Generar etiqueta automáticamente','Descargar etiqueta tras crearla','Nombre de etiqueta',
     'Nombre del ZIP','Enviar tracking al marketplace','Marcar enviado tras etiqueta',
     'Reintentar confirmación de tracking','Refresco de pedidos','Pedido pendiente más de',
     'Nombre del remitente','Dirección del remitente','Peso de respaldo','Tamaño de etiqueta',
     'Orientación','Copias','Descarga automática','Transportistas habilitados',
     'Sin método válido','Confirmar expedición tras etiqueta','Guardar coste de envío',
-    'Reglas automáticas de envío'
+    'Reglas de selección de envío'
   ]) assert.match(page,new RegExp(label,'i'),label);
   assert.match(page,/updateSection\('orders'/);
   assert.match(page,/updateSection\('shipping'/);
   assert.match(page,/loadShippingRules/);
 });
 
-test('shipping rules persist and preserve Baleares Correos plus mainland MRW defaults',async()=>{
+test('shipping rules persist only user configured routing with no seeded regional defaults',async()=>{
   const service=await read('../src/services/shippingRules.ts');
   assert.match(service,/from\(['"]shipping_rules['"]\)/);
-  assert.match(service,/Baleares/);
-  assert.match(service,/postalPrefix:\s*'07'/);
-  assert.match(service,/carrierContains:\s*'correos'/);
-  assert.match(service,/MRW Urgent 19:00/);
-  assert.match(service,/carrierContains:\s*'mrw'/);
-  assert.match(service,/serviceIncludes:\s*\['urgent','19','expedition'\]/);
-  assert.match(service,/addShippingRule/);
-  assert.match(service,/updateShippingRule/);
-  assert.match(service,/deleteShippingRule/);
+  const {defaultShippingRules,DEFAULT_SHIPPING_RULES}=await transpiledRules();
+  assert.deepEqual(DEFAULT_SHIPPING_RULES,[]);
+  assert.deepEqual(defaultShippingRules(),[]);
+  assert.doesNotMatch(service,/Baleares|postalPrefix:\s*'07'|MRW Urgent/);
+  for(const operation of ['addShippingRule','updateShippingRule','deleteShippingRule'])assert.ok(service.includes(operation));
 });
+
+async function transpiledRules(){
+  const source=(await read('../src/services/shippingRules.ts')).replace(/import \{ supabase \} from '.\/supabase';/, 'const supabase={};');
+  const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
+  return import(`data:text/javascript;base64,${Buffer.from(output).toString('base64')}`);
+}
 
 test('shipping rule core chooses the first matching active rule by priority',async()=>{
   const {selectShippingOptionByRules}=await transpiled('../src/services/shippingRuleCore.ts');
@@ -75,7 +77,9 @@ test('orders runtime consumes refresh tracking label and shipping settings',asyn
   assert.match(page,/settings\.orders\.labelFilenameStrategy/);
   assert.match(page,/settings\.orders\.bulkZipFilenameTemplate/);
   assert.match(page,/settings\.orders\.pushTrackingToMarketplace/);
-  assert.match(page,/settings\.orders\.generateLabelAutomatically/);
+  assert.match(page,/setLabelOrder\(order\)/);
+  assert.match(page,/openBulkPreview\(configuredBulkTargets/);
+  assert.doesNotMatch(page,/if\(settings\.orders\.generateLabelAutomatically\)/);
   assert.match(page,/settings\.shipping\.fallbackWeightKg/);
   assert.match(page,/settings\.shipping\.enabledCarriers/);
   assert.match(page,/prepareLabelPdf/);

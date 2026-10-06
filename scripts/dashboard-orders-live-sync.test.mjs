@@ -31,7 +31,9 @@ test('Orders auto-sync uses a stable in-flight guard instead of depending on syn
   assert.match(orders,/syncingRef\.current=false/);
   assert.match(orders,/settings\.integrations\.enviaEnabled/);
   assert.match(orders,/syncEnviaShipments/);
-  assert.match(orders,/\},\[refresh,settings\.integrations\.sendcloudEnabled,settings\.integrations\.enviaEnabled,settings\.orders\.retryTrackingConfirmation,status\?\.configured,enviaStatus\?\.configured\]\);/);
+  assert.match(orders,/const runAmazon=Boolean\(settings\.integrations\.amazonEnabled\)/);
+  assert.match(orders,/const runShopify=Boolean\(settings\.integrations\.shopifyEnabled\)/);
+  assert.match(orders,/runAmazon\?Promise\.all\(\[reconcileAmazonOrders\(\)/);
   assert.doesNotMatch(orders,/\[refresh,syncing,settings\.orders\.retryTrackingConfirmation\]/);
 });
 

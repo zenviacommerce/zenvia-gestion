@@ -78,8 +78,8 @@ test('order detail reuses product images from the list resolver',async()=>{
 
 test('label creation revalidates against the carrier actually selected',async()=>{
   const source=await read('../src/pages/Orders.tsx');
-  assert.match(source,/finalValidation=validateOrderForCarrier\(order,option\?\.carrierCode\|\|validationCarrier\(order\)\)/);
-  assert.match(source,/carrierValidation=validateOrderForCarrier\(order,option\.carrierCode\)/);
+  assert.match(source,/finalValidation=validateOrderForCarrier\(order,option\?`[^`]*option\.carrierCode[^`]*option\.code[^`]*option\.name[^`]*`:validationCarrier\(order\),settings\.shipping\)/);
+  assert.match(source,/carrierValidation=validateOrderForCarrier\(order,`[^`]*option\.carrierCode[^`]*option\.code[^`]*option\.name[^`]*`,settings\.shipping\)/);
 });
 
 test('quick label format is styled as an active interactive control',async()=>{
@@ -91,16 +91,16 @@ test('quick label format is styled as an active interactive control',async()=>{
 });
 
 
-test('MRW preflight blocks label creation when parcel dimensions are missing',async()=>{
+test('MRW Urgente 19 preflight blocks missing parcel dimensions',async()=>{
   const {validateOrderForCarrier}=await loadShipping();
-  const result=validateOrderForCarrier(order({packageLengthCm:null,packageWidthCm:null,packageHeightCm:null}),'mrw');
+  const result=validateOrderForCarrier(order({packageLengthCm:null,packageWidthCm:null,packageHeightCm:null}),'mrw 0200 Urgente 19');
   assert.equal(result.blocking,true);
   for(const field of ['package_length_cm','package_width_cm','package_height_cm'])assert.ok(result.issues.some(item=>item.field===field),field);
 });
 
 test('MRW preflight accepts explicit parcel dimensions',async()=>{
   const {validateOrderForCarrier}=await loadShipping();
-  const result=validateOrderForCarrier(order({packageLengthCm:30,packageWidthCm:20,packageHeightCm:10}),'mrw');
+  const result=validateOrderForCarrier(order({packageLengthCm:30,packageWidthCm:20,packageHeightCm:10}),'mrw 0200 Urgente 19');
   assert.equal(result.issues.some(item=>String(item.field).startsWith('package_')),false);
 });
 
@@ -117,4 +117,22 @@ test('preflight warnings are only shown for orders that can still create a label
   const source=await read('../src/pages/Orders.tsx');
   assert.match(source,/validation=canPrepareOrder\(order\)\?validateOrderForCarrier\(order,undefined,settings.shipping\)/);
   assert.match(source,/validation=canPrepareOrder\(current\)\?validateOrderForCarrier\(current,undefined,settings.shipping\)/);
+});
+
+
+test('MRW envelopes do not require parcel dimensions but Urgente 19 uses configured defaults',async()=>{
+  const {validateOrderForCarrier}=await loadShipping();
+  const input=order({packageLengthCm:null,packageWidthCm:null,packageHeightCm:null});
+  assert.equal(validateOrderForCarrier(input,'mrw 0800 Sobre').blocking,false);
+  assert.equal(validateOrderForCarrier(input,'mrw 0200 Urgente 19',{
+    packageLengthCm:30,packageWidthCm:20,packageHeightCm:10,
+  }).blocking,false);
+});
+
+test('invalid explicit MRW dimensions do not silently fall back to configured dimensions',async()=>{
+  const {validateOrderForCarrier}=await loadShipping();
+  const result=validateOrderForCarrier(order({packageLengthCm:0,packageWidthCm:-1,packageHeightCm:NaN}),
+    'mrw 0200 Urgente 19',{packageLengthCm:30,packageWidthCm:20,packageHeightCm:10});
+  assert.equal(result.blocking,true);
+  for(const field of ['package_length_cm','package_width_cm','package_height_cm'])assert.ok(result.issues.some(item=>item.field===field));
 });

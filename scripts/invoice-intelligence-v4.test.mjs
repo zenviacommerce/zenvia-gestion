@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import ts from 'typescript';
 const read=path=>readFile(new URL('../'+path,import.meta.url),'utf8');
 
 test('shared invoice reader runs deterministic extraction then evidence-validated AI',async()=>{
@@ -49,11 +50,22 @@ test('camera passes the original image to the intelligence layer rather than onl
 });
 
 
-test('expense imports require human review when the AI verifier is unavailable',async()=>{
+test('expense imports retain policy, recipient and integrity review gates with deterministic fallback',async()=>{
   const pipeline=await read('src/services/invoiceImportPipeline.ts');
-  assert.match(pipeline,/aiUnavailable/);
-  assert.match(pipeline,/La validación IA documental no está disponible/);
-  assert.match(pipeline,/status='needs_review'/);
+  assert.match(pipeline,/if\(configuredReview\.required\)\{\s*status='needs_review'/);
+  assert.match(pipeline,/else if\(recipient\.needsReview\)\{\s*status='needs_review'/);
+  assert.match(pipeline,/if\(!integrity\.safe\)\{\s*status='needs_review'/);
+  assert.match(pipeline,/No se pudo completar la lectura automática\. Revisa y completa los datos antes de guardar/);
+  const source=await read('src/services/expenseImportPolicy.ts');
+  const js=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
+  const {expenseImportPolicyFromSettings,expenseRequiresReview}=await import(`data:text/javascript;base64,${Buffer.from(js).toString('base64')}`);
+  const policy=expenseImportPolicyFromSettings();
+  const complete={invoiceNumber:'INV-100',supplierName:'Proveedor S.L.',invoiceDate:'2026-09-21',total:121,confidence:.95};
+  assert.equal(expenseRequiresReview(policy,complete).required,false);
+  assert.equal(expenseRequiresReview(policy,{...complete,confidence:.5}).required,true);
+  for(const key of ['invoiceNumber','supplierName','invoiceDate','total']){
+    assert.equal(expenseRequiresReview(policy,{...complete,[key]:undefined}).required,true,key);
+  }
 });
 
 test('sales invoice import accepts images and supports multi-page camera scanning',async()=>{

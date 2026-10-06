@@ -81,7 +81,7 @@ test('bundled invoices may share the source file hash but still check supplier a
 test('single expense upload blocks bundled PDFs and redirects to the normalized bulk flow',async()=>{
   const modal=await readFile(new URL('../src/components/UploadInvoiceModal.tsx',import.meta.url),'utf8');
   assert.match(modal,/isMultiInvoiceDocumentError/);
-  assert.match(modal,/Usa “Importar facturas”/);
+  assert.match(modal,/Usa “Importar facturas de gasto”/);
   assert.match(modal,/setReaderBlocked\(true\)/);
 });
 

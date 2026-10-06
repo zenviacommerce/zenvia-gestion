@@ -36,7 +36,7 @@ function carrierIn(value:string){
   return carriers.find(carrier=>carrier.rx.test(value))||null;
 }
 function prices(line:string){
-  const explicit=[...line.matchAll(/(-?\d{1,5}(?:[.,]\d{1,4})?)\s*(?:€|EUR)\b?/gi)]
+  const explicit=[...line.matchAll(/(-?\d{1,5}(?:[.,]\d{1,4})?)\s*(?:€|EUR)(?=\W|$)/gi)]
     .map(match=>num(match[1])).filter((value):value is number=>value!=null&&value>=0&&value<100000);
   if(explicit.length)return explicit;
   const cells=line.split(/\t|\s{2,}|[|;]/).map(value=>value.trim()).filter(Boolean);
@@ -64,7 +64,7 @@ function stripCommercialNoise(line:string,carrier:any){
   return clean(line
     .replace(carrier?.rx||/$^/,' ')
     .replace(/(?:hasta\s*)?\d+(?:[.,]\d+)?\s*(?:kg|kgs|kilogramos?)\b/gi,' ')
-    .replace(/-?\d{1,5}(?:[.,]\d{1,4})?\s*(?:€|EUR)\b?/gi,' ')
+    .replace(/-?\d{1,5}(?:[.,]\d{1,4})?\s*(?:€|EUR)(?=\W|$)/gi,' ')
     .replace(/\b(?:iva|vat|combustible|fuel)\b.*$/i,' ')
     .replace(/[|;]+/g,' ')
     .replace(/\s+/g,' '));
@@ -83,8 +83,13 @@ function fuelInfo(text:string){
   const included=/combustible\s+incluido|fuel\s+included/i.test(text)&&!excluded;
   let pct:number|null=null;
   for(const line of text.split(/\r?\n/).filter(line=>/combustible|fuel/i.test(line))){
-    const match=line.match(/(?:combustible|fuel)[^%\n]{0,40}?(\d+(?:[.,]\d+)?)\s*%/i)||line.match(/(\d+(?:[.,]\d+)?)\s*%[^\n]{0,40}?(?:combustible|fuel)/i);
-    if(match){pct=num(match[1]);break}
+    for(const fuel of line.matchAll(/combustible|fuel/gi)){
+      const clause=line.slice((fuel.index||0)+fuel[0].length).split(/\b(?:iva|vat|impuesto)\b/i)[0];
+      const after=clause.match(/^[^%\n]{0,40}?(\d+(?:[.,]\d+)?)\s*%/);
+      const before=line.slice(0,fuel.index).match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s+)?$/i);
+      if(after||before){pct=num((after||before)![1]);break}
+    }
+    if(pct!=null)break;
   }
   return {included,excluded,pct};
 }

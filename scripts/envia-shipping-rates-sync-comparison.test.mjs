@@ -36,15 +36,15 @@ test('Envia shipments are synchronized independently from Sendcloud',async()=>{
   assert.match(page,/Envia\.com/);
 });
 
-test('live quote comparison shows source, carrier, service, contracted tariff and delta',async()=>{
+test('live quote comparison shows final price, source, carrier and service',async()=>{
   const [page,shipping]=await Promise.all([
     read('src/pages/Orders.tsx'),
     read('src/services/orderShipping.ts'),
   ]);
   assert.match(page,/ordersComparison/);
-  assert.match(page,/Precio API/);
-  assert.match(page,/Tu tarifa/);
-  assert.match(page,/Diferencia/);
+  assert.match(page,/Precio final/);
+  assert.match(page,/Origen del precio/);
+  assert.match(page,/IVA y combustible incluidos/);
   assert.match(page,/ordersProviderBadge/);
   assert.match(shipping,/estimateTransportTariffForOption/);
   assert.match(shipping,/externalServiceCode/);
@@ -52,7 +52,7 @@ test('live quote comparison shows source, carrier, service, contracted tariff an
 
 test('generic tariff fallback never interprets VAT percentage as fuel surcharge',async()=>{
   const tariff=await read('src/services/transportTariffs.ts');
-  assert.match(tariff,/if\(\/iva\|vat\|impuesto\/i\.test\(before\)\)continue/);
+  assert.match(tariff,/iva\|vat\|impuesto/);
   assert.match(tariff,/reanalyzeTransportTariffDraft/);
 });
 
@@ -72,7 +72,7 @@ test('tariff fallback does not invent expiry or fuel inclusion from unrelated do
 });
 
 
-test('Envia quotes sanitize state values and quote one carrier per request',async()=>{
+test('Envia quotes sanitize state values and retain per-carrier compatibility fallback',async()=>{
   const edge=await read('supabase/functions/envia-shipping/index.ts');
   assert.match(edge,/function enviaStateCode/);
   assert.match(edge,/\^\[A-Z0-9\]\{2\}\$/);
@@ -80,12 +80,14 @@ test('Envia quotes sanitize state values and quote one carrier per request',asyn
   assert.match(edge,/geocodeRows/);
   assert.match(edge,/geocodes\.envia\.com\/locate/);
   assert.match(edge,/if\(!origin\.state\)throw new Error/);
-  assert.doesNotMatch(edge,/shipment:\{type:1\}\}\),/);
+  assert.match(edge,/shipment:\{type:1\}/);
+  assert.match(edge,/Envia all-carrier quote fallback/);
+  assert.match(edge,/if\(enabled\.length\)options=options\.filter/);
   assert.match(edge,/shipment:\{type:1,carrier\}/);
 });
 
 
-test('contracted tariffs are scoped to exactly one shipping provider',async()=>{
+test('tariff imports retain their provider metadata while estimates match carrier contracts',async()=>{
   const [shipping,tariffs,panel,migration]=await Promise.all([
     read('src/services/orderShipping.ts'),
     read('src/services/transportTariffs.ts'),
@@ -94,7 +96,8 @@ test('contracted tariffs are scoped to exactly one shipping provider',async()=>{
   ]);
   assert.match(tariffs,/shippingProvider:TransportShippingProvider/);
   assert.match(tariffs,/shipping_provider:shippingProvider/);
-  assert.match(shipping,/document\.shippingProvider!==option\.provider/);
+  assert.match(shipping,/carrierCandidates/);
+  assert.match(shipping,/if\(!providerMatch\)return -1/);
   assert.match(panel,/Aplicar en/);
   assert.match(panel,/Sendcloud/);
   assert.match(panel,/Envia\.com/);
@@ -119,13 +122,12 @@ test('Envia history backfill is independent from Sendcloud history state',async(
 
 test('Sendcloud V3 shipping-options request includes route fields so quotes can be calculated',async()=>{
   const edge=await read('supabase/functions/sendcloud-order-tools/index.ts');
-  assert.match(edge,/from_country_code:fromCountry/);
-  assert.match(edge,/to_country_code:clean\(address\.country_code\)/);
-  assert.match(edge,/from_postal_code:fromPostal/);
-  assert.match(edge,/to_postal_code:clean\(address\.postal_code\)/);
+  assert.match(edge,/from_address:fromAddress/);
+  assert.match(edge,/to_address:toAddress/);
+  assert.match(edge,/country_code:fromCountry/);
+  assert.match(edge,/postal_code:fromPostal/);
   assert.match(edge,/calculate_quotes:true/);
   assert.match(edge,/dimensions:/);
-  assert.doesNotMatch(edge,/requestBody\.from_address=fromAddress/);
 });
 
 test('label modal restores a preferred selection and explicit create action',async()=>{
@@ -162,4 +164,19 @@ test('Envia geocoder reads the real Spain response shape',async()=>{
   assert.match(edge,/value\.zip_code/);
   assert.match(edge,/row\.country\?\.code/);
   assert.match(edge,/value\.locality/);
+});
+
+
+test('contracted tariff estimates compare carrier contracts across aggregators and direct MRW',async()=>{
+  const code=await read('src/services/orderShipping.ts');
+  const output=ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
+  const {estimateTransportTariffForOption:estimate}=await import(`data:text/javascript;base64,${Buffer.from(output).toString('base64')}`);
+  const order={weightKg:1,orderCreatedAt:'2026-10-01',shippingAddress:{country_code:'ES',postal_code:'28001'}};
+  const document={id:'contract',status:'active',shippingProvider:'envia',carrierCode:'mrw',carrierName:'MRW',currencyCode:'EUR',pricesIncludeVat:false,fuelSurchargeIncluded:true,services:[{serviceName:'Mañana 19h',externalProvider:'mrw',externalServiceCode:'manana-19h',bands:[{countryCode:'ES',zoneCode:'peninsular',minWeightKg:0,maxWeightKg:5,basePrice:5}]}]};
+  const option={provider:'sendcloud',carrierCode:'mrw',carrierName:'MRW',code:'manana-19h',name:'Mañana 19h'};
+  assert.equal(estimate(order,[document],option).totalAmount,6.05,'Carrier contracts can be compared through Sendcloud');
+  assert.equal(estimate(order,[{...document,shippingProvider:'sendcloud'}],{...option,provider:'envia'}).totalAmount,6.05,'Carrier contracts can be compared through Envia');
+  assert.equal(estimate(order,[document],{...option,provider:'envia'}).totalAmount,6.05);
+  assert.equal(estimate(order,[document],{...option,provider:'mrw',code:'0205',name:'MRW 19'}).totalAmount,6.05);
+  assert.equal(estimate(order,[document],{...option,provider:'mrw',carrierCode:'seur',carrierName:'SEUR'}),null,'MRW exception still requires a matching carrier');
 });

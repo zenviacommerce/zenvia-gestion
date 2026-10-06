@@ -468,8 +468,8 @@ export async function loadGmailImports(): Promise<GmailCandidate[]> {
   return (data || []).map(mapImportRow);
 }
 
-export async function saveGmailCandidates(candidates: GmailCandidate[], integrationAccountId?: string) {
-  if (!candidates.length) return loadGmailImports();
+export async function persistGmailCandidates(candidates: GmailCandidate[], integrationAccountId?: string) {
+  if (!candidates.length) return;
   const { data: userData } = await supabase.auth.getUser();
   const user = userData.user;
   if (!user) throw new Error('Sesión no válida.');
@@ -501,6 +501,10 @@ export async function saveGmailCandidates(candidates: GmailCandidate[], integrat
     ignoreDuplicates: true,
   });
   if (error) throw error;
+}
+
+export async function saveGmailCandidates(candidates: GmailCandidate[], integrationAccountId?: string) {
+  await persistGmailCandidates(candidates, integrationAccountId);
   return loadGmailImports();
 }
 

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
+import ts from 'typescript';
 
 async function source(path){return readFile(new URL(`../${path}`,import.meta.url),'utf8');}
 
@@ -35,13 +36,12 @@ test('transport tariff service keeps parsing, review and activation as separate 
   assert.match(service,/JSZip|xlsx/i,'Excel/XLSX extraction must be supported');
 });
 
-test('transport tariff parser can use AI but safely falls back without auto-activation',async()=>{
+test('transport tariff server parser is deterministic and never auto-activates',async()=>{
   const edge=await source('supabase/functions/transport-tariff-parser/index.ts');
-  assert.match(edge,/OPENAI_API_KEY/,'AI parser must use a server-side key only');
-  assert.match(edge,/\/v1\/responses/,'AI parser must use the Responses API');
-  assert.match(edge,/fallback/,'AI parser must preserve a deterministic fallback');
-  assert.match(edge,/json_schema|schema/i,'AI parser must request structured output');
-  assert.doesNotMatch(edge,/transport_tariff_activate|status\s*:\s*['"]active['"]/i,'parser must never activate a tariff');
+  assert.match(edge,/ownParse\(text\)/);
+  assert.match(edge,/zenvia-tariff-engine/);
+  assert.doesNotMatch(edge,/OPENAI_API_KEY|api\.openai\.com|\/v1\/responses|input_file/);
+  assert.doesNotMatch(edge,/transport_tariff_activate|status\s*:\s*['"]active['"]/i);
 });
 
 test('transport tariff UI always reviews an import before activation',async()=>{
@@ -94,11 +94,10 @@ test('tariff parser is generic and preserves document table structure',async()=>
   assert.match(service,/genericWeightHeader/);
   assert.match(service,/validateParsedServices/);
   assert.match(service,/probableCurrency/);
-  assert.match(edge,/motor experto en lectura de TARIFAS LOGÍSTICAS/);
-  assert.match(edge,/tablas transpuestas/);
-  assert.match(edge,/varios transportistas/);
-  assert.match(edge,/CONTROL DE CALIDAD/);
-  assert.match(edge,/No inventes datos/);
+  assert.match(edge,/headerWeights/);
+  assert.match(edge,/ownParse/);
+  assert.match(edge,/transport_service_mappings/);
+  assert.match(edge,/requires?|requiere revisión/i);
 });
 
 
@@ -116,21 +115,56 @@ test('generic tariff parser recognizes carriers commonly returned by Envia',asyn
 });
 
 
-test('tariff parser spends AI only when local extraction is insufficient and sends original PDF when needed',async()=>{
-  const [service,edge]=await Promise.all([
-    source('src/services/transportTariffs.ts'),
-    source('supabase/functions/transport-tariff-parser/index.ts'),
-  ]);
-  assert.match(service,/fileDataUrl/);
-  assert.match(service,/fileData:fileData\|\|undefined/);
-  assert.match(edge,/fallbackServices\.length>0&&fallbackConfidence>=0\.82/);
-  assert.match(edge,/no se ha consumido IA/);
-  assert.match(edge,/type:'input_file'/);
-  assert.match(edge,/file_data:fileData/);
+async function loadLocalTariffService(invoke){
+  let code=await source('src/services/transportTariffs.ts');
+  code=code.replace(/^import .*;\n/gm,'').replace(/pdfjsLib\.GlobalWorkerOptions\.workerSrc=pdfWorker;/,'');
+  code+='\nexport {fallbackProposal};';
+  const output=ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
+  const key='__tariffTestInvoke'+Math.random().toString(36).slice(2);
+  globalThis[key]=invoke;
+  const prefix=`const supabase={functions:{invoke:globalThis[${JSON.stringify(key)}]}};\n`;
+  try{return await import(`data:text/javascript;base64,${Buffer.from(prefix+output).toString('base64')}`)}finally{delete globalThis[key]}
+}
+
+test('tariff parser recovers validated local rows offline and rejects empty imports',async()=>{
+  const api=await loadLocalTariffService(async()=>{throw new Error('offline')});
+  const proposal=await api.parseTransportTariffDocument(new File(['MRW Standard 1 kg 4,50 €'], 'rates.csv',{type:'text/csv'}));
+  assert.equal(proposal.services.length,1);
+  assert.equal(proposal.services[0].bands[0].basePrice,4.5);
+  assert.equal(proposal.parserProvider,'automatic-rules');
+  assert.ok(proposal.parserConfidence<1);
+  await assert.rejects(api.parseTransportTariffDocument(new File(['unreadable tariff'], 'rates.csv',{type:'text/csv'})),/No se pudo analizar/);
+});
+
+test('tariff parser keeps server analysis when available',async()=>{
+  const api=await loadLocalTariffService(async()=>({data:{proposal:{carrierName:'Server analyzed',services:[]},parserProvider:'zenvia-tariff-engine'},error:null}));
+  const proposal=await api.parseTransportTariffDocument(new File(['unknown'], 'rates.csv',{type:'text/csv'}));
+  assert.equal(proposal.carrierName,'Server analyzed');
+  assert.equal(proposal.parserProvider,'zenvia-tariff-engine');
+});
+
+test('fuel extraction distinguishes VAT from fuel on the same line',async()=>{
+  const api=await loadLocalTariffService(async()=>{});
+  for(const [text,expected] of [['IVA 21% y combustible 5%',5],['Combustible no incluido; IVA 21%',null],['5% de combustible; IVA 21%',5],['Combustible 5,5%',5.5]]){
+    assert.equal(api.fallbackProposal(text,'rates.csv').fuelSurchargePct,expected,text);
+  }
 });
 
 test('transport tariff delete is not restricted to draft or reviewed documents',async()=>{
   const service=await source('src/services/transportTariffs.ts');
   assert.match(service,/export async function deleteTransportTariff\(/);
   assert.doesNotMatch(service,/Una tarifa activa no se puede eliminar/);
+});
+
+
+test('server tariff parser distinguishes fuel percentages from VAT',async()=>{
+  const sourceCode=await source('supabase/functions/transport-tariff-parser/index.ts');
+  const code=sourceCode.replace(/^import .*;\n/gm,'').slice(0,sourceCode.replace(/^import .*;\n/gm,'').indexOf('Deno.serve('))+'\nexport {fuelInfo,ownParse};';
+  const output=ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
+  const {fuelInfo,ownParse}=await import(`data:text/javascript;base64,${Buffer.from(output).toString('base64')}`);
+  for(const [text,expected] of [['IVA 21% y combustible 5%',5],['Combustible no incluido; IVA 21%',null],['5% de combustible; IVA 21%',5],['Combustible 5,5%',5.5]])assert.equal(fuelInfo(text).pct,expected,text);
+  for(const currency of ['€','EUR']){
+    const parsed=ownParse('MRW Standard 1 kg 4,50 '+currency);
+    assert.equal(parsed.services[0].bands[0].basePrice,4.5);
+  }
 });

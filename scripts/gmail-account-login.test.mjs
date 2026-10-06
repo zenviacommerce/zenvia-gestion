@@ -1,3 +1,4 @@
+import {errorMessage} from '../src/services/toast.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -26,7 +27,7 @@ test('closing Google popup is distinct from an OAuth configuration problem',()=>
   const source=fs.readFileSync('src/pages/Gmail.tsx','utf8');
   const match=source.match(/function gmailConnectionError[\s\S]*?\n}\n/);
   const code=stripTypeScriptTypes(match[0]);
-  const error=vm.runInNewContext(code+'\ngmailConnectionError',{Error,window:{location:{origin:'https://example.com'}}});
+  const error=vm.runInNewContext(code+'\ngmailConnectionError',{Error,errorMessage,window:{location:{origin:'https://example.com'}}});
   assert.match(error(new Error('popup_closed')),/cerrado|cerró/i);
   assert.doesNotMatch(error(new Error('origin_mismatch')),/Google Cloud|Vercel|Client ID/);
 });

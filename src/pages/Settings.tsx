@@ -955,7 +955,7 @@ function ShippingSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
     {value:'',label:'Cualquier cuenta'},
     ...shippingAccounts.filter(account=>!provider||account.provider===provider).map(account=>({value:account.id,label:`${account.displayName} · ${account.provider==='mrw'?'MRW Directo':account.provider==='envia'?'Envia.com':'Sendcloud'}`})),
   ];
-  const ruleEditor=(rule:ShippingRule,isNew=false)=><div className="settingsAliasRow settingsShippingRuleRow" key={isNew?'new':rule.id}>
+  const ruleEditor=(rule:ShippingRule,isNew=false)=><div className="settingsAliasRow" key={isNew?'new':rule.id}>
     <input value={rule.name} onChange={e=>isNew?setNewRule(current=>({...current,name:e.target.value})):patchRule(rule.id,{name:e.target.value})} placeholder="Nombre de regla" aria-label="Nombre de regla"/>
     <input value={rule.conditions.countryCode||''} maxLength={2} onChange={e=>{const value=e.target.value.toUpperCase().replace(/[^A-Z]/g,'').slice(0,2);isNew?setNewRule(current=>({...current,conditions:{...current.conditions,countryCode:value||null}})):patchRule(rule.id,{conditions:{...rule.conditions,countryCode:value||null}})}} placeholder="País" aria-label="País de la regla"/>
     <input value={rule.conditions.postalPrefix||''} onChange={e=>{const value=e.target.value.replace(/\s+/g,'');isNew?setNewRule(current=>({...current,conditions:{...current.conditions,postalPrefix:value||null}})):patchRule(rule.id,{conditions:{...rule.conditions,postalPrefix:value||null}})}} placeholder="CP prefijo" aria-label="Prefijo postal"/>

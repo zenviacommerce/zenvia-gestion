@@ -33,7 +33,7 @@ test('matches a safe abbreviated supplier name against its full legal name',asyn
 test('expense duplicate detection uses shared supplier identity matching',async()=>{
   const source=await read('../src/services/invoiceImportPipeline.ts');
   assert.match(source,/isLikelySameSupplier\(existing\.supplierName,candidate\.supplierName\)/);
-  assert.match(source,/supplierTaxId:read\.aiIssuer\?\.taxId\|\|contact\.taxId\|\|details\.taxId\|\|party\.taxId/);
+  assert.match(source,/supplierTaxId:details\.taxId\|\|read\.aiIssuer\?\.taxId\|\|contact\.taxId\|\|party\.taxId/);
 });
 
 test('supplier contact extraction tolerates OCR variants of CIF',async()=>{

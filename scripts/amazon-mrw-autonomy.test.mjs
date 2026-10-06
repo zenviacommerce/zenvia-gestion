@@ -8,10 +8,10 @@ test('native Amazon orders can be edited locally without a Sendcloud remote orde
     read('src/services/orders.ts'),
     read('supabase/functions/order-logistics-state/index.ts'),
   ]);
-  assert.match(service,/nativeAmazon/);
-  assert.match(service,/update_native_order/);
+  assert.match(service,/invokeOrderState[^\n]*action:'update_order'/);
+  assert.doesNotMatch(service,/nativeAmazon/);
   assert.match(state,/action==='update_native_order'/);
-  assert.match(state,/order\.sendcloud_remote_id/);
+  assert.match(state,/admin\.from\('fulfillment_orders'\)\.update/);
   assert.match(state,/package_length_cm/);
 });
 
@@ -25,7 +25,7 @@ test('MRW remains available when Sendcloud and Envia rate lookups fail',async()=
 test('Orders keeps refreshing direct Amazon state with no logistics aggregator enabled',async()=>{
   const page=await read('src/pages/Orders.tsx');
   assert.match(page,/Promise\.all\(\[refresh\(\),settings\.orders\.retryTrackingConfirmation\?retryAmazonTrackingConfirmations/);
-  assert.match(page,/Amazon y los transportistas directos no dependen de Sendcloud/);
+  assert.match(page,/Los canales directos y transportistas conectados no dependen de Sendcloud/);
 });
 
 test('Amazon sync stores merchant-fulfilled recipient data directly in the operational order table',async()=>{
@@ -38,10 +38,13 @@ test('Amazon sync stores merchant-fulfilled recipient data directly in the opera
 });
 
 
-test('native routing survives migration of existing Sendcloud-backed Amazon rows',async()=>{
+test('local order edits are provider independent for migrated Amazon rows',async()=>{
   const service=await read('src/services/orders.ts');
   assert.match(service,/integration_type/);
-  assert.match(service,/data\?\.integration_type==='amazon-direct'/);
+  const edit=service.slice(service.indexOf('export function updateFulfillmentOrder'),service.indexOf('export async function createOrderLabel'));
+  assert.ok(edit.length>0);
+  assert.match(edit,/invokeOrderState[^\n]*action:'update_order'/);
+  assert.doesNotMatch(edit,/invokeSendcloud/);
 });
 
 test('Amazon direct-order readiness records missing PII permission and exposes it in Integrations',async()=>{

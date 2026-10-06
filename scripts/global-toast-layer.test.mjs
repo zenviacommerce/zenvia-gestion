@@ -22,15 +22,14 @@ test('MRW connection validation uses read-only SOAP operations and never exposes
     read('supabase/functions/integration-accounts/index.ts'),
     read('supabase/functions/mrw-shipping/index.ts'),
   ]);
-  assert.match(edge,/GetPointsByCP/);
-  assert.match(edge,/GetPointsDB/);
-  assert.match(edge,/codigoPoint><\/codigoPoint/);
-  assert.match(edge,/GetEtiquetaEnvio/);
-  assert.match(edge,/AuthInfoSWGE/);
-  assert.match(edge,/TransmitirEnvio/);
-  assert.match(edge,/application\/soap\+xml/);
-  assert.match(edge,/text\/xml/);
-  assert.match(edge,/Web Services/);
+  const validation=edge.slice(edge.indexOf('async function testMrw('),edge.indexOf('async function enviaCarriers('));
+  assert.match(validation,/GetPointsDB/);
+  assert.match(validation,/codigoPoint><\/codigoPoint/);
+  assert.match(validation,/mrwGatewayRequest/);
+  assert.match(validation,/soapVersion:'1.1'/);
+  assert.match(validation,/text\/xml/);
+  assert.match(validation,/sanitize\(title\|\|bodyText/);
+  assert.doesNotMatch(validation,/TransmitirEnvio|GetEtiquetaEnvio|return.*raw/);
   assert.match(shipping,/application\/soap\+xml/);
   assert.match(shipping,/text\/xml/);
 });

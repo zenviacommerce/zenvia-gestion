@@ -41,7 +41,8 @@ test('orders use the global tooltip instead of duplicate native title tooltips',
 
 test('orders use searchable selects for growing catalogs and SelectField for tracking enum',async()=>{
   const orders=await source('src/pages/Orders.tsx');
-  assert.match(orders,/Integración Sendcloud<\/span><SearchableSelect/);
+  assert.doesNotMatch(orders,/Integración Sendcloud<\/span>/);
+  assert.match(orders,/Canal<\/span><SelectField/);
   assert.match(orders,/Impresora directa:<\/span>\{printers\.length\?<SearchableSelect/);
   assert.match(orders,/Seguimiento<\/span><SelectField[^]*ariaLabel="Filtrar por seguimiento"/);
 });

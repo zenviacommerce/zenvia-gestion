@@ -407,13 +407,12 @@ function fallbackProposal(text:string,fileName:string):TransportTariffProposal{
   const fuelPct=(()=>{
     const lines=text.split(/\r?\n/).filter(line=>/combustible|fuel/i.test(line));
     for(const line of lines){
-      const fuelIndex=line.search(/combustible|fuel/i);
-      for(const match of line.matchAll(/(\d+(?:[.,]\d+)?)\s*%/g)){
-        const pctIndex=match.index||0;
-        if(Math.abs(pctIndex-fuelIndex)>45)continue;
-        const around=line.slice(Math.max(0,pctIndex-35),Math.min(line.length,pctIndex+35));
-        if(/iva|vat|impuesto/i.test(around)&&!/combustible|fuel/i.test(around))continue;
-        return num(match[1]);
+      for(const fuel of line.matchAll(/combustible|fuel/gi)){
+        const clause=line.slice((fuel.index||0)+fuel[0].length).split(/\b(?:iva|vat|impuesto)\b/i)[0];
+        const after=clause.match(/^[^%\n]{0,40}?(\d+(?:[.,]\d+)?)\s*%/);
+        if(after)return num(after[1]);
+        const before=line.slice(0,fuel.index).match(/(\d+(?:[.,]\d+)?)\s*%\s*(?:de\s+)?$/i);
+        if(before)return num(before[1]);
       }
     }
     return null;
@@ -483,6 +482,7 @@ export async function parseTransportTariffDocument(file:File):Promise<TransportT
       return normalized;
     }
   }catch(error){
+    if(fallback.services.length)return fallback;
     throw new Error('No se pudo analizar la tarifa. El importador necesita el parser configurado correctamente; se ha evitado crear un borrador vacío o incorrecto.');
   }
   if(!fallback.services.length){

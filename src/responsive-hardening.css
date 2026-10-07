@@ -87,3 +87,8 @@ pre{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
   .expenseInvoicesHub .expenseHubTabText strong{white-space:normal;overflow-wrap:anywhere}
   .expenseInvoicesHub .expenseHubNavShell{overflow:visible}
 }
+/* One shared pagination layout for native, Gmail, Amazon and automatic lists. */
+.listPagination,.gmailPagination,.amazonPagination{display:flex!important;flex-wrap:wrap;justify-content:flex-end!important;align-items:center;gap:12px;text-align:right!important}
+.listPagination[hidden],.gmailPagination[hidden],.amazonPagination[hidden]{display:none!important}
+.listPagination>div,.gmailPagination>div,.amazonPagination>div{display:flex;flex-wrap:wrap;width:auto!important;justify-content:flex-end!important;margin-left:auto;gap:9px}
+.listPagination button,.gmailPagination button,.amazonPagination button{flex:0 0 auto!important;white-space:nowrap}

@@ -11,11 +11,11 @@ function signature(items:HTMLElement[]){
 }
 
 function controlsFor(anchor:HTMLElement){
-  const next=anchor.nextElementSibling;
-  return next instanceof HTMLElement&&next.classList.contains(CONTROL_CLASS)?next:null;
+  return Array.from(anchor.parentElement?.children||[]).find((node):node is HTMLElement=>node instanceof HTMLElement&&node.classList.contains(CONTROL_CLASS)&&!node.classList.contains('paginationMirror')&&node.dataset.paginationKey===anchor.dataset.paginationKey)||null;
 }
 
 export function renderTarget({anchor,containers,key}:PaginationTarget,pageSize:number){
+  anchor.dataset.paginationKey=key;
   const lists=containers.map(directItems);
   const total=Math.max(0,...lists.map(items=>items.length));
   const sig=signature(lists.find(items=>items.length===total)||[]);
@@ -30,8 +30,10 @@ export function renderTarget({anchor,containers,key}:PaginationTarget,pageSize:n
   lists.forEach(items=>items.forEach((item,index)=>{item.style.display=index>=(page-1)*pageSize&&index<page*pageSize?'':'none'}));
 
   let controls=controlsFor(anchor);
-  if(!total){controls?.remove();return;}
+  if(pages<=1){controls?.remove();return;}
   if(!controls){controls=document.createElement('div');controls.className=`listPagination ${CONTROL_CLASS}`;controls.dataset.paginationKey=key;anchor.insertAdjacentElement('afterend',controls);}
+  const mobile=containers.find(container=>container!==anchor&&container.parentElement===anchor.parentElement);
+  if(mobile&&mobile.nextElementSibling!==controls)mobile.after(controls);
   const from=(page-1)*pageSize+1,to=Math.min(page*pageSize,total);
   const renderKey=`${page}|${pages}|${total}|${from}|${to}`;
   if(controls.dataset.renderKey===renderKey)return;
@@ -54,7 +56,10 @@ export function collectTargets():PaginationTarget[]{
     if(card.classList.contains('ordersTableCard')||card.classList.contains('masterTableCard'))return;
     if(card.querySelector('.listPagination,.amazonPagination'))return;
     const tbody=card.querySelector<HTMLElement>('table tbody');
-    if(tbody)targets.push({anchor:card,containers:[tbody],key:`table-${index}`});
+    const siblings=Array.from(card.parentElement?.children||[]);
+    if(siblings.some(node=>node.matches('.listPagination:not(.autoListPagination):not(.paginationMirror),.amazonPagination,.gmailPagination')))return;
+    const mobile=siblings.find(node=>Array.from(node.classList).some(name=>name.endsWith('MobileList'))) as HTMLElement|undefined;
+    if(tbody)targets.push({anchor:card,containers:[tbody,...(mobile?[mobile]:[])],key:`table-${index}`});
   });
   return targets;
 }

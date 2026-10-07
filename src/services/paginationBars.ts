@@ -6,6 +6,11 @@ export function mirrorPaginationBars(){
  for(const [source,entry] of mirrors)if(!source.isConnected||!entry.anchor.isConnected){entry.top.remove();mirrors.delete(source);}
  document.querySelectorAll<HTMLElement>(selector).forEach(source=>{
   if(source.classList.contains('paginationMirror'))return;
+  const pageMatch=source.textContent?.match(/Página\s+\d+\s+de\s+(\d+)/i);
+  const buttonsForPages=Array.from(source.querySelectorAll<HTMLButtonElement>('button'));
+  const singlePage=pageMatch?Number(pageMatch[1])<=1:buttonsForPages.length>=2&&buttonsForPages.every(button=>button.disabled);
+  source.hidden=singlePage;
+  if(singlePage){mirrors.get(source)?.top.remove();mirrors.delete(source);return;}
   let anchor=source.closest<HTMLElement>('.tableCard,.gmailImports,.amazonTableCard');
   if(!anchor){let previous=source.previousElementSibling;while(previous){if(previous.matches('.tableCard')||previous.querySelector('table')){anchor=previous as HTMLElement;break;}previous=previous.previousElementSibling;}}
   anchor=anchor||source.closest<HTMLElement>('.card')||source.previousElementSibling as HTMLElement|null;

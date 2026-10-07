@@ -142,3 +142,15 @@ MANTEL ROLLO 1,20X7 MT. ROJO C/25 R-0985 MANTEL ROLLO 1,20X7 MT. BURDEOS C/25 R-
   assert.deepEqual(repaired.map(line=>line.unitPrice),[1.623,1.642]);
 });
 
+
+
+test('rejects currency-only OCR fragments without rejecting descriptive products', async () => {
+  const { isPriceOnlyProductName, isLikelyProductDescription } = await loadModule();
+  for (const name of ['.08EUR', '.08EUR 675, 0BEUR', '% 675 OBEUR UR', '12,50 EUR']) {
+    assert.equal(isPriceOnlyProductName(name), true, name);
+    assert.equal(isLikelyProductDescription(name), false, name);
+  }
+  for (const name of ['10 x 20 TRANSPARENTE', 'FILM PVC 45X300', 'EURO BOLSAS 675', 'BOLSA 0,08EUR', '3M', '12345']) {
+    assert.equal(isPriceOnlyProductName(name), false, name);
+  }
+});

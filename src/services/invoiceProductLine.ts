@@ -30,9 +30,16 @@ export function isNonProductInvoiceLine(value:string){
   return false;
 }
 
+// OCR can attach currency labels to amounts and confuse 0/8 with O/B.
+export function isPriceOnlyProductName(value:string){
+  if(!/(?:EUR|[€£$¥])/i.test(value))return false;
+  const remainder=value.replace(/[0-9OBIl.,+-]*(?:EUR|UR)|[€£$¥]/gi,'').replace(/[\d\s.,%+\-:;/()]/g,'');
+  return remainder.length===0;
+}
+
 export function isLikelyProductDescription(value:string){
   const line=cleanInvoiceProductDescription(value);
-  if(!line||line.length<3||isNonProductInvoiceLine(line))return false;
+  if(isPriceOnlyProductName(value)||!line||line.length<3||isNonProductInvoiceLine(line))return false;
   const letters=(line.match(/[A-Za-zÁÉÍÓÚÑÜáéíóúñü]/g)||[]).length;
   const digits=(line.match(/\d/g)||[]).length;
   const moneyLike=(line.match(/-?\d+(?:[.,]\d+)?/g)||[]).length;

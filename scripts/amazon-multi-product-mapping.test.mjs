@@ -55,8 +55,8 @@ test('Amazon mapping modal uses the Amazon product name as its primary title',as
 
 test('Amazon mapping modal stays responsive without horizontal overflow',async()=>{
   const css=await source('src/amazon-mapping.css');
-  assert.match(css,/\.amazonMappingModal\{[\s\S]*width:min\(1040px,calc\(100vw - 48px\)\)/);
-  assert.match(css,/\.amazonMappingModal \.amazonMappingEditor\{[\s\S]*grid-template-columns:minmax\(0,1\.15fr\) minmax\(340px,\.85fr\)/);
+  assert.match(css,/\.amazonMappingModal\{[\s\S]*width:min\(1240px,calc\(100vw - 48px\)\)/);
+  assert.match(css,/\.amazonMappingModal \.amazonMappingEditor\{[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css,/\.amazonMappingModal \.amazonMappingAdd\{[\s\S]*display:flex[\s\S]*flex-direction:column/);
   assert.match(css,/@media\(max-width:900px\)[\s\S]*\.amazonMappingModal \.amazonMappingEditor\{grid-template-columns:1fr\}/);
   assert.match(css,/\.amazonMappingModalBody\{[\s\S]*overflow:auto/);

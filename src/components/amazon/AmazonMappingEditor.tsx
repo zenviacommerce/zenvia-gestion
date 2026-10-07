@@ -93,7 +93,7 @@ export function AmazonMappingEditor({sellerSku,defaultFactor=1,onChanged,onCance
       <div className="amazonMappingPicker">
         <label><span>{editingMapping?'Producto a actualizar':'Añadir producto interno'}</span><div className="amazonMappingSearch"><Search size={15}/><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nombre o SKU"/></div></label>
         <div className="amazonMappingResults" role="listbox" aria-label="Productos internos">
-          {options.slice(0,8).map(option=><button type="button" role="option" aria-selected={productId===option.id} className={productId===option.id?'isSelected':''} key={option.id} onClick={()=>choose(option)}><span><strong>{option.name}</strong><small>{option.sku||'Sin SKU'} · {option.supplierName?`Proveedor: ${option.supplierName}`:'Sin proveedor'}</small></span>{productId===option.id&&<Check size={15}/>}</button>)}
+          {options.map(option=><button type="button" role="option" aria-selected={productId===option.id} className={productId===option.id?'isSelected':''} key={option.id} onClick={()=>choose(option)}><span><strong data-zenvia-tooltip={option.name}>{option.name}</strong><small data-zenvia-tooltip={`${option.sku||'Sin SKU'} · ${option.supplierName||'Sin proveedor'}`} >{option.sku||'Sin SKU'} · {option.supplierName?`Proveedor: ${option.supplierName}`:'Sin proveedor'}</small></span>{productId===option.id&&<Check size={15}/>}</button>)}
           {!options.length&&<span className="amazonMappingEmpty">No hay productos que coincidan.</span>}
         </div>
         {productId&&<div className="amazonMappingSelected">Seleccionado: <strong>{selectedName||'Producto actual'}</strong>{selectedSupplier?<span> · {selectedSupplier}</span>:null}</div>}

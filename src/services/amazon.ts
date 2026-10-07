@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { isPriceOnlyProductName } from './invoiceProductLine';
 import type { AmazonSettings } from './settingsSchema';
 import { startActivity } from './activity';
 
@@ -268,7 +269,7 @@ export async function loadAmazonProductOptions(search=''):Promise<AmazonProductO
   let query=supabase.from('products').select('id,name,sku,last_supplier_id').eq('active',true).order('name').limit(100);
   const term=search.trim();if(term)query=query.or(`name.ilike.%${term.replace(/[,%()]/g,'')}%,sku.ilike.%${term.replace(/[,%()]/g,'')}%`);
   const {data,error}=await query;if(error)throw error;
-  const rows=(data||[]) as Array<{id:string;name:string;sku:string|null;last_supplier_id:string|null}>;
+  const rows=((data||[]) as Array<{id:string;name:string;sku:string|null;last_supplier_id:string|null}>).filter(row=>!isPriceOnlyProductName(row.name));
   const supplierIds=Array.from(new Set(rows.map(row=>row.last_supplier_id).filter((id):id is string=>Boolean(id))));
   const supplierNames=new Map<string,string>();
   if(supplierIds.length){

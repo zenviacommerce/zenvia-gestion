@@ -1,3 +1,4 @@
+import { isPriceOnlyProductName } from './invoiceProductLine';
 import { supabase, INVOICE_BUCKET } from './supabase';
 import type { AppData, ExpenseCategory, Invoice, InvoicePaymentStatus, NewInvoiceInput, Product, Supplier } from '../types';
 import { canonicalizeSupplierName, isLikelySameSupplier, isPlausibleSupplierName, supplierIdentityKey } from './supplierIdentity';
@@ -414,7 +415,7 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
       let productId: string | null = null;
       let supplierProductId: string | null = null;
 
-      if (manageProducts && key) {
+      if (manageProducts && key && !isPriceOnlyProductName(description)) {
         const supplierMatch = supplierProductByDescription.get(key);
         if (supplierMatch) {
           supplierProductId = supplierMatch.id;

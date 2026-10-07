@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { shopifyDomain, shopifyError, shopifyHash, verifyShopifyCallback, shopifyTokenRequest, shopifyTokenCredentials, shopifyAccountCredentials, shopifyLegacyCredentials, commitShopifyAuthorization } from '../_shared/shopifyAuth.ts';
+import { shopifyDomain, shopifyError, shopifyHash, verifyShopifyCallback, shopifyTokenRequest, shopifyTokenCredentials, shopifyAccountCredentials, shopifyLegacyCredentials, commitShopifyAuthorization, shopifyStoredApplicationCredentials } from '../_shared/shopifyAuth.ts';
 import { enforceWorkspaceLimit, requireWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
 import { gmailAccessAllowed, gmailServerConfig, validateGmailOrigin, gmailTokenRequest, gmailProfileEmail, gmailConnectionFromToken, legacyGmailMigrationPlan } from '../_shared/gmailOAuth.ts';
 
@@ -347,13 +347,13 @@ function normalizeShopifyDomain(value:unknown){
   return shopifyDomain(value);
 }
 async function shopifyCredentials(admin:any,account:any){
-  return shopifyAccountCredentials(admin,account);
+  return shopifyAccountCredentials(admin,account,await shopifyOAuthConfig(admin,account.owner_id));
 }
 
-function shopifyOAuthConfig(){
-  const clientId=clean(Deno.env.get('SHOPIFY_CLIENT_ID')),clientSecret=clean(Deno.env.get('SHOPIFY_CLIENT_SECRET'));
+async function shopifyOAuthConfig(admin:any,ownerId:string){
+  const credentials=await shopifyStoredApplicationCredentials(admin,ownerId);
   const allowedOrigins=(Deno.env.get('SHOPIFY_ALLOWED_ORIGINS')||'https://gestion.zenviacommerce.com,https://gestionzenvia.vercel.app').split(',').map(value=>value.trim()).filter(Boolean);
-  return {clientId,clientSecret,allowedOrigins,ready:Boolean(clientId&&clientSecret)};
+  return {...credentials,allowedOrigins};
 }
 
 async function saveShopifyConnection(admin:any,ownerId:string,body:any,stored:any){
@@ -444,8 +444,15 @@ Deno.serve(async(req:Request)=>{
     const caller=await authenticate(req,admin,action);
 
     if(action==='shopify_config'){
-      const config=shopifyOAuthConfig();
+      const config=await shopifyOAuthConfig(admin,caller.data_owner_id);
       return response({ready:config.ready,redirectUri:config.allowedOrigins[0]+'/'});
+    }
+    if(action==='shopify_app_setup'){
+      const clientId=clean(body.clientId),clientSecret=clean(body.clientSecret);
+      if(clientId.length<16||clientSecret.length<16)throw new Error('Introduce el ID y el secreto de la app Zenvia desde Shopify Dev Dashboard.');
+      const {error}=await admin.rpc('integration_store_secret',{p_secret:JSON.stringify({clientId,clientSecret}),p_name:`shopify-app:${caller.data_owner_id}`,p_description:'Configuración cifrada de la app Shopify de Zenvia',p_existing_secret_id:null});
+      if(error)throw error;
+      return response({ready:true});
     }
     if(action==='shopify_client_connect'){
       const domain=shopifyDomain(body.shopDomain);
@@ -457,7 +464,7 @@ Deno.serve(async(req:Request)=>{
       return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,account.id))});
     }
     if(action==='shopify_oauth_start'){
-      const config=shopifyOAuthConfig();
+      const config=await shopifyOAuthConfig(admin,caller.data_owner_id);
       if(!config.ready)throw new Error('La app común de Shopify todavía no está configurada. Conecta tu app propia con su ID y secreto.');
       const origin=clean(req.headers.get('Origin'));
       if(!config.allowedOrigins.includes(origin))throw new Error('El origen de la autorización no está permitido.');
@@ -482,7 +489,7 @@ Deno.serve(async(req:Request)=>{
       return response({authorizeUrl:auth.href,state});
     }
     if(action==='shopify_oauth_exchange'){
-      const config=shopifyOAuthConfig();
+      const config=await shopifyOAuthConfig(admin,caller.data_owner_id);
       if(!config.ready)throw new Error('La app de Shopify no está configurada.');
       const params=new URLSearchParams(clean(body.query));
       if(!await verifyShopifyCallback(params,config.clientSecret))throw new Error('La respuesta de Shopify no tiene una firma válida.');

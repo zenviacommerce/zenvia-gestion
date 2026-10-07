@@ -9,7 +9,7 @@ function helper(overrides={}){
   const file='supabase/functions/_shared/shopifyAuth.ts';
   assert.ok(fs.existsSync(file),'Falta el adaptador de autorización Shopify');
   const source=fs.existsSync(file)?fs.readFileSync(file,'utf8'):'';
-  return vm.runInNewContext(stripTypeScriptTypes(source.replaceAll('export ',''))+'\n({shopifyDomain,shopifyError,verifyShopifyCallback,shopifyTokenRequest,resolveShopifyCredentials,shopifyAccountCredentials,shopifyLegacyCredentials,commitShopifyAuthorization})',{URL,URLSearchParams,crypto,TextEncoder,Date,Error,fetch,setTimeout,AbortSignal,Deno:{env:{get:()=>''}},...overrides});
+  return vm.runInNewContext(stripTypeScriptTypes(source.replaceAll('export ',''))+'\n({shopifyDomain,shopifyError,verifyShopifyCallback,shopifyTokenRequest,resolveShopifyCredentials,shopifyAccountCredentials,shopifyLegacyCredentials,commitShopifyAuthorization,shopifyApplicationCredentials,shopifyStoredApplicationCredentials})',{URL,URLSearchParams,crypto,TextEncoder,Date,Error,fetch,setTimeout,AbortSignal,Deno:{env:{get:()=>''}},...overrides});
 }
 test('Shopify domain rejects arbitrary hosts, ports and paths before any request',()=>{
   const {shopifyDomain}=helper();
@@ -106,4 +106,18 @@ test('OAuth renews using refresh token and rejects missing order permissions',as
   },async value=>assert.equal(value.refreshToken,'rotated'));
   assert.equal(result.accessToken,'renewed');
   await assert.rejects(resolveShopifyCredentials({...stored,authMode:'client_credentials'}, {},async()=>({access_token:'bad',expires_in:3600,scope:'read_products'})),/read_orders/);
+});
+
+
+test('central app credentials are configured once and tenant lookup stays scoped',async()=>{
+  const {shopifyApplicationCredentials,shopifyStoredApplicationCredentials}=helper();
+  assert.equal(shopifyApplicationCredentials({},{}).ready,false);
+  const configured={clientId:'id',clientSecret:'secret'};
+  assert.equal(shopifyApplicationCredentials({},configured).ready,true);
+  assert.equal(shopifyApplicationCredentials({clientId:'global',clientSecret:'global-secret'},configured).clientId,'global');
+  const result=await shopifyStoredApplicationCredentials({rpc:async(name,args)=>{
+    assert.equal(name,'integration_read_named_secret');assert.equal(args.p_name,'shopify-app:tenant-a');
+    return {data:JSON.stringify(configured)};
+  }},'tenant-a');
+  assert.equal(result.clientId,'id');assert.equal(result.ready,true);
 });

@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { shopifyAccountCredentials, shopifyError } from '../_shared/shopifyAuth.ts';
+import { shopifyAccountCredentials, shopifyError, shopifyStoredApplicationCredentials } from '../_shared/shopifyAuth.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -34,7 +34,7 @@ async function readSecret(admin:any,secretId:string|null){
 }
 function normalizeDomain(value:unknown){return clean(value).toLowerCase().replace(/^https?:\/\//,'').replace(/\/+$/,'');}
 async function credentials(admin:any,account:any){
-  return shopifyAccountCredentials(admin,account);
+  return shopifyAccountCredentials(admin,account,await shopifyStoredApplicationCredentials(admin,account.owner_id));
 }
 async function gql(c:any,query:string,variables:Record<string,unknown>={}){
   const res=await fetch(`https://${c.shopDomain}/admin/api/${c.apiVersion}/graphql.json`,{

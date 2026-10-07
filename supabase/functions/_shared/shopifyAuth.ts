@@ -21,6 +21,23 @@ export function shopifyLegacyCredentials(domain:unknown,accessToken:unknown){
   return {shopDomain:shopifyDomain(domain),accessToken:token,authMode:'token'};
 }
 
+export function shopifyApplicationCredentials(environment:any,configured:any){
+  const candidate=environment?.clientId&&environment?.clientSecret?environment:configured;
+  const clientId=String(candidate?.clientId||'').trim(),clientSecret=String(candidate?.clientSecret||'').trim();
+  return {clientId,clientSecret,ready:Boolean(clientId&&clientSecret)};
+}
+
+export async function shopifyStoredApplicationCredentials(admin:any,ownerId:string){
+  const environment={clientId:Deno.env.get('SHOPIFY_CLIENT_ID')||'',clientSecret:Deno.env.get('SHOPIFY_CLIENT_SECRET')||''};
+  let configured={};
+  if(!environment.clientId||!environment.clientSecret){
+    const result=await admin.rpc('integration_read_named_secret',{p_name:`shopify-app:${ownerId}`});
+    if(result.error)throw result.error;
+    try{configured=JSON.parse(result.data||'{}')}catch{}
+  }
+  return shopifyApplicationCredentials(environment,configured);
+}
+
 export async function shopifyHash(value:string){
   return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value)))).map(v=>v.toString(16).padStart(2,'0')).join('');
 }
@@ -71,7 +88,7 @@ export async function resolveShopifyCredentials(stored:any,config:any,request=sh
   return {shopDomain:domain,accessToken:token,apiVersion:String(config.apiVersion||'2026-07')};
 }
 
-export async function shopifyAccountCredentials(admin:any,account:any){
+export async function shopifyAccountCredentials(admin:any,account:any,appCredentials?:{clientId:string;clientSecret:string}){
   async function read(){
     const result=await admin.from('integration_accounts').select('*').eq('id',account.id).eq('owner_id',account.owner_id).maybeSingle();
     if(result.error)throw result.error;
@@ -95,7 +112,10 @@ export async function shopifyAccountCredentials(admin:any,account:any){
   if(!claimed)throw new Error('Shopify está renovando la autorización. Vuelve a intentarlo en unos segundos.');
   try{
     current=await read();
-    return await resolveShopifyCredentials(current.stored,current.row.config||{},shopifyTokenRequest,async stored=>{
+    if(current.stored.authMode==='oauth'&&appCredentials&&current.stored.clientId!==appCredentials.clientId)throw new Error('La app Shopify cambió. Vuelve a autorizar esta tienda.');
+    const storedForRenewal=current.stored.authMode==='oauth'&&appCredentials?{...current.stored,clientSecret:appCredentials.clientSecret}:current.stored;
+    return await resolveShopifyCredentials(storedForRenewal,current.row.config||{},shopifyTokenRequest,async stored=>{
+      if(current.stored.authMode==='oauth')delete stored.clientSecret;
       const result=await admin.rpc('integration_shopify_commit_refresh',{p_account_id:account.id,p_owner_id:account.owner_id,p_lease:lease,p_version:current.row.shopify_credential_version,p_secret:JSON.stringify(stored)});
       if(result.error)throw result.error;
       if(!result.data)throw new Error('La conexión de Shopify cambió durante la renovación. Vuelve a intentarlo.');

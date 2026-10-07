@@ -240,6 +240,10 @@ export async function shopifyConnectionConfig(){
   return invoke<{ready:boolean;redirectUri:string}>({action:'shopify_config'},'No se pudo consultar la configuración de Shopify.');
 }
 
+export async function configureShopifyApplication(clientId:string,clientSecret:string){
+  return invoke<{ready:boolean}>({action:'shopify_app_setup',clientId,clientSecret},'No se pudo guardar la configuración inicial de Shopify.');
+}
+
 export async function connectShopifyApp(input:{shopDomain:string;clientId:string;clientSecret:string;displayName:string;syncOrders:boolean;accountId?:string}){
   const result=await invoke<{account:IntegrationAccount}>({action:'shopify_client_connect',...input},'No se pudo conectar la app de Shopify.');
   return result.account;

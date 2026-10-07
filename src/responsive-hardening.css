@@ -80,3 +80,10 @@ pre{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
     z-index:3;
   }
 }
+/* Expense tabs must fit the viewport rather than retain desktop fixed widths. */
+@media(max-width:760px){
+  .expenseInvoicesHub .expenseHubNav{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));width:100%!important;min-width:0;overflow:visible}
+  .expenseInvoicesHub .expenseHubNav button{min-width:0;flex:initial;gap:6px;padding:9px 6px}
+  .expenseInvoicesHub .expenseHubTabText strong{white-space:normal;overflow-wrap:anywhere}
+  .expenseInvoicesHub .expenseHubNavShell{overflow:visible}
+}

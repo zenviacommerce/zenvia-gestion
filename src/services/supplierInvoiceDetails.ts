@@ -48,7 +48,10 @@ function extractTaxId(lines:string[]){
   const label=/(?:C\.?\s*I\.?\s*F\.?|N\.?\s*I\.?\s*F\.?|VAT(?:\s*(?:ID|NO\.?|NUMBER))?)\s*[:#-]?\s*([A-Z]{0,2}\s*[A-Z0-9](?:[\s.-]*[A-Z0-9]){6,14})/i;
   for(const line of lines){
     const value=line.match(label)?.[1];
-    if(value)return normalizeTaxId(value);
+    if(value){
+      const normalized=normalizeTaxId(value);
+      if(/\d/.test(normalized))return normalized;
+    }
   }
   return undefined;
 }
@@ -58,7 +61,10 @@ function extractRegisteredTaxId(lines:string[]){
     if(!/registro\s+mercantil/i.test(lines[index]))continue;
     const window=lines.slice(index,Math.min(lines.length,index+3)).join(' ');
     const value=window.match(/(?:C\.?\s*[IL1]\.?\s*F\.?|N\.?\s*[IL1]\.?\s*F\.?)\s*[:#-]?\s*([A-Z]{0,2}\s*[A-Z0-9](?:[\s.-]*[A-Z0-9]){6,14})/i)?.[1];
-    if(value)return normalizeTaxId(value);
+    if(value){
+      const normalized=normalizeTaxId(value);
+      if(/\d/.test(normalized))return normalized;
+    }
   }
   return undefined;
 }

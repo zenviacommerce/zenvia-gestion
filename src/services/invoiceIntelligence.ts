@@ -39,7 +39,11 @@ function verifiedParty(response:IntelligenceResponse,prefix:'issuer'|'recipient'
   const value=(field:keyof InvoicePartyAI)=>supported(response,prefix+'.'+field)?clean(party?.[field])||null:null;
   return {name:value('name'),taxId:value('taxId'),email:value('email'),phone:value('phone'),address:value('address'),countryCode:value('countryCode')};
 }
-function validDate(value:string){return /^\\d{4}-\\d{2}-\\d{2}$/.test(value)&&!Number.isNaN(Date.parse(value+'T12:00:00Z'));}
+function validDate(value:string){
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(value))return false;
+  const date=new Date(value+'T12:00:00Z');
+  return !Number.isNaN(date.getTime())&&date.toISOString().slice(0,10)===value;
+}
 function validCurrency(value:string){return /^[A-Z]{3}$/.test(value);}
 function verifiedLines(response:IntelligenceResponse):NewInvoiceLineInput[]{
   return (response.verification?.verifiedLines||[])

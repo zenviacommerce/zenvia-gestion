@@ -57,3 +57,11 @@ test('new non-merchandise suppliers use configurable type with unclassified as t
   assert.match(repository, /supplier_type:\s*createdSupplierType/);
   assert.match(schema, /defaultSupplierType:\s*null/);
 });
+
+// Minimal reproduction of OCR prose being mistaken for a labelled fiscal ID.
+test('does not extract alphabetic invoice prose as a supplier tax ID',async()=>{
+  const {extractSupplierInvoiceDetails}=await loadModule();
+  assert.equal(extractSupplierInvoiceDetails('Google Cloud EMEA Limited\nVAT: PLACE FACTURA','Google Cloud EMEA Limited').taxId,undefined);
+  assert.equal(extractSupplierInvoiceDetails('Google Cloud EMEA Limited\nRegistro Mercantil\nNIF: PLACE FACTURA','Google Cloud EMEA Limited').taxId,undefined);
+  assert.equal(extractSupplierInvoiceDetails('Google Cloud EMEA Limited\nVAT: IE6388047V','Google Cloud EMEA Limited').taxId,'IE6388047V');
+});

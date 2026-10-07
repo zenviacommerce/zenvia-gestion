@@ -11,3 +11,5 @@ html[data-theme='dark'] .gmailReviewWarning{background:#431407;border-color:#9a3
   .gmailReviewModal{width:calc(100vw - 16px);max-height:94vh}
   .gmailReviewModal .invoiceFormGrid{grid-template-columns:1fr}
 }
+
+@media(max-width:980px){.gmailImportRow .gmailImportMain{min-width:calc(100% - 90px)}.gmailImportRow .bulkSelectCheckbox{flex:0 0 auto}}

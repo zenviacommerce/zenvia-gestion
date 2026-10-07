@@ -53,15 +53,24 @@ Deno.serve(async(req:Request)=>{
     }
 
     let jobs=0,processed=0;
+    const orderJobIds:string[]=[];
+    const ordersOnly=body?.ordersOnly===true;
     for(const integrationAccountId of integrationIds){
       const bootstrap=await ensureAmazonAccountAndMarketplaces(admin,caller.data_owner_id,integrationAccountId);
       const settings=await loadAmazonAutomaticSyncSettings(admin,caller.data_owner_id,integrationAccountId);
       const marketplaces=filterAutomaticMarketplaces(bootstrap.marketplaces,settings.activeMarketplaceIds);
-      const created=await enqueueHourlySync(admin,bootstrap.account,marketplaces,'manual',new Date(),settings.enabledSources);
+      const sources=ordersOnly?settings.enabledSources.filter(source=>source==='orders'):settings.enabledSources;
+      const created=await enqueueHourlySync(admin,bootstrap.account,marketplaces,'manual',new Date(),sources);
+      const orderKeys=created.filter(job=>job.source==='orders').map(job=>job.job_key);
+      if(orderKeys.length){
+        const {data:orderJobs,error:jobError}=await admin.from('amazon_sync_jobs').select('id').eq('owner_id',caller.data_owner_id).eq('amazon_account_id',bootstrap.account.id).in('job_key',orderKeys);
+        if(jobError)throw jobError;
+        orderJobIds.push(...(orderJobs||[]).map((job:any)=>String(job.id)));
+      }
       jobs+=created.length;processed+=1;
     }
     const workerKicked=jobs>0?await kickWorker():false;
-    return response({ok:true,accounts:processed,jobs,workerKicked});
+    return response({ok:true,accounts:processed,jobs,workerKicked,orderJobIds});
   }catch(error){
     const message=error instanceof Error?error.message:'No se pudo solicitar la sincronización de Amazon.';
     const status=/sesión|administrador|acceso/i.test(message)?403:500;

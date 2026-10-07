@@ -1,3 +1,4 @@
+import { watchFulfillmentOrders } from '../services/orderLiveUpdates';
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle, ArrowUpRight, BadgeEuro, Banknote, Euro, PackageCheck,
@@ -61,8 +62,9 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
     // Primero pintamos el estado persistido de Supabase; la sincronización externa ocurre después.
     void loadPersisted();
     void refreshOrders();
+    const stopLiveUpdates=watchFulfillmentOrders(()=>void loadPersisted());
     const timer=window.setInterval(()=>void refreshOrders(),Math.max(30,settings.orders.refreshSeconds)*1000);
-    return()=>{alive=false;window.clearInterval(timer);};
+    return()=>{alive=false;stopLiveUpdates();window.clearInterval(timer);};
   },[settings.integrations.sendcloudEnabled,settings.orders.refreshSeconds]);
 
   const periodExpenses=useMemo(()=>invoices.filter(invoice=>(!filter.from||invoice.invoiceDate>=filter.from)&&(!filter.to||invoice.invoiceDate<=filter.to)),[invoices,filter]);

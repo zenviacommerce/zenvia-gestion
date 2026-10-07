@@ -1,3 +1,4 @@
+import { watchFulfillmentOrders } from '../services/orderLiveUpdates';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import JSZip from 'jszip';
 import { requestAmazonSync } from '../services/amazon';
@@ -401,6 +402,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const [shippingRules,setShippingRules]=useState<ShippingRule[]>(()=>defaultShippingRules());
 
   const refresh=useCallback(async()=>{try{setOrders(await listFulfillmentOrders())}catch(e){setError(errorMessage(e,'No se pudieron cargar los pedidos.'))}},[]);
+  useEffect(()=>watchFulfillmentOrders(()=>void refresh()),[refresh]);
   const refreshStatus=useCallback(async()=>{try{setStatus(await getSendcloudStatus())}catch(e){setStatus({configured:false,integrations:[],message:errorMessage(e,'No se pudo comprobar Sendcloud.')})}},[]);
   const refreshEnviaStatus=useCallback(async()=>{try{const result=await getEnviaStatus();setEnviaStatus({configured:result.configured,accounts:result.accounts||[]})}catch{setEnviaStatus({configured:false,accounts:[]})}},[]);
   const refreshTariffs=useCallback(async()=>{try{setTariffs(await listTransportTariffs())}catch{/* El precio real seleccionado seguirá disponible aunque no haya tarifa estimada. */}},[]);
@@ -441,7 +443,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       const [enviaResult,shopifyResult,amazonResult]=await Promise.allSettled([
         runEnvia?syncEnviaShipments(enviaHistory?12:2):Promise.resolve(null),
         runShopify?syncShopifyOrders(history):Promise.resolve(null),
-        runAmazon?Promise.all([reconcileAmazonOrders(),automatic?Promise.resolve(null):requestAmazonSync()]).then(([result])=>result):Promise.resolve(null),
+        runAmazon?(async()=>{if(!automatic)await requestAmazonSync(undefined,{waitForOrders:true});return reconcileAmazonOrders();})():Promise.resolve(null),
       ]);
       const messages:string[]=[],failures:string[]=[];
       if(amazonResult.status==='fulfilled'&&amazonResult.value)messages.push('Amazon directo: '+amazonResult.value.processed+' pedidos comprobados');

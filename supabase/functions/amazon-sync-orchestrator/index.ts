@@ -27,6 +27,7 @@ Deno.serve(async(req:Request)=>{
     const admin=createAdminClient();
     const body=await req.json().catch(()=>({}));
     const mode=String(body?.mode||'hourly');
+    const ordersOnly=body?.ordersOnly===true;
     if(!['initial','hourly','reconcile'].includes(mode))return response({error:'Modo de sincronización no válido.'},400);
     const {data:accounts,error:accountError}=await admin.from('amazon_accounts')
       .select('id,owner_id,integration_account_id').neq('status','disabled').order('updated_at',{ascending:false});
@@ -41,7 +42,7 @@ Deno.serve(async(req:Request)=>{
       const automaticSettings=await loadAmazonAutomaticSyncSettings(admin,ownerId,integrationAccountId);
       if(!automaticSettings.automaticEnabled)continue;
       const marketplaces=filterAutomaticMarketplaces(bootstrap.marketplaces,automaticSettings.activeMarketplaceIds);
-      const enabledSources=automaticSettings.enabledSources;
+      const enabledSources=ordersOnly?automaticSettings.enabledSources.filter(source=>source==='orders'):automaticSettings.enabledSources;
       processedAccounts+=1;
       const started=new Date().toISOString();
       const {data:run,error:runError}=await admin.from('amazon_sync_runs').insert({owner_id:account.owner_id,amazon_account_id:account.id,source:'orchestrator',mode,status:'running',started_at:started}).select('id').single();
@@ -57,7 +58,7 @@ Deno.serve(async(req:Request)=>{
             .eq('amazon_account_id',account.id)
             .limit(1);
           if(stateError)throw stateError;
-          if(!(stateRows||[]).length){
+          if(!ordersOnly&&!(stateRows||[]).length){
             const historical=await enqueueInitialBackfill(admin,account,marketplaces,new Date(),enabledSources);
             created.push(...historical);
           }
@@ -69,7 +70,7 @@ Deno.serve(async(req:Request)=>{
         jobs+=created.length;
         let imageSync:Record<string,unknown>|null=null;
         let imageSyncError:string|null=null;
-        if(automaticSettings.autoSyncImages){
+        if(!ordersOnly&&automaticSettings.autoSyncImages){
           try{imageSync=await requestAutomaticImageSync(ownerId,account.id);}
           catch(error){imageSyncError=error instanceof Error?error.message:'No se pudieron actualizar las imágenes Amazon.';}
         }

@@ -62,7 +62,7 @@ test('orchestrator and worker are internal-only and worker claims bounded jobs a
   assert.match(orchestrator,/requireInternalSecret/);
   assert.match(worker,/requireInternalSecret/);
   assert.match(worker,/rpc\('amazon_claim_sync_jobs'/);
-  assert.match(worker,/limit_count:\s*2/);
+  assert.match(worker,/limit_count:\s*4/);
   assert.match(worker,/markJobFailed/);
 });
 

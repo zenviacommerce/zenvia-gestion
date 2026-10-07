@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { waitForAmazonJobs } from './amazonJobWait';
 import { isPriceOnlyProductName } from './invoiceProductLine';
 import type { AmazonSettings } from './settingsSchema';
 import { startActivity } from './activity';
@@ -200,18 +201,27 @@ export async function loadAmazonStatus(integrationAccountId?:string):Promise<Ama
     }catch(error){notifyAmazonConnectivityError(error);throw error;}
   }finally{activity.finish();}
 }
-export async function requestAmazonSync(integrationAccountId?:string){
-  const activity=startActivity({label:'Sincronizando Amazon',detail:'Solicitando trabajos de sincronización…',showAfterMs:200,key:'amazon-sync',scope:'amazon',maxAgeMs:45000});
+export async function requestAmazonSync(integrationAccountId?:string,options:{waitForOrders?:boolean}={}){
+  const activity=startActivity({label:'Sincronizando Amazon',detail:'Solicitando trabajos de sincronización…',showAfterMs:200,key:'amazon-sync',scope:'amazon',maxAgeMs:options.waitForOrders?400000:45000});
   try{
     if(typeof navigator!=='undefined'&&!navigator.onLine)throw offlineError();
     try{
-      const {data,error}=await withAmazonTimeout(supabase.functions.invoke('amazon-sync-manual',{body:integrationAccountId?{integrationAccountId}:{}}),40000);
+      const {data,error}=await withAmazonTimeout(supabase.functions.invoke('amazon-sync-manual',{body:{...(integrationAccountId?{integrationAccountId}:{}),...(options.waitForOrders?{ordersOnly:true}:{})}}),40000);
       if(error||!data||data.error){
         const next=new Error(message(data,error,'No se pudo iniciar la sincronización de Amazon.'));
         notifyAmazonConnectivityError(next);
         throw next;
       }
-      return data as {ok:true;accounts:number;jobs:number};
+      if(options.waitForOrders&&data.jobs){
+        if(!Array.isArray(data.orderJobIds)||data.orderJobIds.length!==data.jobs)throw new Error('No se pudo comprobar la sincronización de pedidos de Amazon.');
+        await waitForAmazonJobs(data.orderJobIds,{load:async ids=>{
+          const {data:jobs,error:jobError}=await withAmazonTimeout(supabase.from('amazon_sync_jobs').select('id,status').in('id',ids),15000);
+          if(jobError)throw jobError;
+          return jobs||[];
+        }});
+        window.dispatchEvent(new CustomEvent('zenvia:orders-refresh'));
+      }
+      return data as {ok:true;accounts:number;jobs:number;orderJobIds?:string[]};
     }catch(error){notifyAmazonConnectivityError(error);throw error;}
   }finally{activity.finish();}
 }

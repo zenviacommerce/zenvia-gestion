@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { shopifyDomain, shopifyError, shopifyHash, verifyShopifyCallback, shopifyTokenRequest, shopifyTokenCredentials, shopifyAccountCredentials, shopifyLegacyCredentials, commitShopifyAuthorization } from '../_shared/shopifyAuth.ts';
 import { enforceWorkspaceLimit, requireWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
 import { gmailAccessAllowed, gmailServerConfig, validateGmailOrigin, gmailTokenRequest, gmailProfileEmail, gmailConnectionFromToken, legacyGmailMigrationPlan } from '../_shared/gmailOAuth.ts';
 
@@ -23,7 +24,7 @@ function getAdminKey(){
   return clean(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
 }
 function sanitize(value:unknown){
-  return clean(value)
+  return shopifyError(value,'Error interno.')
     .replace(/Atz[ar]\|[A-Za-z0-9._|\-]+/g,'[redacted-token]')
     .replace(/("(?:client_secret|refresh_token|access_token|secretKey|secret_key|token|apiToken)"\s*:\s*")([^"]+)(")/gi,'$1[redacted]$3')
     .slice(0,700);
@@ -94,6 +95,11 @@ async function readVault(admin:any,secretId:string|null){
 }
 async function writeVault(admin:any,accountId:string,provider:Provider,credentials:Record<string,unknown>,existingId:string|null){
   const payload=JSON.stringify(credentials);
+  if(provider==='shopify'){
+    const {data,error}=await admin.rpc('integration_shopify_replace_secret',{p_account_id:accountId,p_secret:payload});
+    if(error)throw error;
+    return String(data);
+  }
   const {data,error}=await admin.rpc('integration_store_secret',{
     p_secret:payload,
     p_name:`integration:${provider}:${accountId}`,
@@ -338,15 +344,40 @@ async function sendcloudIntegrations(admin:any,account:any){
   });
 }
 function normalizeShopifyDomain(value:unknown){
-  return clean(value).toLowerCase().replace(/^https?:\/\//,'').replace(/\/+$/,'');
+  return shopifyDomain(value);
 }
 async function shopifyCredentials(admin:any,account:any){
-  const stored=account.secret_id?await readVault(admin,account.secret_id):{};
-  const shopDomain=normalizeShopifyDomain((stored as any).shopDomain||(stored as any).shop_domain||account.external_account_id||account.config?.shopDomain);
-  const accessToken=clean((stored as any).accessToken||(stored as any).access_token);
-  const apiVersion=clean(account.config?.apiVersion)||'2026-07';
-  if(!shopDomain||!accessToken)throw new Error('Faltan dominio y access token de Shopify.');
-  return {shopDomain,accessToken,apiVersion};
+  return shopifyAccountCredentials(admin,account);
+}
+
+function shopifyOAuthConfig(){
+  const clientId=clean(Deno.env.get('SHOPIFY_CLIENT_ID')),clientSecret=clean(Deno.env.get('SHOPIFY_CLIENT_SECRET'));
+  const allowedOrigins=(Deno.env.get('SHOPIFY_ALLOWED_ORIGINS')||'https://gestion.zenviacommerce.com,https://gestionzenvia.vercel.app').split(',').map(value=>value.trim()).filter(Boolean);
+  return {clientId,clientSecret,allowedOrigins,ready:Boolean(clientId&&clientSecret)};
+}
+
+async function saveShopifyConnection(admin:any,ownerId:string,body:any,stored:any){
+  const domain=shopifyDomain(stored.shopDomain);
+  const existing=await admin.from('integration_accounts').select('*').eq('owner_id',ownerId).eq('provider','shopify').eq('external_account_id',domain).maybeSingle();
+  if(existing.error)throw existing.error;
+  let account=existing.data;
+  if(body.accountId){
+    const requested=await loadAccount(admin,ownerId,clean(body.accountId));
+    if(requested.provider!=='shopify')throw new Error('La cuenta seleccionada no corresponde a Shopify.');
+    if(account&&account.id!==requested.id)throw new Error('Esta tienda ya está conectada en otra cuenta.');
+    account=requested;
+  }
+  if(!account){
+    const inserted=await admin.from('integration_accounts').insert({owner_id:ownerId,provider:'shopify',display_name:clean(body.displayName)||domain.replace('.myshopify.com',''),external_account_id:domain,credential_source:'vault',status:'pending',config:{shopDomain:domain,syncOrders:body.syncOrders!==false,apiVersion:'2026-07'}}).select('*').single();
+    if(inserted.error)throw inserted.error;account=inserted.data;
+  }
+  const secretId=await writeVault(admin,account.id,'shopify',stored,account.secret_id);
+  const saved=await admin.from('integration_accounts').update({secret_id:secretId,external_account_id:domain,credential_source:'vault',parent_account_id:null,enabled:true,status:'connected',display_name:clean(body.displayName)||account.display_name,last_error:null,config:{...account.config,shopDomain:domain,authMode:stored.authMode,syncOrders:body.syncOrders!==false,apiVersion:'2026-07'}}).eq('id',account.id).eq('owner_id',ownerId).select('*').single();
+  if(saved.error)throw saved.error;
+  const defaults=await admin.from('integration_accounts').select('id').eq('owner_id',ownerId).eq('provider','shopify').eq('is_default',true).neq('status','disabled');
+  if(defaults.error)throw defaults.error;
+  if(!defaults.data?.length)await makeDefault(admin,ownerId,'shopify',account.id);
+  return saved.data;
 }
 async function shopifyGraphql(admin:any,account:any,query:string,variables:Record<string,unknown>={}){
   const credentials=await shopifyCredentials(admin,account);
@@ -390,7 +421,7 @@ async function testAccount(admin:any,ownerId:string,account:any){
     const nextConfig=account.provider==='mrw'&&detail?.apiMode?{...(account.config||{}),apiMode:detail.apiMode,soapVersion:detail.soap||null}:account.config;
     const update=await admin.from('integration_accounts').update({
       status:'connected',last_tested_at:now,last_success_at:now,last_error:null,updated_at:now,config:nextConfig,
-    }).eq('id',account.id).eq('owner_id',ownerId);
+    }).eq('id',account.id).eq('owner_id',ownerId).eq('enabled',true).neq('status','disabled');
     if(update.error)throw update.error;
     return {ok:true,checkedAt:now,detail};
   }catch(error){
@@ -411,6 +442,73 @@ Deno.serve(async(req:Request)=>{
     const body=await req.json().catch(()=>({}));
     const action=clean(body?.action||'list');
     const caller=await authenticate(req,admin,action);
+
+    if(action==='shopify_config'){
+      const config=shopifyOAuthConfig();
+      return response({ready:config.ready,redirectUri:config.allowedOrigins[0]+'/'});
+    }
+    if(action==='shopify_client_connect'){
+      const domain=shopifyDomain(body.shopDomain);
+      const clientId=clean(body.clientId),clientSecret=clean(body.clientSecret);
+      if(!clientId||!clientSecret)throw new Error('Indica el ID y el secreto de la app instalada en Shopify.');
+      const stored=shopifyTokenCredentials({shopDomain:domain,authMode:'client_credentials',clientId,clientSecret},await shopifyTokenRequest(domain,new URLSearchParams({grant_type:'client_credentials',client_id:clientId,client_secret:clientSecret})));
+      const account=await saveShopifyConnection(admin,caller.data_owner_id,body,stored);
+      await testAccount(admin,caller.data_owner_id,account);
+      return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,account.id))});
+    }
+    if(action==='shopify_oauth_start'){
+      const config=shopifyOAuthConfig();
+      if(!config.ready)throw new Error('La app común de Shopify todavía no está configurada. Conecta tu app propia con su ID y secreto.');
+      const origin=clean(req.headers.get('Origin'));
+      if(!config.allowedOrigins.includes(origin))throw new Error('El origen de la autorización no está permitido.');
+      const domain=shopifyDomain(body.shopDomain);
+      const bytes=crypto.getRandomValues(new Uint8Array(32));
+      const state=Array.from(bytes).map(v=>v.toString(16).padStart(2,'0')).join('');
+      const stateHash=await shopifyHash(state);
+      const pending={shopDomain:domain,authMode:'oauth',clientId:config.clientId,oauthPending:{stateHash,userId:caller.user_id,expiresAt:Date.now()+600000,displayName:clean(body.displayName),syncOrders:body.syncOrders!==false}};
+      const existing=await admin.from('integration_accounts').select('*').eq('owner_id',caller.data_owner_id).eq('provider','shopify').eq('external_account_id',domain).maybeSingle();
+      if(existing.error)throw existing.error;
+      let account=existing.data;
+      if(!account){
+        const created=await admin.from('integration_accounts').insert({owner_id:caller.data_owner_id,provider:'shopify',display_name:clean(body.displayName)||domain,external_account_id:domain,credential_source:'vault',status:'pending',config:{shopDomain:domain,syncOrders:body.syncOrders!==false}}).select('*').single();
+        if(created.error)throw created.error;account=created.data;
+      }
+      const current=await readVault(admin,account.secret_id);
+      const secretId=await writeVault(admin,account.id,'shopify',{...current,oauthPending:pending.oauthPending},account.secret_id);
+      const saved=await admin.from('integration_accounts').update({secret_id:secretId,enabled:true,status:account.status==='disabled'?'pending':account.status,config:{...account.config,oauthStateHash:stateHash}}).eq('id',account.id).eq('owner_id',caller.data_owner_id);
+      if(saved.error)throw saved.error;
+      const auth=new URL(`https://${domain}/admin/oauth/authorize`);
+      auth.search=new URLSearchParams({client_id:config.clientId,scope:'read_orders',redirect_uri:origin+'/',state}).toString();
+      return response({authorizeUrl:auth.href,state});
+    }
+    if(action==='shopify_oauth_exchange'){
+      const config=shopifyOAuthConfig();
+      if(!config.ready)throw new Error('La app de Shopify no está configurada.');
+      const params=new URLSearchParams(clean(body.query));
+      if(!await verifyShopifyCallback(params,config.clientSecret))throw new Error('La respuesta de Shopify no tiene una firma válida.');
+      const domain=shopifyDomain(params.get('shop'));
+      const stateHash=await shopifyHash(params.get('state')||'');
+      const found=await admin.from('integration_accounts').select('*').eq('owner_id',caller.data_owner_id).eq('provider','shopify').eq('external_account_id',domain).maybeSingle();
+      if(found.error)throw found.error;
+      const account=found.data;
+      if(!account)throw new Error('No se encontró la autorización pendiente.');
+      const current=await readVault(admin,account.secret_id),pending=current.oauthPending;
+      if(!pending||pending.stateHash!==stateHash||pending.userId!==caller.user_id||pending.expiresAt<Date.now())throw new Error('La autorización ha caducado o ya se ha utilizado. Vuelve a conectar Shopify.');
+      if(!params.get('code'))throw new Error('Shopify no concedió la autorización.');
+      const nextConfig={...account.config};delete nextConfig.oauthStateHash;
+      const claimed=await admin.from('integration_accounts').update({config:nextConfig}).eq('id',account.id).eq('owner_id',caller.data_owner_id).eq('shopify_credential_version',account.shopify_credential_version).eq('enabled',true).neq('status','disabled').eq('config->>oauthStateHash',stateHash).select('id').maybeSingle();
+      if(claimed.error)throw claimed.error;
+      if(!claimed.data)throw new Error('Esta autorización ya se ha utilizado.');
+      const token=await shopifyTokenRequest(domain,new URLSearchParams({client_id:config.clientId,client_secret:config.clientSecret,code:params.get('code')!,expiring:'1'}));
+      const stored=shopifyTokenCredentials({shopDomain:domain,authMode:'oauth',clientId:config.clientId},token);
+      await commitShopifyAuthorization(admin,account,pending,stored);
+      const saved=await loadAccount(admin,caller.data_owner_id,account.id);
+      const defaults=await admin.from('integration_accounts').select('id').eq('owner_id',caller.data_owner_id).eq('provider','shopify').eq('is_default',true).neq('status','disabled');
+      if(defaults.error)throw defaults.error;
+      if(!defaults.data?.length)await makeDefault(admin,caller.data_owner_id,'shopify',saved.id);
+      await testAccount(admin,caller.data_owner_id,saved);
+      return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,saved.id))});
+    }
 
     if(action.startsWith('gmail_')){
       await requireWorkspaceEntitlement(admin,caller.data_owner_id,'integration.gmail','Tu plan no incluye la integración con Gmail.');
@@ -612,7 +710,9 @@ Deno.serve(async(req:Request)=>{
       const credentials=(body?.credentials&&typeof body.credentials==='object'&&!Array.isArray(body.credentials))?body.credentials:null;
       if(credentials&&(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='envia'||account.provider==='mrw'||account.provider==='shopify')){
         const existing=account.secret_id?await readVault(admin,account.secret_id):{};
-        const merged={...existing,...Object.fromEntries(Object.entries(credentials).filter(([,v])=>clean(v)))};
+        const merged=account.provider==='shopify'&&clean((credentials as any).accessToken)
+          ?shopifyLegacyCredentials((credentials as any).shopDomain||account.external_account_id,(credentials as any).accessToken)
+          :{...existing,...Object.fromEntries(Object.entries(credentials).filter(([,v])=>clean(v)))};
         patch.secret_id=await writeVault(admin,account.id,account.provider,merged,account.secret_id);
         patch.status='pending';patch.last_error=null;
         if(account.provider==='shopify'){
@@ -622,7 +722,7 @@ Deno.serve(async(req:Request)=>{
           patch.external_account_id=shopDomain;
           patch.parent_account_id=null;
           patch.credential_source='vault';
-          patch.config={...(account.config||{}),...(body?.config||{}),shopDomain,apiVersion:clean(body?.config?.apiVersion||account.config?.apiVersion)||'2026-07',syncOrders:body?.config?.syncOrders!==false};
+          patch.config={...(account.config||{}),...(body?.config||{}),authMode:(merged as any).authMode||'token',shopDomain,apiVersion:clean(body?.config?.apiVersion||account.config?.apiVersion)||'2026-07',syncOrders:body?.config?.syncOrders!==false};
         }
       }
       const saved=await admin.from('integration_accounts').update(patch).eq('id',id).eq('owner_id',caller.data_owner_id).select('*').single();
@@ -635,13 +735,14 @@ Deno.serve(async(req:Request)=>{
         const stored=await readVault(admin,account.secret_id);
         if(stored.refreshToken){try{await fetch('https://oauth2.googleapis.com/revoke',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({token:stored.refreshToken})});}catch{/* Disable locally even if Google is unavailable. */}}
       }
-      if(account.secret_id){
+      if(account.secret_id&&account.provider!=='shopify'){
         await writeVault(admin,account.id,account.provider,{revoked:true,revokedAt:new Date().toISOString()},account.secret_id);
       }
       const disabled=await admin.from('integration_accounts').update({
         enabled:false,status:'disabled',is_default:false,last_error:null,updated_at:new Date().toISOString(),
       }).eq('id',id).eq('owner_id',caller.data_owner_id);
       if(disabled.error)throw disabled.error;
+      if(account.provider==='shopify'&&account.secret_id)await writeVault(admin,account.id,'shopify',{revoked:true,revokedAt:new Date().toISOString()},account.secret_id);
       if(account.provider==='amazon'&&account.linked_resource_id){
         await admin.from('amazon_accounts').update({status:'disabled',updated_at:new Date().toISOString()})
           .eq('id',account.linked_resource_id).eq('owner_id',caller.data_owner_id);

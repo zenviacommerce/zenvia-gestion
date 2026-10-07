@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { errorMessage } from './toast';
 import { loadAmazonStatus } from './amazon';
 import { listCachedGmailConnections } from './gmail';
 import { getSendcloudStatus } from './orders';
@@ -53,7 +54,7 @@ export type UpdateIntegrationAccountInput={
 };
 
 function message(data:any,error:any,fallback:string){
-  const detail=String(data?.error||error?.message||'').trim();
+  const detail=errorMessage(data?.error||error,'').trim();
   return detail||fallback;
 }
 
@@ -63,7 +64,7 @@ async function functionErrorMessage(error:any,fallback:string){
     try{
       const response=context.clone();
       const payload=await response.json();
-      const detail=String(payload?.error||payload?.message||'').trim();
+      const detail=errorMessage(payload?.error||payload?.message||payload,'').trim();
       if(detail)return detail;
     }catch{}
     try{
@@ -233,6 +234,37 @@ export async function loadIntegrationAccounts(){
 export async function createIntegrationAccount(input:CreateIntegrationAccountInput){
   const result=await invoke<{account:IntegrationAccount}>({action:'create',...input},'No se pudo añadir la cuenta de integración.');
   return result.account;
+}
+
+export async function shopifyConnectionConfig(){
+  return invoke<{ready:boolean;redirectUri:string}>({action:'shopify_config'},'No se pudo consultar la configuración de Shopify.');
+}
+
+export async function connectShopifyApp(input:{shopDomain:string;clientId:string;clientSecret:string;displayName:string;syncOrders:boolean;accountId?:string}){
+  const result=await invoke<{account:IntegrationAccount}>({action:'shopify_client_connect',...input},'No se pudo conectar la app de Shopify.');
+  return result.account;
+}
+
+const SHOPIFY_STATE_KEY='zenvia-shopify-oauth-state';
+export async function authorizeShopify(input:{shopDomain:string;displayName:string;syncOrders:boolean}){
+  const result=await invoke<{authorizeUrl:string;state:string}>({action:'shopify_oauth_start',...input},'No se pudo iniciar la autorización de Shopify.');
+  sessionStorage.setItem(SHOPIFY_STATE_KEY,result.state);
+  window.location.assign(result.authorizeUrl);
+}
+
+export async function finishShopifyAuthorization(){
+  const params=new URLSearchParams(window.location.search);
+  if(!params.has('shop')||!params.has('state')||!params.has('hmac'))return false;
+  const expected=sessionStorage.getItem(SHOPIFY_STATE_KEY);
+  if(!expected||params.get('state')!==expected)throw new Error('La autorización no corresponde a esta sesión. Vuelve a conectar Shopify.');
+  try{
+    await invoke({action:'shopify_oauth_exchange',query:params.toString()},'No se pudo completar la autorización de Shopify.');
+    return true;
+  }finally{
+    sessionStorage.removeItem(SHOPIFY_STATE_KEY);
+    for(const key of ['shop','state','hmac','code','timestamp','host','error','error_description'])params.delete(key);
+    window.history.replaceState({},'',window.location.pathname+(params.size?'?'+params.toString():'')+window.location.hash);
+  }
 }
 
 export async function updateIntegrationAccount(id:string,input:UpdateIntegrationAccountInput){

@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { shopifyAccountCredentials, shopifyError } from '../_shared/shopifyAuth.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -33,12 +34,7 @@ async function readSecret(admin:any,secretId:string|null){
 }
 function normalizeDomain(value:unknown){return clean(value).toLowerCase().replace(/^https?:\/\//,'').replace(/\/+$/,'');}
 async function credentials(admin:any,account:any){
-  const stored=await readSecret(admin,account.secret_id||null);
-  const shopDomain=normalizeDomain(stored.shopDomain||stored.shop_domain||account.external_account_id||account.config?.shopDomain);
-  const accessToken=clean(stored.accessToken||stored.access_token);
-  const apiVersion=clean(account.config?.apiVersion)||'2026-07';
-  if(!shopDomain||!accessToken)throw new Error('Faltan dominio o access token de Shopify.');
-  return {shopDomain,accessToken,apiVersion};
+  return shopifyAccountCredentials(admin,account);
 }
 async function gql(c:any,query:string,variables:Record<string,unknown>={}){
   const res=await fetch(`https://${c.shopDomain}/admin/api/${c.apiVersion}/graphql.json`,{
@@ -196,12 +192,12 @@ Deno.serve(async(req:Request)=>{
         accountSynced+=rows.length;synced+=rows.length;pages+=1;
         after=connection?.pageInfo?.hasNextPage?clean(connection.pageInfo.endCursor):null;
       }while(after&&pages<20);
-      await admin.from('integration_accounts').update({status:'connected',last_success_at:new Date().toISOString(),last_error:null,updated_at:new Date().toISOString()}).eq('id',account.id).eq('owner_id',caller.data_owner_id);
+      await admin.from('integration_accounts').update({status:'connected',last_success_at:new Date().toISOString(),last_error:null,updated_at:new Date().toISOString()}).eq('id',account.id).eq('owner_id',caller.data_owner_id).eq('enabled',true).neq('status','disabled');
       results.push({accountId:account.id,displayName:account.display_name,synced:accountSynced,shopDomain:c.shopDomain});
     }
     return response({ok:true,configured:true,synced,accounts:results,history});
   }catch(error){
-    const message=error instanceof Error?error.message:String(error||'Error interno.');
+    const message=shopifyError(error,'Error interno.');
     return response({error:message},/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:500);
   }
 });

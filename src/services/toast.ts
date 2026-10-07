@@ -23,13 +23,14 @@ export function showInfo(message: string, duration = 6500) {
   emit({ kind: 'info', message, duration });
 }
 
-export function errorMessage(error: unknown, fallback = 'Se ha producido un error.') {
-  if (error instanceof Error && error.message) return error.message;
-  if (error && typeof error === 'object' && 'message' in error) {
-    const message = (error as { message?: unknown }).message;
-    if (typeof message === 'string' && message.trim()) return message;
+export function errorMessage(error: unknown, fallback = 'Se ha producido un error.'):string {
+  if (typeof error === 'string' && error.trim() && error !== '[object Object]') return error;
+  if (error && typeof error === 'object') {
+    const value=error as Record<string,unknown>;
+    for(const key of ['message','error','error_description','details']){
+      if(value[key]&&value[key]!==error){const message=errorMessage(value[key],'');if(message)return message;}
+    }
   }
-  if (typeof error === 'string' && error.trim()) return error;
   return fallback;
 }
 

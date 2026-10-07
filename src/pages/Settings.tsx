@@ -37,7 +37,7 @@ import { loadSupplierOptions, type SupplierOption } from '../services/supplierEd
 import { addShippingRule, deleteShippingRule, loadShippingRules, updateShippingRule, type ShippingRule } from '../services/shippingRules';
 import { AMAZON_KPI_KEYS, loadAmazonStatus, requestAmazonSync, type AmazonMarketplaceStatus } from '../services/amazon';
 import { getSendcloudStatus, syncSendcloudOrders } from '../services/orders';
-import { createIntegrationAccount, disconnectIntegrationAccount, loadAmazonAccountMarketplaces, loadIntegrationAccounts, setDefaultIntegrationAccount, syncSendcloudIntegrationAccount, syncShopifyIntegrationAccount, testIntegrationAccount, updateIntegrationAccount, type IntegrationAccount, type IntegrationProvider } from '../services/integrationAccounts';
+import { authorizeShopify, connectShopifyApp, shopifyConnectionConfig, createIntegrationAccount, disconnectIntegrationAccount, loadAmazonAccountMarketplaces, loadIntegrationAccounts, setDefaultIntegrationAccount, syncSendcloudIntegrationAccount, syncShopifyIntegrationAccount, testIntegrationAccount, updateIntegrationAccount, type IntegrationAccount, type IntegrationProvider } from '../services/integrationAccounts';
 import { disconnectGmail, getCachedGmailConnection, setActiveGmailConnection, testGmailConnection } from '../services/gmail';
 import { connectRegisteredGmail, ensureRegisteredGmailConnection } from '../services/gmailAccounts';
 import { DEFAULT_AUTOMATION_RULES, loadAutomationRules, saveAutomationRule, type AutomationRule } from '../services/automationRules';
@@ -1177,6 +1177,10 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   const [mrwServiceName,setMrwServiceName]=useState('');
   const [shopifyDomain,setShopifyDomain]=useState('');
   const [shopifyAccessToken,setShopifyAccessToken]=useState('');
+  const [shopifyClientId,setShopifyClientId]=useState('');
+  const [shopifyClientSecret,setShopifyClientSecret]=useState('');
+  const [shopifyMode,setShopifyMode]=useState<'oauth'|'app'|'token'>('app');
+  const [shopifyOAuthReady,setShopifyOAuthReady]=useState(false);
   const [accountEnabled,setAccountEnabled]=useState(true);
   const [syncOrders,setSyncOrders]=useState(true);
   const [syncInventory,setSyncInventory]=useState(true);
@@ -1196,6 +1200,12 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     finally{setLoading(false);}
   };
   useEffect(()=>{void reload()},[]);
+  useEffect(()=>{
+    const changed=()=>void reload();
+    window.addEventListener('zenvia:integrations-changed',changed);
+    void shopifyConnectionConfig().then(config=>{setShopifyOAuthReady(config.ready);setShopifyMode(config.ready?'oauth':'app');}).catch(()=>{});
+    return()=>window.removeEventListener('zenvia:integrations-changed',changed);
+  },[]);
 
   const providerMeta:Record<IntegrationProvider,{name:string;description:string;addLabel:string}>={
     amazon:{
@@ -1273,6 +1283,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     setMrwServiceName(configuredMrwName||getMrwServiceName(configuredMrwCode));
     setShopifyDomain(account?.provider==='shopify'&&account.credentialSource!=='derived'?String(account.externalAccountId||account.config?.shopDomain||''):'');
     setShopifyAccessToken('');
+    setShopifyClientId('');setShopifyClientSecret('');
+    setShopifyMode(account?.config?.authMode==='client_credentials'?'app':account?.config?.authMode==='oauth'?(shopifyOAuthReady?'oauth':'app'):account?.provider==='shopify'&&account.credentialSource!=='derived'?'token':shopifyOAuthReady?'oauth':'app');
     setAccountEnabled(account?.enabled??true);
     setSyncOrders(legacyAmazon?settings.amazon.autoSyncOrders:(typeof account?.config?.syncOrders==='boolean'?Boolean(account.config.syncOrders):true));
     setSyncInventory(legacyAmazon?settings.amazon.autoSyncInventory:(typeof account?.config?.syncInventory==='boolean'?Boolean(account.config.syncInventory):true));
@@ -1310,6 +1322,17 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     setBusy('save-account');
     try{
       if(provider==='mrw'&&!mrwServiceCode.trim())throw new Error('Selecciona el servicio MRW predeterminado de esta cuenta.');
+      if(provider==='shopify'&&shopifyMode==='token'&&editing?.config?.authMode&&editing.config.authMode!=='token'&&!shopifyAccessToken.trim())throw new Error('Introduce el token de la app antigua para cambiar la forma de conexión.');
+      if(provider==='shopify'&&shopifyMode==='oauth'){
+        await authorizeShopify({shopDomain:shopifyDomain,displayName:displayName.trim(),syncOrders});
+        return;
+      }
+      if(provider==='shopify'&&shopifyMode==='app'&&(!editing||shopifyClientId.trim()||shopifyClientSecret.trim()||editing.config?.authMode!=='client_credentials')){
+        await connectShopifyApp({shopDomain:shopifyDomain,clientId:shopifyClientId.trim(),clientSecret:shopifyClientSecret.trim(),displayName:displayName.trim(),syncOrders,accountId:editing&&!editing.legacy?editing.id:undefined});
+        await reload();setEditorOpen(false);setEditing(null);
+        showSuccess('Shopify conectado. Zenvia renovará la autorización automáticamente.');
+        return;
+      }
       if(editing?.legacy){
         if(provider==='amazon'){
           await updateSection('amazon',{
@@ -1343,7 +1366,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
         }
         if(provider==='envia'&&enviaToken.trim())credentials.token=enviaToken.trim();
         if(provider==='shopify'){
-          if(shopifyDomain.trim())credentials.shopDomain=shopifyDomain.trim();
+          if(shopifyAccessToken.trim())credentials.shopDomain=shopifyDomain.trim();
           if(shopifyAccessToken.trim())credentials.accessToken=shopifyAccessToken.trim();
         }
         if(provider==='mrw'){
@@ -1658,10 +1681,12 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           </>}
 
           {provider==='shopify'&&<>
-            <div className="settingsResetPreview"><strong>Shopify directo</strong><small>ZENVIA consulta Shopify Admin API directamente para mantener los pedidos sincronizados.</small></div>
+            <div className="settingsResetPreview"><strong>Conexión directa con Shopify</strong><small>{shopifyMode==='oauth'?'Introduce tu tienda y acepta los permisos en Shopify. Zenvia gestiona la autorización automáticamente.':'Si ya has creado e instalado tu app, introduce su ID y secreto una sola vez. Zenvia obtiene y renueva el token automáticamente.'}</small></div>
+            <label className="settingsField"><span>Forma de conexión</span><SelectField ariaLabel="Forma de conexión Shopify" value={shopifyMode} onChange={value=>setShopifyMode(value as 'oauth'|'app'|'token')} options={[...(shopifyOAuthReady?[{value:'oauth',label:'Autorizar con Shopify'}]:[]),{value:'app',label:'App propia instalada (ID y secreto)'},{value:'token',label:'Token de una app antigua'}]}/></label>
             <div className="settingsFormGrid">
               <label className="settingsField"><span>Dominio Shopify</span><input autoComplete="off" value={shopifyDomain} onChange={e=>setShopifyDomain(e.target.value)} placeholder="tienda.myshopify.com"/><small>Usa el dominio permanente myshopify.com, no el dominio comercial.</small></label>
-              <label className="settingsField"><span>{editing?'Nuevo access token (opcional)':'Admin API access token'}</span><input type="password" autoComplete="new-password" value={shopifyAccessToken} onChange={e=>setShopifyAccessToken(e.target.value)} placeholder={editing?'Sin cambios':'shpat_…'}/><small>Token de una app de Shopify con permiso read_orders. Se guarda cifrado y solo se utiliza para esta conexión.</small></label>
+              {shopifyMode==='token'&&<label className="settingsField"><span>{editing?'Nuevo access token (opcional)':'Admin API access token'}</span><input type="password" autoComplete="new-password" value={shopifyAccessToken} onChange={e=>setShopifyAccessToken(e.target.value)} placeholder={editing?'Sin cambios':'shpat_…'}/><small>Solo para apps antiguas que proporcionan un token. No introduzcas aquí el secreto de una app nueva.</small></label>}
+              {shopifyMode==='app'&&<><label className="settingsField"><span>ID de cliente de la app</span><input autoComplete="off" value={shopifyClientId} onChange={e=>setShopifyClientId(e.target.value)} placeholder={editing&&editing.config?.authMode==='client_credentials'?'Guardado · déjalo vacío para conservarlo':'Client ID'}/></label><label className="settingsField"><span>Secreto del cliente</span><input type="password" autoComplete="new-password" value={shopifyClientSecret} onChange={e=>setShopifyClientSecret(e.target.value)} placeholder={editing&&editing.config?.authMode==='client_credentials'?'Guardado · déjalo vacío para conservarlo':'Client secret'}/><small>Shopify Dev Dashboard → tu app → Credenciales. La app debe estar instalada en tu tienda y tener permiso read_orders. Las credenciales se guardan cifradas.</small></label></>}
             </div>
             <label className="settingsToggleField"><input type="checkbox" checked={syncOrders} onChange={e=>setSyncOrders(e.target.checked)}/><span><strong>Sincronizar pedidos</strong><small>Importar pedidos de Shopify directamente en ZENVIA.</small></span></label>
           </>}

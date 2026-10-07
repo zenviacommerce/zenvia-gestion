@@ -56,7 +56,6 @@ query ZenviaOrders($first:Int!,$after:String,$query:String){
       displayFulfillmentStatus displayFinancialStatus
       email phone
       totalPriceSet{shopMoney{amount currencyCode}}
-      customer{displayName email phone}
       shippingAddress{name company address1 address2 city provinceCode zip countryCodeV2 phone}
       billingAddress{name company address1 address2 city provinceCode zip countryCodeV2 phone}
       lineItems(first:100){nodes{id name sku quantity originalUnitPriceSet{shopMoney{amount currencyCode}} image{url}}}
@@ -166,10 +165,10 @@ Deno.serve(async(req:Request)=>{
             source_status:sourceStatus(order),
             order_created_at:order.createdAt||now,
             order_updated_at:order.updatedAt||now,
-            customer_name:clean(order.customer?.displayName||ship.name)||null,
-            customer_email:clean(order.email||order.customer?.email)||null,
-            customer_phone:clean(order.phone||order.customer?.phone||ship.phone_number)||null,
-            shipping_address:{...ship,email:clean(order.email||order.customer?.email)||null},
+            customer_name:clean(ship.name||bill.name)||null,
+            customer_email:clean(order.email)||null,
+            customer_phone:clean(order.phone||ship.phone_number||bill.phone_number)||null,
+            shipping_address:{...ship,email:clean(order.email)||null},
             billing_address:bill,
             items:mapItems(order),
             total_amount:total?.amount==null?null:Number(total.amount),

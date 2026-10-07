@@ -121,3 +121,11 @@ test('central app credentials are configured once and tenant lookup stays scoped
   }},'tenant-a');
   assert.equal(result.clientId,'id');assert.equal(result.ready,true);
 });
+
+test('order sync works with read_orders without requiring the customer directory scope',()=>{
+  const source=fs.readFileSync('supabase/functions/shopify-orders/index.ts','utf8');
+  const query=source.match(/const ORDER_QUERY=`([\s\S]*?)`;/)[1];
+  assert.doesNotMatch(query,/\bcustomer\s*\{/,'Order sync must not request read_customers-only customer data');
+  assert.match(query,/shippingAddress\s*\{[^}]*name[^}]*phone/);
+  assert.match(query,/\bemail\s+phone\b/);
+});

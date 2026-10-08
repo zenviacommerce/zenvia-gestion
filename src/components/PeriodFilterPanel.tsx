@@ -11,6 +11,12 @@ const quickPresets = [
   ['all', 'Todo'],
 ] as const;
 
+export function PeriodPresetButtons({value,onChange}:{value:DateRangeFilter['preset'];onChange:(preset:typeof quickPresets[number][0])=>void}){
+  return <div className="masterPeriodQuick" aria-label="Filtros rápidos de fecha">
+    {quickPresets.map(([preset,label])=><button key={preset} type="button" className={value===preset?'active':''} aria-pressed={value===preset} onClick={()=>onChange(preset)}>{label}</button>)}
+  </div>;
+}
+
 export function PeriodFilterPanel({
   filter,
   onChange,
@@ -30,9 +36,7 @@ export function PeriodFilterPanel({
   return <section className={`masterPeriodPanel sharedPeriodPanel ${className}`.trim()}>
     <div className="masterPeriodTop">
       <div><CalendarDays size={17}/><div><strong>{title}</strong><span>{periodLabel(filter)}</span></div></div>
-      <div className="masterPeriodQuick">
-        {quickPresets.map(([preset,label])=><button key={preset} type="button" className={filter.preset===preset?'active':''} onClick={()=>applyPreset(preset)}>{label}</button>)}
-      </div>
+      <PeriodPresetButtons value={filter.preset} onChange={applyPreset}/>
     </div>
     <div className="masterPeriodDates">
       <label>Desde<input type="date" value={filter.from} onChange={event=>setDate('from',event.target.value)}/></label>

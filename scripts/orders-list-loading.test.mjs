@@ -1,0 +1,13 @@
+import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import {stripTypeScriptTypes} from 'node:module';
+test('order loading uses bounded pages, keeps every order, and selects only operational JSON fragments',async()=>{
+ const rows=Array.from({length:501},(_,n)=>({id:String(n),sendcloud_id:String(n),source_channel:'other',integration_id:0,measurement:{weight:{value:890,unit:'g'},dimension:{length:35,width:45,height:5}},carrier_tracking:{number:'TRACK',url:'https://mrw.es/tracking'},tracking_number:'TRACK'}));const calls=[];
+ const supabase={from(table){const call={table};const q={select(value){call.select=value;return q},order(){return q},range(from,to){call.from=from;call.to=to;return q},limit(){return q},then(resolve,reject){calls.push(call);return Promise.resolve({data:table==='fulfillment_orders'?rows.slice(call.from,call.to+1):[],error:null}).then(resolve,reject)}};return q}};
+ const source=stripTypeScriptTypes(fs.readFileSync('src/services/orders.ts','utf8').replace(/^import .*\n/gm,'').replaceAll('export ',''));const {listFulfillmentOrders}=vm.runInNewContext(source+'\n({listFulfillmentOrders})',{supabase,Error,URL,Response,console});
+ const result=await listFulfillmentOrders();assert.equal(result.length,501);const queries=calls.filter(c=>c.table==='fulfillment_orders');assert.equal(queries.length,3);for(const query of queries){assert.equal(query.to-query.from+1,200);assert.notEqual(query.select,'*');assert.ok(!query.select.split(',').includes('raw_payload'));assert.match(query.select,/measurement:raw_payload->shipping_details->measurement/)}assert.equal(result[0].weightKg,0.89);assert.equal(result[0].packageLengthCm,35);assert.equal(result[0].carrierTrackingUrl,'https://mrw.es/tracking');
+});
+
+test('a refresh after a mutation queues a new read instead of returning an earlier snapshot',async()=>{
+ const source=fs.readFileSync('src/pages/Orders.tsx','utf8');const start=source.indexOf('  const refresh=useCallback('),end=source.indexOf('},[]);',start)+7;const block=stripTypeScriptTypes(source.slice(start,end));let release;const gate=new Promise(resolve=>release=resolve);let value='old',calls=0,lastValue;
+ const globals={useCallback:fn=>fn,refreshInFlight:{current:null},refreshQueued:{current:null},listFulfillmentOrders:async()=>{calls++;const snapshot=value;if(calls===1)await gate;return snapshot},setOrders:v=>lastValue=v,setError:()=>{},errorMessage:e=>e.message};
+ const refresh=vm.runInNewContext(block+'\nrefresh',globals);const first=refresh();value='after mutation';const second=refresh(),duplicate=refresh();assert.equal(second,duplicate);release();await first;await second;assert.equal(calls,2);assert.equal(lastValue,'after mutation');
+});

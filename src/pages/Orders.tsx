@@ -408,7 +408,17 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   },[query,state,trackingFilter,countryFilter,carrierFilter,dateFilter,preferences.rememberFilters]);
   const [shippingRules,setShippingRules]=useState<ShippingRule[]>(()=>defaultShippingRules());
 
-  const refresh=useCallback(async()=>{try{setOrders(await listFulfillmentOrders())}catch(e){setError(errorMessage(e,'No se pudieron cargar los pedidos.'))}},[]);
+  const refreshInFlight=useRef<Promise<void>|null>(null),refreshQueued=useRef<Promise<void>|null>(null);
+  const refresh=useCallback(function refreshOrders():Promise<void>{
+    if(refreshInFlight.current){
+      if(!refreshQueued.current)refreshQueued.current=refreshInFlight.current.then(()=>{refreshQueued.current=null;return refreshOrders()});
+      return refreshQueued.current;
+    }
+    const request=(async()=>{try{setOrders(await listFulfillmentOrders());setError('')}catch(e){setError(errorMessage(e,'No se pudieron cargar los pedidos.'))}})();
+    refreshInFlight.current=request;
+    void request.finally(()=>{if(refreshInFlight.current===request)refreshInFlight.current=null});
+    return request;
+  },[]);
   useEffect(()=>watchFulfillmentOrders(()=>void refresh()),[refresh]);
   useEffect(()=>{
     if(!selected)return;const current=orders.find(item=>item.id===selected.id)||selected;

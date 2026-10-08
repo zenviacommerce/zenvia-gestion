@@ -19,10 +19,10 @@ function fixture({existing=[],status='OPEN',cancelled=false}={}){
  };
  return {request,calls};
 }
-test('confirms remaining quantities and sends carrier number URL without notifying customers',async()=>{
+test('confirms remaining quantities and sends carrier number URL requests the Shopify shipping notification',async()=>{
  const {confirmShopifyShipment}=helper(),f=fixture();await confirmShopifyShipment(f.request,shipment);
  const input=f.calls.find(c=>c.query.includes('mutation')).variables.fulfillment;
- assert.deepEqual(JSON.parse(JSON.stringify(input)),{notifyCustomer:false,trackingInfo:{number:'MRW123',company:'MRW',url:'https://mrw.es/track/123'},lineItemsByFulfillmentOrder:[{fulfillmentOrderId:'fo1',fulfillmentOrderLineItems:[{id:'line1',quantity:2}]}]});
+ assert.deepEqual(JSON.parse(JSON.stringify(input)),{notifyCustomer:true,trackingInfo:{number:'MRW123',company:'MRW',url:'https://mrw.es/track/123'},lineItemsByFulfillmentOrder:[{fulfillmentOrderId:'fo1',fulfillmentOrderLineItems:[{id:'line1',quantity:2}]}]});
 });
 test('retry after a remote success never creates a second fulfillment',async()=>{
  const {confirmShopifyShipment}=helper(),f=fixture({status:'CLOSED',existing:[{id:'ful1',status:'SUCCESS',trackingInfo:[{number:'MRW123'}]}]});

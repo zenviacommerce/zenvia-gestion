@@ -18,7 +18,7 @@ export async function confirmShopifyShipment(request:(query:string,variables:any
     if(replacements.length||existing.length){
       const ids=existing.map((f:any)=>f.id);
       for(const previous of replacements){
-      const result=await request(`mutation ZenviaReplaceTracking($id:ID!,$tracking:FulfillmentTrackingInput!){fulfillmentTrackingInfoUpdate(fulfillmentId:$id,trackingInfoInput:$tracking,notifyCustomer:false){fulfillment{id} userErrors{field message}}}`,{id:previous.id,tracking:trackingInfo});
+      const result=await request(`mutation ZenviaReplaceTracking($id:ID!,$tracking:FulfillmentTrackingInput!){fulfillmentTrackingInfoUpdate(fulfillmentId:$id,trackingInfoInput:$tracking,notifyCustomer:true){fulfillment{id} userErrors{field message}}}`,{id:previous.id,tracking:trackingInfo});
       const payload=result.fulfillmentTrackingInfoUpdate;if(payload?.userErrors?.length)throw new Error(payload.userErrors.map((e:any)=>e.message).join(' · '));if(!payload?.fulfillment?.id)throw new Error('Shopify no confirmó el nuevo seguimiento.');
       ids.push(payload.fulfillment.id);
       }
@@ -43,7 +43,7 @@ export async function confirmShopifyShipment(request:(query:string,variables:any
   if(!groups.size&&!existing.length)throw new Error('El pedido Shopify no tiene cantidades pendientes para este envío.');
   const ids=existing.map((f:any)=>f.id);
   for(const lineItemsByFulfillmentOrder of groups.values()){
-    const result=await request(`mutation ZenviaShipmentCreate($fulfillment:FulfillmentInput!){fulfillmentCreate(fulfillment:$fulfillment){fulfillment{id} userErrors{field message}}}`,{fulfillment:{notifyCustomer:false,trackingInfo,lineItemsByFulfillmentOrder}});
+    const result=await request(`mutation ZenviaShipmentCreate($fulfillment:FulfillmentInput!){fulfillmentCreate(fulfillment:$fulfillment){fulfillment{id} userErrors{field message}}}`,{fulfillment:{notifyCustomer:true,trackingInfo,lineItemsByFulfillmentOrder}});
     const payload=result?.fulfillmentCreate;
     if(payload?.userErrors?.length)throw new Error(payload.userErrors.map((e:any)=>e.message).join(' · '));
     if(!payload?.fulfillment?.id)throw new Error('Shopify no confirmó la creación del envío.');

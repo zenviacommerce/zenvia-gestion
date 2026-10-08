@@ -5,7 +5,7 @@ declare
  template jsonb; tenant uuid; prefix text:=gen_random_uuid()::text;
  pending_id uuid:=gen_random_uuid(); lease uuid:=gen_random_uuid(); n int;
 begin
- select to_jsonb(f),owner_id into template,tenant from fulfillment_orders f where source_channel='shopify' limit 1;
+ select to_jsonb(f)||jsonb_build_object('shipping_remote_id',null,'sendcloud_parcel_id',null,'sendcloud_shipment_id',null),owner_id into template,tenant from fulfillment_orders f where source_channel='shopify' limit 1;
  if template is null then raise exception 'Missing Shopify fixture'; end if;
  for n in 1..101 loop
   insert into fulfillment_orders select (jsonb_populate_record(null::fulfillment_orders,template||jsonb_build_object('id',gen_random_uuid(),'sendcloud_id',prefix||n,'label_created_at',now(),'tracking_number','TEST','shopify_tracking_synced_number','TEST','shopify_tracking_synced_at',now(),'shopify_tracking_last_attempt_at',now()-interval '1 day'))).*;

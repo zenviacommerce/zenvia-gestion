@@ -1,3 +1,4 @@
+import {useFilterState} from '../components/RetainedImportPage';
 import { useEffect, useMemo, useState } from 'react';
 import { Download, Search, Camera, FileUp, CheckCircle2, CircleDollarSign, Eye, Trash2, Files, Euro, BadgeEuro, ReceiptText, Clock3, Calculator, Building2, WalletCards } from 'lucide-react';
 import type { ExpenseCategory, Invoice, InvoicePaymentStatus, Supplier } from '../types';
@@ -27,8 +28,8 @@ export function Invoices({invoices,suppliers,categories,onUpload,onBulkUpload,on
  const pageSize=preferences.pageSize;
  const columns=orderedTableColumns(preferences,'expenses');
  const remembered=rememberedFilter<{query:string;filter:ReturnType<typeof defaultInvoiceFilter>}>(preferences,'expenses.filters',{query:'',filter:defaultInvoiceFilter(preferences.defaultPeriod)});
- const [query,setQuery]=useState(remembered.query); const [exporting,setExporting]=useState(false);
- const [filter,setFilter]=useState(remembered.filter);
+ const [query,setQuery]=useFilterState(remembered.query,preferences.rememberFilters); const [exporting,setExporting]=useState(false);
+ const [filter,setFilter]=useFilterState(remembered.filter,preferences.rememberFilters);
  const [selected,setSelected]=useState<Invoice|null>(null);
  const [checkedIds,setCheckedIds]=useState<Set<string>>(()=>new Set());
  const [busyId,setBusyId]=useState<string|null>(null);

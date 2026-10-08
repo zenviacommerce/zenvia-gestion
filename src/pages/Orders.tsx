@@ -1,3 +1,4 @@
+import {useFilterState} from '../components/RetainedImportPage';
 import { watchFulfillmentOrders } from '../services/orderLiveUpdates';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import JSZip from 'jszip';
@@ -380,11 +381,11 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const [orders,setOrders]=useState<FulfillmentOrder[]>([]),[status,setStatus]=useState<SendcloudStatus|null>(null),[enviaStatus,setEnviaStatus]=useState<{configured:boolean;accounts:Array<{id:string;displayName:string;environment:string;isDefault:boolean}>}|null>(null);
   const [loading,setLoading]=useState(true),[syncing,setSyncing]=useState(false),[error,setError]=useState('');
   const syncingRef=useRef(false);
-  const [query,setQuery]=useState(pendingOnly?'':remembered.query),[channel,setChannel]=useState<'all'|OrderChannel>('all'),[state,setState]=useState<OrderFilter>(pendingOnly?'pending':remembered.state),[trackingFilter,setTrackingFilter]=useState<TrackingFilter>(pendingOnly?'all':remembered.trackingFilter),[countryFilter,setCountryFilter]=useState(pendingOnly?'all':remembered.countryFilter),[carrierFilter,setCarrierFilter]=useState(pendingOnly?'all':remembered.carrierFilter);
+  const [query,setQuery]=useFilterState(pendingOnly?'':remembered.query,preferences.rememberFilters),[channel,setChannel]=useFilterState<'all'|OrderChannel>('all',preferences.rememberFilters),[state,setState]=useFilterState<OrderFilter>(pendingOnly?'pending':remembered.state,preferences.rememberFilters),[trackingFilter,setTrackingFilter]=useFilterState<TrackingFilter>(pendingOnly?'all':remembered.trackingFilter,preferences.rememberFilters),[countryFilter,setCountryFilter]=useFilterState(pendingOnly?'all':remembered.countryFilter,preferences.rememberFilters),[carrierFilter,setCarrierFilter]=useFilterState(pendingOnly?'all':remembered.carrierFilter,preferences.rememberFilters);
   const [selected,setSelected]=useState<FulfillmentOrder|null>(null),[labelOrder,setLabelOrder]=useState<FulfillmentOrder|null>(null),[options,setOptions]=useState<ShippingOption[]>([]),[optionsMessage,setOptionsMessage]=useState(''),[optionsLoading,setOptionsLoading]=useState(false),[preparingOrder,setPreparingOrder]=useState<string|null>(null),[busyOrder,setBusyOrder]=useState<string|null>(null);
   const [cancelTarget,setCancelTarget]=useState<FulfillmentOrder|null>(null),[cancelReason,setCancelReason]=useState('customer'),[cancelRefund,setCancelRefund]=useState(false),[cancelRestock,setCancelRestock]=useState(true);
   const [printers,setPrinters]=useState<LocalPrinter[]>([]),[printer,setPrinter]=useState(preferences.labelPrinterId||''),[printerChecking,setPrinterChecking]=useState(false);
-  const [dateFilter,setDateFilter]=useState(remembered.dateFilter);
+  const [dateFilter,setDateFilter]=useFilterState(remembered.dateFilter,preferences.rememberFilters);
   const [manualOpen,setManualOpen]=useState(false),[manualSaving,setManualSaving]=useState(false);
   const [editOrder,setEditOrder]=useState<FulfillmentOrder|null>(null),[editSaving,setEditSaving]=useState(false);
   const [bulkGenerating,setBulkGenerating]=useState(false),[bulkProgress,setBulkProgress]=useState('');

@@ -1,3 +1,4 @@
+import {useFilterState} from '../components/RetainedImportPage';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Building2, CalendarDays, Calculator, ChevronRight, CircleDollarSign, FileText, Mail, MapPin, Pencil, Phone, Search, Trash2, UserRound, WalletCards, X } from 'lucide-react';
 import { addClient, deleteClient, loadClients, loadSalesInvoices, updateClient, type Client, type ClientInput, type SalesInvoice } from '../services/sales';
@@ -141,10 +142,10 @@ export function Clients(){
   const [clients,setClients]=useState<Client[]>([]);
   const [invoices,setInvoices]=useState<SalesInvoice[]>([]);
   const [loading,setLoading]=useState(true);
-  const [query,setQuery]=useState(remembered.query);
-  const [dateFilter,setDateFilter]=useState(remembered.dateFilter);
-  const [balanceFilter,setBalanceFilter]=useState<ClientBalanceFilter>(remembered.balanceFilter);
-  const [countryFilter,setCountryFilter]=useState(remembered.countryFilter);
+  const [query,setQuery]=useFilterState(remembered.query,preferences.rememberFilters);
+  const [dateFilter,setDateFilter]=useFilterState(remembered.dateFilter,preferences.rememberFilters);
+  const [balanceFilter,setBalanceFilter]=useFilterState<ClientBalanceFilter>(remembered.balanceFilter,preferences.rememberFilters);
+  const [countryFilter,setCountryFilter]=useFilterState(remembered.countryFilter,preferences.rememberFilters);
   const [editing,setEditing]=useState<Client|null>(null);
   const [selected,setSelected]=useState<Client|null>(null);
   const [modal,setModal]=useState(false);

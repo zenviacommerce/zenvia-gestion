@@ -24,7 +24,8 @@ async function confirm(admin:any,ownerId:string,orderId:string){
    if(!res.ok||payload.errors?.length){const message=payload.errors?.map((e:any)=>e.message).join(' · ')||`Shopify (${res.status})`;throw new Error(/access denied|access scope/i.test(message)?'Faltan permisos Shopify: read_merchant_managed_fulfillment_orders y write_merchant_managed_fulfillment_orders. Actualiza la app y vuelve a conectar la tienda.':message);}
    return payload.data;
   };
-  const result=await confirmShopifyShipment(request,{orderId:current.order_id,number:current.tracking_number,company:current.carrier_name||current.carrier_code||'Transportista',url:current.tracking_url});
+  const previous=await admin.from('order_cancellation_operations').select('details').eq('owner_id',ownerId).eq('order_id',orderId).eq('kind','label').eq('status','confirmed').order('created_at',{ascending:false}).limit(1);if(previous.error)throw previous.error;
+  const result=await confirmShopifyShipment(request,{orderId:current.order_id,number:current.tracking_number,company:current.carrier_name||current.carrier_code||'Transportista',url:current.tracking_url,previousNumber:previous.data?.[0]?.details?.trackingNumber});
   const now=new Date().toISOString();
   const saved=await admin.from('fulfillment_orders').update({shopify_tracking_synced_at:now,shopify_tracking_synced_number:current.tracking_number,shopify_tracking_sync_error:null,source_status:'shipped',fulfilled_at:current.fulfilled_at||now}).eq('id',orderId).eq('owner_id',ownerId).eq('shopify_tracking_lease',lease).eq('tracking_number',current.tracking_number);
   if(saved.error)throw saved.error;return result;

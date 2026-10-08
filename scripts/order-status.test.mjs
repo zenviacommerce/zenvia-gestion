@@ -37,3 +37,5 @@ test('a generic Envia label also removes an order from operational pending state
   assert.equal(hasShippingLabel(order),true);
   assert.equal(isPendingOrder(order),false);
 });
+
+test('a confirmed label cancellation allows replacement even when the origin was marked shipped',async()=>{const {isPendingOrder}=await loadOrderStatusModule();assert.equal(isPendingOrder({sourceStatus:'shipped',labelCancelledAt:'today'}),true);assert.equal(isPendingOrder({sourceStatus:'cancelled',labelCancelledAt:'today'}),false);assert.equal(isPendingOrder({sourceStatus:'pending',cancellations:[{status:'pending'}]}),false)});

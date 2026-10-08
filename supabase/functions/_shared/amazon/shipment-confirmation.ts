@@ -1,3 +1,4 @@
+import {claimOrderShipping,releaseOrderShipping} from '../orderCancellation.ts';
 import { sanitizeAmazonError } from './http.ts';
 import { spApiRequest } from './sp-api.ts';
 import { loadAmazonSpApiCredentials, type AmazonSpApiCredentials } from './config.ts';
@@ -137,6 +138,8 @@ function packageReference(packages:any[],trackingNumber:string,legacyParcelId:un
 export async function syncAmazonTracking(admin:any,order:FulfillmentOrderRow,override?:AmazonTrackingOverride):Promise<AmazonTrackingSyncResult>{
   const requested=withTrackingOverride(order,override);
   const trackingNumber=clean(requested.tracking_number);if(requested.source_channel!=='amazon')throw new Error('El pedido no procede de Amazon.');if(!trackingNumber)throw new Error('El pedido todavía no tiene número de seguimiento.');
+  const shippingClaim=await claimOrderShipping(admin,requested);
+  try{
   const claimedRow=await claimAmazonTrackingAttempt(admin,requested);
   const claimed=claimedRow?withTrackingOverride(claimedRow,override):null;
   if(!claimed){
@@ -161,6 +164,7 @@ export async function syncAmazonTracking(admin:any,order:FulfillmentOrderRow,ove
     try{await markFailure(admin,claimed,error)}catch{/* preserve original Amazon error */}
     throw error;
   }
+  }finally{await releaseOrderShipping(admin,shippingClaim);}
 }
 
 export async function retryPendingAmazonTracking(admin:any,ownerId:string,limit=5,force=false){

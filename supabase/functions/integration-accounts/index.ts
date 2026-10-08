@@ -485,7 +485,7 @@ Deno.serve(async(req:Request)=>{
       const saved=await admin.from('integration_accounts').update({secret_id:secretId,enabled:true,status:account.status==='disabled'?'pending':account.status,config:{...account.config,oauthStateHash:stateHash}}).eq('id',account.id).eq('owner_id',caller.data_owner_id);
       if(saved.error)throw saved.error;
       const auth=new URL(`https://${domain}/admin/oauth/authorize`);
-      auth.search=new URLSearchParams({client_id:config.clientId,scope:'read_orders,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders',redirect_uri:origin+'/',state}).toString();
+      auth.search=new URLSearchParams({client_id:config.clientId,scope:'read_orders,write_orders,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders',redirect_uri:origin+'/',state}).toString();
       return response({authorizeUrl:auth.href,state});
     }
     if(action==='shopify_oauth_exchange'){

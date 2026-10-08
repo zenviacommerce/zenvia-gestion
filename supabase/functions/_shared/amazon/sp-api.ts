@@ -39,6 +39,7 @@ export type SpApiRequestOptions={
   method?:'GET'|'POST'|'PUT'|'DELETE';
   query?:Record<string,string|number|boolean|Array<string|number>|null|undefined>;
   body?:unknown;
+  maxAttempts?:number;
 };
 
 function buildUrl(path:string,query?:SpApiRequestOptions['query']){
@@ -55,7 +56,7 @@ function transient(status:number){return [429,500,502,503,504].includes(status);
 
 export async function spApiRequest<T=any>(path:string,options:SpApiRequestOptions={},credentials?:AmazonSpApiCredentials):Promise<T>{
   const url=buildUrl(path,options.query);
-  for(let attempt=0;attempt<MAX_ATTEMPTS;attempt+=1){
+  for(let attempt=0;attempt<(options.maxAttempts||MAX_ATTEMPTS);attempt+=1){
     const accessToken=await getLwaAccessToken(credentials);
     const headers=new Headers({
       Accept:'application/json',
@@ -65,13 +66,13 @@ export async function spApiRequest<T=any>(path:string,options:SpApiRequestOption
     });
     let body:BodyInit|undefined;
     if(options.body!==undefined){headers.set('Content-Type','application/json');body=JSON.stringify(options.body);}
-    const response=await fetch(url,{method:options.method||'GET',headers,body});
+    const response=await fetch(url,{method:options.method||'GET',headers,body,signal:AbortSignal.timeout(25000)});
     const text=await response.text();
     if(response.ok){
       if(!text)return undefined as T;
       try{return JSON.parse(text) as T}catch{throw new Error('Amazon SP-API devolvió una respuesta JSON no válida.');}
     }
-    if(transient(response.status)&&attempt<MAX_ATTEMPTS-1){
+    if(transient(response.status)&&attempt<(options.maxAttempts||MAX_ATTEMPTS)-1){
       await sleep(retryAfterMs(response.headers,attempt));
       continue;
     }

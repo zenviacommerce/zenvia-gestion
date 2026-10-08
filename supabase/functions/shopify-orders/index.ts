@@ -54,7 +54,7 @@ query ZenviaOrders($first:Int!,$after:String,$query:String){
     pageInfo{hasNextPage endCursor}
     nodes{
       id legacyResourceId name createdAt updatedAt
-      displayFulfillmentStatus displayFinancialStatus
+      cancelledAt displayFulfillmentStatus displayFinancialStatus
       email phone
       totalPriceSet{shopMoney{amount currencyCode}}
       shippingAddress{name company address1 address2 city provinceCode zip countryCodeV2 phone}
@@ -103,6 +103,7 @@ function latestTracking(order:any){
   return null;
 }
 function sourceStatus(order:any){
+  if(order.cancelledAt)return 'cancelled';
   const status=clean(order?.displayFulfillmentStatus).toUpperCase();
   if(status==='FULFILLED')return 'shipped';
   if(status==='PARTIALLY_FULFILLED')return 'partially_shipped';
@@ -186,7 +187,7 @@ Deno.serve(async(req:Request)=>{
           };
         });
         if(rows.length){
-          const previous=await admin.from('fulfillment_orders').select('sendcloud_id,label_created_at,tracking_number,tracking_url,carrier_name,tracking_status_code,tracking_status_message,tracking_updated_at,fulfilled_at,raw_payload').eq('owner_id',caller.data_owner_id).in('sendcloud_id',rows.map((row:any)=>row.sendcloud_id));
+          const previous=await admin.from('fulfillment_orders').select('sendcloud_id,label_created_at,label_cancelled_at,tracking_number,tracking_url,carrier_name,tracking_status_code,tracking_status_message,tracking_updated_at,fulfilled_at,raw_payload').eq('owner_id',caller.data_owner_id).in('sendcloud_id',rows.map((row:any)=>row.sendcloud_id));
           if(previous.error)throw previous.error;
           const {error}=await admin.from('fulfillment_orders').upsert(preserveShopifyLabelTracking(rows,previous.data||[]),{onConflict:'owner_id,sendcloud_id'});
           if(error)throw error;

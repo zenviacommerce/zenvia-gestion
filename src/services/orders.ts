@@ -4,7 +4,10 @@ import type { ShippingSettings } from './settingsSchema';
 
 export type OrderChannel = 'amazon' | 'shopify' | 'other';
 
+export interface CancellationOperation {id:string;kind:'label'|'order';provider:string;status:'submitting'|'pending'|'confirmed'|'rejected'|'unknown';message:string|null;created_at:string;details?:{trackingNumber?:string|null}}
 export interface FulfillmentOrder {
+  cancellations?:CancellationOperation[];
+  labelCancelledAt?:string|null;
   shopifySyncError?:string|null;
   id:string; sendcloudId:string; orderId:string|null; orderNumber:string|null;
   sourceIntegrationAccountId:string|null; shippingIntegrationAccountId:string|null;
@@ -108,6 +111,7 @@ function mapRow(row:any):FulfillmentOrder{
     shippingProvider:row.shipping_provider==='envia'?'envia':row.shipping_provider==='mrw'?'mrw':row.shipping_provider==='sendcloud'?'sendcloud':(row.sendcloud_parcel_id||row.sendcloud_shipment_id?'sendcloud':null),
     shippingRemoteId:row.shipping_remote_id||null, shippingLabelUrl:row.shipping_label_url||null,
     trackingNumber:row.tracking_number||null, trackingUrl:row.tracking_url||null,
+    labelCancelledAt:row.label_cancelled_at||null,
     shopifySyncError:row.shopify_tracking_synced_number===row.tracking_number?null:row.shopify_tracking_sync_error||null,
     carrierTrackingUrl:row.raw_payload?._zenvia_tracking?.number===row.tracking_number?row.raw_payload._zenvia_tracking.url||null:null,
     trackingStatusCode:row.tracking_status_code||null, trackingStatusMessage:row.tracking_status_message||null, trackingUpdatedAt:row.tracking_updated_at||null,
@@ -194,6 +198,9 @@ export async function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
   const {data,error}=await supabase.from('fulfillment_orders').select('*').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000);
   if(error)throw error;
   const orders=dedupeMarketplaceOrders((data||[]).map(mapRow));
+  const cancellations=await supabase.from('order_cancellation_operations').select('id,order_id,kind,provider,status,message,created_at,details').order('created_at',{ascending:false}).limit(10000);
+  if(cancellations.error)throw cancellations.error;
+  const byOrder=new Map<string,CancellationOperation[]>();for(const op of cancellations.data||[]){const rows=byOrder.get(op.order_id)||[];rows.push(op as CancellationOperation);byOrder.set(op.order_id,rows);}for(const order of orders)order.cancellations=byOrder.get(order.id)||[];
   const accountIds=[...new Set(orders.map(order=>order.sourceIntegrationAccountId).filter((id):id is string=>Boolean(id)))];
   if(!accountIds.length)return orders;
   let accounts:Array<{id:string;displayName:string}>=[];
@@ -410,3 +417,6 @@ export function getOrderTrackingLink(orderId:string){
 }
 
 export function reconcileAmazonOrders(){return invokeFunction<{ok:boolean;processed:number;failures:Array<{orderId:string;error:string}>}>('amazon-reconcile-orders',{});}
+
+export function cancelOrderOperation(orderId:string,kind:'label'|'order',options:{reason?:string;refund?:boolean;restock?:boolean}={}){return invokeFunction<{ok:true;operations:CancellationOperation[]}>('order-cancellation',{action:'cancel',orderId,kind,...options});}
+export function refreshOrderCancellation(orderId:string){return invokeFunction<{ok:true;operations:CancellationOperation[]}>('order-cancellation',{action:'refresh',orderId});}

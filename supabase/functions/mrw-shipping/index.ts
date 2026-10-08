@@ -1,3 +1,4 @@
+import {claimOrderShipping,releaseOrderShipping,assertNoCancellation} from '../_shared/orderCancellation.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders={
@@ -144,6 +145,7 @@ Deno.serve(async(req:Request)=>{
   if(req.method!=='POST')return response({error:'Método no permitido.'},405);
   const url=clean(Deno.env.get('SUPABASE_URL')),key=getAdminKey();if(!url||!key)return response({error:'Configuración interna no disponible.'},500);
   const admin=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
+  let shippingClaim:any=null;
   try{
     const caller=await authenticate(req,admin),body=await req.json().catch(()=>({}));let action=clean(body?.action);
     const account=await mrwAccount(admin,caller.data_owner_id,clean(body?.integrationAccountId||body?.shippingOption?.integrationAccountId));
@@ -154,6 +156,8 @@ Deno.serve(async(req:Request)=>{
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('owner_id',caller.data_owner_id).eq('id',orderId).maybeSingle();
     if(error)throw error;if(!order)return response({error:'Pedido no encontrado.'},404);
     if(action==='create_label'){
+      shippingClaim=await claimOrderShipping(admin,order);
+      const fresh=await admin.from('fulfillment_orders').select('*').eq('id',order.id).eq('owner_id',caller.data_owner_id).single();if(fresh.error)throw fresh.error;Object.assign(order,fresh.data);
       if(order.shipping_remote_id&&order.shipping_provider==='mrw')action='fetch_label';
       else if(order.order_number){
         const {data:related,error:relatedError}=await admin.from('fulfillment_orders').select('shipping_remote_id,tracking_number,shipping_integration_account_id').eq('owner_id',caller.data_owner_id).eq('order_number',order.order_number).eq('shipping_provider','mrw').not('shipping_remote_id','is',null).limit(1).maybeSingle();
@@ -214,6 +218,7 @@ Deno.serve(async(req:Request)=>{
     }
 
     if(action==='fetch_label'){
+      await assertNoCancellation(admin,order);
       const shipment=clean(order.shipping_remote_id||order.tracking_number);if(!shipment)return response({error:'El pedido no tiene número de envío MRW.'},409);
       const labelRequest=`<GetEtiquetaEnvio xmlns="http://www.mrw.es/"><request><NumeroEnvio>${esc(shipment)}</NumeroEnvio><NumerosEtiqueta></NumerosEtiqueta><SeparadorNumerosEnvio></SeparadorNumerosEnvio><FechaInicioEnvio></FechaInicioEnvio><FechaFinEnvio></FechaFinEnvio><TipoEtiquetaEnvio>0</TipoEtiquetaEnvio><ReportTopMargin>0</ReportTopMargin><ReportLeftMargin>0</ReportLeftMargin></request></GetEtiquetaEnvio>`;
       const labelXml=await soapCall(base,account.credentials,'GetEtiquetaEnvio',labelRequest),base64=xmlValue(labelXml,'EtiquetaFile');
@@ -225,5 +230,5 @@ Deno.serve(async(req:Request)=>{
   }catch(error){
     const message=error instanceof Error?error.message:'Error interno.';
     return response({error:message},/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:/requiere|Faltan|Completa|no tiene/.test(message)?409:500);
-  }
+  }finally{await releaseOrderShipping(admin,shippingClaim);}
 });

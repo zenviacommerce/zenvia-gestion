@@ -1,4 +1,4 @@
-export async function confirmShopifyShipment(request:(query:string,variables:any)=>Promise<any>,shipment:{orderId:string;number:string;company:string;url?:string|null}){
+export async function confirmShopifyShipment(request:(query:string,variables:any)=>Promise<any>,shipment:{orderId:string;number:string;company:string;url?:string|null;previousNumber?:string|null}){
   if(!/^gid:\/\/shopify\/Order\/\d+$/.test(shipment.orderId)||!shipment.number.trim())throw new Error('Falta el pedido Shopify o el seguimiento.');
   const trackingInfo:any={number:shipment.number.trim(),company:shipment.company.trim()||'Transportista'};
   if(shipment.url){const url=new URL(shipment.url);if(!['https:','http:'].includes(url.protocol))throw new Error('Enlace de seguimiento no válido.');trackingInfo.url=url.href;}
@@ -13,6 +13,18 @@ export async function confirmShopifyShipment(request:(query:string,variables:any
   }while(after);
   const existing=(remote.fulfillments||[]).filter((f:any)=>f.status==='SUCCESS'&&(f.trackingInfo||[]).some((t:any)=>t.number===trackingInfo.number));
   if((remote.fulfillments||[]).length>=250)throw new Error('Revisa manualmente los envíos de este pedido Shopify.');
+  if(shipment.previousNumber){
+    const replacements=(remote.fulfillments||[]).filter((f:any)=>f.status==='SUCCESS'&&(f.trackingInfo||[]).some((t:any)=>t.number===shipment.previousNumber));
+    if(replacements.length||existing.length){
+      const ids=existing.map((f:any)=>f.id);
+      for(const previous of replacements){
+      const result=await request(`mutation ZenviaReplaceTracking($id:ID!,$tracking:FulfillmentTrackingInput!){fulfillmentTrackingInfoUpdate(fulfillmentId:$id,trackingInfoInput:$tracking,notifyCustomer:false){fulfillment{id} userErrors{field message}}}`,{id:previous.id,tracking:trackingInfo});
+      const payload=result.fulfillmentTrackingInfoUpdate;if(payload?.userErrors?.length)throw new Error(payload.userErrors.map((e:any)=>e.message).join(' · '));if(!payload?.fulfillment?.id)throw new Error('Shopify no confirmó el nuevo seguimiento.');
+      ids.push(payload.fulfillment.id);
+      }
+      return {fulfillmentIds:ids,status:replacements.length?'confirmed':'already_synced'};
+    }
+  }
   const groups=new Map<string,any[]>();
   for(const fo of fulfillmentOrders){
     if(['CLOSED','CANCELLED'].includes(fo.status))continue;
@@ -41,10 +53,11 @@ export async function confirmShopifyShipment(request:(query:string,variables:any
 }
 
 export function preserveShopifyLabelTracking(rows:any[],existing:any[]){
- const local=new Map(existing.filter(row=>row.label_created_at).map(row=>[row.sendcloud_id,row]));
+ const local=new Map(existing.filter(row=>row.label_created_at||row.label_cancelled_at).map(row=>[row.sendcloud_id,row]));
  return rows.map(row=>{
   const saved:any=local.get(row.sendcloud_id);if(!saved)return row;
   const result={...row};
+  if(saved.label_cancelled_at&&!saved.label_created_at){for(const key of ['tracking_number','tracking_url','tracking_status_code','tracking_status_message','tracking_updated_at','fulfilled_at'])result[key]=null;return result;}
   for(const key of ['tracking_number','tracking_url','carrier_name','tracking_status_code','tracking_status_message','tracking_updated_at','fulfilled_at'])result[key]=saved[key]??row[key];
   if(saved.raw_payload?._zenvia_tracking)result.raw_payload={...row.raw_payload,_zenvia_tracking:saved.raw_payload._zenvia_tracking};
   return result;

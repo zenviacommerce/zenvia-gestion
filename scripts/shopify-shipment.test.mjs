@@ -45,3 +45,13 @@ test('Shopify refresh preserves local label tracking until marketplace confirmat
  assert.equal(result[0].tracking_number,'LOCAL');assert.equal(result[0].tracking_url,'https://mrw.es/1');
  assert.equal(preserveShopifyLabelTracking(remote,[])[0].tracking_number,null);
 });
+
+test('replacement tracking updates all warehouse fulfillments and resumes a partial update without creating shipments',async()=>{
+ const {confirmShopifyShipment}=helper();const remote=[{id:'f1',status:'SUCCESS',trackingInfo:[{number:'OLD'}]},{id:'f2',status:'SUCCESS',trackingInfo:[{number:'OLD'}]}];let fail=true;const mutations=[];
+ const request=async(q,v)=>{if(q.includes('ZenviaShipmentOrder'))return {order:{cancelledAt:null,fulfillments:remote,fulfillmentOrders:{nodes:[],pageInfo:{hasNextPage:false}}}};assert.ok(q.includes('ZenviaReplaceTracking'));mutations.push(v.id);if(v.id==='f2'&&fail){fail=false;throw new Error('timeout')}remote.find(f=>f.id===v.id).trackingInfo=[{number:'MRW123'}];return {fulfillmentTrackingInfoUpdate:{fulfillment:{id:v.id},userErrors:[]}};};
+ await assert.rejects(()=>confirmShopifyShipment(request,{...shipment,previousNumber:'OLD'}),/timeout/);const result=await confirmShopifyShipment(request,{...shipment,previousNumber:'OLD'});assert.equal(result.fulfillmentIds.length,2);assert.deepEqual(mutations,['f1','f2','f2']);
+});
+test('a Shopify refresh does not restore the old tracking after a confirmed label cancellation',()=>{
+ const {preserveShopifyLabelTracking}=vm.runInNewContext(stripTypeScriptTypes(fs.readFileSync('supabase/functions/_shared/shopifyShipment.ts','utf8').replaceAll('export ',''))+'\n({preserveShopifyLabelTracking})',{URL,Error});
+ const result=preserveShopifyLabelTracking([{sendcloud_id:'a',tracking_number:'OLD',tracking_url:'https://old',fulfilled_at:'today'}],[{sendcloud_id:'a',label_created_at:null,label_cancelled_at:'today'}]);assert.equal(result[0].tracking_number,null);assert.equal(result[0].fulfilled_at,null);
+});

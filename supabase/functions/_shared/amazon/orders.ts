@@ -145,7 +145,7 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
     .eq('source_channel','amazon')
     .in('order_number',orderIds);
   if(existingError)throw existingError;
-  const existingByOrder=new Map((existing||[]).map((row:any)=>[String(row.order_number||row.order_id||''),row]));
+  const existingByOrder=new Map<string,any>((existing||[]).map((row:any)=>[String(row.order_number||row.order_id||''),row]));
   const fallbackWeight=await fallbackWeightKg(admin,job.owner_id);
   let synced=0;
   for(const order of candidates){

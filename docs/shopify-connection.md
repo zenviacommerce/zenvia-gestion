@@ -24,3 +24,10 @@ Run `node --test scripts/*.test.mjs`, `npm run build` and `npx deno check supaba
 
 ## Confirmación de envíos
 Al crear una etiqueta, la automatización «Comunicar al marketplace» también confirma Shopify directamente. Requiere `read_orders`, `read_merchant_managed_fulfillment_orders` y `write_merchant_managed_fulfillment_orders`; añadir los permisos en Shopify, publicar y volver a conectar las cuentas existentes. Usa las cantidades restantes por ubicación y comunica transportista, número y URL de seguimiento. No envía correos al cliente (`notifyCustomer:false`). Los reintentos usan un bloqueo por pedido y comprueban los fulfillments remotos antes de crear nuevos. Si Shopify falla, la etiqueta se conserva y se registra la incidencia; se reintenta al refrescar Pedidos cuando está habilitado. No ejecuta confirmaciones nuevas si guardar seguimiento o comunicar al marketplace están desactivados.
+
+
+## Cancelaciones desde Pedidos
+
+En el detalle de un pedido, «Anular etiqueta» conserva el pedido y solicita la anulación al transportista asociado. «Cancelar pedido» solicita la cancelación en Amazon FBM o Shopify y, si existe etiqueta, presenta su anulación por separado. Amazon requiere un pedido MFN en estado Unshipped: se consulta el estado remoto y se envía un POST_ORDER_ACKNOWLEDGEMENT_DATA, con seguimiento del informe. Shopify requiere write_orders; las cuentas existentes deben actualizar los permisos de la app y volver a autorizar. Por defecto no hay reembolso ni aviso al cliente; se puede seleccionar reembolso y reposición de inventario antes de la confirmación.
+
+Las solicitudes pendientes se comprueban con «Comprobar cancelación» y mientras está abierto el detalle. Una respuesta incierta no se reenvía automáticamente. Un rechazo definitivo admite un nuevo intento explícito y conserva los anteriores en el registro. La anulación confirmada elimina la etiqueta activa y permite crear otra; no garantiza un abono del transportista. El reemplazo actualiza el tracking de los fulfillments Shopify correspondientes, incluso en varias ubicaciones, sin duplicarlos. Amazon solo actualiza un paquete cuando puede identificarlo de forma segura.

@@ -1,3 +1,4 @@
+import {claimOrderShipping,releaseOrderShipping,assertNoCancellation} from '../_shared/orderCancellation.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders={
@@ -552,6 +553,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
         existing=marketplaceMatch;
       }
 
+      const cancelled=await admin.from('order_cancellation_operations').select('id').eq('owner_id',ownerId).eq('kind','label').eq('provider','envia').eq('status','confirmed').contains('details',{trackingNumber:tracking}).limit(1);if(cancelled.error)throw cancelled.error;if(cancelled.data?.length)continue;
       const externallyDiscovered=!existing?.shipping_provider&&!existing?.label_created_at;
       const patch:any={
         shipping_provider:'envia',
@@ -608,6 +610,7 @@ Deno.serve(async(req:Request)=>{
   const url=clean(Deno.env.get('SUPABASE_URL')),key=getAdminKey();
   if(!url||!key)return fail('Configuración del backend no disponible.',500);
   const admin=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
+  let shippingClaim:any=null;
   try{
     const caller=await authenticate(req,admin);
     const body=await req.json().catch(()=>({}));
@@ -658,6 +661,8 @@ Deno.serve(async(req:Request)=>{
     }
 
     if(action==='create_label'){
+      shippingClaim=await claimOrderShipping(admin,order);
+      const fresh=await admin.from('fulfillment_orders').select('*').eq('id',order.id).eq('owner_id',caller.data_owner_id).single();if(fresh.error)throw fresh.error;Object.assign(order,fresh.data);
       if(order.sendcloud_parcel_id||order.shipping_remote_id||order.label_created_at)return fail('Este pedido ya tiene una etiqueta.',409);
       const option=body?.shippingOption||{};
       const accountId=clean(option?.integrationAccountId);
@@ -761,6 +766,7 @@ Deno.serve(async(req:Request)=>{
     }
 
     if(action==='fetch_label'){
+      await assertNoCancellation(admin,order);
       if(order.shipping_provider!=='envia'||!order.shipping_label_url)return fail('Este pedido no tiene una etiqueta de Envia.com.',404);
       const pdf=await labelPdf(String(order.shipping_label_url));
       return response({
@@ -780,5 +786,5 @@ Deno.serve(async(req:Request)=>{
     }
     const status=/Sesión no válida/.test(message)?401:/permiso|desactivado/.test(message)?403:/ya tiene una etiqueta/.test(message)?409:/Saldo insuficiente en Envia\.com/.test(message)?402:500;
     return fail(message,status);
-  }
+  }finally{await releaseOrderShipping(admin,shippingClaim);}
 });

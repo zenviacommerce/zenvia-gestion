@@ -19,6 +19,7 @@ export function isReadyForDispatch(order:FulfillmentOrder){
 }
 
 export function isProcessedOrder(order:FulfillmentOrder){
+  if(order.labelCancelledAt&&!hasShippingLabel(order)&&!isCancelledOrder(order))return false;
   if(isReadyForDispatch(order))return false;
   const status=orderStatusCode(order);
   return status==='fulfilled'||status==='shipped'||status==='delivered';
@@ -29,5 +30,5 @@ export function isLabelledOrder(order:FulfillmentOrder){
 }
 
 export function isPendingOrder(order:FulfillmentOrder){
-  return !hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);
+  return !order.cancellations?.some(op=>['submitting','pending','unknown'].includes(op.status))&&!hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);
 }

@@ -1,3 +1,4 @@
+import {useFilterState} from '../components/RetainedImportPage';
 import { useEffect, useMemo, useState } from 'react';
 import { Building2, CalendarDays, ChevronRight, FileText, Globe, Mail, MapPin, Package, Pencil, Phone, Search, ShoppingCart, Trash2, X } from 'lucide-react';
 import { loadAppData } from '../services/repository';
@@ -61,16 +62,16 @@ export function Suppliers({suppliers,onAdd,onEdit,onDelete}:{suppliers:Supplier[
  const remembered=rememberedFilter<{query:string;typeFilter:SupplierTypeFilter;activityFilter:SupplierActivityFilter;categoryFilter:string;dateFilter:ReturnType<typeof defaultDateFilter>}>(preferences,'suppliers.filters',{query:'',typeFilter:'all',activityFilter:'all',categoryFilter:'all',dateFilter:defaultDateFilter(preferences.defaultPeriod)});
  const [busyId,setBusyId]=useState<string|null>(null);
  const [error,setError]=useState('');
- const [query,setQuery]=useState(remembered.query);
- const [typeFilter,setTypeFilter]=useState<SupplierTypeFilter>(remembered.typeFilter);
- const [activityFilter,setActivityFilter]=useState<SupplierActivityFilter>(remembered.activityFilter);
- const [categoryFilter,setCategoryFilter]=useState(remembered.categoryFilter);
+ const [query,setQuery]=useFilterState(remembered.query,preferences.rememberFilters);
+ const [typeFilter,setTypeFilter]=useFilterState<SupplierTypeFilter>(remembered.typeFilter,preferences.rememberFilters);
+ const [activityFilter,setActivityFilter]=useFilterState<SupplierActivityFilter>(remembered.activityFilter,preferences.rememberFilters);
+ const [categoryFilter,setCategoryFilter]=useFilterState(remembered.categoryFilter,preferences.rememberFilters);
  const [selected,setSelected]=useState<Supplier|null>(null);
  const [checkedIds,setCheckedIds]=useState<Set<string>>(()=>new Set());
  const [bulkBusy,setBulkBusy]=useState(false);
  const [invoices,setInvoices]=useState<Invoice[]>([]);
  const [categories,setCategories]=useState<ExpenseCategory[]>([]);
- const [dateFilter,setDateFilter]=useState(remembered.dateFilter);
+ const [dateFilter,setDateFilter]=useFilterState(remembered.dateFilter,preferences.rememberFilters);
  const [page,setPage]=useState(1);
 
  useEffect(()=>{let cancelled=false;loadAppData().then(data=>{if(!cancelled){setInvoices(data.invoices);setCategories(data.categories)}}).catch(()=>{});return()=>{cancelled=true}},[suppliers]);

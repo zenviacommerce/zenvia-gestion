@@ -1,3 +1,4 @@
+import {claimOrderShipping,releaseOrderShipping,assertNoCancellation} from '../_shared/orderCancellation.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders={
@@ -187,6 +188,7 @@ Deno.serve(async(req:Request)=>{
   if(req.method==='OPTIONS')return new Response('ok',{headers:corsHeaders});if(req.method!=='POST')return fail('Método no permitido.',405);
   const url=Deno.env.get('SUPABASE_URL')||'',adminKey=getAdminKey();if(!url||!adminKey)return fail('Configuración del backend no disponible.',500);
   const admin=createClient(url,adminKey,{auth:{persistSession:false,autoRefreshToken:false}});
+  let shippingClaim:any=null,shippingAdmin:any=null;
   try{
     const caller=await authenticate(req,admin),body=await req.json().catch(()=>({})),action=String(body?.action||'status'),config=await workspaceConfig(admin,caller.data_owner_id),ordersConfig=config.orders,shippingConfig=config.shipping,integrationConfig=config.integrations;
     const requestedIntegrationAccountId=clean(body?.integrationAccountId)||null;
@@ -226,18 +228,20 @@ Deno.serve(async(req:Request)=>{
 
     const orderId=String(body?.orderId||'');if(!orderId)return fail('Falta el pedido.');
     const {data:order,error:orderError}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();if(orderError)throw orderError;if(!order)return fail('Pedido no encontrado.',404);
-    const orderSendcloudAccount=await loadSendcloudAccount(admin,caller.data_owner_id,order.shipping_integration_account_id||null);
+    const orderSendcloudAccount=await loadSendcloudAccount(admin,caller.data_owner_id,(action==='create_label'?body?.shippingOption?.integrationAccountId:null)||(order.shipping_provider==='envia'||order.shipping_provider==='mrw'?null:order.shipping_integration_account_id)||null);
     const orderCredentials=orderSendcloudAccount.credentials;
 
     if(action==='shipping_options'){
-      if(nonActionable(order.source_status))return fail('Este pedido ya no admite preparación de etiqueta por su estado actual.',409);
+      if(nonActionable(order.source_status)&&!(order.label_cancelled_at&&!/cancel/i.test(order.source_status||'')))return fail('Este pedido ya no admite preparación de etiqueta por su estado actual.',409);
       const address=order.shipping_address||{},requestBody:any={calculate_quotes:false};if(address.country_code||address.postal_code||address.city)requestBody.to_address={country_code:address.country_code||undefined,postal_code:address.postal_code||undefined,city:address.city||undefined,address_line_1:address.address_line_1||undefined,house_number:address.house_number||undefined};
       const weight=order?.raw_payload?.shipping_details?.measurement?.weight;if(weight?.value)requestBody.weight={value:Number(weight.value),unit:weight.unit||'kg'};
       const {data}=await sendcloudJson(orderCredentials,'/shipping-options',{method:'POST',body:JSON.stringify(requestBody)});return response({options:(data?.data||[]).map(normalizeShippingOption).filter((i:any)=>i.code)});
     }
 
     if(action==='create_label'){
-      if(order.sendcloud_parcel_id)return fail('Este pedido ya tiene una etiqueta creada.',409);if(nonActionable(order.source_status))return fail('No se puede crear una etiqueta para un pedido cancelado o ya procesado.',409);
+      shippingAdmin=admin;shippingClaim=await claimOrderShipping(admin,order);
+      const fresh=await admin.from('fulfillment_orders').select('*').eq('id',order.id).eq('owner_id',caller.data_owner_id).single();if(fresh.error)throw fresh.error;Object.assign(order,fresh.data);
+      if(order.sendcloud_parcel_id)return fail('Este pedido ya tiene una etiqueta creada.',409);if(nonActionable(order.source_status)&&!(order.label_cancelled_at&&!/cancel/i.test(order.source_status||'')))return fail('No se puede crear una etiqueta para un pedido cancelado o ya procesado.',409);
       const selected=body?.shippingOption||null;
       if(selected&&!enabledCarrier(selected,shippingConfig.enabledCarriers))return fail('El transportista seleccionado está deshabilitado en Configuración.',409);
       if(!selected&&Array.isArray(shippingConfig.enabledCarriers)&&shippingConfig.enabledCarriers.length)return fail('Selecciona un servicio de uno de los transportistas habilitados.',409);
@@ -318,16 +322,17 @@ Deno.serve(async(req:Request)=>{
       const shouldMarkSent=automation.markSent&&markSentAfterLabel&&confirmShipmentAfterLabel;
       const costPatch=persistShippingCost&&Number.isFinite(selectedPrice)?{shipping_cost_amount:selectedPrice,shipping_cost_currency:selectedCurrency||'EUR',shipping_cost_source:'sendcloud_quote',shipping_cost_net_amount:selectedPrice,shipping_cost_tax_amount:0,shipping_cost_recorded_at:now}:{};
       const trackingPatch=automation.saveTracking?{tracking_number:created.tracking_number||null,tracking_url:created.tracking_url||null,tracking_status_code:'READY_TO_SEND',tracking_status_message:'Ready to send',tracking_updated_at:now}:{};
-      const shipmentPatch:any={sendcloud_parcel_id:Number(created.parcel_id),sendcloud_shipment_id:created.shipment_id==null?null:String(created.shipment_id),shipping_option_code:optionCode,contract_id:ship.contract_id??selected?.contractId??null,carrier_code:code,carrier_name:selected?.carrierName||friendlyCarrier(code),shipping_service_name:selected?.name||optionCode,label_created_at:now,...trackingPatch,...costPatch};
+      const shipmentPatch:any={shipping_provider:'sendcloud',shipping_remote_id:null,shipping_integration_account_id:orderSendcloudAccount.id,sendcloud_parcel_id:Number(created.parcel_id),sendcloud_shipment_id:created.shipment_id==null?null:String(created.shipment_id),shipping_option_code:optionCode,contract_id:ship.contract_id??selected?.contractId??null,carrier_code:code,carrier_name:selected?.carrierName||friendlyCarrier(code),shipping_service_name:selected?.name||optionCode,label_created_at:now,...trackingPatch,...costPatch};
       if(shouldMarkSent){shipmentPatch.fulfilled_at=now;shipmentPatch.source_status='shipped';}
       const {error:updateError}=await admin.from('fulfillment_orders').update(shipmentPatch).eq('id',order.id).eq('owner_id',caller.data_owner_id);if(updateError)throw updateError;
       return response({parcelId:Number(created.parcel_id),shipmentId:created.shipment_id==null?null:String(created.shipment_id),trackingNumber:created.tracking_number||null,trackingUrl:created.tracking_url||null,shippingOptionCode:optionCode,contractId:ship.contract_id??selected?.contractId??null,carrierCode:code,carrierName:selected?.carrierName||friendlyCarrier(code),shippingServiceName:selected?.name||optionCode,mimeType:created.label.mime_type||'application/pdf',base64:String(created.label.file)});
     }
 
     if(action==='fetch_label'){
+      await assertNoCancellation(admin,order);
       if(!order.sendcloud_parcel_id)return fail('Este pedido todavía no tiene etiqueta.',409);const file=await sendcloudBinary(orderCredentials,`/parcels/${encodeURIComponent(String(order.sendcloud_parcel_id))}/documents/label?dpi=72`,'application/pdf');
       return response({parcelId:Number(order.sendcloud_parcel_id),shipmentId:order.sendcloud_shipment_id||null,trackingNumber:order.tracking_number||null,trackingUrl:order.tracking_url||null,shippingOptionCode:order.shipping_option_code||null,contractId:order.contract_id==null?null:Number(order.contract_id),carrierCode:order.carrier_code||null,carrierName:order.carrier_name||null,shippingServiceName:order.shipping_service_name||null,mimeType:file.mimeType,base64:file.base64});
     }
     return fail('Acción no válida.');
-  }catch(error){const message=error instanceof Error?error.message:String(error||'Error interno.');const status=/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:/no admite|No se puede|deshabilitado|transportistas habilitados/.test(message)?409:500;return fail(message,status);}
+  }catch(error){const message=error instanceof Error?error.message:String(error||'Error interno.');const status=/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:/no admite|No se puede|deshabilitado|transportistas habilitados/.test(message)?409:500;return fail(message,status);}finally{await releaseOrderShipping(shippingAdmin,shippingClaim);}
 });

@@ -6,7 +6,7 @@ const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
 test('orders always open on all channels and do not persist the channel filter',async()=>{
   const orders=await read('src/pages/Orders.tsx');
-  assert.match(orders,/setChannel\]=useState<'all'\|OrderChannel>\('all'\)/);
+  assert.match(orders,/setChannel\]=useFilterState<'all'\|OrderChannel>\('all',preferences\.rememberFilters\)/);
   assert.doesNotMatch(orders,/const\s+initialChannel\s*=/);
   assert.doesNotMatch(orders,/const value=\{query,channel,state/);
   assert.match(orders,/const value=\{query,state,trackingFilter,countryFilter,carrierFilter,dateFilter\}/);

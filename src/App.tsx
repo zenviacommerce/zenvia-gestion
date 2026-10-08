@@ -1,4 +1,5 @@
 import {RetainedImportPage} from './components/RetainedImportPage';
+import { finishShopifyAuthorization } from './services/integrationAccounts';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
 import { LoaderCircle, LockKeyhole, LogOut, Moon, Sun } from 'lucide-react';
@@ -222,6 +223,18 @@ export default function App(){
    window.addEventListener('focus',syncBranding);
    return()=>window.removeEventListener('focus',syncBranding);
  },[userId,access?.active,refreshWorkspaceBranding]);
+
+ const shopifyCallbackStarted=useRef(false);
+ useEffect(()=>{
+   if(!accessReady||!access?.active||!allowedPages.includes('settings')||settingsLoading||shopifyCallbackStarted.current)return;
+   const params=new URLSearchParams(window.location.search);
+   if(!params.has('shop')||!params.has('hmac')||!params.has('state'))return;
+   shopifyCallbackStarted.current=true;
+   setSettingsInitialSection('integrations');setPage('settings');startPageApplied.current=true;
+   void finishShopifyAuthorization().then(completed=>{
+     if(completed){showSuccess('Shopify conectado. Ya puedes sincronizar los pedidos.');window.dispatchEvent(new Event('zenvia:integrations-changed'));}
+   }).catch(error=>showError(errorMessage(error,'No se pudo completar la autorización de Shopify.')));
+ },[accessReady,access?.active,allowedPages,settingsLoading]);
 
  useEffect(()=>{
    if(!accessReady||!access?.active||!allowedPages.length)return;

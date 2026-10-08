@@ -201,12 +201,12 @@ export async function loadAmazonStatus(integrationAccountId?:string):Promise<Ama
     }catch(error){notifyAmazonConnectivityError(error);throw error;}
   }finally{activity.finish();}
 }
-export async function requestAmazonSync(integrationAccountId?:string,options:{waitForOrders?:boolean}={}){
+export async function requestAmazonSync(integrationAccountId?:string,options:{waitForOrders?:boolean;ordersOnly?:boolean}={}){
   const activity=startActivity({label:'Sincronizando Amazon',detail:'Solicitando trabajos de sincronización…',showAfterMs:200,key:'amazon-sync',scope:'amazon',maxAgeMs:options.waitForOrders?400000:45000});
   try{
     if(typeof navigator!=='undefined'&&!navigator.onLine)throw offlineError();
     try{
-      const {data,error}=await withAmazonTimeout(supabase.functions.invoke('amazon-sync-manual',{body:{...(integrationAccountId?{integrationAccountId}:{}),...(options.waitForOrders?{ordersOnly:true}:{})}}),40000);
+      const {data,error}=await withAmazonTimeout(supabase.functions.invoke('amazon-sync-manual',{body:{...(integrationAccountId?{integrationAccountId}:{}),...((options.waitForOrders||options.ordersOnly)?{ordersOnly:true}:{})}}),40000);
       if(error||!data||data.error){
         const next=new Error(message(data,error,'No se pudo iniciar la sincronización de Amazon.'));
         notifyAmazonConnectivityError(next);

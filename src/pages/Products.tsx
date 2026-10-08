@@ -1,3 +1,4 @@
+import {useFilterState} from '../components/RetainedImportPage';
 import { useEffect, useMemo, useState } from 'react';
 import { Barcode, Building2, Calculator, ChevronRight, Euro, Package, Percent, Search, Tag, Trash2, TrendingDown, TrendingUp, X, Pencil } from 'lucide-react';
 import type { Product } from '../types';
@@ -64,12 +65,12 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
  const costIncreaseThreshold=settings.products.costIncreaseAlertPct;
  const costMoney=(value:number|null)=>money(value,Math.min(settings.products.costDecimals,8),Math.min(settings.products.costDecimals,8));
  const remembered=rememberedFilter<{query:string;dateFilter:ReturnType<typeof dateFilterForPreset>;categoryFilter:string;supplierFilter:string;scope:ProductScope;taxFilter:string}>(preferences,'products.filters',{query:'',dateFilter:dateFilterForPreset(preferences.defaultPeriod),categoryFilter:'all',supplierFilter:'all',scope:'all',taxFilter:'all'});
- const [query,setQuery]=useState(remembered.query);
- const [dateFilter,setDateFilter]=useState(remembered.dateFilter);
- const [categoryFilter,setCategoryFilter]=useState(remembered.categoryFilter);
- const [supplierFilter,setSupplierFilter]=useState(remembered.supplierFilter);
- const [scope,setScope]=useState<ProductScope>(remembered.scope);
- const [taxFilter,setTaxFilter]=useState(remembered.taxFilter);
+ const [query,setQuery]=useFilterState(remembered.query,preferences.rememberFilters);
+ const [dateFilter,setDateFilter]=useFilterState(remembered.dateFilter,preferences.rememberFilters);
+ const [categoryFilter,setCategoryFilter]=useFilterState(remembered.categoryFilter,preferences.rememberFilters);
+ const [supplierFilter,setSupplierFilter]=useFilterState(remembered.supplierFilter,preferences.rememberFilters);
+ const [scope,setScope]=useFilterState<ProductScope>(remembered.scope,preferences.rememberFilters);
+ const [taxFilter,setTaxFilter]=useFilterState(remembered.taxFilter,preferences.rememberFilters);
  const [busyId,setBusyId]=useState<string|null>(null);
  const [error,setError]=useState('');
  const [page,setPage]=useState(1);

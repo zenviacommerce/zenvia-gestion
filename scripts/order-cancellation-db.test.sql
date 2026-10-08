@@ -1,0 +1,33 @@
+begin;
+do $$
+declare tenant uuid;usr uuid;oid uuid=gen_random_uuid();lease uuid=gen_random_uuid();claim jsonb;opid uuid;newop uuid;row public.fulfillment_orders;failed boolean;
+begin
+ select data_owner_id,user_id into tenant,usr from app_users where active and role='admin' limit 1;
+ if tenant is null then raise exception 'Missing fixture tenant';end if;
+ insert into fulfillment_orders(id,owner_id,sendcloud_id,integration_id,source_channel,source_status,shipping_provider,shipping_remote_id,tracking_number,label_created_at) values(oid,tenant,'CANCEL-TEST-'||oid,0,'shopify','pending','mrw','TEST-A','TEST-A',now());
+ if integration_claim_order_shipping(oid,gen_random_uuid(),lease) then raise exception 'Cross-tenant claim';end if;
+ if not integration_claim_order_shipping(oid,tenant,lease) then raise exception 'Shipping lease missing';end if;
+ failed=false;begin perform integration_start_cancellation(oid,tenant,'label','mrw','A',usr,'{"shipmentRef":"TEST-A"}');exception when others then failed=true;end;if not failed then raise exception 'Cancel ignored shipping lease';end if;
+ update fulfillment_orders set order_action_lease=null,order_action_lease_until=null where id=oid;
+ claim=integration_start_cancellation(oid,tenant,'label','mrw','A',usr,'{"shipmentRef":"TEST-A","trackingNumber":"TEST-A"}');opid=(claim->'operation'->>'id')::uuid;
+ if not (claim->>'claimed')::boolean then raise exception 'Cancel not claimed';end if;
+ claim=integration_start_cancellation(oid,tenant,'label','mrw','A',usr,'{"shipmentRef":"TEST-A"}');if (claim->>'claimed')::boolean then raise exception 'Duplicate cancellation';end if;
+ failed=false;begin perform integration_claim_order_shipping(oid,tenant,lease);exception when others then failed=true;end;if not failed then raise exception 'Shipping ignored pending cancel';end if;
+ perform integration_finish_cancellation(opid,tenant,'pending','Pending');select * into row from fulfillment_orders where id=oid;if row.shipping_remote_id is null then raise exception 'Pending cleared label';end if;
+ perform integration_finish_cancellation(opid,tenant,'confirmed','Confirmed');select * into row from fulfillment_orders where id=oid;if row.shipping_remote_id is not null or row.label_created_at is not null or row.label_cancelled_at is null then raise exception 'Confirmed label not cleared';end if;
+ update fulfillment_orders set shipping_remote_id='TEST-A',tracking_number='TEST-A',label_created_at=now(),fulfilled_at=now() where id=oid;select * into row from fulfillment_orders where id=oid;if row.shipping_remote_id is not null or row.tracking_number is not null then raise exception 'Sync restored cancelled label';end if;
+ update fulfillment_orders set shipping_remote_id='TEST-B',tracking_number='TEST-B',label_created_at=now() where id=oid;
+ perform integration_finish_cancellation(opid,tenant,'confirmed','Again');select * into row from fulfillment_orders where id=oid;if row.shipping_remote_id<>'TEST-B' then raise exception 'Old operation cleared replacement';end if;
+ claim=integration_start_cancellation(oid,tenant,'label','mrw','B',usr,'{"shipmentRef":"TEST-B"}');newop=(claim->'operation'->>'id')::uuid;perform integration_finish_cancellation(newop,tenant,'rejected','Permission denied');
+ claim=integration_start_cancellation(oid,tenant,'label','mrw','B',usr,'{"shipmentRef":"TEST-B"}');if not (claim->>'claimed')::boolean or jsonb_array_length(claim->'operation'->'details'->'attempts')<>1 then raise exception 'Rejected retry lacks history';end if;
+ perform integration_finish_cancellation(newop,tenant,'rejected','Test complete');
+ update fulfillment_orders set shipping_provider='sendcloud',shipping_remote_id=null,sendcloud_parcel_id=123,tracking_number='PARCEL-TRACK',label_created_at=now() where id=oid;
+ claim=integration_start_cancellation(oid,tenant,'label','sendcloud','parcel',usr,'{"shipmentRef":"123","trackingNumber":"PARCEL-TRACK"}');opid=(claim->'operation'->>'id')::uuid;perform integration_finish_cancellation(opid,tenant,'confirmed','Parcel cancelled');
+ update fulfillment_orders set tracking_number='PARCEL-TRACK',fulfilled_at=now() where id=oid;select * into row from fulfillment_orders where id=oid;if row.tracking_number is not null then raise exception 'Source sync restored old parcel tracking';end if;
+ update fulfillment_orders set sendcloud_parcel_id=456,tracking_number='REPLACEMENT-TRACK',label_created_at=now() where id=oid;
+ update fulfillment_orders set tracking_number='PARCEL-TRACK',fulfilled_at=now() where id=oid;select * into row from fulfillment_orders where id=oid;if row.sendcloud_parcel_id<>456 or row.tracking_number<>'REPLACEMENT-TRACK' then raise exception 'Stale source sync destroyed replacement';end if;
+ claim=integration_start_cancellation(oid,tenant,'order','shopify','origin',usr,'{}');opid=(claim->'operation'->>'id')::uuid;perform integration_finish_cancellation(opid,tenant,'confirmed','Source confirmed');
+ update fulfillment_orders set source_status='shipped' where id=oid;select * into row from fulfillment_orders where id=oid;if row.source_status<>'cancelled' then raise exception 'Sync restored cancelled source';end if;
+ if has_table_privilege('authenticated','order_cancellation_operations','INSERT') or has_function_privilege('authenticated','integration_finish_cancellation(uuid,uuid,text,text,text)','EXECUTE') then raise exception 'Client can forge cancellation';end if;
+end $$;
+rollback;

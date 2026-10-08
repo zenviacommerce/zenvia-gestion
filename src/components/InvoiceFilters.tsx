@@ -1,4 +1,5 @@
-import { CalendarDays, History, RotateCcw } from 'lucide-react';
+import { PeriodPresetButtons } from './PeriodFilterPanel';
+import { RotateCcw } from 'lucide-react';
 import type { ExpenseCategory, Invoice, Supplier } from '../types';
 import { dateFilterForPreset, filterForPreset, quarterOptions, type InvoiceFilter, type PeriodPreset } from '../services/filters';
 import { SearchableSelect } from './forms/SearchableSelect';
@@ -49,24 +50,8 @@ export function InvoiceFilters({
     onChange({ ...filter, supplierId: showSupplier ? filter.supplierId : '', preset: 'custom', [key]: value });
   };
 
-  const quick = [
-    ['today', 'Hoy'],
-    ['current_month', 'Mes actual'],
-    ['previous_month', 'Mes anterior'],
-    ['current_quarter', 'Trimestre actual'],
-    ['current_year', 'Año actual'],
-    ['all', 'Histórico'],
-  ] as const;
-
-  return <section className={`invoiceFilterPanel card${showSupplier?'':' noSupplier'}`}>
-    <div className="filterQuick" aria-label="Filtros rápidos de fecha">
-      {quick.map(([value, label]) => <button
-        key={value}
-        className={filter.preset === value ? 'filterChip active' : 'filterChip'}
-        onClick={() => selectPreset(value)}
-        type="button"
-      >{value === 'all' ? <History size={14}/> : <CalendarDays size={14}/>} {label}</button>)}
-    </div>
+  return <section className={`invoiceFilterPanel card masterPeriodPanel${showSupplier?'':' noSupplier'}`}>
+    <PeriodPresetButtons value={filter.preset} onChange={selectPreset}/>
     <div className="filterGrid">
       <label>Periodo
         <SelectField value={filter.preset} options={periodOptions} onChange={value=>selectPreset(value as PeriodPreset)} ariaLabel="Periodo de facturas"/>

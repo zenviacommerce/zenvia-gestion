@@ -1,4 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { shopifyAccountCredentials, shopifyError, shopifyStoredApplicationCredentials } from '../_shared/shopifyAuth.ts';
+import { preserveShopifyLabelTracking } from '../_shared/shopifyShipment.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -33,12 +35,7 @@ async function readSecret(admin:any,secretId:string|null){
 }
 function normalizeDomain(value:unknown){return clean(value).toLowerCase().replace(/^https?:\/\//,'').replace(/\/+$/,'');}
 async function credentials(admin:any,account:any){
-  const stored=await readSecret(admin,account.secret_id||null);
-  const shopDomain=normalizeDomain(stored.shopDomain||stored.shop_domain||account.external_account_id||account.config?.shopDomain);
-  const accessToken=clean(stored.accessToken||stored.access_token);
-  const apiVersion=clean(account.config?.apiVersion)||'2026-07';
-  if(!shopDomain||!accessToken)throw new Error('Faltan dominio o access token de Shopify.');
-  return {shopDomain,accessToken,apiVersion};
+  return shopifyAccountCredentials(admin,account,await shopifyStoredApplicationCredentials(admin,account.owner_id));
 }
 async function gql(c:any,query:string,variables:Record<string,unknown>={}){
   const res=await fetch(`https://${c.shopDomain}/admin/api/${c.apiVersion}/graphql.json`,{
@@ -57,10 +54,9 @@ query ZenviaOrders($first:Int!,$after:String,$query:String){
     pageInfo{hasNextPage endCursor}
     nodes{
       id legacyResourceId name createdAt updatedAt
-      displayFulfillmentStatus displayFinancialStatus
+      cancelledAt displayFulfillmentStatus displayFinancialStatus
       email phone
       totalPriceSet{shopMoney{amount currencyCode}}
-      customer{displayName email phone}
       shippingAddress{name company address1 address2 city provinceCode zip countryCodeV2 phone}
       billingAddress{name company address1 address2 city provinceCode zip countryCodeV2 phone}
       lineItems(first:100){nodes{id name sku quantity originalUnitPriceSet{shopMoney{amount currencyCode}} image{url}}}
@@ -107,6 +103,7 @@ function latestTracking(order:any){
   return null;
 }
 function sourceStatus(order:any){
+  if(order.cancelledAt)return 'cancelled';
   const status=clean(order?.displayFulfillmentStatus).toUpperCase();
   if(status==='FULFILLED')return 'shipped';
   if(status==='PARTIALLY_FULFILLED')return 'partially_shipped';
@@ -170,10 +167,10 @@ Deno.serve(async(req:Request)=>{
             source_status:sourceStatus(order),
             order_created_at:order.createdAt||now,
             order_updated_at:order.updatedAt||now,
-            customer_name:clean(order.customer?.displayName||ship.name)||null,
-            customer_email:clean(order.email||order.customer?.email)||null,
-            customer_phone:clean(order.phone||order.customer?.phone||ship.phone_number)||null,
-            shipping_address:{...ship,email:clean(order.email||order.customer?.email)||null},
+            customer_name:clean(ship.name||bill.name)||null,
+            customer_email:clean(order.email)||null,
+            customer_phone:clean(order.phone||ship.phone_number||bill.phone_number)||null,
+            shipping_address:{...ship,email:clean(order.email)||null},
             billing_address:bill,
             items:mapItems(order),
             total_amount:total?.amount==null?null:Number(total.amount),
@@ -190,18 +187,20 @@ Deno.serve(async(req:Request)=>{
           };
         });
         if(rows.length){
-          const {error}=await admin.from('fulfillment_orders').upsert(rows,{onConflict:'owner_id,sendcloud_id'});
+          const previous=await admin.from('fulfillment_orders').select('sendcloud_id,label_created_at,label_cancelled_at,tracking_number,tracking_url,carrier_name,tracking_status_code,tracking_status_message,tracking_updated_at,fulfilled_at,raw_payload').eq('owner_id',caller.data_owner_id).in('sendcloud_id',rows.map((row:any)=>row.sendcloud_id));
+          if(previous.error)throw previous.error;
+          const {error}=await admin.from('fulfillment_orders').upsert(preserveShopifyLabelTracking(rows,previous.data||[]),{onConflict:'owner_id,sendcloud_id'});
           if(error)throw error;
         }
         accountSynced+=rows.length;synced+=rows.length;pages+=1;
         after=connection?.pageInfo?.hasNextPage?clean(connection.pageInfo.endCursor):null;
       }while(after&&pages<20);
-      await admin.from('integration_accounts').update({status:'connected',last_success_at:new Date().toISOString(),last_error:null,updated_at:new Date().toISOString()}).eq('id',account.id).eq('owner_id',caller.data_owner_id);
+      await admin.from('integration_accounts').update({status:'connected',last_success_at:new Date().toISOString(),last_error:null,updated_at:new Date().toISOString()}).eq('id',account.id).eq('owner_id',caller.data_owner_id).eq('enabled',true).neq('status','disabled');
       results.push({accountId:account.id,displayName:account.display_name,synced:accountSynced,shopDomain:c.shopDomain});
     }
     return response({ok:true,configured:true,synced,accounts:results,history});
   }catch(error){
-    const message=error instanceof Error?error.message:String(error||'Error interno.');
+    const message=shopifyError(error,'Error interno.');
     return response({error:message},/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:500);
   }
 });

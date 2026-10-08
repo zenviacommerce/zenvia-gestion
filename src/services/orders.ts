@@ -4,7 +4,11 @@ import type { ShippingSettings } from './settingsSchema';
 
 export type OrderChannel = 'amazon' | 'shopify' | 'other';
 
+export interface CancellationOperation {id:string;kind:'label'|'order';provider:string;status:'submitting'|'pending'|'confirmed'|'rejected'|'unknown';message:string|null;created_at:string;details?:{trackingNumber?:string|null}}
 export interface FulfillmentOrder {
+  cancellations?:CancellationOperation[];
+  labelCancelledAt?:string|null;
+  shopifySyncError?:string|null;
   id:string; sendcloudId:string; orderId:string|null; orderNumber:string|null;
   sourceIntegrationAccountId:string|null; shippingIntegrationAccountId:string|null;
   integrationId:number; integrationName:string|null; integrationType:string|null; sourceChannel:OrderChannel;
@@ -49,6 +53,7 @@ export interface ShippingOption {
   price:number|null; currency:string|null; billedWeightKg?:number|null; etaDays?:number|null; raw:Record<string,unknown>;
 }
 export interface LabelResult {
+  marketplaceSyncError?:string|null;
   parcelId:number; shipmentId:string|null; trackingNumber:string|null; trackingUrl:string|null;
   shippingOptionCode:string|null; contractId:number|null; carrierCode?:string|null; carrierName?:string|null;
   shippingServiceName?:string|null; mimeType:string; base64:string;
@@ -81,7 +86,8 @@ function isBalearicAddress(address:Record<string,unknown>){
   return country==='ES'&&/^07\d{3}$/.test(postal);
 }
 function mapRow(row:any):FulfillmentOrder{
-  const measurement=row?.raw_payload?.shipping_details?.measurement||{};
+  const measurement=row.measurement||row?.raw_payload?.shipping_details?.measurement||{};
+  const carrierTracking=row.carrier_tracking||row.raw_payload?._zenvia_tracking;
   const weight=measurement?.weight;
   const dimension=measurement?.dimension||measurement?.dimensions||{};
   const dimensionUnit=String(dimension?.unit||'cm').toLowerCase();
@@ -106,7 +112,9 @@ function mapRow(row:any):FulfillmentOrder{
     shippingProvider:row.shipping_provider==='envia'?'envia':row.shipping_provider==='mrw'?'mrw':row.shipping_provider==='sendcloud'?'sendcloud':(row.sendcloud_parcel_id||row.sendcloud_shipment_id?'sendcloud':null),
     shippingRemoteId:row.shipping_remote_id||null, shippingLabelUrl:row.shipping_label_url||null,
     trackingNumber:row.tracking_number||null, trackingUrl:row.tracking_url||null,
-    carrierTrackingUrl:row.raw_payload?._zenvia_tracking?.number===row.tracking_number?row.raw_payload._zenvia_tracking.url||null:null,
+    labelCancelledAt:row.label_cancelled_at||null,
+    shopifySyncError:row.shopify_tracking_synced_number===row.tracking_number?null:row.shopify_tracking_sync_error||null,
+    carrierTrackingUrl:carrierTracking?.number===row.tracking_number?carrierTracking.url||null:null,
     trackingStatusCode:row.tracking_status_code||null, trackingStatusMessage:row.tracking_status_message||null, trackingUpdatedAt:row.tracking_updated_at||null,
     shippingOptionCode:row.shipping_option_code||null, contractId:row.contract_id==null?null:Number(row.contract_id),
     carrierCode:row.carrier_code||null, carrierName:row.carrier_name||(balearicPending?'🏝 Baleares · usar Correos':null), shippingServiceName:row.shipping_service_name||null,
@@ -187,10 +195,19 @@ function dedupeMarketplaceOrders(orders:FulfillmentOrder[]){
   }
   return result;
 }
+const ORDER_LIST_COLUMNS='billing_address,carrier_code,carrier_name,contract_id,currency,customer_email,customer_name,customer_phone,fulfilled_at,id,integration_id,integration_name,integration_type,items,label_cancelled_at,label_created_at,label_print_count,label_print_state_known,label_printed_at,last_synced_at,order_created_at,order_id,order_number,order_updated_at,package_height_cm,package_length_cm,package_width_cm,sendcloud_id,sendcloud_parcel_id,sendcloud_remote_id,sendcloud_shipment_id,shipping_address,shipping_cost_amount,shipping_cost_currency,shipping_cost_net_amount,shipping_cost_recorded_at,shipping_cost_source,shipping_cost_tax_amount,shipping_integration_account_id,shipping_label_url,shipping_option_code,shipping_provider,shipping_remote_id,shipping_service_name,shopify_tracking_sync_error,shopify_tracking_synced_number,source_channel,source_integration_account_id,source_status,total_amount,tracking_number,tracking_status_code,tracking_status_message,tracking_updated_at,tracking_url,measurement:raw_payload->shipping_details->measurement,carrier_tracking:raw_payload->_zenvia_tracking';
 export async function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
-  const {data,error}=await supabase.from('fulfillment_orders').select('*').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000);
-  if(error)throw error;
-  const orders=dedupeMarketplaceOrders((data||[]).map(mapRow));
+  const rows=new Map<string,any>();
+  for(let offset=0;offset<10000;offset+=200){
+    const {data,error}=await supabase.from('fulfillment_orders').select(ORDER_LIST_COLUMNS).order('order_created_at',{ascending:false,nullsFirst:false}).order('id',{ascending:false}).range(offset,offset+199);
+    if(error)throw error;
+    for(const row of data||[])rows.set(row.id,row);
+    if((data||[]).length<200)break;
+  }
+  const orders=dedupeMarketplaceOrders([...rows.values()].map(mapRow));
+  const cancellations=await supabase.from('order_cancellation_operations').select('id,order_id,kind,provider,status,message,created_at,details').order('created_at',{ascending:false}).limit(10000);
+  if(cancellations.error)throw cancellations.error;
+  const byOrder=new Map<string,CancellationOperation[]>();for(const op of cancellations.data||[]){const rows=byOrder.get(op.order_id)||[];rows.push(op as CancellationOperation);byOrder.set(op.order_id,rows);}for(const order of orders)order.cancellations=byOrder.get(order.id)||[];
   const accountIds=[...new Set(orders.map(order=>order.sourceIntegrationAccountId).filter((id):id is string=>Boolean(id)))];
   if(!accountIds.length)return orders;
   let accounts:Array<{id:string;displayName:string}>=[];
@@ -209,10 +226,13 @@ export interface EnviaSyncResult{
 }
 export function getEnviaStatus(){return invokeEnvia<{ok:true;configured:boolean;accounts:Array<{id:string;displayName:string;environment:string;isDefault:boolean}>}>({action:'status'});}
 export function syncEnviaShipments(months=2){return invokeEnvia<EnviaSyncResult>({action:'sync_shipments',months});}
-export async function retryAmazonTrackingConfirmations(){
+export async function retryAmazonTrackingConfirmations(shopifyOnly=false){
   try{
     const rule=await loadAutomationRule('order_label_created');
-    if(rule.enabled&&rule.config.retryConfirmation&&rule.config.saveTracking)await invokeAmazonTracking({action:'retry_pending',limit:10});
+    if(rule.enabled&&rule.config.retryConfirmation&&rule.config.saveTracking)await Promise.allSettled([
+      ...(shopifyOnly?[]:[invokeAmazonTracking({action:'retry_pending',limit:10})]),
+      invokeFunction('shopify-confirm-shipment',{action:'retry_pending'}),
+    ]);
   }catch{/* El worker de Amazon también reintentará la confirmación independientemente de Sendcloud. */}
 }
 export async function syncSendcloudOrders(history=false,retryTracking=true,automatic=false){
@@ -220,8 +240,10 @@ export async function syncSendcloudOrders(history=false,retryTracking=true,autom
   if(retryTracking)await retryAmazonTrackingConfirmations();
   return result;
 }
-export async function syncShopifyOrders(history=false){
-  return invokeFunction<{ok:true;configured:boolean;synced:number;history?:boolean;accounts?:Array<{accountId:string;displayName:string;synced:number;shopDomain:string}>}>('shopify-orders',{history});
+export async function syncShopifyOrders(history=false,retryTracking=true){
+  const result=await invokeFunction<{ok:true;configured:boolean;synced:number;history?:boolean;accounts?:Array<{accountId:string;displayName:string;synced:number;shopDomain:string}>}>('shopify-orders',{history});
+  if(retryTracking)await retryAmazonTrackingConfirmations(true);
+  return result;
 }
 export function createManualOrder(order:ManualOrderInput){return invokeOrderState<{ok:true;id:string;sendcloudId:string|null;orderNumber:string}>({action:'create_manual_order',order});}
 export async function getShippingOptions(orderId:string){
@@ -265,6 +287,8 @@ export function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){
 export function markOrderLabelPrinted(orderId:string){return invokeOrderState<{ok:true;printedAt:string;printCount:number}>({action:'mark_label_printed',orderId});}
 export function validateOrderAddress(orderId:string,carrierCode='mrw'){return invokeOrderTools<OrderAddressValidation>({action:'validate_address',orderId,carrierCode});}
 export async function createOrderLabel(orderId:string,option?:ShippingOption|null,pushTracking=true){
+  const source=await supabase.from('fulfillment_orders').select('source_channel').eq('id',orderId).single();
+  if(source.error)throw source.error;
   const rule=await loadAutomationRule('order_label_created');
   const automation:OrderLabelCreatedAutomationConfig=rule.enabled
     ?rule.config
@@ -279,9 +303,11 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
     :option?.provider==='mrw'
       ?await invokeMrw<LabelResult>({action:'create_label',orderId,shippingOption})
       :await invokeSendcloud<LabelResult>({action:'create_label',orderId,shippingOption});
+  let marketplaceSyncError:string|null=null;
   if(pushTracking&&automation.pushToMarketplace){
     try{
-      await invokeAmazonTracking({
+      if(source.data.source_channel==='shopify')await invokeFunction('shopify-confirm-shipment',{action:'confirm_order_tracking',orderId});
+      else if(source.data.source_channel==='amazon')await invokeAmazonTracking({
         action:'confirm_order_tracking',
         orderId,
         trackingOverride:{
@@ -293,9 +319,9 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
           shippingServiceName:result.shippingServiceName||null,
         },
       });
-    }catch{/* Tracking can be retried later when enabled and persisted. */}
+    }catch(error){marketplaceSyncError=error instanceof Error?error.message:String(error);}
   }
-  return {...result,automation};
+  return {...result,automation,marketplaceSyncError};
 }
 export async function fetchOrderLabel(orderId:string){
   const {data,error}=await supabase.from('fulfillment_orders').select('shipping_provider,sendcloud_parcel_id').eq('id',orderId).maybeSingle();
@@ -400,3 +426,6 @@ export function getOrderTrackingLink(orderId:string){
 }
 
 export function reconcileAmazonOrders(){return invokeFunction<{ok:boolean;processed:number;failures:Array<{orderId:string;error:string}>}>('amazon-reconcile-orders',{});}
+
+export function cancelOrderOperation(orderId:string,kind:'label'|'order',options:{reason?:string;refund?:boolean;restock?:boolean}={}){return invokeFunction<{ok:true;operations:CancellationOperation[]}>('order-cancellation',{action:'cancel',orderId,kind,...options});}
+export function refreshOrderCancellation(orderId:string){return invokeFunction<{ok:true;operations:CancellationOperation[]}>('order-cancellation',{action:'refresh',orderId});}

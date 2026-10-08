@@ -148,6 +148,7 @@ function orderState(order:FulfillmentOrder){
   return {label:'Pendiente',className:'pending'};
 }
 function trackingState(order:FulfillmentOrder){
+  if(order.shopifySyncError)return {label:'Confirmación Shopify pendiente',className:'issue'};
   if(!hasShippingLabel(order)&&!order.trackingNumber)return {label:'Sin etiqueta',className:'none'};
   const raw=`${order.trackingStatusCode||''} ${order.trackingStatusMessage||''}`.toLowerCase().replace(/[_-]+/g,' ');
   if(raw.includes('delivered')||raw.includes('shipment collected by customer'))return {label:'Entregado',className:'delivered'};
@@ -163,6 +164,7 @@ function trackingState(order:FulfillmentOrder){
   return {label:'Pendiente de seguimiento',className:'none'};
 }
 function trackingDetail(order:FulfillmentOrder){
+  if(order.shopifySyncError)return {title:order.shopifySyncError,raw:'',code:''};
   const code=String(order.trackingStatusCode||'').trim().toUpperCase();
   const message=String(order.trackingStatusMessage||'').trim();
   const labels:Record<string,string>={
@@ -604,6 +606,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       setSelected(printedOrders.find(item=>item.id===order.id)||fresh);
     }
     showSuccess(`Etiqueta creada${result.trackingNumber?` · ${result.trackingNumber}`:''}.`);
+    if(result.marketplaceSyncError)showInfo(`La etiqueta está creada, pero queda pendiente comunicar el envío: ${result.marketplaceSyncError}`);
   }catch(e){showError(errorMessage(e,'No se pudo crear la etiqueta.'))}finally{setBusyOrder(null)}};
   const existingLabel=async(order:FulfillmentOrder,mode:'print'|'download')=>{setBusyOrder(order.id);try{
     const result=await fetchOrderLabel(order.id);await handleBlob(labelBlob(result),order,mode);
@@ -646,6 +649,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
           const carrierValidation=validateOrderForCarrier(order,`${option.carrierCode||''} ${option.code||''} ${option.name||''}`,settings.shipping);
           if(carrierValidation.blocking)throw new Error(carrierValidation.issues[0]?.message||'El transportista rechazará los datos del pedido.');
           const result=await createOrderLabel(order.id,option,settings.orders.pushTrackingToMarketplace);
+          if(result.marketplaceSyncError)showInfo(`${order.orderNumber||order.id}: etiqueta creada; confirmación pendiente · ${result.marketplaceSyncError}`);
           const prepared=await prepareLabelPdf(labelBlob(result),settings.shipping);
           zip.file(uniqueLabelPdfFilename(order,usedNames,labelFilenameOptions),prepared);
           generated+=1;

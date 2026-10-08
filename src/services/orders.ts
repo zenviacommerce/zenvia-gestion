@@ -5,6 +5,7 @@ import type { ShippingSettings } from './settingsSchema';
 export type OrderChannel = 'amazon' | 'shopify' | 'other';
 
 export interface FulfillmentOrder {
+  shopifySyncError?:string|null;
   id:string; sendcloudId:string; orderId:string|null; orderNumber:string|null;
   sourceIntegrationAccountId:string|null; shippingIntegrationAccountId:string|null;
   integrationId:number; integrationName:string|null; integrationType:string|null; sourceChannel:OrderChannel;
@@ -49,6 +50,7 @@ export interface ShippingOption {
   price:number|null; currency:string|null; billedWeightKg?:number|null; etaDays?:number|null; raw:Record<string,unknown>;
 }
 export interface LabelResult {
+  marketplaceSyncError?:string|null;
   parcelId:number; shipmentId:string|null; trackingNumber:string|null; trackingUrl:string|null;
   shippingOptionCode:string|null; contractId:number|null; carrierCode?:string|null; carrierName?:string|null;
   shippingServiceName?:string|null; mimeType:string; base64:string;
@@ -106,6 +108,7 @@ function mapRow(row:any):FulfillmentOrder{
     shippingProvider:row.shipping_provider==='envia'?'envia':row.shipping_provider==='mrw'?'mrw':row.shipping_provider==='sendcloud'?'sendcloud':(row.sendcloud_parcel_id||row.sendcloud_shipment_id?'sendcloud':null),
     shippingRemoteId:row.shipping_remote_id||null, shippingLabelUrl:row.shipping_label_url||null,
     trackingNumber:row.tracking_number||null, trackingUrl:row.tracking_url||null,
+    shopifySyncError:row.shopify_tracking_synced_number===row.tracking_number?null:row.shopify_tracking_sync_error||null,
     carrierTrackingUrl:row.raw_payload?._zenvia_tracking?.number===row.tracking_number?row.raw_payload._zenvia_tracking.url||null:null,
     trackingStatusCode:row.tracking_status_code||null, trackingStatusMessage:row.tracking_status_message||null, trackingUpdatedAt:row.tracking_updated_at||null,
     shippingOptionCode:row.shipping_option_code||null, contractId:row.contract_id==null?null:Number(row.contract_id),
@@ -212,7 +215,10 @@ export function syncEnviaShipments(months=2){return invokeEnvia<EnviaSyncResult>
 export async function retryAmazonTrackingConfirmations(){
   try{
     const rule=await loadAutomationRule('order_label_created');
-    if(rule.enabled&&rule.config.retryConfirmation&&rule.config.saveTracking)await invokeAmazonTracking({action:'retry_pending',limit:10});
+    if(rule.enabled&&rule.config.retryConfirmation&&rule.config.saveTracking)await Promise.allSettled([
+      invokeAmazonTracking({action:'retry_pending',limit:10}),
+      invokeFunction('shopify-confirm-shipment',{action:'retry_pending'}),
+    ]);
   }catch{/* El worker de Amazon también reintentará la confirmación independientemente de Sendcloud. */}
 }
 export async function syncSendcloudOrders(history=false,retryTracking=true,automatic=false){
@@ -265,6 +271,8 @@ export function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){
 export function markOrderLabelPrinted(orderId:string){return invokeOrderState<{ok:true;printedAt:string;printCount:number}>({action:'mark_label_printed',orderId});}
 export function validateOrderAddress(orderId:string,carrierCode='mrw'){return invokeOrderTools<OrderAddressValidation>({action:'validate_address',orderId,carrierCode});}
 export async function createOrderLabel(orderId:string,option?:ShippingOption|null,pushTracking=true){
+  const source=await supabase.from('fulfillment_orders').select('source_channel').eq('id',orderId).single();
+  if(source.error)throw source.error;
   const rule=await loadAutomationRule('order_label_created');
   const automation:OrderLabelCreatedAutomationConfig=rule.enabled
     ?rule.config
@@ -279,9 +287,11 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
     :option?.provider==='mrw'
       ?await invokeMrw<LabelResult>({action:'create_label',orderId,shippingOption})
       :await invokeSendcloud<LabelResult>({action:'create_label',orderId,shippingOption});
+  let marketplaceSyncError:string|null=null;
   if(pushTracking&&automation.pushToMarketplace){
     try{
-      await invokeAmazonTracking({
+      if(source.data.source_channel==='shopify')await invokeFunction('shopify-confirm-shipment',{action:'confirm_order_tracking',orderId});
+      else if(source.data.source_channel==='amazon')await invokeAmazonTracking({
         action:'confirm_order_tracking',
         orderId,
         trackingOverride:{
@@ -293,9 +303,9 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
           shippingServiceName:result.shippingServiceName||null,
         },
       });
-    }catch{/* Tracking can be retried later when enabled and persisted. */}
+    }catch(error){marketplaceSyncError=error instanceof Error?error.message:String(error);}
   }
-  return {...result,automation};
+  return {...result,automation,marketplaceSyncError};
 }
 export async function fetchOrderLabel(orderId:string){
   const {data,error}=await supabase.from('fulfillment_orders').select('shipping_provider,sendcloud_parcel_id').eq('id',orderId).maybeSingle();

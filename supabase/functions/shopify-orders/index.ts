@@ -1,5 +1,6 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { shopifyAccountCredentials, shopifyError, shopifyStoredApplicationCredentials } from '../_shared/shopifyAuth.ts';
+import { preserveShopifyLabelTracking } from '../_shared/shopifyShipment.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -185,7 +186,9 @@ Deno.serve(async(req:Request)=>{
           };
         });
         if(rows.length){
-          const {error}=await admin.from('fulfillment_orders').upsert(rows,{onConflict:'owner_id,sendcloud_id'});
+          const previous=await admin.from('fulfillment_orders').select('sendcloud_id,label_created_at,tracking_number,tracking_url,carrier_name,tracking_status_code,tracking_status_message,tracking_updated_at,fulfilled_at,raw_payload').eq('owner_id',caller.data_owner_id).in('sendcloud_id',rows.map((row:any)=>row.sendcloud_id));
+          if(previous.error)throw previous.error;
+          const {error}=await admin.from('fulfillment_orders').upsert(preserveShopifyLabelTracking(rows,previous.data||[]),{onConflict:'owner_id,sendcloud_id'});
           if(error)throw error;
         }
         accountSynced+=rows.length;synced+=rows.length;pages+=1;

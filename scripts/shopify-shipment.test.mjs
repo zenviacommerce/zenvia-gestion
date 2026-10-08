@@ -55,3 +55,14 @@ test('a Shopify refresh does not restore the old tracking after a confirmed labe
  const {preserveShopifyLabelTracking}=vm.runInNewContext(stripTypeScriptTypes(fs.readFileSync('supabase/functions/_shared/shopifyShipment.ts','utf8').replaceAll('export ',''))+'\n({preserveShopifyLabelTracking})',{URL,Error});
  const result=preserveShopifyLabelTracking([{sendcloud_id:'a',tracking_number:'OLD',tracking_url:'https://old',fulfilled_at:'today'}],[{sendcloud_id:'a',label_created_at:null,label_cancelled_at:'today'}]);assert.equal(result[0].tracking_number,null);assert.equal(result[0].fulfilled_at,null);
 });
+
+test('shipment confirmation does not require access to the locations catalogue',async()=>{
+ const {confirmShopifyShipment}=helper(),f=fixture();
+ await confirmShopifyShipment(async(q,v)=>{
+  if(q.includes('assignedLocation'))throw new Error('Access denied: read_locations');
+  const data=await f.request(q,v);
+  if(data.order)for(const fo of data.order.fulfillmentOrders.nodes)delete fo.assignedLocation;
+  return data;
+ },shipment);
+ assert.equal(f.calls.filter(c=>c.query.includes('mutation')).length,1);
+});

@@ -4,7 +4,7 @@ export async function confirmShopifyShipment(request:(query:string,variables:any
   if(shipment.url){const url=new URL(shipment.url);if(!['https:','http:'].includes(url.protocol))throw new Error('Enlace de seguimiento no válido.');trackingInfo.url=url.href;}
   const fulfillmentOrders:any[]=[];let after:string|null=null,remote:any=null;
   do{
-    const data=await request(`query ZenviaShipmentOrder($id:ID!,$after:String){order(id:$id){id cancelledAt fulfillments(first:250){id status trackingInfo(first:10){number}} fulfillmentOrders(first:100,after:$after){nodes{id status assignedLocation{location{id}} supportedActions{action}} pageInfo{hasNextPage endCursor}}}}`,{id:shipment.orderId,after});
+    const data=await request(`query ZenviaShipmentOrder($id:ID!,$after:String){order(id:$id){id cancelledAt fulfillments(first:250){id status trackingInfo(first:10){number}} fulfillmentOrders(first:100,after:$after){nodes{id status supportedActions{action}} pageInfo{hasNextPage endCursor}}}}`,{id:shipment.orderId,after});
     remote=data?.order;if(!remote)throw new Error('Pedido Shopify no encontrado.');
     if(remote.cancelledAt)throw new Error('El pedido Shopify está cancelado.');
     fulfillmentOrders.push(...(remote.fulfillmentOrders?.nodes||[]));
@@ -29,7 +29,8 @@ export async function confirmShopifyShipment(request:(query:string,variables:any
   for(const fo of fulfillmentOrders){
     if(['CLOSED','CANCELLED'].includes(fo.status))continue;
     if(!(fo.supportedActions||[]).some((a:any)=>a.action==='CREATE_FULFILLMENT'))throw new Error('Shopify no permite preparar este pedido en su estado actual.');
-    const location=fo.assignedLocation?.location?.id;if(!location)throw new Error('Falta la ubicación de preparación en Shopify.');
+    // One fulfillment order per mutation is valid across all assigned locations.
+    const location=fo.id;
     const items:any[]=[];let cursor:string|null=null;
     do{
       const data=await request(`query ZenviaShipmentItems($id:ID!,$after:String){fulfillmentOrder(id:$id){lineItems(first:100,after:$after){nodes{id remainingQuantity} pageInfo{hasNextPage endCursor}}}}`,{id:fo.id,after:cursor});

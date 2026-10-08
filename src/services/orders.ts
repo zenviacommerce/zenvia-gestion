@@ -226,11 +226,11 @@ export interface EnviaSyncResult{
 }
 export function getEnviaStatus(){return invokeEnvia<{ok:true;configured:boolean;accounts:Array<{id:string;displayName:string;environment:string;isDefault:boolean}>}>({action:'status'});}
 export function syncEnviaShipments(months=2){return invokeEnvia<EnviaSyncResult>({action:'sync_shipments',months});}
-export async function retryAmazonTrackingConfirmations(){
+export async function retryAmazonTrackingConfirmations(shopifyOnly=false){
   try{
     const rule=await loadAutomationRule('order_label_created');
     if(rule.enabled&&rule.config.retryConfirmation&&rule.config.saveTracking)await Promise.allSettled([
-      invokeAmazonTracking({action:'retry_pending',limit:10}),
+      ...(shopifyOnly?[]:[invokeAmazonTracking({action:'retry_pending',limit:10})]),
       invokeFunction('shopify-confirm-shipment',{action:'retry_pending'}),
     ]);
   }catch{/* El worker de Amazon también reintentará la confirmación independientemente de Sendcloud. */}
@@ -242,7 +242,7 @@ export async function syncSendcloudOrders(history=false,retryTracking=true,autom
 }
 export async function syncShopifyOrders(history=false,retryTracking=true){
   const result=await invokeFunction<{ok:true;configured:boolean;synced:number;history?:boolean;accounts?:Array<{accountId:string;displayName:string;synced:number;shopDomain:string}>}>('shopify-orders',{history});
-  if(retryTracking)await retryAmazonTrackingConfirmations();
+  if(retryTracking)await retryAmazonTrackingConfirmations(true);
   return result;
 }
 export function createManualOrder(order:ManualOrderInput){return invokeOrderState<{ok:true;id:string;sendcloudId:string|null;orderNumber:string}>({action:'create_manual_order',order});}

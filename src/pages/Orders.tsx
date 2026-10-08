@@ -465,8 +465,8 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     try{
       const [enviaResult,shopifyResult,amazonResult]=await Promise.allSettled([
         runEnvia?syncEnviaShipments(enviaHistory?12:2):Promise.resolve(null),
-        runShopify?syncShopifyOrders(history,settings.orders.retryTrackingConfirmation):Promise.resolve(null),
-        runAmazon?(async()=>{if(!automatic)await requestAmazonSync(undefined,{waitForOrders:true});return reconcileAmazonOrders();})():Promise.resolve(null),
+        runShopify?syncShopifyOrders(history,settings.orders.retryTrackingConfirmation).then(async result=>{await refresh();return result;}):Promise.resolve(null),
+        runAmazon?(async()=>{if(!automatic)void requestAmazonSync(undefined,{ordersOnly:true}).catch(error=>{if(!silent)showInfo('Amazon: '+errorMessage(error,'error de sincronización'));});return reconcileAmazonOrders();})():Promise.resolve(null),
       ]);
       const messages:string[]=[],failures:string[]=[];
       if(amazonResult.status==='fulfilled'&&amazonResult.value)messages.push('Amazon directo: '+amazonResult.value.processed+' pedidos comprobados');

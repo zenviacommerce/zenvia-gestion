@@ -247,6 +247,25 @@ export default function App(){
    if(!allowedPages.includes(page))setPage(allowedPages[0]);
  },[accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading]);
 
+ // Returning from the signed Shopify OAuth callback never exposes the token:
+ // only a success/error marker is present, and the relevant account is loaded
+ // from ZENVIA's vault-backed integrations list.
+ useEffect(()=>{
+   if(!accessReady||!access?.active||!allowedPages.includes('settings'))return;
+   const url=new URL(window.location.href);
+   const result=url.searchParams.get('shopify_oauth');
+   if(result!=='connected'&&result!=='error')return;
+   const shop=url.searchParams.get('shopify_shop')||'Shopify';
+   const message=url.searchParams.get('shopify_message')||'No se ha completado la autorización.';
+   for(const name of ['shopify_oauth','shopify_shop','shopify_message'])url.searchParams.delete(name);
+   window.history.replaceState(window.history.state,'',url.pathname+url.search+url.hash);
+   startPageApplied.current=true;
+   setPage('settings');
+   setSettingsInitialSection('integrations');
+   if(result==='connected')showSuccess(`Tienda ${shop} conectada correctamente con Shopify.`);
+   else showError(message);
+ },[accessReady,access?.active,allowedPages]);
+
  if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> Cargando…</div>;
  if(recoveryToken) return <><ToastHost/><RecoveryTokenSetup tokenHash={recoveryToken} onComplete={async()=>{
    const url=new URL(window.location.href);

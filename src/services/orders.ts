@@ -188,7 +188,7 @@ function dedupeMarketplaceOrders(orders:FulfillmentOrder[]){
   return result;
 }
 export async function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
-  const {data,error}=await supabase.from('fulfillment_orders').select('*').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000);
+  const {data,error}=await supabase.from('fulfillment_orders').select('id,sendcloud_id,sendcloud_remote_id,order_id,order_number,source_integration_account_id,shipping_integration_account_id,integration_id,integration_name,integration_type,source_channel,source_status,order_created_at,order_updated_at,customer_name,customer_email,customer_phone,shipping_address,billing_address,items,total_amount,currency,raw_payload,package_length_cm,package_width_cm,package_height_cm,sendcloud_parcel_id,sendcloud_shipment_id,shipping_provider,shipping_remote_id,shipping_label_url,tracking_number,tracking_url,tracking_status_code,tracking_status_message,tracking_updated_at,shipping_option_code,contract_id,carrier_code,carrier_name,shipping_service_name,shipping_cost_amount,shipping_cost_currency,shipping_cost_source,shipping_cost_net_amount,shipping_cost_tax_amount,shipping_cost_recorded_at,label_created_at,label_printed_at,label_print_count,label_print_state_known,fulfilled_at,last_synced_at').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000);
   if(error)throw error;
   const orders=dedupeMarketplaceOrders((data||[]).map(mapRow));
   const accountIds=[...new Set(orders.map(order=>order.sourceIntegrationAccountId).filter((id):id is string=>Boolean(id)))];

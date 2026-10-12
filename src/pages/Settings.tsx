@@ -37,7 +37,7 @@ import { loadSupplierOptions, type SupplierOption } from '../services/supplierEd
 import { addShippingRule, deleteShippingRule, loadShippingRules, updateShippingRule, type ShippingRule } from '../services/shippingRules';
 import { AMAZON_KPI_KEYS, loadAmazonStatus, requestAmazonSync, type AmazonMarketplaceStatus } from '../services/amazon';
 import { getSendcloudStatus, syncSendcloudOrders } from '../services/orders';
-import { createIntegrationAccount, disconnectIntegrationAccount, loadAmazonAccountMarketplaces, loadIntegrationAccounts, setDefaultIntegrationAccount, syncSendcloudIntegrationAccount, syncShopifyIntegrationAccount, testIntegrationAccount, updateIntegrationAccount, type IntegrationAccount, type IntegrationProvider } from '../services/integrationAccounts';
+import { beginShopifyAuthorization, configureShopifyApplication, shopifyOAuthConfiguration, createIntegrationAccount, disconnectIntegrationAccount, loadAmazonAccountMarketplaces, loadIntegrationAccounts, setDefaultIntegrationAccount, syncSendcloudIntegrationAccount, syncShopifyIntegrationAccount, testIntegrationAccount, updateIntegrationAccount, type IntegrationAccount, type IntegrationProvider } from '../services/integrationAccounts';
 import { disconnectGmail, getCachedGmailConnection, setActiveGmailConnection, testGmailConnection } from '../services/gmail';
 import { connectRegisteredGmail, ensureRegisteredGmailConnection } from '../services/gmailAccounts';
 import { DEFAULT_AUTOMATION_RULES, loadAutomationRules, saveAutomationRule, type AutomationRule } from '../services/automationRules';
@@ -1177,6 +1177,10 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   const [mrwServiceName,setMrwServiceName]=useState('');
   const [shopifyDomain,setShopifyDomain]=useState('');
   const [shopifyAccessToken,setShopifyAccessToken]=useState('');
+  const [shopifyManualMode,setShopifyManualMode]=useState(false);
+  const [shopifyOAuthReady,setShopifyOAuthReady]=useState<boolean|null>(null);
+  const [shopifyAppClientId,setShopifyAppClientId]=useState('');
+  const [shopifyAppClientSecret,setShopifyAppClientSecret]=useState('');
   const [accountEnabled,setAccountEnabled]=useState(true);
   const [syncOrders,setSyncOrders]=useState(true);
   const [syncInventory,setSyncInventory]=useState(true);
@@ -1196,6 +1200,11 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     finally{setLoading(false);}
   };
   useEffect(()=>{void reload()},[]);
+  useEffect(()=>{
+    const onConnected=()=>void reload();
+    window.addEventListener('zenvia:shopify-connected',onConnected);
+    return()=>window.removeEventListener('zenvia:shopify-connected',onConnected);
+  },[]);
 
   const providerMeta:Record<IntegrationProvider,{name:string;description:string;addLabel:string}>={
     amazon:{
@@ -1273,6 +1282,13 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     setMrwServiceName(configuredMrwName||getMrwServiceName(configuredMrwCode));
     setShopifyDomain(account?.provider==='shopify'&&account.credentialSource!=='derived'?String(account.externalAccountId||account.config?.shopDomain||''):'');
     setShopifyAccessToken('');
+    setShopifyManualMode(false);
+    setShopifyOAuthReady(null);
+    setShopifyAppClientId('');setShopifyAppClientSecret('');
+    if(nextProvider==='shopify'){
+      void shopifyOAuthConfiguration().then(result=>setShopifyOAuthReady(result.ready))
+        .catch(error=>showError(error instanceof Error?error.message:'No se pudo comprobar la aplicación de Shopify.'));
+    }
     setAccountEnabled(account?.enabled??true);
     setSyncOrders(legacyAmazon?settings.amazon.autoSyncOrders:(typeof account?.config?.syncOrders==='boolean'?Boolean(account.config.syncOrders):true));
     setSyncInventory(legacyAmazon?settings.amazon.autoSyncInventory:(typeof account?.config?.syncInventory==='boolean'?Boolean(account.config.syncInventory):true));
@@ -1402,6 +1418,11 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           config:accountConfig(),test:true,
         });
         showSuccess('Cuenta de MRW conectada directamente.');
+      }else if(provider==='shopify'&&!shopifyManualMode){
+        if(!shopifyDomain.trim())throw new Error('Indica el dominio permanente myshopify.com de tu tienda.');
+        const authorizeUrl=await beginShopifyAuthorization(shopifyDomain.trim(),syncOrders,displayName.trim());
+        window.location.assign(authorizeUrl);
+        return;
       }else{
         const domain=shopifyDomain.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/+$/,'');
         if(!domain||!shopifyAccessToken.trim())throw new Error('Indica el dominio myshopify.com y el access token de Shopify.');
@@ -1658,12 +1679,36 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           </>}
 
           {provider==='shopify'&&<>
-            <div className="settingsResetPreview"><strong>Shopify directo</strong><small>ZENVIA consulta Shopify Admin API directamente para mantener los pedidos sincronizados.</small></div>
-            <div className="settingsFormGrid">
-              <label className="settingsField"><span>Dominio Shopify</span><input autoComplete="off" value={shopifyDomain} onChange={e=>setShopifyDomain(e.target.value)} placeholder="tienda.myshopify.com"/><small>Usa el dominio permanente myshopify.com, no el dominio comercial.</small></label>
-              <label className="settingsField"><span>{editing?'Nuevo access token (opcional)':'Admin API access token'}</span><input type="password" autoComplete="new-password" value={shopifyAccessToken} onChange={e=>setShopifyAccessToken(e.target.value)} placeholder={editing?'Sin cambios':'shpat_…'}/><small>Token de una app de Shopify con permiso read_orders. Se guarda cifrado y solo se utiliza para esta conexión.</small></label>
-            </div>
-            <label className="settingsToggleField"><input type="checkbox" checked={syncOrders} onChange={e=>setSyncOrders(e.target.checked)}/><span><strong>Sincronizar pedidos</strong><small>Importar pedidos de Shopify directamente en ZENVIA.</small></span></label>
+            <div className="settingsResetPreview"><strong>Conectar mediante Shopify</strong><small>Autoriza cada tienda iniciando sesión en Shopify, sin copiar ni pegar ningún token. Las tiendas se guardarán por separado en ZENVIA.</small></div>
+            <label className="settingsField"><span>Dominio permanente de la tienda</span><input autoComplete="url" value={shopifyDomain} onChange={e=>setShopifyDomain(e.target.value)} placeholder="mi-tienda.myshopify.com"/><small>Indica tu dominio original myshopify.com, no el dominio comercial.</small></label>
+            <label className="settingsToggleField"><input type="checkbox" checked={syncOrders} onChange={e=>setSyncOrders(e.target.checked)}/><span><strong>Sincronizar pedidos</strong><small>Importar pedidos directamente desde la tienda Shopify.</small></span></label>
+            {shopifyOAuthReady===false&&<div className="integrationAccountConfigBlock">
+              <h4>Configuración inicial de ZENVIA en Shopify</h4>
+              <p className="settingsHelpText">Solo necesitas registrar una vez la aplicación ZENVIA desde Shopify Dev Dashboard. No son credenciales de cada tienda. Configura como URL de retorno https://gestion.zenviacommerce.com/ y habilita los permisos para pedidos y preparación de envíos.</p>
+              <label className="settingsField"><span>Client ID de la aplicación</span><input autoComplete="off" value={shopifyAppClientId} onChange={e=>setShopifyAppClientId(e.target.value)}/></label>
+              <label className="settingsField"><span>Client secret de la aplicación</span><input type="password" autoComplete="new-password" value={shopifyAppClientSecret} onChange={e=>setShopifyAppClientSecret(e.target.value)}/></label>
+              <button type="button" className="secondary" disabled={busy!==null} onClick={()=>void (async()=>{
+                setBusy('shopify-app-setup');
+                try{
+                  await configureShopifyApplication(shopifyAppClientId.trim(),shopifyAppClientSecret.trim());
+                  setShopifyAppClientId('');setShopifyAppClientSecret('');
+                  setShopifyOAuthReady(true);
+                  showSuccess('Aplicación Shopify configurada. Ya puedes autorizar tus tiendas sin tokens manuales.');
+                }catch(error){showError(error instanceof Error?error.message:'No se pudo configurar Shopify.');}
+                finally{setBusy(null);}
+              })()}>{busy==='shopify-app-setup'?'Configurando…':'Guardar configuración de Shopify'}</button>
+            </div>}
+            {shopifyOAuthReady!==false&&<p className="settingsHelpText">Se abrirá Shopify para iniciar sesión y aprobar la conexión. Al terminar volverás a Integraciones, con la tienda conectada.</p>}
+            <button type="button" className="secondary" onClick={()=>setShopifyManualMode(value=>!value)} aria-expanded={shopifyManualMode}>{shopifyManualMode?'Ocultar conexión manual':'Opciones avanzadas · conectar con token antiguo'}</button>
+            {shopifyManualMode&&<label className="settingsField"><span>{editing?'Nuevo access token (opcional)':'Token Admin API'}</span><input type="password" autoComplete="new-password" value={shopifyAccessToken} onChange={e=>setShopifyAccessToken(e.target.value)} placeholder={editing?'Sin cambios':'shpat_…'}/><small>Solo para tiendas configuradas con una aplicación Shopify antigua. El flujo normal no requiere este dato.</small></label>}
+            {editing&&!editing.legacy&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void (async()=>{
+              setBusy('shopify-reconnect');
+              try{
+                const url=await beginShopifyAuthorization(shopifyDomain.trim(),syncOrders,displayName.trim());
+                window.location.assign(url);
+              }catch(error){showError(error instanceof Error?error.message:'No se pudo volver a autorizar Shopify.');}
+              finally{setBusy(null);}
+            })()}>{busy==='shopify-reconnect'?'Abriendo Shopify…':'Renovar acceso iniciando sesión en Shopify'}</button>}
           </>}
 
           {provider==='gmail'&&<>
@@ -1673,7 +1718,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
 
           {editing&&<label className="settingsToggleField"><input type="checkbox" checked={accountEnabled} onChange={e=>setAccountEnabled(e.target.checked)}/><span><strong>Cuenta activa</strong><small>Permite usar esta cuenta sin afectar a las demás del mismo proveedor.</small></span></label>}
         </div>
-        <div className="integrationEditorActions"><button type="button" className="secondary" disabled={busy!==null} onClick={closeEditor}>Cancelar</button><button type="button" className="primary" disabled={busy!==null} onClick={()=>void saveAccount()}>{busy==='save-account'?'Guardando…':provider==='gmail'&&!editing?'Autorizar Gmail':provider==='shopify'&&!editing?'Conectar Shopify':'Guardar cuenta'}</button></div>
+        <div className="integrationEditorActions"><button type="button" className="secondary" disabled={busy!==null} onClick={closeEditor}>Cancelar</button><button type="button" className="primary" disabled={busy!==null} onClick={()=>void saveAccount()}>{busy==='save-account'?'Guardando…':provider==='gmail'&&!editing?'Autorizar Gmail':provider==='shopify'&&!editing&&!shopifyManualMode?'Continuar con Shopify':'Guardar cuenta'}</button></div>
       </div>
     </div>}
   </section>;

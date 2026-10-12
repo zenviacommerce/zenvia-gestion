@@ -179,4 +179,13 @@ export async function bootstrapTenantFromLocation():Promise<TenantResolution>{
   return {status:'unresolved'};
 }
 
+/** Recover from a stuck mobile auth refresh without touching workspace data. */
+export function resetLocalTenantSession(){
+  if(!activeTenant||typeof window==='undefined')return;
+  try{activeClient?.auth.stopAutoRefresh()}catch{/* refresh may already be stuck */}
+  try{window.localStorage.removeItem(tenantStorageKey(activeTenant))}catch{/* storage may be unavailable */}
+  activeClient=createTenantClient(activeTenant,false);
+  emitTenantChanged();
+}
+
 export const INVOICE_BUCKET='invoices';

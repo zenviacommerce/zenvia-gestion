@@ -138,7 +138,7 @@ const n=(value:unknown)=>Number(value??0)||0;
 const nullable=(value?:string|null)=>{const cleaned=sanitizeDatabaseText(value).trim();return cleaned||null;};
 const addressFrom=(row:any)=>[row?.address_line1,row?.address_line2,[row?.postal_code,row?.city].filter(Boolean).join(' '),row?.province,row?.country_code].filter(Boolean).join(', ');
 export async function loadClients():Promise<Client[]> {
-  const {data,error}=await supabase.from('clients').select('*').eq('active',true).order('name');
+  const {data,error}=await supabase.from('clients').select('id,name,tax_id,email,phone,address_line1,address_line2,postal_code,city,province,country_code,payment_terms_days,default_vat_rate,default_payment_method,notes').eq('active',true).order('name');
   if(error)throw error;
   return (data??[]).map((row:any)=>({id:row.id,name:row.name,taxId:row.tax_id,email:row.email,phone:row.phone,addressLine1:row.address_line1,addressLine2:row.address_line2,postalCode:row.postal_code,city:row.city,province:row.province,countryCode:row.country_code||'ES',paymentTermsDays:Number(row.payment_terms_days||0),defaultVatRate:row.default_vat_rate==null?null:Number(row.default_vat_rate),defaultPaymentMethod:row.default_payment_method||null,notes:row.notes}));
 }
@@ -176,9 +176,9 @@ export async function ensureSalesSeries(year:number):Promise<SalesInvoiceSeries[
 
 export async function loadSalesInvoices():Promise<SalesInvoice[]>{
   const [invoiceResult,lineResult,paymentResult,clientResult,seriesResult,taxResult]=await Promise.all([
-    supabase.from('sales_invoices').select('*').order('issue_date',{ascending:false}).order('created_at',{ascending:false}),
-    supabase.from('sales_invoice_lines').select('*').order('position'),
-    supabase.from('sales_payments').select('*').order('payment_date'),
+    supabase.from('sales_invoices').select('id,client_id,series_id,tax_registration_id,client_name,invoice_type,rectifies_invoice_id,invoice_number,status,issue_date,operation_date,due_date,currency,subtotal,discount_amount,tax_amount,total_amount,payment_method,notes,client_tax_id,client_email,client_phone,client_address,issuer_name,issuer_tax_id,issuer_email,issuer_phone,issuer_address,issuer_tax_country_code,issuer_tax_registration_label,issued_at,sent_at,paid_at,created_at').order('issue_date',{ascending:false}).order('created_at',{ascending:false}),
+    supabase.from('sales_invoice_lines').select('id,invoice_id,product_id,position,description,quantity,unit,unit_price,discount_percent,tax_rate,line_net,tax_amount,line_total').order('position'),
+    supabase.from('sales_payments').select('id,invoice_id,payment_date,amount,method,reference,notes').order('payment_date'),
     supabase.from('clients').select('id,name,tax_id,email,phone,address_line1,address_line2,postal_code,city,province,country_code'),
     supabase.from('sales_invoice_series').select('id,name'),
     supabase.from('business_tax_registrations').select('id,label,country_code,vat_number,fiscal_name,address_text,is_default,active'),

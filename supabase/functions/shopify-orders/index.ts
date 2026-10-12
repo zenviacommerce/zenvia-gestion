@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { activeShopifyCredentials, normalizeShopifyDomain } from '../_shared/shopifyOAuth.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -24,21 +25,6 @@ async function authenticate(req:Request,admin:any){
   const permissions=Array.isArray(caller.permissions)?caller.permissions:[];
   if(caller.role!=='admin'&&!permissions.includes('orders'))throw new Error('No tienes permiso para sincronizar pedidos.');
   return caller;
-}
-async function readSecret(admin:any,secretId:string|null){
-  if(!secretId)return {};
-  const {data,error}=await admin.rpc('integration_read_secret',{p_secret_id:secretId});
-  if(error)throw error;
-  try{return JSON.parse(String(data||'{}'))}catch{throw new Error('Las credenciales de Shopify no tienen un formato válido.')}
-}
-function normalizeDomain(value:unknown){return clean(value).toLowerCase().replace(/^https?:\/\//,'').replace(/\/+$/,'');}
-async function credentials(admin:any,account:any){
-  const stored=await readSecret(admin,account.secret_id||null);
-  const shopDomain=normalizeDomain(stored.shopDomain||stored.shop_domain||account.external_account_id||account.config?.shopDomain);
-  const accessToken=clean(stored.accessToken||stored.access_token);
-  const apiVersion=clean(account.config?.apiVersion)||'2026-07';
-  if(!shopDomain||!accessToken)throw new Error('Faltan dominio o access token de Shopify.');
-  return {shopDomain,accessToken,apiVersion};
 }
 async function gql(c:any,query:string,variables:Record<string,unknown>={}){
   const res=await fetch(`https://${c.shopDomain}/admin/api/${c.apiVersion}/graphql.json`,{
@@ -142,7 +128,7 @@ Deno.serve(async(req:Request)=>{
     let synced=0;
     const results:any[]=[];
     for(const account of directAccounts){
-      const c=await credentials(admin,account);
+      const c=await activeShopifyCredentials(admin,account);
       let after:string|null=null,accountSynced=0,pages=0;
       do{
         const data=await gql(c,ORDER_QUERY,{first:100,after,query:orderQuery});

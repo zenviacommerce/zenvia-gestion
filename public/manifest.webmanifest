@@ -1,20 +1,24 @@
 {
   "name": "ZENVIA Gestión",
-  "short_name": "ZENVIA",
+  "short_name": "ZENVIA Gestión",
+  "description": "Gestión empresarial de ZENVIA COMMERCE",
+  "id": "/gestion",
   "start_url": "/",
   "scope": "/",
+  "display": "standalone",
   "theme_color": "#0f172a",
   "background_color": "#ffffff",
   "icons": [
     {
-      "src": "/zenvia-app-icon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "src": "/zenvia-app-icon-180.png?v=20261012",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "/zenvia-app-icon.webp",
-      "type": "image/webp",
+      "src": "/zenvia-app-icon.svg?v=20261012",
+      "sizes": "any",
+      "type": "image/svg+xml",
       "purpose": "any"
     }
   ]

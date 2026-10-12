@@ -1,7 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
-import { ZENVIA_LOGO } from './branding';
 import { AutoPagination } from './components/AutoPagination';
 import { OrderLabelDefaults } from './components/OrderLabelDefaults';
 import { PendingOrdersKpiHighlight } from './components/PendingOrdersKpiHighlight';
@@ -58,8 +57,8 @@ import './responsive-hardening.css';
 
 const favicon=document.querySelector<HTMLLinkElement>("link[rel~='icon']")||document.createElement('link');
 favicon.rel='icon';
-favicon.type='image/webp';
-favicon.href=ZENVIA_LOGO;
+favicon.type='image/png';
+favicon.href='/zenvia-app-icon-180.png?v=20261012';
 if(!favicon.parentNode)document.head.appendChild(favicon);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><AppErrorBoundary><SettingsProvider><App/><ActionDialogHost/><ActivityCenter/><AutoPagination/><OrderLabelDefaults/><PendingOrdersKpiHighlight/><UnifiedListExperience/></SettingsProvider></AppErrorBoundary></React.StrictMode>);

@@ -287,6 +287,20 @@ export async function syncSendcloudIntegrationAccount(id:string,history=false){
   return data as {ok:true;synced:number;enriched:number;accounts?:Array<{accountId:string|null;displayName:string;synced:number;enriched:number}>};
 }
 
+export async function beginShopifyAuthorization(shopDomain:string,syncOrders=true){
+  const {data,error}=await supabase.functions.invoke('shopify-oauth',{
+    body:{action:'start',shopDomain,syncOrders},
+  });
+  if(error)throw new Error(await functionErrorMessage(error,'No se pudo iniciar el acceso con Shopify.'));
+  if(!data||data.error)throw new Error(message(data,null,'No se pudo autorizar Shopify.'));
+  const authorizationUrl=String(data.authorizationUrl||'');
+  let url:URL;
+  try{url=new URL(authorizationUrl)}catch{throw new Error('Shopify no ha devuelto una dirección válida para autorizar la tienda.')}
+  if(url.protocol!=='https:'||!url.hostname.endsWith('.myshopify.com')||url.pathname!=='/admin/oauth/authorize')
+    throw new Error('La URL de autorización de Shopify no es segura.');
+  return authorizationUrl;
+}
+
 export async function syncShopifyIntegrationAccount(id:string,history=false){
   const {data,error}=await supabase.functions.invoke('shopify-orders',{body:{integrationAccountId:id,history}});
   if(error||!data||data.error)throw new Error(message(data,error,'No se pudo sincronizar la tienda Shopify.'));

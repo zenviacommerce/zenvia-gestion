@@ -1,4 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
+import { activeShopifyCredentials, normalizeShopifyDomain } from '../_shared/shopifyOAuth.ts';
 import { enforceWorkspaceLimit, requireWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
 import { gmailAccessAllowed, gmailServerConfig, validateGmailOrigin, gmailTokenRequest, gmailProfileEmail, gmailConnectionFromToken, legacyGmailMigrationPlan } from '../_shared/gmailOAuth.ts';
 
@@ -338,18 +339,10 @@ async function sendcloudIntegrations(admin:any,account:any){
   });
 }
 function normalizeShopifyDomain(value:unknown){
-  return clean(value).toLowerCase().replace(/^https?:\/\//,'').replace(/\/+$/,'');
-}
-async function shopifyCredentials(admin:any,account:any){
-  const stored=account.secret_id?await readVault(admin,account.secret_id):{};
-  const shopDomain=normalizeShopifyDomain((stored as any).shopDomain||(stored as any).shop_domain||account.external_account_id||account.config?.shopDomain);
-  const accessToken=clean((stored as any).accessToken||(stored as any).access_token);
-  const apiVersion=clean(account.config?.apiVersion)||'2026-07';
-  if(!shopDomain||!accessToken)throw new Error('Faltan dominio y access token de Shopify.');
-  return {shopDomain,accessToken,apiVersion};
+  return normalizeShopifyDomain(value);
 }
 async function shopifyGraphql(admin:any,account:any,query:string,variables:Record<string,unknown>={}){
-  const credentials=await shopifyCredentials(admin,account);
+  const credentials=await activeShopifyCredentials(admin,account);
   const res=await fetch(`https://${credentials.shopDomain}/admin/api/${credentials.apiVersion}/graphql.json`,{
     method:'POST',
     headers:{'Content-Type':'application/json','Accept':'application/json','X-Shopify-Access-Token':credentials.accessToken},

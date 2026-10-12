@@ -620,7 +620,8 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   }catch(e){showError(errorMessage(e,'No se pudo crear la etiqueta.'))}finally{setBusyOrder(null)}};
   const existingLabel=async(order:FulfillmentOrder,mode:'print'|'download')=>{setBusyOrder(order.id);try{
     const result=await fetchOrderLabel(order.id);await handleBlob(labelBlob(result),order,mode);
-    if(mode==='print'){
+    // Manual PDF delivery follows the same operational state as automatic download.
+    {
       await markOrderLabelPrinted(order.id);
       const freshOrders=await listFulfillmentOrders();setOrders(freshOrders);setSelected(freshOrders.find(item=>item.id===order.id)||order);
     }

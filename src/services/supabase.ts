@@ -117,14 +117,20 @@ export async function activateTenant(tenant:TenantPublicConfig,detectSessionInUr
 
 async function tenantRouter(payload:{email?:string;tenant?:string}):Promise<TenantResolution>{
   let response:Response;
+  const abort=new AbortController();
+  const timeout=window.setTimeout(()=>abort.abort(),15000);
   try{
     response=await fetch(`${PLATFORM_URL}/functions/v1/tenant-router`,{
       method:'POST',
       headers:{'Content-Type':'application/json'},
       body:JSON.stringify(payload),
+      signal:abort.signal,
     });
   }catch{
+    if(abort.signal.aborted)throw new TenantResolutionError('ZENVIA Platform ha tardado demasiado en localizar tu empresa. Vuelve a intentarlo.');
     throw new TenantResolutionError('No se puede contactar con ZENVIA Platform para localizar tu empresa. Inténtalo de nuevo.');
+  }finally{
+    window.clearTimeout(timeout);
   }
   if(response.status===429)throw new TenantResolutionError('Demasiados intentos. Espera unos minutos y vuelve a probar.');
   if(!response.ok)throw new TenantResolutionError('No se pudo localizar tu empresa.');

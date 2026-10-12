@@ -16,6 +16,21 @@ function authErrorMessage(error:unknown){
   return message;
 }
 
+/** A stalled GoTrue request must never leave the user locked on "Entrando…". */
+class AuthDeadlineError extends Error {
+  constructor() {
+    super('El servidor de autenticación no ha respondido en 18 segundos. Revisa tu conexión y vuelve a intentarlo. Si persiste, restablece el acceso de este dispositivo.');
+    this.name='AuthDeadlineError';
+  }
+}
+
+function withAuthDeadline<T>(promise:Promise<T>):Promise<T> {
+  return new Promise<T>((resolve,reject)=>{
+    const timer=window.setTimeout(()=>reject(new AuthDeadlineError()),18000);
+    promise.then(value=>{window.clearTimeout(timer);resolve(value)},error=>{window.clearTimeout(timer);reject(error)});
+  });
+}
+
 function passkeySupported(){
   return typeof window!=='undefined' && window.isSecureContext && 'PublicKeyCredential' in window && !!navigator.credentials;
 }
@@ -33,6 +48,8 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [busyStage,setBusyStage]=useState<'tenant'|'auth'|null>(null);
+  const [showLocalRecovery,setShowLocalRecovery]=useState(false);
   const [passkeyBusy,setPasskeyBusy]=useState(false);
   const [message, setMessage] = useState(initialMessage);
   const [tenantChoices,setTenantChoices]=useState<Array<Pick<TenantPublicConfig,'workspace_id'|'slug'|'name'>>>([]);
@@ -46,6 +63,8 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
     if(emailMessage){setMessage(emailMessage);return;}
     if(password.length<8){setMessage('La contraseña debe tener al menos 8 caracteres.');return;}
     setBusy(true);
+    setBusyStage('tenant');
+    setShowLocalRecovery(false);
     try {
       const normalized=normalizeEmail(email);
       const resolution=await resolveAndActivateTenant(selectedTenant?{tenant:selectedTenant}:{email:normalized});
@@ -56,12 +75,14 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
         return;
       }
       if(resolution.status!=='resolved')throw new Error('No se ha encontrado una empresa activa para este usuario.');
-      const { error } = await supabase.auth.signInWithPassword({ email: normalized, password });
+      setBusyStage('auth');
+      const { error } = await withAuthDeadline(supabase.auth.signInWithPassword({ email: normalized, password }));
       if (error) throw error;
       onTenantChanged?.();
     } catch (error) {
       setMessage(authErrorMessage(error));
-    } finally { setBusy(false); }
+      if(error instanceof AuthDeadlineError)setShowLocalRecovery(true);
+    } finally { setBusy(false);setBusyStage(null); }
   };
 
   const signInPasskey=async()=>{
@@ -70,10 +91,10 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
     if(!email.trim()&&activeTenant){
       setPasskeyBusy(true);
       try{
-        const {error}=await supabase.auth.signInWithPasskey();
+        const {error}=await withAuthDeadline(supabase.auth.signInWithPasskey());
         if(error)throw error;
         onTenantChanged?.();
-      }catch(error){setMessage(passkeyError(error))}
+      }catch(error){setMessage(passkeyError(error));if(error instanceof AuthDeadlineError)setShowLocalRecovery(true)}
       finally{setPasskeyBusy(false)}
       return;
     }
@@ -90,10 +111,10 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
         return;
       }
       if(resolution.status!=='resolved')throw new Error('No se ha encontrado una empresa activa para este usuario.');
-      const {error}=await supabase.auth.signInWithPasskey();
+      const {error}=await withAuthDeadline(supabase.auth.signInWithPasskey());
       if(error)throw error;
       onTenantChanged?.();
-    }catch(error){setMessage(passkeyError(error))}
+    }catch(error){setMessage(passkeyError(error));if(error instanceof AuthDeadlineError)setShowLocalRecovery(true)}
     finally{setPasskeyBusy(false)}
   };
 
@@ -108,10 +129,10 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
         <label>Email<input type="email" required inputMode="email" autoComplete="username" value={email} onChange={e => {setEmail(e.target.value);setTenantChoices([]);setSelectedTenant('')}} placeholder="usuario@empresa.com"/></label>
         {tenantChoices.length>1&&<label>Selecciona tu empresa<SelectField ariaLabel="Selecciona tu empresa" value={selectedTenant} options={tenantChoices.map(tenant=>({value:tenant.slug,label:tenant.name}))} onChange={setSelectedTenant}/></label>}
         <label>Contraseña<input type="password" required minLength={8} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"/></label>
-        <button className="primary authSubmit" disabled={busy||passkeyBusy}><LockKeyhole size={17}/>{busy ? 'Entrando…' : 'Entrar'}</button>
+        <button className="primary authSubmit" disabled={busy||passkeyBusy}><LockKeyhole size={17}/>{busy ? (busyStage==='tenant'?'Localizando empresa…':'Verificando acceso…') : 'Entrar'}</button>
       </form>
       {message && <div className="authMessage">{message}</div>}
-      {allowSessionReset&&<button type="button" className="secondary" onClick={()=>{resetLocalTenantSession();window.location.reload()}}>Restablecer acceso en este dispositivo</button>}
+      {(allowSessionReset||showLocalRecovery)&&<button type="button" className="secondary" onClick={()=>{resetLocalTenantSession();window.location.reload()}}>Restablecer acceso en este dispositivo</button>}
       {canUsePasskey&&<p className="authPasskeyHint">La primera vez debes activar la biometría desde dentro de la aplicación.</p>}
       <div className="authMessage">Las cuentas se crean y administran desde la propia aplicación.</div>
     </div>

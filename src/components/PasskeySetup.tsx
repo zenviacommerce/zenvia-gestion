@@ -29,10 +29,18 @@ function errorCode(error:unknown){
   return typeof error==='object'&&error&&'code' in error?String((error as {code?:unknown}).code||''):'';
 }
 
+function alreadyRegisteredAuthenticator(error:unknown){
+  const code=errorCode(error);
+  if(code==='webauthn_credential_exists')return true;
+  const message=error instanceof Error?error.message:String(error||'');
+  return /authenticator (?:was )?previously registered|authenticator already registered|credential (?:is )?already registered|credential already exists/i.test(message)
+    || (error instanceof DOMException&&error.name==='InvalidStateError'&&/already|registered|credential/i.test(message));
+}
+
 function errorText(error:unknown){
   const code=errorCode(error);
   if(code==='passkey_disabled')return 'Face ID / huella todavía no está habilitado en Supabase para este dominio.';
-  if(code==='webauthn_credential_exists')return 'Face ID / huella ya estaba activado en este dispositivo.';
+  if(alreadyRegisteredAuthenticator(error))return 'Este Face ID ya está registrado. Si no puedes utilizarlo para entrar, revisa las llaves de acceso guardadas en tu cuenta antes de registrarlo otra vez.';
   if(code==='too_many_passkeys')return 'Has alcanzado el máximo de dispositivos biométricos registrados.';
   if(error instanceof DOMException&&error.name==='NotAllowedError')return 'Se canceló la verificación biométrica.';
   if(error instanceof Error)return error.message;
@@ -94,11 +102,17 @@ export function PasskeySetup({userId,onVisibilityChange}:{userId:string;onVisibi
       if(error){
         // A synced iCloud/Google/Microsoft passkey may already exist even though
         // this browser has never stored our local activation marker.
-        if(errorCode(error)==='webauthn_credential_exists'){
-          safeStorageSet('local',registeredKey,'1');
-          setRegistered(true);
-          showSuccess('Face ID / huella ya está disponible en este dispositivo.');
-          return;
+        if(alreadyRegisteredAuthenticator(error)){
+          // iCloud Keychain passkeys survive removal/reinstallation of the PWA.
+          // Check the server before acknowledging an existing credential;
+          // a local marker alone is not proof that a passkey still exists.
+          const {data:existing,error:listError}=await supabase.auth.passkey.list();
+          if(!listError&&Array.isArray(existing)&&existing.length>0){
+            safeStorageSet('local',registeredKey,'1');
+            setRegistered(true);
+            showSuccess('Face ID ya estaba registrado. Puedes utilizarlo para entrar sin volver a crearlo.');
+            return;
+          }
         }
         throw error;
       }

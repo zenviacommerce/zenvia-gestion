@@ -256,6 +256,10 @@ export async function disconnectIntegrationAccount(id:string){
   const result=await invoke<{accounts:IntegrationAccount[]}>({action:'disconnect',id},'No se pudo desconectar la cuenta.');
   return result.accounts||[];
 }
+export async function deleteIntegrationAccount(id:string){
+  const result=await invoke<{accounts:IntegrationAccount[]}>({action:'delete',id},'No se pudo eliminar la integración.');
+  return result.accounts||[];
+}
 
 export async function discoverShopifyStores(parentAccountId:string){
   const result=await invoke<{shops:ShopifyDiscovery[]}>(

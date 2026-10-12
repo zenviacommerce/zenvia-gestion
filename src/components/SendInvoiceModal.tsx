@@ -19,11 +19,12 @@ export function SendInvoiceModal({invoice,settings,branding,onClose,onSent}:{inv
   useEffect(()=>{
     if(!invoice)return;
     const number=invoice.invoiceNumber||'factura';
+    const company=invoice.issuerName||settings.legalName;
     setTo(invoice.clientEmail||'');
-    setSubject(`Factura ${number} - ZENVIA COMMERCE`);
-    setBody(`Hola,\n\nAdjuntamos la factura ${number} por importe de ${formatAppMoney(invoice.totalAmount,invoice.currency,appSettings.general,{minimumFractionDigits:2,maximumFractionDigits:2})}.\n\nGracias.\nZENVIA COMMERCE`);
+    setSubject(`Factura ${number} - ${company}`);
+    setBody(`Hola,\n\nAdjuntamos la factura ${number} por importe de ${formatAppMoney(invoice.totalAmount,invoice.currency,appSettings.general,{minimumFractionDigits:2,maximumFractionDigits:2})}.\n\nGracias.\n${company}`);
     setError('');
-  },[invoice,appSettings.general]);
+  },[invoice,settings.legalName,appSettings.general]);
 
   if(!invoice)return null;
   const send=async()=>{

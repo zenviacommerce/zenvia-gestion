@@ -65,7 +65,8 @@ export async function shopifyTokenRequest(domain:string,body:URLSearchParams){
 
 export function shopifyTokenCredentials(stored:any,token:any,now=Date.now()){
   if(!token?.access_token)throw new Error('Shopify no devolvió un access token.');
-  if(!String(token.scope||'').split(',').includes('read_orders'))throw new Error('La app necesita permiso read_orders. Añádelo en Shopify y vuelve a autorizar.');
+  const grantedScopes=new Set(String(token.scope||'').split(/[\s,]+/).filter(Boolean));
+  if(!grantedScopes.has('read_orders')&&!grantedScopes.has('write_orders'))throw new Error('La app necesita permiso read_orders o write_orders. Añádelo en Shopify y vuelve a autorizar.');
   if(token.expires_in!=null&&(!Number.isFinite(Number(token.expires_in))||Number(token.expires_in)<=0))throw new Error('Shopify devolvió una caducidad no válida.');
   return {...stored,accessToken:String(token.access_token),scope:String(token.scope),expiresAt:token.expires_in?now+Number(token.expires_in)*1000:null,...(token.refresh_token?{refreshToken:String(token.refresh_token)}:{})};
 }

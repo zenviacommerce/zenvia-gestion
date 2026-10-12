@@ -375,7 +375,8 @@ async function saveShopifyConnection(admin:any,ownerId:string,body:any,stored:an
     if(inserted.error)throw inserted.error;account=inserted.data;
   }
   const secretId=await writeVault(admin,account.id,'shopify',stored,account.secret_id);
-  const saved=await admin.from('integration_accounts').update({secret_id:secretId,external_account_id:domain,credential_source:'vault',parent_account_id:null,enabled:true,status:'connected',display_name:clean(body.displayName)||account.display_name,last_error:null,config:{...account.config,shopDomain:domain,authMode:stored.authMode,syncOrders:body.syncOrders!==false,apiVersion:'2026-07'}}).eq('id',account.id).eq('owner_id',ownerId).select('*').single();
+  const restoredConfig={...account.config};delete restoredConfig.archivedAt;delete restoredConfig.oauthStateHash;
+  const saved=await admin.from('integration_accounts').update({secret_id:secretId,external_account_id:domain,credential_source:'vault',parent_account_id:null,enabled:true,status:'connected',display_name:clean(body.displayName)||account.display_name,last_error:null,config:{...restoredConfig,shopDomain:domain,authMode:stored.authMode,syncOrders:body.syncOrders!==false,apiVersion:'2026-07'}}).eq('id',account.id).eq('owner_id',ownerId).select('*').single();
   if(saved.error)throw saved.error;
   const defaults=await admin.from('integration_accounts').select('id').eq('owner_id',ownerId).eq('provider','shopify').eq('is_default',true).neq('status','disabled');
   if(defaults.error)throw defaults.error;

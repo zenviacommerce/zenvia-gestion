@@ -1613,7 +1613,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                   <button type="button" className="secondary" disabled={busy!==null} onClick={()=>resetEditor(account.provider,account)}>Configurar</button>
                   {!account.isDefault&&account.status!=='disabled'&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void makeDefault(account)}>Predeterminada</button>}
                   {account.status!=='disabled'&&!account.legacy&&<button type="button" className="secondary dangerText" disabled={busy!==null} onClick={()=>void disconnect(account)}>Desconectar</button>}
-                  {!account.legacy&&<button type="button" className="secondary dangerText" disabled={busy!==null} onClick={()=>void removeAccount(account)} aria-label={`Eliminar integración ${account.displayName}`}>{busy==='delete:'+account.id?'Eliminando…':'Eliminar'}</button>
+                  {!account.legacy&&<button type="button" className="secondary dangerText" disabled={busy!==null} onClick={()=>void removeAccount(account)} aria-label={`Eliminar integración ${account.displayName}`}>{busy==='delete:'+account.id?'Eliminando…':'Eliminar'}</button>}
                 </div>
               </div>)}
             </div>

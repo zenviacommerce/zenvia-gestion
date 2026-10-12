@@ -37,11 +37,11 @@ export async function loadAppData(): Promise<AppData> {
   });
   try{
   const [invoiceResult, lineResult, supplierResult, categoryResult, productResult, sourceDocumentResult] = await Promise.all([
-    supabase.from('invoices').select('*').order('issue_date', { ascending: false, nullsFirst: false }),
-    supabase.from('invoice_lines').select('*'),
-    supabase.from('suppliers').select('*').order('name'),
-    supabase.from('expense_categories').select('*').eq('active', true).order('sort_order'),
-    supabase.from('products').select('*').eq('active', true).order('name'),
+    supabase.from('invoices').select('id,source_document_id,supplier_id,invoice_number,issue_date,received_date,fiscal_year,fiscal_quarter,expense_category_id,net_amount,tax_amount,equivalence_surcharge_amount,withholding_amount,total_amount,currency,source,status,payment_status,paid_at,file_name,file_path,file_hash').order('issue_date', { ascending: false, nullsFirst: false }),
+    supabase.from('invoice_lines').select('id,invoice_id,description,quantity,unit_price,normalized_unit_price,line_total,supplier_sku,product_id,price_update_status'),
+    supabase.from('suppliers').select('id,name,tax_id,email,phone,address,website,supplier_type,default_category_id').order('name'),
+    supabase.from('expense_categories').select('id,name,icon').eq('active', true).order('sort_order'),
+    supabase.from('products').select('id,name,sku,category,base_unit,last_cost,previous_cost,last_supplier_id,last_purchase_date').eq('active', true).order('name'),
     supabase.from('source_documents').select('id,storage_bucket,storage_path,original_name,mime_type,file_hash'),
   ]);
 

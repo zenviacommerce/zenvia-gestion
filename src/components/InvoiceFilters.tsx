@@ -1,7 +1,8 @@
-import { CalendarDays, History, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import type { ExpenseCategory, Invoice, Supplier } from '../types';
 import { dateFilterForPreset, filterForPreset, quarterOptions, type InvoiceFilter, type PeriodPreset } from '../services/filters';
 import { SearchableSelect } from './forms/SearchableSelect';
+import { PeriodFilterPanel } from './PeriodFilterPanel';
 import { SelectField } from './forms/SelectField';
 
 export function InvoiceFilters({
@@ -27,6 +28,7 @@ export function InvoiceFilters({
   }));
   const periodOptions=[
     {value:'today',label:'Hoy'},
+    {value:'yesterday',label:'Ayer'},
     {value:'current_month',label:'Mes actual'},
     {value:'previous_month',label:'Mes anterior'},
     {value:'current_quarter',label:'Trimestre actual'},
@@ -45,28 +47,9 @@ export function InvoiceFilters({
     onChange({ ...filter, ...range, supplierId: showSupplier ? filter.supplierId : '' });
   };
 
-  const setDate = (key: 'from' | 'to', value: string) => {
-    onChange({ ...filter, supplierId: showSupplier ? filter.supplierId : '', preset: 'custom', [key]: value });
-  };
-
-  const quick = [
-    ['today', 'Hoy'],
-    ['current_month', 'Mes actual'],
-    ['previous_month', 'Mes anterior'],
-    ['current_quarter', 'Trimestre actual'],
-    ['current_year', 'Año actual'],
-    ['all', 'Histórico'],
-  ] as const;
-
-  return <section className={`invoiceFilterPanel card${showSupplier?'':' noSupplier'}`}>
-    <div className="filterQuick" aria-label="Filtros rápidos de fecha">
-      {quick.map(([value, label]) => <button
-        key={value}
-        className={filter.preset === value ? 'filterChip active' : 'filterChip'}
-        onClick={() => selectPreset(value)}
-        type="button"
-      >{value === 'all' ? <History size={14}/> : <CalendarDays size={14}/>} {label}</button>)}
-    </div>
+  return <>
+    <PeriodFilterPanel filter={filter} onChange={next=>onChange({...filter,...next,supplierId:showSupplier?filter.supplierId:''})} title="Periodo de gastos"/>
+    <section className={`invoiceFilterPanel card${showSupplier?'':' noSupplier'}`}>
     <div className="filterGrid">
       <label>Periodo
         <SelectField value={filter.preset} options={periodOptions} onChange={value=>selectPreset(value as PeriodPreset)} ariaLabel="Periodo de facturas"/>
@@ -94,15 +77,9 @@ export function InvoiceFilters({
       <label>Origen
         <SelectField value={filter.source} onChange={source=>onChange({...filter,source})} ariaLabel="Filtrar por origen" options={[{value:'',label:'Todos los orígenes'},{value:'manual',label:'Archivo / manual'},{value:'camera',label:'Cámara'},{value:'gmail',label:'Gmail'}]}/>
       </label>
-      <label>Desde
-        <input type="date" value={filter.from} onChange={event => setDate('from', event.target.value)}/>
-      </label>
-      <label>Hasta
-        <input type="date" value={filter.to} onChange={event => setDate('to', event.target.value)}/>
-      </label>
       <button className="filterReset" type="button" onClick={() => onChange(filterForPreset('current_quarter'))} title="Restablecer filtros">
         <RotateCcw size={15}/> Restablecer
       </button>
     </div>
-  </section>;
+  </section></>;
 }

@@ -20,7 +20,7 @@ export type AmazonStatus={
   error:string|null;
 };
 
-export type AmazonRangeKey='today'|'7d'|'30d'|'current_month'|'previous_month'|'current_quarter'|'current_year'|'custom';
+export type AmazonRangeKey='today'|'yesterday'|'7d'|'30d'|'current_month'|'previous_month'|'current_quarter'|'current_year'|'custom';
 export type AmazonAnalyticsFilters={from:string;to:string;marketplaceIds:string[]};
 export type AmazonCompleteness={
   profitComplete:boolean;unmappedSkuCount:number;unmappedUnits:number;missingHistoricalCostCount:number;missingHistoricalCostUnits:number;
@@ -127,6 +127,7 @@ function range(from:Date,to:Date){return {from:ymd(from),to:ymd(to)};}
 export function amazonQuickRange(key:AmazonRangeKey,now=new Date()){
   const today=startOfDay(now);
   if(key==='today'||key==='custom')return range(today,today);
+  if(key==='yesterday'){const previous=new Date(today);previous.setDate(previous.getDate()-1);return range(previous,previous);}
   if(key==='7d'){const from=new Date(today);from.setDate(from.getDate()-6);return range(from,today);}
   if(key==='30d'){const from=new Date(today);from.setDate(from.getDate()-29);return range(from,today);}
   if(key==='current_month')return range(new Date(today.getFullYear(),today.getMonth(),1),today);

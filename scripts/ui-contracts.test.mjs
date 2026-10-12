@@ -16,7 +16,9 @@ test('Orders exposes bulk label generation and configurable post-create download
 
 test('the shared invoice period filters expose Hoy', async () => {
   const source = await readFile(new URL('../src/components/InvoiceFilters.tsx', import.meta.url), 'utf8');
-  assert.match(source, /\['today',\s*'Hoy'\]/);
+  assert.match(source, /<PeriodFilterPanel/);
+  const panel = await readFile(new URL('../src/components/PeriodFilterPanel.tsx', import.meta.url), 'utf8');
+  assert.match(panel, /\['today',\s*'Hoy'\]/);
   assert.match(source, /\{value:'today',label:'Hoy'\}/);
   assert.match(source, /SelectField/);
 });

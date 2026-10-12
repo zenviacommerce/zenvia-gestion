@@ -1,6 +1,6 @@
 import type { Invoice } from '../types';
 
-export type PeriodPreset = 'today' | 'current_month' | 'previous_month' | 'current_quarter' | 'current_year' | 'all' | 'custom' | `quarter:${number}:${number}`;
+export type PeriodPreset = 'today' | 'yesterday' | '7d' | '30d' | 'current_month' | 'previous_month' | 'current_quarter' | 'current_year' | 'all' | 'custom' | `quarter:${number}:${number}`;
 
 export interface DateRangeFilter {
   preset: PeriodPreset;
@@ -32,6 +32,14 @@ export function rangeForPreset(preset: PeriodPreset, now = new Date()) {
   if (preset === 'today') {
     const today = ymd(now);
     return { from: today, to: today };
+  }
+  if (preset === 'yesterday') {
+    const previous = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+    return { from: ymd(previous), to: ymd(previous) };
+  }
+  if (preset === '7d' || preset === '30d') {
+    const from = new Date(now.getFullYear(), now.getMonth(), now.getDate() - (preset === '7d' ? 6 : 29));
+    return { from: ymd(from), to: ymd(now) };
   }
   if (preset === 'current_month') {
     return {
@@ -112,6 +120,9 @@ function formatDate(date: string) {
 
 export function periodLabel(filter: DateRangeFilter, now = new Date()) {
   if (filter.preset === 'today') return 'Hoy';
+  if (filter.preset === 'yesterday') return 'Ayer';
+  if (filter.preset === '7d') return 'Últimos 7 días';
+  if (filter.preset === '30d') return 'Últimos 30 días';
   if (filter.preset === 'current_month') {
     const label = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
     return label.charAt(0).toUpperCase() + label.slice(1);

@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { CalendarDays } from 'lucide-react';
-import { dateFilterForPreset, periodLabel, type DateRangeFilter } from '../services/filters';
+import { dateFilterForPreset, periodLabel, type DateRangeFilter, type PeriodPreset } from '../services/filters';
 
-const quickPresets = [
+export const quickPresets = [
   ['today', 'Hoy'],
+  ['yesterday', 'Ayer'],
   ['current_month', 'Mes actual'],
   ['previous_month', 'Mes anterior'],
   ['current_quarter', 'Trimestre actual'],
@@ -17,21 +18,23 @@ export function PeriodFilterPanel({
   title='Periodo de análisis',
   note,
   className='',
+  presets=quickPresets,
 }: {
   filter: DateRangeFilter;
   onChange: (next: DateRangeFilter) => void;
   title?: string;
   note?: ReactNode;
   className?: string;
+  presets?: readonly (readonly [PeriodPreset,string])[];
 }) {
-  const applyPreset=(preset:'today'|'current_month'|'previous_month'|'current_quarter'|'current_year'|'all')=>onChange(dateFilterForPreset(preset));
+  const applyPreset=(preset:PeriodPreset)=>onChange(dateFilterForPreset(preset));
   const setDate=(key:'from'|'to',value:string)=>onChange({...filter,preset:'custom',[key]:value});
 
   return <section className={`masterPeriodPanel sharedPeriodPanel ${className}`.trim()}>
     <div className="masterPeriodTop">
       <div><CalendarDays size={17}/><div><strong>{title}</strong><span>{periodLabel(filter)}</span></div></div>
       <div className="masterPeriodQuick">
-        {quickPresets.map(([preset,label])=><button key={preset} type="button" className={filter.preset===preset?'active':''} onClick={()=>applyPreset(preset)}>{label}</button>)}
+        {presets.map(([preset,label])=><button key={preset} type="button" className={filter.preset===preset?'active':''} onClick={()=>applyPreset(preset)}>{label}</button>)}
       </div>
     </div>
     <div className="masterPeriodDates">

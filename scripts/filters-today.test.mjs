@@ -47,3 +47,18 @@ test('shared and invoice period controls expose Mes anterior', async () => {
   assert.match(settings,/previous_month.*Mes anterior/s);
   assert.match(schema,/previous_month/);
 });
+
+test('yesterday uses the previous local calendar day across month, year and DST boundaries',async()=>{
+ const {rangeForPreset,filterForPreset,periodLabel}=await loadFilters();
+ for(const [now,expected] of [[new Date(2027,0,1,0,5),'2026-12-31'],[new Date(2026,2,1,12),'2026-02-28'],[new Date(2026,2,30,0,5),'2026-03-29']]){
+  assert.deepEqual(rangeForPreset('yesterday',now),{from:expected,to:expected});
+  assert.equal(periodLabel(filterForPreset('yesterday','',now),now),'Ayer');
+ }
+});
+test('Expenses and Amazon reuse the shared period panel',async()=>{
+ for(const name of ['InvoiceFilters','amazon/AmazonFilters']){
+  const source=await readFile(new URL(`../src/components/${name}.tsx`,import.meta.url),'utf8');
+  assert.match(source,/<PeriodFilterPanel\s/);
+  assert.doesNotMatch(source,/className="filterQuick"|className="amazonFilterPresets"/);
+ }
+});

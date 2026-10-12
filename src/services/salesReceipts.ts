@@ -73,10 +73,10 @@ function lineRows(receiptId:string,lines:SalesReceiptLine[]){
 
 export async function loadSalesReceipts():Promise<SalesReceipt[]>{
   const [receiptResult,lineResult,clientResult,paymentResult]=await Promise.all([
-    supabase.from('sales_receipts').select('*').order('receipt_date',{ascending:false}).order('created_at',{ascending:false}),
-    supabase.from('sales_receipt_lines').select('*').order('position'),
+    supabase.from('sales_receipts').select('id,client_id,receipt_number,receipt_date,currency,notes,total_amount,created_at').order('receipt_date',{ascending:false}).order('created_at',{ascending:false}),
+    supabase.from('sales_receipt_lines').select('id,receipt_id,product_id,position,description,quantity,unit,unit_price,discount_percent,invoice_tax_rate,line_total').order('position'),
     supabase.from('clients').select('id,name'),
-    supabase.from('sales_receipt_payments').select('*').order('payment_date').order('created_at'),
+    supabase.from('sales_receipt_payments').select('id,receipt_id,payment_date,amount,method,reference,notes,created_at').order('payment_date').order('created_at'),
   ]);
   for(const result of [receiptResult,lineResult,clientResult,paymentResult])if(result.error)throw result.error;
   const clients=new Map((clientResult.data??[]).map((row:any)=>[row.id,row.name]));

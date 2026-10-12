@@ -675,7 +675,7 @@ Deno.serve(async(req:Request)=>{
       if(result.error)throw result.error;
       let account=result.data;
       if(provider==='amazon'||provider==='sendcloud'||provider==='envia'||provider==='mrw'||provider==='shopify'){
-        const secretId=await writeVault(admin,account.id,provider,credentials,null);
+        const secretId=await writeVault(admin,account.id,provider,credentials,account.secret_id||null);
         const saved=await admin.from('integration_accounts').update({secret_id:secretId,updated_at:new Date().toISOString()})
           .eq('id',account.id).eq('owner_id',caller.data_owner_id).select('*').single();
         if(saved.error)throw saved.error;account=saved.data;

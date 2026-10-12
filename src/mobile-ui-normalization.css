@@ -1,7 +1,6 @@
 /* Global consistency: standalone filter selects */
 .page .salesToolbar>select,
 .page .toolbar>select,
-.page .gmailStatusFilter,
 .page .gmailFilterBar select,
 .page .auditFilters select,
 .page .ordersPrinterBar select{
@@ -27,7 +26,6 @@
 
 .page .salesToolbar>select:hover,
 .page .toolbar>select:hover,
-.page .gmailStatusFilter:hover,
 .page .gmailFilterBar select:hover,
 .page .auditFilters select:hover,
 .page .ordersPrinterBar select:hover{
@@ -36,7 +34,6 @@
 
 .page .salesToolbar>select:focus,
 .page .toolbar>select:focus,
-.page .gmailStatusFilter:focus,
 .page .gmailFilterBar select:focus,
 .page .auditFilters select:focus,
 .page .ordersPrinterBar select:focus{
@@ -46,7 +43,6 @@
 
 html[data-theme='dark'] .page .salesToolbar>select,
 html[data-theme='dark'] .page .toolbar>select,
-html[data-theme='dark'] .page .gmailStatusFilter,
 html[data-theme='dark'] .page .gmailFilterBar select,
 html[data-theme='dark'] .page .auditFilters select,
 html[data-theme='dark'] .page .ordersPrinterBar select{
@@ -192,7 +188,6 @@ html[data-theme='dark'] .page .ordersPrinterBar select{
   /* Standalone selects keep the same visual language on mobile too. */
   .page .salesToolbar>select,
   .page .toolbar>select,
-  .page .gmailStatusFilter,
   .page .gmailFilterBar select,
   .page .auditFilters select,
   .page .ordersPrinterBar select{

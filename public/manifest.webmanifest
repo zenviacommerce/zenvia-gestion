@@ -10,16 +10,16 @@
   "background_color": "#ffffff",
   "icons": [
     {
-      "src": "/zenvia-app-icon-180.png?v=20261012",
+      "src": "/zenvia-brand-symbol-20261012.png",
       "sizes": "180x180",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/zenvia-app-icon.svg?v=20261012",
+      "src": "/zenvia-brand-symbol-20261012.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ]
 }

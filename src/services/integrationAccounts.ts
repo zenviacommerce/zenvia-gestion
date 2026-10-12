@@ -330,3 +330,10 @@ export async function syncShopifyIntegrationAccount(id:string,history=false){
   return data as {ok:true;synced:number;accounts?:Array<{accountId:string;displayName:string;synced:number;shopDomain:string}>};
 }
 
+
+/** Per-store app credentials are exchanged on the server and stored in its vault. */
+export async function connectInstalledShopifyApplication(input:{accountId?:string;shopDomain:string;clientId:string;clientSecret:string;displayName?:string;syncOrders:boolean}){
+  if(!input.shopDomain.trim())throw new Error('Indica el dominio permanente myshopify.com.');
+  if(!input.clientId.trim()||!input.clientSecret.trim())throw new Error('Completa el Client ID y el Client secret de la app instalada en esta tienda.');
+  return invoke<{account:IntegrationAccount}>({action:'shopify_client_connect',...input,shopDomain:input.shopDomain.trim(),clientId:input.clientId.trim(),clientSecret:input.clientSecret.trim()},'No se pudo conectar la app instalada en Shopify.');
+}

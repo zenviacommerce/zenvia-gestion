@@ -57,7 +57,7 @@ import './responsive-hardening.css';
 
 const favicon=document.querySelector<HTMLLinkElement>("link[rel~='icon']")||document.createElement('link');
 favicon.rel='icon';
-favicon.type='image/webp';
+favicon.type='image/png';
 favicon.href='/zenvia-app-icon-180.png?v=20261012';
 if(!favicon.parentNode)document.head.appendChild(favicon);
 

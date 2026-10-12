@@ -287,6 +287,37 @@ export async function syncSendcloudIntegrationAccount(id:string,history=false){
   return data as {ok:true;synced:number;enriched:number;accounts?:Array<{accountId:string|null;displayName:string;synced:number;enriched:number}>};
 }
 
+/** Server-controlled Shopify OAuth: the frontend never receives or stores access tokens. */
+export async function shopifyOAuthConfiguration(){
+  return invoke<{ready:boolean;redirectUri:string}>({action:'shopify_config'},'No se pudo comprobar la configuración de Shopify.');
+}
+
+export async function configureShopifyApplication(clientId:string,clientSecret:string){
+  return invoke<{ready:true}>({action:'shopify_app_setup',clientId,clientSecret},'No se pudo configurar la aplicación Shopify.');
+}
+
+export async function beginShopifyAuthorization(shopDomain:string,syncOrders=true,displayName=''){
+  const {authorizeUrl}=await invoke<{authorizeUrl:string}>(
+    {action:'shopify_oauth_start',shopDomain,syncOrders,displayName},
+    'No se pudo iniciar la autorización con Shopify.',
+  );
+  let url:URL;
+  try{url=new URL(authorizeUrl)}catch{throw new Error('Shopify no ha devuelto una URL válida.')}
+  if(url.protocol!=='https:'||!url.hostname.endsWith('.myshopify.com')||url.pathname!=='/admin/oauth/authorize')
+    throw new Error('URL de autorización de Shopify no válida.');
+  return url.toString();
+}
+
+export async function completeShopifyAuthorization(query:string){
+  const params=new URLSearchParams(query.replace(/^\?/,'')); 
+  if(!params.get('code')||!params.get('shop')||!params.get('state')||!params.get('hmac'))
+    throw new Error('Faltan parámetros de autorización de Shopify.');
+  return invoke<{account:IntegrationAccount}>(
+    {action:'shopify_oauth_exchange',query:params.toString()},
+    'No se pudo finalizar la autorización de Shopify.',
+  );
+}
+
 export async function syncShopifyIntegrationAccount(id:string,history=false){
   const {data,error}=await supabase.functions.invoke('shopify-orders',{body:{integrationAccountId:id,history}});
   if(error||!data||data.error)throw new Error(message(data,error,'No se pudo sincronizar la tienda Shopify.'));

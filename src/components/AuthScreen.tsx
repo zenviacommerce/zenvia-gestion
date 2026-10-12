@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { ZENVIA_LOGO } from '../branding';
 import { Fingerprint, LoaderCircle, LockKeyhole, ReceiptText } from 'lucide-react';
-import { getActiveTenant, resolveAndActivateTenant, supabase, type TenantPublicConfig } from '../services/supabase';
+import { getActiveTenant, resolveAndActivateTenant, resetLocalTenantSession, supabase, type TenantPublicConfig } from '../services/supabase';
 import { emailError, normalizeEmail } from '../services/validation';
 import { SelectField } from './forms/SelectField';
 
@@ -29,7 +29,7 @@ function passkeyError(error:unknown){
   return 'No se pudo iniciar sesión con Face ID / huella.';
 }
 
-export function AuthScreen({onTenantChanged,initialMessage=''}:{onTenantChanged?:()=>void;initialMessage?:string}) {
+export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=false}:{onTenantChanged?:()=>void;initialMessage?:string;allowSessionReset?:boolean}) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
@@ -111,6 +111,7 @@ export function AuthScreen({onTenantChanged,initialMessage=''}:{onTenantChanged?
         <button className="primary authSubmit" disabled={busy||passkeyBusy}><LockKeyhole size={17}/>{busy ? 'Entrando…' : 'Entrar'}</button>
       </form>
       {message && <div className="authMessage">{message}</div>}
+      {allowSessionReset&&<button type="button" className="secondary" onClick={()=>{resetLocalTenantSession();window.location.reload()}}>Restablecer acceso en este dispositivo</button>}
       {canUsePasskey&&<p className="authPasskeyHint">La primera vez debes activar la biometría desde dentro de la aplicación.</p>}
       <div className="authMessage">Las cuentas se crean y administran desde la propia aplicación.</div>
     </div>

@@ -412,7 +412,14 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   },[query,state,trackingFilter,countryFilter,carrierFilter,dateFilter,preferences.rememberFilters]);
   const [shippingRules,setShippingRules]=useState<ShippingRule[]>(()=>defaultShippingRules());
 
-  const refresh=useCallback(async()=>{try{setOrders(await listFulfillmentOrders())}catch(e){setError(errorMessage(e,'No se pudieron cargar los pedidos.'))}},[]);
+  const refreshRequest=useRef<Promise<void>|null>(null);
+  const refresh=useCallback(()=>{
+    if(refreshRequest.current)return refreshRequest.current;
+    const request=(async()=>{try{setOrders(await listFulfillmentOrders());setError('')}catch(e){setError(errorMessage(e,'No se pudieron cargar los pedidos.'))}})();
+    refreshRequest.current=request;
+    void request.finally(()=>{if(refreshRequest.current===request)refreshRequest.current=null});
+    return request;
+  },[]);
   useEffect(()=>watchFulfillmentOrders(()=>void refresh()),[refresh]);
   const refreshStatus=useCallback(async()=>{try{setStatus(await getSendcloudStatus())}catch(e){setStatus({configured:false,integrations:[],message:errorMessage(e,'No se pudo comprobar Sendcloud.')})}},[]);
   const refreshEnviaStatus=useCallback(async()=>{try{const result=await getEnviaStatus();setEnviaStatus({configured:result.configured,accounts:result.accounts||[]})}catch{setEnviaStatus({configured:false,accounts:[]})}},[]);
@@ -422,7 +429,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     window.addEventListener('zenvia:orders-refresh',onAgentRefresh);
     return()=>window.removeEventListener('zenvia:orders-refresh',onAgentRefresh);
   },[refresh,refreshStatus,refreshEnviaStatus,refreshTariffs]);
-  useEffect(()=>{(async()=>{setLoading(true);await Promise.all([refresh(),refreshStatus(),refreshEnviaStatus(),refreshTariffs()]);setLoading(false)})()},[refresh,refreshStatus,refreshEnviaStatus,refreshTariffs]);
+  useEffect(()=>{(async()=>{setLoading(true);void Promise.all([refreshStatus(),refreshEnviaStatus(),refreshTariffs()]);try{await refresh()}finally{setLoading(false)}})()},[refresh,refreshStatus,refreshEnviaStatus,refreshTariffs]);
   useEffect(()=>{let active=true;loadShippingRules({ensureDefaults:false}).then(rows=>{if(active)setShippingRules(rows.length?rows:defaultShippingRules())}).catch(()=>{if(active)setShippingRules(defaultShippingRules())});return()=>{active=false}},[]);
   useEffect(()=>{
     const asins=Array.from(new Set(orders

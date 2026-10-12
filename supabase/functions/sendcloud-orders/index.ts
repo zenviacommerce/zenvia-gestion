@@ -166,7 +166,7 @@ function normalizeShippingOption(option:any){
   return {code,name,carrierCode:carrier,carrierName:String(option?.carrier?.name||option?.carrier_name||friendlyCarrier(carrier)||carrier||'Transportista'),contractId:contractValue==null?null:Number(contractValue),price:priceValue==null?null:Number(priceValue),currency:quote?.price?.currency||quote?.total_price?.currency||quote?.currency||null,raw:option};
 }
 async function integrations(credentials:SendcloudCredentials):Promise<Integration[]>{
-  const {data}=await sendcloudJson(credentials,'/integrations');
+  const {data}=await sendcloudJson(credentials,'/integrations',{signal:AbortSignal.timeout(8000)});
   return (data?.data||[]).map((item:any)=>({id:Number(item.id),shopName:String(item.shop_name||item.type||`Integración ${item.id}`),type:String(item.type||''),shopUrl:item.shop_url||null,channel:channelFor(item),isApi:apiIntegration(item)}));
 }
 function daysAgo(days:number){const d=new Date();d.setUTCDate(d.getUTCDate()-days);return d.toISOString().slice(0,10);}

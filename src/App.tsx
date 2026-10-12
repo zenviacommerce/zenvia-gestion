@@ -42,6 +42,8 @@ import { createSupportTicket } from './services/support';
 import { requestAmazonSync } from './services/amazon';
 import { confirmAction } from './services/actionDialog';
 import { safeStorageGet, safeStorageRemove, safeStorageSet } from './services/browserStorage';
+import { completeShopifyAuthorization } from './services/integrationAccounts';
+import { clearShopifyOAuthCallback, getShopifyOAuthCallback, shopifyOAuthWasDenied } from './services/shopifyOAuthCallback';
 import { effectiveStartPage } from './services/uiPreferences';
 import { loadCompanyBranding } from './services/companyBranding';
 import type { AppData, Invoice, InvoicePaymentStatus, NewInvoiceInput, Product, Supplier } from './types';
@@ -97,6 +99,8 @@ export default function App(){
  const [passkeySetupVisible,setPasskeySetupVisible]=useState(false);
  const [workspaceLogo,setWorkspaceLogo]=useState<string|null>(null);
  const startPageApplied=useRef(false);
+ const shopifyOAuthCallbackRef=useRef<string|null>(getShopifyOAuthCallback());
+ const shopifyOAuthExchangeStarted=useRef(false);
  const userId=session?.user.id||null;
 
  const allowedPages=useMemo<Page[]>(()=>{
@@ -246,6 +250,30 @@ export default function App(){
    }
    if(!allowedPages.includes(page))setPage(allowedPages[0]);
  },[accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading]);
+
+ useEffect(()=>{
+   if(!accessReady||!access?.active||!allowedPages.includes('settings'))return;
+   const query=shopifyOAuthCallbackRef.current;
+   if(!query||shopifyOAuthExchangeStarted.current)return;
+   shopifyOAuthExchangeStarted.current=true;
+   shopifyOAuthCallbackRef.current=null;
+   startPageApplied.current=true;
+   setPage('settings');
+   setSettingsInitialSection('integrations');
+   if(shopifyOAuthWasDenied()){
+     clearShopifyOAuthCallback();
+     showError('Has cancelado la autorización de Shopify. La tienda no se ha añadido.');
+     return;
+   }
+   void completeShopifyAuthorization(query).then(result=>{
+     clearShopifyOAuthCallback();
+     showSuccess(`Tienda Shopify conectada: ${result.account.displayName}.`);
+     window.dispatchEvent(new Event('zenvia:shopify-connected'));
+   }).catch(error=>{
+     clearShopifyOAuthCallback();
+     showError(error instanceof Error?error.message:'No se pudo finalizar la conexión con Shopify.');
+   });
+ },[accessReady,access?.active,allowedPages]);
 
  if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> Cargando…</div>;
  if(recoveryToken) return <><ToastHost/><RecoveryTokenSetup tokenHash={recoveryToken} onComplete={async()=>{

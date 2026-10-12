@@ -58,7 +58,7 @@ import './responsive-hardening.css';
 const favicon=document.querySelector<HTMLLinkElement>("link[rel~='icon']")||document.createElement('link');
 favicon.rel='icon';
 favicon.type='image/png';
-favicon.href='/zenvia-brand-symbol-20261012.png';
+favicon.href='/zenvia-ios-home-180-v3.png';
 if(!favicon.parentNode)document.head.appendChild(favicon);
 
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><AppErrorBoundary><SettingsProvider><App/><ActionDialogHost/><ActivityCenter/><AutoPagination/><OrderLabelDefaults/><PendingOrdersKpiHighlight/><UnifiedListExperience/></SettingsProvider></AppErrorBoundary></React.StrictMode>);

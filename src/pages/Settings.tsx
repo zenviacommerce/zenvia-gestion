@@ -1604,7 +1604,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                   <span className={`integrationStatusDot status-${account.status}`}/>
                   <div>
                     <strong>{account.displayName}{account.isDefault&&<em>Predeterminada</em>}{account.legacy&&<em>Actual</em>}</strong>
-                    <small>{account.externalAccountId||'Sin identificador externo'} · {account.status==='connected'?'Conectada':account.status==='disabled'?'Desconectada':account.status==='error'?'Con error':'Pendiente'}</small>
+                    <small>{account.externalAccountId&&account.externalAccountId.trim().toLowerCase()!=='legacy'?account.externalAccountId:account.displayName} · {account.status==='connected'?'Conectada':account.status==='disabled'?'Desconectada':account.status==='error'?'Con error':'Pendiente'}</small>
                     {account.lastSuccessAt&&<small>Último éxito: {dateTime(account.lastSuccessAt)}</small>}
                     {account.legacy&&<small>Conexión existente detectada automáticamente.</small>}
                     {account.provider==='amazon'&&typeof account.config?.operationalOrdersDirect==='object'&&account.config.operationalOrdersDirect!==null&&<small className={(account.config.operationalOrdersDirect as {status?:string}).status==='ready'?'integrationReadinessOk':'integrationError'}>

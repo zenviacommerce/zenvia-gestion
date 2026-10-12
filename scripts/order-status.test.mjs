@@ -37,3 +37,18 @@ test('a generic Envia label also removes an order from operational pending state
   assert.equal(hasShippingLabel(order),true);
   assert.equal(isPendingOrder(order),false);
 });
+
+test('marketplace confirmation wins over carrier pre-dispatch status',async()=>{
+ const {isProcessedOrder,isLabelledOrder}=await loadOrderStatusModule();
+ const order={sourceStatus:'shipped',labelCreatedAt:'2026-10-12T19:26:58Z',trackingStatusMessage:'ready to send'};
+ assert.equal(isProcessedOrder(order),true);assert.equal(isLabelledOrder(order),false);
+});
+test('Orders screen recognises a confirmed Shopify shipment before carrier pickup',async()=>{
+ const source=await readFile(new URL('../src/pages/Orders.tsx',import.meta.url),'utf8');
+ const helper=source.slice(source.indexOf('function isProcessedOrder('),source.indexOf('function isLabelledOrder('));
+ const {default:vm}=await import('node:vm');
+ const context=vm.createContext({hasShippingLabel:()=>true,isCancelledOrder:()=>false,orderStatusCode:order=>order.sourceStatus});
+ vm.runInContext(ts.transpile(helper)+';globalThis.processed=isProcessedOrder;',context);
+ assert.equal(context.processed({sourceStatus:'shipped',trackingStatusMessage:'ready to send'}),true);
+ assert.equal(context.processed({sourceStatus:'pending',trackingStatusMessage:'ready to send'}),false);
+});

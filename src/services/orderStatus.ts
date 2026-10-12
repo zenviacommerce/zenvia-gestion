@@ -19,6 +19,10 @@ export function isReadyForDispatch(order:FulfillmentOrder){
 }
 
 export function isProcessedOrder(order:FulfillmentOrder){
+  if(isCancelledOrder(order))return false;
+  // Marketplace fulfillment confirms dispatch independently of carrier pickup.
+  const confirmedStatus=orderStatusCode(order);
+  if(['fulfilled','shipped','delivered'].includes(confirmedStatus))return true;
   if(isReadyForDispatch(order))return false;
   const status=orderStatusCode(order);
   return status==='fulfilled'||status==='shipped'||status==='delivered';

@@ -110,6 +110,10 @@ function isReadyForDispatch(order:FulfillmentOrder){
   return raw.includes('ready to send')||raw.includes('ready for shipment')||raw.includes('announced')||raw.includes('being announced')||raw.includes('no label');
 }
 function isProcessedOrder(order:FulfillmentOrder){
+  if(isCancelledOrder(order))return false;
+  // Marketplace fulfillment confirms dispatch independently of carrier pickup.
+  const confirmedStatus=orderStatusCode(order);
+  if(['fulfilled','shipped','delivered'].includes(confirmedStatus))return true;
   const raw=`${order.trackingStatusCode||''} ${order.trackingStatusMessage||''}`.toLowerCase().replace(/[_-]+/g,' ').trim();
 
   if(hasShippingLabel(order)){

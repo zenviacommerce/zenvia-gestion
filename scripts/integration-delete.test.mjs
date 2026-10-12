@@ -34,6 +34,7 @@ test('account deletion archives by owner and preserves historical links and othe
 test('adding back a removed integration reuses archived account identity and clears archive marker',async()=>{
  const edge=await read('supabase/functions/integration-accounts/index.ts');
  assert.match(edge,/existing\.data\?\.config\?\.archivedAt/);
+ assert.match(edge,/writeVault\(admin,account\.id,provider,credentials,account\.secret_id\|\|null\)/);
  assert.match(edge,/\.eq\('id',existing\.data\.id\)/);
  assert.match(edge,/delete restoredConfig\.archivedAt/);
  assert.match(edge,/oauthStateHash:stateHash/);

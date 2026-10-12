@@ -104,7 +104,10 @@ test('integration UI shows provider logos and models Shopify as a direct Admin A
   assert.match(page,/title:'Documentos y correo'/);
   assert.match(page,/Conexión directa con Shopify Admin API/i);
   assert.match(page,/shopifyAccessToken/);
-  assert.match(page,/permiso read_orders/);
+  assert.match(page,/Conectar mediante Shopify/);
+  assert.match(page,/Continuar con Shopify/);
+  assert.match(page,/beginShopifyAuthorization/);
+  assert.match(page,/Configuración inicial de ZENVIA en Shopify/);
   assert.match(page,/Conexión directa con Amazon SP-API/i);
   assert.match(css,/\.integrationProviderLogo/);
   assert.match(css,/\.integrationCategoryList/);

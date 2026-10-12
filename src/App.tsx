@@ -73,6 +73,7 @@ export default function App(){
  const {settings,preferences,loading:settingsLoading}=useSettings();
  const [session,setSession]=useState<Session|null>(null);
  const [authReady,setAuthReady]=useState(false);
+ const [authTimedOut,setAuthTimedOut]=useState(false);
  const [authClientVersion,setAuthClientVersion]=useState(0);
  const [tenantBootstrapError,setTenantBootstrapError]=useState('');
  const inviteToken=typeof window!=='undefined'?(new URLSearchParams(window.location.search).get('invite_token')||'').trim():'';
@@ -172,33 +173,45 @@ export default function App(){
 
  useEffect(()=>{
    let cancelled=false;
+   let timedOut=false;
    let unsubscribe:undefined|(()=>void);
-   setAuthReady(false);
-   void (async()=>{
-     let resolution;
-     try{
-       resolution=await bootstrapTenantFromLocation();
-       if(!cancelled)setTenantBootstrapError('');
-     }catch(error){
-       if(!cancelled){
-         setTenantBootstrapError(error instanceof Error?error.message:'No se pudo localizar tu empresa.');
-         setSession(null);setAuthReady(true);
-       }
-       return;
-     }
+   const timeout=window.setTimeout(()=>{
      if(cancelled)return;
-     if(resolution.status!=='resolved'){
-       setSession(null);setAuthReady(true);
-       return;
+     timedOut=true;
+     setAuthTimedOut(true);
+     setTenantBootstrapError('No se ha podido recuperar la sesión guardada. Puedes iniciar sesión de nuevo o restablecer el acceso de este dispositivo.');
+     setSession(null);
+     setAuthReady(true);
+   },15000);
+   const showSession=(next:Session|null,feedback='')=>{
+     if(cancelled||timedOut)return;
+     window.clearTimeout(timeout);
+     setTenantBootstrapError(feedback);
+     setSession(next);
+     setAuthReady(true);
+   };
+   setAuthReady(false);
+   setAuthTimedOut(false);
+   void (async()=>{
+     try{
+       const resolution=await bootstrapTenantFromLocation();
+       if(cancelled||timedOut)return;
+       if(resolution.status!=='resolved'){
+         showSession(null);
+         return;
+       }
+       const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{
+         showSession(next);
+       });
+       unsubscribe=()=>subscription.unsubscribe();
+       const {data,error}=await supabase.auth.getSession();
+       if(error)throw error;
+       showSession(data.session);
+     }catch(error){
+       showSession(null,error instanceof Error?error.message:'No se pudo recuperar la sesión.');
      }
-     supabase.auth.getSession().then(({data})=>{if(!cancelled){setSession(data.session);setAuthReady(true)}}).catch(()=>{setSession(null);setAuthReady(true)});
-     const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{
-       if(cancelled)return;
-       setSession(next);setAuthReady(true);
-     });
-     unsubscribe=()=>subscription.unsubscribe();
    })();
-   return()=>{cancelled=true;unsubscribe?.()};
+   return()=>{cancelled=true;window.clearTimeout(timeout);unsubscribe?.()};
  },[authClientVersion]);
 
  useEffect(()=>{
@@ -251,7 +264,7 @@ export default function App(){
    setSession(data.session);
    setAccessReady(false);
  }}/></>;
- if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootstrapError} onTenantChanged={()=>{setTenantBootstrapError('');setAuthClientVersion(value=>value+1)}}/></>;
+ if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootstrapError} allowSessionReset={authTimedOut} onTenantChanged={()=>{setTenantBootstrapError('');setAuthClientVersion(value=>value+1)}}/></>;
  if(session.user.user_metadata?.onboarding_pending===true) return <><ToastHost/><InvitePasswordSetup session={session} onComplete={async()=>{
    const {data}=await supabase.auth.getSession();
    setSession(data.session);

@@ -314,6 +314,8 @@ export async function beginShopifyAuthorization(shopDomain:string,syncOrders=tru
 
 export async function completeShopifyAuthorization(query:string){
   const params=new URLSearchParams(query.replace(/^\?/,'')); 
+  const managedInstall=Boolean(params.get('shop')&&params.get('hmac')&&params.get('timestamp')&&!params.get('code')&&!params.get('state')&&!params.get('error'));
+  if(managedInstall)return invoke<{account:IntegrationAccount}>({action:'shopify_install_connect',query:params.toString()},'No se pudo finalizar la instalación de Shopify.');
   if(!params.get('code')||!params.get('shop')||!params.get('state')||!params.get('hmac'))
     throw new Error('Faltan parámetros de autorización de Shopify.');
   return invoke<{account:IntegrationAccount}>(

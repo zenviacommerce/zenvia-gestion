@@ -1,5 +1,5 @@
 import { createClient } from 'npm:@supabase/supabase-js@2';
-import { shopifyDomain, shopifyError, shopifyHash, verifyShopifyCallback, shopifyTokenRequest, shopifyTokenCredentials, shopifyAccountCredentials, shopifyLegacyCredentials, commitShopifyAuthorization, shopifyStoredApplicationCredentials } from '../_shared/shopifyAuth.ts';
+import { verifyShopifyInstallLaunch, shopifyDomain, shopifyError, shopifyHash, verifyShopifyCallback, shopifyTokenRequest, shopifyTokenCredentials, shopifyAccountCredentials, shopifyLegacyCredentials, commitShopifyAuthorization, shopifyStoredApplicationCredentials } from '../_shared/shopifyAuth.ts';
 import { enforceWorkspaceLimit, requireWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
 import { gmailAccessAllowed, gmailServerConfig, validateGmailOrigin, gmailTokenRequest, gmailProfileEmail, gmailConnectionFromToken, legacyGmailMigrationPlan } from '../_shared/gmailOAuth.ts';
 
@@ -466,6 +466,26 @@ Deno.serve(async(req:Request)=>{
       await testAccount(admin,caller.data_owner_id,account);
       return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,account.id))});
     }
+
+    if(action==='shopify_install_connect'){
+      const config=await shopifyOAuthConfig(admin,caller.data_owner_id);
+      if(!config.ready)throw new Error('Configura la app Shopify de Zenvia antes de conectar la tienda.');
+      const params=new URLSearchParams(clean(body.query).replace(/^\?/,''));
+      const domain=await verifyShopifyInstallLaunch(params,config.clientSecret);
+      const previous=await admin.from('integration_accounts').select('*').eq('owner_id',caller.data_owner_id).eq('provider','shopify').eq('external_account_id',domain).maybeSingle();
+      if(previous.error)throw previous.error;
+      if(previous.data&&(!previous.data.enabled||previous.data.status==='disabled'))throw new Error('La tienda está desconectada. Actívala desde Integraciones antes de abrir la app.');
+      if(previous.data?.status==='connected'){
+        await testAccount(admin,caller.data_owner_id,previous.data);
+        return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,previous.data.id))});
+      }
+      const token=await shopifyTokenRequest(domain,new URLSearchParams({grant_type:'client_credentials',client_id:config.clientId,client_secret:config.clientSecret}));
+      const stored=shopifyTokenCredentials({shopDomain:domain,authMode:'client_credentials',clientId:config.clientId,clientSecret:config.clientSecret},token);
+      const account=await saveShopifyConnection(admin,caller.data_owner_id,{accountId:previous.data?.id,displayName:previous.data?.display_name,syncOrders:previous.data?.config?.syncOrders!==false},stored);
+      await testAccount(admin,caller.data_owner_id,account);
+      return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,account.id))});
+    }
+
     if(action==='shopify_oauth_start'){
       const config=await shopifyOAuthConfig(admin,caller.data_owner_id);
       if(!config.ready)throw new Error('La app común de Shopify todavía no está configurada. Conecta tu app propia con su ID y secreto.');

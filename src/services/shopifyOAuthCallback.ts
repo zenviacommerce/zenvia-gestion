@@ -6,7 +6,8 @@ let denied=false;
 if(typeof window!=='undefined'){
   const url=new URL(window.location.href);
   const params=url.searchParams;
-  const fromShopify=Boolean(params.get('shop')&&params.get('state')&&(params.get('code')||params.get('error')));
+  const managedInstall=Boolean(params.get('shop')&&params.get('hmac')&&params.get('timestamp')&&!params.get('code')&&!params.get('state')&&!params.get('error'));
+  const fromShopify=managedInstall||Boolean(params.get('shop')&&params.get('state')&&(params.get('code')||params.get('error')));
   if(fromShopify){
     denied=Boolean(params.get('error'));
     pendingQuery=params.toString();

@@ -132,3 +132,11 @@ export async function commitShopifyAuthorization(admin:any,account:any,pending:a
   if(result.error)throw result.error;
   if(!result.data)throw new Error('La conexión de Shopify cambió mientras autorizabas. Vuelve a conectar la tienda.');
 }
+
+export async function verifyShopifyInstallLaunch(params:URLSearchParams,secret:string,now=Date.now()){
+  if(params.has('code')||params.has('state')||params.has('error'))throw new Error('Retorno de instalación Shopify no válido.');
+  const timestamp=Number(params.get('timestamp'));
+  if(!Number.isInteger(timestamp)||timestamp<=0||Math.abs(now/1000-timestamp)>600)throw new Error('El enlace de Shopify ha caducado. Abre de nuevo la app desde Shopify.');
+  if(!await verifyShopifyCallback(params,secret))throw new Error('Firma de instalación Shopify no válida.');
+  return shopifyDomain(params.get('shop'));
+}

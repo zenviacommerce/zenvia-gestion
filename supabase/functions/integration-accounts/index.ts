@@ -70,7 +70,10 @@ async function listAccounts(admin:any,ownerId:string){
   const {data,error}=await admin.from('integration_accounts')
     .select('*').eq('owner_id',ownerId).order('provider').order('is_default',{ascending:false}).order('display_name');
   if(error)throw error;
-  return (data||[]).filter((account:any)=>!(account.provider==='gmail'&&account.config?.migratedToAccountId)).map(publicAccount);
+  return (data||[]).filter((account:any)=>
+    !account.config?.archivedAt &&
+    !(account.provider==='gmail'&&account.config?.migratedToAccountId)
+  ).map(publicAccount);
 }
 
 async function consolidateLegacyGmail(admin:any,ownerId:string,target:any){
@@ -125,7 +128,7 @@ async function renewGmail(admin:any,account:any,forceRefresh=false){
 async function loadAccount(admin:any,ownerId:string,id:string){
   const {data,error}=await admin.from('integration_accounts').select('*').eq('owner_id',ownerId).eq('id',id).maybeSingle();
   if(error)throw error;
-  if(!data)throw new Error('Integración no encontrada.');
+  if(!data||data.config?.archivedAt)throw new Error('Integración no encontrada.');
   return data;
 }
 async function makeDefault(admin:any,ownerId:string,provider:Provider,id:string){
@@ -482,7 +485,9 @@ Deno.serve(async(req:Request)=>{
       }
       const current=await readVault(admin,account.secret_id);
       const secretId=await writeVault(admin,account.id,'shopify',{...current,oauthPending:pending.oauthPending},account.secret_id);
-      const saved=await admin.from('integration_accounts').update({secret_id:secretId,enabled:true,status:account.status==='disabled'?'pending':account.status,config:{...account.config,oauthStateHash:stateHash}}).eq('id',account.id).eq('owner_id',caller.data_owner_id);
+      const restoredConfig={...account.config,oauthStateHash:stateHash};
+      delete restoredConfig.archivedAt;
+      const saved=await admin.from('integration_accounts').update({secret_id:secretId,enabled:true,status:account.status==='disabled'?'pending':account.status,config:restoredConfig}).eq('id',account.id).eq('owner_id',caller.data_owner_id);
       if(saved.error)throw saved.error;
       const auth=new URL(`https://${domain}/admin/oauth/authorize`);
       auth.search=new URLSearchParams({client_id:config.clientId,scope:'read_orders,write_orders,read_merchant_managed_fulfillment_orders,write_merchant_managed_fulfillment_orders',redirect_uri:origin+'/',state}).toString();
@@ -558,7 +563,9 @@ Deno.serve(async(req:Request)=>{
         }
         const secretId=await writeVault(admin,account.id,'gmail',{clientId:config.clientId,refreshToken,...connection},account.secret_id);
         const now=new Date().toISOString();
-        const saved=await admin.from('integration_accounts').update({secret_id:secretId,credential_source:'vault',enabled:true,status:'connected',last_error:null,last_success_at:now,updated_at:now,config:{...account.config,...body.config}}).eq('id',account.id).eq('owner_id',caller.data_owner_id).select('*').single();
+        const restoredConfig={...account.config,...body.config};
+        delete restoredConfig.archivedAt;
+        const saved=await admin.from('integration_accounts').update({secret_id:secretId,credential_source:'vault',enabled:true,status:'connected',last_error:null,last_success_at:now,updated_at:now,config:restoredConfig}).eq('id',account.id).eq('owner_id',caller.data_owner_id).select('*').single();
         if(saved.error)throw saved.error;
         return response({account:publicAccount(await consolidateLegacyGmail(admin,caller.data_owner_id,saved.data)),connection});
       }
@@ -644,20 +651,29 @@ Deno.serve(async(req:Request)=>{
         if(!externalAccountId)throw new Error('Indica el correo de la cuenta de Gmail.');
         displayName=displayName||externalAccountId;credentialSource='session';
       }
-      const existing=await admin.from('integration_accounts').select('id').eq('owner_id',caller.data_owner_id).eq('provider',provider).eq('external_account_id',externalAccountId).maybeSingle();
+      const existing=await admin.from('integration_accounts').select('*').eq('owner_id',caller.data_owner_id).eq('provider',provider).eq('external_account_id',externalAccountId).maybeSingle();
       if(existing.error)throw existing.error;
-      if(existing.data)throw new Error('Esta cuenta ya está añadida.');
+      if(existing.data&&!existing.data.config?.archivedAt)throw new Error('Esta cuenta ya está añadida.');
 
       const count=await admin.from('integration_accounts').select('id',{count:'exact',head:true}).eq('owner_id',caller.data_owner_id).eq('provider',provider).neq('status','disabled');
       if(count.error)throw count.error;
       const isDefault=Number(count.count||0)===0;
-      const inserted=await admin.from('integration_accounts').insert({
-        owner_id:caller.data_owner_id,provider,display_name:displayName,external_account_id:externalAccountId,
+      // Reconnect an archived identity using its original ID: this preserves
+      // historical foreign keys and avoids the provider/external-ID uniqueness constraint.
+      const payload={
+        display_name:displayName,external_account_id:externalAccountId,
         status:'pending',enabled:true,is_default:isDefault,credential_source:credentialSource,
-        parent_account_id:parentAccountId,config,
-      }).select('*').single();
-      if(inserted.error)throw inserted.error;
-      let account=inserted.data;
+        parent_account_id:parentAccountId,config:{...config},
+        last_error:null,updated_at:new Date().toISOString(),
+      };
+      const result=existing.data?.config?.archivedAt
+        ?await admin.from('integration_accounts').update(payload)
+          .eq('id',existing.data.id).eq('owner_id',caller.data_owner_id).select('*').single()
+        :await admin.from('integration_accounts').insert({
+          owner_id:caller.data_owner_id,provider,...payload,
+        }).select('*').single();
+      if(result.error)throw result.error;
+      let account=result.data;
       if(provider==='amazon'||provider==='sendcloud'||provider==='envia'||provider==='mrw'||provider==='shopify'){
         const secretId=await writeVault(admin,account.id,provider,credentials,null);
         const saved=await admin.from('integration_accounts').update({secret_id:secretId,updated_at:new Date().toISOString()})
@@ -736,6 +752,57 @@ Deno.serve(async(req:Request)=>{
       if(saved.error)throw saved.error;
       if(body?.isDefault===true)await makeDefault(admin,caller.data_owner_id,account.provider,id);
       return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,id))});
+    }
+    if(action==='delete'){
+      // Deletion is an archive, not a database CASCADE. Imported orders,
+      // receipts and Gmail documents must keep their original account links.
+      const {data:children,error:childrenError}=await admin.from('integration_accounts')
+        .select('id').eq('owner_id',caller.data_owner_id).eq('parent_account_id',account.id)
+        .eq('enabled',true).neq('status','disabled').limit(1);
+      if(childrenError)throw childrenError;
+      if(children?.length)throw new Error('Esta integración tiene cuentas vinculadas activas. Elimínalas o desconéctalas primero.');
+
+      const now=new Date().toISOString();
+      const wasDefault=Boolean(account.is_default);
+      // Disabling first is fail-closed: a concurrent sync cannot reuse the account.
+      const archived=await admin.from('integration_accounts').update({
+        enabled:false,status:'disabled',is_default:false,last_error:null,
+        config:{...(account.config||{}),archivedAt:now},updated_at:now,
+      }).eq('id',id).eq('owner_id',caller.data_owner_id).select('id').single();
+      if(archived.error)throw archived.error;
+
+      let gmailRefreshToken='';
+      if(account.provider==='gmail'&&account.secret_id){
+        try{gmailRefreshToken=clean((await readVault(admin,account.secret_id)).refreshToken);}
+        catch{/* The credentials will still be locally revoked. */}
+      }
+      // Make previously issued access tokens inaccessible without erasing
+      // historical business rows. Reconnect will always require new credentials.
+      if(account.secret_id){
+        await writeVault(admin,account.id,account.provider,
+          {revoked:true,revokedAt:now},account.secret_id);
+      }
+      if(gmailRefreshToken){
+        try{await fetch('https://oauth2.googleapis.com/revoke',{
+          method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},
+          body:new URLSearchParams({token:gmailRefreshToken}),
+          signal:AbortSignal.timeout(8000),
+        });}catch{/* Local credentials are already unusable. */}
+      }
+      if(account.provider==='amazon'&&account.linked_resource_id){
+        const linked=await admin.from('amazon_accounts').update({status:'disabled',updated_at:now})
+          .eq('id',account.linked_resource_id).eq('owner_id',caller.data_owner_id);
+        if(linked.error)throw linked.error;
+      }
+      if(wasDefault){
+        const replacement=await admin.from('integration_accounts').select('id')
+          .eq('owner_id',caller.data_owner_id).eq('provider',account.provider)
+          .eq('enabled',true).neq('status','disabled')
+          .order('updated_at',{ascending:false}).limit(1).maybeSingle();
+        if(replacement.error)throw replacement.error;
+        if(replacement.data)await makeDefault(admin,caller.data_owner_id,account.provider,replacement.data.id);
+      }
+      return response({accounts:await listAccounts(admin,caller.data_owner_id)});
     }
     if(action==='disconnect'){
       if(account.provider==='gmail'&&account.secret_id){

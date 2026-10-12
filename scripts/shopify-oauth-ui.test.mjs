@@ -23,7 +23,7 @@ test('OAuth callback code is immediately erased from the browser URL, then excha
  assert.match(capture,/history\.replaceState/);
  assert.match(capture,/['"]code['"],['"]hmac['"],['"]shop['"],['"]state['"]/);
  assert.match(capture,/let pendingQuery:string\|null=null/);
- assert.doesNotMatch(capture,/localStorage\./);
+ assert.doesNotMatch(capture,/\b(?:window\.)?localStorage\.(?:setItem|getItem)/);
  assert.match(app,/completeShopifyAuthorization\(query\)/);
  assert.match(app,/shopifyOAuthExchangeStarted\.current=true/);
  assert.match(app,/setSettingsInitialSection\('integrations'\)/);

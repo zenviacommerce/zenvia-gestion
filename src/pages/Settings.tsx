@@ -37,7 +37,7 @@ import { loadSupplierOptions, type SupplierOption } from '../services/supplierEd
 import { addShippingRule, deleteShippingRule, loadShippingRules, updateShippingRule, type ShippingRule } from '../services/shippingRules';
 import { AMAZON_KPI_KEYS, loadAmazonStatus, requestAmazonSync, type AmazonMarketplaceStatus } from '../services/amazon';
 import { getSendcloudStatus, syncSendcloudOrders } from '../services/orders';
-import { beginShopifyAuthorization, configureShopifyApplication, shopifyOAuthConfiguration, createIntegrationAccount, disconnectIntegrationAccount, loadAmazonAccountMarketplaces, loadIntegrationAccounts, setDefaultIntegrationAccount, syncSendcloudIntegrationAccount, syncShopifyIntegrationAccount, testIntegrationAccount, updateIntegrationAccount, type IntegrationAccount, type IntegrationProvider } from '../services/integrationAccounts';
+import { beginShopifyAuthorization, configureShopifyApplication, shopifyOAuthConfiguration, createIntegrationAccount, deleteIntegrationAccount, disconnectIntegrationAccount, loadAmazonAccountMarketplaces, loadIntegrationAccounts, setDefaultIntegrationAccount, syncSendcloudIntegrationAccount, syncShopifyIntegrationAccount, testIntegrationAccount, updateIntegrationAccount, type IntegrationAccount, type IntegrationProvider } from '../services/integrationAccounts';
 import { disconnectGmail, getCachedGmailConnection, setActiveGmailConnection, testGmailConnection } from '../services/gmail';
 import { connectRegisteredGmail, ensureRegisteredGmailConnection } from '../services/gmailAccounts';
 import { DEFAULT_AUTOMATION_RULES, loadAutomationRules, saveAutomationRule, type AutomationRule } from '../services/automationRules';
@@ -1529,6 +1529,33 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     finally{setBusy(null);}
   };
 
+  const removeAccount=async(account:IntegrationAccount)=>{
+    if(account.legacy){
+      showError('Esta conexión es heredada del sistema anterior y no se puede eliminar desde aquí. Debe migrarse a una cuenta de integración independiente.');
+      return;
+    }
+    if(!await confirmAction({
+      title:'Eliminar integración',
+      message:`¿Eliminar “${account.displayName}” de ZENVIA? La conexión dejará de sincronizarse, sus credenciales se revocarán y desaparecerá del listado. Los pedidos, facturas y demás datos históricos se conservarán.`,
+      confirmLabel:'Eliminar integración',
+      tone:'danger',
+    }))return;
+    setBusy('delete:'+account.id);
+    try{
+      const result=await deleteIntegrationAccount(account.id);
+      setAccounts(result);
+      if(account.provider==='gmail'&&account.externalAccountId){
+        // Clear the local Google session after the server disables the integration.
+        try{await disconnectGmail(account.externalAccountId)}catch{/* Server removal succeeded. */}
+      }
+      if(editing?.id===account.id)setEditing(null);
+      showSuccess(`Integración “${account.displayName}” eliminada. El histórico permanece intacto.`);
+    }catch(e){
+      showError(e instanceof Error?e.message:'No se pudo eliminar la integración.');
+      await reload();
+    }finally{setBusy(null);}
+  };
+
   const restore=async()=>{
     if(!await confirmAction({title:'Restaurar Integraciones',message:'Se restaurarán los interruptores globales de Integraciones. Las cuentas conectadas no se modificarán.',confirmLabel:'Restaurar',tone:'warning'}))return;
     setSaving(true);
@@ -1586,6 +1613,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                   <button type="button" className="secondary" disabled={busy!==null} onClick={()=>resetEditor(account.provider,account)}>Configurar</button>
                   {!account.isDefault&&account.status!=='disabled'&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void makeDefault(account)}>Predeterminada</button>}
                   {account.status!=='disabled'&&!account.legacy&&<button type="button" className="secondary dangerText" disabled={busy!==null} onClick={()=>void disconnect(account)}>Desconectar</button>}
+                  {!account.legacy&&<button type="button" className="secondary dangerText" disabled={busy!==null} onClick={()=>void removeAccount(account)} aria-label={`Eliminar integración ${account.displayName}`}>{busy==='delete:'+account.id?'Eliminando…':'Eliminar'}</button>
                 </div>
               </div>)}
             </div>

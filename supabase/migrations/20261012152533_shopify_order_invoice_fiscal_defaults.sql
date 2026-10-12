@@ -1,7 +1,3 @@
--- One durable source identity per workspace, Shopify account and remote order.
-alter table public.sales_invoices add column if not exists source_order_key text;
-alter table public.sales_invoices add column if not exists source_fulfillment_order_id uuid references public.fulfillment_orders(id) on delete set null;
-create unique index if not exists sales_invoices_source_order_key_idx on public.sales_invoices(owner_id,source_order_key) where source_order_key is not null;
 create or replace function public.save_shopify_order_invoice(p_order_id uuid,p_client jsonb,p_series_id uuid,p_issue_date date,p_lines jsonb,p_issue boolean default false)
 returns uuid language plpgsql security invoker set search_path='' as $$
 declare
@@ -21,6 +17,7 @@ begin
   if jsonb_typeof(v_order.raw_payload->'taxesIncluded') is distinct from 'boolean' then raise exception 'Actualizar pedidos: faltan datos fiscales de Shopify.'; end if;
   if coalesce((v_order.raw_payload#>>'{lineItems,pageInfo,hasNextPage}')::boolean,false) or coalesce((v_order.raw_payload#>>'{shippingLines,pageInfo,hasNextPage}')::boolean,false) then raise exception 'El desglose de líneas de Shopify está incompleto.'; end if;
   if coalesce(trim(p_client->>'name'),'')='' or coalesce(trim(p_client->>'addressLine1'),'')='' or coalesce(trim(p_client->>'postalCode'),'')='' or coalesce(trim(p_client->>'city'),'')='' or coalesce(p_client->>'countryCode','') !~ '^[A-Z]{2}$' then raise exception 'Completa los datos de facturación del cliente.'; end if;
+  if nullif(p_client->>'taxRegistrationId','') is not null and not exists(select 1 from public.business_tax_registrations where id=(p_client->>'taxRegistrationId')::uuid and owner_id=v_owner and active) then raise exception 'Registro IVA no disponible.'; end if;
   if p_issue_date is null or not exists(select 1 from public.sales_invoice_series where id=p_series_id and owner_id=v_owner and active and kind='standard' and year=extract(year from p_issue_date)::int) then raise exception 'La serie no corresponde a la fecha de la factura.'; end if;
   if jsonb_typeof(p_lines) is distinct from 'array' or jsonb_array_length(p_lines)=0 then raise exception 'La factura no tiene líneas.'; end if;
   select id into v_client_id from public.clients where owner_id=v_owner and active
@@ -37,10 +34,10 @@ begin
     values(v_owner,trim(p_client->>'name'),nullif(trim(p_client->>'taxId'),''),nullif(trim(p_client->>'email'),''),nullif(p_client->>'phone',''),p_client->>'addressLine1',p_client->>'addressLine2',p_client->>'postalCode',p_client->>'city',p_client->>'province',p_client->>'countryCode','Cliente del pedido '||v_order.order_number) returning id into v_client_id;
   end if;
   if v_invoice.id is null then
-    insert into public.sales_invoices(owner_id,client_id,series_id,issue_date,operation_date,currency,notes,source_order_key,source_fulfillment_order_id)
-    values(v_owner,v_client_id,p_series_id,p_issue_date,v_order.order_created_at::date,coalesce(v_order.currency,'EUR'),'Pedido Shopify '||coalesce(v_order.order_number,v_order.order_id),v_key,p_order_id) returning * into v_invoice;
+    insert into public.sales_invoices(owner_id,client_id,series_id,issue_date,operation_date,currency,notes,tax_registration_id,source_order_key,source_fulfillment_order_id)
+    values(v_owner,v_client_id,p_series_id,p_issue_date,v_order.order_created_at::date,coalesce(v_order.currency,'EUR'),'Pedido Shopify '||coalesce(v_order.order_number,v_order.order_id),nullif(p_client->>'taxRegistrationId','')::uuid,v_key,p_order_id) returning * into v_invoice;
   else
-    update public.sales_invoices set client_id=v_client_id,series_id=p_series_id,issue_date=p_issue_date where id=v_invoice.id;
+    update public.sales_invoices set tax_registration_id=nullif(p_client->>'taxRegistrationId','')::uuid,client_id=v_client_id,series_id=p_series_id,issue_date=p_issue_date where id=v_invoice.id;
     delete from public.sales_invoice_lines where invoice_id=v_invoice.id;
   end if;
   for v_line in select value from jsonb_array_elements(p_lines) loop
@@ -54,6 +51,3 @@ begin
   return v_invoice.id;
 end;
 $$;
-revoke all on function public.save_shopify_order_invoice(uuid,jsonb,uuid,date,jsonb,boolean) from public,anon;
-grant execute on function public.save_shopify_order_invoice(uuid,jsonb,uuid,date,jsonb,boolean) to authenticated;
-notify pgrst,'reload schema';

@@ -6,7 +6,10 @@ const read=(path)=>readFile(new URL(`../${path}`,import.meta.url),'utf8');
 
 test('post-login bootstrap cannot remain indefinitely in the initial auth spinner after getSession rejection',async()=>{
   const app=await read('src/App.tsx');
-  assert.match(app,/getSession\(\)[^\n]*catch\(\(\)=>\{setSession\(null\);setAuthReady\(true\)\}\)/);
+  assert.match(app,/const timeout=window\.setTimeout\(\(\)=>\{/);
+  assert.match(app,/setSession\(null\);\s*setAuthReady\(true\);/);
+  assert.match(app,/const \{data,error\}=await supabase\.auth\.getSession\(\)/);
+  assert.match(app,/catch\(error\)\{\s*showSession\(null/);
   assert.match(app,/withTimeout\(loadAccessAndBranding\(userId\),90000/);
   assert.match(app,/No se pudo cargar el acceso/);
   assert.match(app,/Reintentar/);

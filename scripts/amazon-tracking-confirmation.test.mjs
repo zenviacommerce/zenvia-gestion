@@ -46,7 +46,7 @@ test('label creation keeps the label if Amazon confirmation fails and retries no
     source('supabase/functions/_shared/amazon/shipment-confirmation.ts'),
   ]);
   assert.match(orders,/amazon-confirm-shipment/i);
-  assert.match(orders,/createOrderLabel[\s\S]{0,1800}invokeAmazonTracking/i);
+  assert.match(orders,/createOrderLabel[\s\S]{0,1800}confirmOrderTracking/i);
   assert.match(orders,/retryAmazonTrackingConfirmations/);
   assert.match(worker,/retryPendingAmazonTracking/);
   assert.match(helper,/legacy\|\|'1'/);

@@ -53,6 +53,7 @@ export interface LabelResult {
   shippingOptionCode:string|null; contractId:number|null; carrierCode?:string|null; carrierName?:string|null;
   shippingServiceName?:string|null; mimeType:string; base64:string;
   automation?:OrderLabelCreatedAutomationConfig;
+  confirmationError?:string;
 }
 export interface LocalPrinter { id:string; name:string; default?:boolean; }
 export interface ManualOrderItem { name:string; sku?:string; quantity:number; unitPrice:number; }
@@ -264,6 +265,13 @@ export function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){
 }
 export function markOrderLabelPrinted(orderId:string){return invokeOrderState<{ok:true;printedAt:string;printCount:number}>({action:'mark_label_printed',orderId});}
 export function validateOrderAddress(orderId:string,carrierCode='mrw'){return invokeOrderTools<OrderAddressValidation>({action:'validate_address',orderId,carrierCode});}
+export async function confirmOrderTracking(orderId:string,trackingOverride?:Record<string,unknown>){
+  const {data:order,error}=await supabase.from('fulfillment_orders').select('source_channel').eq('id',orderId).single();
+  if(error)throw error;
+  const endpoint=order.source_channel==='shopify'?'shopify-confirm-shipment':order.source_channel==='amazon'?'amazon-confirm-shipment':null;
+  if(!endpoint)return {ok:true,skipped:true};
+  return invokeFunction<{ok:boolean}>(endpoint,{action:'confirm_order_tracking',orderId,...(trackingOverride?{trackingOverride}:{})});
+}
 export async function createOrderLabel(orderId:string,option?:ShippingOption|null,pushTracking=true){
   const rule=await loadAutomationRule('order_label_created');
   const automation:OrderLabelCreatedAutomationConfig=rule.enabled
@@ -279,23 +287,20 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
     :option?.provider==='mrw'
       ?await invokeMrw<LabelResult>({action:'create_label',orderId,shippingOption})
       :await invokeSendcloud<LabelResult>({action:'create_label',orderId,shippingOption});
+  let confirmationError:string|undefined;
   if(pushTracking&&automation.pushToMarketplace){
     try{
-      await invokeAmazonTracking({
-        action:'confirm_order_tracking',
-        orderId,
-        trackingOverride:{
+      await confirmOrderTracking(orderId,{
           trackingNumber:result.trackingNumber,
           trackingUrl:result.trackingUrl,
           parcelId:result.parcelId,
           carrierCode:result.carrierCode||null,
           carrierName:result.carrierName||null,
           shippingServiceName:result.shippingServiceName||null,
-        },
       });
-    }catch{/* Tracking can be retried later when enabled and persisted. */}
+    }catch(error){confirmationError=String((error as Error)?.message||error||'No se pudo confirmar el envío.');}
   }
-  return {...result,automation};
+  return {...result,automation,confirmationError};
 }
 export async function fetchOrderLabel(orderId:string){
   const {data,error}=await supabase.from('fulfillment_orders').select('shipping_provider,sendcloud_parcel_id').eq('id',orderId).maybeSingle();

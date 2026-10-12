@@ -32,6 +32,6 @@ test('Suppliers uses the shared period panel, including the Hoy preset', async (
 
 test('the application configures the ZENVIA logo as favicon', async () => {
   const source = await readFile(new URL('../src/main.tsx', import.meta.url), 'utf8');
-  assert.match(source, /zenvia-brand-symbol-20261012\.png/);
+  assert.match(source, /zenvia-ios-home-180-v3\.png/);
   assert.match(source, /rel\s*=\s*['"]icon['"]/);
 });

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 export default defineConfig({
   plugins: [
@@ -14,7 +15,7 @@ export default defineConfig({
         // directly into HTML so that no additional network fetch is needed.
         const marker = '__ZENVIA_IOS_TOUCH_ICON_DATA__';
         if (!html.includes(marker)) throw new Error('Missing iOS app icon marker');
-        const bytes = readFileSync(new URL('./public/zenvia-ios-home-180-v3.png', import.meta.url));
+        const bytes = readFileSync(resolve(process.cwd(), 'public/zenvia-ios-home-180-v3.png'));
         if (bytes.length < 100 || bytes.subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') {
           throw new Error('iOS app icon is not a valid PNG');
         }

@@ -18,7 +18,8 @@ test('home-screen metadata uses the ZENVIA brand icon without install UI',()=>{
   const app=readFileSync(path.join(root,'src','App.tsx'),'utf8');
 
   assert.match(index,/rel="manifest" href="\/manifest-ios-fixed-20261012\.webmanifest"/);
-  assert.match(index,/rel="apple-touch-icon" sizes="180x180" href="\/zenvia-ios-home-180-v3\.png"/);
+  assert.match(index,/rel="apple-touch-icon" sizes="180x180" href="__ZENVIA_IOS_TOUCH_ICON_DATA__"/);
+  assert.doesNotMatch(index,/rel="apple-touch-icon"[^>]*href="\/apple-touch-icon\.png"/);
   assert.equal(manifest.name,'ZENVIA Gestión');
   assert.equal(manifest.short_name,'ZENVIA Gestión');
   assert.ok(manifest.icons?.some(icon=>icon.src==='/zenvia-ios-home-180-v3.png'));

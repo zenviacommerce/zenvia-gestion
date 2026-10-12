@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/generate-brand-icon.mjs && vite",
-    "build": "node scripts/generate-brand-icon.mjs && tsc -b && vite build",
+    "build": "node scripts/generate-brand-icon.mjs && tsc -b && vite build && node scripts/verify-ios-touch-icon-build.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

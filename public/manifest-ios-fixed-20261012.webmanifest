@@ -1,0 +1,19 @@
+{
+  "name": "ZENVIA Gestión",
+  "short_name": "ZENVIA Gestión",
+  "description": "Gestión empresarial de ZENVIA COMMERCE",
+  "id": "/gestion",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "theme_color": "#0f172a",
+  "background_color": "#ffffff",
+  "icons": [
+    {
+      "src": "/zenvia-ios-home-180-v3.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}

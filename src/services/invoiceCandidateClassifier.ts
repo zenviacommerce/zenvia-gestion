@@ -51,13 +51,10 @@ export function shouldInspectInvoiceAttachment(context: InvoiceCandidateContext)
   if (explicitInvoice) return true;
   if (!isPdf) return false;
 
-  const base = filename.replace(/\.pdf$/i, '');
-  if (/^\d{6,20}$/.test(base)) return true;
-  if (/^(?:fac|fact|inv|invoice|receipt|ticket)[-_ .]?[a-z0-9-]{3,}$/i.test(base)) return true;
-  if (/facturaci[oó]n|billing|accounts?\s+payable|payments?|noreply.*(?:billing|invoice|payment)/i.test(text)) return true;
-
-  // Un PDF cualquiera sin ninguna señal de facturación no merece una descarga/OCR.
-  return false;
+  // Gmail subjects and filenames are not reliable invoice signals (scanner-generated
+  // names and empty subjects are common). Inspect PDF contents before deciding.
+  // classifyInvoiceFile still rejects manuals, quotations and other non-invoices.
+  return true;
 }
 
 export async function classifyInvoiceFile(

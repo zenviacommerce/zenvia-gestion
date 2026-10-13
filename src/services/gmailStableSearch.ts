@@ -5,7 +5,7 @@ import { classifyInvoiceFile, shouldInspectInvoiceAttachment } from './invoiceCa
 const MAX_RETRIES = 5;
 const BASE_DELAY_MS = 1200;
 const MAX_DELAY_MS = 15000;
-const CACHE_PREFIX = 'zenvia-gmail-scanned-v4:';
+const CACHE_PREFIX = 'zenvia-gmail-scanned-v5:';
 const LIST_PAGE_SIZE = 500;
 const MAX_LIST_PAGES = 20;
 const MAX_MESSAGES_PER_SCAN = 200;

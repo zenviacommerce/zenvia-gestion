@@ -250,7 +250,7 @@ export async function searchGmailInvoiceCandidatesStable(
   persistCandidates?: (candidates: GmailCandidate[]) => Promise<void>,
 ): Promise<GmailStableScanResult> {
   const period = months >= 12 && months % 12 === 0 ? `${months / 12}y` : `${months}m`;
-  const q = encodeURIComponent(`has:attachment newer_than:${period} {filename:pdf filename:jpg filename:jpeg filename:png filename:webp}`);
+  const q = encodeURIComponent(`-in:sent -in:drafts -in:spam -in:trash has:attachment newer_than:${period} {filename:pdf filename:jpg filename:jpeg filename:png filename:webp}`);
 
   const listed = await listMatchingMessages(accessToken, q, onProgress);
   const messages = listed.messages;
@@ -280,6 +280,10 @@ export async function searchGmailInvoiceCandidatesStable(
     onProgress?.(`Revisando correos nuevos ${index + 1} de ${messagesToReview.length} · ${messages.length} encontrados…`);
     try {
       const full = await gmailFetchJson<any>(accessToken, `messages/${encodeURIComponent(message.id)}?format=full`);
+      if ((full.labelIds || []).some((label: string) => ['SENT', 'DRAFT', 'SPAM', 'TRASH'].includes(label))) {
+        scannedIds.add(message.id);
+        continue;
+      }
       const headers = full.payload?.headers as Array<{ name?: string; value?: string }> | undefined;
       const subject = headerValue(headers, 'Subject');
       const sender = headerValue(headers, 'From');
@@ -307,7 +311,7 @@ export async function searchGmailInvoiceCandidatesStable(
           partId: attachment.partId || null,
           status: 'found',
           invoiceId: null,
-          metadata: { snippet, partId: attachment.partId || null },
+          metadata: { snippet, partId: attachment.partId || null, gmailLabelIds: full.labelIds || [], gmailAccountEmail: account },
         };
 
         onProgress?.(`Inspeccionando documento ${attachmentIndex + 1} de ${possible.length}: ${attachment.filename}…`);

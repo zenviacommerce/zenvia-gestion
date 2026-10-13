@@ -382,7 +382,7 @@ export async function searchGmailInvoiceCandidates(
   const policy=expenseImportPolicyFromSettings(loadedSettings.settings.expenses);
   const period = months >= 12 && months % 12 === 0 ? `${months / 12}y` : `${months}m`;
   const attachmentQuery=policy.gmailPdfOnly?'filename:pdf':'{filename:pdf filename:jpg filename:jpeg filename:png filename:webp}';
-  const q = encodeURIComponent(`has:attachment newer_than:${period} ${attachmentQuery}`);
+  const q = encodeURIComponent(`-in:sent -in:drafts -in:spam -in:trash has:attachment newer_than:${period} ${attachmentQuery}`);
   onProgress?.('Buscando correos con adjuntos…');
   const list = await gmailFetch<{ messages?: Array<{ id: string; threadId?: string }> }>(accessToken, `messages?maxResults=100&q=${q}`);
   const messages = list.messages || [];
@@ -395,6 +395,7 @@ export async function searchGmailInvoiceCandidates(
       const full = await gmailFetch<any>(accessToken, `messages/${encodeURIComponent(message.id)}?format=full`);
       done += 1;
       onProgress?.(`Analizando correos ${done} de ${messages.length}…`);
+      if ((full.labelIds || []).some((label: string) => ['SENT', 'DRAFT', 'SPAM', 'TRASH'].includes(label))) return [];
       const headers = full.payload?.headers as Array<{ name?: string; value?: string }> | undefined;
       const subject = headerValue(headers, 'Subject');
       const sender = headerValue(headers, 'From');
@@ -421,7 +422,7 @@ export async function searchGmailInvoiceCandidates(
           partId: attachment.partId || null,
           status: 'found' as const,
           invoiceId: null,
-          metadata: { snippet, partId: attachment.partId || null },
+          metadata: { snippet, partId: attachment.partId || null, gmailLabelIds: full.labelIds || [] },
         }));
     } catch (error) {
       if (error instanceof GmailAuthError || error instanceof GmailTemporaryError) throw error;
@@ -446,7 +447,7 @@ function mapImportRow(row: any): GmailCandidate {
     sender: row.sender,
     subject: row.subject,
     receivedAt: row.received_at,
-    attachmentId: row.attachment_id || String(metadata.attachmentId || ''),
+    attachmentId: String(metadata.latestAttachmentId || row.attachment_id || metadata.attachmentId || ''),
     attachmentName: row.attachment_name || 'Adjunto',
     mimeType: row.attachment_mime_type || String(metadata.mimeType || 'application/octet-stream'),
     size: row.attachment_size == null ? null : Number(row.attachment_size),
@@ -465,7 +466,7 @@ export async function loadGmailImports(): Promise<GmailCandidate[]> {
     .select('*')
     .order('received_at', { ascending: false, nullsFirst: false });
   if (error) throw error;
-  return (data || []).map(mapImportRow);
+  return (data || []).filter(row => !row.metadata?.supersededBy && row.metadata?.gmailDirection !== 'outgoing' && !(Array.isArray(row.metadata?.gmailLabelIds) && row.metadata.gmailLabelIds.some((label: string) => ['SENT','DRAFT','SPAM','TRASH'].includes(label)))).map(mapImportRow);
 }
 
 export async function persistGmailCandidates(candidates: GmailCandidate[], integrationAccountId?: string) {

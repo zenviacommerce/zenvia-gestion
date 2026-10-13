@@ -1,3 +1,4 @@
+import {orderProvinceName} from '../services/orderProvince';
 import {useEffect,useState} from 'react';
 import {X,Download,Mail,FileText} from 'lucide-react';
 import type {FulfillmentOrder} from '../services/orders';
@@ -13,7 +14,7 @@ import {useSettings} from '../context/SettingsContext';
 export function OrderInvoiceModal({order,onClose,onSaved,hasNext=false}:{order:FulfillmentOrder;onClose:()=>void;onSaved:()=>void;hasNext?:boolean}){
   const {settings}=useSettings();
   const address=Object.keys(order.billingAddress).length&&order.billingAddress.address_line_1?order.billingAddress:order.shippingAddress;
-  const [client,setClient]=useState<ClientInput>({name:String(address.company_name||address.name||order.customerName||''),taxId:String(address.tax_id||''),email:order.customerEmail||'',addressLine1:String(address.address_line_1||''),addressLine2:String(address.address_line_2||''),postalCode:String(address.postal_code||''),city:String(address.city||''),province:String(address.state_province_code||''),countryCode:String(address.country_code||''),paymentTermsDays:0});
+  const [client,setClient]=useState<ClientInput>({name:String(address.company_name||address.name||order.customerName||''),taxId:String(address.tax_id||''),email:order.customerEmail||'',addressLine1:String(address.address_line_1||''),addressLine2:String(address.address_line_2||''),postalCode:String(address.postal_code||''),city:String(address.city||''),province:orderProvinceName(address),countryCode:String(address.country_code||''),paymentTermsDays:0});
   const [invoice,setInvoice]=useState<SalesInvoice|null>(null),[lines,setLines]=useState<SalesInvoiceLine[]>([]),[series,setSeries]=useState<SalesInvoiceSeries[]>([]),[seriesId,setSeriesId]=useState(''),[issueDate,setIssueDate]=useState(()=>new Date().toLocaleDateString('sv-SE'));
   const [taxRegistrations,setTaxRegistrations]=useState<TaxRegistration[]>([]),[taxRegistrationId,setTaxRegistrationId]=useState('');
   const [business,setBusiness]=useState<BusinessSettings|null>(null),[branding,setBranding]=useState<CompanyBranding|null>(null),[busy,setBusy]=useState(true),[error,setError]=useState(''),[sending,setSending]=useState(false);

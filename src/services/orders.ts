@@ -64,7 +64,7 @@ export interface ManualOrderInput {
 }
 export interface OrderUpdateInput {
   customerName:string; companyName?:string; email?:string; phone?:string; address:string; houseNumber?:string;
-  address2?:string; postalCode:string; city:string; stateProvince?:string; countryCode:string; weightKg:number;
+  address2?:string; postalCode:string; city:string; stateProvince?:string; stateProvinceName?:string; countryCode:string; weightKg:number;
   packageLengthCm?:number; packageWidthCm?:number; packageHeightCm?:number;
 }
 

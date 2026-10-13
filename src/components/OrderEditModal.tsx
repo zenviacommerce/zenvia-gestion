@@ -1,3 +1,4 @@
+import {orderProvinceName,orderProvinceCode} from '../services/orderProvince';
 import {useSettings} from '../context/SettingsContext';
 import {SelectField} from './forms/SelectField';
 import { AlertCircle, LoaderCircle, Save, X } from 'lucide-react';
@@ -22,7 +23,7 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
   const [address2,setAddress2]=useState(text(address.address_line_2));
   const [postalCode,setPostalCode]=useState(text(address.postal_code));
   const [city,setCity]=useState(text(address.city));
-  const [stateProvince,setStateProvince]=useState(text(address.state_province_code));
+  const [stateProvince,setStateProvince]=useState(orderProvinceName(address));
   const [countryCode,setCountryCode]=useState(text(address.country_code)||'ES');
   const [weightKg,setWeightKg]=useState(order.weightKg||fallbackWeightKg||1);
   const [packageLengthCm,setPackageLengthCm]=useState(order.packageLengthCm??shipping.packageLengthCm);
@@ -49,7 +50,7 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
       address_line_2:address2.trim(),
       postal_code:postalCode.trim(),
       city:city.trim(),
-      state_province_code:stateProvince.trim(),
+      state_province_code:orderProvinceCode(address,stateProvince),state_province_name:stateProvince.trim(),
       country_code:countryCode.trim().toUpperCase(),
     },
   };
@@ -61,7 +62,7 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
   const submit=()=>onSave({
     customerName:customerName.trim(),companyName:companyName.trim(),email:email.trim(),phone:phone.trim(),address:street.trim(),
     houseNumber:houseNumber.trim(),address2:address2.trim(),postalCode:postalCode.trim(),city:city.trim(),
-    stateProvince:stateProvince.trim(),countryCode:countryCode.trim().toUpperCase(),weightKg:Number(weightKg)||0,
+    stateProvince:orderProvinceCode(address,stateProvince),stateProvinceName:stateProvince.trim(),countryCode:countryCode.trim().toUpperCase(),weightKg:Number(weightKg)||0,
     packageLengthCm:Number(packageLengthCm)||0,packageWidthCm:Number(packageWidthCm)||0,packageHeightCm:Number(packageHeightCm)||0,
   });
 

@@ -57,8 +57,8 @@ query ZenviaOrders($first:Int!,$after:String,$query:String){
       cancelledAt displayFulfillmentStatus displayFinancialStatus
       email phone
       totalPriceSet{shopMoney{amount currencyCode}}
-      shippingAddress{name company address1 address2 city provinceCode zip countryCodeV2 phone}
-      billingAddress{name company address1 address2 city provinceCode zip countryCodeV2 phone}
+      shippingAddress{name company address1 address2 city province provinceCode zip countryCodeV2 phone}
+      billingAddress{name company address1 address2 city province provinceCode zip countryCodeV2 phone}
       lineItems(first:100){pageInfo{hasNextPage} nodes{id name sku quantity originalUnitPriceSet{shopMoney{amount currencyCode}} discountAllocations{allocatedAmountSet{shopMoney{amount currencyCode}}} taxLines{rate priceSet{shopMoney{amount currencyCode}}} image{url}}}
       shippingLines(first:100){pageInfo{hasNextPage} nodes{title discountedPriceSet{shopMoney{amount currencyCode}} taxLines{rate priceSet{shopMoney{amount currencyCode}}}}}
       fulfillments(first:20){id status createdAt updatedAt trackingInfo(first:10){company number url}}
@@ -77,6 +77,7 @@ function shippingAddress(address:any){
     postal_code:clean(address?.zip),
     city:clean(address?.city),
     state_province_code:clean(address?.provinceCode)||null,
+    state_province_name:clean(address?.province)||null,
     country_code:clean(address?.countryCodeV2).toUpperCase(),
   };
 }

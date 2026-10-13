@@ -617,19 +617,18 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       return;
     }
     setBusyOrder(order.id);setLabelOrder(null);try{
-    const result=await createOrderLabel(order.id,option,settings.orders.pushTrackingToMarketplace),blob=labelBlob(result);
+    let downloaded=false;
+    const result=await createOrderLabel(order.id,option,settings.orders.pushTrackingToMarketplace,async ready=>{
+      if(ready.automation?.downloadPdf!==false&&settings.orders.downloadLabelAfterCreation&&settings.shipping.autoDownload){
+        const prepared=await prepareLabelPdf(labelBlob(ready),settings.shipping);
+        downloadLabel(prepared,labelPdfFilename(order,labelFilenameOptions));
+        downloaded=true;
+      }
+    });
+    // Record delivery after generation and marketplace confirmation; neither the
+    // state update nor reloading the list delays offering the PDF to save.
+    if(downloaded)await markOrderLabelPrinted(order.id);
     const freshOrders=await listFulfillmentOrders();const fresh=freshOrders.find(item=>item.id===order.id)||order;setOrders(freshOrders);setSelected(fresh);
-    if(result.automation?.downloadPdf!==false&&settings.orders.downloadLabelAfterCreation&&settings.shipping.autoDownload){
-      const prepared=await prepareLabelPdf(blob,settings.shipping);
-      downloadLabel(prepared,labelPdfFilename(fresh,labelFilenameOptions));
-      // En el flujo automático la etiqueta se entrega al usuario en el mismo
-      // momento de crearla. Ese es el equivalente funcional a "imprimir" para
-      // el estado operativo de ZENVIA; no la dejamos como "No impreso".
-      await markOrderLabelPrinted(order.id);
-      const printedOrders=await listFulfillmentOrders();
-      setOrders(printedOrders);
-      setSelected(printedOrders.find(item=>item.id===order.id)||fresh);
-    }
     showSuccess(`Etiqueta creada${result.trackingNumber?` · ${result.trackingNumber}`:''}.`);
     if(result.confirmationError)showInfo(`Etiqueta creada; confirmación del envío pendiente: ${result.confirmationError}`);
   }catch(e){showError(errorMessage(e,'No se pudo crear la etiqueta.'))}finally{setBusyOrder(null)}};

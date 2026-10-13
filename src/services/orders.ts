@@ -277,7 +277,7 @@ export async function confirmOrderTracking(orderId:string,trackingOverride?:Reco
   if(!endpoint)return {ok:true,skipped:true};
   return invokeFunction<{ok:boolean}>(endpoint,{action:'confirm_order_tracking',orderId,...(trackingOverride?{trackingOverride}:{})});
 }
-export async function createOrderLabel(orderId:string,option?:ShippingOption|null,pushTracking=true){
+export async function createOrderLabel(orderId:string,option?:ShippingOption|null,pushTracking=true,onLabelReady?:(result:LabelResult&{automation:OrderLabelCreatedAutomationConfig})=>Promise<void>){
   const rule=await loadAutomationRule('order_label_created');
   const automation:OrderLabelCreatedAutomationConfig=rule.enabled
     ?rule.config
@@ -292,6 +292,8 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
     :option?.provider==='mrw'
       ?await invokeMrw<LabelResult>({action:'create_label',orderId,shippingOption})
       :await invokeSendcloud<LabelResult>({action:'create_label',orderId,shippingOption});
+  let deliveryError:unknown;
+  try{await onLabelReady?.({...result,automation})}catch(error){deliveryError=error}
   let confirmationError:string|undefined;
   if(pushTracking&&automation.pushToMarketplace){
     try{
@@ -305,6 +307,7 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
       });
     }catch(error){confirmationError=String((error as Error)?.message||error||'No se pudo confirmar el envío.');}
   }
+  if(deliveryError)throw deliveryError;
   return {...result,automation,confirmationError};
 }
 export async function fetchOrderLabel(orderId:string){

@@ -62,7 +62,7 @@ export function validateOrderForCarrier(order:FulfillmentOrder,carrierCode='',sh
   if(country&&country.length!==2)issues.push({field:'country_code',severity:'error',message:'País: debe ser un código ISO de 2 letras.'});
   const postal=clean(address.postal_code).replace(/\s+/g,'');
   if(country==='ES'&&postal&&!/^\d{5}$/.test(postal))issues.push({field:'postal_code',severity:'error',message:'Código postal: en España debe tener 5 dígitos.'});
-  addPhoneIssue(issues,order.customerPhone||address.phone_number,country,isMrw,isMrw?20:30);
+  addPhoneIssue(issues,order.customerPhone||address.phone_number,country,false,isMrw?20:30);
   addEmailIssue(issues,order.customerEmail||address.email,false,isMrw?50:254);
   if(isMrw){
     addLengthIssue(issues,'address_line_2','Dirección 2',address.address_line_2,60,false);

@@ -53,11 +53,11 @@ test('Spanish national and +34 phone formats pass preflight',async()=>{
   assert.equal(validateOrderForCarrier(order({customerPhone:'+34 612 345 678'})).issues.some(item=>item.field==='phone'),false);
 });
 
-test('MRW final-carrier preflight requires a usable telephone',async()=>{
+test('MRW final-carrier preflight allows a missing telephone',async()=>{
   const {validateOrderForCarrier}=await loadShipping();
   const result=validateOrderForCarrier(order({customerPhone:'',shippingAddress:{...order().shippingAddress,phone_number:''}}),'mrw');
-  assert.equal(result.blocking,true);
-  assert.match(result.issues.find(item=>item.field==='phone')?.message||'',/obligatorio/);
+  assert.equal(result.blocking,false);
+  assert.equal(result.issues.some(item=>item.field==='phone'),false);
 });
 
 test('order edit form validates current values live and marks invalid fields',async()=>{

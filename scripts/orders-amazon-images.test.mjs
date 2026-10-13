@@ -17,7 +17,6 @@ test('order label downloads use centralized configurable filenames',async()=>{
   const source=await read('src/pages/Orders.tsx');
   assert.match(source,/labelFilenameOptions/);
   assert.match(source,/settings\.orders\.labelFilenameStrategy/);
-  assert.match(source,/labelPdfFilename\(fresh,labelFilenameOptions\)/);
   assert.match(source,/labelPdfFilename\(order,labelFilenameOptions\)/);
   assert.doesNotMatch(source,/labelPdfBaseName\(/);
 });

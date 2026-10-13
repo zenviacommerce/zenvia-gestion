@@ -1,0 +1,10 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import ts from 'typescript';import React from 'react';import {renderToStaticMarkup} from 'react-dom/server';import * as jsx from 'react/jsx-runtime';import * as icons from 'lucide-react';
+const compile=(file)=>ts.transpileModule(fs.readFileSync(new URL('../'+file,import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,jsx:ts.JsxEmit.ReactJSX}}).outputText;
+function load(file,deps={}){const module={exports:{}};vm.runInNewContext(compile(file),{module,exports:module.exports,require:name=>{if(name in deps)return deps[name];throw Error(name)}});return module.exports}
+const shipping=load('src/services/orderShipping.ts');
+const {OrderEditModal}=load('src/components/OrderEditModal.tsx',{'../services/orderProvince':{orderProvinceName:()=>'',orderProvinceCode:()=>''},'../context/SettingsContext':{useSettings:()=>({settings:{shipping:{packagePresets:[],packageLengthCm:30,packageWidthCm:15,packageHeightCm:15}}})},'./forms/SelectField':{SelectField:()=>null},'lucide-react':icons,'react':React,'react/jsx-runtime':jsx,'../services/orderShipping':shipping});
+const order={orderNumber:'1003',customerName:'Example',weightKg:.4,packageLengthCm:30,packageWidthCm:15,packageHeightCm:15,shippingAddress:{address_line_1:'Calle 9',city:'Oleiros',postal_code:'15179',country_code:'ES'}};
+const render=(extra={})=>renderToStaticMarkup(React.createElement(OrderEditModal,{order,fallbackWeightKg:1,saving:false,validationCarrier:'MRW 0200',onSave:()=>{},onClose:()=>{},...extra}));
+test('selected MRW carrier keeps missing telephone visible on an unassigned pending order',()=>{assert.match(render(),/Teléfono: obligatorio para este transportista/);assert.match(render(),/aria-invalid="true"/)});
+test('correcting the telephone clears its validation error',()=>{assert.doesNotMatch(render({order:{...order,customerPhone:'612345678'}}),/Teléfono: obligatorio/)});
+test('an optional telephone is not required for another carrier',()=>{assert.doesNotMatch(render({validationCarrier:'Correos'}),/Teléfono: obligatorio/)});

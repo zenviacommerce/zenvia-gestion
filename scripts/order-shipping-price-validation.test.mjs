@@ -41,6 +41,6 @@ test('Sendcloud address validation is available and the order editor shows valid
   assert.match(edge,/action==='validate_address'/);
   assert.match(edge,/\/addresses\/validate/);
   assert.match(service,/validateOrderAddress/);
-  assert.match(editor,/validationIssues/);
+  assert.match(editor,/validationCarrier/);
   assert.match(editor,/Revisar antes de generar la etiqueta/);
 });

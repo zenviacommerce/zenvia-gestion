@@ -62,7 +62,7 @@ test('MRW final-carrier preflight requires a usable telephone',async()=>{
 
 test('order edit form validates current values live and marks invalid fields',async()=>{
   const source=await read('../src/components/OrderEditModal.tsx');
-  assert.match(source,/const liveValidation=validateOrderForCarrier\(liveOrder,effectiveCarrier\)/);
+  assert.match(source,/const liveValidation=validateOrderForCarrier\(liveOrder,effectiveCarrier,shipping\)/);
   assert.match(source,/fieldIssue\('phone'\)/);
   assert.match(source,/aria-invalid=\{Boolean\(fieldIssue\('phone'\)\)\}/);
   assert.match(source,/ordersFieldError/);
@@ -78,7 +78,8 @@ test('order detail reuses product images from the list resolver',async()=>{
 
 test('label creation revalidates against the carrier actually selected',async()=>{
   const source=await read('../src/pages/Orders.tsx');
-  assert.match(source,/finalValidation=validateOrderForCarrier\(order,option\?`[^`]*option\.carrierCode[^`]*option\.code[^`]*option\.name[^`]*`:validationCarrier\(order\),settings\.shipping\)/);
+  assert.match(source,/const carrier=option\?`[^`]*option\.carrierCode[^`]*option\.code[^`]*option\.name[^`]*`:validationCarrier\(order\)/);
+  assert.match(source,/finalValidation=validateOrderForCarrier\(order,carrier,settings\.shipping\)/);
   assert.match(source,/carrierValidation=validateOrderForCarrier\(order,`[^`]*option\.carrierCode[^`]*option\.code[^`]*option\.name[^`]*`,settings\.shipping\)/);
 });
 

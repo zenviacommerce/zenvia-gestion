@@ -4,12 +4,12 @@ import {SelectField} from './forms/SelectField';
 import { AlertCircle, LoaderCircle, Save, X } from 'lucide-react';
 import { useState } from 'react';
 import type { FulfillmentOrder, OrderUpdateInput } from '../services/orders';
-import { validateOrderForCarrier, type OrderValidationIssue } from '../services/orderShipping';
+import { validateOrderForCarrier } from '../services/orderShipping';
 
 const text=(value:unknown)=>typeof value==='string'?value:'';
 
-export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[],onClose,onSave}:{
-  order:FulfillmentOrder; fallbackWeightKg:number; saving:boolean; validationIssues?:OrderValidationIssue[]; onClose:()=>void; onSave:(value:OrderUpdateInput)=>void;
+export function OrderEditModal({order,fallbackWeightKg,saving,validationCarrier='',onClose,onSave}:{
+  order:FulfillmentOrder; fallbackWeightKg:number; saving:boolean; validationCarrier?:string; onClose:()=>void; onSave:(value:OrderUpdateInput)=>void;
 }){
   const {settings}=useSettings();
   const shipping=settings.shipping;
@@ -54,8 +54,8 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
       country_code:countryCode.trim().toUpperCase(),
     },
   };
-  const effectiveCarrier=order.carrierCode||order.carrierName||order.shippingOptionCode||(validationIssues.some(issue=>String(issue.field).startsWith('package_'))?'mrw':'');
-  const liveValidation=validateOrderForCarrier(liveOrder,effectiveCarrier);
+  const effectiveCarrier=validationCarrier||order.carrierCode||order.carrierName||order.shippingOptionCode||'';
+  const liveValidation=validateOrderForCarrier(liveOrder,effectiveCarrier,shipping);
   const fieldIssue=(field:string)=>liveValidation.issues.find(issue=>issue.field===field);
   const fieldError=(field:string)=>fieldIssue(field)?.message||'';
 
@@ -70,7 +70,7 @@ export function OrderEditModal({order,fallbackWeightKg,saving,validationIssues=[
     <section className="modal ordersEditModal">
       <div className="modalHead"><div><h3>Editar pedido · {order.orderNumber||order.orderId}</h3><p>Corrige los datos de envío y del paquete antes de generar la etiqueta. ZENVIA guarda estos datos como fuente principal y solo los envía al proveedor logístico que elijas cuando sea necesario.</p></div><button onClick={onClose}><X size={18}/></button></div>
       <div className="ordersEditBody">
-        <div className="ordersEditHint">MRW valida estrictamente nombre, teléfono, dirección, código postal, peso y medidas del paquete. Revisa estos campos si una etiqueta da error.</div>
+        <div className="ordersEditHint">Los campos señalados se comprueban antes de solicitar la etiqueta. Revisa el detalle de cada aviso.</div>
         {liveValidation.issues.length>0&&<div className="errorBox ordersValidationBox"><AlertCircle size={17}/><div><strong>Revisar antes de generar la etiqueta</strong>{liveValidation.issues.map((issue,index)=><span key={`${issue.field}-${index}`}>{issue.message}</span>)}</div></div>}
         <div className="ordersManualGrid">
           <label className={fieldIssue('name')?'ordersFieldInvalid':''}><span>Cliente *</span><input aria-invalid={Boolean(fieldIssue('name'))} value={customerName} onChange={e=>setCustomerName(e.target.value)}/>{fieldError('name')&&<small className="ordersFieldError">{fieldError('name')}</small>}</label>

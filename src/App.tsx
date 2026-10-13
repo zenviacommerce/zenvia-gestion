@@ -1,3 +1,4 @@
+import {shouldShowPresentation} from './services/publicEntry';
 import {RetainedImportPage} from './components/RetainedImportPage';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Session } from '@supabase/supabase-js';
@@ -102,6 +103,11 @@ export default function App(){
  const shopifyOAuthCallbackRef=useRef<string|null>(getShopifyOAuthCallback());
  const shopifyOAuthExchangeStarted=useRef(false);
  const userId=session?.user.id||null;
+ useEffect(()=>{
+   if(!session)return;
+   const url=new URL(window.location.href);
+   if(url.searchParams.has('acceso')){url.searchParams.delete('acceso');window.history.replaceState({},document.title,url.pathname+url.search+url.hash)}
+ },[session]);
 
  const allowedPages=useMemo<Page[]>(()=>{
    if(!access?.active) return [];
@@ -292,6 +298,7 @@ export default function App(){
    setSession(data.session);
    setAccessReady(false);
  }}/></>;
+ if(!session&&shouldShowPresentation(false,window.location.search,window.location.hash))return <iframe title="Presentación de Zenvia Gestión" src="/presentacion.html" style={{display:'block',width:'100%',height:'100dvh',border:0,background:'#f6f7f1'}}/>;
  if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootstrapError} allowSessionReset={authTimedOut} onTenantChanged={()=>{setTenantBootstrapError('');setAuthClientVersion(value=>value+1)}}/></>;
  if(session.user.user_metadata?.onboarding_pending===true) return <><ToastHost/><InvitePasswordSetup session={session} onComplete={async()=>{
    const {data}=await supabase.auth.getSession();

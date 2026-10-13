@@ -26,6 +26,7 @@ function saneInvoiceNumber(value:string){
   const number=value.trim();
   if(!number||number.length<2||number.length>60)return false;
   if(!/\d/.test(number))return false;
+  if(/^\d{1,3}(?:[.,]\d{3})+[.,]\d{2}$/.test(number)||/^\d+,\d{2}$/.test(number))return false;
   if(/^(?:factura|invoice|original|copia|proforma)$/i.test(number))return false;
   if(/^\d{1,2}\s*[-/.]\s*\d{1,2}\s*[-/.]\s*(?:\d{2}|\d{4})$/.test(number))return false;
   if(/^20\d{2}\s*[-/.]\s*\d{1,2}\s*[-/.]\s*\d{1,2}$/.test(number))return false;

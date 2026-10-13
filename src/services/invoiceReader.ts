@@ -72,6 +72,7 @@ function extractInvoiceNumber(lines: string[], fullText: string): string {
   // Primero formatos explícitos. Evitamos el antiguo patrón "nº" sin límite de
   // palabra porque podía interpretar el inicio de "Nombre" como N.º y devolver "mbre".
   const patterns = [
+    /\b(?:factura|invoice)\s+n(?:[ºo°]|[uú]m(?:ero)?\.?|umber)?\s*[=:#.-]\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
     /\bfactura\s*(?:n[ºo°]\.?|n[uú]m(?:ero)?\.?)?\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
     /\binvoice\s*(?:no\.?|number)?\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
     /\bn[uú]mero\s+(?:de\s+)?factura\s*[:#-]?\s*([A-Z0-9][A-Z0-9._\/-]{2,})\b/i,
@@ -80,13 +81,13 @@ function extractInvoiceNumber(lines: string[], fullText: string): string {
   ];
   for (const pattern of patterns) {
     const match = fullText.match(pattern);
-    if (match?.[1]) return match[1].trim();
+    if (match?.[1] && !/^\d{1,3}(?:[.,]\d{3})+[.,]\d{2}$/.test(match[1])) return match[1].trim();
   }
   for (const line of lines.slice(0, 30)) {
-    if (!/\bfactura\b|\binvoice\b/i.test(line)) continue;
+    if (!/\bfactura\b|\binvoice\b/i.test(line) || /\b(?:total|importe|base)\b/i.test(line)) continue;
     const withoutLabel = line.replace(/^.*?\b(?:factura|invoice)\b\s*/i, '');
     const candidate = withoutLabel.match(/\b[A-Z0-9][A-Z0-9._/-]{2,}\b/i)?.[0];
-    if (candidate && !/^20\d{2}$/.test(candidate)) return candidate;
+    if (candidate && /\d/.test(candidate) && !/^20\d{2}$/.test(candidate) && !/^\d{1,3}(?:[.,]\d{3})+[.,]\d{2}$/.test(candidate)) return candidate;
   }
   return '';
 }

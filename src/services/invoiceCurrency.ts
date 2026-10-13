@@ -27,7 +27,10 @@ export function detectInvoiceCurrency(rawText:string):InvoiceCurrencyEvidence|nu
   };
 
   for(const code of ISO_CODES){
-    const count=occurrences(text,new RegExp('\\b'+code+'\\b','gi'));
+    // A currency code must belong to an amount, a currency declaration or a
+    // standalone column heading, rather than an arbitrary name in OCR text.
+    const count=occurrences(text,new RegExp(
+      '(?:\\b(?:currency|divisa|moneda)\\s*[:=-]?\\s*'+code+'\\b|\\b'+code+'[ \t]*[:=]?[ \t]*-?\\d|\\d[\\d.,]*[ \t]*'+code+'\\b|^\\s*'+code+'\\s*$)','gim'));
     if(count)add(code,90+Math.min(30,count*8),code);
   }
   const rmb=occurrences(text,/\bRMB\b/gi);

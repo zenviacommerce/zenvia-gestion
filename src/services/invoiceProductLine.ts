@@ -113,22 +113,24 @@ export function parseSimpleInvoiceProductRow(value:string):SimpleInvoiceProductR
   const description=cleanInvoiceProductDescription(match[2]);
   const unitPrice=parseNumber(match[3]);
   const lineTotal=parseNumber(match[4]);
-  if(!quantity||quantity>1_000_000||description.length<3||!lineTotal)return null;
+  if(!quantity||quantity>1_000_000||!isLikelyProductDescription(description)||!lineTotal)return null;
   return {description,quantity,unitPrice,lineTotal};
 }
 
 export function parseCodedInvoiceProductRow(value:string):SimpleInvoiceProductRow|null{
   const line=compact(value);
   if(isNonProductInvoiceLine(line))return null;
-  const pattern=new RegExp(`^(\\d{4})\\s+(.+?)\\s+(${MONEY})\\s+(${MONEY})\\s+(${MONEY})\\s+(${MONEY})$`,'i');
+  const pattern=new RegExp(`^(\\d{4})\\s+(.+?)\\s+(${MONEY})\\s+(${MONEY})\\s+(${MONEY})(?:\\s+(${MONEY}))?$`,'i');
   const match=line.match(pattern);
   if(!match)return null;
   const supplierSku=match[1];
   const description=cleanInvoiceProductDescription(match[2]);
-  const quantity=parseNumber(match[4]);
-  const unitPrice=parseNumber(match[5]);
-  const lineTotal=parseNumber(match[6]);
-  if(!quantity||quantity>1_000_000||description.length<3||!lineTotal)return null;
+  // The optional Cajas column precedes Cantidad; only the last three numbers
+  // define quantity, unit price and line amount.
+  const quantity=parseNumber(match[6]?match[4]:match[3]);
+  const unitPrice=parseNumber(match[6]?match[5]:match[4]);
+  const lineTotal=parseNumber(match[6]||match[5]);
+  if(!quantity||quantity>1_000_000||!isLikelyProductDescription(description)||!lineTotal)return null;
   return {supplierSku,description,quantity,unitPrice,lineTotal};
 }
 

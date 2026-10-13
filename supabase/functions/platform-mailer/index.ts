@@ -30,14 +30,14 @@ async function requirePlatformToken(req:Request,admin:any){
   if(error)throw error;
   return Boolean(data?.active)&&await sha256(supplied)===String(data?.token_sha256||'');
 }
-async function sendEmail(input:{to:string;subject:string;html:string;textBody:string;attachments?:Array<{filename:string;content:string}>}){
+async function sendEmail(input:{to:string;subject:string;html:string;textBody:string;replyTo?:string;idempotencyKey?:string;attachments?:Array<{filename:string;content:string}>}){
   const apiKey=(Deno.env.get('RESEND_API_KEY')||'').trim();
   if(!apiKey)throw new Error('RESEND_API_KEY no está configurada en el servicio central de correo.');
   const from=(Deno.env.get('AUTH_EMAIL_FROM')||Deno.env.get('SUPPORT_EMAIL_FROM')||DEFAULT_FROM).trim();
-  const replyTo=(Deno.env.get('AUTH_EMAIL_REPLY_TO')||Deno.env.get('SUPPORT_EMAIL_TO')||DEFAULT_REPLY_TO).trim();
+  const replyTo=(input.replyTo||Deno.env.get('AUTH_EMAIL_REPLY_TO')||Deno.env.get('SUPPORT_EMAIL_TO')||DEFAULT_REPLY_TO).trim();
   const result=await fetch('https://api.resend.com/emails',{
     method:'POST',
-    headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json'},
+    headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json',...(input.idempotencyKey?{'Idempotency-Key':input.idempotencyKey}:{})},
     body:JSON.stringify({from,to:[input.to],reply_to:replyTo,subject:input.subject,html:input.html,text:input.textBody,...(input.attachments?.length?{attachments:input.attachments}:{})}),
   });
   if(!result.ok){
@@ -78,6 +78,13 @@ Deno.serve(async(req:Request)=>{
     if(!await requirePlatformToken(req,admin))return response({error:'Servicio de correo no autorizado.'},401);
     const body=await req.json().catch(()=>({}));
     const event=text(body?.event,40);
+    if(event==='website_inquiry'){
+      const inquiryId=text(body?.inquiryId,80),name=text(body?.name,120),email=text(body?.email,254),company=text(body?.company,160),message=text(body?.message,3000),plan=text(body?.plan,30);
+      if(!/^[0-9a-f-]{36}$/i.test(inquiryId)||!name||!message||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)||/[\r\n]/.test(email))return response({error:'Consulta no válida.'},400);
+      const sent=await sendEmail({to:'info@zenviacommerce.com',replyTo:email,idempotencyKey:`website-inquiry-${inquiryId}`,subject:'Nueva solicitud de información · Zenvia Gestión',textBody:`Nombre: ${name}\nEmpresa: ${company}\nEmail: ${email}\nPlan: ${plan||'Sin preferencia'}\n\n${message}`,html:`<h2>Solicitud de información · Zenvia Gestión</h2><p><b>Nombre:</b> ${esc(name)}<br><b>Empresa:</b> ${esc(company)}<br><b>Email:</b> ${esc(email)}<br><b>Plan:</b> ${esc(plan||'Sin preferencia')}</p><div style="white-space:pre-wrap">${esc(message)}</div>`});
+      return response({ok:true,delivered:true,provider:sent.provider,id:sent.id});
+    }
+
     if(!['invite','recovery','billing_invoice'].includes(event))return response({error:'Evento de correo no válido.'},400);
 
     const to=text(body?.to,254).toLowerCase();

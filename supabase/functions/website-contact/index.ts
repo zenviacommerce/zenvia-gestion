@@ -1,7 +1,7 @@
 import {createClient} from 'https://esm.sh/@supabase/supabase-js@2.105.0';
 import {validateInquiry} from './validation.ts';
+import {sendCentralWebsiteInquiry} from '../_shared/central-mailer.ts';
 const allowed=['https://gestion.zenviacommerce.com','https://gestionzenvia.vercel.app'];
-const esc=(s:string)=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]!));
 Deno.serve(async(req:Request)=>{
  const origin=req.headers.get('origin')||'';
  const headers={'Content-Type':'application/json','Access-Control-Allow-Origin':allowed.includes(origin)?origin:allowed[0],'Vary':'Origin','Access-Control-Allow-Headers':'authorization,apikey,content-type','Access-Control-Allow-Methods':'GET,POST,OPTIONS','Cache-Control':'no-store'};
@@ -30,11 +30,8 @@ Deno.serve(async(req:Request)=>{
   const {data:inquiry,error:readError}=await admin.from('website_inquiries').select('name,email,company,message,plan_key,notification_sent').eq('id',data.id).single();
   if(readError||!inquiry)return reply({error:'No se pudo comprobar la solicitud. Vuelve a intentarlo.'},503);
   if(!inquiry.notification_sent){
-   const apiKey=Deno.env.get('RESEND_API_KEY')?.trim();
-   if(!apiKey){console.error('website-contact notification failed: RESEND_API_KEY missing',data.id);return reply({error:'Tu solicitud está guardada, pero no hemos podido notificarla al equipo. Inténtalo de nuevo más tarde.',reference:data.id},503);}
    try{
-    const mail=await fetch('https://api.resend.com/emails',{method:'POST',signal:AbortSignal.timeout(10000),headers:{Authorization:`Bearer ${apiKey}`,'Content-Type':'application/json','Idempotency-Key':`website-inquiry-${data.id}`},body:JSON.stringify({from:(Deno.env.get('AUTH_EMAIL_FROM')||Deno.env.get('SUPPORT_EMAIL_FROM')||'ZENVIA Gestión <soporte@zenviacommerce.com>').trim(),to:['info@zenviacommerce.com'],reply_to:inquiry.email,subject:'Nueva solicitud de información · Zenvia Gestión',html:`<h2>Solicitud de información</h2><p><b>Nombre:</b> ${esc(inquiry.name)}<br><b>Empresa:</b> ${esc(inquiry.company)}<br><b>Email:</b> ${esc(inquiry.email)}<br><b>Plan:</b> ${esc(inquiry.plan_key||'Sin preferencia')}</p><p>${esc(inquiry.message).replace(/\n/g,'<br>')}</p>`})});
-    if(!mail.ok){console.error('website-contact notification rejected',data.id,mail.status,(await mail.text()).slice(0,400));return reply({error:'Tu solicitud está guardada, pero no hemos podido notificarla al equipo. Inténtalo de nuevo más tarde.',reference:data.id},503);}
+    await sendCentralWebsiteInquiry(admin,{id:data.id,...inquiry});
     const {error:updateError}=await admin.from('website_inquiries').update({notification_sent:true}).eq('id',data.id);
     if(updateError)throw updateError;
    }catch(error){console.error('website-contact notification failed',data.id,error instanceof Error?error.message:'unknown');return reply({error:'Tu solicitud está guardada, pero no hemos podido notificarla al equipo. Inténtalo de nuevo más tarde.',reference:data.id},503);}

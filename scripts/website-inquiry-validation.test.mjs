@@ -1,0 +1,5 @@
+import {test} from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import vm from 'node:vm';import ts from 'typescript';
+const module={exports:{}};vm.runInNewContext(ts.transpileModule(fs.readFileSync(new URL('../supabase/functions/website-contact/validation.ts',import.meta.url),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:module.exports});const validate=module.exports.validateInquiry;
+const valid={name:'Visitante',email:'Person@example.com',message:'Quiero conocer los planes.',privacyAccepted:true,plan:'starter',requestId:'7d4056a1-cd1f-4310-9daa-22df39040321'};
+test('valid inquiry normalizes email without accepting an arbitrary plan',()=>{assert.equal(validate(valid).email,'person@example.com');assert.throws(()=>validate({...valid,plan:'internal'}))});
+test('privacy acknowledgement and required fields are checked on the server',()=>{for(const patch of [{privacyAccepted:false},{name:''},{email:'bad'},{message:'hi'},{message:'x'.repeat(3001)},{email:'person@example.com\r\nBcc: x@y.com'},{requestId:'bad'}])assert.throws(()=>validate({...valid,...patch}))});

@@ -1,3 +1,4 @@
+import { matchImportedSupplierProduct, normalizeImportedProductName, type ImportedSupplierProduct } from './importProductIdentity';
 import { isPriceOnlyProductName } from './invoiceProductLine';
 import { supabase, INVOICE_BUCKET } from './supabase';
 import type { AppData, ExpenseCategory, Invoice, InvoicePaymentStatus, NewInvoiceInput, Product, Supplier } from '../types';
@@ -15,12 +16,7 @@ import { applyExpenseInvoiceImportedAutomation, loadAutomationRule } from './aut
 import { startActivity } from './activity';
 
 const numberOrZero = (value: unknown) => Number(value ?? 0) || 0;
-const normalizeProductKey = (value: string) => value
-  .normalize('NFD')
-  .replace(/[\u0300-\u036f]/g, '')
-  .toLowerCase()
-  .replace(/[^a-z0-9]+/g, ' ')
-  .trim();
+const normalizeProductKey = normalizeImportedProductName;
 
 type SupplierProfileData = SupplierContactData & { address?: string; website?: string };
 
@@ -382,7 +378,7 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
   const [productsResult, supplierProductsResult] = manageProducts
     ? await Promise.all([
         supabase.from('products').select('id,name,base_unit').eq('active', true),
-        supabase.from('supplier_products').select('id,product_id,supplier_description').eq('supplier_id', supplierId),
+        supabase.from('supplier_products').select('id,product_id,supplier_sku,supplier_description').eq('supplier_id', supplierId),
       ])
     : [{ data: [], error: null }, { data: [], error: null }];
 
@@ -395,13 +391,7 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
     if (key && !productByName.has(key)) productByName.set(key, { id: product.id, unit: product.base_unit || 'ud' });
   }
 
-  const supplierProductByDescription = new Map<string, { id: string; productId: string }>();
-  for (const supplierProduct of supplierProductsResult.data ?? []) {
-    const key = normalizeProductKey(supplierProduct.supplier_description);
-    if (key && !supplierProductByDescription.has(key)) {
-      supplierProductByDescription.set(key, { id: supplierProduct.id, productId: supplierProduct.product_id });
-    }
-  }
+  const supplierProductRows:ImportedSupplierProduct[] = supplierProductsResult.data ?? [];
 
   const lineRows: Record<string, unknown>[] = [];
 
@@ -416,10 +406,10 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
       let supplierProductId: string | null = null;
 
       if (manageProducts && key && !isPriceOnlyProductName(description)) {
-        const supplierMatch = supplierProductByDescription.get(key);
+        const supplierMatch = matchImportedSupplierProduct(supplierProductRows,description,line.supplierSku);
         if (supplierMatch) {
           supplierProductId = supplierMatch.id;
-          productId = supplierMatch.productId;
+          productId = supplierMatch.product_id;
         } else {
           let product = productByName.get(key);
           if (!product && policy.autoCreateProducts && productSettings.autoCreateFromInvoice) {
@@ -450,7 +440,7 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
               if (supplierProductError) throw supplierProductError;
               supplierProductId = supplierProduct.id;
               createdSupplierProductIds.push(supplierProduct.id);
-              supplierProductByDescription.set(key, { id: supplierProduct.id, productId });
+              supplierProductRows.push({id:supplierProduct.id,product_id:productId,supplier_sku:line.supplierSku||null,supplier_description:description});
             }
           }
         }

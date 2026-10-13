@@ -134,7 +134,7 @@ export async function reconcileOperationalAmazonStates(admin:any,orders:any[],ow
 }
 async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
   await reconcileOperationalAmazonStates(admin,orders,job.owner_id);
-  const candidates=orders.filter(order=>order?.orderId&&merchantFulfilled(order)&&order?.recipient?.deliveryAddress);
+  const candidates=orders.filter(order=>order?.orderId&&merchantFulfilled(order));
   if(!candidates.length)return 0;
   const sourceIntegrationAccountId=await amazonIntegrationAccountId(admin,job);
   if(!sourceIntegrationAccountId)return 0;

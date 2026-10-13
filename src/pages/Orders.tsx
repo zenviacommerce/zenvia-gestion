@@ -16,7 +16,7 @@ import { PeriodFilterPanel } from '../components/PeriodFilterPanel';
 import { defaultDateFilter, periodLabel } from '../services/filters';
 import {
   createManualOrder, createOrderLabel, confirmOrderTracking, fetchOrderLabel,
-  getEnviaStatus, getSendcloudStatus, getShippingOptions, getOrderTrackingLink, labelBlob, listFulfillmentOrders, listLocalPrinters, markOrderLabelPrinted,
+  completeAmazonRecipients, getEnviaStatus, getSendcloudStatus, getShippingOptions, getOrderTrackingLink, labelBlob, listFulfillmentOrders, listLocalPrinters, markOrderLabelPrinted,
   markEnviaHistorySyncDone, openLabelForPrint, printLabelWithClient,
   shouldRunEnviaHistorySync, syncEnviaShipments, syncShopifyOrders, reconcileAmazonOrders, retryAmazonTrackingConfirmations, updateFulfillmentOrder,
   type FulfillmentOrder, type LocalPrinter, type ManualOrderItem, type OrderChannel, type OrderUpdateInput,
@@ -458,12 +458,15 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     }
     syncingRef.current=true;setSyncing(true);if(!silent)setError('');
     try{
-      const [enviaResult,shopifyResult,amazonResult]=await Promise.allSettled([
+      const [enviaResult,shopifyResult,amazonResult,recipientResult]=await Promise.allSettled([
         runEnvia?syncEnviaShipments(enviaHistory?12:2):Promise.resolve(null),
         runShopify?syncShopifyOrders(history):Promise.resolve(null),
         runAmazon?(async()=>{if(!automatic)await requestAmazonSync(undefined,{waitForOrders:true});return reconcileAmazonOrders();})():Promise.resolve(null),
+        runAmazon?completeAmazonRecipients():Promise.resolve(null),
       ]);
       const messages:string[]=[],failures:string[]=[];
+      if(recipientResult.status==='fulfilled'&&recipientResult.value){if(recipientResult.value.enriched)messages.push('Destinatarios completados: '+recipientResult.value.enriched);failures.push(...recipientResult.value.failures.map(f=>f.error));}
+      else if(recipientResult.status==='rejected')failures.push('Destinatarios: '+errorMessage(recipientResult.reason,'error al completar datos'));
       if(amazonResult.status==='fulfilled'&&amazonResult.value)messages.push('Amazon directo: '+amazonResult.value.processed+' pedidos comprobados');
       else if(amazonResult.status==='rejected')failures.push('Amazon: '+errorMessage(amazonResult.reason,'error de sincronización'));
       if(enviaResult.status==='fulfilled'&&enviaResult.value){

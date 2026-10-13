@@ -1159,6 +1159,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   const [provider,setProvider]=useState<IntegrationProvider>('amazon');
   const [displayName,setDisplayName]=useState('');
   const [sellerId,setSellerId]=useState('');
+  const [recipientSourceAccountId,setRecipientSourceAccountId]=useState('');
   const [refreshToken,setRefreshToken]=useState('');
   const [amazonClientId,setAmazonClientId]=useState('');
   const [amazonClientSecret,setAmazonClientSecret]=useState('');
@@ -1298,6 +1299,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     setSyncOrders(legacyAmazon?settings.amazon.autoSyncOrders:(typeof account?.config?.syncOrders==='boolean'?Boolean(account.config.syncOrders):true));
     setSyncInventory(legacyAmazon?settings.amazon.autoSyncInventory:(typeof account?.config?.syncInventory==='boolean'?Boolean(account.config.syncInventory):true));
     setSyncFinance(legacyAmazon?settings.amazon.autoSyncFinance:(typeof account?.config?.syncFinance==='boolean'?Boolean(account.config.syncFinance):true));
+    setRecipientSourceAccountId(String(account?.config?.recipientSourceAccountId||''));
     setSyncImages(legacyAmazon?settings.amazon.autoSyncImages:(typeof account?.config?.syncImages==='boolean'?Boolean(account.config.syncImages):true));
     setGmailMonths(Number(account?.config?.months||12));
     setMarketplaces([]);
@@ -1318,7 +1320,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   const accountConfig=()=>{
     if(provider==='amazon')return {
       activeMarketplaceIds,primaryMarketplaceId:primaryMarketplaceId||null,
-      syncOrders,syncInventory,syncFinance,syncImages,
+      syncOrders,syncInventory,syncFinance,syncImages,recipientSourceAccountId:recipientSourceAccountId||null,
     };
     if(provider==='shopify')return {shopDomain:shopifyDomain.trim().toLowerCase().replace(/^https?:\/\//,'').replace(/\/+$/,''),apiVersion:'2026-07',syncOrders};
     if(provider==='sendcloud')return {syncOrders,shippingEnabled:true};
@@ -1678,6 +1680,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
               <label className="settingsToggleField"><input type="checkbox" checked={syncOrders} onChange={e=>setSyncOrders(e.target.checked)}/><span><strong>Pedidos</strong><small>Permitir sincronización de pedidos.</small></span></label>
               <label className="settingsToggleField"><input type="checkbox" checked={syncInventory} onChange={e=>setSyncInventory(e.target.checked)}/><span><strong>Inventario</strong><small>Permitir sincronización de inventario.</small></span></label>
               <label className="settingsToggleField"><input type="checkbox" checked={syncFinance} onChange={e=>setSyncFinance(e.target.checked)}/><span><strong>Finanzas</strong><small>Permitir sincronización financiera.</small></span></label>
+              {!editing?.legacy&&<label className="settingsField"><span>Completar destinatarios desde otra integración</span><SelectField value={recipientSourceAccountId} onChange={setRecipientSourceAccountId} allowEmpty emptyLabel="Ninguna · solo Amazon SP-API" ariaLabel="Cuenta para completar destinatarios Amazon" options={accounts.filter(a=>['sendcloud','envia'].includes(a.provider)&&a.enabled&&a.status!=='disabled'&&!a.legacy).map(a=>({value:a.id,label:`${a.provider==='sendcloud'?'Sendcloud':'Envia.com'} · ${a.displayName}`}))}/><small>Solo completa datos que falten. Los pedidos siguen entrando desde Amazon; sus datos y las correcciones manuales tienen prioridad.</small></label>}
               <label className="settingsToggleField"><input type="checkbox" checked={syncImages} onChange={e=>setSyncImages(e.target.checked)}/><span><strong>Imágenes</strong><small>Permitir actualización de imágenes.</small></span></label>
             </div></div>
           </>}

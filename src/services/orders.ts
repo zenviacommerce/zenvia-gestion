@@ -410,3 +410,5 @@ export function getOrderTrackingLink(orderId:string){
 }
 
 export function reconcileAmazonOrders(){return invokeFunction<{ok:boolean;processed:number;failures:Array<{orderId:string;error:string}>}>('amazon-reconcile-orders',{});}
+
+export function completeAmazonRecipients(){return invokeFunction<{ok:boolean;enriched:number;failures:Array<{amazonAccountId:string;error:string}>}>('amazon-recipient-fallback',{});}

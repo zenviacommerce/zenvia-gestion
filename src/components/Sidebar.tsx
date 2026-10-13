@@ -114,14 +114,6 @@ export function Sidebar({page,onChange,onLogout,theme,onThemeChange,allowedPages
       </nav>
 
       <div className="sidebarBottom">
-        <div className="sidebarUserCard" title={`${displayName} · ${user.email}`}>
-          <div className="sidebarUserAvatar" aria-hidden="true">{initials(displayName, user.email)}</div>
-          <div className="sidebarUserInfo">
-            <strong>{displayName}</strong>
-            <span className="sidebarUserRole">{roleLabel} · ZENVIA</span>
-            <span className="sidebarUserEmail">{user.email}</span>
-          </div>
-        </div>
         <div className="sidebarSectionLabel sidebarSystemLabel">Sistema</div>
         {canOpenSettings&&<button className={page==='settings'?'settingsSidebarButton active':'settingsSidebarButton'} onClick={()=>navigate('settings')}><Settings2 size={18}/><span>Configuración</span></button>}
         {canOpenAdmin&&<button className={page==='admin'?'adminSidebarButton active':'adminSidebarButton'} onClick={()=>navigate('admin')}><ShieldCheck size={18}/><span>Administración</span></button>}
@@ -129,6 +121,14 @@ export function Sidebar({page,onChange,onLogout,theme,onThemeChange,allowedPages
         <div className="sidebarThemeControl" role="group" aria-label="Tema de ZENVIA Gestión">
           <button type="button" className={theme==='light'?'active':''} aria-label="Tema Claro" aria-pressed={theme==='light'} onClick={()=>onThemeChange('light')}><Sun size={15}/><span>Claro</span></button>
           <button type="button" className={theme==='dark'?'active':''} aria-label="Tema Oscuro" aria-pressed={theme==='dark'} onClick={()=>onThemeChange('dark')}><Moon size={15}/><span>Oscuro</span></button>
+        </div>
+        <div className="sidebarUserCard" title={`${displayName} · ${user.email}`}>
+          <div className="sidebarUserAvatar" aria-hidden="true">{initials(displayName, user.email)}</div>
+          <div className="sidebarUserInfo">
+            <strong>{displayName}</strong>
+            <span className="sidebarUserRole">{roleLabel} · ZENVIA</span>
+            <span className="sidebarUserEmail">{user.email}</span>
+          </div>
         </div>
       </div>
     </aside>

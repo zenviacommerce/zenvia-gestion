@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { ZENVIA_LOGO } from '../branding';
+import './auth-gestion-brand.css';
 import { Fingerprint, LoaderCircle, LockKeyhole, ReceiptText } from 'lucide-react';
 import { getActiveTenant, resolveAndActivateTenant, resetLocalTenantSession, supabase, type TenantPublicConfig } from '../services/supabase';
 import { emailError, normalizeEmail } from '../services/validation';
@@ -120,7 +120,7 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
 
   return <div className="authPage">
     <div className="authPanel">
-      <div className="authLogo"><img src={ZENVIA_LOGO} alt="ZENVIA COMMERCE"/><span>Gestión empresarial</span></div>
+      <div className="authLogo authGestionLogo" aria-label="Zenvia Gestión"><img src="/zenvia-brand-symbol-20261012.svg" alt="" width="42" height="42"/><div><strong>ZENVIA</strong><span>GESTIÓN</span></div></div>
       <div className="authHeroIcon"><ReceiptText/></div>
       <h1>Accede a ZENVIA Gestión</h1>
       <p>Compras, gastos, clientes, ventas y facturación en un único espacio privado.</p>

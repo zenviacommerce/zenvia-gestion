@@ -1,0 +1,5 @@
+.authLogo.authGestionLogo{display:flex!important;align-items:center!important;gap:12px!important}
+.authLogo.authGestionLogo img{width:42px;height:42px;flex:0 0 42px;object-fit:contain}
+.authLogo.authGestionLogo strong{font-size:23px;font-weight:780;line-height:1.15;letter-spacing:-.7px;color:#17352d}
+.authLogo.authGestionLogo span{font-size:11px;font-weight:600;line-height:1.4;letter-spacing:2.5px;color:#17352d}
+[data-theme="dark"] .authLogo.authGestionLogo strong,[data-theme="dark"] .authLogo.authGestionLogo span{color:#e9f2e8}

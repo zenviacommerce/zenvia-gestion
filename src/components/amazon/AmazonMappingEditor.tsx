@@ -4,6 +4,8 @@ import { deleteAmazonProductMappingItem, loadAmazonProductMappings, loadAmazonPr
 import { errorMessage, showError, showSuccess } from '../../services/toast';
 import { confirmAction } from '../../services/actionDialog';
 
+const costLabel=(cost:number|null|undefined,unit?:string|null)=>cost==null?'Sin precio registrado':`${new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:4}).format(cost)}${unit?` / ${unit}`:''}`;
+
 type Props={sellerSku:string;defaultFactor?:number;onChanged:()=>void;onCancel?:()=>void};
 
 export function AmazonMappingEditor({sellerSku,defaultFactor=1,onChanged,onCancel}:Props){
@@ -81,7 +83,7 @@ export function AmazonMappingEditor({sellerSku,defaultFactor=1,onChanged,onCance
       <p className="amazonMappingHint">El coste de Amazon suma todos los componentes vinculados multiplicados por su factor de consumo.</p>
       <div className="amazonMappingCurrentList">
         {mappings.map(mapping=><div className="amazonMappingCurrentRow" key={mapping.id||mapping.productId}>
-          <div><strong>{mapping.productName}</strong><small>{mapping.productSku||'Sin SKU'} · {mapping.supplierName?`Proveedor: ${mapping.supplierName}`:'Sin proveedor'} · Factor ×{mapping.consumptionFactor}</small></div>
+          <div><strong>{mapping.productName}</strong><small>{mapping.productSku||'Sin SKU'} · {mapping.supplierName?`Proveedor: ${mapping.supplierName}`:'Sin proveedor'} · Factor ×{mapping.consumptionFactor}</small><small>Precio: {costLabel(mapping.unitCost,mapping.costUnit)} · Coste del componente: {costLabel(mapping.unitCost==null?null:mapping.unitCost*mapping.consumptionFactor)}</small></div>
           <div className="amazonMappingRowActions"><button type="button" className="amazonInlineAction" disabled={loading} onClick={()=>edit(mapping)}><Pencil size={13}/>Editar</button><button type="button" className="amazonIconDanger" disabled={loading} onClick={()=>void remove(mapping)} aria-label={`Eliminar ${mapping.productName}`}><Trash2 size={14}/></button></div>
         </div>)}
         {!mappings.length&&!loadingMappings&&<span className="amazonMappingEmpty">Todavía no hay productos internos vinculados.</span>}
@@ -93,11 +95,12 @@ export function AmazonMappingEditor({sellerSku,defaultFactor=1,onChanged,onCance
       <div className="amazonMappingPicker">
         <label><span>{editingMapping?'Producto a actualizar':'Añadir producto interno'}</span><div className="amazonMappingSearch"><Search size={15}/><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nombre o SKU"/></div></label>
         <div className="amazonMappingResults" role="listbox" aria-label="Productos internos">
-          {options.map(option=><button type="button" role="option" aria-selected={productId===option.id} className={productId===option.id?'isSelected':''} key={option.id} onClick={()=>choose(option)}><span><strong data-zenvia-tooltip={option.name}>{option.name}</strong><small data-zenvia-tooltip={`${option.sku||'Sin SKU'} · ${option.supplierName||'Sin proveedor'}`} >{option.sku||'Sin SKU'} · {option.supplierName?`Proveedor: ${option.supplierName}`:'Sin proveedor'}</small></span>{productId===option.id&&<Check size={15}/>}</button>)}
+          {options.map(option=><button type="button" role="option" aria-selected={productId===option.id} className={productId===option.id?'isSelected':''} key={option.id} onClick={()=>choose(option)}><span><strong data-zenvia-tooltip={option.name}>{option.name}</strong><small data-zenvia-tooltip={`${option.sku||'Sin SKU'} · ${option.supplierName||'Sin proveedor'}`} >{option.sku||'Sin SKU'} · {option.supplierName?`Proveedor: ${option.supplierName}`:'Sin proveedor'}</small><small>Precio: {costLabel(option.unitCost,option.costUnit)}</small></span>{productId===option.id&&<Check size={15}/>}</button>)}
           {!options.length&&<span className="amazonMappingEmpty">No hay productos que coincidan.</span>}
         </div>
         {productId&&<div className="amazonMappingSelected">Seleccionado: <strong>{selectedName||'Producto actual'}</strong>{selectedSupplier?<span> · {selectedSupplier}</span>:null}</div>}
       </div>
+      {selected&&<p className="amazonMappingHint">Precio: {costLabel(selected.unitCost,selected.costUnit)} · Coste con este factor: {costLabel(selected.unitCost==null||!Number.isFinite(Number(factor))||Number(factor)<=0?null:selected.unitCost*Number(factor))}</p>}
       <label><span>Factor de consumo</span><input type="number" min="0.000001" step="0.01" value={factor} onChange={e=>setFactor(e.target.value)}/></label>
       <div className="amazonMappingActions"><button className="primary" disabled={loading||!productId} onClick={()=>void save()}>{loading?'Guardando…':editingMapping?'Actualizar vínculo':<><Plus size={15}/>Añadir producto</>}</button>{onCancel&&<button className="secondary" disabled={loading} onClick={onCancel}>Cerrar</button>}</div>
     </section>

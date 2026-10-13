@@ -43,7 +43,7 @@ export type AmazonSeriesPoint={
 export type AmazonProductSort='product_name'|'orders'|'units'|'gross_sales'|'net_sales'|'product_cost'|'amazon_fees'|'refunds'|'profit_before_ads'|'margin_pct';
 export type AmazonSortDirection='asc'|'desc';
 export type AmazonProductMapping={
-  id?:string;productId:string;productName:string;productSku:string|null;supplierName:string|null;consumptionFactor:number;
+  id?:string;productId:string;productName:string;productSku:string|null;supplierName:string|null;consumptionFactor:number;unitCost?:number|null;costUnit?:string|null;
 };
 export type AmazonProductAnalytics={
   sellerSku:string;asin:string|null;productId:string|null;productName:string|null;consumptionFactor:number;productMappings:AmazonProductMapping[];
@@ -56,7 +56,7 @@ export type AmazonOrderAnalytics={amazonOrderId:string;purchaseDate:string;marke
 export type AmazonInventoryAnalytics={sellerSku:string;asin:string|null;marketplaceId:string;fulfillable:number;reserved:number;inbound:number;unfulfillable:number;researching:number;total:number;lastSync:string};
 export type AmazonUnmappedSku={sellerSku:string;asin:string|null;marketplaceIds:string[];orders:number;units:number;recentNetSales:number};
 export type AmazonProductMetadata={imageUrl:string|null;productName:string|null};
-export type AmazonProductOption={id:string;name:string;sku:string|null;supplierName:string|null};
+export type AmazonProductOption={id:string;name:string;sku:string|null;supplierName:string|null;unitCost:number|null;costUnit:string|null};
 export type AmazonPageResult<T>={items:T[];page:number;pageSize:number;total:number};
 
 export const AMAZON_KPI_KEYS=[
@@ -234,7 +234,14 @@ export function loadAmazonMarketplaces(filters:AmazonAnalyticsFilters){return rp
 export function loadAmazonOrders(filters:AmazonAnalyticsFilters,search='',page=1,pageSize=25){return rpc<AmazonPageResult<AmazonOrderAnalytics>>('amazon_analytics_orders',{...rpcParams(filters),search:search||null,page,page_size:pageSize},'No se pudieron cargar los pedidos de Amazon.');}
 export function loadAmazonInventory(filters:Pick<AmazonAnalyticsFilters,'marketplaceIds'>,search='',page=1,pageSize=25){return rpc<AmazonPageResult<AmazonInventoryAnalytics>>('amazon_analytics_inventory',{marketplace_ids:filters.marketplaceIds.length?filters.marketplaceIds:null,search:search||null,page,page_size:pageSize},'No se pudo cargar el inventario de Amazon.');}
 export function loadAmazonUnmapped(search='',page=1,pageSize=25){return rpc<AmazonPageResult<AmazonUnmappedSku>>('amazon_analytics_unmapped_skus',{search:search||null,page,page_size:pageSize},'No se pudieron cargar los SKU sin vincular.');}
-export function loadAmazonProductMappings(sellerSku:string){return rpc<AmazonProductMapping[]>('amazon_get_product_mappings',{seller_sku:sellerSku},'No se pudieron cargar los vínculos del producto.');}
+export async function loadAmazonProductMappings(sellerSku:string){
+  const mappings=await rpc<AmazonProductMapping[]>('amazon_get_product_mappings',{seller_sku:sellerSku},'No se pudieron cargar los vínculos del producto.');
+  if(!mappings.length)return mappings;
+  const {data,error}=await supabase.from('products').select('id,last_cost,cost_unit,base_unit').in('id',mappings.map(mapping=>mapping.productId));
+  if(error)throw error;
+  const costs=new Map((data||[]).map(product=>[product.id,product]));
+  return mappings.map(mapping=>{const product=costs.get(mapping.productId);return {...mapping,unitCost:product?.last_cost==null?null:Number(product.last_cost),costUnit:product?.cost_unit||product?.base_unit||null};});
+}
 export function setAmazonProductMapping(input:{sellerSku:string;productId:string;consumptionFactor:number}){return rpc<{ok:true;skuAssigned?:boolean}>('amazon_add_product_mapping',{seller_sku:input.sellerSku,product_id:input.productId,consumption_factor:input.consumptionFactor},'No se pudo guardar el vínculo del producto.');}
 export function deleteAmazonProductMapping(sellerSku:string){return rpc<{ok:true;deleted:number}>('amazon_delete_product_mapping',{seller_sku:sellerSku},'No se pudo eliminar el vínculo del producto.');}
 export function deleteAmazonProductMappingItem(sellerSku:string,productId:string){return rpc<{ok:true;deleted:number}>('amazon_delete_product_mapping_item',{seller_sku:sellerSku,product_id:productId},'No se pudo eliminar el componente del producto.');}
@@ -277,10 +284,10 @@ export function amazonMarketplaceCode(marketplaceId:string){
 }
 
 export async function loadAmazonProductOptions(search=''):Promise<AmazonProductOption[]>{
-  let query=supabase.from('products').select('id,name,sku,last_supplier_id').eq('active',true).order('name').limit(100);
+  let query=supabase.from('products').select('id,name,sku,last_supplier_id,last_cost,cost_unit,base_unit').eq('active',true).order('name').limit(100);
   const term=search.trim();if(term)query=query.or(`name.ilike.%${term.replace(/[,%()]/g,'')}%,sku.ilike.%${term.replace(/[,%()]/g,'')}%`);
   const {data,error}=await query;if(error)throw error;
-  const rows=((data||[]) as Array<{id:string;name:string;sku:string|null;last_supplier_id:string|null}>).filter(row=>!isPriceOnlyProductName(row.name));
+  const rows=((data||[]) as Array<{id:string;name:string;sku:string|null;last_supplier_id:string|null;last_cost:number|null;cost_unit:string|null;base_unit:string|null}>).filter(row=>!isPriceOnlyProductName(row.name));
   const supplierIds=Array.from(new Set(rows.map(row=>row.last_supplier_id).filter((id):id is string=>Boolean(id))));
   const supplierNames=new Map<string,string>();
   if(supplierIds.length){
@@ -288,5 +295,5 @@ export async function loadAmazonProductOptions(search=''):Promise<AmazonProductO
     if(supplierError)throw supplierError;
     for(const supplier of suppliers||[])supplierNames.set(String((supplier as any).id),String((supplier as any).name||''));
   }
-  return rows.map(row=>({id:row.id,name:row.name,sku:row.sku||null,supplierName:row.last_supplier_id?supplierNames.get(row.last_supplier_id)||null:null}));
+  return rows.map(row=>({id:row.id,name:row.name,sku:row.sku||null,unitCost:row.last_cost==null?null:Number(row.last_cost),costUnit:row.cost_unit||row.base_unit||null,supplierName:row.last_supplier_id?supplierNames.get(row.last_supplier_id)||null:null}));
 }

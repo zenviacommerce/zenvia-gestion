@@ -228,7 +228,7 @@ export function SalesReceipts(){
   const [status,setStatus]=useState<'all'|'open'|'partial'|'paid'>('open');
   const [clientId,setClientId]=useState('all');
   const [country,setCountry]=useState('all');
-  const [dateFilter,setDateFilter]=useState(defaultDateFilter('current_month'));
+  const [dateFilter,setDateFilter]=useState(defaultDateFilter('current_quarter'));
   const [selected,setSelected]=useState<string[]>([]);
   const [detail,setDetail]=useState<SalesReceipt|null>(null);
   const [editing,setEditing]=useState<SalesReceipt|null>(null);

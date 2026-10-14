@@ -27,13 +27,10 @@ test('Amazon page is a tabbed analytics dashboard with all approved tabs',async(
   assert.match(page,/amazonQuickRange\('today',amazonCalendarDate/);
 });
 
-test('Amazon Summary renders VAT-aware net-profit KPI hierarchy and Recharts trend',async()=>{
-  const summary=(await source('src/components/amazon/AmazonSummary.tsx'))+(await source('src/components/amazon/AmazonPeriodCards.tsx'));
-  for(const label of ['Ventas','IVA ventas','Ventas sin IVA','Pedidos','Unidades vendidas','Tarifas Amazon sin IVA','Publicidad','Reembolsos','Coste producto','Coste envíos FBM','Ganancia neta','Margen neto'])assert.match(summary,new RegExp(label));
-  assert.match(summary,/recharts/);
-  assert.match(summary,/ResponsiveContainer/);
-  assert.match(summary,/loadAmazonSummary/);
-  assert.match(summary,/loadAmazonSeries/);
+test('Amazon Summary retains cards and products without the removed chart section',async()=>{
+ const summary=await source('src/components/amazon/AmazonSummary.tsx');
+ assert.match(summary,/AmazonPeriodCards/);assert.match(summary,/AmazonProducts/);
+ assert.doesNotMatch(summary,/recharts|loadAmazonSeries|amazonDashboardDetails/);
 });
 
 test('Completeness UI surfaces historical sync and missing input states',async()=>{

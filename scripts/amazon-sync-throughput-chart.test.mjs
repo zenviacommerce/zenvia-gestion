@@ -4,15 +4,7 @@ import test from 'node:test';
 
 async function source(path){return readFile(new URL(`../${path}`,import.meta.url),'utf8');}
 
-test('Amazon chart formats period labels as Spanish calendar dates',async()=>{
-  const summary=await source('src/components/amazon/AmazonSummary.tsx');
-  assert.match(summary,/chartTickLabel/);
-  assert.match(summary,/toLocaleDateString\('es-ES'/);
-  assert.match(summary,/interval="preserveStartEnd"/);
-  assert.match(summary,/minTickGap=\{34\}/);
-  assert.match(summary,/labelFormatter=\{value=>chartTooltipLabel\(value,grain\)\}/);
-  assert.doesNotMatch(summary,/String\(value\)\.slice\(5\)/);
-});
+
 
 test('Amazon manual sync immediately kicks a worker instead of waiting for cron',async()=>{
   const manual=await source('supabase/functions/amazon-sync-manual/index.ts');
@@ -69,5 +61,5 @@ test('Amazon renders primary KPIs independently from optional detail and chart d
   const summary=await source('src/components/amazon/AmazonSummary.tsx');
   assert.match(summary,/setSummary\(nextSummary\)[\s\S]*finally\(\(\)=>\{if\(alive\)setLoading\(false\)/);
   assert.match(summary,/loadAmazonDetail\(filters\)/);
-  assert.match(summary,/loadAmazonSeries\(filters,grain\)/);
+  assert.doesNotMatch(summary,/loadAmazonSeries/);
 });

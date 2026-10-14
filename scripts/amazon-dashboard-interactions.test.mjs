@@ -60,27 +60,8 @@ test('period shortcuts retain marketplaces and profit remains marked provisional
  assert.ok(s.calls.every(f=>f.marketplaceIds[0]==='ES'));
  await s.close();
 });
-test('chart metric selection lazily loads its series and retains one metric',async()=>{
- const s=await setup();
- assert.equal(s.container.querySelectorAll('[data-chart-metric]').length,0);
- await act(async()=>{const details=s.container.querySelector('.amazonDashboardDetails');details.open=true;details.dispatchEvent(new s.w.Event('toggle'));});
- assert.deepEqual([...s.container.querySelectorAll('[data-chart-metric]')].map(e=>e.dataset.chartMetric),['netSales','netProfit']);
- const inputs=s.container.querySelectorAll('.amazonChartOptions input');
- await act(async()=>inputs[2].click());
- assert.ok(s.container.querySelector('[data-chart-metric="adsCost"]'));
- await act(async()=>{inputs[0].click();});
- await act(async()=>{inputs[1].click();});
- assert.equal(inputs[2].disabled,true);
- assert.equal(s.container.querySelectorAll('[data-chart-metric]').length,1);
- await s.close();
-});
-test('the visible profit statement shows signed costs and matches the selected profit',async()=>{
- const s=await setup();
- assert.match(s.container.querySelector('.amazonProfitBridge').textContent,/-100,00/);
- assert.match(s.container.querySelector('.amazonProfitBridgeRow.is-total').textContent,/570,00/);
- assert.match(s.container.querySelector('.amazonStatementNote').textContent,/21,00.*no se resta de nuevo/);
- await s.close();
-});
+
+
 
 test('a failed refresh keeps cached primary figures without a permanent comparison spinner',async()=>{
  const s=await setup(true);
@@ -214,13 +195,7 @@ test('forecast reuses month and today ranges and summary rerenders retain loaded
  assert.equal(s.container.querySelector('[data-period-id="previous_month"] .amazonPeriodSales strong').textContent,loaded);
  await s.close();
 });
-test('opening the chart does not reload primary summaries or remount embedded products',async()=>{
- const s=await setup();const before=s.calls.length;const products=s.container.querySelector('[aria-label="Productos"]');
- await act(async()=>{const details=s.container.querySelector('.amazonDashboardDetails');details.open=true;details.dispatchEvent(new s.w.Event('toggle'));});
- assert.equal(s.calls.length,before,'Chart expansion must only load optional chart/detail data');
- assert.equal(s.container.querySelector('[aria-label="Productos"]'),products);
- await s.close();
-});
+
 test('products mount while a primary monthly summary is pending and remain mounted when it completes',async()=>{
  const s=await setup();let resolve;const filters={from:'2030-01-01',to:'2030-01-14',marketplaceIds:['ES']};
  globalThis.__amazonUi.summary=async range=>range.from===filters.from&&range.to===filters.to?new Promise(r=>resolve=r):summary;
@@ -260,5 +235,13 @@ test('a failed forecast base shows a retryable error instead of an endless loadi
  const s=await setup();globalThis.__amazonUi.summary=async filters=>{if(filters.from==='2026-10-01'&&filters.to==='2026-10-14')throw new Error('Monthly query unavailable');return summary;};
  await act(async()=>s.root.render(React.createElement(AmazonPeriodCards,{filters:{from:'2026-10-14',to:'2026-10-14',marketplaceIds:['ES']},summary,currency:'EUR',refreshToken:0,calendarDay:'2026-10-14'})));
  const forecast=s.container.querySelector('[data-period-id="forecast"]');assert.match(forecast.querySelector('.amazonPeriodQuality').textContent,/Error/);assert.doesNotMatch(forecast.textContent,/Cargando base/);assert.ok(forecast.querySelector('[aria-label="Reintentar Mes actual (pronóstico)"]'));
+ await s.close();
+});
+
+test('summary shows cards and products without the removed graph and breakdown',async()=>{
+ const s=await setup();
+ assert.ok(s.container.querySelector('.amazonPeriodCarousel'));
+ assert.ok(s.container.querySelector('[aria-label="Productos"]'));
+ assert.equal(s.container.querySelector('.amazonDashboardDetails,.amazonProfitStatement,.amazonChartCard'),null);
  await s.close();
 });

@@ -171,7 +171,7 @@ Deno.serve(async (req: Request) => {
     if (action === 'list') {
       const { data: rows, error } = await admin
         .from('app_users')
-        .select('user_id,email,full_name,role,active,permissions,created_at,updated_at')
+        .select('user_id,email,full_name,role,active,permissions,created_at,updated_at,last_access_at')
         .eq('workspace_id', workspaceId)
         .order('created_at', { ascending: true });
       if (error) throw error;
@@ -188,7 +188,7 @@ Deno.serve(async (req: Request) => {
           permissions: row.role === 'admin' ? [...allowedPermissions] : (row.permissions || []),
           createdAt: row.created_at,
           updatedAt: row.updated_at,
-          lastSignInAt: authById.get(row.user_id)?.last_sign_in_at || null,
+          lastSignInAt: row.last_access_at || authById.get(row.user_id)?.last_sign_in_at || null,
         })),
       }), { headers: jsonHeaders });
     }

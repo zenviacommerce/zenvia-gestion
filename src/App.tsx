@@ -224,6 +224,34 @@ export default function App(){
    return()=>{cancelled=true;window.clearTimeout(timeout);unsubscribe?.()};
  },[authClientVersion]);
 
+ // Record application use independently of password sign-in or token refresh.
+ useEffect(()=>{
+   if(!userId||!access?.active)return;
+   let disposed=false;
+   let inFlight=false;
+   const record=async()=>{
+     if(disposed||inFlight||document.visibilityState!=='visible'||!navigator.onLine)return;
+     inFlight=true;
+     try{
+       const {error}=await supabase.rpc('record_app_access');
+       if(error)console.warn('No se pudo registrar el último acceso:',error.message);
+     }catch(error){console.warn('No se pudo registrar el último acceso:',error);}
+     finally{inFlight=false;}
+   };
+   void record();
+   const onVisible=()=>{void record();};
+   const timer=window.setInterval(onVisible,60_000);
+   window.addEventListener('focus',onVisible);
+   window.addEventListener('online',onVisible);
+   document.addEventListener('visibilitychange',onVisible);
+   return()=>{
+     disposed=true;window.clearInterval(timer);
+     window.removeEventListener('focus',onVisible);
+     window.removeEventListener('online',onVisible);
+     document.removeEventListener('visibilitychange',onVisible);
+   };
+ },[userId,access?.active,authClientVersion]);
+
  useEffect(()=>{
    let cancelled=false;
    if(!userId){setAccess(null);setAccessReady(false);setData(emptyData);setWorkspaceLogo(null);return;}

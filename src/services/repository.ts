@@ -425,9 +425,18 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
               sales_tax_rate: productSettings.defaultVatRate,
               last_supplier_id: supplierId,
             }).select('id,base_unit').single();
-            if (productError) throw productError;
-            product = { id: created.id, unit: created.base_unit || unit };
-            createdProductIds.push(created.id);
+            if(productError){
+              if(productError.code!=='23505')throw productError;
+              // Another import may have created the same normalized product concurrently.
+              const {data:latest,error:reloadError}=await supabase.from('products').select('id,name,base_unit').eq('active',true);
+              if(reloadError)throw reloadError;
+              const found=(latest||[]).find(row=>compactProductKey(row.name)===compactProductKey(description));
+              if(!found)throw productError;
+              product={id:found.id,unit:found.base_unit||unit};
+            }else{
+              product={id:created.id,unit:created.base_unit||unit};
+              createdProductIds.push(created.id);
+            }
             productByName.set(key, product);
             productByCompactName.set(compactProductKey(description),product);
           }

@@ -21,19 +21,22 @@ function stableTransactionSeed(transaction:any,job:any){return JSON.stringify({m
 export async function deriveTransactionKey(transaction:any,job:any){const explicit=String(transaction?.transactionId||'').trim();if(explicit)return `id:${explicit}`;const bytes=new TextEncoder().encode(stableTransactionSeed(transaction,job));const digest=await crypto.subtle.digest('SHA-256',bytes);return `sha256:${Array.from(new Uint8Array(digest)).map(byte=>byte.toString(16).padStart(2,'0')).join('')}`;}
 async function normalizeTransaction(transaction:any,job:any){const product=firstProductContext(transaction);const total=transaction?.totalAmount||null;return {owner_id:job.owner_id,amazon_account_id:job.amazon_account_id,transaction_key:await deriveTransactionKey(transaction,job),amazon_transaction_id:transaction?.transactionId?String(transaction.transactionId):null,marketplace_id:transaction?.marketplaceDetails?.marketplaceId?String(transaction.marketplaceDetails.marketplaceId):job.marketplace_id||null,amazon_order_id:identifier(transaction,/order/i),seller_sku:product?.sku?String(product.sku):null,asin:product?.asin?String(product.asin):null,posted_date:transaction?.postedDate||null,transaction_status:transaction?.transactionStatus?String(transaction.transactionStatus):null,transaction_type:String(transaction?.transactionType||'UNKNOWN'),category:categorizeTransaction(transaction),amount_original:money(total),currency_code:currency(total),amount_eur:null,fx_rate:null,related_identifiers:safeIdentifiers(transaction),metadata:safeTransactionMetadata(transaction),synced_at:new Date().toISOString(),updated_at:new Date().toISOString()};}
 
-async function upsertTransactions(admin:any,transactions:any[],job:any){
-  const rows:any[]=[];const transactionsByKey=new Map<string,any>();
-  for(const transaction of transactions){const row=await normalizeTransaction(transaction,job);rows.push(row);transactionsByKey.set(row.transaction_key,transaction);}
-  if(!rows.length)return 0;
-  const {data:persisted,error}=await admin.from('amazon_finance_transactions').upsert(rows,{onConflict:'owner_id,amazon_account_id,transaction_key'}).select('id,owner_id,amazon_account_id,marketplace_id,amazon_order_id,seller_sku,asin,posted_date,transaction_key,transaction_type,category,amount_original,currency_code');
-  if(error)throw error;
-  for(const row of persisted||[]){
-    const original=transactionsByKey.get(row.transaction_key);if(!original)continue;
-    const components=await normalizeFinanceComponents(original,row,job);
-    const {error:deleteError}=await admin.from('amazon_finance_components').delete().eq('owner_id',row.owner_id).eq('amazon_account_id',row.amazon_account_id).eq('finance_transaction_id',row.id);if(deleteError)throw deleteError;
-    if(components.length){const {error:componentError}=await admin.from('amazon_finance_components').upsert(components,{onConflict:'owner_id,amazon_account_id,finance_transaction_id,component_key'});if(componentError)throw componentError;}
+/** One atomic database transaction per SP-API page. Unchanged rows retain IDs/timestamps.
+ * The RPC owns amazon_finance_transactions conflict identity: owner_id,amazon_account_id,transaction_key.
+ */
+export async function upsertTransactions(admin:any,transactions:any[],job:any){
+  const entries=new Map<string,{transaction:any;original:any}>();
+  for(const original of transactions){const transaction=await normalizeTransaction(original,job);entries.set(transaction.transaction_key,{transaction,original});}
+  if(!entries.size)return 0;
+  const page:any[]=[];
+  for(const {transaction,original} of entries.values()){
+    const normalized=await normalizeFinanceComponents(original,transaction,job);
+    const components=normalized.map(({finance_transaction_id,...component})=>component);
+    page.push({transaction,components});
   }
-  return rows.length;
+  const {error}=await admin.rpc('amazon_replace_finance_page',{p_owner_id:job.owner_id,p_amazon_account_id:job.amazon_account_id,p_page:page});
+  if(error)throw error;
+  return page.length;
 }
 
 export async function syncFinancesJob(admin:any,job:any){

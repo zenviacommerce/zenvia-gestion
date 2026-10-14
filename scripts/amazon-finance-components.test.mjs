@@ -39,12 +39,13 @@ test('Finance component normalizer excludes reserve cash movements and handles o
   assert.match(parser,/returnpostagebilling_vat[^\n]*tax_audit/i);
 });
 
-test('Finances sync persists normalized components after transaction upsert', async()=>{
+test('Finances sync sends normalized transactions and components to one atomic database page', async()=>{
   const finances = await source('supabase/functions/_shared/amazon/finances.ts');
+  const migration=await source('supabase/migrations/20261014160407_amazon_finance_atomic_page_replacement.sql');
   assert.match(finances,/normalizeFinanceComponents/);
-  assert.match(finances,/amazon_finance_components/);
-  assert.match(finances,/finance_transaction_id/);
-  assert.match(finances,/owner_id,amazon_account_id,finance_transaction_id,component_key/);
+  assert.match(finances,/amazon_replace_finance_page/);
+  assert.match(migration,/amazon_finance_components/);
+  assert.match(migration,/owner_id,amazon_account_id,finance_transaction_id,component_key/);
 });
 
 

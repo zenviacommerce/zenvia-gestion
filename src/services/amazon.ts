@@ -230,7 +230,7 @@ export async function requestAmazonSync(integrationAccountId?:string,options:{wa
         }});
         window.dispatchEvent(new CustomEvent('zenvia:orders-refresh'));
       }
-      return data as {ok:true;accounts:number;jobs:number;orderJobIds?:string[]};
+      return data as {ok:true;accounts:number;jobs:number;recoveryJobs?:number;orderJobIds?:string[]};
     }catch(error){notifyAmazonConnectivityError(error);throw error;}
   }finally{activity.finish();}
 }

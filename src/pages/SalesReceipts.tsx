@@ -330,7 +330,7 @@ export function SalesReceipts(){
   };
 
   return <div className="page salesReceiptsPage">
-    <div className="pageHead"><div><div className="eyebrow">VENTAS · RECIBOS</div><h1>Recibos</h1><p>Controla lo que se lleva cada cliente, registra sus cobros y prepara después facturas a partir de uno o varios recibos.</p></div><div className="actions"><button className="secondary" disabled={!selectedRows.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={17}/> Facturar seleccionados{selectedRows.length?` (${selectedRows.length})`:''}</button><button className="primary" onClick={openNew}><Plus size={17}/> Nuevo recibo</button></div></div>
+    <div className="pageHead"><div><div className="eyebrow">VENTAS · RECIBOS</div><h1>Recibos</h1><p>Controla lo que se lleva cada cliente, registra sus cobros y prepara después facturas a partir de uno o varios recibos.</p></div><div className="actions pageHeadActions"><button className="secondary" disabled={!selectedRows.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={17}/> Facturar seleccionados{selectedRows.length?` (${selectedRows.length})`:''}</button><button className="primary" onClick={openNew}><Plus size={17}/> Nuevo recibo</button></div></div>
     <div className="stats salesStats normalizedKpiStats">
       <StatCard label="Pendiente de cobro" value={money(pendingTotal)} sub={periodLabel(dateFilter)} icon={<ReceiptText/>}/>
       <StatCard label="Cobrado" value={money(collectedTotal)} sub={periodLabel(dateFilter)} icon={<Banknote/>}/>

@@ -130,7 +130,7 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
     });
   },[connected,marketplaces.map(item=>item.id).join(',')]);
   return <div className="page amazonPage">
-    <header className="pageHead amazonPageHead"><div><div className="eyebrow">AMAZON ANALYTICS</div><h1>Amazon</h1><p>Ventas, costes, rentabilidad e inventario de tus marketplaces europeos.</p></div><div className="actions amazonExternalLinks">{isAdmin&&!status?.demo&&<button className="primary amazonSyncButton" onClick={()=>void syncNow()} disabled={syncing||loading||!status?.configured}>{syncing?<LoaderCircle size={17} className="spin"/>:<RefreshCw size={17}/>}<span>{syncing?'Solicitando…':'Actualizar datos'}</span></button>}</div></header>
+    <header className="pageHead amazonPageHead"><div><div className="eyebrow">AMAZON ANALYTICS</div><h1>Amazon</h1><p>Ventas, costes, rentabilidad e inventario de tus marketplaces europeos.</p></div><div className="actions pageHeadActions amazonExternalLinks">{isAdmin&&!status?.demo&&<button className="primary amazonSyncButton" onClick={()=>void syncNow()} disabled={syncing||loading||!status?.configured}>{syncing?<LoaderCircle size={17} className="spin"/>:<RefreshCw size={17}/>}<span>{syncing?'Solicitando…':'Actualizar datos'}</span></button>}</div></header>
 
     {loading&&<AmazonLoading>Comprobando conexión con Amazon…</AmazonLoading>}
     {syncFeedback&&<div role="status" aria-live="polite" className="amazonSyncFeedback" style={{marginBottom:12}}>{syncFeedback}</div>}

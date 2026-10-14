@@ -76,11 +76,11 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
     setSyncing(true);
     try{
       const result=await requestAmazonSync();
-      showSuccess(result.jobs?`Sincronización iniciada: ${result.jobs} trabajos preparados.`:'Amazon está al día; no se han creado trabajos nuevos.');
+      showSuccess(result.jobs||result.recoveryJobs?`Amazon: ${result.jobs} trabajos actuales y ${result.recoveryJobs||0} recuperaciones históricas preparadas.`:'Amazon está al día; no se han creado trabajos nuevos.');
       const nextStatus=await refresh();
       const nextPending=(nextStatus?.sync.jobCounts.queued||0)+(nextStatus?.sync.jobCounts.running||0);
-      if(result.jobs&&nextPending>0)setManualSyncPending(true);
-      else if(result.jobs){
+      if((result.jobs||result.recoveryJobs)&&nextPending>0)setManualSyncPending(true);
+      else if(result.jobs||result.recoveryJobs){
         setManualSyncPending(false);
         invalidateAmazonAnalytics();setAnalyticsRefresh(value=>value+1);
         showSuccess('Sincronización de Amazon completada. Los datos se han actualizado.');

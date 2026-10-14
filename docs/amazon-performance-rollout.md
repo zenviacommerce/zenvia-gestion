@@ -2,7 +2,7 @@
 
 The dashboard read deduplication and summary/product cost aggregation optimizations are deployed. Local verification: 987 tests passed; the atomic-page SQL regression fixture passed against the database using `service_role`, with every fixture row rolled back.
 
-The atomic finance schema and indexed deferred-reference cache are installed. The finance Edge workers have **not** been redeployed. Initial cache seeding is incomplete because both management connections and database reads/writes repeatedly exceed their timeouts. A temporary diagnostic function was replaced by an authenticated 404 response. An attempted pause of the new tracking trigger failed before migration initialization; do not assume it is disabled.
+The atomic finance schema and indexed deferred-reference cache are installed. The finance Edge workers have **not** been redeployed. Initial cache seeding is incomplete because both management connections and database reads/writes repeatedly exceed their timeouts. A temporary diagnostic function was replaced by an authenticated 404 response. The new tracking trigger was subsequently disabled successfully while initial cache preparation remains incomplete. Enable it before restarting the complete seed and deploying the atomic workers. Authentication logs also show password/user endpoint timeouts and failures connecting to localhost Postgres; a synthetic password-grant probe exceeded 30 seconds.
 
 Before activating atomic ingestion:
 

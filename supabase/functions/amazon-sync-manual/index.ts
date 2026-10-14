@@ -55,7 +55,7 @@ Deno.serve(async(req:Request)=>{
     // Recover historical failed windows as bounded daily slices rather than requeueing
     // hundreds of obsolete hourly jobs. Upserts are idempotent.
     let recoveryJobs=0;
-    if(body?.recoverFailed!==false){
+    if(body?.recoverFailed!==false && body?.ordersOnly!==true){
       const {data:failed,error:failedError}=await admin.from('amazon_sync_jobs')
         .select('owner_id,amazon_account_id,marketplace_id,window_from,window_to')
         .eq('owner_id',caller.data_owner_id).eq('source','orders').eq('status','failed')
@@ -76,12 +76,15 @@ Deno.serve(async(req:Request)=>{
           if(!grouped.has(key))grouped.set(key,{...job,date});
         }
       }
-      const keys=Array.from(grouped.values()).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,60);
+      const keys=Array.from(grouped.values()).sort((a,b)=>a.date.localeCompare(b.date));
       if(keys.length){
         const jobKeys=keys.map(job=>`recovery:v2:orders:${job.marketplace_id}:${job.date}`);
-        const {data:existing,error:existingError}=await admin.from('amazon_sync_jobs').select('job_key').eq('owner_id',caller.data_owner_id).in('job_key',jobKeys);
-        if(existingError)throw existingError;
-        const present=new Set((existing||[]).map((job:any)=>job.job_key));
+        const present=new Set<string>();
+        for(let offset=0;offset<jobKeys.length;offset+=100){
+          const {data:existing,error:existingError}=await admin.from('amazon_sync_jobs').select('job_key').eq('owner_id',caller.data_owner_id).in('job_key',jobKeys.slice(offset,offset+100));
+          if(existingError)throw existingError;
+          for(const entry of existing||[])present.add(String(entry.job_key));
+        }
         const recovery=keys.filter(job=>!present.has(`recovery:v2:orders:${job.marketplace_id}:${job.date}`)).slice(0,30).map(job=>({
           owner_id:caller.data_owner_id,amazon_account_id:job.amazon_account_id,
           job_key:`recovery:v2:orders:${job.marketplace_id}:${job.date}`,

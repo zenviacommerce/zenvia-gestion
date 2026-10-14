@@ -64,9 +64,17 @@ Deno.serve(async(req:Request)=>{
       const grouped=new Map<string,any>();
       for(const job of failed||[]){
         if(!job.marketplace_id||!job.window_from)continue;
-        const date=String(job.window_from).slice(0,10);
-        const key=[job.amazon_account_id,job.marketplace_id,date].join(':');
-        if(!grouped.has(key))grouped.set(key,{...job,date});
+        const start=Date.parse(String(job.window_from));
+        const end=Date.parse(String(job.window_to||job.window_from));
+        if(!Number.isFinite(start)||!Number.isFinite(end))continue;
+        const dayMs=86_400_000;
+        const first=Math.floor(start/dayMs)*dayMs;
+        const last=Math.floor(Math.max(start,end-1)/dayMs)*dayMs;
+        for(let timestamp=first;timestamp<=last&&timestamp<first+21*dayMs;timestamp+=dayMs){
+          const date=new Date(timestamp).toISOString().slice(0,10);
+          const key=[job.amazon_account_id,job.marketplace_id,date].join(':');
+          if(!grouped.has(key))grouped.set(key,{...job,date});
+        }
       }
       const keys=Array.from(grouped.values()).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,60);
       if(keys.length){

@@ -454,7 +454,7 @@
 @media(prefers-reduced-motion:reduce){.amazonInlineLoading .spin{animation:none}}
 
 /* Shared Amazon and Shopify product identity: bold product names, flexible width. */
-.amazonProductTable .channelProductName{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;white-space:normal;font-weight:800;max-width:100%;overflow-wrap:anywhere;line-height:1.4}
+.amazonProductTable .channelProductName{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;white-space:normal;font-weight:600;letter-spacing:.005em;color:var(--text,#243247);max-width:100%;overflow-wrap:anywhere;line-height:1.4}
 .amazonProductTable .channelProductIdentity{min-width:0;max-width:none}
 .amazonProductTable .channelProductIdentity>div{min-width:0;flex:1}
 .amazonProductTable .amazonProductNameCell{min-width:280px}

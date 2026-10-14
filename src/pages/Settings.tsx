@@ -172,6 +172,7 @@ const companyStartPageOptions=[
   {value:'products',label:'Productos'},
   {value:'suppliers',label:'Proveedores'},
   {value:'amazon',label:'Amazon'},
+  {value:'shopify',label:'Shopify'},
   {value:'settings',label:'Configuración'},
 ];
 
@@ -318,6 +319,7 @@ const entitlementLabels:Record<string,string>={
   'module.products':'Productos',
   'module.suppliers':'Proveedores',
   'module.amazon':'Amazon',
+  'module.shopify':'Shopify',
   'module.support':'Soporte',
   'integration.amazon':'Amazon',
   'integration.sendcloud':'Sendcloud',
@@ -1724,7 +1726,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
             <label className="settingsToggleField"><input type="checkbox" checked={syncOrders} onChange={e=>setSyncOrders(e.target.checked)}/><span><strong>Sincronizar pedidos</strong><small>Importar pedidos directamente desde la tienda Shopify.</small></span></label>
             {shopifyOAuthReady===false&&!shopifyOwnAppMode&&<div className="integrationAccountConfigBlock">
               <h4>Configuración inicial de ZENVIA en Shopify</h4>
-              <p className="settingsHelpText">Solo necesitas registrar una vez la aplicación ZENVIA desde Shopify Dev Dashboard. No son credenciales de cada tienda. Configura como URL de retorno https://gestion.zenviacommerce.com/ y habilita los permisos para pedidos y preparación de envíos.</p>
+              <p className="settingsHelpText">Solo necesitas registrar una vez la aplicación ZENVIA desde Shopify Dev Dashboard. No son credenciales de cada tienda. Configura como URL de retorno https://gestion.zenviacommerce.com/ y habilita los permisos para pedidos y preparación de envíos. Para el panel de Shopify, añade read_products y read_inventory. Si la tienda ya estaba conectada, vuelve a autorizarla para incorporar esos permisos.</p>
               <label className="settingsField"><span>Client ID de la aplicación</span><input autoComplete="off" value={shopifyAppClientId} onChange={e=>setShopifyAppClientId(e.target.value)}/></label>
               <label className="settingsField"><span>Client secret de la aplicación</span><input type="password" autoComplete="new-password" value={shopifyAppClientSecret} onChange={e=>setShopifyAppClientSecret(e.target.value)}/></label>
               <button type="button" className="secondary" disabled={busy!==null} onClick={()=>void (async()=>{

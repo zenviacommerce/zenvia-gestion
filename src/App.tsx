@@ -24,6 +24,7 @@ import { Orders } from './pages/Orders';
 import { Clients } from './pages/Clients';
 import { Products } from './pages/Products';
 import { Suppliers } from './pages/Suppliers';
+import { ShopifyPage } from './pages/Shopify';
 import { AmazonPage } from './pages/Amazon';
 import { AdminPage } from './pages/Admin';
 import { SettingsPage } from './pages/Settings';
@@ -53,7 +54,7 @@ const emptyData: AppData = { invoices: [], products: [], suppliers: [], categori
 const THEME_KEY = 'zenvia-gestion-theme';
 const THEME_PREFERENCE_KEY = 'zenvia-gestion-theme-preference';
 const DEVICE_THEME_OVERRIDE_KEY = 'zenvia-gestion-theme-device-override';
-const regularPages: MenuPermission[] = ['dashboard','sales','orders','invoices','clients','products','suppliers','amazon','support'];
+const regularPages: MenuPermission[] = ['dashboard','sales','orders','invoices','clients','products','suppliers','amazon','shopify','support'];
 
 function withTimeout<T>(promise:Promise<T>,ms:number,message:string):Promise<T>{
   return new Promise<T>((resolve,reject)=>{
@@ -633,6 +634,7 @@ export default function App(){
    {page==='products'&&can('products')&&<Products products={data.products} onAdd={openNewProduct} onEdit={openEditProduct} onDelete={removeProduct}/>}
    {page==='suppliers'&&can('suppliers')&&<Suppliers suppliers={data.suppliers} onAdd={openNewSupplier} onEdit={openEditSupplier} onDelete={removeSupplier}/>}
    {page==='amazon'&&can('amazon')&&<AmazonPage isAdmin={access.role==='admin'}/>}
+   {page==='shopify'&&can('shopify')&&<ShopifyPage isAdmin={access.role==='admin'}/>}
    {page==='support'&&can('support')&&<SupportPage isAdmin={access.role==='admin'} currentUserId={session.user.id}/>}
    {page==='settings'&&<SettingsPage isAdmin={access.role==='admin'} access={access} initialSection={settingsInitialSection}/>}
    {page==='admin'&&access.role==='admin'&&<AdminPage currentUserId={session.user.id} workspaceName={access.workspaceName}/>}

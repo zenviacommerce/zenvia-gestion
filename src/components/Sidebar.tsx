@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { BarChart3, Building2, CircleHelp, FileText, LogOut, Menu, Moon, Package, ReceiptText, Settings2, ShieldCheck, ShoppingBag, Store, Sun, Users, X, type LucideIcon } from 'lucide-react';
 import { ZENVIA_LOGO } from '../branding';
 
-export type Page = 'dashboard' | 'sales' | 'orders' | 'invoices' | 'clients' | 'products' | 'suppliers' | 'amazon' | 'support' | 'settings' | 'admin';
+export type Page = 'dashboard' | 'sales' | 'orders' | 'invoices' | 'clients' | 'products' | 'suppliers' | 'amazon' | 'shopify' | 'support' | 'settings' | 'admin';
 export type ThemeMode = 'light' | 'dark';
 
 type SidebarUser = {
@@ -41,6 +41,7 @@ const navGroups:NavGroup[] = [
     label:'Canales',
     items:[
       ['amazon','Amazon','Amazon',Store],
+      ['shopify','Shopify','Shopify',ShoppingBag],
     ],
   },
   {

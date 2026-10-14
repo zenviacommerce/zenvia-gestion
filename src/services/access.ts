@@ -2,7 +2,7 @@ import { FunctionsHttpError } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { emailError, nameError, normalizeEmail } from './validation';
 
-export type MenuPermission = 'dashboard' | 'sales' | 'orders' | 'invoices' | 'clients' | 'products' | 'suppliers' | 'amazon' | 'support';
+export type MenuPermission = 'dashboard' | 'sales' | 'orders' | 'invoices' | 'clients' | 'products' | 'suppliers' | 'amazon' | 'shopify' | 'support';
 export type AppRole = 'admin' | 'user';
 
 export interface WorkspaceEntitlement {
@@ -20,6 +20,7 @@ export const permissionOptions: Array<{ id: MenuPermission; label: string; descr
   { id: 'products', label: 'Productos', description: 'Consultar y mantener productos, precios de venta, costes e histórico.' },
   { id: 'suppliers', label: 'Proveedores', description: 'Consultar y mantener proveedores, clasificación, gasto e histórico de compras.' },
   { id: 'amazon', label: 'Amazon', description: 'Consultar Amazon Analytics, rentabilidad, marketplaces y estado de sincronización.' },
+  { id: 'shopify', label: 'Shopify', description: 'Consultar ventas, devoluciones, costes y productos de las tiendas Shopify.' },
   { id: 'support', label: 'Soporte', description: 'Crear incidencias y peticiones, adjuntar archivos y hacer seguimiento de sus tickets.' },
 ];
 

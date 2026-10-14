@@ -458,3 +458,11 @@
 .amazonProductTable .channelProductIdentity{min-width:0;max-width:none}
 .amazonProductTable .channelProductIdentity>div{min-width:0;flex:1}
 .amazonProductTable .amazonProductNameCell{min-width:280px}
+
+/* Same compact mobile sync actions for Amazon and Shopify. */
+@media(max-width:520px){
+ .amazonPageHead .amazonExternalLinks{display:flex;flex-wrap:wrap;gap:8px;width:100%;align-items:center;justify-content:flex-start;margin-top:8px}
+ .amazonPageHead .amazonExternalLinks>.amazonSyncButton{grid-column:auto;flex:0 1 auto;width:auto;min-height:38px;padding:8px 12px;font-size:12px}
+ .amazonPageHead .amazonExternalLinks>.amazonExternalLink{flex:0 1 auto;width:auto;min-height:38px;padding:8px 12px;font-size:12px}
+ .amazonPageHead .amazonExternalLinks button{max-width:100%}
+}

@@ -29,7 +29,7 @@ import { AmazonPage } from './pages/Amazon';
 import { AdminPage } from './pages/Admin';
 import { SettingsPage } from './pages/Settings';
 import { SupportPage } from './pages/Support';
-import { bootstrapTenantFromLocation, supabase } from './services/supabase';
+import { bootstrapTenantFromLocation, getActiveTenant, supabase } from './services/supabase';
 import { loadAccessProfile, type AccessProfile, type MenuPermission } from './services/access';
 import { bootstrapUser, createInvoice, deleteProduct, deleteSupplier, getInvoiceFileUrl, loadAppData, updateInvoicePaymentStatus, updateInvoicesPaymentStatus, updateInvoiceStatus } from './services/repository';
 import { addSupplier, updateSupplier, type SupplierInput } from './services/supplierEditor';
@@ -47,6 +47,7 @@ import { safeStorageGet, safeStorageRemove, safeStorageSet } from './services/br
 import { completeShopifyAuthorization } from './services/integrationAccounts';
 import { clearShopifyOAuthCallback, getShopifyOAuthCallback, shopifyOAuthWasDenied } from './services/shopifyOAuthCallback';
 import { effectiveStartPage } from './services/uiPreferences';
+import { ensureViewCacheScope } from './services/viewCache';
 import { loadCompanyBranding } from './services/companyBranding';
 import type { AppData, Invoice, InvoicePaymentStatus, NewInvoiceInput, Product, Supplier } from './types';
 
@@ -191,6 +192,7 @@ export default function App(){
      timedOut=true;
      setAuthTimedOut(true);
      setTenantBootstrapError('No se ha podido recuperar la sesión guardada. Puedes iniciar sesión de nuevo o restablecer el acceso de este dispositivo.');
+     ensureViewCacheScope(getActiveTenant()?.workspace_id,null);
      setSession(null);
      setAuthReady(true);
    },15000);
@@ -198,6 +200,7 @@ export default function App(){
      if(cancelled||timedOut)return;
      window.clearTimeout(timeout);
      setTenantBootstrapError(feedback);
+     ensureViewCacheScope(getActiveTenant()?.workspace_id,next?.user.id);
      setSession(next);
      setAuthReady(true);
    };
@@ -316,6 +319,7 @@ export default function App(){
    url.searchParams.delete('recovery_token');
    window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
    const {data}=await supabase.auth.getSession();
+   ensureViewCacheScope(getActiveTenant()?.workspace_id,data.session?.user.id);
    setSession(data.session);
    setAccessReady(false);
  }}/></>;
@@ -324,6 +328,7 @@ export default function App(){
    url.searchParams.delete('invite_token');
    window.history.replaceState({},document.title,url.pathname+url.search+url.hash);
    const {data}=await supabase.auth.getSession();
+   ensureViewCacheScope(getActiveTenant()?.workspace_id,data.session?.user.id);
    setSession(data.session);
    setAccessReady(false);
  }}/></>;
@@ -331,6 +336,7 @@ export default function App(){
  if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootstrapError} allowSessionReset={authTimedOut} onTenantChanged={()=>{setTenantBootstrapError('');setAuthClientVersion(value=>value+1)}}/></>;
  if(session.user.user_metadata?.onboarding_pending===true) return <><ToastHost/><InvitePasswordSetup session={session} onComplete={async()=>{
    const {data}=await supabase.auth.getSession();
+   ensureViewCacheScope(getActiveTenant()?.workspace_id,data.session?.user.id);
    setSession(data.session);
    setAccessReady(false);
  }}/></>;

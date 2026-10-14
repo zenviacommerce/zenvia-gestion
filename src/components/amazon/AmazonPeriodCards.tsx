@@ -9,7 +9,7 @@ type Snapshot={data:AmazonSummary|null;error:boolean;loading:boolean;stale?:bool
 const sameRange=(a:AmazonAnalyticsFilters,b:AmazonAnalyticsFilters)=>a.from===b.from&&a.to===b.to;
 const dateLabel=(value:string)=>new Date(value+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
 const accents=['#2563eb','#0e7490','#7c3aed','#c2410c','#475569'];
-export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPeriodChange,comparisonNote,visibleKpis,detail,periodOverrides={},onPeriodCustomize,calendarDay}:{filters:AmazonAnalyticsFilters;summary:AmazonSummary;currency:string;refreshToken:number;onPeriodChange?:(filters:AmazonAnalyticsFilters)=>void;comparisonNote?:string;visibleKpis?:AmazonKpiKey[];detail?:AmazonDetail|null;periodOverrides?:Record<string,{from:string;to:string}>;onPeriodCustomize?:(id:string,range:{from:string;to:string}|null)=>void;calendarDay?:string}){
+export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPeriodChange,comparisonNote,visibleKpis,detail,periodOverrides={},onPeriodCustomize,calendarDay}:{filters:AmazonAnalyticsFilters;summary:AmazonSummary|null;currency:string;refreshToken:number;onPeriodChange?:(filters:AmazonAnalyticsFilters)=>void;comparisonNote?:string;visibleKpis?:AmazonKpiKey[];detail?:AmazonDetail|null;periodOverrides?:Record<string,{from:string;to:string}>;onPeriodCustomize?:(id:string,range:{from:string;to:string}|null)=>void;calendarDay?:string}){
   const now=calendarDay?amazonCalendarDate(calendarDay):new Date();
   const bases=amazonDashboardPeriods(now,filters.marketplaceIds);
   const periods=bases.map(period=>({...period,filters:{...period.filters,...(period.id==='forecast'?{}:periodOverrides[period.id])},custom:period.id!=='forecast'&&Boolean(periodOverrides[period.id])}));
@@ -19,6 +19,11 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
   const periodKey=periods.map(p=>p.filters.from+p.filters.to).join('|');
   const rail=useRef<HTMLDivElement>(null);
   const [snapshots,setSnapshots]=useState<Record<string,Snapshot>>({});
+  const requests=useRef(new Set<string>());
+  const generation=useRef(0);
+  const mounted=useRef(false);
+  const snapshotKey=(range:AmazonAnalyticsFilters)=>stableCacheKey('amazon:summary',range);
+  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;generation.current++;};},[]);
   const [visiblePeriods,setVisiblePeriods]=useState<string[]>(['today','yesterday']);
   useEffect(()=>{
     if(typeof IntersectionObserver==='undefined'){setVisiblePeriods(periods.map(period=>period.id));return;}
@@ -38,68 +43,78 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
   const closeEditor=()=>{setEditor(null);dateTrigger.current?.focus();};
   const [retry,setRetry]=useState(0);
   const money=new Intl.NumberFormat('es-ES',{style:'currency',currency});
+  // Visibility and new selected summary objects add work without discarding
+  // completed cards or restarting requests already in flight.
+  useEffect(()=>{generation.current++;requests.current.clear();},[filters.marketplaceIds.join(','),refreshToken,retry]);
   useEffect(()=>{
-    let alive=true;
-    const initial:Record<string,Snapshot>={};
-    for(const period of periods){
-      if(period.id==='forecast')continue;
-      const selected=sameRange(period.filters,filters);
-      const data=selected?summary:readViewCache<AmazonSummary>(stableCacheKey('amazon:summary',period.filters));
-      const cachedDetail=readViewCache<AmazonDetail>(stableCacheKey('amazon:detail',period.filters));
-      initial[period.id]={data,error:false,loading:!selected,refundCount:cachedDetail?.refundTransactions??null,refundGrossImpact:cachedDetail?.refundGrossImpact??null};
-    }
-    setSnapshots(initial);
     const requested=periods.filter(period=>period.id!=='forecast'&&visiblePeriods.includes(period.id));
-    if(visiblePeriods.includes('forecast')){
-      requested.push({...monthBase,id:'forecast_month',custom:false},{...bases[0],id:'forecast_today',custom:false});
+    if(visiblePeriods.includes('forecast'))requested.push({...monthBase,custom:false},{...bases[0],custom:false});
+    const unique=new Map(requested.map(period=>[snapshotKey(period.filters),period]));
+    const currentGeneration=generation.current;
+    const active=()=>mounted.current&&generation.current===currentGeneration;
+    for(const [key,period] of unique){
+      if(sameRange(period.filters,filters)||requests.current.has(key))continue;
+      requests.current.add(key);
+      const detailKey=stableCacheKey('amazon:detail',period.filters);
+      const cached=readViewCache<AmazonSummary>(key);
+      const cachedDetail=readViewCache<AmazonDetail>(detailKey);
+      setSnapshots(current=>({...current,[key]:{
+        ...current[key],data:current[key]?.data||cached,error:false,loading:true,
+        refundCount:current[key]?.refundCount??cached?.refundTransactions??cachedDetail?.refundTransactions??null,
+        refundGrossImpact:current[key]?.refundGrossImpact??cached?.refundGrossImpact??cachedDetail?.refundGrossImpact??null,
+      }}));
+      // Submit every unique summary first. A legacy refund-detail request is
+      // optional follow-up work and cannot occupy a summary worker slot.
+      void loadAmazonSummary(period.filters).then(data=>{
+        if(!active())return;
+        writeViewCache(key,data);
+        setSnapshots(current=>({...current,[key]:{
+          ...current[key],data,error:false,loading:false,stale:false,
+          refundCount:data.refundTransactions??current[key]?.refundCount??null,
+          refundGrossImpact:data.refundGrossImpact??current[key]?.refundGrossImpact??null,
+        }}));
+        if(data.refundTransactions!=null&&data.refundGrossImpact!=null)return;
+        void loadAmazonDetail(period.filters).then(nextDetail=>{
+          if(!active())return;
+          writeViewCache(detailKey,nextDetail);
+          setSnapshots(current=>({...current,[key]:{...current[key],refundCount:nextDetail.refundTransactions,refundGrossImpact:nextDetail.refundGrossImpact,refundCountError:false}}));
+        }).catch(()=>{if(active())setSnapshots(current=>({...current,[key]:{...current[key],refundCountError:true}}));});
+      }).catch(error=>{
+        if(!active())return;
+        setSnapshots(current=>({...current,[key]:{...current[key],error:!isAmazonConnectivityError(error),loading:false,stale:Boolean(current[key]?.data)}}));
+      });
     }
-    const pending=requested.filter(period=>!sameRange(period.filters,filters));
-    let index=0;
-    const worker=async()=>{
-      while(alive&&index<pending.length){
-        const period=pending[index++];
-        try{
-          const data=await loadAmazonSummary(period.filters);
-          if(!alive)return;
-          writeViewCache(stableCacheKey('amazon:summary',period.filters),data);
-          setSnapshots(current=>({...current,[period.id]:{data,error:false,loading:false,refundCount:current[period.id]?.refundCount??null,refundGrossImpact:current[period.id]?.refundGrossImpact??null}}));
-          try{
-            const nextDetail=await loadAmazonDetail(period.filters);
-            if(!alive)return;
-            writeViewCache(stableCacheKey('amazon:detail',period.filters),nextDetail);
-            setSnapshots(current=>({...current,[period.id]:{...current[period.id],refundCount:nextDetail.refundTransactions,refundGrossImpact:nextDetail.refundGrossImpact,refundCountError:false}}));
-          }catch{if(alive)setSnapshots(current=>({...current,[period.id]:{...current[period.id],refundCountError:true}}));}
-        }catch(error){
-          if(!alive)return;
-          setSnapshots(current=>({...current,[period.id]:{data:current[period.id]?.data||null,error:!isAmazonConnectivityError(error),loading:false,stale:true,refundCount:current[period.id]?.refundCount??null,refundGrossImpact:current[period.id]?.refundGrossImpact??null}}));
-        }
-      }
-    };
-    void Promise.all([worker(),worker()]);
-    return()=>{alive=false;};
-  },[periodKey,filters.marketplaceIds.join(','),filters.from,filters.to,summary,refreshToken,retry,visiblePeriods.join(',')]);
+  },[periodKey,filters.marketplaceIds.join(','),filters.from,filters.to,refreshToken,retry,visiblePeriods.join(',')]);
   const show=(key:AmazonKpiKey)=>!visibleKpis?.length||visibleKpis.includes(key);
   const move=(direction:number)=>rail.current?.scrollBy({left:direction*340,behavior:'smooth'});
   return <section className="amazonPeriodSection" aria-label="Comparativa rápida por periodos">
     <div className="amazonDashboardSectionHead"><div><span className="amazonSectionLabel">TABLERO</span><h2>Rentabilidad por periodo</h2></div><div className="amazonCarouselControls"><span>Desliza para ver más periodos</span><button onClick={()=>move(-1)} aria-label="Desplazar tarjetas a la izquierda"><ChevronLeft size={18}/></button><button onClick={()=>move(1)} aria-label="Desplazar tarjetas a la derecha"><ChevronRight size={18}/></button></div></div>
     <div className="amazonPeriodCarousel" ref={rail}>{periods.map((period,index)=>{
-      const snapshot=snapshots[period.id];
+      const periodSnapshot=snapshots[snapshotKey(period.filters)];
       const forecast=period.id==='forecast';
       const matches=!forecast&&sameRange(period.filters,filters);
       const selected=matches&&periods.find(p=>p.id!=='forecast'&&sameRange(p.filters,filters))?.id===period.id;
-      const monthData=sameRange(monthBase.filters,filters)?summary:snapshots.forecast_month?.data;
+      const monthData=sameRange(monthBase.filters,filters)?summary:snapshots[snapshotKey(monthBase.filters)]?.data;
       const todayPeriod=bases[0];
-      const todayData=sameRange(todayPeriod.filters,filters)?summary:snapshots.forecast_today?.data;
+      const todayData=sameRange(todayPeriod.filters,filters)?summary:snapshots[snapshotKey(bases[0].filters)]?.data;
       const forecastData=monthData&&todayData?amazonMonthForecast(monthData,todayData,now):null;
-      const data=forecast?forecastData:matches?summary:snapshot?.data;
-      const monthRefunds=sameRange(monthBase.filters,filters)?detail?.refundTransactions:snapshots.forecast_month?.refundCount;
-      const todayRefunds=sameRange(todayPeriod.filters,filters)?detail?.refundTransactions:snapshots.forecast_today?.refundCount;
+      const monthSnapshot=snapshots[snapshotKey(monthBase.filters)];
+      const todaySnapshot=snapshots[snapshotKey(todayPeriod.filters)];
+      const snapshot=forecast?{
+        error:Boolean(monthSnapshot?.error||todaySnapshot?.error),
+        loading:(!monthData&&!monthSnapshot?.error)||(!todayData&&!todaySnapshot?.error),
+        stale:Boolean(monthSnapshot?.stale||todaySnapshot?.stale),
+        refundCountError:Boolean(monthSnapshot?.refundCountError||todaySnapshot?.refundCountError),
+      }:periodSnapshot;
+      const data=forecast?forecastData:matches?summary:periodSnapshot?.data;
+      const monthRefunds=monthData?.refundTransactions??(sameRange(monthBase.filters,filters)?detail?.refundTransactions:snapshots[snapshotKey(monthBase.filters)]?.refundCount);
+      const todayRefunds=todayData?.refundTransactions??(sameRange(todayPeriod.filters,filters)?detail?.refundTransactions:snapshots[snapshotKey(bases[0].filters)]?.refundCount);
       const completedDays=now.getDate()-1;
       const forecastFactor=completedDays>0?new Date(now.getFullYear(),now.getMonth()+1,0).getDate()/completedDays:0;
-      const refundCount=forecast?monthRefunds!=null&&todayRefunds!=null&&completedDays>0?Math.round(Math.max(0,monthRefunds-todayRefunds)*forecastFactor):null:matches?detail?.refundTransactions??snapshot?.refundCount:snapshot?.refundCount;
-      const monthRefundGross=sameRange(monthBase.filters,filters)?detail?.refundGrossImpact:snapshots.forecast_month?.refundGrossImpact;
-      const todayRefundGross=sameRange(todayPeriod.filters,filters)?detail?.refundGrossImpact:snapshots.forecast_today?.refundGrossImpact;
-      const refundGross=forecast?monthRefundGross!=null&&todayRefundGross!=null&&completedDays>0?(monthRefundGross-todayRefundGross)*forecastFactor:null:matches?detail?.refundGrossImpact??snapshot?.refundGrossImpact:snapshot?.refundGrossImpact;
+      const refundCount=forecast?monthRefunds!=null&&todayRefunds!=null&&completedDays>0?Math.round(Math.max(0,monthRefunds-todayRefunds)*forecastFactor):null:data?.refundTransactions??(matches?detail?.refundTransactions??periodSnapshot?.refundCount:periodSnapshot?.refundCount);
+      const monthRefundGross=monthData?.refundGrossImpact??(sameRange(monthBase.filters,filters)?detail?.refundGrossImpact:snapshots[snapshotKey(monthBase.filters)]?.refundGrossImpact);
+      const todayRefundGross=todayData?.refundGrossImpact??(sameRange(todayPeriod.filters,filters)?detail?.refundGrossImpact:snapshots[snapshotKey(bases[0].filters)]?.refundGrossImpact);
+      const refundGross=forecast?monthRefundGross!=null&&todayRefundGross!=null&&completedDays>0?(monthRefundGross-todayRefundGross)*forecastFactor:null:data?.refundGrossImpact??(matches?detail?.refundGrossImpact??periodSnapshot?.refundGrossImpact:periodSnapshot?.refundGrossImpact);
       const more=expanded.includes(period.id);
       const metric=(value:number|null|undefined)=>value==null?'—':money.format(value);
       return <article className={`card amazonPeriodCard ${selected?'isSelected':''}`} style={{'--period-accent':accents[index%accents.length]} as CSSProperties} key={period.id} data-period-id={period.id} aria-busy={snapshot?.loading||false}>
@@ -115,7 +130,7 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
             {show('netProfit')&&<div className="amazonPeriodProfit"><dt>Ganancia neta</dt><dd data-metric="netProfit" className={data?.netProfit!=null&&data.netProfit<0?'isNegative':'isPositive'}>{metric(data?.netProfit)}</dd></div>}
             {show('marginPct')&&<div><dt>Margen neto</dt><dd>{data?.marginPct==null?'—':data.marginPct.toLocaleString('es-ES',{maximumFractionDigits:1})+' %'}</dd></div>}
           </dl>
-          <span className="amazonPeriodQuality">{forecast?'Estimación · '+(data?(data.profitComplete&&data.dailyAdsAvailable)?'Base completa':'Base provisional':completedDays<1?'Sin días completos':'Cargando base'):snapshot?.stale?'Últimos datos guardados':snapshot?.loading&&data?'Actualizando…':snapshot?.error?'Error al actualizar':data?(!data.profitComplete||!data.dailyAdsAvailable)?'Provisional':'Datos completos':snapshot?.loading?'Cargando…':'Sin datos disponibles'}{data&&(!data.profitComplete||!data.dailyAdsAvailable)&&(snapshot?.stale||snapshot?.loading)&&' · Provisional'}</span>
+          <span className="amazonPeriodQuality">{forecast?'Estimación · '+(snapshot?.error?'Error al actualizar la base':data?(data.profitComplete&&data.dailyAdsAvailable)?'Base completa':'Base provisional':completedDays<1?'Sin días completos':'Cargando base'):snapshot?.stale?'Últimos datos guardados':snapshot?.loading&&data?'Actualizando…':snapshot?.error?'Error al actualizar':data?(!data.profitComplete||!data.dailyAdsAvailable)?'Provisional':'Datos completos':snapshot?.loading?'Cargando…':'Sin datos disponibles'}{data&&(!data.profitComplete||!data.dailyAdsAvailable)&&(snapshot?.stale||snapshot?.loading)&&' · Provisional'}</span>
           {selected&&show('netProfit')&&comparisonNote&&<p className="amazonTileComparison">{comparisonNote}</p>}
           {forecast&&<p className="amazonTileComparison">Media de los días completos del mes × días del mes. Al seleccionar se muestran los productos vendidos este mes.</p>}
           {more&&<p className="amazonTileComparison">Pedidos únicos de Amazon. Reembolsos por fecha de devolución. Publicidad procedente de movimientos financieros; no incluye el gasto diario de Amazon Ads. El beneficio puede cambiar al recibir comisiones y costes pendientes.</p>}

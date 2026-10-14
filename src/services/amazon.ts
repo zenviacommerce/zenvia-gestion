@@ -32,7 +32,7 @@ export type AmazonCompleteness={
 export type AmazonSummary=AmazonCompleteness&{
   dailyAdsAvailable?:boolean;
   grossSales:number;salesVat:number;netSales:number;orders:number;businessOrders:number;units:number;
-  amazonFees:number;amazonFeeVat:number;refunds:number;adsCost:number;amazonAdjustments:number;
+  amazonFees:number;amazonFeeVat:number;refunds:number;adsCost:number;amazonAdjustments:number;refundTransactions?:number;refundGrossImpact?:number;
   productCost:number;fbmShippingCost:number;netProfit:number|null;marginPct:number|null;
 };
 export type AmazonDetail={
@@ -166,8 +166,11 @@ async function rpc<T>(name:string,params:Record<string,unknown>,fallback:string)
   const scope=JSON.stringify([workspace,userId,name,params]);
   return analyticsReads.read(scope,async()=>{
     const current=await client.auth.getSession();
-    if(current.data.session?.user.id!==userId)throw new Error('La sesión ha cambiado.');
-    return runRpc<T>(name,params,fallback,client);
+    if(getActiveSupabase()!==client||getActiveTenant()?.workspace_id!==workspace||current.data.session?.user.id!==userId)throw new Error('La sesión o empresa ha cambiado.');
+    const result=await runRpc<T>(name,params,fallback,client);
+    const after=await client.auth.getSession();
+    if(getActiveSupabase()!==client||getActiveTenant()?.workspace_id!==workspace||after.data.session?.user.id!==userId)throw new Error('La sesión o empresa ha cambiado.');
+    return result;
   });
 }
 
@@ -187,14 +190,6 @@ async function runRpc<T>(name:string,params:Record<string,unknown>,fallback:stri
     let result;
     try{result=await call();}
     catch(error){notifyAmazonConnectivityError(error);throw error;}
-    const firstMessage=message(result.data,result.error,'');
-    if(result.error&&/statement timeout|canceling statement|57014/i.test(firstMessage)){
-      activity.update({detail:'La consulta está tardando más de lo normal. Reintentando…'});
-      await new Promise(resolve=>setTimeout(resolve,350));
-      if(typeof navigator!=='undefined'&&!navigator.onLine)throw offlineError();
-      try{result=await call();}
-      catch(error){notifyAmazonConnectivityError(error);throw error;}
-    }
     if(result.error){
       const error=new Error(message(result.data,result.error,fallback));
       notifyAmazonConnectivityError(error);

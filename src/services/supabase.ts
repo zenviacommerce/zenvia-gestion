@@ -1,4 +1,5 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { ensureViewCacheScope } from './viewCache';
 
 export type TenantPublicConfig={
   workspace_id:string;
@@ -65,6 +66,7 @@ let activeTenant:TenantPublicConfig|null=readCachedTenant();
 let activeClient:SupabaseClient|null=activeTenant?createTenantClient(activeTenant,true):null;
 
 function emitTenantChanged(){
+  ensureViewCacheScope(activeTenant?.workspace_id,null);
   if(typeof window!=='undefined')window.dispatchEvent(new CustomEvent('zenvia:tenant-changed'));
 }
 

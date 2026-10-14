@@ -65,9 +65,9 @@ test('Amazon summary uses indexable timestamp ranges for global finance rows',as
   assert.match(migration,/amazon_analytics_series_without_fbm_20260917/);
 });
 
-test('Amazon renders primary KPIs before loading detail and chart data in parallel',async()=>{
+test('Amazon renders primary KPIs independently from optional detail and chart data',async()=>{
   const summary=await source('src/components/amazon/AmazonSummary.tsx');
-  assert.match(summary,/setSummary\(nextSummary\)[\s\S]*setLoading\(false\)[\s\S]*Promise\.allSettled/);
+  assert.match(summary,/setSummary\(nextSummary\)[\s\S]*finally\(\(\)=>\{if\(alive\)setLoading\(false\)/);
   assert.match(summary,/loadAmazonDetail\(filters\)/);
   assert.match(summary,/loadAmazonSeries\(filters,grain\)/);
 });

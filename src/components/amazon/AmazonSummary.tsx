@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ChevronRight, RefreshCw, X } from 'lucide-react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { isAmazonConnectivityError, loadAmazonDetail, loadAmazonSeries, loadAmazonSummary, type AmazonAnalyticsFilters, type AmazonDetail, type AmazonKpiKey, type AmazonSeriesPoint, type AmazonSummary as AmazonSummaryData } from '../../services/amazon';
@@ -69,79 +69,82 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
   const [loading,setLoading]=useState(()=>!readViewCache<AmazonSummaryData>(summaryCacheKey));
   const [error,setError]=useState('');
   const [retryToken,setRetryToken]=useState(0);
+  const primaryRequest=useRef<Promise<AmazonSummaryData>|null>(null);
   const grain=spanDays(filters)>93?'month':'day';
 
   useEffect(()=>{
     let alive=true;
     const currentSummaryKey=stableCacheKey('amazon:summary',filters);
-    const currentDetailKey=stableCacheKey('amazon:detail',filters);
-    const currentSeriesKey=stableCacheKey('amazon:series',{...filters,grain});
     const cachedSummary=readViewCache<AmazonSummaryData>(currentSummaryKey);
-    const cachedDetail=readViewCache<AmazonDetail>(currentDetailKey);
-    const cachedSeries=readViewCache<AmazonSeriesPoint[]>(currentSeriesKey);
     setSummary(cachedSummary);if(cachedSummary)onLoaded?.(cachedSummary);
-    setDetail(cachedDetail);
-    setSeries(cachedSeries||[]);setSeriesLoading(!cachedSeries);
+    setLoading(!cachedSummary);setError('');
+    const request=loadAmazonSummary(filters);primaryRequest.current=request;
+    void request.then(nextSummary=>{
+      if(!alive)return;
+      setSummary(nextSummary);writeViewCache(currentSummaryKey,nextSummary);onLoaded?.(nextSummary);
+    }).catch(reason=>{
+      if(alive&&!isAmazonConnectivityError(reason))setError(errorMessage(reason,'No se pudo cargar Amazon Analytics.'));
+    }).finally(()=>{if(alive)setLoading(false);});
+    return()=>{alive=false;};
+  },[filters.from,filters.to,filters.marketplaceIds.join(','),onLoaded,refreshToken,retryToken]);
+
+  useEffect(()=>{
+    let alive=true;
     const comparisonKey=stableCacheKey('amazon:summary',comparisonFilters);
     setPrevious(readViewCache<AmazonSummaryData>(comparisonKey));setComparisonLoading(true);
-    setLoading(!cachedSummary);setError('');
-    const run=async()=>{
-      try{
-        const nextSummary=await loadAmazonSummary(filters);
-        if(!alive)return;
-        setSummary(nextSummary);writeViewCache(currentSummaryKey,nextSummary);onLoaded?.(nextSummary);
-        // The KPIs are the primary content. Show them as soon as the summary is
-        // ready; detail and chart data can finish in parallel without blocking
-        // the whole Amazon page.
-        setLoading(false);
-
-        // Comparison is optional and must never hold up the trend or details.
-        void loadAmazonSummary(comparisonFilters).then(value=>{
-          if(alive){setPrevious(value);writeViewCache(comparisonKey,value);}
-        }).catch(()=>{/* Keep an available comparison cache; primary data remains usable. */})
-          .finally(()=>{if(alive)setComparisonLoading(false);});
-        const [detailResult,seriesResult]=await Promise.allSettled([
-          loadAmazonDetail(filters),
-          graphOpen?loadAmazonSeries(filters,grain):Promise.resolve(cachedSeries||[]),
-        ]);
-        if(!alive)return;
-        setSeriesLoading(false);
-        if(detailResult.status==='fulfilled'){
-          setDetail(detailResult.value);writeViewCache(currentDetailKey,detailResult.value);
-        }else if(!isAmazonConnectivityError(detailResult.reason)){
-          setError(errorMessage(detailResult.reason,'No se pudo cargar el detalle de Amazon.'));
-        }
-        if(seriesResult.status==='fulfilled'){
-          setSeries(seriesResult.value);writeViewCache(currentSeriesKey,seriesResult.value);
-        }else if(!isAmazonConnectivityError(seriesResult.reason)){
-          setError(errorMessage(seriesResult.reason,'No se pudo cargar la evolución de Amazon.'));
-        }
-      }catch(reason){
-        if(alive)setComparisonLoading(false);
-        if(alive&&!isAmazonConnectivityError(reason))setError(errorMessage(reason,'No se pudo cargar Amazon Analytics.'));
-      }finally{
-        if(alive){setLoading(false);setSeriesLoading(false);}
-      }
-    };
-    void run();
+    // Wait for primary content before adding an optional comparison scan to
+    // the read queue; Products and visible cards can start immediately.
+    void primaryRequest.current?.then(async()=>{if(!alive)return;return loadAmazonSummary(comparisonFilters);}).then(value=>{
+      if(alive&&value){setPrevious(value);writeViewCache(comparisonKey,value);}
+    }).catch(()=>{/* Optional comparison must not delay primary content. */})
+      .finally(()=>{if(alive)setComparisonLoading(false);});
     return()=>{alive=false;};
-  },[filters.from,filters.to,filters.marketplaceIds.join(','),grain,onLoaded,refreshToken,retryToken,graphOpen]);
+  },[comparisonFilters.from,comparisonFilters.to,filters.marketplaceIds.join(','),refreshToken,retryToken]);
 
-  if(loading&&!summary)return <div className="card amazonLoading">Cargando resumen de Amazon…</div>;
-  if(error&&!summary)return <div className="card amazonQueryError"><span>{error}</span><button className="secondary" onClick={()=>setRetryToken(value=>value+1)}><RefreshCw size={15}/> Reintentar</button></div>;
-  if(!summary)return null;
+  const needsRefundDetail=summary!=null&&(summary.refundTransactions==null||summary.refundGrossImpact==null);
+  useEffect(()=>{
+    let alive=true;
+    const currentDetailKey=stableCacheKey('amazon:detail',filters);
+    const cachedDetail=readViewCache<AmazonDetail>(currentDetailKey);
+    setDetail(cachedDetail);
+    // New summaries already contain the visible refund figures. Older RPCs
+    // retain one fallback read; all other detail stays lazy.
+    if(!graphOpen&&!detailsOpen&&!needsRefundDetail)return()=>{alive=false;};
+    void loadAmazonDetail(filters).then(value=>{
+      if(alive){setDetail(value);writeViewCache(currentDetailKey,value);}
+    }).catch(reason=>{
+      if(alive&&!isAmazonConnectivityError(reason))setError(errorMessage(reason,'No se pudo cargar el detalle de Amazon.'));
+    });
+    return()=>{alive=false;};
+  },[filters.from,filters.to,filters.marketplaceIds.join(','),graphOpen,detailsOpen,needsRefundDetail,refreshToken,retryToken]);
 
-  const profitChange=amazonMetricChange(summary.netProfit,previous?.netProfit);
+  useEffect(()=>{
+    let alive=true;
+    const currentSeriesKey=stableCacheKey('amazon:series',{...filters,grain});
+    const cachedSeries=readViewCache<AmazonSeriesPoint[]>(currentSeriesKey);
+    setSeries(cachedSeries||[]);setSeriesLoading(false);
+    if(!graphOpen)return()=>{alive=false;};
+    setSeriesLoading(!cachedSeries);
+    void loadAmazonSeries(filters,grain).then(value=>{
+      if(alive){setSeries(value);writeViewCache(currentSeriesKey,value);}
+    }).catch(reason=>{
+      if(alive&&!isAmazonConnectivityError(reason))setError(errorMessage(reason,'No se pudo cargar la evolución de Amazon.'));
+    }).finally(()=>{if(alive)setSeriesLoading(false);});
+    return()=>{alive=false;};
+  },[filters.from,filters.to,filters.marketplaceIds.join(','),grain,graphOpen,refreshToken,retryToken]);
+
+  const profitChange=amazonMetricChange(summary?.netProfit,previous?.netProfit);
   const comparisonNote=!previous?comparisonLoading?'Comparando con el periodo anterior…':undefined
     :`Ganancia vs. anterior: ${profitChange==null?'sin base comparable':(profitChange>0?'+':'')+profitChange.toLocaleString('es-ES',{maximumFractionDigits:1})+' %'} · ${dateRangeLabel(comparisonFilters)}`;
-  const effectiveChartMetrics=chartMetrics.filter(key=>key!=='adsCost'||!summary.adsExcluded);
+  const effectiveChartMetrics=chartMetrics.filter(key=>key!=='adsCost'||!summary?.adsExcluded);
   if(!effectiveChartMetrics.length)effectiveChartMetrics.push('netSales');
 
   return <div className="amazonSummary">
+    {loading&&!summary&&<div className="card amazonLoading">Cargando resumen de Amazon…</div>}
     {error&&<div className="card amazonQueryError"><span>{error}</span><button className="secondary" onClick={()=>setRetryToken(value=>value+1)}><RefreshCw size={15}/> Reintentar</button></div>}
     <AmazonPeriodCards calendarDay={calendarDay} filters={filters} summary={summary} currency={settings.amazon.consolidatedCurrency} refreshToken={refreshToken} onPeriodChange={onPeriodChange} comparisonNote={comparisonNote} visibleKpis={visibleKpis} detail={detail} periodOverrides={periodOverrides} onPeriodCustomize={(id,range)=>setPeriodOverrides(current=>{const next={...current};if(range)next[id]=range;else delete next[id];return next;})}/>
-    {!loading&&<AmazonProducts key={`${filters.from}:${filters.to}:${filters.marketplaceIds.join(',')}`} filters={filters} embedded refreshToken={refreshToken}/>}
-    <details className="amazonDashboardDetails" onToggle={event=>setGraphOpen(event.currentTarget.open)}><summary>Gráfica y desglose del periodo · {dateRangeLabel(filters)}</summary>
+    <AmazonProducts key={`${filters.from}:${filters.to}:${filters.marketplaceIds.join(',')}`} filters={filters} embedded refreshToken={refreshToken}/>
+    {summary&&<details className="amazonDashboardDetails" onToggle={event=>setGraphOpen(event.currentTarget.open)}><summary>Gráfica y desglose del periodo · {dateRangeLabel(filters)}</summary>
     <div className="amazonDashboardSectionHead amazonSelectedPeriodHead"><div><span className="amazonSectionLabel">PERIODO SELECCIONADO</span><h2>{dateRangeLabel(filters)}</h2></div><button className="amazonMoreButton" onClick={()=>setDetailsOpen(true)}>Más detalles <ChevronRight size={15}/></button></div>
     <AmazonCompleteness data={summary}/>
     {detailsOpen&&<div className="amazonDetailsBackdrop" onMouseDown={event=>{if(event.target===event.currentTarget)setDetailsOpen(false)}}>
@@ -218,7 +221,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
       </section>
     </div>
 
-    </details>
+    </details>}
 
   </div>;
 }

@@ -10,7 +10,7 @@ import React from 'react';
 const summary={grossSales:1210,salesVat:210,netSales:1000,orders:20,businessOrders:0,units:25,amazonFees:100,amazonFeeVat:21,refunds:50,adsCost:60,amazonAdjustments:10,productCost:200,fbmShippingCost:30,netProfit:570,marginPct:57,profitComplete:false,unmappedSkuCount:1,unmappedUnits:2,missingHistoricalCostCount:0,missingHistoricalCostUnits:0,missingFxEventCount:0,missingVatOrderCount:0,missingFbmShippingCostCount:0,syncQueued:0,syncRunning:0,syncFailed:0,adsExcluded:false};
 const stub=code=>({contents:code,loader:'js'});
 const bundle=new URL('./.amazon-dashboard-ui.bundle.mjs',import.meta.url);
-const result=await build({stdin:{contents:"export {AmazonSummary} from './src/components/amazon/AmazonSummary'; export {AmazonFilters} from './src/components/amazon/AmazonFilters'; export {AmazonProducts as ActualAmazonProducts} from './src/components/amazon/AmazonProducts';",resolveDir:new URL('../',import.meta.url).pathname,loader:'tsx'},bundle:true,write:false,format:'esm',platform:'node',jsx:'automatic',external:['react','react/jsx-runtime','lucide-react','react-dom','react-dom/*'],plugins:[{name:'test-boundaries',setup(b){
+const result=await build({stdin:{contents:"export {AmazonSummary} from './src/components/amazon/AmazonSummary'; export {AmazonPeriodCards} from './src/components/amazon/AmazonPeriodCards'; export {AmazonFilters} from './src/components/amazon/AmazonFilters'; export {AmazonProducts as ActualAmazonProducts} from './src/components/amazon/AmazonProducts';",resolveDir:new URL('../',import.meta.url).pathname,loader:'tsx'},bundle:true,write:false,format:'esm',platform:'node',jsx:'automatic',external:['react','react/jsx-runtime','lucide-react','react-dom','react-dom/*'],plugins:[{name:'test-boundaries',setup(b){
  b.onResolve({filter:/\.css$/},args=>({path:args.path,namespace:'fixture-css'}));
  b.onLoad({filter:/.*/,namespace:'fixture-css'},()=>({contents:'export default {};',loader:'js'}));
  b.onResolve({filter:/services\/amazon$/},()=>({path:'amazon',namespace:'fixture'}));
@@ -19,7 +19,7 @@ const result=await build({stdin:{contents:"export {AmazonSummary} from './src/co
  b.onResolve({filter:/\.\/AmazonMappingModal$/},()=>({path:'mapping',namespace:'fixture'}));
  b.onResolve({filter:/^recharts$/},()=>({path:'chart',namespace:'fixture'}));
  b.onLoad({filter:/.*/,namespace:'fixture'},({path})=>{
-  if(path==='amazon')return stub(`export const loadAmazonSummary=(f)=>globalThis.__amazonUi.summary(f);export const loadAmazonProducts=async()=>({items:[{sellerSku:'SKU-SIN-IMAGEN',asin:'ASIN-SIN-IMAGEN',units:4,orders:4,grossSales:121,netSales:100,profitBeforeAds:40,profitComplete:false}],page:1,pageSize:50,total:1});export const loadAmazonProductMetadata=async()=>({});export const loadAmazonDetail=async()=>({refundTransactions:2,refundOrders:2,refundGrossImpact:50});export const loadAmazonSeries=async()=>[{period:'2026-10-01',netSales:1000,netProfit:570}];export const isAmazonConnectivityError=()=>false;export const amazonQuickRange=(key,now)=>globalThis.__amazonUi.range(key,now);`);
+  if(path==='amazon')return stub(`export const loadAmazonSummary=(f)=>globalThis.__amazonUi.summary(f);export const loadAmazonProducts=async()=>({items:[{sellerSku:'SKU-SIN-IMAGEN',asin:'ASIN-SIN-IMAGEN',units:4,orders:4,grossSales:121,netSales:100,profitBeforeAds:40,profitComplete:false}],page:1,pageSize:50,total:1});export const loadAmazonProductMetadata=async()=>({});export const loadAmazonDetail=async f=>globalThis.__amazonUi.detail?globalThis.__amazonUi.detail(f):({refundTransactions:2,refundOrders:2,refundGrossImpact:50});export const loadAmazonSeries=async()=>[{period:'2026-10-01',netSales:1000,netProfit:570}];export const isAmazonConnectivityError=()=>false;export const amazonQuickRange=(key,now)=>globalThis.__amazonUi.range(key,now);`);
   if(path==='settings')return stub(`export const useSettings=()=>({settings:{amazon:{consolidatedCurrency:'EUR'}}});`);
   if(path==='mapping')return stub(`export const AmazonMappingModal=()=>null;`);
   if(path==='products')return stub(`import React from 'react';export const AmazonProducts=({filters})=>React.createElement('section',{'aria-label':'Productos','data-from':filters.from,'data-to':filters.to},'Rentabilidad por producto');`);
@@ -27,7 +27,7 @@ const result=await build({stdin:{contents:"export {AmazonSummary} from './src/co
  });
 }}]});
 await writeFile(bundle,result.outputFiles[0].text);
-const {AmazonSummary,ActualAmazonProducts,AmazonFilters}=await import(bundle.href);
+const {AmazonSummary,AmazonPeriodCards,ActualAmazonProducts,AmazonFilters}=await import(bundle.href);
 await unlink(bundle);
 async function setup(failSummary=false,initialFilters={from:'2026-10-01',to:'2026-10-14',marketplaceIds:['ES']},summaryOverride={}){
  const w=new Window({url:'https://dashboard.test/'});
@@ -200,4 +200,65 @@ test('Today dropdown uses the workspace calendar instead of the browser date',as
  globalThis.__amazonUi.range=(key,now)=>{dateUsed=now;return {from:'2026-10-15',to:'2026-10-15'};};
  await act(async()=>s.root.render(React.createElement(AmazonFilters,{calendarDay:'2026-10-15',filters:{from:'2026-10-15',to:'2026-10-15',marketplaceIds:[]},marketplaces:[],onChange:()=>{}})));
  assert.equal(dateUsed.getDate(),15);assert.equal(dateUsed.getMonth(),9);await s.close();
+});
+
+test('forecast reuses month and today ranges and summary rerenders retain loaded cards',async()=>{
+ const s=await setup();const calls=[];globalThis.__amazonUi.summary=async filters=>{calls.push(filters);return {...summary};};
+ const props={filters:{from:'2026-10-14',to:'2026-10-14',marketplaceIds:['ES']},summary,currency:'EUR',refreshToken:0,calendarDay:'2026-10-14'};
+ await act(async()=>s.root.render(React.createElement(AmazonPeriodCards,props)));
+ const monthCalls=()=>calls.filter(f=>f.from==='2026-10-01'&&f.to==='2026-10-14').length;
+ assert.equal(monthCalls(),1,'Month card and forecast should share one range request');
+ const loaded=s.container.querySelector('[data-period-id="previous_month"] .amazonPeriodSales strong').textContent;
+ await act(async()=>s.root.render(React.createElement(AmazonPeriodCards,{...props,summary:{...summary,orders:21}})));
+ assert.equal(monthCalls(),1,'A new selected summary object must not restart loaded month scans');
+ assert.equal(s.container.querySelector('[data-period-id="previous_month"] .amazonPeriodSales strong').textContent,loaded);
+ await s.close();
+});
+test('opening the chart does not reload primary summaries or remount embedded products',async()=>{
+ const s=await setup();const before=s.calls.length;const products=s.container.querySelector('[aria-label="Productos"]');
+ await act(async()=>{const details=s.container.querySelector('.amazonDashboardDetails');details.open=true;details.dispatchEvent(new s.w.Event('toggle'));});
+ assert.equal(s.calls.length,before,'Chart expansion must only load optional chart/detail data');
+ assert.equal(s.container.querySelector('[aria-label="Productos"]'),products);
+ await s.close();
+});
+test('products mount while a primary monthly summary is pending and remain mounted when it completes',async()=>{
+ const s=await setup();let resolve;const filters={from:'2030-01-01',to:'2030-01-14',marketplaceIds:['ES']};
+ globalThis.__amazonUi.summary=async range=>range.from===filters.from&&range.to===filters.to?new Promise(r=>resolve=r):summary;
+ await act(async()=>s.root.render(React.createElement(AmazonSummary,{filters,calendarDay:'2030-01-14'})));
+ const products=s.container.querySelector('[aria-label="Productos"]');assert.ok(products,'Products must not wait for a slow monthly summary');
+ assert.match(s.container.textContent,/Cargando resumen/);
+ await act(async()=>resolve(summary));
+ assert.equal(s.container.querySelector('[aria-label="Productos"]'),products,'Completed primary data must not remount Products');
+ await s.close();
+});
+test('fast summary refund metadata keeps visible refund counts without any detail scans',async()=>{
+ const s=await setup();let detailCalls=0;globalThis.__amazonUi.detail=async()=>{detailCalls++;return {refundTransactions:2,refundGrossImpact:50}};
+ globalThis.__amazonUi.summary=async()=>({...summary,refundTransactions:3,refundGrossImpact:75});
+ const fastSummary={...summary,refundTransactions:3,refundGrossImpact:75};
+ await act(async()=>s.root.render(React.createElement(AmazonPeriodCards,{filters:{from:'2026-10-14',to:'2026-10-14',marketplaceIds:['ES']},summary:fastSummary,currency:'EUR',refreshToken:0,calendarDay:'2026-10-14'})));
+ assert.equal(detailCalls,0);
+ for(const card of s.container.querySelectorAll('.amazonPeriodCard:not([data-period-id="forecast"])'))assert.match(card.querySelector('.amazonRefundCount').textContent,/3 reembolsos/);
+ await s.close();
+});
+test('revealing forecast retains pending month work and completed previous month values',async()=>{
+ const s=await setup();const observers=[];globalThis.IntersectionObserver=class{constructor(callback){this.callback=callback;observers.push(this)}observe(){}disconnect(){}};
+ const calls=[];let finishMonth;globalThis.__amazonUi.summary=async filters=>{calls.push(filters);return filters.from==='2026-10-01'&&filters.to==='2026-10-14'?new Promise(resolve=>finishMonth=resolve):summary};
+ const props={filters:{from:'2026-10-14',to:'2026-10-14',marketplaceIds:['ES']},summary,currency:'EUR',refreshToken:0,calendarDay:'2026-10-14'};
+ try{
+  await act(async()=>s.root.render(React.createElement(AmazonPeriodCards,props)));
+  const observer=observers.at(-1),month=s.container.querySelector('[data-period-id="current_month"]'),previous=s.container.querySelector('[data-period-id="previous_month"]'),forecast=s.container.querySelector('[data-period-id="forecast"]');
+  await act(async()=>observer.callback([{isIntersecting:true,target:month},{isIntersecting:true,target:previous}]));
+  const previousValue=previous.querySelector('.amazonPeriodSales strong').textContent;assert.notEqual(previousValue,'—');
+  await act(async()=>observer.callback([{isIntersecting:true,target:forecast}]));
+  assert.equal(calls.filter(f=>f.from==='2026-10-01'&&f.to==='2026-10-14').length,1);
+  assert.equal(previous.querySelector('.amazonPeriodSales strong').textContent,previousValue);
+  await act(async()=>finishMonth(summary));
+  assert.notEqual(forecast.querySelector('.amazonPeriodSales strong').textContent,'—');
+ }finally{delete globalThis.IntersectionObserver;await s.close();}
+});
+test('a failed forecast base shows a retryable error instead of an endless loading label',async()=>{
+ const s=await setup();globalThis.__amazonUi.summary=async filters=>{if(filters.from==='2026-10-01'&&filters.to==='2026-10-14')throw new Error('Monthly query unavailable');return summary;};
+ await act(async()=>s.root.render(React.createElement(AmazonPeriodCards,{filters:{from:'2026-10-14',to:'2026-10-14',marketplaceIds:['ES']},summary,currency:'EUR',refreshToken:0,calendarDay:'2026-10-14'})));
+ const forecast=s.container.querySelector('[data-period-id="forecast"]');assert.match(forecast.querySelector('.amazonPeriodQuality').textContent,/Error/);assert.doesNotMatch(forecast.textContent,/Cargando base/);assert.ok(forecast.querySelector('[aria-label="Reintentar Mes actual (pronóstico)"]'));
+ await s.close();
 });

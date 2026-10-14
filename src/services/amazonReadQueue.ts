@@ -21,6 +21,7 @@ export function createAmazonReadQueue(maxConcurrent=2,ttlMs=60_000){
       const request=(async()=>{
         await acquire();
         try{
+          if(generation!==currentGeneration)throw new Error('La consulta ha sido sustituida por una actualización más reciente.');
           const value=await load();
           if(generation===currentGeneration){
             if(cached.size>=100)cached.delete(cached.keys().next().value!);

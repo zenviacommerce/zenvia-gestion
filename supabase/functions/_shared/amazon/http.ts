@@ -1,5 +1,11 @@
 export function sanitizeAmazonError(value:unknown){
-  return String(value??'Error desconocido')
+  const message=value instanceof Error?value.message:
+    typeof value==='string'?value:
+    value&&typeof value==='object'?(
+      [((value as Record<string,unknown>).message),((value as Record<string,unknown>).details),((value as Record<string,unknown>).hint),((value as Record<string,unknown>).code)]
+        .filter(part=>typeof part==='string'&&part.length>0).join(' | ')||JSON.stringify(value)
+    ):String(value??'Error desconocido');
+  return message
     .replace(/Atz[ar]\|[A-Za-z0-9._|\-]+/g,'[redacted-token]')
     .replace(/("?(?:client_secret|refresh_token|access_token)"?\s*[:=]\s*")([^"]+)(")/gi,'$1[redacted]$3')
     .slice(0,700);

@@ -69,7 +69,9 @@ export async function enqueueHourlySync(admin:any,account:Account,marketplaces:M
       if(!enabled.has(source))continue;
       const state:any=stateMap.get(`${source}:${marketplaceId}`);
       const baseline=state?.high_water_mark?new Date(state.high_water_mark):minusHours(now,OVERLAP_HOURS);
-      const overlapStart=minusHours(baseline,OVERLAP_HOURS);
+      // Finance movements may be published late with an older posting timestamp.
+      // Replay a wider window; transaction keys and atomic upserts are idempotent.
+      const overlapStart=minusHours(baseline,source==='finances'?24:OVERLAP_HOURS);
       const freshnessFloor=minusHours(now,CURRENT_SYNC_MAX_LOOKBACK_HOURS);
       const boundedStart=overlapStart<freshnessFloor?freshnessFloor:overlapStart;
       const from=iso(boundedStart),to=iso(now);

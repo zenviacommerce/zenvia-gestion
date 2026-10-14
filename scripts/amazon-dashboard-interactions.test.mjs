@@ -60,8 +60,10 @@ test('period shortcuts retain marketplaces and profit remains marked provisional
  assert.ok(s.calls.every(f=>f.marketplaceIds[0]==='ES'));
  await s.close();
 });
-test('chart metric selection changes the displayed series and retains one metric',async()=>{
+test('chart metric selection lazily loads its series and retains one metric',async()=>{
  const s=await setup();
+ assert.equal(s.container.querySelectorAll('[data-chart-metric]').length,0);
+ await act(async()=>{const details=s.container.querySelector('.amazonDashboardDetails');details.open=true;details.dispatchEvent(new s.w.Event('toggle'));});
  assert.deepEqual([...s.container.querySelectorAll('[data-chart-metric]')].map(e=>e.dataset.chartMetric),['netSales','netProfit']);
  const inputs=s.container.querySelectorAll('.amazonChartOptions input');
  await act(async()=>inputs[2].click());

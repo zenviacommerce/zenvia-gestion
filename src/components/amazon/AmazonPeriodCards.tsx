@@ -15,6 +15,16 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
   const periodKey=periods.map(p=>p.filters.from+p.filters.to).join('|');
   const rail=useRef<HTMLDivElement>(null);
   const [snapshots,setSnapshots]=useState<Record<string,Snapshot>>({});
+  const [visiblePeriods,setVisiblePeriods]=useState<string[]>(['today','yesterday']);
+  useEffect(()=>{
+    if(typeof IntersectionObserver==='undefined'){setVisiblePeriods(periods.map(period=>period.id));return;}
+    const observer=new IntersectionObserver(entries=>{
+      const visible=entries.filter(entry=>entry.isIntersecting).map(entry=>(entry.target as HTMLElement).dataset.periodId!).filter(Boolean);
+      if(visible.length)setVisiblePeriods(current=>Array.from(new Set([...current,...visible])));
+    },{root:rail.current,rootMargin:'0px 150px'});
+    rail.current?.querySelectorAll('[data-period-id]').forEach(tile=>observer.observe(tile));
+    return()=>observer.disconnect();
+  },[periodKey]);
   const [expanded,setExpanded]=useState<string[]>([]);
   const [editor,setEditor]=useState<{id:string;label:string;from:string;to:string}|null>(null);
   const [dateError,setDateError]=useState('');
@@ -34,7 +44,7 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
       initial[period.id]={data,error:false,loading:!selected,refundCount:cachedDetail?.refundTransactions??null};
     }
     setSnapshots(initial);
-    const pending=periods.filter(period=>!sameRange(period.filters,filters));
+    const pending=periods.filter(period=>visiblePeriods.includes(period.id)&&!sameRange(period.filters,filters));
     let index=0;
     const worker=async()=>{
       while(alive&&index<pending.length){
@@ -58,7 +68,7 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
     };
     void Promise.all([worker(),worker()]);
     return()=>{alive=false;};
-  },[periodKey,filters.marketplaceIds.join(','),filters.from,filters.to,summary,refreshToken,retry]);
+  },[periodKey,filters.marketplaceIds.join(','),filters.from,filters.to,summary,refreshToken,retry,visiblePeriods.join(',')]);
   const show=(key:AmazonKpiKey)=>!visibleKpis?.length||visibleKpis.includes(key);
   const move=(direction:number)=>rail.current?.scrollBy({left:direction*340,behavior:'smooth'});
   return <section className="amazonPeriodSection" aria-label="Comparativa rápida por periodos">
@@ -71,7 +81,7 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
       const refundCount=matches?detail?.refundTransactions??snapshot?.refundCount:snapshot?.refundCount;
       const more=expanded.includes(period.id);
       const metric=(value:number|null|undefined)=>value==null?'—':money.format(value);
-      return <article className={`card amazonPeriodCard ${selected?'isSelected':''}`} style={{'--period-accent':accents[index%accents.length]} as CSSProperties} key={period.id} aria-busy={snapshot?.loading||false}>
+      return <article className={`card amazonPeriodCard ${selected?'isSelected':''}`} style={{'--period-accent':accents[index%accents.length]} as CSSProperties} key={period.id} data-period-id={period.id} aria-busy={snapshot?.loading||false}>
         {onPeriodChange&&<button type="button" className="amazonPeriodSelect" aria-label={`Mostrar productos de ${period.label}`} aria-pressed={selected} aria-controls="amazon-period-products" onClick={()=>onPeriodChange(period.filters)}/>}
         <header><h3>{period.custom?'Personalizado':period.label}</h3><button type="button" className="amazonTileDate" aria-label={`Cambiar fechas de ${period.label}`} onClick={event=>{dateTrigger.current=event.currentTarget;setDateError('');setEditor({id:period.id,label:period.label,from:period.filters.from,to:period.filters.to});}}><span>{period.filters.from===period.filters.to?dateLabel(period.filters.from):dateLabel(period.filters.from)+' – '+dateLabel(period.filters.to)}</span><CalendarDays size={14}/></button></header>
         <div className="amazonPeriodBody">

@@ -1,4 +1,7 @@
-import { supabase } from './supabase';
+import { supabase, getActiveTenant, getActiveSupabase } from './supabase';
+import { createAmazonReadQueue } from './amazonReadQueue';
+const analyticsReads=createAmazonReadQueue();
+export function invalidateAmazonAnalytics(){analyticsReads.clear();}
 import { waitForAmazonJobs } from './amazonJobWait';
 import { isPriceOnlyProductName } from './invoiceProductLine';
 import type { AmazonSettings } from './settingsSchema';
@@ -154,6 +157,20 @@ const AMAZON_ACTIVITY_LABELS:Record<string,string>={
 };
 
 async function rpc<T>(name:string,params:Record<string,unknown>,fallback:string):Promise<T>{
+  if(!name.startsWith('amazon_analytics_'))return runRpc<T>(name,params,fallback);
+  const client=getActiveSupabase(),workspace=getActiveTenant()?.workspace_id;
+  const {data:{session}}=await client.auth.getSession();
+  const userId=session?.user.id;
+  const scope=JSON.stringify([workspace,userId,name,params]);
+  return analyticsReads.read(scope,async()=>{
+    const current=await client.auth.getSession();
+    if(current.data.session?.user.id!==userId)throw new Error('La sesión ha cambiado.');
+    return runRpc<T>(name,params,fallback,client);
+  });
+}
+
+async function runRpc<T>(name:string,params:Record<string,unknown>,fallback:string,client=getActiveSupabase()):Promise<T>{
+  if(/amazon_(?:add|set|delete)_product_mapping/.test(name))invalidateAmazonAnalytics();
   const activity=startActivity({
     label:AMAZON_ACTIVITY_LABELS[name]||'Cargando datos de Amazon',
     detail:'Esperando respuesta de Amazon Analytics…',
@@ -164,7 +181,7 @@ async function rpc<T>(name:string,params:Record<string,unknown>,fallback:string)
   });
   try{
     if(typeof navigator!=='undefined'&&!navigator.onLine)throw offlineError();
-    const call=()=>withAmazonTimeout(supabase.rpc(name,params),30000);
+    const call=()=>withAmazonTimeout(client.rpc(name,params).abortSignal(AbortSignal.timeout(30000)),30000);
     let result;
     try{result=await call();}
     catch(error){notifyAmazonConnectivityError(error);throw error;}
@@ -181,6 +198,7 @@ async function rpc<T>(name:string,params:Record<string,unknown>,fallback:string)
       notifyAmazonConnectivityError(error);
       throw error;
     }
+    if(/amazon_(?:add|set|delete)_product_mapping/.test(name))invalidateAmazonAnalytics();
     return result.data as T;
   }finally{
     activity.finish();

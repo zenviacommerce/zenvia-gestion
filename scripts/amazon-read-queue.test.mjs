@@ -1,0 +1,9 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
+import {transform} from 'esbuild';
+async function queue(){let source='';try{source=await readFile(new URL('../src/services/amazonReadQueue.ts',import.meta.url),'utf8')}catch{}const code=(await transform(source,{loader:'ts',format:'esm'})).code;const exports=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));assert.equal(typeof exports.createAmazonReadQueue,'function');return exports.createAmazonReadQueue();}
+test('identical concurrent analytics requests share one database call',async()=>{const q=await queue();let resolve,calls=0;const load=()=>{calls++;return new Promise(r=>resolve=r)};const a=q.read('tenant/user/today',load),b=q.read('tenant/user/today',load);await Promise.resolve();assert.equal(calls,1);resolve(42);assert.deepEqual(await Promise.all([a,b]),[42,42]);});
+test('analytics reads limit database concurrency and retain successful data briefly',async()=>{const q=await queue();let active=0,max=0,calls=0;const load=async()=>{active++;calls++;max=Math.max(max,active);await new Promise(r=>setTimeout(r,5));active--;return calls};await Promise.all(Array.from({length:8},(_,i)=>q.read('period'+i,load)));assert.ok(max<=2);await q.read('period0',load);assert.equal(calls,8);});
+test('failed reads can retry and invalidation forces a fresh request',async()=>{const q=await queue();let calls=0;await assert.rejects(q.read('x',async()=>{throw Error('timeout')}));assert.equal(await q.read('x',async()=>++calls),1);q.clear();assert.equal(await q.read('x',async()=>++calls),2);});
+test('different user/workspace scopes cannot share results',async()=>{const q=await queue();assert.equal(await q.read('a/u1/today',async()=>1),1);assert.equal(await q.read('a/u2/today',async()=>2),2);});

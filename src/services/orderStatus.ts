@@ -32,6 +32,11 @@ export function isLabelledOrder(order:FulfillmentOrder){
   return hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);
 }
 
+export function isAmazonAwaitingPayment(order:FulfillmentOrder){
+  const status=orderStatusCode(order).replace(/[^a-z]/g,'');
+  return order.sourceChannel==='amazon'&&['pending','pendingavailability','invoiceunconfirmed'].includes(status);
+}
+
 export function isPendingOrder(order:FulfillmentOrder){
-  return !hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);
+  return !isAmazonAwaitingPayment(order)&&!hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);
 }

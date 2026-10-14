@@ -75,7 +75,7 @@ function mergeOperationalItems(existing:any[],fresh:any[]){
 }
 async function amazonIntegrationAccount(admin:any,job:any){
   const {data,error}=await admin.from('integration_accounts')
-    .select('id,config')
+    .select('id,config,display_name')
     .eq('owner_id',job.owner_id)
     .eq('provider','amazon')
     .eq('linked_resource_id',job.amazon_account_id)
@@ -136,7 +136,8 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
   await reconcileOperationalAmazonStates(admin,orders,job.owner_id);
   const candidates=orders.filter(order=>order?.orderId&&merchantFulfilled(order));
   if(!candidates.length)return 0;
-  const sourceIntegrationAccountId=await amazonIntegrationAccountId(admin,job);
+  const sourceAccount=await amazonIntegrationAccount(admin,job);
+  const sourceIntegrationAccountId=sourceAccount?.id?String(sourceAccount.id):null;
   if(!sourceIntegrationAccountId)return 0;
   const orderIds=candidates.map(order=>String(order.orderId));
   const {data:existing,error:existingError}=await admin.from('fulfillment_orders')
@@ -170,7 +171,7 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
     const patch:any={
       order_id:orderId,order_number:orderId,
       source_integration_account_id:sourceIntegrationAccountId,
-      integration_name:'Amazon',integration_type:'amazon-direct',source_channel:'amazon',
+      integration_name:clean(sourceAccount?.display_name)||current?.integration_name||'Amazon',integration_type:'amazon-direct',source_channel:'amazon',
       source_status:clean(order?.fulfillment?.fulfillmentStatus)||null,
       order_created_at:order?.createdTime||null,order_updated_at:order?.lastUpdatedTime||null,
       customer_name:address.name||clean(order?.buyer?.buyerName)||current?.customer_name||null,

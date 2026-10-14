@@ -1,3 +1,4 @@
+import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders={
@@ -296,6 +297,11 @@ function validatePayload(origin:any,dest:any){
   if(missing.length)throw new Error(`Faltan datos para cotizar en Envia.com: ${missing.join(', ')}.`);
 }
 function humanCarrier(value:string){
+  const key=value.toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(key==='correosexpress')return 'Correos Express';
+  if(key==='mrw')return 'MRW';
+  if(key==='correos')return 'Correos';
+  if(key==='ctt'||key==='cttexpress')return 'CTT Express';
   return value.replace(/[-_]+/g,' ').replace(/\b\w/g,letter=>letter.toUpperCase());
 }
 function parseEtaDays(item:any){
@@ -475,7 +481,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
       }
       const createdAt=shipmentCreatedAt(row)||shipmentCreatedAt(summary),destination=shipmentDestination(row),status=shipmentStatus(row);
       const carrierCode=clean(row?.carrier||row?.carrierCode||row?.name||row?.shipment?.carrier);
-      const carrierName=shipmentCarrier(row)||humanCarrier(carrierCode);
+      const carrierName=humanCarrier(carrierCode)||shipmentCarrier(row);
       const service=shipmentService(row);
       const price=shipmentPrice(row);
       const currency=clean(row?.currency||row?.currencyCode||row?.currency_code)||'EUR';
@@ -641,6 +647,7 @@ Deno.serve(async(req:Request)=>{
     if(!orderId)return fail('Falta el pedido.');
     const {data:order,error:orderError}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();
     if(orderError)throw orderError;if(!order)return fail('Pedido no encontrado.',404);
+    if(action==='rates'||action==='create_label')assertAmazonOrderShippable(order);
 
     if(action==='rates'){
       const accounts=await enviaAccounts(admin,caller.data_owner_id,clean(body?.integrationAccountId));

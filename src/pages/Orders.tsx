@@ -1,3 +1,4 @@
+import { isAmazonAwaitingPayment } from '../services/orderStatus';
 import { watchFulfillmentOrders } from '../services/orderLiveUpdates';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import JSZip from 'jszip';
@@ -144,7 +145,7 @@ function isProcessedOrder(order:FulfillmentOrder){
   return status==='fulfilled'||status==='shipped'||status==='delivered';
 }
 function isLabelledOrder(order:FulfillmentOrder){return hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);}
-function isPendingOrder(order:FulfillmentOrder){return !hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);}
+function isPendingOrder(order:FulfillmentOrder){return !isAmazonAwaitingPayment(order)&&!hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);}
 function canPrepareOrder(order:FulfillmentOrder){return isPendingOrder(order);}
 function orderState(order:FulfillmentOrder){
   if(isCancelledOrder(order))return {label:'Cancelado',className:'cancelled'};
@@ -226,6 +227,10 @@ function customerWithCountry(order:FulfillmentOrder,fallback='—'){
   return <span className="ordersCustomerCountry"><CountryFlag code={order.shippingAddress.country_code}/><span>{name}</span></span>;
 }
 function carrierLabel(order:FulfillmentOrder){
+  const known=(order.carrierCode||order.carrierName||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+  if(known==='correosexpress')return 'Correos Express';
+  if(known==='correos')return 'Correos';
+  if(known==='mrw')return 'MRW';
   if(order.carrierName)return order.carrierName;
   const raw=(order.carrierCode||order.shippingOptionCode?.split(':')[0]||'').toLowerCase();
   if(raw.includes('correos'))return 'Correos'; if(raw.includes('mrw'))return 'MRW';

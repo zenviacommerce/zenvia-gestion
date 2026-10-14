@@ -1,3 +1,4 @@
+import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders={
@@ -226,6 +227,7 @@ Deno.serve(async(req:Request)=>{
 
     const orderId=String(body?.orderId||'');if(!orderId)return fail('Falta el pedido.');
     const {data:order,error:orderError}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();if(orderError)throw orderError;if(!order)return fail('Pedido no encontrado.',404);
+    if(action==='shipping_options'||action==='create_label')assertAmazonOrderShippable(order);
     const orderSendcloudAccount=await loadSendcloudAccount(admin,caller.data_owner_id,order.shipping_integration_account_id||null);
     const orderCredentials=orderSendcloudAccount.credentials;
 

@@ -38,7 +38,7 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
     },settings.general.timezone);
   },[settings.general.timezone]);
   const [analyticsRefresh,setAnalyticsRefresh]=useState(0);
-  const [refreshingAnalytics,setRefreshingAnalytics]=useState(false);
+  const [syncFeedback,setSyncFeedback]=useState('');
   const [connectivityIssue,setConnectivityIssue]=useState(()=>typeof navigator!=='undefined'&&!navigator.onLine);
   const previousPendingJobs=useRef(0);
   const [manualSyncPending,setManualSyncPending]=useState(false);
@@ -73,10 +73,13 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
   const handleSummary=useCallback((summary:AmazonSummaryData)=>setSummaryMeta(summary),[]);
   const syncNow=async()=>{
     if(connectivityIssue){showError('No hay conexión a Internet. La sincronización se reanudará cuando vuelva la conexión.');return;}
+    setSyncFeedback('Solicitando actualización y recuperación de trabajos pendientes…');
     setSyncing(true);
     try{
       const result=await requestAmazonSync();
-      showSuccess(result.jobs||result.recoveryJobs?`Amazon: ${result.jobs} trabajos actuales y ${result.recoveryJobs||0} recuperaciones históricas preparadas.`:'Amazon está al día; no se han creado trabajos nuevos.');
+      const feedback=result.jobs||result.recoveryJobs?`Actualización solicitada: ${result.jobs} trabajos actuales y ${result.recoveryJobs||0} recuperaciones históricas preparadas.`:'No se han creado trabajos nuevos; revisando datos disponibles.';
+      setSyncFeedback(feedback);
+      showSuccess(feedback);
       const nextStatus=await refresh();
       const nextPending=(nextStatus?.sync.jobCounts.queued||0)+(nextStatus?.sync.jobCounts.running||0);
       if((result.jobs||result.recoveryJobs)&&nextPending>0)setManualSyncPending(true);
@@ -86,14 +89,9 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
         showSuccess('Sincronización de Amazon completada. Los datos se han actualizado.');
       }
     }catch(e){
+      setSyncFeedback(errorMessage(e,'No se pudo iniciar la sincronización de Amazon.'));
       if(!isAmazonConnectivityError(e))showError(errorMessage(e,'No se pudo iniciar la sincronización de Amazon.'));
     }finally{setSyncing(false);}
-  };
-  const refreshAnalytics=()=>{
-    if(connectivityIssue){setError('');return;}
-    setRefreshingAnalytics(true);
-    invalidateAmazonAnalytics();setAnalyticsRefresh(value=>value+1);
-    window.setTimeout(()=>setRefreshingAnalytics(false),1200);
   };
 
   const connected=Boolean(status?.connected);
@@ -120,7 +118,6 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
     return()=>window.clearTimeout(timer);
   },[connected,pendingJobs,refresh,manualSyncPending]);
 
-  const syncActive=syncing||pendingJobs>0;
 
   useEffect(()=>{
     if(!connected||!marketplaces.length)return;
@@ -133,9 +130,10 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
     });
   },[connected,marketplaces.map(item=>item.id).join(',')]);
   return <div className="page amazonPage">
-    <header className="pageHead amazonPageHead"><div><div className="eyebrow">AMAZON ANALYTICS</div><h1>Amazon</h1><p>Ventas, costes, rentabilidad e inventario de tus marketplaces europeos.</p></div><div className="actions amazonExternalLinks">{connected&&<button className="secondary amazonRefreshView" onClick={refreshAnalytics} disabled={refreshingAnalytics}>{<RefreshCw size={17} className={refreshingAnalytics?'spin':''}/>}<span>{refreshingAnalytics?'Actualizando…':'Actualizar datos'}</span></button>}{isAdmin&&!status?.demo&&<button className="primary amazonSyncButton" onClick={()=>void syncNow()} disabled={syncActive||loading||!status?.configured}>{syncActive?<LoaderCircle size={17} className="spin"/>:<RefreshCw size={17}/>}<span>{syncing?'Solicitando…':pendingJobs>0?'Sincronizando…':'Sincronizar ahora'}</span></button>}</div></header>
+    <header className="pageHead amazonPageHead"><div><div className="eyebrow">AMAZON ANALYTICS</div><h1>Amazon</h1><p>Ventas, costes, rentabilidad e inventario de tus marketplaces europeos.</p></div><div className="actions amazonExternalLinks">{isAdmin&&!status?.demo&&<button className="primary amazonSyncButton" onClick={()=>void syncNow()} disabled={syncing||loading||!status?.configured}>{syncing?<LoaderCircle size={17} className="spin"/>:<RefreshCw size={17}/>}<span>{syncing?'Solicitando…':'Actualizar datos'}</span></button>}</div></header>
 
     {loading&&<AmazonLoading>Comprobando conexión con Amazon…</AmazonLoading>}
+    {syncFeedback&&<div role="status" aria-live="polite" className="amazonSyncFeedback" style={{marginBottom:12}}>{syncFeedback}</div>}
     <section aria-label="Estado de conexión" className={`card amazonCompactStatus ${connected?'isConnected':status?.status==='error'?'isError':''}`}><div className="amazonCompactState">{connected?<CheckCircle2 size={18}/>:<AlertTriangle size={18}/>}<strong>{statusLabel(status,loading)}</strong><span>{status?.account?.displayName||'Amazon SP-API'}</span></div><div className="amazonCompactMeta"><span>{marketplaces.length} marketplaces</span><span>{jobs?.running||0} en curso</span><span>{jobs?.queued||0} en cola</span>{jobs?.failed? <span className="amazonFailed">{jobs.failed} con error</span>:null}{status?.account?.lastSuccessfulSyncAt&&<span>Última sync {new Date(status.account.lastSuccessfulSyncAt).toLocaleString('es-ES')}</span>}</div></section>
     {connectivityIssue&&<div className="amazonOfflineNotice card"><WifiOff size={18}/><div><strong>Sin conexión a Internet</strong><span>Mostrando los últimos datos guardados. Amazon se actualizará automáticamente cuando vuelva la conexión.</span></div><button className="secondary" onClick={()=>{if(navigator.onLine){setConnectivityIssue(false);void refresh();invalidateAmazonAnalytics();setAnalyticsRefresh(value=>value+1);}}}><RefreshCw size={15}/> Reintentar</button></div>}
     {error&&<div className="amazonQueryError card"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={15}/> Reintentar</button></div>}

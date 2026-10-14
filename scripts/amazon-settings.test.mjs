@@ -26,7 +26,7 @@ test('Amazon page honors marketplace settings and starts on Today while manual s
   assert.match(page,/useSettings/);
   assert.match(page,/settings\.amazon/);
   assert.match(page,/resolveAmazonMarketplaceSelection/);
-  assert.match(page,/amazonQuickRange\('today',new Date\(\)\)/);
+  assert.match(page,/amazonQuickRange\('today',amazonCalendarDate/);
   assert.match(page,/requestAmazonSync/);
   assert.doesNotMatch(page,/autoSyncOrders[^\n]*requestAmazonSync/);
 });

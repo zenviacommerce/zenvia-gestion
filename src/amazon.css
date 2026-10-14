@@ -421,3 +421,29 @@
 @media(max-width:520px){.amazonTileDateBackdrop{padding:12px}.amazonTileDateDialog{padding:18px;max-height:calc(100vh - 24px);max-height:calc(100dvh - 24px)}.amazonTileDateFields{gap:9px}.amazonTileDateDialog footer{flex-direction:column;align-items:stretch}.amazonTileDateDialog footer>button{width:100%}.amazonPeriodCarousel .amazonPeriodMetrics .amazonRefundCount{font-size:10px}}
 
 .amazonDropdownFieldLabel{display:block;font-size:11px;font-weight:600;color:#64748b;margin-bottom:5px}
+
+/* One quiet toolbar for Amazon navigation and compact selectors. */
+.amazonToolbar{display:grid;gap:14px;padding:16px;border:1px solid #e2e8f0;border-radius:16px;background:linear-gradient(135deg,#fff,#fafbfc);box-shadow:0 2px 8px #0f172a04}
+.amazonToolbar .amazonDesktopFilters{gap:10px}
+.amazonToolbar .amazonFilterDropdown{min-width:195px}
+.amazonToolbar .amazonFilterDropdown>summary{gap:10px;padding:10px 12px;border-color:#e2e8f0;border-radius:12px;box-shadow:0 1px 3px #0f172a05;transition:border-color .18s,box-shadow .18s}
+.amazonToolbar .amazonFilterDropdown>summary:hover,.amazonToolbar .amazonFilterDropdown[open]>summary{border-color:#fdba74;box-shadow:0 0 0 3px #fff7ed}
+.amazonToolbar .amazonFilterDropdown>summary>svg:first-child{color:#c2410c;background:#fff7ed;border-radius:9px;padding:7px;box-sizing:content-box}
+.amazonToolbar .amazonFilterDropdown>summary>span{display:grid;gap:3px}
+.amazonToolbar .amazonFilterDropdown>summary small{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8}
+.amazonToolbar .amazonFilterDropdown>summary strong{font-size:12px;font-weight:650;color:#334155}
+.amazonToolbar .amazonFilterDropdownPanel{border-radius:14px;box-shadow:0 14px 38px #0f172a15;padding:18px}
+.amazonToolbar .amazonTabs{gap:5px;margin:0;padding:5px;border:1px solid #edf0f4;border-radius:12px;background:#f3f5f7}
+.amazonToolbar .amazonTabs button{padding:9px 15px;border:0;border-radius:9px;background:transparent;color:#64748b;font-size:12px;font-weight:600;transition:background .18s,color .18s;flex-shrink:0}
+.amazonToolbar .amazonTabs button:hover{background:#ffffffa6;color:#334155}
+.amazonToolbar .amazonTabs button.isActive{background:#fff;color:#c2410c;box-shadow:0 1px 4px #0f172a12}
+.amazonToolbar .amazonTabs button span{background:#ffedd5;color:#c2410c}
+.amazonToolbar summary:focus-visible,.amazonToolbar button:focus-visible{outline:2px solid #ea580c;outline-offset:3px}
+[data-theme='dark'] .amazonToolbar{background:#111827;border-color:#263449;box-shadow:none}
+[data-theme='dark'] .amazonToolbar .amazonTabs{background:#0b1322;border-color:#263449}
+[data-theme='dark'] .amazonToolbar .amazonTabs button{color:#94a3b8}
+[data-theme='dark'] .amazonToolbar .amazonTabs button.isActive{background:#1e293b;color:#fdba74}
+[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary strong{color:#f8fafc}
+[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary>svg:first-child{background:#422006;color:#fdba74}
+[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary:hover,[data-theme='dark'] .amazonToolbar .amazonFilterDropdown[open]>summary{border-color:#9a3412;box-shadow:0 0 0 3px #422006}
+@media(max-width:760px){.amazonToolbar{padding:8px;gap:0;border-radius:14px}.amazonToolbar .amazonTabs{border:0;padding:3px}.amazonToolbar .amazonTabs button{padding:9px 12px}}

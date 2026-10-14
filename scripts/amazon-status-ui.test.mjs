@@ -52,7 +52,7 @@ test('Amazon page renders live connection state and admin manual sync without lo
   assert.match(page,/loadAmazonStatus/);
   assert.match(page,/requestAmazonSync/);
   assert.match(page,/Seller Central/);
-  assert.match(page,/Sellerboard/);
+  assert.doesNotMatch(page,/sellerboard\.com/);
   assert.match(page,/Sincronizar ahora/);
   assert.match(page,/marketplace/i);
   assert.doesNotMatch(page,/La conexión segura con Amazon SP-API y Amazon Ads se configurará en el backend en la siguiente fase/);

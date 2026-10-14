@@ -1,3 +1,4 @@
+import {amazonCalendarDate} from '../../services/amazonCalendar';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, RefreshCw, X } from 'lucide-react';
 import { loadAmazonSummary, loadAmazonDetail, isAmazonConnectivityError, type AmazonAnalyticsFilters, type AmazonSummary, type AmazonDetail, type AmazonKpiKey } from '../../services/amazon';
@@ -8,8 +9,8 @@ type Snapshot={data:AmazonSummary|null;error:boolean;loading:boolean;stale?:bool
 const sameRange=(a:AmazonAnalyticsFilters,b:AmazonAnalyticsFilters)=>a.from===b.from&&a.to===b.to;
 const dateLabel=(value:string)=>new Date(value+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
 const accents=['#2563eb','#0e7490','#7c3aed','#c2410c','#475569'];
-export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPeriodChange,comparisonNote,visibleKpis,detail,periodOverrides={},onPeriodCustomize}:{filters:AmazonAnalyticsFilters;summary:AmazonSummary;currency:string;refreshToken:number;onPeriodChange?:(filters:AmazonAnalyticsFilters)=>void;comparisonNote?:string;visibleKpis?:AmazonKpiKey[];detail?:AmazonDetail|null;periodOverrides?:Record<string,{from:string;to:string}>;onPeriodCustomize?:(id:string,range:{from:string;to:string}|null)=>void}){
-  const now=new Date();
+export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPeriodChange,comparisonNote,visibleKpis,detail,periodOverrides={},onPeriodCustomize,calendarDay}:{filters:AmazonAnalyticsFilters;summary:AmazonSummary;currency:string;refreshToken:number;onPeriodChange?:(filters:AmazonAnalyticsFilters)=>void;comparisonNote?:string;visibleKpis?:AmazonKpiKey[];detail?:AmazonDetail|null;periodOverrides?:Record<string,{from:string;to:string}>;onPeriodCustomize?:(id:string,range:{from:string;to:string}|null)=>void;calendarDay?:string}){
+  const now=calendarDay?amazonCalendarDate(calendarDay):new Date();
   const bases=amazonDashboardPeriods(now,filters.marketplaceIds);
   const periods=bases.map(period=>({...period,filters:{...period.filters,...(period.id==='forecast'?{}:periodOverrides[period.id])},custom:period.id!=='forecast'&&Boolean(periodOverrides[period.id])}));
   // A custom filter gets a tile too, so the active list always has an explicit period.
@@ -160,7 +161,7 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
         </div>
         {dateError&&<p className="amazonDateError" role="alert">{dateError}</p>}
         <footer>{editor.id!=='selected'&&<button type="button" className="secondary" onClick={()=>{
-          const base=amazonDashboardPeriods(new Date(),filters.marketplaceIds).find(period=>period.id===editor.id);
+          const base=amazonDashboardPeriods(now,filters.marketplaceIds).find(period=>period.id===editor.id);
           onPeriodCustomize?.(editor.id,null);if(base)onPeriodChange?.(base.filters);closeEditor();
         }}>Restablecer {editor.label}</button>}<button className="primary" type="submit">Aplicar periodo</button></footer>
       </form>

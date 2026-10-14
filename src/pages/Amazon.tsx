@@ -1,5 +1,6 @@
+import {amazonCalendarDate,amazonCalendarDay,watchAmazonCalendarDay} from '../services/amazonCalendar';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, CheckCircle2, ExternalLink, LoaderCircle, Megaphone, RefreshCw, ShoppingBag, WifiOff } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, ExternalLink, LoaderCircle, RefreshCw, ShoppingBag, WifiOff } from 'lucide-react';
 import { AMAZON_CONNECTIVITY_EVENT, invalidateAmazonAnalytics, amazonQuickRange, isAmazonConnectivityError, loadAmazonStatus, requestAmazonSync, resolveAmazonMarketplaceSelection, resolveAmazonVisibleKpis, type AmazonAnalyticsFilters, type AmazonStatus, type AmazonSummary as AmazonSummaryData } from '../services/amazon';
 import { errorMessage, showError, showSuccess } from '../services/toast';
 import { AmazonFilters } from '../components/amazon/AmazonFilters';
@@ -13,7 +14,7 @@ import { readViewCache, writeViewCache } from '../services/viewCache';
 import { useSettings } from '../context/SettingsContext';
 import { clearActivities } from '../services/activity';
 
-const externalLinks=[{label:'Seller Central',href:'https://sellercentral.amazon.es/',Icon:ShoppingBag},{label:'Sellerboard',href:'https://sellerboard.com/',Icon:Megaphone}] as const;
+const externalLinks=[{label:'Seller Central',href:'https://sellercentral.amazon.es/',Icon:ShoppingBag}] as const;
 const tabs=[['summary','Resumen'],['products','Productos'],['marketplaces','Marketplaces'],['orders','Pedidos'],['inventory','Inventario'],['unmapped','Sin vincular']] as const;
 type AmazonTab=(typeof tabs)[number][0];
 
@@ -25,8 +26,17 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
   const amazonSettings=settings.amazon;
   const [status,setStatus]=useState<AmazonStatus|null>(()=>readViewCache<AmazonStatus>(AMAZON_STATUS_CACHE));const [loading,setLoading]=useState(()=>!readViewCache<AmazonStatus>(AMAZON_STATUS_CACHE));const [syncing,setSyncing]=useState(false);const [error,setError]=useState('');
   const [activeTab,setActiveTab]=useState<AmazonTab>('summary');
-  const [filters,setFilters]=useState<AmazonAnalyticsFilters>(()=>({...amazonQuickRange('today',new Date()),marketplaceIds:[]}));
+  const [filters,setFilters]=useState<AmazonAnalyticsFilters>(()=>({...amazonQuickRange('today',amazonCalendarDate(amazonCalendarDay(new Date(),settings.general.timezone))),marketplaceIds:[]}));
   const [summaryMeta,setSummaryMeta]=useState<AmazonSummaryData|null>(null);
+  const [calendarDay,setCalendarDay]=useState(()=>amazonCalendarDay(new Date(),settings.general.timezone));
+  useEffect(()=>{
+    setCalendarDay(amazonCalendarDay(new Date(),settings.general.timezone));
+    return watchAmazonCalendarDay((previous,next)=>{
+    setCalendarDay(next);
+    setFilters(current=>current.from===previous&&current.to===previous?{...current,from:next,to:next}:current);
+    invalidateAmazonAnalytics();setAnalyticsRefresh(value=>value+1);
+    },settings.general.timezone);
+  },[settings.general.timezone]);
   const [analyticsRefresh,setAnalyticsRefresh]=useState(0);
   const [refreshingAnalytics,setRefreshingAnalytics]=useState(false);
   const [connectivityIssue,setConnectivityIssue]=useState(()=>typeof navigator!=='undefined'&&!navigator.onLine);
@@ -130,9 +140,11 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
     {error&&<div className="amazonQueryError card"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={15}/> Reintentar</button></div>}
 
     {connected?<>
-      <AmazonFilters filters={filters} marketplaces={marketplaces} initialPreset={defaultPreset} onChange={setFilters}/>
-      <nav className="amazonTabs" aria-label="Secciones de Amazon Analytics">{tabs.map(([key,label])=><button key={key} className={activeTab===key?'isActive':''} onClick={()=>setActiveTab(key)}>{label}{key==='unmapped'&&summaryMeta?.unmappedSkuCount? <span>{summaryMeta.unmappedSkuCount}</span>:null}</button>)}</nav>
-      {activeTab==='summary'&&<AmazonSummary filters={filters} onLoaded={handleSummary} refreshToken={analyticsRefresh} visibleKpis={visibleKpis} onPeriodChange={setFilters}/>}
+      <div className="amazonToolbar">
+      <AmazonFilters calendarDay={calendarDay} filters={filters} marketplaces={marketplaces} initialPreset={defaultPreset} onChange={setFilters}/>
+      <nav className="amazonTabs" aria-label="Secciones de Amazon Analytics">{tabs.map(([key,label])=><button key={key} className={activeTab===key?'isActive':''} aria-pressed={activeTab===key} onClick={()=>setActiveTab(key)}>{label}{key==='unmapped'&&summaryMeta?.unmappedSkuCount? <span>{summaryMeta.unmappedSkuCount}</span>:null}</button>)}</nav>
+      </div>
+      {activeTab==='summary'&&<AmazonSummary calendarDay={calendarDay} filters={filters} onLoaded={handleSummary} refreshToken={analyticsRefresh} visibleKpis={visibleKpis} onPeriodChange={setFilters}/>}
       {activeTab==='products'&&<AmazonProducts filters={filters} refreshToken={analyticsRefresh}/>}
       {activeTab==='marketplaces'&&<AmazonMarketplaces filters={filters} refreshToken={analyticsRefresh}/>}
       {activeTab==='orders'&&<AmazonOrders filters={filters} marketplaces={marketplaces} refreshToken={analyticsRefresh}/>}

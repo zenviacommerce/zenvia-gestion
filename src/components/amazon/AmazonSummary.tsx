@@ -49,7 +49,7 @@ function chartMoneyTick(value:unknown,currency:string){
 }
 function DetailRow({label,value,note}:{label:string;value:string;note?:string}){return <div className="amazonDetailsRow"><div><span>{label}</span>{note&&<small>{note}</small>}</div><strong>{value}</strong></div>;}
 
-export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPeriodChange}:{filters:AmazonAnalyticsFilters;onLoaded?:(summary:AmazonSummaryData)=>void;refreshToken?:number;visibleKpis?:AmazonKpiKey[];onPeriodChange?:(filters:AmazonAnalyticsFilters)=>void}){
+export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPeriodChange,calendarDay}:{filters:AmazonAnalyticsFilters;onLoaded?:(summary:AmazonSummaryData)=>void;refreshToken?:number;visibleKpis?:AmazonKpiKey[];onPeriodChange?:(filters:AmazonAnalyticsFilters)=>void;calendarDay?:string}){
   const {settings}=useSettings();
   const money=new Intl.NumberFormat('es-ES',{style:'currency',currency:settings.amazon.consolidatedCurrency});
   const summaryCacheKey=stableCacheKey('amazon:summary',filters);
@@ -139,7 +139,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
 
   return <div className="amazonSummary">
     {error&&<div className="card amazonQueryError"><span>{error}</span><button className="secondary" onClick={()=>setRetryToken(value=>value+1)}><RefreshCw size={15}/> Reintentar</button></div>}
-    <AmazonPeriodCards filters={filters} summary={summary} currency={settings.amazon.consolidatedCurrency} refreshToken={refreshToken} onPeriodChange={onPeriodChange} comparisonNote={comparisonNote} visibleKpis={visibleKpis} detail={detail} periodOverrides={periodOverrides} onPeriodCustomize={(id,range)=>setPeriodOverrides(current=>{const next={...current};if(range)next[id]=range;else delete next[id];return next;})}/>
+    <AmazonPeriodCards calendarDay={calendarDay} filters={filters} summary={summary} currency={settings.amazon.consolidatedCurrency} refreshToken={refreshToken} onPeriodChange={onPeriodChange} comparisonNote={comparisonNote} visibleKpis={visibleKpis} detail={detail} periodOverrides={periodOverrides} onPeriodCustomize={(id,range)=>setPeriodOverrides(current=>{const next={...current};if(range)next[id]=range;else delete next[id];return next;})}/>
     {!loading&&<AmazonProducts key={`${filters.from}:${filters.to}:${filters.marketplaceIds.join(',')}`} filters={filters} embedded refreshToken={refreshToken}/>}
     <details className="amazonDashboardDetails" onToggle={event=>setGraphOpen(event.currentTarget.open)}><summary>Gráfica y desglose del periodo · {dateRangeLabel(filters)}</summary>
     <div className="amazonDashboardSectionHead amazonSelectedPeriodHead"><div><span className="amazonSectionLabel">PERIODO SELECCIONADO</span><h2>{dateRangeLabel(filters)}</h2></div><button className="amazonMoreButton" onClick={()=>setDetailsOpen(true)}>Más detalles <ChevronRight size={15}/></button></div>

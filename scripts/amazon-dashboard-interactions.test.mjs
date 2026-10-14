@@ -19,7 +19,7 @@ const result=await build({stdin:{contents:"export {AmazonSummary} from './src/co
  b.onResolve({filter:/\.\/AmazonMappingModal$/},()=>({path:'mapping',namespace:'fixture'}));
  b.onResolve({filter:/^recharts$/},()=>({path:'chart',namespace:'fixture'}));
  b.onLoad({filter:/.*/,namespace:'fixture'},({path})=>{
-  if(path==='amazon')return stub(`export const loadAmazonSummary=(f)=>globalThis.__amazonUi.summary(f);export const loadAmazonProducts=async()=>({items:[{sellerSku:'SKU-SIN-IMAGEN',asin:'ASIN-SIN-IMAGEN',units:4,orders:4,grossSales:121,netSales:100,profitBeforeAds:40,profitComplete:false}],page:1,pageSize:50,total:1});export const loadAmazonProductMetadata=async()=>({});export const loadAmazonDetail=async()=>({refundTransactions:2,refundOrders:2,refundGrossImpact:50});export const loadAmazonSeries=async()=>[{period:'2026-10-01',netSales:1000,netProfit:570}];export const isAmazonConnectivityError=()=>false;export const amazonQuickRange=(key)=>globalThis.__amazonUi.range(key);`);
+  if(path==='amazon')return stub(`export const loadAmazonSummary=(f)=>globalThis.__amazonUi.summary(f);export const loadAmazonProducts=async()=>({items:[{sellerSku:'SKU-SIN-IMAGEN',asin:'ASIN-SIN-IMAGEN',units:4,orders:4,grossSales:121,netSales:100,profitBeforeAds:40,profitComplete:false}],page:1,pageSize:50,total:1});export const loadAmazonProductMetadata=async()=>({});export const loadAmazonDetail=async()=>({refundTransactions:2,refundOrders:2,refundGrossImpact:50});export const loadAmazonSeries=async()=>[{period:'2026-10-01',netSales:1000,netProfit:570}];export const isAmazonConnectivityError=()=>false;export const amazonQuickRange=(key,now)=>globalThis.__amazonUi.range(key,now);`);
   if(path==='settings')return stub(`export const useSettings=()=>({settings:{amazon:{consolidatedCurrency:'EUR'}}});`);
   if(path==='mapping')return stub(`export const AmazonMappingModal=()=>null;`);
   if(path==='products')return stub(`import React from 'react';export const AmazonProducts=({filters})=>React.createElement('section',{'aria-label':'Productos','data-from':filters.from,'data-to':filters.to},'Rentabilidad por producto');`);
@@ -184,4 +184,20 @@ test('profit remains provisional when daily advertising is unavailable despite c
  const s=await setup(false,undefined,{profitComplete:true});
  assert.match(s.container.querySelector('.amazonPeriodCard.isSelected .amazonPeriodQuality').textContent,/Provisional/);
  await s.close();
+});
+
+test('a new business day reloads the actual month and today for its forecast',async()=>{
+ const s=await setup();
+ await act(async()=>s.root.render(React.createElement(AmazonSummary,{filters:{from:'2026-10-01',to:'2026-10-14',marketplaceIds:['ES']},calendarDay:'2026-10-15'})));
+ assert.ok(s.calls.some(f=>f.from==='2026-10-01'&&f.to==='2026-10-15'));
+ assert.ok(s.calls.some(f=>f.from==='2026-10-15'&&f.to==='2026-10-15'));
+ assert.ok(!s.calls.some(f=>f.to==='2026-10-31'),'A forecast should never fetch future actual sales');
+ await s.close();
+});
+
+test('Today dropdown uses the workspace calendar instead of the browser date',async()=>{
+ const s=await setup();let dateUsed;
+ globalThis.__amazonUi.range=(key,now)=>{dateUsed=now;return {from:'2026-10-15',to:'2026-10-15'};};
+ await act(async()=>s.root.render(React.createElement(AmazonFilters,{calendarDay:'2026-10-15',filters:{from:'2026-10-15',to:'2026-10-15',marketplaceIds:[]},marketplaces:[],onChange:()=>{}})));
+ assert.equal(dateUsed.getDate(),15);assert.equal(dateUsed.getMonth(),9);await s.close();
 });

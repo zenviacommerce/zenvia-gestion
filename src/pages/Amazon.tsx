@@ -1,6 +1,6 @@
 import {amazonCalendarDate,amazonCalendarDay,watchAmazonCalendarDay} from '../services/amazonCalendar';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AlertTriangle, CheckCircle2, ExternalLink, LoaderCircle, RefreshCw, ShoppingBag, WifiOff } from 'lucide-react';
+import { AlertTriangle, CheckCircle2, LoaderCircle, RefreshCw, WifiOff } from 'lucide-react';
 import { AMAZON_CONNECTIVITY_EVENT, invalidateAmazonAnalytics, amazonQuickRange, isAmazonConnectivityError, loadAmazonStatus, requestAmazonSync, resolveAmazonMarketplaceSelection, resolveAmazonVisibleKpis, type AmazonAnalyticsFilters, type AmazonStatus, type AmazonSummary as AmazonSummaryData } from '../services/amazon';
 import { errorMessage, showError, showSuccess } from '../services/toast';
 import { AmazonFilters } from '../components/amazon/AmazonFilters';
@@ -14,7 +14,6 @@ import { readViewCache, writeViewCache } from '../services/viewCache';
 import { useSettings } from '../context/SettingsContext';
 import { clearActivities } from '../services/activity';
 
-const externalLinks=[{label:'Seller Central',href:'https://sellercentral.amazon.es/',Icon:ShoppingBag}] as const;
 const tabs=[['summary','Resumen'],['products','Productos'],['marketplaces','Marketplaces'],['orders','Pedidos'],['inventory','Inventario'],['unmapped','Sin vincular']] as const;
 type AmazonTab=(typeof tabs)[number][0];
 
@@ -133,7 +132,7 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
     });
   },[connected,marketplaces.map(item=>item.id).join(',')]);
   return <div className="page amazonPage">
-    <header className="pageHead amazonPageHead"><div><div className="eyebrow">AMAZON ANALYTICS</div><h1>Amazon</h1><p>Ventas, costes, rentabilidad e inventario de tus marketplaces europeos.</p></div><div className="actions amazonExternalLinks">{externalLinks.map(({label,href,Icon})=><a key={label} className="secondary amazonExternalLink" href={href} target="_blank" rel="noopener noreferrer"><Icon size={17}/><span>{label}</span><ExternalLink size={14}/></a>)}{connected&&<button className="secondary amazonRefreshView" onClick={refreshAnalytics} disabled={refreshingAnalytics}>{<RefreshCw size={17} className={refreshingAnalytics?'spin':''}/>}<span>{refreshingAnalytics?'Actualizando…':'Actualizar datos'}</span></button>}{isAdmin&&!status?.demo&&<button className="primary amazonSyncButton" onClick={()=>void syncNow()} disabled={syncActive||loading||!status?.configured}>{syncActive?<LoaderCircle size={17} className="spin"/>:<RefreshCw size={17}/>}<span>{syncing?'Solicitando…':pendingJobs>0?'Sincronizando…':'Sincronizar ahora'}</span></button>}</div></header>
+    <header className="pageHead amazonPageHead"><div><div className="eyebrow">AMAZON ANALYTICS</div><h1>Amazon</h1><p>Ventas, costes, rentabilidad e inventario de tus marketplaces europeos.</p></div><div className="actions amazonExternalLinks">{connected&&<button className="secondary amazonRefreshView" onClick={refreshAnalytics} disabled={refreshingAnalytics}>{<RefreshCw size={17} className={refreshingAnalytics?'spin':''}/>}<span>{refreshingAnalytics?'Actualizando…':'Actualizar datos'}</span></button>}{isAdmin&&!status?.demo&&<button className="primary amazonSyncButton" onClick={()=>void syncNow()} disabled={syncActive||loading||!status?.configured}>{syncActive?<LoaderCircle size={17} className="spin"/>:<RefreshCw size={17}/>}<span>{syncing?'Solicitando…':pendingJobs>0?'Sincronizando…':'Sincronizar ahora'}</span></button>}</div></header>
 
     <section aria-label="Estado de conexión" className={`card amazonCompactStatus ${connected?'isConnected':status?.status==='error'?'isError':''}`}><div className="amazonCompactState">{connected?<CheckCircle2 size={18}/>:<AlertTriangle size={18}/>}<strong>{statusLabel(status,loading)}</strong><span>{status?.account?.displayName||'Amazon SP-API'}</span></div><div className="amazonCompactMeta"><span>{marketplaces.length} marketplaces</span><span>{jobs?.running||0} en curso</span><span>{jobs?.queued||0} en cola</span>{jobs?.failed? <span className="amazonFailed">{jobs.failed} con error</span>:null}{status?.account?.lastSuccessfulSyncAt&&<span>Última sync {new Date(status.account.lastSuccessfulSyncAt).toLocaleString('es-ES')}</span>}</div></section>
     {connectivityIssue&&<div className="amazonOfflineNotice card"><WifiOff size={18}/><div><strong>Sin conexión a Internet</strong><span>Mostrando los últimos datos guardados. Amazon se actualizará automáticamente cuando vuelva la conexión.</span></div><button className="secondary" onClick={()=>{if(navigator.onLine){setConnectivityIssue(false);void refresh();invalidateAmazonAnalytics();setAnalyticsRefresh(value=>value+1);}}}><RefreshCw size={15}/> Reintentar</button></div>}

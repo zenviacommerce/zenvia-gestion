@@ -47,11 +47,11 @@ test('frontend Amazon service loads status and can request manual sync',async()=
   assert.match(service,/AmazonStatus/);
 });
 
-test('Amazon page renders live connection state and admin manual sync without losing external links',async()=>{
+test('Amazon page retains live status and manual sync without external shortcuts',async()=>{
   const page=await source('src/pages/Amazon.tsx');
   assert.match(page,/loadAmazonStatus/);
   assert.match(page,/requestAmazonSync/);
-  assert.match(page,/Seller Central/);
+  assert.doesNotMatch(page,/Seller Central|sellercentral\.amazon/);
   assert.doesNotMatch(page,/sellerboard\.com/);
   assert.match(page,/Sincronizar ahora/);
   assert.match(page,/marketplace/i);

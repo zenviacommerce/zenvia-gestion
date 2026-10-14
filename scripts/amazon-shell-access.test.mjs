@@ -26,15 +26,13 @@ test('Amazon is a protected application page and sidebar destination', async () 
   assert.match(app, /page==='amazon'&&can\('amazon'\)&&<AmazonPage/);
 });
 
-test('Amazon shell shows connection state and opens Seller Central safely without the removed Sellerboard button', async () => {
+test('Amazon shell shows connection state without removed external shortcuts', async () => {
   const amazon = await source('src/pages/Amazon.tsx');
 
   assert.match(amazon, /Estado de conexión/);
   assert.match(amazon, /Pendiente de configurar/);
-  assert.match(amazon, /Seller Central/);
+  assert.doesNotMatch(amazon, /Seller Central|sellercentral\.amazon/);
   assert.doesNotMatch(amazon, /sellerboard\.com/);
-  assert.match(amazon, /target="_blank"/);
-  assert.match(amazon, /rel="noopener noreferrer"/);
 });
 
 test('the effective app_users permission constraint keeps current permissions and adds amazon', async () => {

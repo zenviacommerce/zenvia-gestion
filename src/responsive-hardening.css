@@ -135,3 +135,36 @@ pre{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
     font-size:11px;
   }
 }
+
+
+/* Header buttons, globally: never stretch a single action to card width on mobile.
+   The parent may be full width for wrapping, but individual controls stay compact. */
+@media(max-width:760px){
+  .page .pageHead .actions,
+  .page .pageHead .pageHeadActions{
+    display:flex!important;
+    flex-direction:row!important;
+    flex-wrap:wrap!important;
+    justify-content:flex-start!important;
+    align-items:center!important;
+    gap:8px;
+    width:100%;
+    min-width:0;
+  }
+  .page .pageHead .actions > button,
+  .page .pageHead .pageHeadActions > button,
+  .page .pageHead > button{
+    display:inline-flex!important;
+    align-items:center;
+    justify-content:center;
+    flex:0 0 auto!important;
+    width:fit-content!important;
+    min-width:0;
+    max-width:100%;
+    height:auto;
+    min-height:38px;
+    padding:8px 12px;
+    font-size:12px;
+    line-height:1.3;
+  }
+}

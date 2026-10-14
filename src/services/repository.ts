@@ -385,10 +385,14 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
   if (productsResult.error) throw productsResult.error;
   if (supplierProductsResult.error) throw supplierProductsResult.error;
 
+  const compactProductKey=(value:string)=>normalizeProductKey(value).replace(/\s+/g,'');
+  const productByCompactName = new Map<string, { id: string; unit: string }>();
   const productByName = new Map<string, { id: string; unit: string }>();
   for (const product of productsResult.data ?? []) {
     const key = normalizeProductKey(product.name);
     if (key && !productByName.has(key)) productByName.set(key, { id: product.id, unit: product.base_unit || 'ud' });
+    const compactKey=compactProductKey(product.name);
+    if(compactKey&&!productByCompactName.has(compactKey))productByCompactName.set(compactKey,{id:product.id,unit:product.base_unit||'ud'});
   }
 
   const supplierProductRows:ImportedSupplierProduct[] = supplierProductsResult.data ?? [];
@@ -411,7 +415,7 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
           supplierProductId = supplierMatch.id;
           productId = supplierMatch.product_id;
         } else {
-          let product = productByName.get(key);
+          let product = productByName.get(key) || productByCompactName.get(compactProductKey(description));
           if (!product && policy.autoCreateProducts && productSettings.autoCreateFromInvoice) {
             const { data: created, error: productError } = await supabase.from('products').insert({
               name: description,
@@ -425,6 +429,7 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
             product = { id: created.id, unit: created.base_unit || unit };
             createdProductIds.push(created.id);
             productByName.set(key, product);
+            productByCompactName.set(compactProductKey(description),product);
           }
           if(product){
             productId = product.id;

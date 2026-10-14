@@ -102,10 +102,10 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
             <td>{money.format(row.grossSales)}</td>
             <td>{money.format(row.netSales)}{row.missingVatOrders>0&&<small className="amazonIncomplete">{row.missingVatOrders} con IVA pendiente</small>}</td>
             <td>{money.format(row.productCost)}</td>
-            <td>{money.format(row.amazonFees)}</td>
+            <td>{row.orders>0&&row.grossSales>0&&row.amazonFees===0?<span className="amazonIncomplete" title="Amazon todavía no ha aportado tarifas financieras atribuibles al producto">Pendientes</span>:money.format(row.amazonFees)}</td>
             <td>{money.format(row.refunds)}</td>
-            <td className={row.profitBeforeAds>=0?'amazonPositive':'amazonNegative'}>{money.format(row.profitBeforeAds)}{!row.profitComplete&&<small className="amazonIncomplete">Provisional</small>}</td>
-            <td className={row.marginPct!=null&&row.marginPct>=0?'amazonPositive':'amazonNegative'}>{row.marginPct==null?'—':`${row.marginPct.toFixed(1)} %`}</td>
+            <td className={row.profitBeforeAds>=0?'amazonPositive':'amazonNegative'}>{money.format(row.profitBeforeAds)}{row.orders>0&&row.grossSales>0&&row.amazonFees===0?<small className="amazonIncomplete">Sin tarifas Amazon · estimación incompleta</small>:!row.profitComplete&&<small className="amazonIncomplete">Provisional</small>}</td>
+            <td className={row.marginPct!=null&&row.marginPct>=0?'amazonPositive':'amazonNegative'}>{row.orders>0&&row.grossSales>0&&row.amazonFees===0?'Pendiente':row.marginPct==null?'—':`${row.marginPct.toFixed(1)} %`}</td>
             <td>{money.format(row.salesVat)}</td>
             <td>{money.format(row.amazonFeeVat)}</td>
             <td><ProductMappingAction onClick={()=>setEditing(editing===row.sellerSku?null:row.sellerSku)}/></td>

@@ -11,6 +11,6 @@ test('label PDF is delivered before refreshing the order list',async()=>{
 test('generated PDF is offered before marketplace confirmation completes',async()=>{
  const source=fs.readFileSync(new URL('../src/services/orders.ts',import.meta.url),'utf8');const body=source.slice(source.indexOf('export async function createOrderLabel('),source.indexOf('export async function fetchOrderLabel(')).replace('export async function createOrderLabel','globalThis.createOrderLabel=async function');
  const events=[];let complete;const confirmation=new Promise(resolve=>{complete=resolve});
- const context=vm.createContext({loadAutomationRule:async()=>({enabled:true,config:{pushToMarketplace:true}}),invokeMrw:async()=>({base64:'pdf'}),confirmOrderTracking:()=>{events.push('confirmation');return confirmation}});vm.runInContext(ts.transpile(body),context);const pending=context.createOrderLabel('order',{provider:'mrw'},true,async()=>events.push('download'));for(let i=0;i<10;i++)await Promise.resolve();
+ const context=vm.createContext({markOrderLabelCreated:()=>{},loadAutomationRule:async()=>({enabled:true,config:{pushToMarketplace:true}}),invokeMrw:async()=>({base64:'pdf'}),confirmOrderTracking:()=>{events.push('confirmation');return confirmation}});vm.runInContext(ts.transpile(body),context);const pending=context.createOrderLabel('order',{provider:'mrw'},true,async()=>events.push('download'));for(let i=0;i<10;i++)await Promise.resolve();
  try{assert.deepEqual(events,['download','confirmation'])}finally{complete();await pending}
 });

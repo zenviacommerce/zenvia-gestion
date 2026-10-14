@@ -1,3 +1,4 @@
+import {readOrdersSnapshot,ORDERS_SNAPSHOT_EVENT} from '../services/ordersSnapshot';
 import { watchFulfillmentOrders } from '../services/orderLiveUpdates';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -19,7 +20,6 @@ import { formatAppMoney } from '../services/formatting';
 
 const colors = ['#0f766e','#2563eb','#7c3aed','#d97706','#64748b','#dc2626','#0891b2'];
 const DASHBOARD_SALES_CACHE='dashboard:sales';
-const DASHBOARD_ORDERS_CACHE='dashboard:orders';
 
 function orderDate(order:FulfillmentOrder){return order.orderCreatedAt?.slice(0,10)||'';}
 function isShippedOrder(order:FulfillmentOrder){
@@ -32,7 +32,7 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
   const money=(value:number,maximumFractionDigits=2)=>formatAppMoney(value,settings.general.currencyCode,settings.general,{minimumFractionDigits:2,maximumFractionDigits});
   const [filter,setFilter]=useState(()=>rememberedFilter(preferences,'dashboard.period',defaultDateFilter(preferences.defaultPeriod)));
   const [sales,setSales]=useState<SalesInvoice[]>(()=>readViewCache<SalesInvoice[]>(DASHBOARD_SALES_CACHE)||[]);
-  const [orders,setOrders]=useState<FulfillmentOrder[]>(()=>readViewCache<FulfillmentOrder[]>(DASHBOARD_ORDERS_CACHE)||[]);
+  const [orders,setOrders]=useState<FulfillmentOrder[]>(()=>readOrdersSnapshot());
 
   useEffect(()=>{
     const timer=window.setTimeout(()=>{void persistRememberedFilter(preferences,patchPreferences,'dashboard.period',filter)},350);
@@ -46,7 +46,7 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
   useEffect(()=>{
     let alive=true;
     let inFlight=false;
-    const publish=(next:FulfillmentOrder[])=>{if(!alive)return;setOrders(next);writeViewCache(DASHBOARD_ORDERS_CACHE,next);};
+    const publish=(next:FulfillmentOrder[])=>{if(!alive)return;setOrders(next);};
     const loadPersisted=async()=>{
       try{publish(await listFulfillmentOrders());}catch{/* El caché mantiene el KPI visible mientras se recupera la lectura. */}
     };
@@ -62,9 +62,11 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
     // Primero pintamos el estado persistido de Supabase; la sincronización externa ocurre después.
     void loadPersisted();
     void refreshOrders();
+    const onSnapshot=()=>{if(alive)setOrders(readOrdersSnapshot());};
+    window.addEventListener(ORDERS_SNAPSHOT_EVENT,onSnapshot);
     const stopLiveUpdates=watchFulfillmentOrders(()=>void loadPersisted());
     const timer=window.setInterval(()=>void refreshOrders(),Math.max(30,settings.orders.refreshSeconds)*1000);
-    return()=>{alive=false;stopLiveUpdates();window.clearInterval(timer);};
+    return()=>{alive=false;stopLiveUpdates();window.removeEventListener(ORDERS_SNAPSHOT_EVENT,onSnapshot);window.clearInterval(timer);};
   },[settings.integrations.sendcloudEnabled,settings.orders.refreshSeconds]);
 
   const periodExpenses=useMemo(()=>invoices.filter(invoice=>(!filter.from||invoice.invoiceDate>=filter.from)&&(!filter.to||invoice.invoiceDate<=filter.to)),[invoices,filter]);

@@ -1,0 +1,10 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import {build} from 'esbuild';
+async function snapshot(){let content='';try{content=await readFile(new URL('../src/services/ordersSnapshot.ts',import.meta.url),'utf8')}catch{}assert.ok(content,'shared order snapshot exists');const out=await build({stdin:{contents:content,resolveDir:new URL('../src/services/',import.meta.url).pathname,loader:'ts'},bundle:true,write:false,format:'esm',platform:'node'});const values=new Map();globalThis.window={sessionStorage:{getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v),removeItem:k=>values.delete(k)},dispatchEvent(){}};return import('data:text/javascript;base64,'+Buffer.from(out.outputFiles[0].text).toString('base64'));}
+test('a generated label updates the shared pending count before returning to Summary',async()=>{const s=await snapshot();s.publishOrdersSnapshot([{id:'1',sourceChannel:'amazon',sourceStatus:'UNSHIPPED'},{id:'2',sourceChannel:'amazon',sourceStatus:'UNSHIPPED'}]);s.markOrderLabelCreated('1',{trackingNumber:'T1',provider:'mrw'});const data=s.readOrdersSnapshot();assert.equal(data.filter(x=>!x.labelCreatedAt).length,1);assert.ok(data.find(x=>x.id==='1').labelCreatedAt);assert.equal(s.readOrdersSnapshot().filter(x=>!x.labelCreatedAt).length,1);});
+test('a read started before label creation cannot replace the newer shared snapshot',async()=>{const s=await snapshot();s.publishOrdersSnapshot([{id:'1',sourceStatus:'UNSHIPPED'}]);const version=s.ordersSnapshotVersion();s.markOrderLabelCreated('1',{trackingNumber:'T1'});const result=s.publishOrdersSnapshot([{id:'1',sourceStatus:'UNSHIPPED'}],version);assert.ok(result[0].labelCreatedAt);});
+
+test('workspace reset clears persisted rows and rejects a read from the previous workspace',async()=>{
+ const s=await snapshot();s.publishOrdersSnapshot([{id:'previous-workspace'}]);const version=s.ordersSnapshotVersion();
+ s.resetOrdersSnapshot();assert.deepEqual(s.readOrdersSnapshot(),[]);
+ assert.deepEqual(s.publishOrdersSnapshot([{id:'previous-workspace'}],version),[]);
+});

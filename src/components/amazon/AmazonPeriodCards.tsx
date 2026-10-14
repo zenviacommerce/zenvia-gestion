@@ -1,17 +1,20 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, RefreshCw, X } from 'lucide-react';
 import { loadAmazonSummary, loadAmazonDetail, isAmazonConnectivityError, type AmazonAnalyticsFilters, type AmazonSummary, type AmazonDetail, type AmazonKpiKey } from '../../services/amazon';
-import { amazonDashboardPeriods } from '../../services/amazonDashboard';
+import { amazonDashboardPeriods, amazonMonthForecast } from '../../services/amazonDashboard';
 import { readViewCache, stableCacheKey, writeViewCache } from '../../services/viewCache';
 
-type Snapshot={data:AmazonSummary|null;error:boolean;loading:boolean;stale?:boolean;refundCount:number|null;refundCountError?:boolean};
+type Snapshot={data:AmazonSummary|null;error:boolean;loading:boolean;stale?:boolean;refundCount:number|null;refundGrossImpact?:number|null;refundCountError?:boolean};
 const sameRange=(a:AmazonAnalyticsFilters,b:AmazonAnalyticsFilters)=>a.from===b.from&&a.to===b.to;
 const dateLabel=(value:string)=>new Date(value+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
 const accents=['#2563eb','#0e7490','#7c3aed','#c2410c','#475569'];
 export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPeriodChange,comparisonNote,visibleKpis,detail,periodOverrides={},onPeriodCustomize}:{filters:AmazonAnalyticsFilters;summary:AmazonSummary;currency:string;refreshToken:number;onPeriodChange?:(filters:AmazonAnalyticsFilters)=>void;comparisonNote?:string;visibleKpis?:AmazonKpiKey[];detail?:AmazonDetail|null;periodOverrides?:Record<string,{from:string;to:string}>;onPeriodCustomize?:(id:string,range:{from:string;to:string}|null)=>void}){
-  const periods=amazonDashboardPeriods(new Date(),filters.marketplaceIds).map(period=>({...period,filters:{...period.filters,...periodOverrides[period.id]},custom:Boolean(periodOverrides[period.id])}));
+  const now=new Date();
+  const bases=amazonDashboardPeriods(now,filters.marketplaceIds);
+  const periods=bases.map(period=>({...period,filters:{...period.filters,...(period.id==='forecast'?{}:periodOverrides[period.id])},custom:period.id!=='forecast'&&Boolean(periodOverrides[period.id])}));
   // A custom filter gets a tile too, so the active list always has an explicit period.
-  if(!periods.some(period=>sameRange(period.filters,filters)))periods.push({id:'selected',label:'Periodo seleccionado',filters,custom:false});
+  const monthBase=bases.find(period=>period.id==='current_month')!;
+  if(!periods.some(period=>period.id!=='forecast'&&sameRange(period.filters,filters)))periods.push({id:'selected',label:'Periodo seleccionado',filters,custom:false});
   const periodKey=periods.map(p=>p.filters.from+p.filters.to).join('|');
   const rail=useRef<HTMLDivElement>(null);
   const [snapshots,setSnapshots]=useState<Record<string,Snapshot>>({});
@@ -38,13 +41,18 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
     let alive=true;
     const initial:Record<string,Snapshot>={};
     for(const period of periods){
+      if(period.id==='forecast')continue;
       const selected=sameRange(period.filters,filters);
       const data=selected?summary:readViewCache<AmazonSummary>(stableCacheKey('amazon:summary',period.filters));
       const cachedDetail=readViewCache<AmazonDetail>(stableCacheKey('amazon:detail',period.filters));
-      initial[period.id]={data,error:false,loading:!selected,refundCount:cachedDetail?.refundTransactions??null};
+      initial[period.id]={data,error:false,loading:!selected,refundCount:cachedDetail?.refundTransactions??null,refundGrossImpact:cachedDetail?.refundGrossImpact??null};
     }
     setSnapshots(initial);
-    const pending=periods.filter(period=>visiblePeriods.includes(period.id)&&!sameRange(period.filters,filters));
+    const requested=periods.filter(period=>period.id!=='forecast'&&visiblePeriods.includes(period.id));
+    if(visiblePeriods.includes('forecast')){
+      requested.push({...monthBase,id:'forecast_month',custom:false},{...bases[0],id:'forecast_today',custom:false});
+    }
+    const pending=requested.filter(period=>!sameRange(period.filters,filters));
     let index=0;
     const worker=async()=>{
       while(alive&&index<pending.length){
@@ -53,16 +61,16 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
           const data=await loadAmazonSummary(period.filters);
           if(!alive)return;
           writeViewCache(stableCacheKey('amazon:summary',period.filters),data);
-          setSnapshots(current=>({...current,[period.id]:{data,error:false,loading:false,refundCount:current[period.id]?.refundCount??null}}));
+          setSnapshots(current=>({...current,[period.id]:{data,error:false,loading:false,refundCount:current[period.id]?.refundCount??null,refundGrossImpact:current[period.id]?.refundGrossImpact??null}}));
           try{
             const nextDetail=await loadAmazonDetail(period.filters);
             if(!alive)return;
             writeViewCache(stableCacheKey('amazon:detail',period.filters),nextDetail);
-            setSnapshots(current=>({...current,[period.id]:{...current[period.id],refundCount:nextDetail.refundTransactions,refundCountError:false}}));
+            setSnapshots(current=>({...current,[period.id]:{...current[period.id],refundCount:nextDetail.refundTransactions,refundGrossImpact:nextDetail.refundGrossImpact,refundCountError:false}}));
           }catch{if(alive)setSnapshots(current=>({...current,[period.id]:{...current[period.id],refundCountError:true}}));}
         }catch(error){
           if(!alive)return;
-          setSnapshots(current=>({...current,[period.id]:{data:current[period.id]?.data||null,error:!isAmazonConnectivityError(error),loading:false,stale:true,refundCount:current[period.id]?.refundCount??null}}));
+          setSnapshots(current=>({...current,[period.id]:{data:current[period.id]?.data||null,error:!isAmazonConnectivityError(error),loading:false,stale:true,refundCount:current[period.id]?.refundCount??null,refundGrossImpact:current[period.id]?.refundGrossImpact??null}}));
         }
       }
     };
@@ -75,28 +83,43 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
     <div className="amazonDashboardSectionHead"><div><span className="amazonSectionLabel">TABLERO</span><h2>Rentabilidad por periodo</h2></div><div className="amazonCarouselControls"><span>Desliza para ver más periodos</span><button onClick={()=>move(-1)} aria-label="Desplazar tarjetas a la izquierda"><ChevronLeft size={18}/></button><button onClick={()=>move(1)} aria-label="Desplazar tarjetas a la derecha"><ChevronRight size={18}/></button></div></div>
     <div className="amazonPeriodCarousel" ref={rail}>{periods.map((period,index)=>{
       const snapshot=snapshots[period.id];
-      const matches=sameRange(period.filters,filters);
-      const selected=matches&&periods.find(p=>sameRange(p.filters,filters))?.id===period.id;
-      const data=matches?summary:snapshot?.data;
-      const refundCount=matches?detail?.refundTransactions??snapshot?.refundCount:snapshot?.refundCount;
+      const forecast=period.id==='forecast';
+      const matches=!forecast&&sameRange(period.filters,filters);
+      const selected=matches&&periods.find(p=>p.id!=='forecast'&&sameRange(p.filters,filters))?.id===period.id;
+      const monthData=sameRange(monthBase.filters,filters)?summary:snapshots.forecast_month?.data;
+      const todayPeriod=bases[0];
+      const todayData=sameRange(todayPeriod.filters,filters)?summary:snapshots.forecast_today?.data;
+      const forecastData=monthData&&todayData?amazonMonthForecast(monthData,todayData,now):null;
+      const data=forecast?forecastData:matches?summary:snapshot?.data;
+      const monthRefunds=sameRange(monthBase.filters,filters)?detail?.refundTransactions:snapshots.forecast_month?.refundCount;
+      const todayRefunds=sameRange(todayPeriod.filters,filters)?detail?.refundTransactions:snapshots.forecast_today?.refundCount;
+      const completedDays=now.getDate()-1;
+      const forecastFactor=completedDays>0?new Date(now.getFullYear(),now.getMonth()+1,0).getDate()/completedDays:0;
+      const refundCount=forecast?monthRefunds!=null&&todayRefunds!=null&&completedDays>0?Math.round(Math.max(0,monthRefunds-todayRefunds)*forecastFactor):null:matches?detail?.refundTransactions??snapshot?.refundCount:snapshot?.refundCount;
+      const monthRefundGross=sameRange(monthBase.filters,filters)?detail?.refundGrossImpact:snapshots.forecast_month?.refundGrossImpact;
+      const todayRefundGross=sameRange(todayPeriod.filters,filters)?detail?.refundGrossImpact:snapshots.forecast_today?.refundGrossImpact;
+      const refundGross=forecast?monthRefundGross!=null&&todayRefundGross!=null&&completedDays>0?(monthRefundGross-todayRefundGross)*forecastFactor:null:matches?detail?.refundGrossImpact??snapshot?.refundGrossImpact:snapshot?.refundGrossImpact;
       const more=expanded.includes(period.id);
       const metric=(value:number|null|undefined)=>value==null?'—':money.format(value);
       return <article className={`card amazonPeriodCard ${selected?'isSelected':''}`} style={{'--period-accent':accents[index%accents.length]} as CSSProperties} key={period.id} data-period-id={period.id} aria-busy={snapshot?.loading||false}>
-        {onPeriodChange&&<button type="button" className="amazonPeriodSelect" aria-label={`Mostrar productos de ${period.label}`} aria-pressed={selected} aria-controls="amazon-period-products" onClick={()=>onPeriodChange(period.filters)}/>}
-        <header><h3>{period.custom?'Personalizado':period.label}</h3><button type="button" className="amazonTileDate" aria-label={`Cambiar fechas de ${period.label}`} onClick={event=>{dateTrigger.current=event.currentTarget;setDateError('');setEditor({id:period.id,label:period.label,from:period.filters.from,to:period.filters.to});}}><span>{period.filters.from===period.filters.to?dateLabel(period.filters.from):dateLabel(period.filters.from)+' – '+dateLabel(period.filters.to)}</span><CalendarDays size={14}/></button></header>
+        {onPeriodChange&&<button type="button" className="amazonPeriodSelect" aria-label={`Mostrar productos de ${period.label}`} aria-pressed={selected} aria-controls="amazon-period-products" onClick={()=>onPeriodChange(forecast?monthBase.filters:period.filters)}/>}
+        <header><h3>{period.custom?'Personalizado':period.label}</h3>{forecast?<span className="amazonTileDate">{dateLabel(period.filters.from)} – {dateLabel(period.filters.to)}</span>:<button type="button" className="amazonTileDate" aria-label={`Cambiar fechas de ${period.label}`} onClick={event=>{dateTrigger.current=event.currentTarget;setDateError('');setEditor({id:period.id,label:period.label,from:period.filters.from,to:period.filters.to});}}><span>{period.filters.from===period.filters.to?dateLabel(period.filters.from):dateLabel(period.filters.from)+' – '+dateLabel(period.filters.to)}</span><CalendarDays size={14}/></button>}</header>
         <div className="amazonPeriodBody">
           {show('grossSales')&&<div className="amazonPeriodSales"><span>Ventas</span><strong>{metric(data?.grossSales)}</strong></div>}
           <dl className="amazonPeriodMetrics">
             {(show('orders')||show('units'))&&<div><dt>{show('orders')&&show('units')?'Pedidos / unidades':show('orders')?'Pedidos':'Unidades'}</dt><dd>{data?[...(show('orders')?[data.orders.toLocaleString('es-ES')]:[]),...(show('units')?[data.units.toLocaleString('es-ES')]:[])].join(' / '):'—'}</dd></div>}
-            {show('refunds')&&<div><dt>Reembolsos</dt><dd data-metric="refunds">{metric(data?.refunds)}<small className="amazonRefundCount">{refundCount==null?snapshot?.refundCountError?'Número no disponible':'Número pendiente':refundCount.toLocaleString('es-ES')+' '+(refundCount===1?'reembolso':'reembolsos')}</small></dd></div>}
-            {show('adsCost')&&<div className="amazonPeriodMetricSeparator"><dt>Publicidad</dt><dd>{data?.adsExcluded?'No disponible':metric(data?.adsCost==null?null:-data.adsCost)}</dd></div>}
+            {show('refunds')&&<div><dt>Reembolsos con IVA</dt><dd data-metric="refunds">{metric(refundGross)}<small className="amazonRefundCount">{refundCount==null?snapshot?.refundCountError?'Número no disponible':'Número pendiente':refundCount.toLocaleString('es-ES')+' '+(refundCount===1?'reembolso':'reembolsos')}</small></dd></div>}
+            {show('adsCost')&&<div className="amazonPeriodMetricSeparator"><dt>Publicidad contabilizada</dt><dd>{data?.adsExcluded?'No disponible':metric(data?.adsCost==null?null:-data.adsCost)}</dd></div>}
             {show('productCost')&&<div className="amazonPeriodMetricSeparator"><dt>Coste producto</dt><dd data-metric="productCost">{metric(data?.productCost==null?null:-data.productCost)}</dd></div>}
             {show('netProfit')&&<div className="amazonPeriodProfit"><dt>Ganancia neta</dt><dd data-metric="netProfit" className={data?.netProfit!=null&&data.netProfit<0?'isNegative':'isPositive'}>{metric(data?.netProfit)}</dd></div>}
             {show('marginPct')&&<div><dt>Margen neto</dt><dd>{data?.marginPct==null?'—':data.marginPct.toLocaleString('es-ES',{maximumFractionDigits:1})+' %'}</dd></div>}
           </dl>
-          <span className="amazonPeriodQuality">{snapshot?.stale?'Últimos datos guardados':snapshot?.loading&&data?'Actualizando…':snapshot?.error?'Error al actualizar':data?!data.profitComplete?'Provisional':'Datos completos':snapshot?.loading?'Cargando…':'Sin datos disponibles'}{data&&!data.profitComplete&&(snapshot?.stale||snapshot?.loading)&&' · Provisional'}</span>
+          <span className="amazonPeriodQuality">{forecast?'Estimación · '+(data?data.profitComplete?'Base completa':'Base provisional':completedDays<1?'Sin días completos':'Cargando base'):snapshot?.stale?'Últimos datos guardados':snapshot?.loading&&data?'Actualizando…':snapshot?.error?'Error al actualizar':data?!data.profitComplete?'Provisional':'Datos completos':snapshot?.loading?'Cargando…':'Sin datos disponibles'}{data&&!data.profitComplete&&(snapshot?.stale||snapshot?.loading)&&' · Provisional'}</span>
           {selected&&show('netProfit')&&comparisonNote&&<p className="amazonTileComparison">{comparisonNote}</p>}
+          {forecast&&<p className="amazonTileComparison">Media de los días completos del mes × días del mes. Al seleccionar se muestran los productos vendidos este mes.</p>}
+          {more&&<p className="amazonTileComparison">Pedidos únicos de Amazon. Reembolsos por fecha de devolución. Publicidad procedente de movimientos financieros; no incluye el gasto diario de Amazon Ads. El beneficio puede cambiar al recibir comisiones y costes pendientes.</p>}
           {more&&<dl className="amazonPeriodExtra" id={`amazon-period-extra-${period.id}`}>
+            <div><dt>Reembolsos sin IVA</dt><dd>{metric(data?.refunds)}</dd></div>
             <div><dt>Ventas sin IVA</dt><dd>{metric(data?.netSales)}</dd></div>
             <div><dt>IVA ventas</dt><dd>{metric(data?.salesVat)}</dd></div>
             <div><dt>Tarifas Amazon sin IVA</dt><dd>{metric(data?.amazonFees==null?null:-data.amazonFees)}</dd></div>

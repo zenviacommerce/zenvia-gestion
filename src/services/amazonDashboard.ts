@@ -25,6 +25,7 @@ export function amazonDashboardPeriods(now:Date,marketplaceIds:string[]){
     {id:'today',label:'Hoy',from:today,to:today},
     {id:'yesterday',label:'Ayer',from:shift(today,-1),to:shift(today,-1)},
     {id:'current_month',label:'Mes actual',from:monthStart,to:today},
+    {id:'forecast',label:'Mes actual (pronóstico)',from:monthStart,to:new Date(Date.UTC(now.getFullYear(),now.getMonth()+1,0,12))},
     {id:'previous_month',label:'Mes anterior',from:new Date(Date.UTC(previousEnd.getUTCFullYear(),previousEnd.getUTCMonth(),1,12)),to:previousEnd},
   ].map(period=>({id:period.id,label:period.label,filters:{from:iso(period.from),to:iso(period.to),marketplaceIds}}));
 }
@@ -49,4 +50,17 @@ export function amazonProfitBridge(summary:Pick<AmazonSummary,'grossSales'|'sale
     {key:'amazonAdjustments',label:'Ajustes Amazon',amount:summary.amazonAdjustments,kind:'movement'},
     {key:'netProfit',label:'Ganancia neta',amount:summary.netProfit,kind:'total'},
   ];
+}
+
+// Exclude the unfinished current day so refreshing at noon does not halve the forecast.
+export function amazonMonthForecast(month:AmazonSummary,today:AmazonSummary,now:Date):AmazonSummary|null{
+  const completed=now.getDate()-1;
+  if(completed<1)return null;
+  const factor=new Date(now.getFullYear(),now.getMonth()+1,0).getDate()/completed;
+  const estimate={...month};
+  const moneyKeys=['grossSales','salesVat','netSales','amazonFees','amazonFeeVat','refunds','adsCost','amazonAdjustments','productCost','fbmShippingCost','netProfit'] as const;
+  for(const key of moneyKeys){const value=month[key],daily=today[key];if(key==='netProfit')estimate.netProfit=value==null||daily==null?null:(value-daily)*factor;else estimate[key]=(value!-daily!)*factor;}
+  for(const key of ['orders','businessOrders','units'] as const)estimate[key]=Math.round(Math.max(0,month[key]-today[key])*factor);
+  estimate.marginPct=estimate.netSales&&estimate.netProfit!=null?estimate.netProfit/estimate.netSales*100:null;
+  return estimate;
 }

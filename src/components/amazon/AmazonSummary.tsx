@@ -1,3 +1,4 @@
+import { AmazonLoading } from './AmazonLoading';
 import { useEffect, useRef, useState } from 'react';
 import { ChevronRight, RefreshCw, X } from 'lucide-react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -77,7 +78,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
     const currentSummaryKey=stableCacheKey('amazon:summary',filters);
     const cachedSummary=readViewCache<AmazonSummaryData>(currentSummaryKey);
     setSummary(cachedSummary);if(cachedSummary)onLoaded?.(cachedSummary);
-    setLoading(!cachedSummary);setError('');
+    setLoading(true);setError('');
     const request=loadAmazonSummary(filters);primaryRequest.current=request;
     void request.then(nextSummary=>{
       if(!alive)return;
@@ -124,7 +125,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
     const cachedSeries=readViewCache<AmazonSeriesPoint[]>(currentSeriesKey);
     setSeries(cachedSeries||[]);setSeriesLoading(false);
     if(!graphOpen)return()=>{alive=false;};
-    setSeriesLoading(!cachedSeries);
+    setSeriesLoading(true);
     void loadAmazonSeries(filters,grain).then(value=>{
       if(alive){setSeries(value);writeViewCache(currentSeriesKey,value);}
     }).catch(reason=>{
@@ -140,9 +141,9 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
   if(!effectiveChartMetrics.length)effectiveChartMetrics.push('netSales');
 
   return <div className="amazonSummary">
-    {loading&&!summary&&<div className="card amazonLoading">Cargando resumen de Amazon…</div>}
+    {loading&&<AmazonLoading>Cargando resumen de Amazon…</AmazonLoading>}
     {error&&<div className="card amazonQueryError"><span>{error}</span><button className="secondary" onClick={()=>setRetryToken(value=>value+1)}><RefreshCw size={15}/> Reintentar</button></div>}
-    <AmazonPeriodCards calendarDay={calendarDay} filters={filters} summary={summary} currency={settings.amazon.consolidatedCurrency} refreshToken={refreshToken} onPeriodChange={onPeriodChange} comparisonNote={comparisonNote} visibleKpis={visibleKpis} detail={detail} periodOverrides={periodOverrides} onPeriodCustomize={(id,range)=>setPeriodOverrides(current=>{const next={...current};if(range)next[id]=range;else delete next[id];return next;})}/>
+    <AmazonPeriodCards summaryLoading={loading} calendarDay={calendarDay} filters={filters} summary={summary} currency={settings.amazon.consolidatedCurrency} refreshToken={refreshToken} onPeriodChange={onPeriodChange} comparisonNote={comparisonNote} visibleKpis={visibleKpis} detail={detail} periodOverrides={periodOverrides} onPeriodCustomize={(id,range)=>setPeriodOverrides(current=>{const next={...current};if(range)next[id]=range;else delete next[id];return next;})}/>
     <AmazonProducts key={`${filters.from}:${filters.to}:${filters.marketplaceIds.join(',')}`} filters={filters} embedded refreshToken={refreshToken}/>
     {summary&&<details className="amazonDashboardDetails" onToggle={event=>setGraphOpen(event.currentTarget.open)}><summary>Gráfica y desglose del periodo · {dateRangeLabel(filters)}</summary>
     <div className="amazonDashboardSectionHead amazonSelectedPeriodHead"><div><span className="amazonSectionLabel">PERIODO SELECCIONADO</span><h2>{dateRangeLabel(filters)}</h2></div><button className="amazonMoreButton" onClick={()=>setDetailsOpen(true)}>Más detalles <ChevronRight size={15}/></button></div>
@@ -205,6 +206,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
     <div className="amazonAnalyticsGrid">
       <section className="card amazonChartCard">
         <div className="amazonCardHeading"><div><span className="amazonSectionLabel">EVOLUCIÓN</span><strong>Ventas, costes y ganancia</strong></div><span className="amazonCountBadge">{grain==='day'?'Diario':'Mensual'}</span></div>
+        {seriesLoading&&<AmazonLoading>Cargando evolución…</AmazonLoading>}
         <div className="amazonChartOptions" aria-label="Métricas de la gráfica">{chartOptions.map(option=><label key={option.key} style={{'--metric-color':option.color} as React.CSSProperties}><input type="checkbox" checked={effectiveChartMetrics.includes(option.key)} disabled={(option.key==='adsCost'&&summary.adsExcluded)||(effectiveChartMetrics.length===1&&effectiveChartMetrics.includes(option.key))} onChange={()=>setChartMetrics(current=>current.includes(option.key)?current.filter(key=>key!==option.key):[...current,option.key])}/><span>{option.label}</span></label>)}</div>
         {series.length?<div className="amazonChart"><ResponsiveContainer width="100%" height="100%"><LineChart data={series} margin={{top:8,right:16,bottom:0,left:10}}><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey="period" tickFormatter={value=>chartTickLabel(value,grain)} interval="preserveStartEnd" minTickGap={34}/><YAxis width={86} domain={['auto','auto']} tickFormatter={value=>chartMoneyTick(value,settings.amazon.consolidatedCurrency)}/><Tooltip labelFormatter={value=>chartTooltipLabel(value,grain)} formatter={(value:any)=>value==null?'—':money.format(Number(value))}/><Legend/>
           {effectiveChartMetrics.includes('netSales')&&<Line type="monotone" dataKey="netSales" name="Ventas sin IVA" stroke="#2563eb" strokeWidth={2.5} dot={false}/>}

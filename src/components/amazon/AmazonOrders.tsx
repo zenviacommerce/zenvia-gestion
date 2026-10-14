@@ -1,3 +1,4 @@
+import { AmazonLoading } from './AmazonLoading';
 import { useEffect, useState } from 'react';
 import { RefreshCw, Search } from 'lucide-react';
 import { isAmazonConnectivityError, loadAmazonOrders, type AmazonAnalyticsFilters, type AmazonMarketplaceStatus, type AmazonOrderAnalytics, type AmazonPageResult } from '../../services/amazon';
@@ -10,7 +11,7 @@ export function AmazonOrders({filters,marketplaces,refreshToken=0}:{filters:Amaz
   const {settings}=useSettings();
   const money=new Intl.NumberFormat('es-ES',{style:'currency',currency:settings.amazon.consolidatedCurrency});
  const [search,setSearch]=useState('');const [page,setPage]=useState(1);const initialKey=stableCacheKey('amazon:orders',{filters,search:'',page:1,pageSize:25});const initialData=readViewCache<AmazonPageResult<AmazonOrderAnalytics>>(initialKey);const [data,setData]=useState<AmazonPageResult<AmazonOrderAnalytics>>(()=>initialData||{items:[],page:1,pageSize:25,total:0});const [loading,setLoading]=useState(()=>!initialData);const [error,setError]=useState('');
- const refresh=()=>{const key=stableCacheKey('amazon:orders',{filters,search,page,pageSize:25});const cached=readViewCache<AmazonPageResult<AmazonOrderAnalytics>>(key);if(cached)setData(cached);setLoading(!cached);setError('');return loadAmazonOrders(filters,search,page,25).then(next=>{setData(next);writeViewCache(key,next);}).catch(e=>{if(!isAmazonConnectivityError(e))setError(errorMessage(e,'No se pudieron cargar los pedidos.'));}).finally(()=>setLoading(false));};
+ const refresh=()=>{const key=stableCacheKey('amazon:orders',{filters,search,page,pageSize:25});const cached=readViewCache<AmazonPageResult<AmazonOrderAnalytics>>(key);if(cached)setData(cached);setLoading(true);setError('');return loadAmazonOrders(filters,search,page,25).then(next=>{setData(next);writeViewCache(key,next);}).catch(e=>{if(!isAmazonConnectivityError(e))setError(errorMessage(e,'No se pudieron cargar los pedidos.'));}).finally(()=>setLoading(false));};
  useEffect(()=>{void refresh();},[filters.from,filters.to,filters.marketplaceIds.join(','),search,page,refreshToken]);
  const sorting=useSortableTable('amazon-orders',data.items,{
    order:row=>row.amazonOrderId,date:row=>row.purchaseDate,marketplace:row=>formatAmazonMarketplace(row.marketplaceId,marketplaces),
@@ -18,7 +19,7 @@ export function AmazonOrders({filters,marketplaces,refreshToken=0}:{filters:Amaz
    cost:row=>row.productCost,profit:row=>row.profitBeforeAds,
  },{key:'date',direction:'desc'});
  const rows=sorting.rows;
- return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">PEDIDOS</span><strong>Detalle de pedidos</strong></div><label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar pedido"/></label></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}<div className="amazonTableScroll"><table className="amazonTable"><thead><tr>
+ return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">PEDIDOS</span><strong>Detalle de pedidos</strong></div><label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar pedido"/></label></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}{loading&&<AmazonLoading>Cargando pedidos de Amazon…</AmazonLoading>}<div className="amazonTableScroll"><table className="amazonTable"><thead><tr>
 <SortableTableHeader label="Pedido" sortKey="order" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Fecha" sortKey="date" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Marketplace" sortKey="marketplace" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>

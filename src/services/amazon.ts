@@ -176,7 +176,7 @@ async function rpc<T>(name:string,params:Record<string,unknown>,fallback:string)
 
 async function runRpc<T>(name:string,params:Record<string,unknown>,fallback:string,client=getActiveSupabase()):Promise<T>{
   if(/amazon_(?:(?:add|set|delete)_product_mapping|create_product_and_mapping)/.test(name))invalidateAmazonAnalytics();
-  const activity=startActivity({
+  const activity=name.startsWith('amazon_analytics_')?null:startActivity({
     label:AMAZON_ACTIVITY_LABELS[name]||'Cargando datos de Amazon',
     detail:'Esperando respuesta de Amazon Analytics…',
     showAfterMs:350,
@@ -198,24 +198,17 @@ async function runRpc<T>(name:string,params:Record<string,unknown>,fallback:stri
     if(/amazon_(?:(?:add|set|delete)_product_mapping|create_product_and_mapping)/.test(name))invalidateAmazonAnalytics();
     return result.data as T;
   }finally{
-    activity.finish();
+    activity?.finish();
   }
 }
 
 export async function loadAmazonStatus(integrationAccountId?:string):Promise<AmazonStatus>{
-  const activity=startActivity({label:'Comprobando conexión con Amazon',detail:'Consultando el estado de SP-API…',showAfterMs:800,key:'amazon-status',scope:'amazon',maxAgeMs:25000});
+  if(typeof navigator!=='undefined'&&!navigator.onLine)throw offlineError();
   try{
-    if(typeof navigator!=='undefined'&&!navigator.onLine)throw offlineError();
-    try{
-      const {data,error}=await withAmazonTimeout(supabase.functions.invoke('amazon-status',{body:integrationAccountId?{integrationAccountId}:{}}),20000);
-      if(error||!data||data.error){
-        const next=new Error(message(data,error,'No se pudo consultar el estado de Amazon.'));
-        notifyAmazonConnectivityError(next);
-        throw next;
-      }
-      return data as AmazonStatus;
-    }catch(error){notifyAmazonConnectivityError(error);throw error;}
-  }finally{activity.finish();}
+    const {data,error}=await withAmazonTimeout(supabase.functions.invoke('amazon-status',{body:integrationAccountId?{integrationAccountId}:{}}),20000);
+    if(error||!data||data.error)throw new Error(message(data,error,'No se pudo consultar el estado de Amazon.'));
+    return data as AmazonStatus;
+  }catch(error){notifyAmazonConnectivityError(error);throw error;}
 }
 export async function requestAmazonSync(integrationAccountId?:string,options:{waitForOrders?:boolean}={}){
   const activity=startActivity({label:'Sincronizando Amazon',detail:'Solicitando trabajos de sincronización…',showAfterMs:200,key:'amazon-sync',scope:'amazon',maxAgeMs:options.waitForOrders?400000:45000});

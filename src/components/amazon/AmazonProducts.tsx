@@ -1,3 +1,4 @@
+import { AmazonLoading } from './AmazonLoading';
 import { useEffect, useState } from 'react';
 import { ImageOff, Link2, RefreshCw, Search } from 'lucide-react';
 import { isAmazonConnectivityError, loadAmazonProductMetadata, loadAmazonProducts, type AmazonAnalyticsFilters, type AmazonPageResult, type AmazonProductAnalytics, type AmazonProductMetadata, type AmazonProductSort, type AmazonSortDirection } from '../../services/amazon';
@@ -43,7 +44,7 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
     const key=stableCacheKey('amazon:products',{filters,search,page,pageSize,sortBy,sortDir});
     const cached=readViewCache<AmazonPageResult<AmazonProductAnalytics>>(key);
     if(cached)setData(cached);
-    setLoading(!cached);
+    setLoading(true);
     setError('');
     return loadAmazonProducts(filters,search,page,pageSize,sortBy,sortDir)
       .then(next=>{setData(next);writeViewCache(key,next);})
@@ -70,7 +71,7 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
       <label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU, ASIN o producto"/></label>
     </div>
     {error&&!embedded&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}
-    <div className="amazonTableScroll">
+    {loading&&<AmazonLoading>Cargando productos de Amazon…</AmazonLoading>}<div className="amazonTableScroll">
       <table className="amazonTable amazonProductTable">
         <thead>
           <tr>

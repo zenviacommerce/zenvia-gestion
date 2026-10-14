@@ -1,3 +1,4 @@
+import { AmazonLoading } from './AmazonLoading';
 import {amazonCalendarDate} from '../../services/amazonCalendar';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { CalendarDays, ChevronLeft, ChevronRight, RefreshCw, X } from 'lucide-react';
@@ -9,7 +10,7 @@ type Snapshot={data:AmazonSummary|null;error:boolean;loading:boolean;stale?:bool
 const sameRange=(a:AmazonAnalyticsFilters,b:AmazonAnalyticsFilters)=>a.from===b.from&&a.to===b.to;
 const dateLabel=(value:string)=>new Date(value+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'long',year:'numeric'});
 const accents=['#2563eb','#0e7490','#7c3aed','#c2410c','#475569'];
-export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPeriodChange,comparisonNote,visibleKpis,detail,periodOverrides={},onPeriodCustomize,calendarDay}:{filters:AmazonAnalyticsFilters;summary:AmazonSummary|null;currency:string;refreshToken:number;onPeriodChange?:(filters:AmazonAnalyticsFilters)=>void;comparisonNote?:string;visibleKpis?:AmazonKpiKey[];detail?:AmazonDetail|null;periodOverrides?:Record<string,{from:string;to:string}>;onPeriodCustomize?:(id:string,range:{from:string;to:string}|null)=>void;calendarDay?:string}){
+export function AmazonPeriodCards({filters,summary,summaryLoading=false,currency,refreshToken,onPeriodChange,comparisonNote,visibleKpis,detail,periodOverrides={},onPeriodCustomize,calendarDay}:{filters:AmazonAnalyticsFilters;summary:AmazonSummary|null;summaryLoading?:boolean;currency:string;refreshToken:number;onPeriodChange?:(filters:AmazonAnalyticsFilters)=>void;comparisonNote?:string;visibleKpis?:AmazonKpiKey[];detail?:AmazonDetail|null;periodOverrides?:Record<string,{from:string;to:string}>;onPeriodCustomize?:(id:string,range:{from:string;to:string}|null)=>void;calendarDay?:string}){
   const now=calendarDay?amazonCalendarDate(calendarDay):new Date();
   const bases=amazonDashboardPeriods(now,filters.marketplaceIds);
   const periods=bases.map(period=>({...period,filters:{...period.filters,...(period.id==='forecast'?{}:periodOverrides[period.id])},custom:period.id!=='forecast'&&Boolean(periodOverrides[period.id])}));
@@ -107,6 +108,7 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
         refundCountError:Boolean(monthSnapshot?.refundCountError||todaySnapshot?.refundCountError),
       }:periodSnapshot;
       const data=forecast?forecastData:matches?summary:periodSnapshot?.data;
+      const busy=matches?summaryLoading:Boolean(snapshot?.loading)||(forecast&&summaryLoading&&(sameRange(monthBase.filters,filters)||sameRange(todayPeriod.filters,filters)));
       const monthRefunds=monthData?.refundTransactions??(sameRange(monthBase.filters,filters)?detail?.refundTransactions:snapshots[snapshotKey(monthBase.filters)]?.refundCount);
       const todayRefunds=todayData?.refundTransactions??(sameRange(todayPeriod.filters,filters)?detail?.refundTransactions:snapshots[snapshotKey(bases[0].filters)]?.refundCount);
       const completedDays=now.getDate()-1;
@@ -117,10 +119,11 @@ export function AmazonPeriodCards({filters,summary,currency,refreshToken,onPerio
       const refundGross=forecast?monthRefundGross!=null&&todayRefundGross!=null&&completedDays>0?(monthRefundGross-todayRefundGross)*forecastFactor:null:data?.refundGrossImpact??(matches?detail?.refundGrossImpact??periodSnapshot?.refundGrossImpact:periodSnapshot?.refundGrossImpact);
       const more=expanded.includes(period.id);
       const metric=(value:number|null|undefined)=>value==null?'—':money.format(value);
-      return <article className={`card amazonPeriodCard ${selected?'isSelected':''}`} style={{'--period-accent':accents[index%accents.length]} as CSSProperties} key={period.id} data-period-id={period.id} aria-busy={snapshot?.loading||false}>
+      return <article className={`card amazonPeriodCard ${selected?'isSelected':''}`} style={{'--period-accent':accents[index%accents.length]} as CSSProperties} key={period.id} data-period-id={period.id} aria-busy={busy}>
         {onPeriodChange&&<button type="button" className="amazonPeriodSelect" aria-label={`Mostrar productos de ${period.label}`} aria-pressed={selected} aria-controls="amazon-period-products" onClick={()=>onPeriodChange(forecast?monthBase.filters:period.filters)}/>}
         <header><h3>{period.custom?'Personalizado':period.label}</h3>{forecast?<span className="amazonTileDate">{dateLabel(period.filters.from)} – {dateLabel(period.filters.to)}</span>:<button type="button" className="amazonTileDate" aria-label={`Cambiar fechas de ${period.label}`} onClick={event=>{dateTrigger.current=event.currentTarget;setDateError('');setEditor({id:period.id,label:period.label,from:period.filters.from,to:period.filters.to});}}><span>{period.filters.from===period.filters.to?dateLabel(period.filters.from):dateLabel(period.filters.from)+' – '+dateLabel(period.filters.to)}</span><CalendarDays size={14}/></button>}</header>
         <div className="amazonPeriodBody">
+          {busy&&<AmazonLoading>{data?'Actualizando periodo…':'Cargando periodo…'}</AmazonLoading>}
           {show('grossSales')&&<div className="amazonPeriodSales"><span>Ventas</span><strong>{metric(data?.grossSales)}</strong></div>}
           <dl className="amazonPeriodMetrics">
             {(show('orders')||show('units'))&&<div><dt>{show('orders')&&show('units')?'Pedidos / unidades':show('orders')?'Pedidos':'Unidades'}</dt><dd>{data?[...(show('orders')?[data.orders.toLocaleString('es-ES')]:[]),...(show('units')?[data.units.toLocaleString('es-ES')]:[])].join(' / '):'—'}</dd></div>}

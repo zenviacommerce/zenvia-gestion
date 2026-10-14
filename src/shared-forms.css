@@ -52,4 +52,3 @@ html[data-theme="dark"] .searchableSelectOption small,html[data-theme="dark"] .s
 .sharedCheckboxReset{width:100%;text-align:left;border:0;border-radius:8px;padding:9px 10px;background:transparent;color:var(--text);font:inherit;cursor:pointer}
 .sharedCheckboxReset:hover,.sharedCheckboxReset.isActive{background:var(--surface-soft)}.sharedCheckboxReset.isActive{color:var(--primary,#0f766e);font-weight:600}.sharedCheckboxReset:focus-visible{outline:2px solid var(--primary,#0f766e);outline-offset:2px}
 
-.pageSizeSelect{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:var(--ui-font-xs,12px)}.pageSizeSelect .searchableSelect{min-width:84px}

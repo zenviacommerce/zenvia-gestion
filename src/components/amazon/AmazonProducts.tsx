@@ -1,4 +1,3 @@
-import { PageSizeSelect } from '../forms/PageSizeSelect';
 import { ProductMappingAction } from '../ProductMappingAction';
 import { AmazonLoading } from './AmazonLoading';
 import { useEffect, useState } from 'react';
@@ -71,7 +70,7 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
         <strong>Productos</strong>
         <p>Ordena por cualquier métrica. Beneficio y margen por producto se muestran antes de publicidad y costes globales no atribuibles.</p>
       </div>
-      <PageSizeSelect/>
+      
       <label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU, ASIN o producto"/></label>
     </div>
     {error&&!embedded&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}

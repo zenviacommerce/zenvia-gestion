@@ -1,13 +1,21 @@
 import { useEffect, useState } from 'react';
 import { ChevronRight, RefreshCw, X } from 'lucide-react';
 import { CartesianGrid, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { isAmazonConnectivityError, loadAmazonDetail, loadAmazonSeries, loadAmazonSummary, type AmazonAnalyticsFilters, type AmazonDetail, type AmazonKpiKey, type AmazonSummary as AmazonSummaryData } from '../../services/amazon';
+import { isAmazonConnectivityError, loadAmazonDetail, loadAmazonSeries, loadAmazonSummary, type AmazonAnalyticsFilters, type AmazonDetail, type AmazonKpiKey, type AmazonSeriesPoint, type AmazonSummary as AmazonSummaryData } from '../../services/amazon';
 import { errorMessage } from '../../services/toast';
+import { AmazonPeriodCards } from './AmazonPeriodCards';
+import { amazonComparisonRange, amazonMetricChange, amazonProfitBridge } from '../../services/amazonDashboard';
 import { AmazonCompleteness } from './AmazonCompleteness';
 import { AmazonProducts } from './AmazonProducts';
 import { readViewCache, stableCacheKey, writeViewCache } from '../../services/viewCache';
 import { useSettings } from '../../context/SettingsContext';
 
+const chartOptions=[
+  {key:'netSales',label:'Ventas sin IVA',color:'#2563eb'},
+  {key:'netProfit',label:'Ganancia neta',color:'#16a34a'},
+  {key:'adsCost',label:'Publicidad',color:'#a855f7'},
+  {key:'refunds',label:'Reembolsos',color:'#ea580c'},
+];
 const integer=new Intl.NumberFormat('es-ES',{maximumFractionDigits:0});
 function spanDays(filters:AmazonAnalyticsFilters){return Math.max(1,Math.round((new Date(`${filters.to}T00:00:00`).getTime()-new Date(`${filters.from}T00:00:00`).getTime())/86400000)+1);}
 function dateRangeLabel(filters:AmazonAnalyticsFilters){const fmt=(value:string)=>new Date(value+'T12:00:00').toLocaleDateString('es-ES');return fmt(filters.from)+' – '+fmt(filters.to);}
@@ -41,7 +49,7 @@ function chartMoneyTick(value:unknown,currency:string){
 }
 function DetailRow({label,value,note}:{label:string;value:string;note?:string}){return <div className="amazonDetailsRow"><div><span>{label}</span>{note&&<small>{note}</small>}</div><strong>{value}</strong></div>;}
 
-export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis}:{filters:AmazonAnalyticsFilters;onLoaded?:(summary:AmazonSummaryData)=>void;refreshToken?:number;visibleKpis?:AmazonKpiKey[]}){
+export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPeriodChange}:{filters:AmazonAnalyticsFilters;onLoaded?:(summary:AmazonSummaryData)=>void;refreshToken?:number;visibleKpis?:AmazonKpiKey[];onPeriodChange?:(filters:AmazonAnalyticsFilters)=>void}){
   const {settings}=useSettings();
   const money=new Intl.NumberFormat('es-ES',{style:'currency',currency:settings.amazon.consolidatedCurrency});
   const summaryCacheKey=stableCacheKey('amazon:summary',filters);
@@ -49,7 +57,12 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis}:{fil
   const seriesCacheKey=stableCacheKey('amazon:series',{...filters,grain:spanDays(filters)>93?'month':'day'});
   const [summary,setSummary]=useState<AmazonSummaryData|null>(()=>readViewCache<AmazonSummaryData>(summaryCacheKey));
   const [detail,setDetail]=useState<AmazonDetail|null>(()=>readViewCache<AmazonDetail>(detailCacheKey));
-  const [series,setSeries]=useState<any[]>(()=>readViewCache<any[]>(seriesCacheKey)||[]);
+  const [series,setSeries]=useState<AmazonSeriesPoint[]>(()=>readViewCache<AmazonSeriesPoint[]>(seriesCacheKey)||[]);
+  const comparisonFilters=amazonComparisonRange(filters);
+  const [previous,setPrevious]=useState<AmazonSummaryData|null>(()=>readViewCache<AmazonSummaryData>(stableCacheKey('amazon:summary',comparisonFilters)));
+  const [chartMetrics,setChartMetrics]=useState<string[]>(['netSales','netProfit']);
+  const [comparisonLoading,setComparisonLoading]=useState(false);
+  const [seriesLoading,setSeriesLoading]=useState(false);
   const [detailsOpen,setDetailsOpen]=useState(false);
   const [loading,setLoading]=useState(()=>!readViewCache<AmazonSummaryData>(summaryCacheKey));
   const [error,setError]=useState('');
@@ -63,10 +76,12 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis}:{fil
     const currentSeriesKey=stableCacheKey('amazon:series',{...filters,grain});
     const cachedSummary=readViewCache<AmazonSummaryData>(currentSummaryKey);
     const cachedDetail=readViewCache<AmazonDetail>(currentDetailKey);
-    const cachedSeries=readViewCache<any[]>(currentSeriesKey);
-    if(cachedSummary){setSummary(cachedSummary);onLoaded?.(cachedSummary);}
-    if(cachedDetail)setDetail(cachedDetail);
-    if(cachedSeries)setSeries(cachedSeries);
+    const cachedSeries=readViewCache<AmazonSeriesPoint[]>(currentSeriesKey);
+    setSummary(cachedSummary);if(cachedSummary)onLoaded?.(cachedSummary);
+    setDetail(cachedDetail);
+    setSeries(cachedSeries||[]);setSeriesLoading(!cachedSeries);
+    const comparisonKey=stableCacheKey('amazon:summary',comparisonFilters);
+    setPrevious(readViewCache<AmazonSummaryData>(comparisonKey));setComparisonLoading(true);
     setLoading(!cachedSummary);setError('');
     const run=async()=>{
       try{
@@ -78,11 +93,17 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis}:{fil
         // the whole Amazon page.
         setLoading(false);
 
+        // Comparison is optional and must never hold up the trend or details.
+        void loadAmazonSummary(comparisonFilters).then(value=>{
+          if(alive){setPrevious(value);writeViewCache(comparisonKey,value);}
+        }).catch(()=>{/* Keep an available comparison cache; primary data remains usable. */})
+          .finally(()=>{if(alive)setComparisonLoading(false);});
         const [detailResult,seriesResult]=await Promise.allSettled([
           loadAmazonDetail(filters),
           loadAmazonSeries(filters,grain),
         ]);
         if(!alive)return;
+        setSeriesLoading(false);
         if(detailResult.status==='fulfilled'){
           setDetail(detailResult.value);writeViewCache(currentDetailKey,detailResult.value);
         }else if(!isAmazonConnectivityError(detailResult.reason)){
@@ -94,9 +115,10 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis}:{fil
           setError(errorMessage(seriesResult.reason,'No se pudo cargar la evolución de Amazon.'));
         }
       }catch(reason){
+        if(alive)setComparisonLoading(false);
         if(alive&&!isAmazonConnectivityError(reason))setError(errorMessage(reason,'No se pudo cargar Amazon Analytics.'));
       }finally{
-        if(alive)setLoading(false);
+        if(alive){setLoading(false);setSeriesLoading(false);}
       }
     };
     void run();
@@ -117,19 +139,42 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis}:{fil
     {kpiKey:'businessOrders' as const,label:'Pedidos B2B',value:integer.format(summary.businessOrders||0)},
     {kpiKey:'units' as const,label:'Unidades vendidas',value:integer.format(summary.units)},
     {kpiKey:'amazonFees' as const,label:'Tarifas Amazon sin IVA',value:money.format(summary.amazonFees)},
-    {kpiKey:'adsCost' as const,label:'Publicidad',value:money.format(summary.adsCost)},
+    {kpiKey:'adsCost' as const,label:'Publicidad',value:summary.adsExcluded?'No disponible':money.format(summary.adsCost)},
     {kpiKey:'refunds' as const,label:'Reembolsos',value:money.format(summary.refunds),note:detail?integer.format(detail.refundTransactions)+' operaciones · '+integer.format(detail.refundOrders)+' pedidos':undefined},
     {kpiKey:'productCost' as const,label:'Coste producto',value:money.format(summary.productCost)},
     {kpiKey:'fbmShippingCost' as const,label:'Coste envíos FBM',value:money.format(summary.fbmShippingCost)},
-    {kpiKey:'netProfit' as const,label:'Ganancia neta',value:money.format(summary.netProfit??0),note:!summary.profitComplete?'Provisional':undefined},
+    {kpiKey:'netProfit' as const,label:'Ganancia neta',value:summary.netProfit==null?'—':money.format(summary.netProfit),note:!summary.profitComplete?'Provisional':undefined},
     {kpiKey:'marginPct' as const,label:'Margen neto',value:summary.marginPct==null?'—':summary.marginPct.toFixed(1)+' %',note:!summary.profitComplete?'Provisional':undefined},
   ].filter(card=>showAllKpis||visibleKpiSet.has(card.kpiKey));
 
+  const primaryOrder:AmazonKpiKey[]=['grossSales','netProfit','marginPct','orders','units'];
+  const primaryKeys=new Set<AmazonKpiKey>(primaryOrder);
+  const effectiveChartMetrics=chartMetrics.filter(key=>key!=='adsCost'||!summary.adsExcluded);
+  if(!effectiveChartMetrics.length)effectiveChartMetrics.push('netSales');
+  const renderCard=(card:typeof cards[number])=>{
+    const currentValue=summary[card.kpiKey];
+    const previousValue=previous?.[card.kpiKey];
+    const change=card.kpiKey==='marginPct'
+      ?currentValue==null||previousValue==null?null:currentValue-previousValue
+      :amazonMetricChange(currentValue,previousValue);
+    const costKeys=new Set<AmazonKpiKey>(['amazonFees','adsCost','refunds','productCost','fbmShippingCost']);
+    const favorable=change!=null&&(costKeys.has(card.kpiKey)?change<=0:change>=0);
+    const showChange=change!=null&&!(card.kpiKey==='adsCost'&&(summary.adsExcluded||previous?.adsExcluded));
+    return <article className={`card amazonKpiCard ${card.kpiKey==='netProfit'?'amazonFeaturedProfit':''}`} key={card.kpiKey}>
+      <span>{card.label}</span><strong className={card.kpiKey==='netProfit'&&summary.netProfit!=null&&summary.netProfit<0?'isNegative':''}>{card.value}</strong>
+      {showChange&&<div className={`amazonKpiChange ${favorable?'isFavorable':'isUnfavorable'}`} title={`Frente a ${dateRangeLabel(comparisonFilters)}`}><span>{change>0?'↑':change<0?'↓':'='} {Math.abs(change).toLocaleString('es-ES',{maximumFractionDigits:1})}{card.kpiKey==='marginPct'?' pp':' %'}</span><span>vs. anterior</span></div>}
+      {card.note&&<small>{card.note}</small>}
+    </article>;
+  };
+
   return <div className="amazonSummary">
     {error&&<div className="card amazonQueryError"><span>{error}</span><button className="secondary" onClick={()=>setRetryToken(value=>value+1)}><RefreshCw size={15}/> Reintentar</button></div>}
+    <AmazonPeriodCards filters={filters} summary={summary} currency={settings.amazon.consolidatedCurrency} refreshToken={refreshToken} onPeriodChange={onPeriodChange}/>
+    <div className="amazonDashboardSectionHead amazonSelectedPeriodHead"><div><span className="amazonSectionLabel">PERIODO SELECCIONADO</span><h2>{dateRangeLabel(filters)}</h2></div><button className="amazonMoreButton" onClick={()=>setDetailsOpen(true)}>Más detalles <ChevronRight size={15}/></button></div>
     <AmazonCompleteness data={summary}/>
-    <div className="amazonKpiGrid">{cards.map(card=><article className="card amazonKpiCard" key={card.label}><span>{card.label}</span><strong>{card.value}</strong>{card.note&&<small>{card.note}</small>}</article>)}</div>
-    <button className="amazonMoreButton" onClick={()=>setDetailsOpen(true)}>Más detalles <ChevronRight size={15}/></button>
+    <div className="amazonKpiGrid amazonProfitKpis">{cards.filter(card=>primaryKeys.has(card.kpiKey)).sort((a,b)=>primaryOrder.indexOf(a.kpiKey)-primaryOrder.indexOf(b.kpiKey)).map(renderCard)}</div>
+    <div className="amazonSecondaryKpis">{cards.filter(card=>!primaryKeys.has(card.kpiKey)).map(renderCard)}</div>
+    <p className="amazonComparisonCaption">Comparativa: {dateRangeLabel(comparisonFilters)}{!previous?comparisonLoading?' · Comparando…':' · No disponible':!summary.profitComplete||!previous.profitComplete?' · Rentabilidad provisional':''}</p>
 
     {detailsOpen&&<div className="amazonDetailsBackdrop" onMouseDown={event=>{if(event.target===event.currentTarget)setDetailsOpen(false)}}>
       <section className="amazonDetailsModal" role="dialog" aria-modal="true" aria-label="Detalle de Amazon">
@@ -170,7 +215,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis}:{fil
             <DetailRow label="Coste de producto" value={money.format(summary.productCost)} note={summary.unmappedUnits?integer.format(summary.unmappedUnits)+' uds. todavía sin coste vinculado.':undefined}/>
             <DetailRow label="Coste envíos FBM" value={money.format(summary.fbmShippingCost)}/>
             <DetailRow label="Ajustes Amazon" value={money.format(summary.amazonAdjustments)}/>
-            <DetailRow label="Ganancia neta" value={money.format(summary.netProfit??0)} note={!summary.profitComplete?'Provisional por datos pendientes.':undefined}/>
+            <DetailRow label="Ganancia neta" value={summary.netProfit==null?'—':money.format(summary.netProfit)} note={!summary.profitComplete?'Provisional por datos pendientes.':undefined}/>
             <DetailRow label="Margen neto" value={summary.marginPct==null?'—':summary.marginPct.toFixed(2)+' %'}/>
           </section>
           <section><h4>Calidad del dato</h4>
@@ -186,24 +231,26 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis}:{fil
       </section>
     </div>}
 
-    <section className="card amazonChartCard">
-      <div className="amazonCardHeading"><div><span className="amazonSectionLabel">EVOLUCIÓN</span><strong>Ventas y ganancia neta</strong></div><span className="amazonCountBadge">{grain==='day'?'Diario':'Mensual'}</span></div>
-      <div className="amazonChart"><ResponsiveContainer width="100%" height="100%"><LineChart data={series} margin={{top:8,right:16,bottom:0,left:10}}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="period" tickFormatter={value=>chartTickLabel(value,grain)} interval="preserveStartEnd" minTickGap={34}/><YAxis width={86} domain={['auto','auto']} tickFormatter={value=>chartMoneyTick(value,settings.amazon.consolidatedCurrency)}/><Tooltip labelFormatter={value=>chartTooltipLabel(value,grain)} formatter={(value:any)=>money.format(Number(value))}/><Legend/><Line type="monotone" dataKey="netSales" name="Ventas sin IVA" stroke="currentColor" strokeWidth={2} dot={false}/><Line type="monotone" dataKey="netProfit" name="Ganancia neta" stroke="currentColor" strokeDasharray="6 4" strokeWidth={2} dot={false}/></LineChart></ResponsiveContainer></div>
-    </section>
+    <div className="amazonAnalyticsGrid">
+      <section className="card amazonChartCard">
+        <div className="amazonCardHeading"><div><span className="amazonSectionLabel">EVOLUCIÓN</span><strong>Ventas, costes y ganancia</strong></div><span className="amazonCountBadge">{grain==='day'?'Diario':'Mensual'}</span></div>
+        <div className="amazonChartOptions" aria-label="Métricas de la gráfica">{chartOptions.map(option=><label key={option.key} style={{'--metric-color':option.color} as React.CSSProperties}><input type="checkbox" checked={effectiveChartMetrics.includes(option.key)} disabled={(option.key==='adsCost'&&summary.adsExcluded)||(effectiveChartMetrics.length===1&&effectiveChartMetrics.includes(option.key))} onChange={()=>setChartMetrics(current=>current.includes(option.key)?current.filter(key=>key!==option.key):[...current,option.key])}/><span>{option.label}</span></label>)}</div>
+        {series.length?<div className="amazonChart"><ResponsiveContainer width="100%" height="100%"><LineChart data={series} margin={{top:8,right:16,bottom:0,left:10}}><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey="period" tickFormatter={value=>chartTickLabel(value,grain)} interval="preserveStartEnd" minTickGap={34}/><YAxis width={86} domain={['auto','auto']} tickFormatter={value=>chartMoneyTick(value,settings.amazon.consolidatedCurrency)}/><Tooltip labelFormatter={value=>chartTooltipLabel(value,grain)} formatter={(value:any)=>value==null?'—':money.format(Number(value))}/><Legend/>
+          {effectiveChartMetrics.includes('netSales')&&<Line type="monotone" dataKey="netSales" name="Ventas sin IVA" stroke="#2563eb" strokeWidth={2.5} dot={false}/>}
+          {effectiveChartMetrics.includes('netProfit')&&<Line type="monotone" dataKey="netProfit" name="Ganancia neta" stroke="#16a34a" strokeWidth={2.5} dot={false} connectNulls={false}/>}
+          {effectiveChartMetrics.includes('adsCost')&&<Line type="monotone" dataKey="adsCost" name="Publicidad" stroke="#a855f7" strokeWidth={2} dot={false}/>}
+          {effectiveChartMetrics.includes('refunds')&&<Line type="monotone" dataKey="refunds" name="Reembolsos" stroke="#ea580c" strokeWidth={2} dot={false}/>}
+        </LineChart></ResponsiveContainer></div>:<div className="amazonChartEmpty">{seriesLoading?'Cargando evolución…':'No hay datos de evolución disponibles para este periodo.'}</div>}
+      </section>
+      <section className="card amazonProfitStatement">
+        <div className="amazonCardHeading"><div><span className="amazonSectionLabel">CUENTA DE RESULTADOS</span><strong>De las ventas al beneficio</strong></div></div>
+        <div className="amazonProfitBridge">{amazonProfitBridge(summary).map(row=><div key={row.key} className={`amazonProfitBridgeRow is-${row.kind}`}><span>{row.label}</span><strong className={row.amount!=null&&row.amount<0?'isNegative':row.kind==='total'?'isPositive':''}>{row.key==='adsCost'&&summary.adsExcluded?'No disponible':row.amount==null?'—':(row.kind==='movement'&&row.amount>0&&row.key!=='grossSales'?'+':'')+money.format(row.amount)}</strong></div>)}</div>
+        <div className="amazonStatementFoot"><span>Margen neto</span><strong>{summary.marginPct==null?'—':summary.marginPct.toLocaleString('es-ES',{maximumFractionDigits:1})+' %'}</strong></div>
+        <p className="amazonStatementNote">{!summary.profitComplete?'Resultado provisional por datos pendientes. ':''}El IVA recuperable de las tarifas ({money.format(summary.amazonFeeVat)}) se muestra en el detalle y no se resta de nuevo al beneficio.</p>
+      </section>
+    </div>
 
-    {!loading&&<AmazonProducts filters={filters} embedded refreshToken={refreshToken}/>} 
+    {!loading&&<AmazonProducts filters={filters} embedded refreshToken={refreshToken}/>}
 
-    <section className="card amazonMiniCard amazonCostBreakdownWide">
-      <span className="amazonSectionLabel">DESGLOSE DE COSTES</span>
-      <div className="amazonCostRows amazonCostRowsGrid">
-        <div><span>Tarifas Amazon sin IVA</span><strong>{money.format(summary.amazonFees)}</strong></div>
-        <div><span>IVA soportado tarifas Amazon</span><strong>{money.format(summary.amazonFeeVat)}</strong></div>
-        <div><span>Publicidad</span><strong>{money.format(summary.adsCost)}</strong></div>
-        <div><span>Coste producto</span><strong>{money.format(summary.productCost)}</strong></div>
-        <div><span>Coste envíos FBM</span><strong>{money.format(summary.fbmShippingCost)}</strong></div>
-        <div><span>Reembolsos</span><strong>{money.format(summary.refunds)}</strong></div>
-        <div><span>Ajustes Amazon</span><strong>{money.format(summary.amazonAdjustments)}</strong></div>
-      </div>
-    </section>
   </div>;
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PeriodFilterPanel, quickPresets } from '../PeriodFilterPanel';
 import type { DateRangeFilter, PeriodPreset } from '../../services/filters';
 import { amazonQuickRange, type AmazonAnalyticsFilters, type AmazonMarketplaceStatus, type AmazonRangeKey } from '../../services/amazon';
@@ -7,6 +7,13 @@ const presets:readonly (readonly [PeriodPreset,string])[]=[...quickPresets.filte
 
 export function AmazonFilters({filters,marketplaces,initialPreset='current_month',onChange}:{filters:AmazonAnalyticsFilters;marketplaces:AmazonMarketplaceStatus[];initialPreset?:AmazonRangeKey;onChange:(filters:AmazonAnalyticsFilters)=>void}){
   const [preset,setPreset]=useState<AmazonRangeKey>(initialPreset);
+  useEffect(()=>{
+    setPreset(current=>{
+      const matches=(key:AmazonRangeKey)=>{const range=amazonQuickRange(key,new Date());return range.from===filters.from&&range.to===filters.to;};
+      if(current!=='custom'&&matches(current))return current;
+      return (presets.find(([key])=>key!=='custom'&&matches(key as AmazonRangeKey))?.[0] as AmazonRangeKey|undefined)||'custom';
+    });
+  },[filters.from,filters.to]);
   const apply=(next:DateRangeFilter)=>{
     const key=next.preset as AmazonRangeKey;
     setPreset(key);

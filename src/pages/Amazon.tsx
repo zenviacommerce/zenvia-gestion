@@ -132,12 +132,12 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
     {connected?<>
       <AmazonFilters filters={filters} marketplaces={marketplaces} initialPreset={defaultPreset} onChange={setFilters}/>
       <nav className="amazonTabs" aria-label="Secciones de Amazon Analytics">{tabs.map(([key,label])=><button key={key} className={activeTab===key?'isActive':''} onClick={()=>setActiveTab(key)}>{label}{key==='unmapped'&&summaryMeta?.unmappedSkuCount? <span>{summaryMeta.unmappedSkuCount}</span>:null}</button>)}</nav>
-      {activeTab==='summary'&&<AmazonSummary filters={filters} onLoaded={handleSummary} refreshToken={analyticsRefresh} visibleKpis={visibleKpis}/>} 
-      {activeTab==='products'&&<AmazonProducts filters={filters} refreshToken={analyticsRefresh}/>} 
-      {activeTab==='marketplaces'&&<AmazonMarketplaces filters={filters} refreshToken={analyticsRefresh}/>} 
-      {activeTab==='orders'&&<AmazonOrders filters={filters} marketplaces={marketplaces} refreshToken={analyticsRefresh}/>} 
-      {activeTab==='inventory'&&<AmazonInventory filters={filters} marketplaces={marketplaces} refreshToken={analyticsRefresh}/>} 
-      {activeTab==='unmapped'&&<AmazonUnmapped onChanged={()=>setSummaryMeta(null)} refreshToken={analyticsRefresh} defaultConsumptionFactor={amazonSettings.defaultConsumptionFactor}/>} 
+      {activeTab==='summary'&&<AmazonSummary filters={filters} onLoaded={handleSummary} refreshToken={analyticsRefresh} visibleKpis={visibleKpis} onPeriodChange={setFilters}/>}
+      {activeTab==='products'&&<AmazonProducts filters={filters} refreshToken={analyticsRefresh}/>}
+      {activeTab==='marketplaces'&&<AmazonMarketplaces filters={filters} refreshToken={analyticsRefresh}/>}
+      {activeTab==='orders'&&<AmazonOrders filters={filters} marketplaces={marketplaces} refreshToken={analyticsRefresh}/>}
+      {activeTab==='inventory'&&<AmazonInventory filters={filters} marketplaces={marketplaces} refreshToken={analyticsRefresh}/>}
+      {activeTab==='unmapped'&&<AmazonUnmapped onChanged={()=>setSummaryMeta(null)} refreshToken={analyticsRefresh} defaultConsumptionFactor={amazonSettings.defaultConsumptionFactor}/>}
     </>:<section className="card amazonDisconnected"><strong>Amazon Analytics todavía no está disponible.</strong><p>{loading?'Comprobando la conexión segura con Amazon SP-API…':status?.configured?'Las credenciales están configuradas, pero la conexión no está operativa.':isAdmin?'Completa la configuración segura de Amazon SP-API en el backend.':'El administrador debe completar la conexión con Amazon.'}</p></section>}
   </div>;
 }

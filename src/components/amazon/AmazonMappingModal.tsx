@@ -48,7 +48,7 @@ export function AmazonMappingModal({sellerSku,asin,imageUrl,productName,initialF
         <button className="amazonMappingModalClose" type="button" onClick={onClose} aria-label="Cerrar"><X size={19}/></button>
       </header>
       <div className="amazonMappingModalBody">
-        <AmazonMappingEditor sellerSku={sellerSku} defaultFactor={initialFactor} onChanged={onChanged} onCancel={onClose}/>
+        <AmazonMappingEditor sellerSku={sellerSku} productName={resolvedName} defaultFactor={initialFactor} onChanged={onChanged} onCancel={onClose}/>
       </div>
     </section>
   </div>;

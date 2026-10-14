@@ -163,3 +163,5 @@
   .amazonMappingModal .amazonMappingActions{grid-template-columns:1fr}
   .amazonMappingModal .amazonMappingActions button{width:100%;min-height:44px}
 }
+
+.amazonMappingPane{display:grid;gap:12px;align-content:start;min-width:0}

@@ -30,6 +30,7 @@ export type AmazonCompleteness={
   missingFxEventCount:number;missingVatOrderCount:number;missingFbmShippingCostCount:number;syncQueued:number;syncRunning:number;syncFailed:number;adsExcluded:boolean;
 };
 export type AmazonSummary=AmazonCompleteness&{
+  dailyAdsAvailable?:boolean;
   grossSales:number;salesVat:number;netSales:number;orders:number;businessOrders:number;units:number;
   amazonFees:number;amazonFeeVat:number;refunds:number;adsCost:number;amazonAdjustments:number;
   productCost:number;fbmShippingCost:number;netProfit:number|null;marginPct:number|null;
@@ -150,6 +151,7 @@ const AMAZON_ACTIVITY_LABELS:Record<string,string>={
   amazon_analytics_inventory:'Cargando inventario de Amazon',
   amazon_analytics_unmapped_skus:'Cargando SKU sin vincular',
   amazon_get_product_mappings:'Cargando vínculos de Amazon',
+  amazon_create_product_and_mapping:'Creando y vinculando producto',
   amazon_add_product_mapping:'Añadiendo componente de Amazon',
   amazon_set_product_mapping:'Guardando vínculo de Amazon',
   amazon_delete_product_mapping:'Eliminando vínculo de Amazon',
@@ -170,7 +172,7 @@ async function rpc<T>(name:string,params:Record<string,unknown>,fallback:string)
 }
 
 async function runRpc<T>(name:string,params:Record<string,unknown>,fallback:string,client=getActiveSupabase()):Promise<T>{
-  if(/amazon_(?:add|set|delete)_product_mapping/.test(name))invalidateAmazonAnalytics();
+  if(/amazon_(?:(?:add|set|delete)_product_mapping|create_product_and_mapping)/.test(name))invalidateAmazonAnalytics();
   const activity=startActivity({
     label:AMAZON_ACTIVITY_LABELS[name]||'Cargando datos de Amazon',
     detail:'Esperando respuesta de Amazon Analytics…',
@@ -198,7 +200,7 @@ async function runRpc<T>(name:string,params:Record<string,unknown>,fallback:stri
       notifyAmazonConnectivityError(error);
       throw error;
     }
-    if(/amazon_(?:add|set|delete)_product_mapping/.test(name))invalidateAmazonAnalytics();
+    if(/amazon_(?:(?:add|set|delete)_product_mapping|create_product_and_mapping)/.test(name))invalidateAmazonAnalytics();
     return result.data as T;
   }finally{
     activity.finish();
@@ -261,6 +263,12 @@ export async function loadAmazonProductMappings(sellerSku:string){
   return mappings.map(mapping=>{const product=costs.get(mapping.productId);return {...mapping,unitCost:product?.last_cost==null?null:Number(product.last_cost),costUnit:product?.cost_unit||product?.base_unit||null};});
 }
 export function setAmazonProductMapping(input:{sellerSku:string;productId:string;consumptionFactor:number}){return rpc<{ok:true;skuAssigned?:boolean}>('amazon_add_product_mapping',{seller_sku:input.sellerSku,product_id:input.productId,consumption_factor:input.consumptionFactor},'No se pudo guardar el vínculo del producto.');}
+export function createAmazonProductAndMapping(input:{sellerSku:string;name:string;sku:string;unit:string;unitCost:number|null;costFrom:string|null;consumptionFactor:number}){
+  return rpc<{ok:true;created:true;productId:string}>('amazon_create_product_and_mapping',{
+    seller_sku:input.sellerSku,product_name:input.name,internal_sku:input.sku,base_unit:input.unit,
+    unit_cost:input.unitCost,cost_from:input.costFrom,consumption_factor:input.consumptionFactor,
+  },'No se pudo crear y vincular el producto.');
+}
 export function deleteAmazonProductMapping(sellerSku:string){return rpc<{ok:true;deleted:number}>('amazon_delete_product_mapping',{seller_sku:sellerSku},'No se pudo eliminar el vínculo del producto.');}
 export function deleteAmazonProductMappingItem(sellerSku:string,productId:string){return rpc<{ok:true;deleted:number}>('amazon_delete_product_mapping_item',{seller_sku:sellerSku,product_id:productId},'No se pudo eliminar el componente del producto.');}
 export async function loadAmazonProductMetadata(asins:string[]):Promise<Record<string,AmazonProductMetadata>>{

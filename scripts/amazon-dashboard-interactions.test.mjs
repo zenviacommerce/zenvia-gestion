@@ -29,14 +29,14 @@ const result=await build({stdin:{contents:"export {AmazonSummary} from './src/co
 await writeFile(bundle,result.outputFiles[0].text);
 const {AmazonSummary,ActualAmazonProducts,AmazonFilters}=await import(bundle.href);
 await unlink(bundle);
-async function setup(failSummary=false,initialFilters={from:'2026-10-01',to:'2026-10-14',marketplaceIds:['ES']}){
+async function setup(failSummary=false,initialFilters={from:'2026-10-01',to:'2026-10-14',marketplaceIds:['ES']},summaryOverride={}){
  const w=new Window({url:'https://dashboard.test/'});
  for(const name of ['window','document','HTMLElement','Element','Node','Event'])globalThis[name]=name==='window'?w:name==='document'?w.document:w[name];
  globalThis.IS_REACT_ACT_ENVIRONMENT=true;
  globalThis.requestAnimationFrame=callback=>{queueMicrotask(()=>callback(0));return 0};
  globalThis.cancelAnimationFrame=()=>{};
  const calls=[];
- globalThis.__amazonUi={summary:async filters=>{calls.push(filters);if(failSummary)throw new Error('Servicio no disponible');return {...summary}},range:()=>({from:'2026-10-01',to:'2026-10-14'})};
+ globalThis.__amazonUi={summary:async filters=>{calls.push(filters);if(failSummary)throw new Error('Servicio no disponible');return {...summary,...summaryOverride}},range:()=>({from:'2026-10-01',to:'2026-10-14'})};
  if(failSummary)w.sessionStorage.setItem('zenvia-view-cache:amazon:summary:'+JSON.stringify({from:'2026-10-01',marketplaceIds:['ES'],to:'2026-10-14'}),JSON.stringify({value:summary}));
  const container=w.document.createElement('div');w.document.body.append(container);
  const root=createRoot(container);const selected=[];
@@ -170,4 +170,18 @@ test('a selected full month keeps an actual-data tile alongside the forecast',as
  const selected=s.container.querySelector('.amazonPeriodCard.isSelected');
  assert.ok(selected);assert.equal(selected.dataset.periodId,'selected');assert.match(selected.textContent,/1210,00/);
  assert.ok(s.container.querySelector('[data-period-id="forecast"]'));await s.close();
+});
+
+test('missing daily Ads is explicit and financial charges remain separately available',async()=>{
+ const s=await setup();const tile=s.container.querySelector('.amazonPeriodCard.isSelected');
+ assert.match(tile.textContent,/Publicidad diariaNo disponibleAmazon Ads sin conectar/);
+ await act(async()=>tile.querySelector('.amazonPeriodMore').click());
+ assert.match(tile.querySelector('.amazonPeriodExtra').textContent,/Cargos publicitarios contabilizados-60,00/);
+ await s.close();
+});
+
+test('profit remains provisional when daily advertising is unavailable despite complete received costs',async()=>{
+ const s=await setup(false,undefined,{profitComplete:true});
+ assert.match(s.container.querySelector('.amazonPeriodCard.isSelected .amazonPeriodQuality').textContent,/Provisional/);
+ await s.close();
 });

@@ -13,7 +13,7 @@ import { useSettings } from '../../context/SettingsContext';
 const chartOptions=[
   {key:'netSales',label:'Ventas sin IVA',color:'#2563eb'},
   {key:'netProfit',label:'Ganancia neta',color:'#16a34a'},
-  {key:'adsCost',label:'Publicidad',color:'#a855f7'},
+  {key:'adsCost',label:'Cargos publicitarios',color:'#a855f7'},
   {key:'refunds',label:'Reembolsos',color:'#ea580c'},
 ];
 const integer=new Intl.NumberFormat('es-ES',{maximumFractionDigits:0});
@@ -170,7 +170,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
             <DetailRow label="Almacenamiento" value={detail?money.format(detail.storageFees):'—'}/>
             <DetailRow label="Otras tarifas Amazon" value={detail?money.format(detail.otherAmazonFees):'—'}/>
             <DetailRow label="IVA soportado tarifas" value={money.format(summary.amazonFeeVat)}/>
-            <DetailRow label="Publicidad" value={money.format(summary.adsCost)}/>
+            <DetailRow label="Publicidad diaria" value={summary.dailyAdsAvailable?money.format(summary.adsCost):'No disponible'} note={summary.dailyAdsAvailable?undefined:'Amazon Ads sin conectar: SP-API no aporta el gasto diario de campañas.'}/><DetailRow label="Cargos publicitarios contabilizados" value={money.format(summary.adsCost)} note="Movimientos financieros; no equivalen al gasto diario de Amazon Ads."/>
           </section>
           <section><h4>Reembolsos</h4>
             <DetailRow label="Operaciones de reembolso" value={detail?integer.format(detail.refundTransactions):'—'} note="Transacciones financieras únicas detectadas por Amazon."/>
@@ -183,7 +183,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
             <DetailRow label="Coste de producto" value={money.format(summary.productCost)} note={summary.unmappedUnits?integer.format(summary.unmappedUnits)+' uds. todavía sin coste vinculado.':undefined}/>
             <DetailRow label="Coste envíos FBM" value={money.format(summary.fbmShippingCost)}/>
             <DetailRow label="Ajustes Amazon" value={money.format(summary.amazonAdjustments)}/>
-            <DetailRow label="Ganancia neta" value={summary.netProfit==null?'—':money.format(summary.netProfit)} note={!summary.profitComplete?'Provisional por datos pendientes.':undefined}/>
+            <DetailRow label="Ganancia neta" value={summary.netProfit==null?'—':money.format(summary.netProfit)} note={(!summary.profitComplete||!summary.dailyAdsAvailable)?'Provisional por datos pendientes.':undefined}/>
             <DetailRow label="Margen neto" value={summary.marginPct==null?'—':summary.marginPct.toFixed(2)+' %'}/>
           </section>
           <section><h4>Calidad del dato</h4>
@@ -206,7 +206,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
         {series.length?<div className="amazonChart"><ResponsiveContainer width="100%" height="100%"><LineChart data={series} margin={{top:8,right:16,bottom:0,left:10}}><CartesianGrid strokeDasharray="3 3" vertical={false}/><XAxis dataKey="period" tickFormatter={value=>chartTickLabel(value,grain)} interval="preserveStartEnd" minTickGap={34}/><YAxis width={86} domain={['auto','auto']} tickFormatter={value=>chartMoneyTick(value,settings.amazon.consolidatedCurrency)}/><Tooltip labelFormatter={value=>chartTooltipLabel(value,grain)} formatter={(value:any)=>value==null?'—':money.format(Number(value))}/><Legend/>
           {effectiveChartMetrics.includes('netSales')&&<Line type="monotone" dataKey="netSales" name="Ventas sin IVA" stroke="#2563eb" strokeWidth={2.5} dot={false}/>}
           {effectiveChartMetrics.includes('netProfit')&&<Line type="monotone" dataKey="netProfit" name="Ganancia neta" stroke="#16a34a" strokeWidth={2.5} dot={false} connectNulls={false}/>}
-          {effectiveChartMetrics.includes('adsCost')&&<Line type="monotone" dataKey="adsCost" name="Publicidad" stroke="#a855f7" strokeWidth={2} dot={false}/>}
+          {effectiveChartMetrics.includes('adsCost')&&<Line type="monotone" dataKey="adsCost" name="Cargos publicitarios" stroke="#a855f7" strokeWidth={2} dot={false}/>}
           {effectiveChartMetrics.includes('refunds')&&<Line type="monotone" dataKey="refunds" name="Reembolsos" stroke="#ea580c" strokeWidth={2} dot={false}/>}
         </LineChart></ResponsiveContainer></div>:<div className="amazonChartEmpty">{seriesLoading?'Cargando evolución…':'No hay datos de evolución disponibles para este periodo.'}</div>}
       </section>
@@ -214,7 +214,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
         <div className="amazonCardHeading"><div><span className="amazonSectionLabel">CUENTA DE RESULTADOS</span><strong>De las ventas al beneficio</strong></div></div>
         <div className="amazonProfitBridge">{amazonProfitBridge(summary).map(row=><div key={row.key} className={`amazonProfitBridgeRow is-${row.kind}`}><span>{row.label}</span><strong className={row.amount!=null&&row.amount<0?'isNegative':row.kind==='total'?'isPositive':''}>{row.key==='adsCost'&&summary.adsExcluded?'No disponible':row.amount==null?'—':(row.kind==='movement'&&row.amount>0&&row.key!=='grossSales'?'+':'')+money.format(row.amount)}</strong></div>)}</div>
         <div className="amazonStatementFoot"><span>Margen neto</span><strong>{summary.marginPct==null?'—':summary.marginPct.toLocaleString('es-ES',{maximumFractionDigits:1})+' %'}</strong></div>
-        <p className="amazonStatementNote">{!summary.profitComplete?'Resultado provisional por datos pendientes. ':''}El IVA recuperable de las tarifas ({money.format(summary.amazonFeeVat)}) se muestra en el detalle y no se resta de nuevo al beneficio.</p>
+        <p className="amazonStatementNote">{(!summary.profitComplete||!summary.dailyAdsAvailable)?'Resultado provisional por datos pendientes y gasto diario de publicidad sin verificar. ':''}El IVA recuperable de las tarifas ({money.format(summary.amazonFeeVat)}) se muestra en el detalle y no se resta de nuevo al beneficio.</p>
       </section>
     </div>
 

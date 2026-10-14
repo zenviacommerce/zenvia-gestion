@@ -17,3 +17,10 @@ test('mapping commit invalidates reads cached during the write',async()=>{
  assert.equal(await rpc('amazon_analytics_summary',{},'error'),'old');value='new';finish({ok:true});await write;
  assert.equal(await rpc('amazon_analytics_summary',{},'error'),'new');
 });
+
+test('create-and-link invalidates analytics after its atomic write completes',async()=>{
+ const queue=createAmazonReadQueue();let finish;const calls=[];let value='unmapped';const current={workspace:'a',client:client('a',calls,name=>name==='amazon_create_product_and_mapping'?new Promise(r=>finish=r):value)};
+ const {rpc}=api(current,queue);const write=rpc('amazon_create_product_and_mapping',{},'error');await Promise.resolve();
+ assert.equal(await rpc('amazon_analytics_summary',{},'error'),'unmapped');value='mapped-with-cost';finish({ok:true,created:true});await write;
+ assert.equal(await rpc('amazon_analytics_summary',{},'error'),'mapped-with-cost');
+});

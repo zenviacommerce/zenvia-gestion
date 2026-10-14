@@ -45,7 +45,7 @@ export function amazonProfitBridge(summary:Pick<AmazonSummary,'grossSales'|'sale
     {key:'amazonFees',label:'Tarifas Amazon sin IVA',amount:-summary.amazonFees,kind:'movement'},
     {key:'productCost',label:'Coste producto',amount:-summary.productCost,kind:'movement'},
     {key:'fbmShippingCost',label:'Coste envíos FBM',amount:-summary.fbmShippingCost,kind:'movement'},
-    {key:'adsCost',label:'Publicidad',amount:-summary.adsCost,kind:'movement'},
+    {key:'adsCost',label:'Cargos publicitarios contabilizados',amount:-summary.adsCost,kind:'movement'},
     {key:'refunds',label:'Reembolsos sin IVA',amount:-summary.refunds,kind:'movement'},
     {key:'amazonAdjustments',label:'Ajustes Amazon',amount:summary.amazonAdjustments,kind:'movement'},
     {key:'netProfit',label:'Ganancia neta',amount:summary.netProfit,kind:'total'},

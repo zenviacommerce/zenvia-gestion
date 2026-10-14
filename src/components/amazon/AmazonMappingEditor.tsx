@@ -1,14 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Check, Pencil, Plus, Search, Trash2 } from 'lucide-react';
-import { deleteAmazonProductMappingItem, loadAmazonProductMappings, loadAmazonProductOptions, setAmazonProductMapping, type AmazonProductMapping, type AmazonProductOption } from '../../services/amazon';
+import { createAmazonProductAndMapping, deleteAmazonProductMappingItem, loadAmazonProductMappings, loadAmazonProductOptions, setAmazonProductMapping, type AmazonProductMapping, type AmazonProductOption } from '../../services/amazon';
 import { errorMessage, showError, showSuccess } from '../../services/toast';
 import { confirmAction } from '../../services/actionDialog';
 
 const costLabel=(cost:number|null|undefined,unit?:string|null)=>cost==null?'Sin precio registrado':`${new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:4}).format(cost)}${unit?` / ${unit}`:''}`;
 
-type Props={sellerSku:string;defaultFactor?:number;onChanged:()=>void;onCancel?:()=>void};
+type Props={sellerSku:string;productName?:string|null;defaultFactor?:number;onChanged:()=>void;onCancel?:()=>void};
 
-export function AmazonMappingEditor({sellerSku,defaultFactor=1,onChanged,onCancel}:Props){
+export function AmazonMappingEditor({sellerSku,productName,defaultFactor=1,onChanged,onCancel}:Props){
+  const [creating,setCreating]=useState(false);
+  const [draft,setDraft]=useState({name:productName||sellerSku,sku:sellerSku,unit:'ud',cost:'',costFrom:new Date().toLocaleDateString('sv-SE'),factor:String(defaultFactor||1)});
   const [query,setQuery]=useState('');
   const [options,setOptions]=useState<AmazonProductOption[]>([]);
   const [mappings,setMappings]=useState<AmazonProductMapping[]>([]);
@@ -63,6 +65,22 @@ export function AmazonMappingEditor({sellerSku,defaultFactor=1,onChanged,onCance
     finally{setLoading(false);}
   };
 
+  const create=async()=>{
+    const unitCost=draft.cost.trim()===''?null:Number(draft.cost.replace(',','.'));
+    const numeric=Number(draft.factor);
+    if(!draft.name.trim()||!draft.sku.trim()){showError('Indica el nombre y el SKU del producto.');return;}
+    if(unitCost!=null&&(!Number.isFinite(unitCost)||unitCost<0)){showError('El coste debe ser igual o superior a cero.');return;}
+    if(!Number.isFinite(numeric)||numeric<=0){showError('El factor debe ser mayor que cero.');return;}
+    setLoading(true);
+    try{
+      await createAmazonProductAndMapping({sellerSku,name:draft.name.trim(),sku:draft.sku.trim(),unit:draft.unit.trim()||'ud',unitCost,costFrom:unitCost==null?null:draft.costFrom||null,consumptionFactor:numeric});
+      window.dispatchEvent(new CustomEvent('zenvia:products-changed'));
+      showSuccess('Producto creado y vinculado automáticamente.');
+      await refreshMappings();setCreating(false);setProductId('');setQuery('');onChanged();
+    }catch(error){showError(errorMessage(error,'No se pudo crear y vincular el producto.'));}
+    finally{setLoading(false);}
+  };
+
   const remove=async(mapping:AmazonProductMapping)=>{
     const confirmed=await confirmAction({title:'Eliminar componente',message:`Se quitará “${mapping.productName}” del coste de ${sellerSku}.`,confirmLabel:'Eliminar componente',tone:'danger'});
     if(!confirmed)return;
@@ -91,7 +109,22 @@ export function AmazonMappingEditor({sellerSku,defaultFactor=1,onChanged,onCance
       </div>
     </section>
 
-    <section className="amazonMappingAdd">
+    <div className="amazonMappingPane">
+    <div className="amazonMappingActions" role="group" aria-label="Vincular o crear producto">
+      <button type="button" className={!creating?'primary':'secondary'} disabled={loading} aria-pressed={!creating} onClick={()=>setCreating(false)}>Vincular existente</button>
+      <button type="button" className={creating?'primary':'secondary'} disabled={loading} aria-pressed={creating} onClick={()=>{setDraft({name:productName||sellerSku,sku:sellerSku,unit:'ud',cost:'',costFrom:new Date().toLocaleDateString('sv-SE'),factor:String(defaultFactor||1)});setCreating(true);}}><Plus size={15}/>Crear producto</button>
+    </div>
+    {creating?<form className="amazonMappingAdd" aria-label="Crear y vincular producto" onSubmit={event=>{event.preventDefault();if(!loading)void create();}}>
+      <p className="amazonMappingHint">Se creará en Productos y quedará vinculado a {sellerSku}. Si ya existe, selecciónalo en Vincular existente.</p>
+      <label><span>Nombre</span><input name="name" required value={draft.name} onChange={event=>setDraft({...draft,name:event.target.value})}/></label>
+      <label><span>SKU interno</span><input name="sku" required value={draft.sku} onChange={event=>setDraft({...draft,sku:event.target.value})}/></label>
+      <label><span>Unidad base</span><input name="unit" required value={draft.unit} onChange={event=>setDraft({...draft,unit:event.target.value})}/></label>
+      <label><span>Coste por unidad sin IVA (€), opcional</span><input name="cost" type="number" min="0" step="any" value={draft.cost} onChange={event=>setDraft({...draft,cost:event.target.value})} placeholder="Sin coste registrado"/></label>
+      {draft.cost!==''&&<label><span>Coste válido desde</span><input name="costFrom" type="date" required max={new Date().toLocaleDateString('sv-SE')} value={draft.costFrom} onChange={event=>setDraft({...draft,costFrom:event.target.value})}/></label>}
+      <label><span>Factor de consumo</span><input name="factor" type="number" required min="0.000001" step="any" value={draft.factor} onChange={event=>setDraft({...draft,factor:event.target.value})}/></label>
+      <p className="amazonMappingHint">El factor indica cuántas unidades del producto interno consume una unidad vendida en Amazon. El coste se aplicará desde la fecha indicada.</p>
+      <div className="amazonMappingActions"><button type="submit" className="primary" disabled={loading}>{loading?'Creando…':'Crear y vincular'}</button>{onCancel&&<button type="button" className="secondary" disabled={loading} onClick={onCancel}>Cerrar</button>}</div>
+    </form>:<section className="amazonMappingAdd">
       <div className="amazonMappingPicker">
         <label><span>{editingMapping?'Producto a actualizar':'Añadir producto interno'}</span><div className="amazonMappingSearch"><Search size={15}/><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nombre o SKU"/></div></label>
         <div className="amazonMappingResults" role="listbox" aria-label="Productos internos">
@@ -103,6 +136,7 @@ export function AmazonMappingEditor({sellerSku,defaultFactor=1,onChanged,onCance
       {selected&&<p className="amazonMappingHint">Precio: {costLabel(selected.unitCost,selected.costUnit)} · Coste con este factor: {costLabel(selected.unitCost==null||!Number.isFinite(Number(factor))||Number(factor)<=0?null:selected.unitCost*Number(factor))}</p>}
       <label><span>Factor de consumo</span><input type="number" min="0.000001" step="0.01" value={factor} onChange={e=>setFactor(e.target.value)}/></label>
       <div className="amazonMappingActions"><button className="primary" disabled={loading||!productId} onClick={()=>void save()}>{loading?'Guardando…':editingMapping?'Actualizar vínculo':<><Plus size={15}/>Añadir producto</>}</button>{onCancel&&<button className="secondary" disabled={loading} onClick={onCancel}>Cerrar</button>}</div>
-    </section>
+    </section>}
+    </div>
   </div>;
 }

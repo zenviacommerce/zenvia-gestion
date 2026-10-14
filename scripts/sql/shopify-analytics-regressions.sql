@@ -41,7 +41,7 @@ do $$
 declare s jsonb;p jsonb;begin
  s:=public.shopify_analytics_summary('2099-10-14','2099-10-14',null);
  if s->'grossSales'<>'null'::jsonb or (s->>'missingFxCount')::int<>1 then raise exception 'Unknown FX must make sales unavailable: %',s;end if;
- p:=public.shopify_analytics_products('2099-10-14','2099-10-14',null,'__reg_inventory',1,50,'inventory_quantity','desc');
+ p:=public.shopify_analytics_products('2099-10-14','2099-10-14',null,'__reg_inventory',1,50,'inventory_quantity','desc',true);
  if (p->'items'->0->'inventoryQuantity')<>'null'::jsonb then raise exception 'Partial known inventory must be unavailable: %',p;end if;
 end $$;
 rollback;

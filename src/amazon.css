@@ -383,7 +383,7 @@
 .amazonFilterDropdown>summary strong{font-weight:700;color:#172033}
 .amazonFilterDropdown[open]>summary>svg:last-child{transform:rotate(180deg)}
 .amazonFilterDropdownPanel{position:absolute;left:0;top:calc(100% + 7px);z-index:60;width:320px;max-width:calc(100vw - 32px);padding:16px;border:1px solid #dbe3ee;border-radius:10px;background:#fff;box-shadow:0 10px 30px #0f172a22;display:grid;gap:12px}
-.amazonFilterDropdownPanel>label,.amazonDropdownDates label{display:grid;gap:5px;font-size:11px;font-weight:600;color:#64748b}
+.amazonFilterDropdownPanel>label:not(.sharedCheckboxOption),.amazonDropdownDates label{display:grid;gap:5px;font-size:11px;font-weight:600;color:#64748b}
 .amazonFilterDropdownPanel select,.amazonDropdownDates input{width:100%;min-width:0;border:1px solid #dbe3ee;border-radius:7px;padding:8px;font:inherit;background:#fff;color:#172033}
 .amazonFilterDropdownPanel form{display:grid;gap:12px}
 .amazonDropdownDates{display:grid;grid-template-columns:1fr 1fr;gap:10px}

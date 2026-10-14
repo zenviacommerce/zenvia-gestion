@@ -50,7 +50,7 @@ export function AmazonFilters({filters,marketplaces,initialPreset='today',onChan
       <summary><Globe2 size={15}/><span><small>Marketplace</small><strong>{marketplaceLabel}</strong></span><ChevronDown size={14}/></summary>
       <div className="amazonFilterDropdownPanel amazonDropdownMarketplaces" role="group" aria-label="Seleccionar marketplaces">
         <button type="button" className={`sharedCheckboxReset ${!filters.marketplaceIds.length?'isActive':''}`} onClick={()=>onChange({...filters,marketplaceIds:[]})}>Todos los marketplaces</button>
-        {active.map(item=><CheckboxOption key={item.id} checked={filters.marketplaceIds.includes(item.id)} onChange={()=>toggleMarketplace(item.id)} label={item.name||item.countryCode} description={item.countryCode}/>)}
+        {active.map(item=><CheckboxOption key={item.id} checked={filters.marketplaceIds.includes(item.id)} onChange={()=>toggleMarketplace(item.id)} label={item.name||item.countryCode}/>)}
       </div>
     </details>
   </section>;

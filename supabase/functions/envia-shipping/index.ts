@@ -413,8 +413,10 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
 function trackingOf(row:any){return clean(row?.tracking_number||row?.trackingNumber||row?.tracking||row?.guideNumber||row?.guide||row?.shipment?.trackingNumber);}
 function shipmentCreatedAt(row:any){
   const raw=clean(row?.created_at||row?.createdAt||row?.creationDate||row?.dateCreated||row?.date||row?.shipment?.createdAt);
-  const parsed=raw?new Date(raw):null;
-  return parsed&&!Number.isNaN(parsed.getTime())?parsed.toISOString():new Date().toISOString();
+  // Queries API returns unzoned wall-clock dates in UTC-6. Never use the runtime timezone.
+  const local=raw.match(/^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2}(?:\.\d+)?)$/);
+  const parsed=raw?new Date(local?`${local[1]}T${local[2]}-06:00`:raw):null;
+  return parsed&&!Number.isNaN(parsed.getTime())?parsed.toISOString():null;
 }
 function shipmentDestination(row:any){
   const d=row?.destination||row?.to||row?.receiver||row?.shipment?.destination||{};
@@ -471,7 +473,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
       }catch(error){
         console.warn('Envia shipment detail fallback',tracking,error instanceof Error?error.message:error);
       }
-      const createdAt=shipmentCreatedAt(row),destination=shipmentDestination(row),status=shipmentStatus(row);
+      const createdAt=shipmentCreatedAt(row)||shipmentCreatedAt(summary),destination=shipmentDestination(row),status=shipmentStatus(row);
       const carrierCode=clean(row?.carrier||row?.carrierCode||row?.name||row?.shipment?.carrier);
       const carrierName=shipmentCarrier(row)||humanCarrier(carrierCode);
       const service=shipmentService(row);
@@ -481,7 +483,7 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
       const trackingUrl=clean(row?.trackUrl||row?.trackingUrl||row?.tracking_url);
       const orderNumber=clean(row?.orderNumber||row?.order_number||row?.reference||row?.referenceNumber||row?.shipmentId)||`ENVIA-${tracking}`;
 
-      const selectFields='id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,label_printed_at,label_print_state_known';
+      const selectFields='id,shipping_provider,order_number,order_id,customer_name,customer_email,shipping_address,items,total_amount,currency,source_channel,integration_name,label_created_at,shipping_cost_recorded_at,label_printed_at,label_print_state_known';
       let {data:existing,error:existingError}=await admin.from('fulfillment_orders').select(selectFields)
         .eq('owner_id',ownerId).eq('shipping_remote_id',tracking).limit(1).maybeSingle();
       if(existingError)throw existingError;
@@ -570,8 +572,8 @@ async function syncAccountShipments(admin:any,ownerId:string,account:any,months:
         shipping_cost_amount:price,
         shipping_cost_currency:price==null?null:currency,
         shipping_cost_source:price==null?null:'provider_actual',
-        shipping_cost_recorded_at:price==null?null:createdAt,
-        label_created_at:createdAt,
+        shipping_cost_recorded_at:price==null?null:existing?.shipping_cost_recorded_at||createdAt,
+        label_created_at:existing?.label_created_at||createdAt,
         ...(externallyDiscovered?{label_print_state_known:false}:{}),
         last_synced_at:new Date().toISOString(),
       };

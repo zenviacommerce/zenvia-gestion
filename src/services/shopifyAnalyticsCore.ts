@@ -8,6 +8,8 @@ export function shopifyMonthForecast(month:ShopifySummary,today:ShopifySummary,n
  for(const key of ['grossSales','salesVat','netSales','refunds','refundGross','discounts','shippingCharged','productCost','shippingCost','paymentFees','adsCost','netProfit','profitBeforeAds'] as const)estimate[key]=month[key]==null||today[key]==null?null:(month[key]!-today[key]!)*factor;
  for(const key of ['orders','units','refundCount'] as const)estimate[key]=Math.round(Math.max(0,month[key]-today[key])*factor);
  estimate.marginPct=estimate.netProfit!=null&&estimate.netSales?estimate.netProfit/estimate.netSales*100:null;
+ estimate.knownMarginPct=estimate.netSales!=null&&estimate.netSales>0&&estimate.refunds!=null
+  ?(estimate.netSales-estimate.refunds-(estimate.productCost??0)-(estimate.shippingCost??0))/estimate.netSales*100:null;
  return estimate;
 }
 export type ShopifyCreateDraft={storeId:string;sku:string;name:string;internalSku:string;baseUnit:string;cost:string;costFrom:string;factor:string};

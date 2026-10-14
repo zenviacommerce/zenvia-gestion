@@ -8,7 +8,7 @@ export type ShopifyProduct={id:string;storeId:string;storeName:string;sku:string
 export type ShopifyMapping={id?:string;productId:string;productName:string;productSku:string|null;supplierName:string|null;unitCost:number|null;costUnit:string|null;consumptionFactor:number};
 export type ShopifyProductSort='product_name'|'units'|'orders'|'gross_sales'|'net_sales'|'refunds'|'product_cost'|'shipping_cost'|'profit_before_ads'|'inventory_quantity'|'mapping_product_name';
 export type ShopifyProductOption={id:string;name:string;sku:string|null;unitCost:number|null;costUnit:string|null};
-const reads=createAmazonReadQueue(2,60_000);
+const reads=createAmazonReadQueue(4,60_000);
 export function invalidateShopifyAnalytics(){reads.clear();}
 async function context(){const client=getActiveSupabase(),workspace=getActiveTenant()?.workspace_id;const {data:{session},error}=await client.auth.getSession();if(error)throw error;if(!session)throw new Error('Inicia sesión para consultar Shopify.');return {client,workspace,user:session.user.id};}
 async function rpc<T>(name:string,params:Record<string,unknown>,cache=true):Promise<T>{

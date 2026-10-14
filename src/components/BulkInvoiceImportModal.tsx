@@ -1,11 +1,12 @@
 import {useImportActivity} from './useImportActivity';
 import { useEffect, useRef, useState } from 'react';
 import { AlertCircle, CheckCircle2, FileText, LoaderCircle, Upload, X } from 'lucide-react';
-import { classifyInvoiceCandidate, invoiceCandidateToInput, prepareInvoiceCandidates } from '../services/invoiceImportPipeline';
+import { classifyInvoiceCandidate, createManualInvoiceCandidate, invoiceCandidateToInput, prepareInvoiceCandidates } from '../services/invoiceImportPipeline';
 import type { ExpenseCategory, Invoice, InvoiceImportCandidate, NewInvoiceInput } from '../types';
 import { InvoiceCandidateForm } from './InvoiceCandidateForm';
 import { useSettings } from '../context/SettingsContext';
 import { expenseImportPolicyFromSettings } from '../services/expenseImportPolicy';
+import { isMultiInvoiceDocumentError } from '../services/invoiceReaderEnhanced';
 
 export const ANALYSIS_CONCURRENCY=2;
 
@@ -40,7 +41,7 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
 
   const pendingAnalysis=items.filter(i=>i.status==='analyzing').length;
   const pendingReview=items.filter(i=>!i.excluded&&!['imported','duplicate'].includes(i.status)).length;
-  useImportActivity(busy||pendingAnalysis>0||pendingReview>0,'Importar facturas de gasto',busy?'Guardando…':pendingAnalysis?'Analizando documentos…':'Revisión preparada',items.length-pendingAnalysis,items.length);
+  useImportActivity(open&&(busy||pendingAnalysis>0),'Importar facturas de gasto',busy?'Guardando…':pendingAnalysis?'Analizando documentos…':'Revisión preparada',items.length-pendingAnalysis,items.length);
   if(!open)return null;
 
   const patch=(id:string,update:Partial<BulkItem>)=>setItems(current=>current.map(item=>item.id===id?{...item,...update}:item));
@@ -62,6 +63,12 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
             ?candidates.map(candidate=>({id:candidate.id,file:item.file,status:candidate.status,candidate,error:undefined}))
             :[existing]));
         }catch(error){
+          if(isMultiInvoiceDocumentError(error)){
+            const candidate=await createManualInvoiceCandidate(item.file);
+            candidate.reviewReason='Se han detectado posibles facturas distintas, pero no se han podido separar con seguridad. Revisa el PDF y separa las facturas antes de importarlas; no se guardará una mezcla como una sola factura.';
+            patch(item.id,{status:'needs_review',candidate,error:undefined});
+            continue;
+          }
           patch(item.id,{status:'error',error:error instanceof Error?error.message:'No se pudo analizar la factura.'});
         }
       }
@@ -80,7 +87,9 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
     if(!selected?.candidate)return;
     const candidate=selected.candidate;
     if(!candidate.supplierName.trim()||!candidate.invoiceDate)return;
-    const next={...candidate,status:'ready' as const,reviewReason:undefined};
+    if(candidate.reviewReason?.includes('no se han podido separar con seguridad'))return;
+    const checked=classifyInvoiceCandidate({...candidate,status:'ready' as const,reviewReason:undefined},existingInvoices,policy);
+    const next=checked;
     patch(selected.id,{candidate:next,status:'ready',error:undefined});
   };
 
@@ -89,11 +98,18 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
     if(!ready.length)return;
     setBusy(true);
     try{
+      const alreadySaved=[...existingInvoices];
       for(const candidate of ready){
+        const duplicate=classifyInvoiceCandidate(candidate,alreadySaved,{...policy,detectDuplicates:true,blockHighConfidenceDuplicates:true});
+        if(duplicate.status==='duplicate'){
+          setItems(current=>current.map(item=>item.candidate?.id===candidate.id?{...item,status:'duplicate',candidate:duplicate}:item));
+          continue;
+        }
         patch(candidate.id,{status:'importing'});
         setItems(current=>current.map(item=>item.candidate?.id===candidate.id?{...item,status:'importing',candidate:{...candidate,status:'importing'}}:item));
         try{
           await onSave(invoiceCandidateToInput(candidate,'manual'));
+          alreadySaved.push({supplierName:candidate.supplierName,invoiceNumber:candidate.invoiceNumber,fileHash:candidate.multiInvoiceSource?'':candidate.fileHash} as Invoice);
           setItems(current=>current.map(item=>item.candidate?.id===candidate.id?{...item,status:'imported',candidate:{...candidate,status:'imported'}}:item));
         }catch(error){
           setItems(current=>current.map(item=>item.candidate?.id===candidate.id?{...item,status:'error',error:error instanceof Error?error.message:'No se pudo importar.',candidate:{...candidate,status:'error'}}:item));
@@ -118,7 +134,7 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
       <div className="bulkInvoiceList">{items.map(item=>{
         const candidate=item.candidate;
         return <div key={item.id} className={`bulkInvoiceRow ${item.status} ${item.excluded?'excluded':''}`}>
-          <div className="bulkInvoiceFile"><FileText size={18}/><div><strong>{item.file.name}{candidate?.multiInvoiceSource&&candidate.bundleIndex&&candidate.bundleCount?` · Factura ${candidate.bundleIndex}/${candidate.bundleCount}`:''}</strong><span>{statusLabel[item.status]}{item.excluded?' · Excluida':''}</span></div></div>
+          <div className="bulkInvoiceFile"><FileText size={18}/><div><strong title={item.file.name}>{item.file.name}{candidate?.multiInvoiceSource&&candidate.bundleIndex&&candidate.bundleCount?` · Factura ${candidate.bundleIndex}/${candidate.bundleCount}`:''}</strong><span>{statusLabel[item.status]}{item.excluded?' · Excluida':''}</span></div></div>
           {item.status==='analyzing'?<LoaderCircle className="spin" size={18}/>:candidate?<div className="bulkInvoiceMeta"><span>{candidate.supplierName||'Proveedor sin detectar'}</span><span>{candidate.invoiceNumber||'Sin número'} · {candidate.invoiceDate||'Sin fecha'}</span><span>Base {money(candidate.subtotal)} · IVA {money(candidate.vat)}{candidate.equivalenceSurcharge?` · R.E. ${money(candidate.equivalenceSurcharge)}`:''} · Total {money(candidate.total)}</span><span>{candidate.lines.length} línea{candidate.lines.length===1?'':'s'}</span>{candidate.reviewReason&&<span className="warnText">{candidate.reviewReason}</span>}</div>:<div className="bulkInvoiceMeta"><span className="warnText">{item.error||'No se pudo analizar.'}</span></div>}
           <div className="bulkInvoiceActions">{candidate&&['ready','needs_review'].includes(item.status)&&<button className="secondary" type="button" onClick={()=>setSelectedId(item.id)}>Revisar</button>}<button className="secondary" type="button" disabled={busy||item.status==='importing'||item.status==='imported'} onClick={()=>patch(item.id,{excluded:!item.excluded})}>{item.excluded?'Incluir':'Excluir'}</button></div>
         </div>;

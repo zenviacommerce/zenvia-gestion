@@ -1,3 +1,4 @@
+import { CheckboxOption } from '../forms/CheckboxOption';
 import {amazonCalendarDate} from '../../services/amazonCalendar';
 import { useEffect, useRef, useState } from 'react';
 import { CalendarDays, ChevronDown, Globe2 } from 'lucide-react';
@@ -48,8 +49,8 @@ export function AmazonFilters({filters,marketplaces,initialPreset='today',onChan
     <details className="amazonFilterDropdown">
       <summary><Globe2 size={15}/><span><small>Marketplace</small><strong>{marketplaceLabel}</strong></span><ChevronDown size={14}/></summary>
       <div className="amazonFilterDropdownPanel amazonDropdownMarketplaces" role="group" aria-label="Seleccionar marketplaces">
-        <button type="button" className={!filters.marketplaceIds.length?'isActive':''} onClick={()=>onChange({...filters,marketplaceIds:[]})}>Todos los marketplaces</button>
-        {active.map(item=><label key={item.id}><input type="checkbox" checked={filters.marketplaceIds.includes(item.id)} onChange={()=>toggleMarketplace(item.id)}/><span>{item.name||item.countryCode}</span><small>{item.countryCode}</small></label>)}
+        <button type="button" className={`sharedCheckboxReset ${!filters.marketplaceIds.length?'isActive':''}`} onClick={()=>onChange({...filters,marketplaceIds:[]})}>Todos los marketplaces</button>
+        {active.map(item=><CheckboxOption key={item.id} checked={filters.marketplaceIds.includes(item.id)} onChange={()=>toggleMarketplace(item.id)} label={item.name||item.countryCode} description={item.countryCode}/>)}
       </div>
     </details>
   </section>;

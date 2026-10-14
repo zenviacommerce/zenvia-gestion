@@ -36,3 +36,20 @@ html[data-theme="dark"] .searchableSelectOption small,html[data-theme="dark"] .s
 .searchableSelectOption{box-sizing:border-box;min-width:0;max-width:100%;flex:0 0 auto;align-items:stretch;white-space:normal;overflow-wrap:anywhere}
 .searchableSelectOption>span,.searchableSelectOption>small{display:block;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:left}
 .searchableSelectOption>span>svg{display:inline-block;vertical-align:middle;margin-left:6px}
+
+/* Reusable checkbox options for multi-selection menus. */
+.sharedCheckboxOption{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text);font-size:var(--ui-font-sm,13px);cursor:pointer;min-height:38px;box-sizing:border-box}
+.sharedCheckboxOption:hover{background:var(--surface-soft)}
+.sharedCheckboxOption.isSelected{background:var(--surface-soft);font-weight:600}
+.sharedCheckboxOption.isDisabled{opacity:.55;cursor:default}
+.sharedCheckboxControl{display:inline-flex;position:relative;width:18px;height:18px;flex:none}
+.sharedCheckboxControl input[type='checkbox']{appearance:none;margin:0;width:18px;height:18px;border:1px solid var(--border);border-radius:5px;background:var(--input-bg);cursor:inherit}
+.sharedCheckboxControl input:checked{background:var(--primary,#0f766e);border-color:var(--primary,#0f766e)}
+.sharedCheckboxControl input:focus-visible{outline:2px solid var(--primary,#0f766e);outline-offset:3px}
+.sharedCheckboxControl svg{position:absolute;top:2px;left:2px;pointer-events:none;color:white;visibility:hidden}
+.sharedCheckboxControl input:checked+svg{visibility:visible}
+.sharedCheckboxText{min-width:0;overflow-wrap:anywhere}.sharedCheckboxText small{display:block;margin-top:3px;color:var(--muted);font-size:var(--ui-font-xs,12px);font-weight:400}
+.sharedCheckboxReset{width:100%;text-align:left;border:0;border-radius:8px;padding:9px 10px;background:transparent;color:var(--text);font:inherit;cursor:pointer}
+.sharedCheckboxReset:hover,.sharedCheckboxReset.isActive{background:var(--surface-soft)}.sharedCheckboxReset.isActive{color:var(--primary,#0f766e);font-weight:600}.sharedCheckboxReset:focus-visible{outline:2px solid var(--primary,#0f766e);outline-offset:2px}
+
+.pageSizeSelect{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:var(--ui-font-xs,12px)}.pageSizeSelect .searchableSelect{min-width:84px}

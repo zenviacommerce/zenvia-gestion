@@ -89,7 +89,7 @@ test('embedded products retain the complete columns, identity and mapping action
  assert.equal(s.container.querySelectorAll('thead th').length,14);
  assert.match(s.container.querySelector('.amazonSkuCell').textContent,/SKU-SIN-IMAGEN/);
  assert.equal(s.container.querySelectorAll('tbody tr:first-child td').length,14);
- assert.ok(s.container.querySelector('tbody .amazonInlineAction'));
+ assert.ok(s.container.querySelector('tbody .productMappingAction'));
  await s.close();
 });
 

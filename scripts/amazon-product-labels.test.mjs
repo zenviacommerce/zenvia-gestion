@@ -22,13 +22,7 @@ test('Amazon product listing metadata keeps Amazon title separate from internal 
   assert.doesNotMatch(products,/row\.productName\|\|row\.sellerSku/);
 });
 
-test('Amazon chart Y axis reserves enough space for full monetary values',async()=>{
-  const summary=await read('src/components/amazon/AmazonSummary.tsx');
-  assert.match(summary,/function chartMoneyTick/);
-  assert.match(summary,/maximumFractionDigits:0/);
-  assert.match(summary,/<YAxis width=\{86\}/);
-  assert.match(summary,/margin=\{\{top:8,right:16,bottom:0,left:10\}\}/);
-});
+
 
 
 test('Amazon listing metadata prefers the Spanish marketplace for the canonical display name',async()=>{

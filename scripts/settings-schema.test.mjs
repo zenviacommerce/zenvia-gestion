@@ -17,7 +17,7 @@ test('configuration defaults preserve current production behavior',async()=>{
   assert.equal(DEFAULT_APP_SETTINGS.orders.labelFilenameStrategy,'order_number');
   assert.equal(DEFAULT_APP_SETTINGS.orders.refreshSeconds,60);
   assert.equal(DEFAULT_USER_PREFERENCES.theme,'light');
-  assert.equal(DEFAULT_USER_PREFERENCES.pageSize,20);
+  assert.equal(DEFAULT_USER_PREFERENCES.pageSize,25);
   assert.equal(DEFAULT_USER_PREFERENCES.defaultPeriod,'current_quarter');
   assert.equal(DEFAULT_USER_PREFERENCES.startPage,null);
 });
@@ -56,7 +56,7 @@ test('user preference normalization accepts approved values and rejects unsuppor
   assert.equal(valid.value.defaultPeriod,'current_month');
 
   const invalid=normalizeUserPreferences({pageSize:37,theme:'neon'});
-  assert.equal(invalid.value.pageSize,20);
+  assert.equal(invalid.value.pageSize,25);
   assert.equal(invalid.value.theme,'light');
   assert.ok(invalid.warnings.some(item=>item.path==='pageSize'));
   assert.ok(invalid.warnings.some(item=>item.path==='theme'));

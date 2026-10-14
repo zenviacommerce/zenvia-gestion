@@ -423,7 +423,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
 export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   theme: 'light',
   density: 'comfortable',
-  pageSize: 20,
+  pageSize: 25,
   startPage: null,
   defaultPeriod: 'current_quarter',
   rememberFilters: true,

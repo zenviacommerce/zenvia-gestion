@@ -1,6 +1,8 @@
+import { PageSizeSelect } from '../forms/PageSizeSelect';
+import { ProductMappingAction } from '../ProductMappingAction';
 import { AmazonLoading } from './AmazonLoading';
 import { useEffect, useState } from 'react';
-import { ImageOff, Link2, RefreshCw, Search } from 'lucide-react';
+import { ImageOff, RefreshCw, Search } from 'lucide-react';
 import { isAmazonConnectivityError, loadAmazonProductMetadata, loadAmazonProducts, type AmazonAnalyticsFilters, type AmazonPageResult, type AmazonProductAnalytics, type AmazonProductMetadata, type AmazonProductSort, type AmazonSortDirection } from '../../services/amazon';
 import { errorMessage } from '../../services/toast';
 import { AmazonMappingModal } from './AmazonMappingModal';
@@ -25,20 +27,20 @@ const sortableHeaders:SortableHeader[]=[
 ];
 
 export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:AmazonAnalyticsFilters;embedded?:boolean;refreshToken?:number}){
-  const {settings}=useSettings();
+  const {settings,preferences}=useSettings();
+  const pageSize=preferences?.pageSize||25;
   const money=new Intl.NumberFormat('es-ES',{style:'currency',currency:settings.amazon.consolidatedCurrency});
   const [search,setSearch]=useState('');
   const [page,setPage]=useState(1);
-  const initialProductsKey=stableCacheKey('amazon:products',{filters,search:'',page:1,pageSize:50,sortBy:'profit_before_ads',sortDir:'desc'});
+  const initialProductsKey=stableCacheKey('amazon:products',{filters,search:'',page:1,pageSize,sortBy:'profit_before_ads',sortDir:'desc'});
   const initialProducts=readViewCache<AmazonPageResult<AmazonProductAnalytics>>(initialProductsKey);
-  const [data,setData]=useState<AmazonPageResult<AmazonProductAnalytics>>(()=>initialProducts||{items:[],page:1,pageSize:50,total:0});
+  const [data,setData]=useState<AmazonPageResult<AmazonProductAnalytics>>(()=>initialProducts||{items:[],page:1,pageSize,total:0});
   const [loading,setLoading]=useState(()=>!initialProducts);
   const [editing,setEditing]=useState<string|null>(null);
   const [error,setError]=useState('');
   const [sortBy,setSortBy]=useState<AmazonProductSort>('profit_before_ads');
   const [sortDir,setSortDir]=useState<AmazonSortDirection>('desc');
   const [metadata,setMetadata]=useState<Record<string,AmazonProductMetadata>>({});
-  const pageSize=50;
 
   const refresh=()=>{
     const key=stableCacheKey('amazon:products',{filters,search,page,pageSize,sortBy,sortDir});
@@ -51,8 +53,9 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
       .catch(e=>{if(!isAmazonConnectivityError(e))setError(errorMessage(e,'No se pudieron cargar los productos.'));})
       .finally(()=>setLoading(false));
   };
-  useEffect(()=>{void refresh();},[filters.from,filters.to,filters.marketplaceIds.join(','),search,page,sortBy,sortDir,refreshToken]);
+  useEffect(()=>{void refresh();},[filters.from,filters.to,filters.marketplaceIds.join(','),search,page,sortBy,sortDir,refreshToken,pageSize]);
   useEffect(()=>{const asins=data.items.map(row=>row.asin).filter((value):value is string=>Boolean(value));if(!asins.length){setMetadata({});return}void loadAmazonProductMetadata(asins).then(setMetadata).catch(()=>setMetadata({}));},[data.items]);
+  useEffect(()=>{setPage(1);},[pageSize]);
   const editingRow=editing?data.items.find(row=>row.sellerSku===editing):undefined;
 
   const changeSort=(key:AmazonProductSort)=>{
@@ -68,6 +71,7 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
         <strong>Productos</strong>
         <p>Ordena por cualquier métrica. Beneficio y margen por producto se muestran antes de publicidad y costes globales no atribuibles.</p>
       </div>
+      <PageSizeSelect/>
       <label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU, ASIN o producto"/></label>
     </div>
     {error&&!embedded&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}
@@ -104,7 +108,7 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
             <td className={row.marginPct!=null&&row.marginPct>=0?'amazonPositive':'amazonNegative'}>{row.marginPct==null?'—':`${row.marginPct.toFixed(1)} %`}</td>
             <td>{money.format(row.salesVat)}</td>
             <td>{money.format(row.amazonFeeVat)}</td>
-            <td><button className="amazonInlineAction" onClick={()=>setEditing(editing===row.sellerSku?null:row.sellerSku)}><Link2 size={14}/>{(row.productMappings?.length||row.productId)?'Gestionar vínculos':'Vincular'}</button></td>
+            <td><ProductMappingAction onClick={()=>setEditing(editing===row.sellerSku?null:row.sellerSku)}/></td>
           </tr>)}
           {!data.items.length&&<tr><td colSpan={14} className="amazonEmptyCell">{loading?'Cargando productos de Amazon…':'No hay productos para este periodo.'}</td></tr>}
         </tbody>

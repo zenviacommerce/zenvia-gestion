@@ -92,3 +92,46 @@ pre{max-width:100%;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
 .listPagination[hidden],.gmailPagination[hidden],.amazonPagination[hidden]{display:none!important}
 .listPagination>div,.gmailPagination>div,.amazonPagination>div{display:flex;flex-wrap:wrap;width:auto!important;justify-content:flex-end!important;margin-left:auto;gap:9px}
 .listPagination button,.gmailPagination button,.amazonPagination button{flex:0 0 auto!important;white-space:nowrap}
+
+
+/* Mobile page header actions: keep controls compact rather than two stretched cards. */
+@media (max-width:760px) {
+  .page .pageHead .pageHeadActions,
+  .page .shopifyPageHead .shopifyHeadActions {
+    display:flex;
+    flex-direction:row;
+    align-items:center;
+    justify-content:flex-start;
+    flex-wrap:wrap;
+    gap:8px;
+    width:100%;
+    height:auto;
+  }
+  .page .pageHead .pageHeadActions > button.primary,
+  .page .pageHead .pageHeadActions > button.secondary {
+    display:inline-flex;
+    width:auto;
+    height:auto;
+    min-height:38px;
+    max-width:100%;
+    flex:0 0 auto;
+    align-self:center;
+    padding:8px 12px;
+    font-size:12px;
+  }
+  .page .shopifyPageHead .shopifyHeadActions > .shopifyStatus {
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    align-self:center;
+    flex:0 0 auto;
+    width:max-content;
+    max-width:100%;
+    height:auto;
+    min-height:0;
+    padding:6px 10px;
+    line-height:1.2;
+    border-radius:999px;
+    font-size:11px;
+  }
+}

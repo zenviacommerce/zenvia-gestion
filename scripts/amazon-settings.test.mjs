@@ -17,7 +17,7 @@ test('Amazon settings keep typed safe fallbacks',async()=>{
   assert.match(schema,/amazon:\s*\{[\s\S]*?defaultPeriod:\s*'current_month'/);
 });
 
-test('Amazon page derives marketplace and period defaults from settings while manual sync stays available',async()=>{
+test('Amazon page honors marketplace settings and starts on Today while manual sync stays available',async()=>{
   const service=await read('src/services/amazon.ts');
   const page=await read('src/pages/Amazon.tsx');
   assert.match(service,/resolveAmazonMarketplaceSelection/);
@@ -26,7 +26,7 @@ test('Amazon page derives marketplace and period defaults from settings while ma
   assert.match(page,/useSettings/);
   assert.match(page,/settings\.amazon/);
   assert.match(page,/resolveAmazonMarketplaceSelection/);
-  assert.match(page,/amazonInitialRange/);
+  assert.match(page,/amazonQuickRange\('today',new Date\(\)\)/);
   assert.match(page,/requestAmazonSync/);
   assert.doesNotMatch(page,/autoSyncOrders[^\n]*requestAmazonSync/);
 });

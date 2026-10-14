@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AlertTriangle, CheckCircle2, ExternalLink, LoaderCircle, Megaphone, RefreshCw, ShoppingBag, WifiOff } from 'lucide-react';
-import { AMAZON_CONNECTIVITY_EVENT, amazonInitialRange, isAmazonConnectivityError, loadAmazonStatus, requestAmazonSync, resolveAmazonMarketplaceSelection, resolveAmazonVisibleKpis, type AmazonAnalyticsFilters, type AmazonStatus, type AmazonSummary as AmazonSummaryData } from '../services/amazon';
+import { AMAZON_CONNECTIVITY_EVENT, amazonQuickRange, isAmazonConnectivityError, loadAmazonStatus, requestAmazonSync, resolveAmazonMarketplaceSelection, resolveAmazonVisibleKpis, type AmazonAnalyticsFilters, type AmazonStatus, type AmazonSummary as AmazonSummaryData } from '../services/amazon';
 import { errorMessage, showError, showSuccess } from '../services/toast';
 import { AmazonFilters } from '../components/amazon/AmazonFilters';
 import { AmazonSummary } from '../components/amazon/AmazonSummary';
@@ -25,7 +25,7 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
   const amazonSettings=settings.amazon;
   const [status,setStatus]=useState<AmazonStatus|null>(()=>readViewCache<AmazonStatus>(AMAZON_STATUS_CACHE));const [loading,setLoading]=useState(()=>!readViewCache<AmazonStatus>(AMAZON_STATUS_CACHE));const [syncing,setSyncing]=useState(false);const [error,setError]=useState('');
   const [activeTab,setActiveTab]=useState<AmazonTab>('summary');
-  const [filters,setFilters]=useState<AmazonAnalyticsFilters>(()=>({...amazonInitialRange(amazonSettings,new Date()),marketplaceIds:[]}));
+  const [filters,setFilters]=useState<AmazonAnalyticsFilters>(()=>({...amazonQuickRange('today',new Date()),marketplaceIds:[]}));
   const [summaryMeta,setSummaryMeta]=useState<AmazonSummaryData|null>(null);
   const [analyticsRefresh,setAnalyticsRefresh]=useState(0);
   const [refreshingAnalytics,setRefreshingAnalytics]=useState(false);
@@ -90,7 +90,7 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
   const marketplaceSelection=resolveAmazonMarketplaceSelection(status?.marketplaces||[],amazonSettings);
   const marketplaces=marketplaceSelection.marketplaces;
   const visibleKpis=resolveAmazonVisibleKpis(amazonSettings);
-  const defaultPreset=amazonSettings.defaultPeriod==='all'?'custom':amazonSettings.defaultPeriod;
+  const defaultPreset='today' as const;
   const jobs=status?.sync.jobCounts;
 
 

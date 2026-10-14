@@ -58,6 +58,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
   const [summary,setSummary]=useState<AmazonSummaryData|null>(()=>readViewCache<AmazonSummaryData>(summaryCacheKey));
   const [detail,setDetail]=useState<AmazonDetail|null>(()=>readViewCache<AmazonDetail>(detailCacheKey));
   const [series,setSeries]=useState<AmazonSeriesPoint[]>(()=>readViewCache<AmazonSeriesPoint[]>(seriesCacheKey)||[]);
+  const [periodOverrides,setPeriodOverrides]=useState<Record<string,{from:string;to:string}>>({});
   const comparisonFilters=amazonComparisonRange(filters);
   const [previous,setPrevious]=useState<AmazonSummaryData|null>(()=>readViewCache<AmazonSummaryData>(stableCacheKey('amazon:summary',comparisonFilters)));
   const [chartMetrics,setChartMetrics]=useState<string[]>(['netSales','netProfit']);
@@ -137,7 +138,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
 
   return <div className="amazonSummary">
     {error&&<div className="card amazonQueryError"><span>{error}</span><button className="secondary" onClick={()=>setRetryToken(value=>value+1)}><RefreshCw size={15}/> Reintentar</button></div>}
-    <AmazonPeriodCards filters={filters} summary={summary} currency={settings.amazon.consolidatedCurrency} refreshToken={refreshToken} onPeriodChange={onPeriodChange} comparisonNote={comparisonNote} visibleKpis={visibleKpis}/>
+    <AmazonPeriodCards filters={filters} summary={summary} currency={settings.amazon.consolidatedCurrency} refreshToken={refreshToken} onPeriodChange={onPeriodChange} comparisonNote={comparisonNote} visibleKpis={visibleKpis} detail={detail} periodOverrides={periodOverrides} onPeriodCustomize={(id,range)=>setPeriodOverrides(current=>{const next={...current};if(range)next[id]=range;else delete next[id];return next;})}/>
     {!loading&&<AmazonProducts key={`${filters.from}:${filters.to}:${filters.marketplaceIds.join(',')}`} filters={filters} embedded refreshToken={refreshToken}/>}
     <details className="amazonDashboardDetails"><summary>Gráfica y desglose del periodo · {dateRangeLabel(filters)}</summary>
     <div className="amazonDashboardSectionHead amazonSelectedPeriodHead"><div><span className="amazonSectionLabel">PERIODO SELECCIONADO</span><h2>{dateRangeLabel(filters)}</h2></div><button className="amazonMoreButton" onClick={()=>setDetailsOpen(true)}>Más detalles <ChevronRight size={15}/></button></div>

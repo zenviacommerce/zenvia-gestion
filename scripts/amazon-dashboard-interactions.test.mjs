@@ -11,6 +11,8 @@ const summary={grossSales:1210,salesVat:210,netSales:1000,orders:20,businessOrde
 const stub=code=>({contents:code,loader:'js'});
 const bundle=new URL('./.amazon-dashboard-ui.bundle.mjs',import.meta.url);
 const result=await build({stdin:{contents:"export {AmazonSummary} from './src/components/amazon/AmazonSummary'; export {AmazonFilters} from './src/components/amazon/AmazonFilters'; export {AmazonProducts as ActualAmazonProducts} from './src/components/amazon/AmazonProducts';",resolveDir:new URL('../',import.meta.url).pathname,loader:'tsx'},bundle:true,write:false,format:'esm',platform:'node',jsx:'automatic',external:['react','react/jsx-runtime','lucide-react','react-dom','react-dom/*'],plugins:[{name:'test-boundaries',setup(b){
+ b.onResolve({filter:/\.css$/},args=>({path:args.path,namespace:'fixture-css'}));
+ b.onLoad({filter:/.*/,namespace:'fixture-css'},()=>({contents:'export default {};',loader:'js'}));
  b.onResolve({filter:/services\/amazon$/},()=>({path:'amazon',namespace:'fixture'}));
  b.onResolve({filter:/context\/SettingsContext$/},()=>({path:'settings',namespace:'fixture'}));
  b.onResolve({filter:/\.\/AmazonProducts$/},()=>({path:'products',namespace:'fixture'}));
@@ -25,12 +27,14 @@ const result=await build({stdin:{contents:"export {AmazonSummary} from './src/co
  });
 }}]});
 await writeFile(bundle,result.outputFiles[0].text);
-const {AmazonSummary,ActualAmazonProducts}=await import(bundle.href);
+const {AmazonSummary,ActualAmazonProducts,AmazonFilters}=await import(bundle.href);
 await unlink(bundle);
 async function setup(failSummary=false){
  const w=new Window({url:'https://dashboard.test/'});
  for(const name of ['window','document','HTMLElement','Element','Node','Event'])globalThis[name]=name==='window'?w:name==='document'?w.document:w[name];
  globalThis.IS_REACT_ACT_ENVIRONMENT=true;
+ globalThis.requestAnimationFrame=callback=>{queueMicrotask(()=>callback(0));return 0};
+ globalThis.cancelAnimationFrame=()=>{};
  const calls=[];
  globalThis.__amazonUi={summary:async filters=>{calls.push(filters);if(failSummary)throw new Error('Servicio no disponible');return {...summary}},range:()=>({from:'2026-10-01',to:'2026-10-14'})};
  if(failSummary)w.sessionStorage.setItem('zenvia-view-cache:amazon:summary:'+JSON.stringify({from:'2026-10-01',marketplaceIds:['ES'],to:'2026-10-14'}),JSON.stringify({value:summary}));
@@ -103,5 +107,49 @@ test('embedded products retain the complete columns, identity and mapping action
  assert.match(s.container.querySelector('.amazonSkuCell').textContent,/SKU-SIN-IMAGEN/);
  assert.equal(s.container.querySelectorAll('tbody tr:first-child td').length,14);
  assert.ok(s.container.querySelector('tbody .amazonInlineAction'));
+ await s.close();
+});
+
+test('each tile shows refund amount and the actual number of refund transactions',async()=>{
+ const s=await setup();
+ for(const tile of s.container.querySelectorAll('.amazonPeriodCard')){
+  assert.match(tile.querySelector('[data-metric="refunds"]').textContent,/50,00/);
+  assert.match(tile.querySelector('.amazonRefundCount').textContent,/2 reembolsos/);
+ }
+ await s.close();
+});
+test('editing a tile date accepts a three-day range and filters products with that range',async()=>{
+ const s=await setup();
+ const date=s.container.querySelector('.amazonTileDate');
+ await act(async()=>date.click());
+ const dialog=s.container.querySelector('[role="dialog"][aria-label="Personalizar periodo"]');
+ assert.ok(dialog);
+ const from=dialog.querySelector('[name="from"]'),to=dialog.querySelector('[name="to"]');
+ await act(async()=>{
+  const setter=Object.getOwnPropertyDescriptor(s.w.HTMLInputElement.prototype,'value').set;
+  setter.call(from,'2026-10-12');from.dispatchEvent(new s.w.Event('input',{bubbles:true}));from.dispatchEvent(new s.w.Event('change',{bubbles:true}));
+  setter.call(to,'2026-10-14');to.dispatchEvent(new s.w.Event('input',{bubbles:true}));to.dispatchEvent(new s.w.Event('change',{bubbles:true}));
+ });
+ await act(async()=>dialog.dispatchEvent(new s.w.Event('submit',{bubbles:true,cancelable:true})));
+ assert.deepEqual(s.selected.at(-1),{from:'2026-10-12',to:'2026-10-14',marketplaceIds:['ES']});
+ assert.equal(s.container.querySelector('[aria-label="Productos"]').dataset.from,'2026-10-12');
+ assert.equal(s.container.querySelector('.amazonPeriodCard.isSelected h3').textContent,'Personalizado');
+ await s.close();
+});
+
+test('desktop period and marketplace dropdowns preserve each other when filtering',async()=>{
+ const s=await setup();const changes=[];
+ globalThis.__amazonUi.range=key=>key==='yesterday'?{from:'2026-10-13',to:'2026-10-13'}:{from:'2026-10-14',to:'2026-10-14'};
+ function FilterHarness(){const [filters,setFilters]=React.useState({from:'2026-10-14',to:'2026-10-14',marketplaceIds:[]});return React.createElement(AmazonFilters,{filters,marketplaces:[{id:'ES',name:'España',countryCode:'ES',active:true},{id:'FR',name:'Francia',countryCode:'FR',active:true}],onChange:f=>{changes.push(f);setFilters(f)}});}
+ await act(async()=>s.root.render(React.createElement(FilterHarness)));
+ assert.equal(s.container.querySelectorAll('.amazonDesktopFilters>details').length,2);
+ const country=s.container.querySelector('.amazonDropdownMarketplaces input');
+ await act(async()=>country.click());
+ assert.deepEqual(changes.at(-1).marketplaceIds,['ES']);
+ const period=s.container.querySelector('[role="combobox"][aria-label="Periodo de Amazon"]');
+ await act(async()=>period.click());
+ const yesterday=[...s.w.document.querySelectorAll('[role="option"]')].find(option=>option.textContent==='Ayer');
+ assert.ok(yesterday);await act(async()=>yesterday.click());
+ assert.deepEqual(changes.at(-1),{from:'2026-10-13',to:'2026-10-13',marketplaceIds:['ES']});
  await s.close();
 });

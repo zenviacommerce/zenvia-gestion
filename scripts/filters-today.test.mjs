@@ -55,10 +55,11 @@ test('yesterday uses the previous local calendar day across month, year and DST 
   assert.equal(periodLabel(filterForPreset('yesterday','',now),now),'Ayer');
  }
 });
-test('Expenses and Amazon reuse the shared period panel',async()=>{
+test('Expenses reuse the shared period panel and Amazon exposes compact period dropdowns',async()=>{
  for(const name of ['InvoiceFilters','amazon/AmazonFilters']){
   const source=await readFile(new URL(`../src/components/${name}.tsx`,import.meta.url),'utf8');
-  assert.match(source,/<PeriodFilterPanel\s/);
+  if(name==='InvoiceFilters')assert.match(source,/<PeriodFilterPanel\s/);
+  else{assert.match(source,/quickPresets/);assert.match(source,/SelectField/);assert.match(source,/amazonDesktopFilters/);}
   assert.doesNotMatch(source,/className="filterQuick"|className="amazonFilterPresets"/);
  }
 });

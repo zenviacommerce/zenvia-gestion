@@ -53,7 +53,7 @@ test('Amazon detail tabs use typed loaders and expose approved fields',async()=>
 test('Sin vincular uses the shared mapping editor through the mapping modal',async()=>{
   const unmapped=await source('src/components/amazon/AmazonUnmapped.tsx');
   const modal=await source('src/components/amazon/AmazonMappingModal.tsx');
-  const editor=await source('src/components/amazon/AmazonMappingEditor.tsx');
+  const editor=(await source('src/components/amazon/AmazonMappingEditor.tsx'))+(await source('src/components/ProductMappingEditor.tsx'));
   assert.match(unmapped,/loadAmazonUnmapped/);assert.match(unmapped,/AmazonMappingModal/);assert.match(unmapped,/sellerSku/);
   assert.match(modal,/AmazonMappingEditor/);
   assert.match(editor,/setAmazonProductMapping/);assert.match(editor,/Factor|factor/);assert.match(editor,/Producto interno|producto interno/);assert.doesNotMatch(editor,/<select/i);

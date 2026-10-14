@@ -1,7 +1,8 @@
+import { ProductIdentity } from '../ProductIdentity';
 import { ProductMappingAction } from '../ProductMappingAction';
 import { AmazonLoading } from './AmazonLoading';
 import { useEffect, useState } from 'react';
-import { ImageOff, RefreshCw, Search } from 'lucide-react';
+import { RefreshCw, Search } from 'lucide-react';
 import { isAmazonConnectivityError, loadAmazonProductMetadata, loadAmazonProducts, type AmazonAnalyticsFilters, type AmazonPageResult, type AmazonProductAnalytics, type AmazonProductMetadata, type AmazonProductSort, type AmazonSortDirection } from '../../services/amazon';
 import { errorMessage } from '../../services/toast';
 import { AmazonMappingModal } from './AmazonMappingModal';
@@ -95,7 +96,7 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
         <tbody>
           {data.items.map(row=><tr key={`${row.sellerSku}-${row.asin}`}>
             <td className="amazonSkuCell"><strong>{row.sellerSku}</strong><small>{row.asin||'—'}</small>{row.businessOrders>0&&<span className="amazonB2bBadge">{row.businessOrders} B2B</span>}</td>
-            <td className="amazonProductNameCell"><div className="amazonProductIdentity">{row.asin&&metadata[row.asin]?.imageUrl?<img className="amazonProductThumb" src={metadata[row.asin].imageUrl!} alt="" loading="lazy" referrerPolicy="no-referrer"/>:<span className="amazonProductThumb amazonProductThumbPlaceholder"><ImageOff size={18}/></span>}<div><strong>{(row.asin&&metadata[row.asin]?.productName)||'Nombre Amazon pendiente'}</strong>{row.productName?<small className="amazonInternalProduct">ZENVIA: {row.productName}{row.productMappings?.length>1?` · ${row.productMappings.length} componentes`:''}</small>:<small className="amazonIncomplete">Sin vincular</small>}</div></div></td>
+            <td className="amazonProductNameCell"><ProductIdentity name={(row.asin&&metadata[row.asin]?.productName)||'Nombre Amazon pendiente'} imageUrl={row.asin?metadata[row.asin]?.imageUrl:null}>{row.productName?<small className="amazonInternalProduct">ZENVIA: {row.productName}{row.productMappings?.length>1?` · ${row.productMappings.length} componentes`:''}</small>:<small className="amazonIncomplete">Sin vincular</small>}</ProductIdentity></td>
             <td>{integer.format(row.orders)}</td>
             <td>{integer.format(row.units)}</td>
             <td>{money.format(row.grossSales)}</td>

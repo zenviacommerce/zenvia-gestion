@@ -17,7 +17,7 @@ test('Amazon SKU mappings support multiple internal product components',async()=
 
 test('Amazon mapping editor exposes supplier and keeps a component list',async()=>{
   const [editor,service]=await Promise.all([
-    source('src/components/amazon/AmazonMappingEditor.tsx'),
+    source('src/components/ProductMappingEditor.tsx').then(async shared=>shared+await source('src/components/amazon/AmazonMappingEditor.tsx')),
     source('src/services/amazon.ts'),
   ]);
   assert.match(editor,/Productos vinculados/);
@@ -39,7 +39,7 @@ test('generic Amazon mapping modal resolves Amazon metadata by ASIN when callers
   assert.match(modal,/if\(!productName&&product\.productName\)setResolvedName\(product\.productName\)/);
   assert.match(modal,/if\(!imageUrl&&product\.imageUrl\)setResolvedImage\(product\.imageUrl\)/);
   assert.match(modal,/\{resolvedName\|\|sellerSku\}/);
-  assert.match(modal,/src=\{resolvedImage\}/);
+  assert.match(modal,/imageUrl=\{resolvedImage\}/);
 });
 
 test('Amazon mapping modal uses the Amazon product name as its primary title',async()=>{
@@ -49,7 +49,7 @@ test('Amazon mapping modal uses the Amazon product name as its primary title',as
   ]);
   assert.match(modal,/productName\?:string\|null/);
   assert.match(modal,/\{resolvedName\|\|sellerSku\}/);
-  assert.match(modal,/\{sellerSku\} · \{asin\|\|'ASIN no disponible'\}/);
+  assert.match(modal,/subtitle=\{`\$\{sellerSku\} · \$\{asin\|\|'ASIN no disponible'\}`\}/);
   assert.match(unmapped,/productName=\{editingRow\?\.asin\?metadata\[editingRow\.asin\]\?\.productName\|\|null:null\}/);
 });
 
@@ -71,7 +71,7 @@ test('Amazon product table gives the Amazon product name useful desktop width',a
 
 test('Amazon product profitability UI reports multiple linked components',async()=>{
   const products=await source('src/components/amazon/AmazonProducts.tsx');
-  assert.match(products,/Gestionar vínculos/);
+  assert.match(products,/ProductMappingAction/);
   assert.match(products,/productMappings/);
   assert.match(products,/componentes/);
 });

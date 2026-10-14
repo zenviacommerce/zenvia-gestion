@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ImageOff, Link2, X } from 'lucide-react';
+import { ProductMappingModal } from '../ProductMappingModal';
 import { AmazonMappingEditor } from './AmazonMappingEditor';
 import { loadAmazonProductMetadata } from '../../services/amazon';
 
@@ -32,24 +32,7 @@ export function AmazonMappingModal({sellerSku,asin,imageUrl,productName,initialF
     return()=>{active=false};
   },[asin,productName,imageUrl]);
 
-  useEffect(()=>{
-    const onKey=(event:KeyboardEvent)=>{if(event.key==='Escape')onClose();};
-    window.addEventListener('keydown',onKey);
-    return()=>window.removeEventListener('keydown',onKey);
-  },[onClose]);
-
-  return <div className="amazonMappingModalBackdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)onClose();}}>
-    <section className="amazonMappingModal" role="dialog" aria-modal="true" aria-label="Gestionar productos vinculados de Amazon">
-      <header className="amazonMappingModalHead">
-        <div className="amazonMappingModalIdentity">
-          {resolvedImage?<img className="amazonMappingModalThumb" src={resolvedImage} alt="" loading="lazy" referrerPolicy="no-referrer"/>:<span className="amazonMappingModalThumb amazonProductThumbPlaceholder"><ImageOff size={21}/></span>}
-          <div><span className="amazonSectionLabel">VINCULAR PRODUCTOS</span><strong><Link2 size={16}/>{resolvedName||sellerSku}</strong><small>{sellerSku} · {asin||'ASIN no disponible'}</small></div>
-        </div>
-        <button className="amazonMappingModalClose" type="button" onClick={onClose} aria-label="Cerrar"><X size={19}/></button>
-      </header>
-      <div className="amazonMappingModalBody">
-        <AmazonMappingEditor sellerSku={sellerSku} productName={resolvedName} defaultFactor={initialFactor} onChanged={onChanged} onCancel={onClose}/>
-      </div>
-    </section>
-  </div>;
+  return <ProductMappingModal name={resolvedName||sellerSku} subtitle={`${sellerSku} · ${asin||'ASIN no disponible'}`} imageUrl={resolvedImage} channelName="Amazon" onClose={onClose}>
+    <AmazonMappingEditor sellerSku={sellerSku} productName={resolvedName} defaultFactor={initialFactor} onChanged={onChanged} onCancel={onClose}/>
+  </ProductMappingModal>;
 }

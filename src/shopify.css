@@ -5,16 +5,8 @@ html[data-theme='dark'] .shopifyStatus.isComplete,body.dark .shopifyStatus.isCom
 
 /* Use shared channel navigation and retain Zenvia's teal brand states. */
 .shopifyNavigation .shopifyToolbar{flex-wrap:wrap;gap:10px}
-.shopifyNavigation .amazonFilterDropdown>summary>svg:first-child{background:#f0fdfa;color:#0f766e}
-.shopifyNavigation .amazonFilterDropdown>summary:hover,.shopifyNavigation .amazonFilterDropdown[open]>summary{border-color:#5eead4;box-shadow:0 0 0 3px #f0fdfa}
-.shopifyNavigation .amazonTabs button.isActive{color:#0f766e}
-.shopifyNavigation summary:focus-visible,.shopifyNavigation button:focus-visible{outline-color:#0f766e}
-.shopifyPage .amazonPeriodCarousel{align-items:stretch}
+.shopifyPage .amazonPeriodCarousel{align-items:flex-start}
 .shopifyPage .amazonPeriodCard{display:flex;flex-direction:column}
 .shopifyPage .amazonPeriodBody{flex:1}
 .shopifyPage .amazonPeriodCard footer{margin-top:auto}
-[data-theme='dark'] .shopifyNavigation .amazonFilterDropdown>summary>svg:first-child{background:#134e4a;color:#99f6e4}
-[data-theme='dark'] .shopifyNavigation .amazonFilterDropdown>summary:hover,[data-theme='dark'] .shopifyNavigation .amazonFilterDropdown[open]>summary{border-color:#2dd4bf;box-shadow:0 0 0 3px #134e4a}
-[data-theme='dark'] .shopifyNavigation .amazonTabs button.isActive,[data-theme='dark'] .shopifyNavigation .amazonTabs button.isActive:hover{background:#334155;color:#99f6e4}
-[data-theme='dark'] .shopifyNavigation summary:focus-visible,[data-theme='dark'] .shopifyNavigation button:focus-visible{outline-color:#5eead4}
-@media(max-width:760px){.shopifyNavigation{gap:10px}.shopifyNavigation .shopifyStoreFilter{min-width:0;width:100%}}
+@media(max-width:760px){.shopifyNavigation .shopifyStoreFilter{min-width:0;width:100%}}

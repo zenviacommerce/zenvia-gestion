@@ -422,45 +422,38 @@
 
 .amazonDropdownFieldLabel{display:block;font-size:11px;font-weight:600;color:#64748b;margin-bottom:5px}
 
-/* One quiet toolbar for Amazon navigation and compact selectors. */
-.amazonToolbar{display:grid;gap:14px;padding:16px;border:1px solid #e2e8f0;border-radius:16px;background:linear-gradient(135deg,#fff,#fafbfc);box-shadow:0 2px 8px #0f172a04}
+/* Shared compact selectors and simple underlined channel tabs. */
+.amazonToolbar{display:grid;gap:14px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;min-width:0}
 .amazonToolbar .amazonDesktopFilters{gap:10px}
-.amazonToolbar .amazonFilterDropdown{min-width:195px}
-.amazonToolbar .amazonFilterDropdown>summary{gap:10px;padding:10px 12px;border-color:#e2e8f0;border-radius:12px;box-shadow:0 1px 3px #0f172a05;transition:border-color .18s,box-shadow .18s}
-.amazonToolbar .amazonFilterDropdown>summary:hover,.amazonToolbar .amazonFilterDropdown[open]>summary{border-color:#fdba74;box-shadow:0 0 0 3px #fff7ed}
-.amazonToolbar .amazonFilterDropdown>summary>svg:first-child{color:#c2410c;background:#fff7ed;border-radius:9px;padding:7px;box-sizing:content-box}
-.amazonToolbar .amazonFilterDropdown>summary>span{display:grid;gap:3px}
-.amazonToolbar .amazonFilterDropdown>summary small{font-size:9px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#94a3b8}
+.amazonToolbar .amazonFilterDropdown{min-width:160px}
+.amazonToolbar .amazonFilterDropdown>summary{gap:8px;padding:9px 12px;border-radius:8px;box-shadow:none;transition:border-color .18s}
+.amazonToolbar .amazonFilterDropdown>summary:hover,.amazonToolbar .amazonFilterDropdown[open]>summary{border-color:#5eead4}
+.amazonToolbar .amazonFilterDropdown>summary>svg:first-child{color:#64748b;background:transparent;padding:0}
+.amazonToolbar .amazonFilterDropdown>summary>span{display:grid;gap:2px}
+.amazonToolbar .amazonFilterDropdown>summary small{font-size:10px;font-weight:500;color:#64748b}
 .amazonToolbar .amazonFilterDropdown>summary strong{font-size:12px;font-weight:650;color:#334155}
-.amazonToolbar .amazonFilterDropdownPanel{border-radius:14px;box-shadow:0 14px 38px #0f172a15;padding:18px}
-.amazonToolbar .amazonTabs{gap:5px;margin:0;padding:5px;border:1px solid #edf0f4;border-radius:12px;background:#f3f5f7}
-.amazonToolbar .amazonTabs button{padding:9px 15px;border:0;border-radius:9px;background:transparent;color:#64748b;font-size:12px;font-weight:600;transition:background .18s,color .18s;flex-shrink:0}
-.amazonToolbar .amazonTabs button:hover{background:#ffffffa6;color:#334155}
-.amazonToolbar .amazonTabs button.isActive{background:#fff;color:#c2410c;box-shadow:0 1px 4px #0f172a12}
-.amazonToolbar .amazonTabs button span{background:#ffedd5;color:#c2410c}
-.amazonToolbar summary:focus-visible,.amazonToolbar button:focus-visible{outline:2px solid #ea580c;outline-offset:3px}
-[data-theme='dark'] .amazonToolbar{background:#111827;border-color:#263449;box-shadow:none}
-[data-theme='dark'] .amazonToolbar .amazonTabs{background:#0b1322;border-color:#263449}
-[data-theme='dark'] .amazonToolbar .amazonTabs button{color:#94a3b8}
-[data-theme='dark'] .amazonToolbar .amazonTabs button.isActive{background:#1e293b;color:#fdba74}
-[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary strong{color:#f8fafc}
-[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary>svg:first-child{background:#422006;color:#fdba74}
-[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary:hover,[data-theme='dark'] .amazonToolbar .amazonFilterDropdown[open]>summary{border-color:#9a3412;box-shadow:0 0 0 3px #422006}
-@media(max-width:760px){.amazonToolbar{padding:8px;gap:0;border-radius:14px}.amazonToolbar .amazonTabs{border:0;padding:3px}.amazonToolbar .amazonTabs button{padding:9px 12px}}
-
-/* Keep every toolbar state readable on the dark surface. */
+.amazonToolbar .amazonTabs{gap:6px;margin:0;padding:0;border:0;border-bottom:1px solid #e2e8f0;border-radius:0;background:transparent}
+.amazonToolbar .amazonTabs button{padding:12px 18px;border:0;border-bottom:2px solid transparent;border-radius:0;background:transparent;color:#64748b;font-size:12px;font-weight:650;box-shadow:none;flex-shrink:0}
+.amazonToolbar .amazonTabs button:hover{background:#f1f5f9;color:#334155}
+.amazonToolbar .amazonTabs button.isActive,.amazonToolbar .amazonTabs button.isActive:hover{background:transparent;color:#0f766e;border-bottom-color:#0f766e;box-shadow:none}
+.amazonToolbar .amazonTabs button span{background:#ccfbf1;color:#0f766e}
+.amazonToolbar summary:focus-visible,.amazonToolbar button:focus-visible{outline:2px solid #0f766e;outline-offset:3px}
+[data-theme='dark'] .amazonToolbar .amazonTabs{border-bottom-color:#334155}
 [data-theme='dark'] .amazonToolbar .amazonTabs button{color:#cbd5e1}
-[data-theme='dark'] .amazonToolbar .amazonTabs button:hover{background:#253247;color:#f8fafc}
-[data-theme='dark'] .amazonToolbar .amazonTabs button.isActive,[data-theme='dark'] .amazonToolbar .amazonTabs button.isActive:hover{background:#334155;color:#fed7aa;box-shadow:0 1px 3px #0003}
-[data-theme='dark'] .amazonToolbar .amazonTabs button span{background:#7c2d12;color:#ffedd5}
+[data-theme='dark'] .amazonToolbar .amazonTabs button:hover{background:#1e293b;color:#f8fafc}
+[data-theme='dark'] .amazonToolbar .amazonTabs button.isActive,[data-theme='dark'] .amazonToolbar .amazonTabs button.isActive:hover{background:transparent;color:#5eead4;border-bottom-color:#2dd4bf;box-shadow:none}
+[data-theme='dark'] .amazonToolbar .amazonTabs button span{background:#134e4a;color:#99f6e4}
 [data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary{background:#172033;border-color:#3b4a61;color:#cbd5e1;box-shadow:none}
-[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary small{color:#b6c2d3}
+[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary:hover,[data-theme='dark'] .amazonToolbar .amazonFilterDropdown[open]>summary{border-color:#2dd4bf}
+[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary strong{color:#f8fafc}
+[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary small,[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary>svg:first-child{color:#b6c2d3}
 [data-theme='dark'] .amazonToolbar .amazonFilterDropdownPanel{background:#172033;border-color:#3b4a61;box-shadow:0 14px 38px #0005;color:#e2e8f0}
 [data-theme='dark'] .amazonToolbar .amazonDropdownFieldLabel,[data-theme='dark'] .amazonToolbar .amazonDropdownDates label,[data-theme='dark'] .amazonToolbar .amazonDropdownMarketplaces>label{color:#cbd5e1}
 [data-theme='dark'] .amazonToolbar .amazonDropdownMarketplaces>button{background:#1e293b;border-color:#475569;color:#e2e8f0}
 [data-theme='dark'] .amazonToolbar .amazonDropdownMarketplaces>button:hover{background:#334155;color:#fff}
-[data-theme='dark'] .amazonToolbar .amazonDropdownMarketplaces>button.isActive{background:#7c2d12;border-color:#c2410c;color:#ffedd5}
+[data-theme='dark'] .amazonToolbar .amazonDropdownMarketplaces>button.isActive{background:#134e4a;border-color:#0f766e;color:#99f6e4}
 [data-theme='dark'] .amazonToolbar .amazonDropdownMarketplaces label small{color:#b6c2d3}
 [data-theme='dark'] .amazonToolbar .amazonDropdownDates input{color-scheme:dark;background:#0f172a;border-color:#475569;color:#f8fafc}
 [data-theme='dark'] .amazonToolbar .amazonDateError{color:#fca5a5}
-[data-theme='dark'] .amazonToolbar summary:focus-visible,[data-theme='dark'] .amazonToolbar button:focus-visible{outline-color:#fdba74}
+[data-theme='dark'] .amazonToolbar summary:focus-visible,[data-theme='dark'] .amazonToolbar button:focus-visible{outline-color:#5eead4}
+@media(max-width:760px){.amazonToolbar{gap:10px}.amazonToolbar .amazonTabs button{padding:10px 14px}}

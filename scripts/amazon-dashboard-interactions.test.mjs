@@ -96,11 +96,12 @@ test('each tile opens its own details without changing the product period',async
  await s.close();
 });
 
-test('compact products keep four sortable columns and identify items even without images',async()=>{
+test('embedded products retain the complete columns, identity and mapping actions',async()=>{
  const s=await setup();
  await act(async()=>{s.root.render(React.createElement(ActualAmazonProducts,{filters:{from:'2026-10-01',to:'2026-10-14',marketplaceIds:['ES']},embedded:true}));});
- assert.equal(s.container.querySelectorAll('thead th').length,4);
- assert.match(s.container.querySelector('.amazonProductIdentity').textContent,/SKU-SIN-IMAGEN/);
- assert.equal(s.container.querySelectorAll('tbody tr:first-child td').length,4);
+ assert.equal(s.container.querySelectorAll('thead th').length,14);
+ assert.match(s.container.querySelector('.amazonSkuCell').textContent,/SKU-SIN-IMAGEN/);
+ assert.equal(s.container.querySelectorAll('tbody tr:first-child td').length,14);
+ assert.ok(s.container.querySelector('tbody .amazonInlineAction'));
  await s.close();
 });

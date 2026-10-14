@@ -60,26 +60,22 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
     else{setSortBy(key);setSortDir(key==='product_name'?'asc':'desc');}
   };
 
-  const headers=embedded?sortableHeaders.filter(header=>['product_name','units','gross_sales','profit_before_ads'].includes(header.key)):sortableHeaders;
-  const periodLabel=filters.from===filters.to
-    ?new Date(filters.from+'T12:00:00').toLocaleDateString('es-ES')
-    :new Date(filters.from+'T12:00:00').toLocaleDateString('es-ES')+' – '+new Date(filters.to+'T12:00:00').toLocaleDateString('es-ES');
   return <section id={embedded?'amazon-period-products':undefined} className={embedded?'card amazonTableCard amazonEmbeddedProducts':'card amazonTableCard'}>
     <div className="amazonTableToolbar">
       <div>
         <span className="amazonSectionLabel">RENTABILIDAD POR PRODUCTO</span>
-        <strong>Productos{embedded&&<span className="amazonProductPeriod">{periodLabel}</span>}</strong>
+        <strong>Productos</strong>
         <p>Ordena por cualquier métrica. Beneficio y margen por producto se muestran antes de publicidad y costes globales no atribuibles.</p>
       </div>
       <label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU, ASIN o producto"/></label>
     </div>
-    {error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}
+    {error&&!embedded&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}
     <div className="amazonTableScroll">
       <table className="amazonTable amazonProductTable">
         <thead>
           <tr>
-            {!embedded&&<th>SKU / ASIN</th>}
-            {headers.map(header=><SortableTableHeader
+            <th>SKU / ASIN</th>
+            {sortableHeaders.map(header=><SortableTableHeader
               key={header.key}
               label={header.label}
               sortKey={header.key}
@@ -87,27 +83,29 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
               direction={sortDir}
               onSort={key=>changeSort(key as AmazonProductSort)}
             />)}
-            {!embedded&&<><th>IVA venta</th><th>IVA tarifas</th><th></th></>}
+            <th>IVA venta</th>
+            <th>IVA tarifas</th>
+            <th></th>
           </tr>
         </thead>
         <tbody>
           {data.items.map(row=><tr key={`${row.sellerSku}-${row.asin}`}>
-            {!embedded&&<td className="amazonSkuCell"><strong>{row.sellerSku}</strong><small>{row.asin||'—'}</small>{row.businessOrders>0&&<span className="amazonB2bBadge">{row.businessOrders} B2B</span>}</td>}
-            <td className="amazonProductNameCell"><div className="amazonProductIdentity">{row.asin&&metadata[row.asin]?.imageUrl?<img className="amazonProductThumb" src={metadata[row.asin].imageUrl!} alt={embedded?((row.asin&&metadata[row.asin]?.productName)||row.sellerSku):''} loading="lazy" referrerPolicy="no-referrer"/>:<span className="amazonProductThumb amazonProductThumbPlaceholder"><ImageOff size={18}/></span>}<div>{embedded&&<small className="amazonCompactSku">{row.sellerSku}</small>}<strong>{(row.asin&&metadata[row.asin]?.productName)||'Nombre Amazon pendiente'}</strong>{row.productName?<small className="amazonInternalProduct">ZENVIA: {row.productName}{row.productMappings?.length>1?` · ${row.productMappings.length} componentes`:''}</small>:<small className="amazonIncomplete">Sin vincular</small>}</div></div></td>
-            {!embedded&&<td>{integer.format(row.orders)}</td>}
+            <td className="amazonSkuCell"><strong>{row.sellerSku}</strong><small>{row.asin||'—'}</small>{row.businessOrders>0&&<span className="amazonB2bBadge">{row.businessOrders} B2B</span>}</td>
+            <td className="amazonProductNameCell"><div className="amazonProductIdentity">{row.asin&&metadata[row.asin]?.imageUrl?<img className="amazonProductThumb" src={metadata[row.asin].imageUrl!} alt="" loading="lazy" referrerPolicy="no-referrer"/>:<span className="amazonProductThumb amazonProductThumbPlaceholder"><ImageOff size={18}/></span>}<div><strong>{(row.asin&&metadata[row.asin]?.productName)||'Nombre Amazon pendiente'}</strong>{row.productName?<small className="amazonInternalProduct">ZENVIA: {row.productName}{row.productMappings?.length>1?` · ${row.productMappings.length} componentes`:''}</small>:<small className="amazonIncomplete">Sin vincular</small>}</div></div></td>
+            <td>{integer.format(row.orders)}</td>
             <td>{integer.format(row.units)}</td>
             <td>{money.format(row.grossSales)}</td>
-            {!embedded&&<td>{money.format(row.netSales)}{row.missingVatOrders>0&&<small className="amazonIncomplete">{row.missingVatOrders} con IVA pendiente</small>}</td>}
-            {!embedded&&<td>{money.format(row.productCost)}</td>}
-            {!embedded&&<td>{money.format(row.amazonFees)}</td>}
-            {!embedded&&<td>{money.format(row.refunds)}</td>}
+            <td>{money.format(row.netSales)}{row.missingVatOrders>0&&<small className="amazonIncomplete">{row.missingVatOrders} con IVA pendiente</small>}</td>
+            <td>{money.format(row.productCost)}</td>
+            <td>{money.format(row.amazonFees)}</td>
+            <td>{money.format(row.refunds)}</td>
             <td className={row.profitBeforeAds>=0?'amazonPositive':'amazonNegative'}>{money.format(row.profitBeforeAds)}{!row.profitComplete&&<small className="amazonIncomplete">Provisional</small>}</td>
-            {!embedded&&<td className={row.marginPct!=null&&row.marginPct>=0?'amazonPositive':'amazonNegative'}>{row.marginPct==null?'—':`${row.marginPct.toFixed(1)} %`}</td>}
-            {!embedded&&<td>{money.format(row.salesVat)}</td>}
-            {!embedded&&<td>{money.format(row.amazonFeeVat)}</td>}
-            {!embedded&&<td><button className="amazonInlineAction" onClick={()=>setEditing(editing===row.sellerSku?null:row.sellerSku)}><Link2 size={14}/>{(row.productMappings?.length||row.productId)?'Gestionar vínculos':'Vincular'}</button></td>}
+            <td className={row.marginPct!=null&&row.marginPct>=0?'amazonPositive':'amazonNegative'}>{row.marginPct==null?'—':`${row.marginPct.toFixed(1)} %`}</td>
+            <td>{money.format(row.salesVat)}</td>
+            <td>{money.format(row.amazonFeeVat)}</td>
+            <td><button className="amazonInlineAction" onClick={()=>setEditing(editing===row.sellerSku?null:row.sellerSku)}><Link2 size={14}/>{(row.productMappings?.length||row.productId)?'Gestionar vínculos':'Vincular'}</button></td>
           </tr>)}
-          {!data.items.length&&<tr><td colSpan={embedded?4:14} className="amazonEmptyCell">{loading?'Cargando productos de Amazon…':'No hay productos para este periodo.'}</td></tr>}
+          {!data.items.length&&<tr><td colSpan={14} className="amazonEmptyCell">{loading?'Cargando productos de Amazon…':'No hay productos para este periodo.'}</td></tr>}
         </tbody>
       </table>
     </div>

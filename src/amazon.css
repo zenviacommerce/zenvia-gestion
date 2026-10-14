@@ -360,10 +360,10 @@
 .amazonDashboardDetails[open]>.amazonQualityBanner{margin:15px 0}
 .amazonDashboardDetails[open]>.amazonAnalyticsGrid{margin-top:15px}
 .amazonProductPeriod{display:block;font-size:11px;color:#64748b;font-weight:500;margin-top:5px}
-.amazonEmbeddedProducts .amazonProductTable{min-width:0!important;table-layout:auto}
-.amazonEmbeddedProducts .amazonProductTable th:not(:first-child),.amazonEmbeddedProducts .amazonProductTable td:not(:first-child){text-align:right;white-space:nowrap}
-.amazonEmbeddedProducts .amazonProductNameCell{min-width:150px}
-.amazonEmbeddedProducts .amazonProductTable td{vertical-align:middle}
+
+
+
+
 [data-theme='dark'] .amazonPeriodCarousel .amazonPeriodCard,[data-theme='dark'] .amazonPeriodCarousel .amazonPeriodCard.isSelected{background:#111827;border-color:#334155}
 [data-theme='dark'] .amazonPeriodCarousel .amazonPeriodCard.isSelected{border-color:var(--period-accent)}
 [data-theme='dark'] .amazonPeriodCarousel .amazonPeriodMetrics dd{color:#f8fafc}
@@ -371,7 +371,5 @@
 [data-theme='dark'] .amazonCarouselControls>button,[data-theme='dark'] .amazonDashboardDetails,[data-theme='dark'] .amazonPeriodExtra,[data-theme='dark'] .amazonPeriodCarousel .amazonPeriodMetrics .amazonPeriodMetricSeparator{border-color:#334155}
 [data-theme='dark'] .amazonCarouselControls>button,[data-theme='dark'] .amazonDashboardDetails>summary{color:#cbd5e1}
 [data-theme='dark'] .amazonPeriodMore{color:#93c5fd}
-@media(max-width:760px){.amazonCarouselControls>span{display:none}.amazonPeriodCarousel{gap:12px}.amazonEmbeddedProducts .amazonTableToolbar{align-items:flex-start;flex-wrap:wrap}.amazonEmbeddedProducts .amazonTableToolbar p{font-size:10px}}
-@media(max-width:520px){.amazonPeriodCarousel .amazonPeriodCard{flex-basis:calc(100vw - 90px);width:calc(100vw - 90px);min-width:250px;max-width:330px}.amazonPeriodCarousel .amazonPeriodCard header{padding:16px 18px}.amazonPeriodBody{padding:17px 18px 0}.amazonPeriodCarousel .amazonPeriodMetrics{gap:14px 12px}.amazonPeriodCarousel .amazonPeriodMetrics dd{font-size:17px}.amazonPeriodCarousel .amazonPeriodProfit dd{font-size:20px}.amazonPeriodCarousel .amazonPeriodSales>strong{font-size:27px}.amazonEmbeddedProducts .amazonProductNameCell{min-width:44px;width:50px}.amazonEmbeddedProducts .amazonProductIdentity{flex-direction:column;align-items:flex-start;gap:4px}.amazonEmbeddedProducts .amazonProductIdentity>div{display:block;max-width:80px}.amazonEmbeddedProducts .amazonProductIdentity>div>strong,.amazonEmbeddedProducts .amazonProductIdentity .amazonInternalProduct,.amazonEmbeddedProducts .amazonProductIdentity .amazonIncomplete{display:none}.amazonEmbeddedProducts .amazonProductIdentity .amazonCompactSku{display:block;font-size:9px;line-height:1.25;white-space:normal;overflow-wrap:anywhere;max-width:80px}.amazonEmbeddedProducts .amazonProductThumb{width:38px;height:38px}.amazonEmbeddedProducts .amazonProductTable th,.amazonEmbeddedProducts .amazonProductTable td{font-size:10px;padding:10px 4px}.amazonEmbeddedProducts .amazonTableToolbar strong{font-size:15px}.amazonEmbeddedProducts .amazonTableToolbar .amazonSearch{width:100%}.amazonEmbeddedProducts .amazonSearch input{min-width:0;width:100%}.amazonDashboardDetails{padding-inline:12px}}
-
-.amazonCompactSku{display:none}
+@media(max-width:760px){.amazonCarouselControls>span{display:none}.amazonPeriodCarousel{gap:12px}}
+@media(max-width:520px){.amazonPeriodCarousel .amazonPeriodCard{flex-basis:calc(100vw - 90px);width:calc(100vw - 90px);min-width:250px;max-width:330px}.amazonPeriodCarousel .amazonPeriodCard header{padding:16px 18px}.amazonPeriodBody{padding:17px 18px 0}.amazonPeriodCarousel .amazonPeriodMetrics{gap:14px 12px}.amazonPeriodCarousel .amazonPeriodMetrics dd{font-size:17px}.amazonPeriodCarousel .amazonPeriodProfit dd{font-size:20px}.amazonPeriodCarousel .amazonPeriodSales>strong{font-size:27px}.amazonDashboardDetails{padding-inline:12px}}

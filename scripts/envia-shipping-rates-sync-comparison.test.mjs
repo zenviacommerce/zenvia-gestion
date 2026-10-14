@@ -72,7 +72,7 @@ test('tariff fallback does not invent expiry or fuel inclusion from unrelated do
 });
 
 
-test('Envia quotes sanitize state values and retain per-carrier compatibility fallback',async()=>{
+test('Envia quotes sanitize state values and always specify the carrier',async()=>{
   const edge=await read('supabase/functions/envia-shipping/index.ts');
   assert.match(edge,/function enviaStateCode/);
   assert.match(edge,/\^\[A-Z0-9\]\{2\}\$/);
@@ -80,9 +80,9 @@ test('Envia quotes sanitize state values and retain per-carrier compatibility fa
   assert.match(edge,/geocodeRows/);
   assert.match(edge,/geocodes\.envia\.com\/locate/);
   assert.match(edge,/if\(!origin\.state\)throw new Error/);
-  assert.match(edge,/shipment:\{type:1\}/);
-  assert.match(edge,/Envia all-carrier quote fallback/);
-  assert.match(edge,/if\(enabled\.length\)options=options\.filter/);
+  assert.doesNotMatch(edge,/shipment:\{type:1\}/);
+  assert.doesNotMatch(edge,/Envia all-carrier quote fallback/);
+  assert.match(edge,/if\(enabled\.length\)carriers=carriers\.filter/);
   assert.match(edge,/shipment:\{type:1,carrier\}/);
 });
 

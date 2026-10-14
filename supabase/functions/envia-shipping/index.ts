@@ -365,31 +365,7 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
   if(!dest.state)throw new Error(`Envia.com no pudo resolver el código de provincia/estado del destinatario (${dest.postalCode||dest.city||dest.country}).`);
   const enabled=Array.isArray(config.shipping?.enabledCarriers)?config.shipping.enabledCarriers.map((x:any)=>clean(x).toLowerCase()).filter(Boolean):[];
 
-  // Envia's rate endpoint can return all available carriers/services in one call
-  // when shipment.carrier is omitted. This is substantially faster than N carrier
-  // requests and is also the authoritative route-level availability source.
-  try{
-    const data=await withTimeout(enviaJson(`${c.shipBase}/ship/rate/`,c.token,{
-      method:'POST',
-      body:JSON.stringify({origin,destination:dest,packages:[pkg],shipment:{type:1}}),
-    }),5000,'Timeout cotizando Envia.com');
-    let options=asRows(data).map((row:any)=>normalizeRate(row,account)).filter((option:any)=>option.carrierCode&&option.code);
-    if(enabled.length)options=options.filter((option:any)=>{
-      const carrier=clean(option.carrierCode).toLowerCase(),name=clean(option.carrierName).toLowerCase();
-      return enabled.some((wanted:string)=>carrier.includes(wanted)||wanted.includes(carrier)||name.includes(wanted)||wanted.includes(name));
-    });
-    const unique=new Map<string,any>();
-    for(const option of options){
-      const key=`${clean(option.carrierCode).toLowerCase()}|${clean(option.code).toLowerCase()}|${Number(option.price)||''}`;
-      if(!unique.has(key))unique.set(key,option);
-    }
-    if(unique.size)return {options:[...unique.values()],errors:[],carriers:[...new Set([...unique.values()].map((option:any)=>option.carrierCode))],environment:c.environment};
-  }catch(error){
-    console.warn('Envia all-carrier quote fallback',error instanceof Error?error.message:error);
-  }
-
-  // Compatibility fallback for accounts/routes where the all-carrier quote is
-  // unavailable: discover carriers and quote them independently with short timeouts.
+  // The rate API requires shipment.carrier. Discover and quote each carrier directly.
   let carriers=await listCarriers(c,origin.country||'ES',dest.country||origin.country||'ES');
   if(enabled.length)carriers=carriers.filter((carrier:string)=>enabled.some((wanted:string)=>carrier.toLowerCase().includes(wanted)||wanted.includes(carrier.toLowerCase())));
   carriers=carriers.slice(0,30);
@@ -616,10 +592,11 @@ Deno.serve(async(req:Request)=>{
   const url=clean(Deno.env.get('SUPABASE_URL')),key=getAdminKey();
   if(!url||!key)return fail('Configuración del backend no disponible.',500);
   const admin=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
+  let operation='',orderReference='';
   try{
     const caller=await authenticate(req,admin);
     const body=await req.json().catch(()=>({}));
-    const action=clean(body?.action);
+    const action=clean(body?.action);operation=action;
 
     if(action==='status'){
       const accounts=await enviaAccounts(admin,caller.data_owner_id,clean(body?.integrationAccountId));
@@ -647,6 +624,7 @@ Deno.serve(async(req:Request)=>{
     if(!orderId)return fail('Falta el pedido.');
     const {data:order,error:orderError}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();
     if(orderError)throw orderError;if(!order)return fail('Pedido no encontrado.',404);
+    orderReference=clean(order.order_number||order.order_id||order.id);
     if(action==='rates'||action==='create_label')assertAmazonOrderShippable(order);
 
     if(action==='rates'){
@@ -787,6 +765,7 @@ Deno.serve(async(req:Request)=>{
     if(/not enough money|insufficient (?:balance|funds)|saldo insuficiente/i.test(message)){
       message='Saldo insuficiente en Envia.com. Recarga saldo o revisa el crédito disponible en tu cuenta antes de generar la etiqueta.';
     }
+    console.error('ENVIA_OPERATION_FAILED',JSON.stringify({action:operation,orderReference,error:message}));
     const status=/Sesión no válida/.test(message)?401:/permiso|desactivado/.test(message)?403:/ya tiene una etiqueta/.test(message)?409:/Saldo insuficiente en Envia\.com/.test(message)?402:500;
     return fail(message,status);
   }

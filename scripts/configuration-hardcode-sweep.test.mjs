@@ -33,7 +33,7 @@ test('shipping routing is owned by configured rules rather than geography helper
   const orders=await read('src/pages/Orders.tsx');
   assert.doesNotMatch(shipping,/defaultCarrierCode/);
   assert.doesNotMatch(labels,/selectAutomaticShippingOption|isBalearicOrder|isMrwUrgent1900/);
-  assert.match(orders,/selectShippingOptionByRules/);
+  assert.match(orders,/selectShippingOptionWithDefault/);
   assert.match(orders,/firstMatchingShippingRule/);
   assert.match(orders,/settings\.orders\.defaultCarrier/);
 });

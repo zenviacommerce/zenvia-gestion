@@ -84,3 +84,12 @@ export function selectShippingOptionByRules<T extends RuleOption>(
   }
   return null;
 }
+
+export function selectShippingOptionWithDefault<T extends RuleOption>(order:RuleOrder,options:T[],rules:ShippingRule[],defaultCarrier:string|null):T|null{
+  const matched=selectShippingOptionByRules(order,options,rules);
+  if(matched)return matched;
+  const wanted=normalized(defaultCarrier);
+  if(!wanted)return null;
+  const matches=options.filter(option=>normalized(`${option.carrierCode||''} ${option.carrierName||''}`).includes(wanted));
+  return matches.find(option=>normalized(option.provider)===wanted)||matches[0]||null;
+}

@@ -24,7 +24,7 @@ import {
   type SendcloudStatus, type ShippingOption,
 } from '../services/orders';
 import { bulkLabelZipFilename, labelPdfFilename, uniqueLabelPdfFilename } from '../services/orderLabelFiles';
-import { firstMatchingShippingRule, selectShippingOptionByRules } from '../services/shippingRuleCore';
+import { firstMatchingShippingRule, selectShippingOptionWithDefault } from '../services/shippingRuleCore';
 import { defaultShippingRules, loadShippingRules, type ShippingRule } from '../services/shippingRules';
 import { prepareLabelPdf } from '../services/labelPdf';
 import { useSettings } from '../context/SettingsContext';
@@ -587,7 +587,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
         .filter(option=>option.price!=null&&Number(option.price)>0)
         .sort((a,b)=>Number(a.price)-Number(b.price))[0]||allowed[0]||null;
     }
-    return selectShippingOptionByRules(order,allowed,shippingRules);
+    return selectShippingOptionWithDefault(order,allowed,shippingRules,settings.orders.defaultCarrier);
   };
   const validationCarrier=(order:FulfillmentOrder)=>firstMatchingShippingRule(order,shippingRules)?.action.carrierContains||settings.orders.defaultCarrier||'';
 

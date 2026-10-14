@@ -90,7 +90,7 @@ export function BulkInvoiceImportModal({open,onClose,categories,existingInvoices
     if(candidate.reviewReason?.includes('no se han podido separar con seguridad'))return;
     const checked=classifyInvoiceCandidate({...candidate,status:'ready' as const,reviewReason:undefined},existingInvoices,policy);
     const next=checked;
-    patch(selected.id,{candidate:next,status:'ready',error:undefined});
+    patch(selected.id,{candidate:next,status:next.status,error:undefined});
   };
 
   const importReady=async()=>{

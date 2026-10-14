@@ -6,7 +6,7 @@ async function source(path){return readFile(new URL(`../${path}`,import.meta.url
 
 test('Amazon summary exposes gross sales, sales VAT, Ads and net profit KPIs',async()=>{
   const service=await source('src/services/amazon.ts');
-  const summary=await source('src/components/amazon/AmazonSummary.tsx');
+  const summary=(await source('src/components/amazon/AmazonSummary.tsx'))+(await source('src/components/amazon/AmazonPeriodCards.tsx'));
   for(const field of ['grossSales','salesVat','netSales','amazonFees','amazonFeeVat','refunds','adsCost','productCost','fbmShippingCost','netProfit','marginPct']){
     assert.match(service,new RegExp(field),`AmazonSummary type must expose ${field}`);
   }
@@ -29,7 +29,7 @@ test('Amazon profitability migration uses actual VAT and net-of-tax finance comp
 
 test('Amazon series trends net profit rather than pre-Ads profit',async()=>{
   const migration=await source('supabase/migrations/20260917160000_amazon_profitability_kpis.sql');
-  const summary=await source('src/components/amazon/AmazonSummary.tsx');
+  const summary=(await source('src/components/amazon/AmazonSummary.tsx'))+(await source('src/components/amazon/AmazonPeriodCards.tsx'));
   assert.match(migration,/'netProfit'/);
   assert.match(summary,/dataKey="netProfit"/);
   assert.doesNotMatch(summary,/dataKey="profitBeforeAds"/);

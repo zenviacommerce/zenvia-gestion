@@ -10,20 +10,22 @@ import React from 'react';
 const summary={grossSales:1210,salesVat:210,netSales:1000,orders:20,businessOrders:0,units:25,amazonFees:100,amazonFeeVat:21,refunds:50,adsCost:60,amazonAdjustments:10,productCost:200,fbmShippingCost:30,netProfit:570,marginPct:57,profitComplete:false,unmappedSkuCount:1,unmappedUnits:2,missingHistoricalCostCount:0,missingHistoricalCostUnits:0,missingFxEventCount:0,missingVatOrderCount:0,missingFbmShippingCostCount:0,syncQueued:0,syncRunning:0,syncFailed:0,adsExcluded:false};
 const stub=code=>({contents:code,loader:'js'});
 const bundle=new URL('./.amazon-dashboard-ui.bundle.mjs',import.meta.url);
-const result=await build({stdin:{contents:"export {AmazonSummary} from './src/components/amazon/AmazonSummary'; export {AmazonFilters} from './src/components/amazon/AmazonFilters';",resolveDir:new URL('../',import.meta.url).pathname,loader:'tsx'},bundle:true,write:false,format:'esm',platform:'node',jsx:'automatic',external:['react','react/jsx-runtime','lucide-react','react-dom','react-dom/*'],plugins:[{name:'test-boundaries',setup(b){
+const result=await build({stdin:{contents:"export {AmazonSummary} from './src/components/amazon/AmazonSummary'; export {AmazonFilters} from './src/components/amazon/AmazonFilters'; export {AmazonProducts as ActualAmazonProducts} from './src/components/amazon/AmazonProducts';",resolveDir:new URL('../',import.meta.url).pathname,loader:'tsx'},bundle:true,write:false,format:'esm',platform:'node',jsx:'automatic',external:['react','react/jsx-runtime','lucide-react','react-dom','react-dom/*'],plugins:[{name:'test-boundaries',setup(b){
  b.onResolve({filter:/services\/amazon$/},()=>({path:'amazon',namespace:'fixture'}));
  b.onResolve({filter:/context\/SettingsContext$/},()=>({path:'settings',namespace:'fixture'}));
  b.onResolve({filter:/\.\/AmazonProducts$/},()=>({path:'products',namespace:'fixture'}));
+ b.onResolve({filter:/\.\/AmazonMappingModal$/},()=>({path:'mapping',namespace:'fixture'}));
  b.onResolve({filter:/^recharts$/},()=>({path:'chart',namespace:'fixture'}));
  b.onLoad({filter:/.*/,namespace:'fixture'},({path})=>{
-  if(path==='amazon')return stub(`export const loadAmazonSummary=(f)=>globalThis.__amazonUi.summary(f);export const loadAmazonDetail=async()=>({refundTransactions:2,refundOrders:2});export const loadAmazonSeries=async()=>[{period:'2026-10-01',netSales:1000,netProfit:570}];export const isAmazonConnectivityError=()=>false;export const amazonQuickRange=(key)=>globalThis.__amazonUi.range(key);`);
+  if(path==='amazon')return stub(`export const loadAmazonSummary=(f)=>globalThis.__amazonUi.summary(f);export const loadAmazonProducts=async()=>({items:[{sellerSku:'SKU-SIN-IMAGEN',asin:'ASIN-SIN-IMAGEN',units:4,orders:4,grossSales:121,netSales:100,profitBeforeAds:40,profitComplete:false}],page:1,pageSize:50,total:1});export const loadAmazonProductMetadata=async()=>({});export const loadAmazonDetail=async()=>({refundTransactions:2,refundOrders:2});export const loadAmazonSeries=async()=>[{period:'2026-10-01',netSales:1000,netProfit:570}];export const isAmazonConnectivityError=()=>false;export const amazonQuickRange=(key)=>globalThis.__amazonUi.range(key);`);
   if(path==='settings')return stub(`export const useSettings=()=>({settings:{amazon:{consolidatedCurrency:'EUR'}}});`);
-  if(path==='products')return stub(`import React from 'react';export const AmazonProducts=()=>React.createElement('section',{'aria-label':'Productos'},'Rentabilidad por producto');`);
+  if(path==='mapping')return stub(`export const AmazonMappingModal=()=>null;`);
+  if(path==='products')return stub(`import React from 'react';export const AmazonProducts=({filters})=>React.createElement('section',{'aria-label':'Productos','data-from':filters.from,'data-to':filters.to},'Rentabilidad por producto');`);
   return stub(`import React from 'react';export const ResponsiveContainer=({children})=>children;export const LineChart=({children})=>React.createElement('div',null,children);export const Line=({dataKey})=>React.createElement('span',{'data-chart-metric':dataKey});export const CartesianGrid=()=>null;export const Legend=()=>null;export const XAxis=()=>null;export const YAxis=()=>null;export const Tooltip=()=>null;`);
  });
 }}]});
 await writeFile(bundle,result.outputFiles[0].text);
-const {AmazonSummary}=await import(bundle.href);
+const {AmazonSummary,ActualAmazonProducts}=await import(bundle.href);
 await unlink(bundle);
 async function setup(failSummary=false){
  const w=new Window({url:'https://dashboard.test/'});
@@ -34,17 +36,23 @@ async function setup(failSummary=false){
  if(failSummary)w.sessionStorage.setItem('zenvia-view-cache:amazon:summary:'+JSON.stringify({from:'2026-10-01',marketplaceIds:['ES'],to:'2026-10-14'}),JSON.stringify({value:summary}));
  const container=w.document.createElement('div');w.document.body.append(container);
  const root=createRoot(container);const selected=[];
- await act(async()=>{root.render(React.createElement(AmazonSummary,{filters:{from:'2026-10-01',to:'2026-10-14',marketplaceIds:['ES']},onPeriodChange:f=>selected.push(f)}));});
+ function Harness(){const [filters,setFilters]=React.useState({from:'2026-10-01',to:'2026-10-14',marketplaceIds:['ES']});return React.createElement(AmazonSummary,{filters,onPeriodChange:f=>{selected.push(f);setFilters(f)}});}
+ await act(async()=>{root.render(React.createElement(Harness));});
  return {w,root,container,calls,selected,close:async()=>{await act(async()=>root.unmount());await w.happyDOM.close()}};
 }
 test('period shortcuts retain marketplaces and profit remains marked provisional',async()=>{
  const s=await setup();
- assert.equal(s.container.querySelectorAll('.amazonPeriodCard').length,4);
- assert.match(s.container.querySelector('.amazonFeaturedProfit').textContent,/570,00.*Provisional/);
+ assert.ok(s.container.querySelectorAll('.amazonPeriodCard').length>=4);
+ assert.ok(s.container.querySelector('.amazonPeriodCarousel'));
+ assert.equal(s.container.querySelectorAll('.amazonProfitKpis,.amazonSecondaryKpis').length,0);
+ assert.match(s.container.querySelector('.amazonPeriodCard.isSelected').textContent,/570,00[\s\S]*Provisional/);
  const today=s.container.querySelector('.amazonPeriodCard button');
  await act(async()=>today.click());
  assert.deepEqual(s.selected[0].marketplaceIds,['ES']);
  assert.equal(s.selected[0].from,s.selected[0].to);
+ assert.equal(s.container.querySelector('[aria-label="Productos"]').dataset.from,s.selected[0].from);
+ assert.equal(s.container.querySelector('[aria-label="Productos"]').dataset.to,s.selected[0].to);
+ assert.ok(s.container.querySelector('.amazonPeriodCard.isSelected').textContent.includes('Hoy'));
  assert.ok(s.calls.every(f=>f.marketplaceIds[0]==='ES'));
  await s.close();
 });
@@ -70,7 +78,29 @@ test('the visible profit statement shows signed costs and matches the selected p
 
 test('a failed refresh keeps cached primary figures without a permanent comparison spinner',async()=>{
  const s=await setup(true);
- assert.match(s.container.querySelector('.amazonFeaturedProfit').textContent,/570,00/);
- assert.doesNotMatch(s.container.querySelector('.amazonComparisonCaption').textContent,/Comparando/);
+ assert.match(s.container.querySelector('.amazonPeriodCard.isSelected').textContent,/570,00/);
+ assert.doesNotMatch(s.container.textContent,/Comparando/);
+ await s.close();
+});
+
+test('each tile opens its own details without changing the product period',async()=>{
+ const s=await setup();
+ const card=s.container.querySelector('.amazonPeriodCard');
+ assert.ok(card.querySelector('[data-metric="productCost"]'));
+ const more=card.querySelector('.amazonPeriodMore');
+ assert.equal(more.getAttribute('aria-expanded'),'false');
+ await act(async()=>more.click());
+ assert.equal(more.getAttribute('aria-expanded'),'true');
+ assert.match(card.querySelector('.amazonPeriodExtra').textContent,/Tarifas Amazon sin IVA/);
+ assert.equal(s.selected.length,0);
+ await s.close();
+});
+
+test('compact products keep four sortable columns and identify items even without images',async()=>{
+ const s=await setup();
+ await act(async()=>{s.root.render(React.createElement(ActualAmazonProducts,{filters:{from:'2026-10-01',to:'2026-10-14',marketplaceIds:['ES']},embedded:true}));});
+ assert.equal(s.container.querySelectorAll('thead th').length,4);
+ assert.match(s.container.querySelector('.amazonProductIdentity').textContent,/SKU-SIN-IMAGEN/);
+ assert.equal(s.container.querySelectorAll('tbody tr:first-child td').length,4);
  await s.close();
 });

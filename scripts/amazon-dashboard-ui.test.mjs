@@ -28,7 +28,7 @@ test('Amazon page is a tabbed analytics dashboard with all approved tabs',async(
 });
 
 test('Amazon Summary renders VAT-aware net-profit KPI hierarchy and Recharts trend',async()=>{
-  const summary=await source('src/components/amazon/AmazonSummary.tsx');
+  const summary=(await source('src/components/amazon/AmazonSummary.tsx'))+(await source('src/components/amazon/AmazonPeriodCards.tsx'));
   for(const label of ['Ventas','IVA ventas','Ventas sin IVA','Pedidos','Unidades vendidas','Tarifas Amazon sin IVA','Publicidad','Reembolsos','Coste producto','Coste envíos FBM','Ganancia neta','Margen neto'])assert.match(summary,new RegExp(label));
   assert.match(summary,/recharts/);
   assert.match(summary,/ResponsiveContainer/);

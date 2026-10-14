@@ -322,3 +322,56 @@
 @media(max-width:900px){.amazonAnalyticsGrid{grid-template-columns:1fr}.amazonSecondaryKpis{grid-template-columns:repeat(2,minmax(0,1fr))}.amazonDashboardSectionHead{align-items:flex-start}.amazonDashboardSectionHead>span{max-width:120px}.amazonProfitKpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:520px){.amazonPeriodGrid{gap:9px}.amazonPeriodCard{padding:13px 11px}.amazonPeriodCard header{display:block}.amazonPeriodCard header>span{display:block;margin-top:4px}.amazonPeriodSales>strong{font-size:21px}.amazonPeriodCard dl>div{font-size:10px;gap:5px}.amazonPeriodCard dl>div:not(.amazonPeriodProfit){flex-wrap:wrap}.amazonPeriodProfit{align-items:flex-start!important;flex-direction:column;gap:5px!important}.amazonPeriodProfit dd{font-size:15px}.amazonPeriodCard footer{align-items:flex-start;flex-direction:column;gap:7px}.amazonDashboardSectionHead h2{font-size:18px}.amazonDashboardSectionHead>span{display:none}.amazonProfitKpis .amazonKpiCard{padding:14px;min-height:112px}.amazonProfitKpis .amazonKpiCard strong{font-size:22px}.amazonSecondaryKpis .amazonKpiCard{padding:12px}.amazonChartOptions{gap:6px}.amazonChartOptions label{font-size:10px;padding:6px}.amazonStatementNote{font-size:10px}.amazonSelectedPeriodHead{gap:8px}.amazonSelectedPeriodHead h2{font-size:15px}}
 @media(max-width:340px){.amazonPeriodGrid,.amazonProfitKpis,.amazonSecondaryKpis{grid-template-columns:1fr}}
+
+/* Period tiles scroll as a single row; selecting a tile drives the product list. */
+.amazonCarouselControls{display:flex;align-items:center;gap:7px}
+.amazonCarouselControls>span{font-size:11px;color:#64748b;margin-right:6px}
+.amazonCarouselControls>button{display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid #dbe3ee;border-radius:7px;background:transparent;color:#64748b;cursor:pointer}
+.amazonPeriodCarousel{display:flex;align-items:flex-start;gap:16px;width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;padding:3px 2px 13px;scroll-snap-type:x proximity;scroll-padding-inline:2px;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.amazonPeriodCarousel .amazonPeriodCard{position:relative;flex:0 0 330px;width:330px;max-width:none;padding:0;border:1px solid #dbe3ee;border-radius:10px;overflow:hidden;scroll-snap-align:start;background:#fff}
+.amazonPeriodCarousel .amazonPeriodCard.isSelected{border-color:var(--period-accent);box-shadow:inset 0 -4px var(--period-accent);background:#fff}
+.amazonPeriodCarousel .amazonPeriodCard header{display:block;padding:18px 22px;background:var(--period-accent);min-height:83px}
+.amazonPeriodCarousel .amazonPeriodCard h3{font-size:19px;color:#fff;margin:0 0 5px}
+.amazonPeriodCarousel .amazonPeriodCard header>span{display:block;color:#fff;font-size:11px;line-height:1.5;opacity:.9}
+.amazonPeriodSelect{position:absolute;inset:0;z-index:1;width:100%;height:100%;padding:0;border:0;border-radius:inherit;background:transparent;cursor:pointer}
+.amazonPeriodSelect:focus-visible{outline:3px solid var(--period-accent);outline-offset:-4px}
+.amazonPeriodBody{padding:19px 22px 0}
+.amazonPeriodCarousel .amazonPeriodSales{margin:0 0 22px}
+.amazonPeriodCarousel .amazonPeriodSales>span{font-size:12px;text-transform:none;letter-spacing:0;font-weight:500}
+.amazonPeriodCarousel .amazonPeriodSales>strong{font-size:29px;margin-top:8px;letter-spacing:-.5px}
+.amazonPeriodCarousel .amazonPeriodMetrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px 15px;margin:0}
+.amazonPeriodCarousel .amazonPeriodMetrics>div{display:block;font-size:12px;padding:0;border:0}
+.amazonPeriodCarousel .amazonPeriodMetrics dt{font-size:11px;line-height:1.45;color:#64748b;font-weight:500}
+.amazonPeriodCarousel .amazonPeriodMetrics dd{font-size:19px;line-height:1.35;margin:5px 0 0;white-space:normal;overflow-wrap:anywhere;color:#172033;font-weight:600}
+.amazonPeriodCarousel .amazonPeriodMetrics .amazonPeriodProfit{border:0;padding:0}
+.amazonPeriodCarousel .amazonPeriodMetrics .amazonPeriodMetricSeparator{padding-top:16px;border-top:1px solid #e2e8f0}
+.amazonPeriodCarousel .amazonPeriodProfit dd{font-size:22px;font-weight:750}
+.amazonPeriodCarousel .amazonPeriodQuality{display:block;margin:18px 0 0;font-size:10px;color:#64748b}
+.amazonTileComparison{font-size:10px;line-height:1.5;color:#64748b;margin:7px 0 0;max-width:100%}
+.amazonPeriodExtra{margin:16px 0 0!important;padding-top:14px;border-top:1px solid #e2e8f0;display:grid;gap:10px}
+.amazonPeriodCarousel .amazonPeriodExtra>div{display:flex;font-size:11px;justify-content:space-between;align-items:baseline;gap:12px}
+.amazonPeriodExtra dd{margin:0;white-space:nowrap;font-size:12px}
+.amazonPeriodCarousel .amazonPeriodCard footer{position:relative;z-index:2;display:flex;flex-direction:row;align-items:center;justify-content:center;margin:0;border:0;padding:15px 22px 20px;gap:10px;min-height:52px}
+.amazonPeriodMore{display:inline-flex;align-items:center;gap:4px;border:0;background:transparent;color:var(--period-accent);padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer}
+.amazonPeriodMore[aria-expanded='true'] svg{transform:rotate(-90deg)}
+.amazonDashboardDetails{border:1px solid #e2e8f0;border-radius:10px;background:transparent;padding:0 17px}
+.amazonDashboardDetails>summary{padding:15px 0;font-size:12px;font-weight:650;color:#64748b;cursor:pointer;list-style-position:inside}
+.amazonDashboardDetails[open]{display:block;padding-bottom:16px}
+.amazonDashboardDetails[open]>.amazonQualityBanner{margin:15px 0}
+.amazonDashboardDetails[open]>.amazonAnalyticsGrid{margin-top:15px}
+.amazonProductPeriod{display:block;font-size:11px;color:#64748b;font-weight:500;margin-top:5px}
+.amazonEmbeddedProducts .amazonProductTable{min-width:0!important;table-layout:auto}
+.amazonEmbeddedProducts .amazonProductTable th:not(:first-child),.amazonEmbeddedProducts .amazonProductTable td:not(:first-child){text-align:right;white-space:nowrap}
+.amazonEmbeddedProducts .amazonProductNameCell{min-width:150px}
+.amazonEmbeddedProducts .amazonProductTable td{vertical-align:middle}
+[data-theme='dark'] .amazonPeriodCarousel .amazonPeriodCard,[data-theme='dark'] .amazonPeriodCarousel .amazonPeriodCard.isSelected{background:#111827;border-color:#334155}
+[data-theme='dark'] .amazonPeriodCarousel .amazonPeriodCard.isSelected{border-color:var(--period-accent)}
+[data-theme='dark'] .amazonPeriodCarousel .amazonPeriodMetrics dd{color:#f8fafc}
+[data-theme='dark'] .amazonPeriodCarousel .amazonPeriodCard header>span,[data-theme='dark'] .amazonPeriodCarousel .amazonPeriodCard h3{color:#fff}
+[data-theme='dark'] .amazonCarouselControls>button,[data-theme='dark'] .amazonDashboardDetails,[data-theme='dark'] .amazonPeriodExtra,[data-theme='dark'] .amazonPeriodCarousel .amazonPeriodMetrics .amazonPeriodMetricSeparator{border-color:#334155}
+[data-theme='dark'] .amazonCarouselControls>button,[data-theme='dark'] .amazonDashboardDetails>summary{color:#cbd5e1}
+[data-theme='dark'] .amazonPeriodMore{color:#93c5fd}
+@media(max-width:760px){.amazonCarouselControls>span{display:none}.amazonPeriodCarousel{gap:12px}.amazonEmbeddedProducts .amazonTableToolbar{align-items:flex-start;flex-wrap:wrap}.amazonEmbeddedProducts .amazonTableToolbar p{font-size:10px}}
+@media(max-width:520px){.amazonPeriodCarousel .amazonPeriodCard{flex-basis:calc(100vw - 90px);width:calc(100vw - 90px);min-width:250px;max-width:330px}.amazonPeriodCarousel .amazonPeriodCard header{padding:16px 18px}.amazonPeriodBody{padding:17px 18px 0}.amazonPeriodCarousel .amazonPeriodMetrics{gap:14px 12px}.amazonPeriodCarousel .amazonPeriodMetrics dd{font-size:17px}.amazonPeriodCarousel .amazonPeriodProfit dd{font-size:20px}.amazonPeriodCarousel .amazonPeriodSales>strong{font-size:27px}.amazonEmbeddedProducts .amazonProductNameCell{min-width:44px;width:50px}.amazonEmbeddedProducts .amazonProductIdentity{flex-direction:column;align-items:flex-start;gap:4px}.amazonEmbeddedProducts .amazonProductIdentity>div{display:block;max-width:80px}.amazonEmbeddedProducts .amazonProductIdentity>div>strong,.amazonEmbeddedProducts .amazonProductIdentity .amazonInternalProduct,.amazonEmbeddedProducts .amazonProductIdentity .amazonIncomplete{display:none}.amazonEmbeddedProducts .amazonProductIdentity .amazonCompactSku{display:block;font-size:9px;line-height:1.25;white-space:normal;overflow-wrap:anywhere;max-width:80px}.amazonEmbeddedProducts .amazonProductThumb{width:38px;height:38px}.amazonEmbeddedProducts .amazonProductTable th,.amazonEmbeddedProducts .amazonProductTable td{font-size:10px;padding:10px 4px}.amazonEmbeddedProducts .amazonTableToolbar strong{font-size:15px}.amazonEmbeddedProducts .amazonTableToolbar .amazonSearch{width:100%}.amazonEmbeddedProducts .amazonSearch input{min-width:0;width:100%}.amazonDashboardDetails{padding-inline:12px}}
+
+.amazonCompactSku{display:none}

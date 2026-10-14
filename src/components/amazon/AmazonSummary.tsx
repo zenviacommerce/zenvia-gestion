@@ -129,53 +129,19 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
   if(error&&!summary)return <div className="card amazonQueryError"><span>{error}</span><button className="secondary" onClick={()=>setRetryToken(value=>value+1)}><RefreshCw size={15}/> Reintentar</button></div>;
   if(!summary)return null;
 
-  const visibleKpiSet=new Set<AmazonKpiKey>(visibleKpis||[]);
-  const showAllKpis=!visibleKpis?.length;
-  const cards=[
-    {kpiKey:'grossSales' as const,label:'Ventas',value:money.format(summary.grossSales)},
-    {kpiKey:'salesVat' as const,label:'IVA ventas',value:money.format(summary.salesVat)},
-    {kpiKey:'netSales' as const,label:'Ventas sin IVA',value:money.format(summary.netSales)},
-    {kpiKey:'orders' as const,label:'Pedidos',value:integer.format(summary.orders)},
-    {kpiKey:'businessOrders' as const,label:'Pedidos B2B',value:integer.format(summary.businessOrders||0)},
-    {kpiKey:'units' as const,label:'Unidades vendidas',value:integer.format(summary.units)},
-    {kpiKey:'amazonFees' as const,label:'Tarifas Amazon sin IVA',value:money.format(summary.amazonFees)},
-    {kpiKey:'adsCost' as const,label:'Publicidad',value:summary.adsExcluded?'No disponible':money.format(summary.adsCost)},
-    {kpiKey:'refunds' as const,label:'Reembolsos',value:money.format(summary.refunds),note:detail?integer.format(detail.refundTransactions)+' operaciones · '+integer.format(detail.refundOrders)+' pedidos':undefined},
-    {kpiKey:'productCost' as const,label:'Coste producto',value:money.format(summary.productCost)},
-    {kpiKey:'fbmShippingCost' as const,label:'Coste envíos FBM',value:money.format(summary.fbmShippingCost)},
-    {kpiKey:'netProfit' as const,label:'Ganancia neta',value:summary.netProfit==null?'—':money.format(summary.netProfit),note:!summary.profitComplete?'Provisional':undefined},
-    {kpiKey:'marginPct' as const,label:'Margen neto',value:summary.marginPct==null?'—':summary.marginPct.toFixed(1)+' %',note:!summary.profitComplete?'Provisional':undefined},
-  ].filter(card=>showAllKpis||visibleKpiSet.has(card.kpiKey));
-
-  const primaryOrder:AmazonKpiKey[]=['grossSales','netProfit','marginPct','orders','units'];
-  const primaryKeys=new Set<AmazonKpiKey>(primaryOrder);
+  const profitChange=amazonMetricChange(summary.netProfit,previous?.netProfit);
+  const comparisonNote=!previous?comparisonLoading?'Comparando con el periodo anterior…':undefined
+    :`Ganancia vs. anterior: ${profitChange==null?'sin base comparable':(profitChange>0?'+':'')+profitChange.toLocaleString('es-ES',{maximumFractionDigits:1})+' %'} · ${dateRangeLabel(comparisonFilters)}`;
   const effectiveChartMetrics=chartMetrics.filter(key=>key!=='adsCost'||!summary.adsExcluded);
   if(!effectiveChartMetrics.length)effectiveChartMetrics.push('netSales');
-  const renderCard=(card:typeof cards[number])=>{
-    const currentValue=summary[card.kpiKey];
-    const previousValue=previous?.[card.kpiKey];
-    const change=card.kpiKey==='marginPct'
-      ?currentValue==null||previousValue==null?null:currentValue-previousValue
-      :amazonMetricChange(currentValue,previousValue);
-    const costKeys=new Set<AmazonKpiKey>(['amazonFees','adsCost','refunds','productCost','fbmShippingCost']);
-    const favorable=change!=null&&(costKeys.has(card.kpiKey)?change<=0:change>=0);
-    const showChange=change!=null&&!(card.kpiKey==='adsCost'&&(summary.adsExcluded||previous?.adsExcluded));
-    return <article className={`card amazonKpiCard ${card.kpiKey==='netProfit'?'amazonFeaturedProfit':''}`} key={card.kpiKey}>
-      <span>{card.label}</span><strong className={card.kpiKey==='netProfit'&&summary.netProfit!=null&&summary.netProfit<0?'isNegative':''}>{card.value}</strong>
-      {showChange&&<div className={`amazonKpiChange ${favorable?'isFavorable':'isUnfavorable'}`} title={`Frente a ${dateRangeLabel(comparisonFilters)}`}><span>{change>0?'↑':change<0?'↓':'='} {Math.abs(change).toLocaleString('es-ES',{maximumFractionDigits:1})}{card.kpiKey==='marginPct'?' pp':' %'}</span><span>vs. anterior</span></div>}
-      {card.note&&<small>{card.note}</small>}
-    </article>;
-  };
 
   return <div className="amazonSummary">
     {error&&<div className="card amazonQueryError"><span>{error}</span><button className="secondary" onClick={()=>setRetryToken(value=>value+1)}><RefreshCw size={15}/> Reintentar</button></div>}
-    <AmazonPeriodCards filters={filters} summary={summary} currency={settings.amazon.consolidatedCurrency} refreshToken={refreshToken} onPeriodChange={onPeriodChange}/>
+    <AmazonPeriodCards filters={filters} summary={summary} currency={settings.amazon.consolidatedCurrency} refreshToken={refreshToken} onPeriodChange={onPeriodChange} comparisonNote={comparisonNote} visibleKpis={visibleKpis}/>
+    {!loading&&<AmazonProducts key={`${filters.from}:${filters.to}:${filters.marketplaceIds.join(',')}`} filters={filters} embedded refreshToken={refreshToken}/>}
+    <details className="amazonDashboardDetails"><summary>Gráfica y desglose del periodo · {dateRangeLabel(filters)}</summary>
     <div className="amazonDashboardSectionHead amazonSelectedPeriodHead"><div><span className="amazonSectionLabel">PERIODO SELECCIONADO</span><h2>{dateRangeLabel(filters)}</h2></div><button className="amazonMoreButton" onClick={()=>setDetailsOpen(true)}>Más detalles <ChevronRight size={15}/></button></div>
     <AmazonCompleteness data={summary}/>
-    <div className="amazonKpiGrid amazonProfitKpis">{cards.filter(card=>primaryKeys.has(card.kpiKey)).sort((a,b)=>primaryOrder.indexOf(a.kpiKey)-primaryOrder.indexOf(b.kpiKey)).map(renderCard)}</div>
-    <div className="amazonSecondaryKpis">{cards.filter(card=>!primaryKeys.has(card.kpiKey)).map(renderCard)}</div>
-    <p className="amazonComparisonCaption">Comparativa: {dateRangeLabel(comparisonFilters)}{!previous?comparisonLoading?' · Comparando…':' · No disponible':!summary.profitComplete||!previous.profitComplete?' · Rentabilidad provisional':''}</p>
-
     {detailsOpen&&<div className="amazonDetailsBackdrop" onMouseDown={event=>{if(event.target===event.currentTarget)setDetailsOpen(false)}}>
       <section className="amazonDetailsModal" role="dialog" aria-modal="true" aria-label="Detalle de Amazon">
         <header className="amazonDetailsHead">
@@ -250,7 +216,7 @@ export function AmazonSummary({filters,onLoaded,refreshToken=0,visibleKpis,onPer
       </section>
     </div>
 
-    {!loading&&<AmazonProducts filters={filters} embedded refreshToken={refreshToken}/>}
+    </details>
 
   </div>;
 }

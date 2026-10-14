@@ -35,7 +35,9 @@ test('Amazon visible KPIs and default consumption factor are connected to UI',as
   const summary=await read('src/components/amazon/AmazonSummary.tsx');
   const unmapped=await read('src/components/amazon/AmazonUnmapped.tsx');
   assert.match(summary,/visibleKpis/);
-  assert.match(summary,/kpiKey/);
+  assert.match(summary,/visibleKpis=\{visibleKpis\}/);
+  const cards=await read('src/components/amazon/AmazonPeriodCards.tsx');
+  assert.match(cards,/visibleKpis\.includes\(key\)/);
   assert.match(unmapped,/defaultConsumptionFactor/);
   assert.match(unmapped,/initialFactor=\{defaultConsumptionFactor\}/);
 });

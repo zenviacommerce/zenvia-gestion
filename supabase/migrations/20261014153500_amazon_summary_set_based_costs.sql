@@ -108,7 +108,7 @@ begin
   ),
   finance_rows as materialized (
     select c.finance_transaction_id,c.component_category,c.amount_original,c.tax_amount_original,
-           (case when upper(coalesce(nullif(trim(c.currency_code),''),'EUR'))='EUR' then 1::numeric else private.amazon_rate_to_eur(c.currency_code,(c.posted_date at time zone v_timezone)::date) end) as finance_fx
+           (case when c.posted_date is null then null::numeric when upper(coalesce(nullif(trim(c.currency_code),''),'EUR'))='EUR' then 1::numeric else private.amazon_rate_to_eur(c.currency_code,(c.posted_date at time zone v_timezone)::date) end) as finance_fx
     from private.amazon_finance_components_analytics c
     join eligible_orders eo
       on eo.owner_id=c.owner_id
@@ -121,7 +121,7 @@ begin
       and c.component_category not in ('sale_audit','tax_audit')
     union all
     select c.finance_transaction_id,c.component_category,c.amount_original,c.tax_amount_original,
-           (case when upper(coalesce(nullif(trim(c.currency_code),''),'EUR'))='EUR' then 1::numeric else private.amazon_rate_to_eur(c.currency_code,(c.posted_date at time zone v_timezone)::date) end) as finance_fx
+           (case when c.posted_date is null then null::numeric when upper(coalesce(nullif(trim(c.currency_code),''),'EUR'))='EUR' then 1::numeric else private.amazon_rate_to_eur(c.currency_code,(c.posted_date at time zone v_timezone)::date) end) as finance_fx
     from private.amazon_finance_components_analytics c
     where c.owner_id=v_owner
       and (nullif(c.amazon_order_id,'') is null or c.component_category='refund')
@@ -189,4 +189,4 @@ begin
     'missingHistoricalCostUnits',0,'missingFxEventCount',0,'missingVatOrderCount',0,'syncQueued',0,'syncRunning',0,'syncFailed',0,'adsExcluded',false,'profitComplete',true
   ));
 end;
-$function$
+$function$;

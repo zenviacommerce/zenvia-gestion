@@ -4,7 +4,7 @@ import {amazonCalendarDate} from '../../services/amazonCalendar';
 import {amazonDashboardPeriods} from '../../services/amazonDashboard';
 import {loadShopifySummary,type ShopifyFilters,type ShopifySummary} from '../../services/shopifyAnalytics';
 import {shopifyMonthForecast} from '../../services/shopifyAnalyticsCore';
-export const shopifyMoney=(value:number|null|undefined)=>value==null?'No disponible':new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(value);
+export const shopifyMoney=(value:number|null|undefined)=>value==null?'No disponible':new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(value===0?0:value);
 const dateLabel=(day:string)=>new Date(day+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'});
 type Snapshot={data:ShopifySummary|null;error:string;loading:boolean};
 export function ShopifyPeriodCards({filters,onChange,calendarDay,refreshToken}:{filters:ShopifyFilters;onChange:(filters:ShopifyFilters)=>void;calendarDay:string;refreshToken:number}){

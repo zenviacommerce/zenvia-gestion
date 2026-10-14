@@ -209,7 +209,7 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
           <h1>Productos</h1>
           <p>Coste de compra, precio de venta, margen y datos reutilizables en las facturas.</p>
         </div>
-        <button className="primary" onClick={onAdd}>+ Nuevo producto</button>
+        <div className="actions pageHeadActions"><button className="primary" onClick={onAdd}>+ Nuevo producto</button></div>
       </div>
 
       <PeriodFilterPanel

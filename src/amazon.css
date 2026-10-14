@@ -447,3 +447,20 @@
 [data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary>svg:first-child{background:#422006;color:#fdba74}
 [data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary:hover,[data-theme='dark'] .amazonToolbar .amazonFilterDropdown[open]>summary{border-color:#9a3412;box-shadow:0 0 0 3px #422006}
 @media(max-width:760px){.amazonToolbar{padding:8px;gap:0;border-radius:14px}.amazonToolbar .amazonTabs{border:0;padding:3px}.amazonToolbar .amazonTabs button{padding:9px 12px}}
+
+/* Keep every toolbar state readable on the dark surface. */
+[data-theme='dark'] .amazonToolbar .amazonTabs button{color:#cbd5e1}
+[data-theme='dark'] .amazonToolbar .amazonTabs button:hover{background:#253247;color:#f8fafc}
+[data-theme='dark'] .amazonToolbar .amazonTabs button.isActive,[data-theme='dark'] .amazonToolbar .amazonTabs button.isActive:hover{background:#334155;color:#fed7aa;box-shadow:0 1px 3px #0003}
+[data-theme='dark'] .amazonToolbar .amazonTabs button span{background:#7c2d12;color:#ffedd5}
+[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary{background:#172033;border-color:#3b4a61;color:#cbd5e1;box-shadow:none}
+[data-theme='dark'] .amazonToolbar .amazonFilterDropdown>summary small{color:#b6c2d3}
+[data-theme='dark'] .amazonToolbar .amazonFilterDropdownPanel{background:#172033;border-color:#3b4a61;box-shadow:0 14px 38px #0005;color:#e2e8f0}
+[data-theme='dark'] .amazonToolbar .amazonDropdownFieldLabel,[data-theme='dark'] .amazonToolbar .amazonDropdownDates label,[data-theme='dark'] .amazonToolbar .amazonDropdownMarketplaces>label{color:#cbd5e1}
+[data-theme='dark'] .amazonToolbar .amazonDropdownMarketplaces>button{background:#1e293b;border-color:#475569;color:#e2e8f0}
+[data-theme='dark'] .amazonToolbar .amazonDropdownMarketplaces>button:hover{background:#334155;color:#fff}
+[data-theme='dark'] .amazonToolbar .amazonDropdownMarketplaces>button.isActive{background:#7c2d12;border-color:#c2410c;color:#ffedd5}
+[data-theme='dark'] .amazonToolbar .amazonDropdownMarketplaces label small{color:#b6c2d3}
+[data-theme='dark'] .amazonToolbar .amazonDropdownDates input{color-scheme:dark;background:#0f172a;border-color:#475569;color:#f8fafc}
+[data-theme='dark'] .amazonToolbar .amazonDateError{color:#fca5a5}
+[data-theme='dark'] .amazonToolbar summary:focus-visible,[data-theme='dark'] .amazonToolbar button:focus-visible{outline-color:#fdba74}

@@ -52,6 +52,44 @@ Deno.serve(async(req:Request)=>{
       if(!integrationIds.length)return response({error:'Amazon todavía no está conectado para este workspace.'},409);
     }
 
+    // Recover historical failed windows as bounded daily slices rather than requeueing
+    // hundreds of obsolete hourly jobs. Upserts are idempotent.
+    let recoveryJobs=0;
+    if(body?.recoverFailed!==false){
+      const {data:failed,error:failedError}=await admin.from('amazon_sync_jobs')
+        .select('owner_id,amazon_account_id,marketplace_id,window_from,window_to')
+        .eq('owner_id',caller.data_owner_id).eq('source','orders').eq('status','failed')
+        .order('window_from',{ascending:true}).limit(1000);
+      if(failedError)throw failedError;
+      const grouped=new Map<string,any>();
+      for(const job of failed||[]){
+        if(!job.marketplace_id||!job.window_from)continue;
+        const date=String(job.window_from).slice(0,10);
+        const key=[job.amazon_account_id,job.marketplace_id,date].join(':');
+        if(!grouped.has(key))grouped.set(key,{...job,date});
+      }
+      const keys=Array.from(grouped.values()).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,60);
+      if(keys.length){
+        const jobKeys=keys.map(job=>`recovery:v2:orders:${job.marketplace_id}:${job.date}`);
+        const {data:existing,error:existingError}=await admin.from('amazon_sync_jobs').select('job_key').eq('owner_id',caller.data_owner_id).in('job_key',jobKeys);
+        if(existingError)throw existingError;
+        const present=new Set((existing||[]).map((job:any)=>job.job_key));
+        const recovery=keys.filter(job=>!present.has(`recovery:v2:orders:${job.marketplace_id}:${job.date}`)).slice(0,30).map(job=>({
+          owner_id:caller.data_owner_id,amazon_account_id:job.amazon_account_id,
+          job_key:`recovery:v2:orders:${job.marketplace_id}:${job.date}`,
+          source:'orders',marketplace_id:job.marketplace_id,scope_key:job.marketplace_id,
+          window_from:job.date+'T00:00:00Z',
+          window_to:new Date(Date.parse(job.date+'T00:00:00Z')+86400000).toISOString(),
+          status:'queued',attempts:0,max_attempts:5,available_at:new Date().toISOString(),
+          payload:{mode:'hourly',recovery:true}
+        }));
+        if(recovery.length){
+          const {error:insertError}=await admin.from('amazon_sync_jobs').upsert(recovery,{onConflict:'owner_id,amazon_account_id,job_key',ignoreDuplicates:true});
+          if(insertError)throw insertError;
+          recoveryJobs=recovery.length;
+        }
+      }
+    }
     let jobs=0,processed=0;
     const orderJobIds:string[]=[];
     const ordersOnly=body?.ordersOnly===true;
@@ -69,8 +107,8 @@ Deno.serve(async(req:Request)=>{
       }
       jobs+=created.length;processed+=1;
     }
-    const workerKicked=jobs>0?await kickWorker():false;
-    return response({ok:true,accounts:processed,jobs,workerKicked,orderJobIds});
+    const workerKicked=jobs+recoveryJobs>0?await kickWorker():false;
+    return response({ok:true,accounts:processed,jobs,recoveryJobs,workerKicked,orderJobIds});
   }catch(error){
     const message=error instanceof Error?error.message:'No se pudo solicitar la sincronización de Amazon.';
     const status=/sesión|administrador|acceso/i.test(message)?403:500;

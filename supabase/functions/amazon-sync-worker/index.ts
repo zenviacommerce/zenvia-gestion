@@ -5,37 +5,68 @@ import { retryPendingAmazonTracking } from '../_shared/amazon/shipment-confirmat
 import { syncFinancesJob } from '../_shared/amazon/finances.ts';
 import { syncInventoryJob } from '../_shared/amazon/inventory.ts';
 
+const MAX_WORKER_RUNTIME_MS=300_000;
+const HEARTBEAT_MS=60_000;
 function response(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});}
-
 async function dispatch(admin:any,job:any){
   if(job.source==='orders'){
     const rows=await syncOrdersJob(admin,job);
-    try{await retryPendingAmazonTracking(admin,job.owner_id,10)}catch{/* La sincronización de pedidos no debe fallar por un reintento de tracking. */}
+    try{await retryPendingAmazonTracking(admin,job.owner_id,10)}catch{/* Tracking must not fail order sync. */}
     return rows;
   }
   if(job.source==='finances')return syncFinancesJob(admin,job);
   if(job.source==='inventory')return syncInventoryJob(admin,job);
-  throw new Error(`Fuente Amazon no soportada: ${String(job.source)}`);
+  throw new Error('Unsupported Amazon source: '+String(job.source));
 }
-
+async function run(admin:any,holderId:string){
+  const deadline=Date.now()+MAX_WORKER_RUNTIME_MS;
+  let leaseLost=false;
+  let renewing=false;
+  const heartbeat=setInterval(async()=>{
+    if(renewing||leaseLost)return;
+    renewing=true;
+    try{
+      const {data,error}=await admin.rpc('amazon_worker_renew_lease',{p_holder_id:holderId});
+      if(error||data!==true){leaseLost=true;console.error('Amazon worker lease heartbeat failed',error?.message||'lease expired');}
+    }catch(e){leaseLost=true;console.error('Amazon worker heartbeat exception',String(e));}
+    finally{renewing=false;}
+  },HEARTBEAT_MS);
+  try{
+    while(Date.now()<deadline&&!leaseLost){
+      const {data:jobs,error}=await admin.rpc('amazon_claim_sync_jobs',{limit_count:1,p_holder_id:holderId});
+      if(error)throw error;
+      if(!jobs?.length)break;
+      for(const job of jobs){
+        try{
+          const rowsProcessed=await dispatch(admin,job);
+          if(leaseLost)throw new Error('Worker lease lost during job');
+          const {data:stillOwner,error:renewError}=await admin.rpc('amazon_worker_renew_lease',{p_holder_id:holderId});
+          if(renewError||stillOwner!==true){leaseLost=true;throw new Error('Worker lease lost before job completion');}
+          await markJobSuccess(admin,job,rowsProcessed);
+          console.info('amazon_worker_job_success',JSON.stringify({source:job.source,id:job.id,rowsProcessed}));
+        }catch(e){
+          if(leaseLost){console.error('amazon_worker_lease_lost',String(e));break;}
+          try{await markJobFailed(admin,job,e);}catch(markError){console.error('amazon_worker_mark_failed_error',String(markError));throw markError;}
+          console.error('amazon_worker_job_failed',JSON.stringify({source:job.source,id:job.id,error:String(e)}));
+        }
+      }
+    }
+  }catch(e){console.error('amazon_worker_background_error',String(e));}
+  finally{
+    clearInterval(heartbeat);
+    try{const {error}=await admin.rpc('amazon_worker_release_lease',{p_holder_id:holderId});if(error)console.error('amazon_worker_release_error',error.message);}catch(e){console.error('amazon_worker_release_exception',String(e));}
+  }
+}
 Deno.serve(async(req:Request)=>{
-  if(req.method!=='POST')return response({error:'Método no permitido.'},405);
+  if(req.method!=='POST')return response({error:'Method not allowed'},405);
   try{
     requireInternalSecret(req);
     const admin=createAdminClient();
-    const {data:jobs,error}=await admin.rpc('amazon_claim_sync_jobs',{limit_count:4});
+    const holderId=crypto.randomUUID();
+    const {data:acquired,error}=await admin.rpc('amazon_worker_acquire_lease',{p_holder_id:holderId});
     if(error)throw error;
-    const results:any[]=[];
-    for(const job of jobs||[]){
-      try{
-        const rowsProcessed=await dispatch(admin,job);
-        await markJobSuccess(admin,job,rowsProcessed);
-        results.push({id:job.id,source:job.source,status:'success',rowsProcessed});
-      }catch(jobError){
-        await markJobFailed(admin,job,jobError);
-        results.push({id:job.id,source:job.source,status:'retry_or_failed'});
-      }
-    }
-    return response({ok:true,claimed:(jobs||[]).length,results});
-  }catch(error){return response({error:error instanceof Error?error.message:'Error interno del worker.'},401);}
+    if(acquired!==true)return response({ok:true,status:'worker_already_running'},200);
+    EdgeRuntime.waitUntil(run(admin,holderId));
+    return response({ok:true,status:'accepted'},202);
+  }catch(error){console.error('amazon_worker_start_error',String(error));return response({error:error instanceof Error?error.message:'Worker error'},500);}
 });

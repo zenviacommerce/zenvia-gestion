@@ -1,0 +1,1 @@
+Deno.serve(()=>Response.json({error:'Diagnóstico finalizado'},{status:410}));

@@ -1,0 +1,1 @@
+create table if not exists public.amazon_worker_leases(lease_key text primary key check(lease_key='amazon-sync-worker'),holder_id uuid not null,acquired_at timestamptz not null default clock_timestamp(),heartbeat_at timestamptz not null default clock_timestamp(),expires_at timestamptz not null);

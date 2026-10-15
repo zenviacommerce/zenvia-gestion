@@ -1,0 +1,1 @@
+CREATE OR REPLACE FUNCTION private.amazon_phase1_timeout_probe() RETURNS text LANGUAGE plpgsql SET search_path='' SET statement_timeout='100ms' AS $$BEGIN PERFORM pg_catalog.pg_sleep(1); RETURN 'not_timed_out'; END$$; REVOKE ALL ON FUNCTION private.amazon_phase1_timeout_probe() FROM PUBLIC;

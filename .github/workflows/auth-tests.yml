@@ -1,0 +1,20 @@
+name: Auth resilience integration tests
+on:
+  push:
+    branches: [feature/auth-resilience-phase2-20261015]
+  pull_request:
+    branches: [main]
+jobs:
+  auth:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Install pinned test runner (no lockfile changes)
+        run: npm install --no-save --package-lock=false vitest@3.2.4 jsdom@26.1.0
+      - run: npm run build
+      - run: npx vitest run tests/auth-resilience.integration.test.ts --reporter=verbose

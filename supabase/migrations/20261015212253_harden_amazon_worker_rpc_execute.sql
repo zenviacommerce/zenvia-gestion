@@ -1,0 +1,2 @@
+REVOKE EXECUTE ON FUNCTION public.amazon_worker_acquire_lease(uuid), public.amazon_worker_renew_lease(uuid), public.amazon_worker_release_lease(uuid), public.amazon_claim_sync_jobs(integer), public.amazon_claim_sync_jobs(integer,uuid) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.amazon_worker_acquire_lease(uuid), public.amazon_worker_renew_lease(uuid), public.amazon_worker_release_lease(uuid), public.amazon_claim_sync_jobs(integer), public.amazon_claim_sync_jobs(integer,uuid) TO service_role;

@@ -15,13 +15,22 @@ export async function runGmailImportBatch(
  let imported=0;
  const reviews:Array<{source:GmailCandidate;candidate:Extract<GmailImportOutcome,{kind:'review'}>['candidate']}>=[];
  const failures:Array<{source:GmailCandidate;message:string}>=[];
- for(let index=0;index<pending.length;index++){
-  const source=pending[index];onStart?.(source,index+1,pending.length);
-  try{
-   const result=await importer(source);
-   if(result.kind==='review')reviews.push({source,candidate:result.candidate});
-   else imported++;
-  }catch(error){failures.push({source,message:errorMessage(error,'No se pudo importar este adjunto.')});}
- }
+ // Keep concurrency deliberately low: PDF extraction is expensive and suppliers may
+ // share products. The importer still owns duplicate verification before persistence.
+ const concurrency=Math.min(2,pending.length);
+ let cursor=0;
+ const workers=Array.from({length:concurrency},async()=>{
+  while(cursor<pending.length){
+   const index=cursor++;
+   const source=pending[index];
+   onStart?.(source,index+1,pending.length);
+   try{
+    const result=await importer(source);
+    if(result.kind==='review')reviews.push({source,candidate:result.candidate});
+    else imported++;
+   }catch(error){failures.push({source,message:errorMessage(error,'No se pudo importar este adjunto.')});}
+  }
+ });
+ await Promise.all(workers);
  return {imported,reviews,failures};
 }

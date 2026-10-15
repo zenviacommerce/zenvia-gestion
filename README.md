@@ -1,3 +1,5 @@
+> ⚠️ **NO DESPLEGAR EDGE FUNCTIONS DE AMAZON DESDE `main`** hasta fusionar y validar `feature/amazon-edge-reconciliation-20261015`. Producción y repositorio aún difieren en módulos compartidos. Este aviso es documental, no un bloqueo automático de CI.
+
 # ZENVIA Gestión
 
 Repositorio: `zenviacommerce/ZENVIA-GESTION`.

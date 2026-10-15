@@ -30,8 +30,8 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [slowAuth,setSlowAuth]=useState(false);
-  useEffect(()=>{if(!busy||busyStage!=='auth')return;const timer=window.setTimeout(()=>setSlowAuth(true),18000);return()=>window.clearTimeout(timer)},[busy,busyStage]);
   const [busyStage,setBusyStage]=useState<'tenant'|'auth'|null>(null);
+  useEffect(()=>{if(!busy||busyStage!=='auth')return;const timer=window.setTimeout(()=>setSlowAuth(true),18000);return()=>window.clearTimeout(timer)},[busy,busyStage]);
   const [passkeyBusy,setPasskeyBusy]=useState(false);
   const [message, setMessage] = useState(initialMessage);
   const [tenantChoices,setTenantChoices]=useState<Array<Pick<TenantPublicConfig,'workspace_id'|'slug'|'name'>>>([]);

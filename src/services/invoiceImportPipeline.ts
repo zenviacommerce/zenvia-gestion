@@ -149,6 +149,17 @@ async function candidateFromRead(
     withholding:read.withholding,
     total:repairedAmounts.total,
   });
+  // A fiscal total can be internally consistent while OCR silently drops
+  // expensive item rows. Do not auto-save such invoices.
+  const amounts=repairedLines.map(line=>Number(line.lineNet)).filter(value=>Number.isFinite(value));
+  if(repairedLines.length>0&&amounts.length===repairedLines.length&&Number(repairedAmounts.subtotal)>0){
+    const rowsTotal=amounts.reduce((sum,value)=>sum+value,0);
+    const difference=Math.abs(rowsTotal-Number(repairedAmounts.subtotal));
+    if(difference>Math.max(0.05,Number(repairedAmounts.subtotal)*0.01)){
+      status='needs_review';
+      reviewReason=[reviewReason,`Las líneas suman ${rowsTotal.toFixed(2)} y la base declarada ${Number(repairedAmounts.subtotal).toFixed(2)}; comprueba si faltan artículos.`].filter(Boolean).join(' · ');
+    }
+  }
   if(!integrity.safe){
     status='needs_review';
     reviewReason=[reviewReason,...integrity.reasons].filter(Boolean).join(' · ');

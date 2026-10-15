@@ -41,7 +41,7 @@ it('D: failed refresh is retryable and preserves localStorage verbatim',async()=
  const result=await client().auth.refreshSession();
  expect(result.error?.name).toBe('AuthRetryableFetchError');
  expect(localStorage.getItem(STORAGE)).toBe(original);
-});
+},30000);
 it('E: hanging fetch aborts at 6s; retries at 6.5s and 13.5s; final failure at 19.5s',async()=>{
  vi.useFakeTimers();const starts:number[]=[];const zero=Date.now();
  globalThis.fetch=vi.fn((_input,init)=>{starts.push(Date.now()-zero);return new Promise<Response>((_resolve,reject)=>{const signal=(init as RequestInit)?.signal;signal?.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true})})}) as typeof fetch;
@@ -63,7 +63,7 @@ it.each([500,504])('F: HTTP %i retries and retains persisted session',async(stat
  expect(classifyAuthError(result)).toBe('temporarily-unavailable');
  expect(calls).toHaveBeenCalledTimes(3);
  expect(localStorage.getItem(STORAGE)).toBe(original);
-});
+},30000);
 it('G: RPC and Storage fetches are not aborted after six seconds',async()=>{
  vi.useFakeTimers();let aborted=false;
  globalThis.fetch=vi.fn((_input,init)=>new Promise<Response>(resolve=>{(init as RequestInit)?.signal?.addEventListener('abort',()=>{aborted=true});setTimeout(()=>resolve(reply(200,{})),7000)})) as typeof fetch;

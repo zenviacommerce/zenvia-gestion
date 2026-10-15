@@ -75,7 +75,6 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
       onTenantChanged?.();
     } catch (error) {
       setMessage(authErrorMessage(error));
-      ;
     } finally { setBusy(false);setBusyStage(null); }
   };
 

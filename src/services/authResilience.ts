@@ -15,7 +15,7 @@ export async function retryTransientAuth<T>(operation:()=>Promise<T>,maxRetries=
     try{return await operation();}
     catch(error){
       if(classifyAuthError(error)!=='temporarily-unavailable'||attempt>=maxRetries)throw error;
-      await new Promise<void>(resolve=>setTimeout(resolve,[400,1000][attempt]??1000));
+      await new Promise<void>(resolve=>setTimeout(resolve,[500,1000][attempt]??1000));
     }
   }
 }

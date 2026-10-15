@@ -1,12 +1,15 @@
-name: Auth resilience integration tests
+name: Auth resilience tests
 on:
   push:
     branches: [feature/auth-resilience-phase2-20261015]
   pull_request:
     branches: [main]
+permissions:
+  contents: read
 jobs:
-  auth:
+  auth-tests:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -14,7 +17,11 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: Install pinned test runner (no lockfile changes)
-        run: npm install --no-save --package-lock=false vitest@3.2.4 jsdom@26.1.0
       - run: npm run build
-      - run: npx vitest run tests/auth-resilience.integration.test.ts --reporter=verbose
+      - run: npm test -- --reporter=default --reporter=junit --outputFile.junit=auth-test-results.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: auth-test-results
+          path: auth-test-results.xml
+          if-no-files-found: ignore

@@ -7,7 +7,7 @@ export function classifyAuthError(error:unknown):AuthFailureKind {
   const name=String(value.name||'').toLowerCase();
   if(status===400&&(/invalid login credentials|invalid credentials|wrong password/.test(message)||code==='invalid_credentials'))return 'invalid-credentials';
   if(code==='refresh_token_not_found'||code==='refresh_token_already_used'||code==='session_not_found'||/invalid refresh token|refresh token.*(expired|not found)|session.*(revoked|invalid)/.test(message))return 'invalid-session';
-  if(status===429||status>=500||['request_timeout','unexpected_failure','over_request_rate_limit'].includes(code)||/timeout|timed out|deadline|failed to fetch|networkerror|network request|unexpected eof|fetch failed|connection reset/.test(message)||['authdeadlineerror','aborterror','timeouterror'].includes(name))return 'temporarily-unavailable';
+  if(status===429||status>=500||['request_timeout','unexpected_failure','over_request_rate_limit'].includes(code)||/timeout|timed out|deadline|failed to fetch|networkerror|network request|unexpected eof|fetch failed|connection reset/.test(message)||['authretryablefetcherror','authdeadlineerror','aborterror','timeouterror'].includes(name))return 'temporarily-unavailable';
   return 'other';
 }
 export async function retryTransientAuth<T>(operation:()=>Promise<T>,maxRetries=2):Promise<T>{

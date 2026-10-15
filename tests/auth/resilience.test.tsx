@@ -98,6 +98,20 @@ describe('Phase 2 — real supabase-js 2.105.0 and production authFetch',()=>{
     expect(tokens().length).toBeGreaterThan(1); // SDK owns refresh retries, unlike password login.
     expect(tokens().every(r=>r.url.includes('grant_type=refresh_token'))).toBe(true);
   });
+  it.each(['refresh_token_not_found','invalid_grant'])('D2: refresh HTTP 400 %s signs out, removes storage and never retries',async code=>{
+    tokenFetch=async()=>json({code,msg:code==='invalid_grant'?'Invalid grant':'Refresh Token Not Found'},400);
+    const c=await client(true);const events:string[]=[];
+    const {data:{subscription}}=c.auth.onAuthStateChange(event=>{events.push(event)});
+    const result=await c.auth.refreshSession();
+    expect(result.error?.status).toBe(400);
+    expect(classifyAuthError(result.error)).toBe('invalid-session');
+    expect(localStorage.getItem(key)).toBeNull();
+    expect(events.filter(e=>e==='SIGNED_OUT')).toHaveLength(1);
+    await advance(35000);
+    expect(tokens()).toHaveLength(1);
+    expect((await c.auth.getSession()).data.session).toBeNull();
+    subscription.unsubscribe();
+  });
   it('E: hung login aborts each attempt at 6s; 18s warning preserves pending state; final transient at 19.5s',async()=>{
     const aborted:number[]=[];
     tokenFetch=init=>new Promise((_resolve,reject)=>init!.signal!.addEventListener('abort',()=>{aborted.push(Date.now());reject(init!.signal!.reason)},{once:true}));

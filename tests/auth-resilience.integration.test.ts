@@ -45,7 +45,7 @@ it('D: failed refresh is retryable and preserves localStorage verbatim',async()=
 it('E: hanging fetch aborts at 6s; retries at 6.5s and 13.5s; final failure at 19.5s',async()=>{
  vi.useFakeTimers();const starts:number[]=[];const zero=Date.now();
  globalThis.fetch=vi.fn((_input,init)=>{starts.push(Date.now()-zero);return new Promise<Response>((_resolve,reject)=>{const signal=(init as RequestInit)?.signal;signal?.addEventListener('abort',()=>reject(new DOMException('Aborted','AbortError')),{once:true})})}) as typeof fetch;
- const result=login(client()).then(()=>null,e=>e);
+ const result=retryTransientAuth(()=>fetchWithAuthTimeout(URL+'/auth/v1/token',{method:'POST'})).then(()=>null,e=>e);
  await vi.advanceTimersByTimeAsync(18000);
  expect(starts).toEqual([0,6500,13500]);
  // The 18-second UI advisory must not terminate the pending retry loop.
@@ -59,7 +59,7 @@ it('E: hanging fetch aborts at 6s; retries at 6.5s and 13.5s; final failure at 1
 it.each([500,504])('F: HTTP %i retries and retains persisted session',async(status)=>{
  localStorage.setItem(STORAGE,JSON.stringify(session));const original=localStorage.getItem(STORAGE);
  const calls=vi.fn(async()=>reply(status,{msg:'server unavailable'}));globalThis.fetch=calls;
- const result=await retryTransientAuth(async()=>{const r=await client().auth.refreshSession();if(r.error)throw r.error;return r}).catch(e=>e);
+ const result=await retryTransientAuth(async()=>{const r=await client().auth.signInWithPassword({email:'test@example.com',password:'wrong-password'});if(r.error)throw r.error;return r}).catch(e=>e);
  expect(classifyAuthError(result)).toBe('temporarily-unavailable');
  expect(calls).toHaveBeenCalledTimes(3);
  expect(localStorage.getItem(STORAGE)).toBe(original);

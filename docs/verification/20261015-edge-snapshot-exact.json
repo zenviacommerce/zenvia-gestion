@@ -1,0 +1,114 @@
+[
+  {
+    "name": "amazon-backfill-finance-components",
+    "version": 14,
+    "verify_jwt": false,
+    "files": 3,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-confirm-shipment",
+    "version": 14,
+    "verify_jwt": true,
+    "files": 7,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-recipient-fallback",
+    "version": 2,
+    "verify_jwt": false,
+    "files": 3,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-reconcile-orders",
+    "version": 4,
+    "verify_jwt": false,
+    "files": 6,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-status",
+    "version": 14,
+    "verify_jwt": false,
+    "files": 6,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-sync-finances",
+    "version": 14,
+    "verify_jwt": false,
+    "files": 7,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-sync-fx",
+    "version": 31,
+    "verify_jwt": false,
+    "files": 3,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-sync-inventory",
+    "version": 9,
+    "verify_jwt": false,
+    "files": 6,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-sync-manual",
+    "version": 15,
+    "verify_jwt": true,
+    "files": 8,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-sync-orchestrator",
+    "version": 14,
+    "verify_jwt": false,
+    "files": 8,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-sync-orders",
+    "version": 16,
+    "verify_jwt": false,
+    "files": 6,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-sync-product-images",
+    "version": 19,
+    "verify_jwt": false,
+    "files": 5,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "amazon-sync-worker",
+    "version": 34,
+    "verify_jwt": false,
+    "files": 12,
+    "snapshot_exact": true,
+    "mismatches": []
+  },
+  {
+    "name": "shopify-analytics-sync",
+    "version": 5,
+    "verify_jwt": false,
+    "files": 4,
+    "snapshot_exact": true,
+    "mismatches": []
+  }
+]

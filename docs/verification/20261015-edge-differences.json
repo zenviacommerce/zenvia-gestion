@@ -1,0 +1,132 @@
+[
+  {
+    "name": "amazon-backfill-finance-components",
+    "version": 14,
+    "verify_jwt": false,
+    "changed": [
+      "_shared/amazon/supabase.ts"
+    ]
+  },
+  {
+    "name": "amazon-confirm-shipment",
+    "version": 14,
+    "verify_jwt": true,
+    "changed": [
+      "_shared/amazon/http.ts"
+    ]
+  },
+  {
+    "name": "amazon-recipient-fallback",
+    "version": 2,
+    "verify_jwt": false,
+    "changed": []
+  },
+  {
+    "name": "amazon-reconcile-orders",
+    "version": 4,
+    "verify_jwt": false,
+    "changed": [
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/http.ts",
+      "_shared/amazon/orders.ts"
+    ]
+  },
+  {
+    "name": "amazon-status",
+    "version": 14,
+    "verify_jwt": false,
+    "changed": [
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/http.ts"
+    ]
+  },
+  {
+    "name": "amazon-sync-finances",
+    "version": 14,
+    "verify_jwt": false,
+    "changed": [
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/finances.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/config.ts",
+      "_shared/amazon/http.ts"
+    ]
+  },
+  {
+    "name": "amazon-sync-fx",
+    "version": 31,
+    "verify_jwt": false,
+    "changed": [
+      "_shared/amazon/supabase.ts"
+    ]
+  },
+  {
+    "name": "amazon-sync-inventory",
+    "version": 9,
+    "verify_jwt": false,
+    "changed": [
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/inventory.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/config.ts",
+      "_shared/amazon/http.ts"
+    ]
+  },
+  {
+    "name": "amazon-sync-manual",
+    "version": 15,
+    "verify_jwt": true,
+    "changed": [
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/sync.ts"
+    ]
+  },
+  {
+    "name": "amazon-sync-orchestrator",
+    "version": 14,
+    "verify_jwt": false,
+    "changed": [
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/http.ts",
+      "_shared/amazon/sync.ts"
+    ]
+  },
+  {
+    "name": "amazon-sync-orders",
+    "version": 16,
+    "verify_jwt": false,
+    "changed": [
+      "_shared/amazon/orders.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/http.ts"
+    ]
+  },
+  {
+    "name": "amazon-sync-product-images",
+    "version": 19,
+    "verify_jwt": false,
+    "changed": [
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/http.ts"
+    ]
+  },
+  {
+    "name": "amazon-sync-worker",
+    "version": 34,
+    "verify_jwt": false,
+    "changed": [
+      "_shared/amazon/http.ts",
+      "_shared/amazon/orders.ts",
+      "_shared/amazon/finances.ts"
+    ]
+  },
+  {
+    "name": "shopify-analytics-sync",
+    "version": 5,
+    "verify_jwt": false,
+    "changed": []
+  }
+]

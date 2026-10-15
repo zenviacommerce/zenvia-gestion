@@ -1,0 +1,282 @@
+{
+  "amazon-backfill-finance-components": {
+    "version": 14,
+    "verify_jwt": false,
+    "file_names": [
+      "amazon-backfill-finance-components/index.ts",
+      "_shared/amazon/finance-components.ts",
+      "_shared/amazon/supabase.ts"
+    ],
+    "sha256": {
+      "amazon-backfill-finance-components/index.ts": "02c12f4798ef9639c85cc0b0435c3e6c88ee72494d07d2a0cbe5f97aa6102415",
+      "_shared/amazon/finance-components.ts": "efd6d8d7ecf250d37ab8fb590b015aede11fd97beacef0c4ea3cde855e4f2a8a",
+      "_shared/amazon/supabase.ts": "f84c706d753f0cf87ab0fcb6ccc9f4a82892791d47056c46e0fccb3983730a55"
+    }
+  },
+  "amazon-confirm-shipment": {
+    "version": 14,
+    "verify_jwt": true,
+    "file_names": [
+      "amazon-confirm-shipment/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/shipment-confirmation.ts",
+      "_shared/orderCancellation.ts",
+      "_shared/amazon/http.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/config.ts"
+    ],
+    "sha256": {
+      "amazon-confirm-shipment/index.ts": "cd93b32c3073ebdc8f1ded38313ef696d495acc0e86f853288ae109c51a1168b",
+      "_shared/amazon/supabase.ts": "5013b69425f5744e249aadcab3887a945b04dcf9873b2412df457fbf76a04fb1",
+      "_shared/amazon/shipment-confirmation.ts": "532dc24b6becec00acf2882b0696c3d32640f8369506ae5aa8376e7e1f91cc1c",
+      "_shared/orderCancellation.ts": "a55825ea07755c6d105c1b5d1eb5df3ce4c59cfe2863e6b859a6ed6312ea3ade",
+      "_shared/amazon/http.ts": "d95a7a0b8c608bf144c50efb677d211aa4f68b06c2e7973940ae70e356870849",
+      "_shared/amazon/sp-api.ts": "a522fb054ca6e4f6825b20409ecb593b5f8b676f59342342699141b81edc3098",
+      "_shared/amazon/config.ts": "7332c7798b0a0999e5b021ace98baef5982fe927f2e0f60399b824fcd891fcdb"
+    }
+  },
+  "amazon-recipient-fallback": {
+    "version": 2,
+    "verify_jwt": false,
+    "file_names": [
+      "amazon-recipient-fallback/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/recipientFallback.ts"
+    ],
+    "sha256": {
+      "amazon-recipient-fallback/index.ts": "5815f60d26b8d84ed4ebd8369dc076cb26919104c8e81c892f0793be8212105e",
+      "_shared/amazon/supabase.ts": "5013b69425f5744e249aadcab3887a945b04dcf9873b2412df457fbf76a04fb1",
+      "_shared/recipientFallback.ts": "7dfc6e34861a21cc32eed6b8231d8d7e0cd1751af4e9a037ac628e323fcb3275"
+    }
+  },
+  "amazon-reconcile-orders": {
+    "version": 4,
+    "verify_jwt": false,
+    "file_names": [
+      "amazon-reconcile-orders/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/config.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/http.ts",
+      "_shared/amazon/orders.ts"
+    ],
+    "sha256": {
+      "amazon-reconcile-orders/index.ts": "d7930ca91712b302e3dbc70c67cdef22a02f9d40cfd2f38893205a5516c7bc72",
+      "_shared/amazon/supabase.ts": "5013b69425f5744e249aadcab3887a945b04dcf9873b2412df457fbf76a04fb1",
+      "_shared/amazon/config.ts": "7332c7798b0a0999e5b021ace98baef5982fe927f2e0f60399b824fcd891fcdb",
+      "_shared/amazon/sp-api.ts": "611c8e7a95942d9cb71e45f22db7f6fc5512e6532d37f28c37668f846438e301",
+      "_shared/amazon/http.ts": "d95a7a0b8c608bf144c50efb677d211aa4f68b06c2e7973940ae70e356870849",
+      "_shared/amazon/orders.ts": "77fd3e8d926053b9b37791db94759205663c518c6041d29a09ced75c2a61caaf"
+    }
+  },
+  "amazon-status": {
+    "version": 14,
+    "verify_jwt": false,
+    "file_names": [
+      "amazon-status/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/marketplaces.ts",
+      "_shared/amazon/config.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/http.ts"
+    ],
+    "sha256": {
+      "amazon-status/index.ts": "b36fa60cef5a33adb42961926daec5e09d2c127744093ef27432c8ec79a367cc",
+      "_shared/amazon/supabase.ts": "5013b69425f5744e249aadcab3887a945b04dcf9873b2412df457fbf76a04fb1",
+      "_shared/amazon/marketplaces.ts": "738edfcc11f047a82928719c5d1e5fda3a322d1b8a1923ba52ae3d6f40cdedab",
+      "_shared/amazon/config.ts": "7332c7798b0a0999e5b021ace98baef5982fe927f2e0f60399b824fcd891fcdb",
+      "_shared/amazon/sp-api.ts": "611c8e7a95942d9cb71e45f22db7f6fc5512e6532d37f28c37668f846438e301",
+      "_shared/amazon/http.ts": "d95a7a0b8c608bf144c50efb677d211aa4f68b06c2e7973940ae70e356870849"
+    }
+  },
+  "amazon-sync-finances": {
+    "version": 14,
+    "verify_jwt": false,
+    "file_names": [
+      "amazon-sync-finances/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/finances.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/config.ts",
+      "_shared/amazon/http.ts",
+      "_shared/amazon/finance-components.ts"
+    ],
+    "sha256": {
+      "amazon-sync-finances/index.ts": "a436f045d0fda18f22fec43bd7ebf00e51de22aadba9ad42457c69003a1e23da",
+      "_shared/amazon/supabase.ts": "b0e74ea7f27f79e03f4a56be654dc158d2813228ce00da61bb6d8c4e86a8129e",
+      "_shared/amazon/finances.ts": "045a28c97922ee5f89585a1b6c1cb58f2ffea83c9054125d35c4d04267ca49fc",
+      "_shared/amazon/sp-api.ts": "611c8e7a95942d9cb71e45f22db7f6fc5512e6532d37f28c37668f846438e301",
+      "_shared/amazon/config.ts": "73cb115f89e9d96cda81efece8b591a758f9c201d7f377f66d185c925145ae5a",
+      "_shared/amazon/http.ts": "d95a7a0b8c608bf144c50efb677d211aa4f68b06c2e7973940ae70e356870849",
+      "_shared/amazon/finance-components.ts": "efd6d8d7ecf250d37ab8fb590b015aede11fd97beacef0c4ea3cde855e4f2a8a"
+    }
+  },
+  "amazon-sync-fx": {
+    "version": 31,
+    "verify_jwt": false,
+    "file_names": [
+      "amazon-sync-fx/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/fx.ts"
+    ],
+    "sha256": {
+      "amazon-sync-fx/index.ts": "86fdace42945c6d608d5562ef63739f97c78fa9eebbe5ce66f8457115a9f3b69",
+      "_shared/amazon/supabase.ts": "b0e74ea7f27f79e03f4a56be654dc158d2813228ce00da61bb6d8c4e86a8129e",
+      "_shared/amazon/fx.ts": "8629de3ae187bf8c370654ed802440cee7f2d53e88660f417660015cbb1db8e2"
+    }
+  },
+  "amazon-sync-inventory": {
+    "version": 9,
+    "verify_jwt": false,
+    "file_names": [
+      "amazon-sync-inventory/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/inventory.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/config.ts",
+      "_shared/amazon/http.ts"
+    ],
+    "sha256": {
+      "amazon-sync-inventory/index.ts": "77c9789202a228dd5167fe223bdf56d0a7206313a6b5e6b1b1f1c49677a4f9fe",
+      "_shared/amazon/supabase.ts": "b0e74ea7f27f79e03f4a56be654dc158d2813228ce00da61bb6d8c4e86a8129e",
+      "_shared/amazon/inventory.ts": "4289d9059c9778477d6192e950717ba94febc41a72625c388964cacce4135a43",
+      "_shared/amazon/sp-api.ts": "611c8e7a95942d9cb71e45f22db7f6fc5512e6532d37f28c37668f846438e301",
+      "_shared/amazon/config.ts": "73cb115f89e9d96cda81efece8b591a758f9c201d7f377f66d185c925145ae5a",
+      "_shared/amazon/http.ts": "d95a7a0b8c608bf144c50efb677d211aa4f68b06c2e7973940ae70e356870849"
+    }
+  },
+  "amazon-sync-manual": {
+    "version": 15,
+    "verify_jwt": true,
+    "file_names": [
+      "amazon-sync-manual/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/marketplaces.ts",
+      "_shared/amazon/config.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/http.ts",
+      "_shared/amazon/sync.ts",
+      "_shared/amazon/settings.ts"
+    ],
+    "sha256": {
+      "amazon-sync-manual/index.ts": "59af5af68ccb768b299886e12b729e2f228b566375e4ca0d8c1491d7944dd53c",
+      "_shared/amazon/supabase.ts": "b0e74ea7f27f79e03f4a56be654dc158d2813228ce00da61bb6d8c4e86a8129e",
+      "_shared/amazon/marketplaces.ts": "738edfcc11f047a82928719c5d1e5fda3a322d1b8a1923ba52ae3d6f40cdedab",
+      "_shared/amazon/config.ts": "7332c7798b0a0999e5b021ace98baef5982fe927f2e0f60399b824fcd891fcdb",
+      "_shared/amazon/sp-api.ts": "611c8e7a95942d9cb71e45f22db7f6fc5512e6532d37f28c37668f846438e301",
+      "_shared/amazon/http.ts": "7d911129559f50ac1a7105f585381274246896339a85ea4bb5b1a554db89a30e",
+      "_shared/amazon/sync.ts": "2e7daf1443516f0617078ea04a9b042c3a2a2ac770f57bb17f299a8e56c137db",
+      "_shared/amazon/settings.ts": "830378871851fa5197e682d5853a2cd86d0b1ed2733a3d9283710bde72e5c04d"
+    }
+  },
+  "amazon-sync-orchestrator": {
+    "version": 14,
+    "verify_jwt": false,
+    "file_names": [
+      "amazon-sync-orchestrator/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/marketplaces.ts",
+      "_shared/amazon/config.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/http.ts",
+      "_shared/amazon/sync.ts",
+      "_shared/amazon/settings.ts"
+    ],
+    "sha256": {
+      "amazon-sync-orchestrator/index.ts": "1b6409ae13729e9c4a2e523280e0d50e001425310ca5044c16e98872eaf51f1c",
+      "_shared/amazon/supabase.ts": "b0e74ea7f27f79e03f4a56be654dc158d2813228ce00da61bb6d8c4e86a8129e",
+      "_shared/amazon/marketplaces.ts": "738edfcc11f047a82928719c5d1e5fda3a322d1b8a1923ba52ae3d6f40cdedab",
+      "_shared/amazon/config.ts": "7332c7798b0a0999e5b021ace98baef5982fe927f2e0f60399b824fcd891fcdb",
+      "_shared/amazon/sp-api.ts": "611c8e7a95942d9cb71e45f22db7f6fc5512e6532d37f28c37668f846438e301",
+      "_shared/amazon/http.ts": "d95a7a0b8c608bf144c50efb677d211aa4f68b06c2e7973940ae70e356870849",
+      "_shared/amazon/sync.ts": "cdb7ecf4f776364ac067b425b19df8a4965f53002896e6eb8de1d7aeb79b38f1",
+      "_shared/amazon/settings.ts": "830378871851fa5197e682d5853a2cd86d0b1ed2733a3d9283710bde72e5c04d"
+    }
+  },
+  "amazon-sync-orders": {
+    "version": 16,
+    "verify_jwt": false,
+    "file_names": [
+      "amazon-sync-orders/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/orders.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/config.ts",
+      "_shared/amazon/http.ts"
+    ],
+    "sha256": {
+      "amazon-sync-orders/index.ts": "9a6ac15e7eed20c35eedb2dbf044b85fbd5a2e9ecfd5b4b9d284fe2d2d888c1a",
+      "_shared/amazon/supabase.ts": "5013b69425f5744e249aadcab3887a945b04dcf9873b2412df457fbf76a04fb1",
+      "_shared/amazon/orders.ts": "fa4c4e7891cf85fd012504999835848eae19cde9c2037b801ef1921be838b250",
+      "_shared/amazon/sp-api.ts": "611c8e7a95942d9cb71e45f22db7f6fc5512e6532d37f28c37668f846438e301",
+      "_shared/amazon/config.ts": "7332c7798b0a0999e5b021ace98baef5982fe927f2e0f60399b824fcd891fcdb",
+      "_shared/amazon/http.ts": "d95a7a0b8c608bf144c50efb677d211aa4f68b06c2e7973940ae70e356870849"
+    }
+  },
+  "amazon-sync-product-images": {
+    "version": 19,
+    "verify_jwt": false,
+    "file_names": [
+      "amazon-sync-product-images/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/config.ts",
+      "_shared/amazon/http.ts"
+    ],
+    "sha256": {
+      "amazon-sync-product-images/index.ts": "acd09fcd8ce248fca8112b8d706087072c3690052a1f22065ec19c3e21fb9a57",
+      "_shared/amazon/supabase.ts": "b0e74ea7f27f79e03f4a56be654dc158d2813228ce00da61bb6d8c4e86a8129e",
+      "_shared/amazon/sp-api.ts": "611c8e7a95942d9cb71e45f22db7f6fc5512e6532d37f28c37668f846438e301",
+      "_shared/amazon/config.ts": "7332c7798b0a0999e5b021ace98baef5982fe927f2e0f60399b824fcd891fcdb",
+      "_shared/amazon/http.ts": "d95a7a0b8c608bf144c50efb677d211aa4f68b06c2e7973940ae70e356870849"
+    }
+  },
+  "amazon-sync-worker": {
+    "version": 34,
+    "verify_jwt": false,
+    "file_names": [
+      "amazon-sync-worker/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/amazon/sync.ts",
+      "_shared/amazon/http.ts",
+      "_shared/amazon/orders.ts",
+      "_shared/amazon/sp-api.ts",
+      "_shared/amazon/config.ts",
+      "_shared/amazon/shipment-confirmation.ts",
+      "_shared/orderCancellation.ts",
+      "_shared/amazon/finances.ts",
+      "_shared/amazon/finance-components.ts",
+      "_shared/amazon/inventory.ts"
+    ],
+    "sha256": {
+      "amazon-sync-worker/index.ts": "6848fd15d81764e140d6b43fb70ed27080b836938ca4d7a7ae81ccff3c3dade3",
+      "_shared/amazon/supabase.ts": "5013b69425f5744e249aadcab3887a945b04dcf9873b2412df457fbf76a04fb1",
+      "_shared/amazon/sync.ts": "e500ab30de17391eab4c5b0aefadde910ad7d6db3a4084e6e75d987e960422f5",
+      "_shared/amazon/http.ts": "d95a7a0b8c608bf144c50efb677d211aa4f68b06c2e7973940ae70e356870849",
+      "_shared/amazon/orders.ts": "2fb937d2fe31548fde0c98fad811e8e52fbef901f04f84fb5fa285589386f5dc",
+      "_shared/amazon/sp-api.ts": "a522fb054ca6e4f6825b20409ecb593b5f8b676f59342342699141b81edc3098",
+      "_shared/amazon/config.ts": "7332c7798b0a0999e5b021ace98baef5982fe927f2e0f60399b824fcd891fcdb",
+      "_shared/amazon/shipment-confirmation.ts": "532dc24b6becec00acf2882b0696c3d32640f8369506ae5aa8376e7e1f91cc1c",
+      "_shared/orderCancellation.ts": "a55825ea07755c6d105c1b5d1eb5df3ce4c59cfe2863e6b859a6ed6312ea3ade",
+      "_shared/amazon/finances.ts": "e228d28e5d565c6e1507b006b5a660b288fbe20c796e300ecccb0f462adc6b39",
+      "_shared/amazon/finance-components.ts": "efd6d8d7ecf250d37ab8fb590b015aede11fd97beacef0c4ea3cde855e4f2a8a",
+      "_shared/amazon/inventory.ts": "cbfa6225e6b8265c63dc8e254e3cf83762151b116f9ca52b17bb9b8888e7cfa5"
+    }
+  },
+  "shopify-analytics-sync": {
+    "version": 5,
+    "verify_jwt": false,
+    "file_names": [
+      "shopify-analytics-sync/index.ts",
+      "_shared/amazon/supabase.ts",
+      "_shared/shopifyAuth.ts",
+      "_shared/shopifyAnalyticsFinance.ts"
+    ],
+    "sha256": {
+      "shopify-analytics-sync/index.ts": "e7ae6fe24936ccc63ef85eb0607d83f5c6abc5dbf68ce56cbcbdd4159fd309c4",
+      "_shared/amazon/supabase.ts": "5013b69425f5744e249aadcab3887a945b04dcf9873b2412df457fbf76a04fb1",
+      "_shared/shopifyAuth.ts": "986293a1670ec227ff87f8dbdd4c268a220df60466511c0430ae2c9f54cc8aeb",
+      "_shared/shopifyAnalyticsFinance.ts": "7cde8c33abb4f7383635d46dbaa2702ad7262581332237d51449e090b4a933b5"
+    }
+  }
+}

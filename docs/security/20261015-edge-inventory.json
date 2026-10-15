@@ -1,0 +1,209 @@
+{
+  "branch": "feature/amazon-edge-reconciliation-20261015",
+  "commit": "9c2ea0c1d6ddeb31d84519560417e7e5786c74c2",
+  "files_read": 57,
+  "functions": [
+    {
+      "function": "amazon-backfill-finance-components",
+      "direct": [
+        "_shared/amazon/finance-components.ts",
+        "_shared/amazon/supabase.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/finance-components.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    },
+    {
+      "function": "amazon-confirm-shipment",
+      "direct": [
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/shipment-confirmation.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/config.ts",
+        "_shared/amazon/http.ts",
+        "_shared/amazon/shipment-confirmation.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/supabase.ts",
+        "_shared/orderCancellation.ts"
+      ]
+    },
+    {
+      "function": "amazon-recipient-fallback",
+      "direct": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/supabase.ts"
+      ]
+    },
+    {
+      "function": "amazon-reconcile-orders",
+      "direct": [
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/config.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/orders.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/config.ts",
+        "_shared/amazon/http.ts",
+        "_shared/amazon/orders.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    },
+    {
+      "function": "amazon-status",
+      "direct": [
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/marketplaces.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/config.ts",
+        "_shared/amazon/http.ts",
+        "_shared/amazon/marketplaces.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    },
+    {
+      "function": "amazon-sync-finances",
+      "direct": [
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/finances.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/config.ts",
+        "_shared/amazon/finance-components.ts",
+        "_shared/amazon/finances.ts",
+        "_shared/amazon/http.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    },
+    {
+      "function": "amazon-sync-fx",
+      "direct": [
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/fx.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/fx.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    },
+    {
+      "function": "amazon-sync-inventory",
+      "direct": [
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/inventory.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/config.ts",
+        "_shared/amazon/http.ts",
+        "_shared/amazon/inventory.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    },
+    {
+      "function": "amazon-sync-manual",
+      "direct": [
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/marketplaces.ts",
+        "_shared/amazon/sync.ts",
+        "_shared/amazon/settings.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/config.ts",
+        "_shared/amazon/http.ts",
+        "_shared/amazon/marketplaces.ts",
+        "_shared/amazon/settings.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/sync.ts"
+      ]
+    },
+    {
+      "function": "amazon-sync-orchestrator",
+      "direct": [
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/marketplaces.ts",
+        "_shared/amazon/sync.ts",
+        "_shared/amazon/settings.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/config.ts",
+        "_shared/amazon/http.ts",
+        "_shared/amazon/marketplaces.ts",
+        "_shared/amazon/settings.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/sync.ts"
+      ]
+    },
+    {
+      "function": "amazon-sync-orders",
+      "direct": [
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/orders.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/config.ts",
+        "_shared/amazon/http.ts",
+        "_shared/amazon/orders.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    },
+    {
+      "function": "amazon-sync-product-images",
+      "direct": [
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/config.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/config.ts",
+        "_shared/amazon/http.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    },
+    {
+      "function": "amazon-sync-worker",
+      "direct": [
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/sync.ts",
+        "_shared/amazon/orders.ts",
+        "_shared/amazon/shipment-confirmation.ts",
+        "_shared/amazon/finances.ts",
+        "_shared/amazon/inventory.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/config.ts",
+        "_shared/amazon/finance-components.ts",
+        "_shared/amazon/finances.ts",
+        "_shared/amazon/http.ts",
+        "_shared/amazon/inventory.ts",
+        "_shared/amazon/orders.ts",
+        "_shared/amazon/shipment-confirmation.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/supabase.ts",
+        "_shared/amazon/sync.ts",
+        "_shared/orderCancellation.ts"
+      ]
+    },
+    {
+      "function": "shopify-analytics-sync",
+      "direct": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "transitive": [
+        "_shared/amazon/supabase.ts"
+      ]
+    }
+  ]
+}

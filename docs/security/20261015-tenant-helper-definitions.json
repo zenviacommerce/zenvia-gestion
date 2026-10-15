@@ -1,0 +1,50 @@
+{
+  "helpers": [
+    {
+      "signature": "private.app_has_permission(text)",
+      "definition": "CREATE OR REPLACE FUNCTION private.app_has_permission(requested text)\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select exists(\n    select 1 from public.app_users au\n    where au.user_id = (select auth.uid())\n      and au.active\n      and (au.role = 'admin' or requested = any(au.permissions))\n  )\n$function$\n"
+    },
+    {
+      "signature": "private.app_is_admin()",
+      "definition": "CREATE OR REPLACE FUNCTION private.app_is_admin()\n RETURNS boolean\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select exists(\n    select 1 from public.app_users au\n    where au.user_id = (select auth.uid()) and au.active and au.role = 'admin'\n  )\n$function$\n"
+    },
+    {
+      "signature": "private.app_workspace_owner_id()",
+      "definition": "CREATE OR REPLACE FUNCTION private.app_workspace_owner_id()\n RETURNS uuid\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select private.app_workspace_id()\n$function$\n"
+    },
+    {
+      "signature": "private.shopify_analytics_owner()",
+      "definition": "CREATE OR REPLACE FUNCTION private.shopify_analytics_owner()\n RETURNS uuid\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v uuid:=private.app_workspace_owner_id(); begin\n if auth.uid() is null or v is null or not private.app_has_permission('shopify') then raise exception 'No tienes permiso de Shopify.' using errcode='42501';end if;return v;end;$function$\n"
+    }
+  ],
+  "dependencies": [
+    {
+      "function": "private.amazon_analytics_timezone()",
+      "definition": "CREATE OR REPLACE FUNCTION private.amazon_analytics_timezone()\n RETURNS text\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select coalesce((select z.name from public.app_settings s join pg_catalog.pg_timezone_names z\n    on z.name=s.config->'general'->>'timezone' where s.owner_id=private.app_workspace_owner_id() limit 1),'Europe/Madrid')\n$function$\n"
+    },
+    {
+      "function": "private.amazon_effective_vat_amount(uuid,numeric,numeric,boolean)",
+      "definition": "CREATE OR REPLACE FUNCTION private.amazon_effective_vat_amount(p_owner uuid, p_gross numeric, p_explicit_vat numeric, p_is_business boolean)\n RETURNS numeric\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n  v_rate numeric;\nbegin\n  if p_explicit_vat is not null then return p_explicit_vat; end if;\n  if coalesce(p_is_business,false) then return 0::numeric; end if;\n  if p_gross is null then return null; end if;\n\n  begin\n    v_rate:=private.amazon_setting_text(p_owner,'defaultVatRate','21')::numeric;\n  exception when others then\n    v_rate:=21;\n  end;\n  v_rate:=greatest(0,least(100,v_rate));\n  if v_rate=0 then return 0::numeric; end if;\n  return p_gross-(p_gross/(1+(v_rate/100)));\nend;\n$function$\n"
+    },
+    {
+      "function": "private.amazon_mapping_cost_snapshot(uuid,uuid,text,date)",
+      "definition": "CREATE OR REPLACE FUNCTION private.amazon_mapping_cost_snapshot(p_owner uuid, p_account uuid, p_seller_sku text, p_event_date date)\n RETURNS TABLE(mapping_count bigint, unit_cost_eur numeric, missing_historical_count bigint, missing_fx_count bigint)\n LANGUAGE sql\n STABLE SECURITY DEFINER ROWS 1\n SET search_path TO ''\nAS $function$\n  select\n    count(m.id)::bigint as mapping_count,\n    coalesce(sum(\n      case\n        when h.normalized_unit_price is not null and fx.rate_to_eur is not null\n          then m.consumption_factor*h.normalized_unit_price*fx.rate_to_eur\n        else 0\n      end\n    ),0)::numeric as unit_cost_eur,\n    count(*) filter (\n      where m.id is not null and h.normalized_unit_price is null\n    )::bigint as missing_historical_count,\n    count(*) filter (\n      where m.id is not null\n        and h.normalized_unit_price is not null\n        and fx.rate_to_eur is null\n    )::bigint as missing_fx_count\n  from public.amazon_product_mappings m\n  left join lateral (\n    select ph.normalized_unit_price,ph.currency,ph.price_date\n    from public.product_price_history ph\n    where ph.owner_id=p_owner\n      and ph.product_id=m.product_id\n      and ph.normalized_unit_price is not null\n      and ph.price_date<=p_event_date\n    order by ph.price_date desc,ph.created_at desc,ph.id desc\n    limit 1\n  ) h on true\n  left join lateral (\n    select private.amazon_rate_to_eur(h.currency,h.price_date) as rate_to_eur\n  ) fx on true\n  where m.owner_id=p_owner\n    and m.amazon_account_id=p_account\n    and m.seller_sku=p_seller_sku;\n$function$\n"
+    },
+    {
+      "function": "private.amazon_rate_to_eur(text,date)",
+      "definition": "CREATE OR REPLACE FUNCTION private.amazon_rate_to_eur(p_currency text, p_event_date date)\n RETURNS numeric\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare\n  v_source text:=upper(coalesce(nullif(trim(p_currency),''),'EUR'));\n  v_policy text:='last_known';\n  v_rate numeric;\n  v_owner uuid;\nbegin\n  if p_event_date is null then return null; end if;\n  if v_source='EUR' then return 1; end if;\n\n  v_owner:=private.app_workspace_owner_id();\n  if v_owner is not null then\n    select lower(coalesce(nullif(trim(s.config->'amazon'->>'fxMissingRatePolicy'),''),'last_known'))\n      into v_policy\n    from public.app_settings s\n    where s.owner_id=v_owner\n    limit 1;\n  end if;\n  v_policy:=coalesce(v_policy,'last_known');\n\n  select r.rate_to_eur\n    into v_rate\n  from public.amazon_fx_rates r\n  where r.currency_code=v_source\n    and (\n      (v_policy='exclude' and r.rate_date=p_event_date)\n      or\n      (v_policy<>'exclude' and r.rate_date<=p_event_date)\n    )\n  order by r.rate_date desc\n  limit 1;\n\n  return v_rate;\nend;\n$function$\n"
+    },
+    {
+      "function": "private.amazon_setting_text(uuid,text,text)",
+      "definition": "CREATE OR REPLACE FUNCTION private.amazon_setting_text(p_owner uuid, p_key text, p_fallback text)\n RETURNS text\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n  select coalesce(\n    nullif(trim((\n      select s.config->'amazon'->>p_key\n      from public.app_settings s\n      where s.owner_id=p_owner\n      limit 1\n    )),''),\n    p_fallback\n  );\n$function$\n"
+    },
+    {
+      "function": "private.shopify_cost(uuid,uuid,text,date)",
+      "definition": "CREATE OR REPLACE FUNCTION private.shopify_cost(owner uuid, store uuid, sku text, event_date date)\n RETURNS TABLE(cost numeric, missing bigint, mapping_count bigint)\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select sum(h.normalized_unit_price*m.consumption_factor*private.amazon_rate_to_eur(h.currency,event_date)),count(*) filter(where h.id is null or private.amazon_rate_to_eur(h.currency,event_date) is null),count(*)\n from public.shopify_product_mappings m\n left join lateral(select ph.* from public.product_price_history ph where ph.owner_id=m.owner_id and ph.product_id=m.product_id and ph.price_date<=event_date order by ph.price_date desc,ph.created_at desc limit 1) h on true\n where m.owner_id=owner and m.integration_account_id=store and m.seller_sku=sku and owner=private.shopify_analytics_owner();$function$\n"
+    },
+    {
+      "function": "private.shopify_shipping(uuid,uuid,text,date)",
+      "definition": "CREATE OR REPLACE FUNCTION private.shopify_shipping(owner uuid, store uuid, remote_order text, event_date date)\n RETURNS numeric\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select f.shipping_cost_net_amount*private.amazon_rate_to_eur(coalesce(nullif(f.shipping_cost_currency,''),'EUR'),coalesce((f.shipping_cost_recorded_at at time zone private.amazon_analytics_timezone())::date,event_date))\n from public.fulfillment_orders f where f.owner_id=owner and owner=private.shopify_analytics_owner() and f.source_channel='shopify'\n and f.source_integration_account_id=store and (f.order_id=remote_order or f.sendcloud_id='shopify:'||store::text||':'||remote_order)\n order by f.shipping_cost_recorded_at desc nulls last,f.last_synced_at desc nulls last limit 1;$function$\n"
+    }
+  ]
+}

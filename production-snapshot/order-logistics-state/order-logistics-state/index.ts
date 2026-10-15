@@ -1,0 +1,180 @@
+import { createClient } from 'npm:@supabase/supabase-js@2';
+import { resolveShipmentTrackingLink } from '../_shared/shipmentTracking.ts';
+
+const corsHeaders={
+  'Access-Control-Allow-Origin':'*',
+  'Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods':'POST, OPTIONS',
+};
+const headers={...corsHeaders,'Content-Type':'application/json'};
+const clean=(value:unknown)=>String(value??'').trim();
+const response=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers});
+function getAdminKey(){
+  const raw=Deno.env.get('SUPABASE_SECRET_KEYS');
+  if(raw){try{const parsed=JSON.parse(raw);if(typeof parsed?.default==='string'&&parsed.default.trim())return parsed.default.trim()}catch{}}
+  return clean(Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'));
+}
+async function authenticate(req:Request,admin:any){
+  const token=clean(req.headers.get('Authorization')).replace(/^Bearer\s+/i,'');
+  if(!token)throw new Error('Sesión no válida.');
+  const {data:userData,error:userError}=await admin.auth.getUser(token);
+  if(userError||!userData?.user)throw new Error('Sesión no válida.');
+  const {data:caller,error}=await admin.from('app_users').select('user_id,data_owner_id,role,active,permissions').eq('user_id',userData.user.id).maybeSingle();
+  if(error)throw error;
+  if(!caller?.active)throw new Error('Tu acceso está desactivado.');
+  const permissions=Array.isArray(caller.permissions)?caller.permissions:[];
+  if(caller.role!=='admin'&&!permissions.includes('orders'))throw new Error('No tienes permiso para gestionar pedidos.');
+  return caller;
+}
+Deno.serve(async(req:Request)=>{
+  if(req.method==='OPTIONS')return new Response('ok',{headers:corsHeaders});
+  if(req.method!=='POST')return response({error:'Método no permitido.'},405);
+  const url=clean(Deno.env.get('SUPABASE_URL')),key=getAdminKey();
+  if(!url||!key)return response({error:'Configuración interna no disponible.'},500);
+  const admin=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
+  try{
+    const caller=await authenticate(req,admin),body=await req.json().catch(()=>({}));
+    const action=clean(body?.action);
+
+    if(action==='create_manual_order'){
+      const input=body?.order||{};
+      const name=clean(input.customerName),email=clean(input.email),phone=clean(input.phone);
+      const address1=clean(input.address),houseNumber=clean(input.houseNumber),address2=clean(input.address2);
+      const postalCode=clean(input.postalCode),city=clean(input.city),countryCode=clean(input.countryCode||'ES').toUpperCase();
+      const weightKg=Number(input.weightKg);
+      if(!name||!address1||!postalCode||!city||countryCode.length!==2)return response({error:'Completa nombre, dirección, código postal, ciudad y país.'},409);
+      if(!Number.isFinite(weightKg)||weightKg<=0)return response({error:'El peso debe ser mayor que 0.'},409);
+      const items=(Array.isArray(input.items)?input.items:[]).map((item:any,index:number)=>{
+        const quantity=Math.max(1,Math.floor(Number(item?.quantity)||1));
+        const unitPrice=Math.max(0,Number(item?.unitPrice)||0);
+        return {name:clean(item?.name)||`Producto ${index+1}`,sku:clean(item?.sku)||null,quantity,unit_price:unitPrice,total_price:{value:Number((quantity*unitPrice).toFixed(2)),currency:'EUR'}};
+      });
+      if(!items.length)return response({error:'Añade al menos un producto al pedido.'},409);
+      const total=Number(items.reduce((sum:number,item:any)=>sum+Number(item.total_price.value||0),0).toFixed(2));
+      const now=new Date().toISOString(),localId=crypto.randomUUID();
+      const orderNumber=clean(input.orderNumber)||`MAN-${now.slice(0,10).replaceAll('-','')}-${localId.slice(0,6).toUpperCase()}`;
+      const orderIdValue=`manual-${localId}`;
+      const shippingAddress={name,company_name:clean(input.companyName)||null,address_line_1:address1,house_number:houseNumber||null,address_line_2:address2||null,postal_code:postalCode,city,state_province_code:null,country_code:countryCode,email:email||null,phone_number:phone||null};
+      const rawPayload={source:'zenvia',shipping_details:{measurement:{weight:{value:Number(weightKg.toFixed(3)),unit:'kg'}}}};
+      const row={
+        owner_id:caller.data_owner_id,
+        sendcloud_id:`zenvia:${localId}`,
+        sendcloud_remote_id:null,
+        shipping_integration_account_id:null,
+        source_integration_account_id:null,
+        order_id:orderIdValue,
+        order_number:orderNumber,
+        integration_id:0,
+        integration_name:'ZENVIA Gestión',
+        integration_type:'zenvia',
+        source_channel:'other',
+        source_status:'pending',
+        order_created_at:now,
+        order_updated_at:now,
+        customer_name:name,
+        customer_email:email||null,
+        customer_phone:phone||null,
+        shipping_address:shippingAddress,
+        billing_address:{},
+        items,
+        total_amount:total,
+        currency:'EUR',
+        raw_payload:rawPayload,
+        last_synced_at:now,
+      };
+      const {data:saved,error:saveError}=await admin.from('fulfillment_orders').insert(row).select('id').single();
+      if(saveError)throw saveError;
+      return response({ok:true,id:saved.id,sendcloudId:null,orderNumber});
+    }
+
+    const orderId=clean(body?.orderId);
+    if(!orderId)return response({error:'Falta el pedido.'},400);
+    const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('owner_id',caller.data_owner_id).eq('id',orderId).maybeSingle();
+    if(error)throw error;
+    if(!order)return response({error:'Pedido no encontrado.'},404);
+
+    if(action==='resolve_tracking_link'){
+      const raw=order.raw_payload&&typeof order.raw_payload==='object'?order.raw_payload:{};
+      const number=clean(order.tracking_number);
+      const cached=raw._zenvia_tracking;
+      const payload={tracking_url:order.tracking_url,raw_payload:raw,
+        carrier_tracking_url:cached?.number===number?cached.url:null};
+      let result=await resolveShipmentTrackingLink(payload,fetch,number);
+      if(!result.url&&number){
+        const provider=clean(order.shipping_provider)||(order.sendcloud_parcel_id?'sendcloud':'');
+        if(['envia','sendcloud'].includes(provider)){
+          let query=admin.from('integration_accounts').select('*').eq('owner_id',caller.data_owner_id).eq('provider',provider).eq('enabled',true).neq('status','disabled');
+          if(order.shipping_integration_account_id)query=query.eq('id',order.shipping_integration_account_id);
+          const {data:account,error:accountError}=await query.order('is_default',{ascending:false}).limit(1).maybeSingle();
+          if(accountError)throw accountError;
+          if(account){
+            let secret:any={};
+            if(account.secret_id){const stored=await admin.rpc('integration_read_secret',{p_secret_id:account.secret_id});if(stored.error)throw stored.error;secret=JSON.parse(String(stored.data||'{}'))}
+            let endpoint='',authorization='';
+            if(provider==='envia'){
+              const base=account.config?.environment==='production'?'https://queries.envia.com':'https://queries.test.envia.com';
+              const token=clean(secret.token||secret.apiToken||secret.api_token);
+              if(token){endpoint=`${base}/guide/${encodeURIComponent(number)}`;authorization=`Bearer ${token}`}
+            }else if(order.sendcloud_shipment_id){
+              const environment=account.credential_source==='environment';
+              const publicKey=clean(secret.publicKey||secret.public_key||(environment?Deno.env.get('SENDCLOUD_PUBLIC_KEY')||Deno.env.get('SENDCLOUD_API_KEY'):''));
+              const secretKey=clean(secret.secretKey||secret.secret_key||(environment?Deno.env.get('SENDCLOUD_SECRET_KEY')||Deno.env.get('SENDCLOUD_API_SECRET'):''));
+              if(publicKey&&secretKey){endpoint=`https://panel.sendcloud.sc/api/v3/shipments/${encodeURIComponent(order.sendcloud_shipment_id)}`;authorization=`Basic ${btoa(`${publicKey}:${secretKey}`)}`}
+            }
+            if(endpoint){
+              const remote=await fetch(endpoint,{headers:{Authorization:authorization,Accept:'application/json'},redirect:'error',signal:AbortSignal.timeout(8000)});
+              if(!remote.ok)throw new Error(`La integración no pudo consultar el seguimiento (HTTP ${remote.status}).`);
+              if(remote.ok){
+                const metadata=await remote.json();
+                // Read the URL supplied by this shipment's provider. Carrier
+                // names and carrier codes never participate in link generation.
+                result=await resolveShipmentTrackingLink(metadata,fetch,number);
+              }
+            }
+          }
+        }
+      }
+      if(result.url){
+        const snapshot={number,url:result.url,resolvedAt:new Date().toISOString()};
+        // Avoid overwriting payload updates made by a concurrent sync.
+        await admin.from('fulfillment_orders').update({raw_payload:{...raw,_zenvia_tracking:snapshot}})
+          .eq('owner_id',caller.data_owner_id).eq('id',orderId).eq('tracking_number',number).eq('last_synced_at',order.last_synced_at);
+        return response(result);
+      }
+      return response({...result,message:'La integración todavía no facilita un enlace de seguimiento del transportista para este envío.'});
+    }
+
+    if(action==='mark_label_printed'){
+      if(!order.label_created_at&&!order.sendcloud_parcel_id&&!order.shipping_remote_id)return response({error:'Este pedido todavía no tiene una etiqueta creada.'},409);
+      const now=new Date().toISOString(),nextCount=Number(order.label_print_count||0)+1;
+      const {error:updateError}=await admin.from('fulfillment_orders').update({label_printed_at:now,label_print_count:nextCount,label_print_state_known:true}).eq('owner_id',caller.data_owner_id).eq('id',orderId);
+      if(updateError)throw updateError;
+      return response({ok:true,printedAt:now,printCount:nextCount});
+    }
+
+    if(action==='update_order'||action==='update_native_order'){
+      if(order.label_created_at||order.sendcloud_parcel_id||order.shipping_remote_id)return response({error:'Solo puedes editar pedidos antes de crear la etiqueta.'},409);
+      const input=body?.order||{};
+      const name=clean(input.customerName),email=clean(input.email),phone=clean(input.phone),address1=clean(input.address??input.address1),houseNumber=clean(input.houseNumber),address2=clean(input.address2),postalCode=clean(input.postalCode),city=clean(input.city),stateProvince=clean(input.stateProvince),countryCode=clean(input.countryCode).toUpperCase();
+      const weightKg=Number(input.weightKg),lengthCm=Number(input.packageLengthCm),widthCm=Number(input.packageWidthCm),heightCm=Number(input.packageHeightCm);
+      if(!name||!address1||!postalCode||!city||countryCode.length!==2)return response({error:'Completa nombre, dirección, código postal, ciudad y país.'},409);
+      if(!Number.isFinite(weightKg)||weightKg<=0)return response({error:'El peso debe ser mayor que 0.'},409);
+      const hasDimensions=[lengthCm,widthCm,heightCm].every(value=>Number.isFinite(value)&&value>0);
+      const shippingAddress={...(order.shipping_address||{}),name,company_name:clean(input.companyName)||null,address_line_1:address1,house_number:houseNumber||null,address_line_2:address2||null,postal_code:postalCode,city,state_province_code:stateProvince||null,state_province_name:clean(input.stateProvinceName)||(stateProvince===clean(order.shipping_address?.state_province_code)?clean(order.shipping_address?.state_province_name):stateProvince)||null,country_code:countryCode,email:email||null,phone_number:phone||null};
+      const rawPayload=order.raw_payload&&typeof order.raw_payload==='object'?order.raw_payload:{};
+      const nextRaw={...rawPayload,_zenvia_local_shipping_updated_at:new Date().toISOString(),shipping_address:shippingAddress,customer_details:{...(rawPayload.customer_details||{}),name,email:email||null,phone_number:phone||null},shipping_details:{...(rawPayload.shipping_details||{}),measurement:{...(rawPayload.shipping_details?.measurement||{}),weight:{value:Number(weightKg.toFixed(3)),unit:'kg'},...(hasDimensions?{dimension:{length:Number(lengthCm.toFixed(1)),width:Number(widthCm.toFixed(1)),height:Number(heightCm.toFixed(1)),unit:'cm'}}:{})}}};
+      const {error:updateError}=await admin.from('fulfillment_orders').update({
+        customer_name:name,customer_email:email||null,customer_phone:phone||null,shipping_address:shippingAddress,raw_payload:nextRaw,
+        package_length_cm:hasDimensions?lengthCm:null,package_width_cm:hasDimensions?widthCm:null,package_height_cm:hasDimensions?heightCm:null,
+        order_updated_at:new Date().toISOString(),last_synced_at:new Date().toISOString(),
+      }).eq('owner_id',caller.data_owner_id).eq('id',orderId);
+      if(updateError)throw updateError;
+      return response({ok:true,weightKg,dimensions:hasDimensions?{lengthCm,widthCm,heightCm}:null});
+    }
+
+    return response({error:'Acción no válida.'},400);
+  }catch(error){
+    const message=error instanceof Error?error.message:'Error interno.';
+    return response({error:message},/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:500);
+  }
+});

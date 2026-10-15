@@ -1,5 +1,5 @@
-/** Only GoTrue endpoints have a 10-second transport deadline. Storage and RPCs are untouched. */
-export const AUTH_FETCH_TIMEOUT_MS=10_000;
+/** Only GoTrue endpoints have a 6-second transport deadline. Storage and RPCs are untouched. */
+export const AUTH_FETCH_TIMEOUT_MS=6_000;
 export const fetchWithAuthTimeout:typeof fetch=async(input,init)=>{
   const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;
   if(!new URL(url,typeof window!=='undefined'?window.location.href:'https://localhost').pathname.startsWith('/auth/v1/'))

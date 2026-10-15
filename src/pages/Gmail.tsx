@@ -234,10 +234,19 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
     const snapshot=[...selectedRows];
     setBulkImporting(true);setError('');setReviewQueue([]);
     try{
+      // One connection check per account, reused by the workers in this batch.
+      const connectionTasks=new Map<string,ReturnType<typeof ensureConnection>>();
+      let started=0;
       const result=await runGmailImportBatch(snapshot,async source=>{
-        const active=await ensureConnection(source);
+        const key=source.integrationAccountId||selectedAccountId||'default';
+        let connectionTask=connectionTasks.get(key);
+        if(!connectionTask){
+          connectionTask=ensureConnection(source);
+          connectionTasks.set(key,connectionTask);
+        }
+        const active=await connectionTask;
         return importGmailCandidate(active.accessToken,source,categories,detail=>setMessage(`${source.attachmentName}: ${detail}`));
-      },(source,index,total)=>{setImportingId(source.id!);setMessage(`Importando ${index} de ${total}: ${source.attachmentName}…`)});
+      },(source,_index,total)=>{started++;setMessage(`Procesando ${started} de ${total}: ${source.attachmentName}…`)});
       await refreshImports();
       if(result.imported)await onImported();
       setCheckedIds(new Set(result.failures.map(item=>item.source.id!)));

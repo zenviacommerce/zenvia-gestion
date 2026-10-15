@@ -1,5 +1,5 @@
 import {BulkSelectCheckbox,BulkSelectionToolbar} from '../components/BulkSelectionToolbar';
-import {runGmailImportBatch} from '../services/gmailBulkImport';
+import {getGmailBackgroundState,subscribeGmailBackground,startGmailBackgroundImport,dismissGmailBackgroundResult} from '../services/gmailBackgroundImport';
 import {useImportActivity} from '../components/useImportActivity';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -87,7 +87,8 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
   const [connecting,setConnecting]=useState(false);
   const [scanning,setScanning]=useState(false);
   const [checkedIds,setCheckedIds]=useState<Set<string>>(new Set());
-  const [bulkImporting,setBulkImporting]=useState(false);
+  const [background,setBackground]=useState(getGmailBackgroundState);
+  const bulkImporting=background.running;
   const [reviewQueue,setReviewQueue]=useState<Array<{source:GmailCandidate;candidate:InvoiceImportCandidate}>>([]);
   const [importingId,setImportingId]=useState<string|null>(null);
   const [message,setMessage]=useState('');
@@ -119,6 +120,22 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
     finally{setLoadingAccounts(false);}
   };
   useEffect(()=>{ void refreshImports();void refreshAccounts(); },[]);
+  useEffect(()=>subscribeGmailBackground(()=>setBackground({...getGmailBackgroundState()})),[]);
+  useEffect(()=>{
+    if(background.running){setMessage(`Importando ${background.started} de ${background.total}: ${background.detail}`);return;}
+    if(!background.result&&!background.error)return;
+    const result=background.result;
+    if(result){
+      void refreshImports();
+      if(result.imported)void onImported();
+      setCheckedIds(new Set(result.failures.map(item=>item.source.id!)));
+      setMessage(`Lote terminado: ${result.imported} importadas · ${result.reviews.length} para revisar · ${result.failures.length} con error.`);
+      if(result.failures.length)setError(result.failures.map(item=>`${item.source.attachmentName}: ${item.message}`).join(' · '));
+      if(result.reviews.length){const [first,...remaining]=result.reviews;setReviewSource(first.source);setReviewCandidate(first.candidate);setReviewQueue(remaining);}
+    }else if(background.error)setError(background.error);
+    dismissGmailBackgroundResult();
+  },[background.running,background.result,background.error]);
+
   useEffect(()=>()=>{ if(previewUrl) URL.revokeObjectURL(previewUrl); },[previewUrl]);
   useEffect(()=>{ setPage(1); },[query,statusFilter]);
 
@@ -229,32 +246,24 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
     finally{setImportingId(null);}
   };
 
-  const importSelected=async()=>{
+  const importSelected=()=>{
     if(accountBusy||!selectedRows.length)return;
     const snapshot=[...selectedRows];
-    setBulkImporting(true);setError('');setReviewQueue([]);
-    try{
-      // One connection check per account, reused by the workers in this batch.
-      const connectionTasks=new Map<string,ReturnType<typeof ensureConnection>>();
-      let started=0;
-      const result=await runGmailImportBatch(snapshot,async source=>{
-        const key=source.integrationAccountId||selectedAccountId||'default';
-        let connectionTask=connectionTasks.get(key);
-        if(!connectionTask){
-          connectionTask=ensureConnection(source);
-          connectionTasks.set(key,connectionTask);
-        }
-        const active=await connectionTask;
-        return importGmailCandidate(active.accessToken,source,categories,detail=>setMessage(`${source.attachmentName}: ${detail}`));
-      },(source,_index,total)=>{started++;setMessage(`Procesando ${started} de ${total}: ${source.attachmentName}…`)});
-      await refreshImports();
-      if(result.imported)await onImported();
-      setCheckedIds(new Set(result.failures.map(item=>item.source.id!)));
-      setMessage(`Lote terminado: ${result.imported} importadas · ${result.reviews.length} para revisar · ${result.failures.length} con error.`);
-      if(result.failures.length)setError(result.failures.map(item=>`${item.source.attachmentName}: ${item.message}`).join(' · '));
-      if(result.reviews.length){const [first,...remaining]=result.reviews;setReviewSource(first.source);setReviewCandidate(first.candidate);setReviewQueue(remaining);}
-    }catch(error){setError(gmailConnectionError(error));await refreshImports();}
-    finally{setImportingId(null);setBulkImporting(false);}
+    const accountsSnapshot=[...accounts],accountId=selectedAccountId;
+    const connectionTasks=new Map<string,ReturnType<typeof ensureRegisteredGmailConnection>>();
+    setError('');setReviewQueue([]);
+    startGmailBackgroundImport(snapshot,async (source,progress)=>{
+      const key=source.integrationAccountId||accountId;
+      let task=connectionTasks.get(key);
+      if(!task){
+        const account=accountsSnapshot.find(item=>item.id===key);
+        if(!account)throw new Error('La cuenta Gmail del adjunto ya no está conectada.');
+        task=ensureRegisteredGmailConnection(account);
+        connectionTasks.set(key,task);
+      }
+      const active=await task;
+      return importGmailCandidate(active.accessToken,source,categories,progress);
+    });
   };
 
   const ignore=async(candidate:GmailCandidate)=>{

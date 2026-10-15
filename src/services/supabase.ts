@@ -1,5 +1,6 @@
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import { ensureViewCacheScope } from './viewCache';
+import { fetchWithAuthTimeout } from './authFetch';
 
 export type TenantPublicConfig={
   workspace_id:string;
@@ -52,6 +53,7 @@ function tenantStorageKey(tenant:TenantPublicConfig){
 
 function createTenantClient(tenant:TenantPublicConfig,detectSessionInUrl:boolean):SupabaseClient{
   return createClient(tenant.supabase_url,tenant.publishable_key,{
+    global:{fetch:fetchWithAuthTimeout},
     auth:{
       persistSession:true,
       autoRefreshToken:true,

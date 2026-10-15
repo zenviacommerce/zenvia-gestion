@@ -189,10 +189,8 @@ export default function App(){
    let unsubscribe:undefined|(()=>void);
    const timeout=window.setTimeout(()=>{
      if(cancelled)return;
-     setAuthAvailability('temporarily-unavailable');
-     setTenantBootstrapError('El servicio de autenticación está tardando en responder. Tu sesión guardada no se ha eliminado.');
-     setAuthReady(true);
-   },15000);
+     setTenantBootstrapError('La autenticación está tardando más de lo normal. Seguimos intentando recuperar tu sesión.');
+   },18000);
    const showSession=(next:Session|null,feedback='')=>{
      if(cancelled)return;
      window.clearTimeout(timeout);
@@ -319,7 +317,7 @@ export default function App(){
    });
  },[accessReady,access?.active,allowedPages]);
 
- if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> Cargando…</div>;
+ if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> {tenantBootstrapError||'Cargando…'}</div>;
  if(recoveryToken) return <><ToastHost/><RecoveryTokenSetup tokenHash={recoveryToken} onComplete={async()=>{
    const url=new URL(window.location.href);
    url.searchParams.delete('recovery_token');

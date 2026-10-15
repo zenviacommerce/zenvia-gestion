@@ -1,0 +1,12 @@
+{
+  "content": [
+    {
+      "type": "text",
+      "text": "{\"error\":{\"name\":\"HttpException\",\"message\":\"Failed to run sql query: ERROR:  P0001: TENANT_REGRESSION_FAILED: [{\\\"test\\\": \\\"merge blocks foreign invoice_line mapping including FK deletion\\\", \\\"detail\\\": {\\\"denied\\\": false, \\\"result\\\": {\\\"ok\\\": true, \\\"affected\\\": {\\\"aliases\\\": 0, \\\"invoices\\\": 1, \\\"products\\\": 1, \\\"priceHistory\\\": 0, \\\"supplierProducts\\\": 1}, \\\"sourceId\\\": \\\"e1201950-516b-4504-b2b6-cf0c93cc25e5\\\", \\\"destinationId\\\": \\\"82607fe2-958e-46f0-a352-75eaf3219cbf\\\"}, \\\"sqlstate\\\": null, \\\"tenant_b_unchanged\\\": false}, \\\"passed\\\": false}, {\\\"test\\\": \\\"merge blocks foreign supplier_product cascade\\\", \\\"detail\\\": {\\\"denied\\\": false, \\\"result\\\": {\\\"ok\\\": true, \\\"affected\\\": {\\\"aliases\\\": 0, \\\"invoices\\\": 1, \\\"products\\\": 1, \\\"priceHistory\\\": 0, \\\"supplierProducts\\\": 1}, \\\"sourceId\\\": \\\"e1201950-516b-4504-b2b6-cf0c93cc25e5\\\", \\\"destinationId\\\": \\\"82607fe2-958e-46f0-a352-75eaf3219cbf\\\"}, \\\"sqlstate\\\": null, \\\"tenant_b_unchanged\\\": false}, \\\"passed\\\": false}, {\\\"test\\\": \\\"merge blocks trigger update to foreign history\\\", \\\"detail\\\": {\\\"denied\\\": false, \\\"result\\\": {\\\"ok\\\": true, \\\"affected\\\": {\\\"aliases\\\": 0, \\\"invoices\\\": 1, \\\"products\\\": 1, \\\"priceHistory\\\": 0, \\\"supplierProducts\\\": 1}, \\\"sourceId\\\": \\\"e1201950-516b-4504-b2b6-cf0c93cc25e5\\\", \\\"destinationId\\\": \\\"82607fe2-958e-46f0-a352-75eaf3219cbf\\\"}, \\\"sqlstate\\\": null, \\\"tenant_b_unchanged\\\": false}, \\\"passed\\\": false}, {\\\"test\\\": \\\"history blocks foreign conflict row\\\", \\\"detail\\\": {\\\"denied\\\": false, \\\"result\\\": {\\\"ok\\\": true, \\\"preview\\\": false, \\\"rowsWritten\\\": 1, \\\"missingBefore\\\": 1, \\\"mismatchedBefore\\\": 0, \\\"historicalRowsDeleted\\\": 0}, \\\"sqlstate\\\": null, \\\"tenant_b_unchanged\\\": false}, \\\"passed\\\": false}]\\nCONTEXT:  PL/pgSQL function inline_code_block line 3 at RAISE\\n\"}}"
+    }
+  ],
+  "structuredContent": {
+    "error_code": "INVALID_ARGUMENT"
+  },
+  "isError": true
+}

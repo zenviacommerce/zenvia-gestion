@@ -85,8 +85,9 @@ export async function enqueueHourlySync(admin:any,account:Account,marketplaces:M
 
 export async function markJobSuccess(admin:any,job:any,rowsProcessed:number){
   const finished=new Date().toISOString();
-  const {error}=await admin.from('amazon_sync_jobs').update({status:'success',rows_processed:rowsProcessed,finished_at:finished,locked_at:null,last_error:null,updated_at:finished}).eq('id',job.id);
+  const {data:updated,error}=await admin.from('amazon_sync_jobs').update({status:'success',rows_processed:rowsProcessed,finished_at:finished,locked_at:null,last_error:null,updated_at:finished,duration_ms:Math.max(0,Date.now()-new Date(job.started_at||finished).getTime()),lease_holder_id:null}).eq('id',job.id).eq('status','running').eq('lease_holder_id',job.lease_holder_id).select('id');
   if(error)throw error;
+  if(!updated?.length)throw new Error('worker_lease_lost: success update fenced');
 
   const scopeKey=job.scope_key||job.marketplace_id||'global';
   const candidateHighWater=new Date(job.window_to||finished);
@@ -122,6 +123,7 @@ export async function markJobFailed(admin:any,job:any,errorValue:unknown){
   const delaySeconds=Math.min(3600,Math.max(60,60*(2**Math.max(0,attempts-1))));
   const availableAt=new Date(Date.now()+delaySeconds*1000).toISOString();
   const errorMessage=sanitizeAmazonError(errorValue instanceof Error?errorValue.message:errorValue);
-  const {error}=await admin.from('amazon_sync_jobs').update({status:terminal?'failed':'queued',available_at:availableAt,locked_at:null,finished_at:terminal?new Date().toISOString():null,last_error:errorMessage,updated_at:new Date().toISOString(),attempts}).eq('id',job.id);
+  const {data:updated,error}=await admin.from('amazon_sync_jobs').update({status:terminal?'failed':'queued',available_at:availableAt,locked_at:null,finished_at:terminal?new Date().toISOString():null,last_error:errorMessage,updated_at:new Date().toISOString(),attempts,lease_holder_id:null,duration_ms:Math.max(0,Date.now()-new Date(job.started_at||new Date()).getTime())}).eq('id',job.id).eq('status','running').eq('lease_holder_id',job.lease_holder_id).select('id');
   if(error)throw error;
+  if(!updated?.length)throw new Error('worker_lease_lost: failed update fenced');
 }

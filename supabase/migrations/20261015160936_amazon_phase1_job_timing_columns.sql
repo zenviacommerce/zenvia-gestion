@@ -1,0 +1,1 @@
+alter table public.amazon_sync_jobs add column if not exists started_at timestamptz; alter table public.amazon_sync_jobs add column if not exists duration_ms bigint;

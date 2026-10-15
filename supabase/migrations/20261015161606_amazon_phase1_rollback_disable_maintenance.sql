@@ -1,0 +1,1 @@
+SELECT cron.unschedule(jobid) FROM cron.job WHERE jobname='amazon-worker-maintenance'; DROP FUNCTION IF EXISTS private.amazon_phase1_timeout_probe();

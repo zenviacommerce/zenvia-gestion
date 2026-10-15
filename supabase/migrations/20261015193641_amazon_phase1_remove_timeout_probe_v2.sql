@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.amazon_phase1_timeout_probe_v2();

@@ -1,0 +1,306 @@
+{
+  "captured_at": "2026-10-15 12:49:23.607986+00",
+  "project": "sjkxxbedkkmgmqnvaqjh",
+  "top30": [
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-5070497510966813374",
+      "calls": 8773,
+      "total_ms": "9237575.212",
+      "mean_ms": "1052.955",
+      "max_ms": "119577.762",
+      "rows": 8773,
+      "query": "WITH pgrst_source AS (SELECT \"pgrst_call\".* FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"limit_count\" FROM json_to_record(pgrst_payload.json_data) AS _(\"limit_count\" integer) LIMIT $4) pgrst_body , LATERAL \"public\".\"amazon_claim_sync_jobs\"(\"limit_count\" := pgrst_body.\"limit_count\") pgrst_call) SELECT $5::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $6) AS body, nullif(current_setting($7, $8), $9) AS response_headers, nullif(current_setting($10, $11), $12) AS response_status, $13 AS response_inserted FROM (SELECT \"amazon_sync_jobs\".* FROM \"pgrst_source\" AS \"amazon_sync_jobs\"   LIMIT $2 OFFSET $3) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-6711654414835120690",
+      "calls": 523361,
+      "total_ms": "9087430.937",
+      "mean_ms": "17.364",
+      "max_ms": "18070.030",
+      "rows": 561180,
+      "query": "SELECT wal->>$5 as type,\n       wal->>$6 as schema,\n       wal->>$7 as table,\n       COALESCE(wal->>$8, $9) as columns,\n       COALESCE(wal->>$10, $11) as record,\n       COALESCE(wal->>$12, $13) as old_record,\n       wal->>$14 as commit_timestamp,\n       subscription_ids,\n       errors,\n       slot_changes_count\nFROM realtime.list_changes($1, $2, $3, $4)"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "4316097015340043450",
+      "calls": 11053,
+      "total_ms": "7525796.321",
+      "mean_ms": "680.883",
+      "max_ms": "118655.982",
+      "rows": 11053,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"amazon_sync_jobs\".\"id\" FROM \"public\".\"amazon_sync_jobs\" WHERE  \"public\".\"amazon_sync_jobs\".\"owner_id\" = $1 AND  \"public\".\"amazon_sync_jobs\".\"amazon_account_id\" = $2 AND  \"public\".\"amazon_sync_jobs\".\"status\" = $3   LIMIT $4 OFFSET $5 ) , pgrst_source_count AS (SELECT $9  FROM \"public\".\"amazon_sync_jobs\" WHERE  \"public\".\"amazon_sync_jobs\".\"owner_id\" = $6 AND  \"public\".\"amazon_sync_jobs\".\"amazon_account_id\" = $7 AND  \"public\".\"amazon_sync_jobs\".\"status\" = $8) SELECT (SELECT pg_catalog.count(*) FROM pgrst_source_count) AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, $10::text AS body, nullif(current_setting($11, $12), $13) AS response_headers, nullif(current_setting($14, $15), $16) AS response_status, $17 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-3218306554519872932",
+      "calls": 84670,
+      "total_ms": "5430620.502",
+      "mean_ms": "64.139",
+      "max_ms": "7978.261",
+      "rows": 84670,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"fulfillment_orders\".\"billing_address\", \"public\".\"fulfillment_orders\".\"carrier_code\", \"public\".\"fulfillment_orders\".\"carrier_name\", \"public\".\"fulfillment_orders\".\"contract_id\", \"public\".\"fulfillment_orders\".\"currency\", \"public\".\"fulfillment_orders\".\"customer_email\", \"public\".\"fulfillment_orders\".\"customer_name\", \"public\".\"fulfillment_orders\".\"customer_phone\", \"public\".\"fulfillment_orders\".\"fulfilled_at\", \"public\".\"fulfillment_orders\".\"id\", \"public\".\"fulfillment_orders\".\"integration_id\", \"public\".\"fulfillment_orders\".\"integration_name\", \"public\".\"fulfillment_orders\".\"integration_type\", \"public\".\"fulfillment_orders\".\"items\", \"public\".\"fulfillment_orders\".\"label_cancelled_at\", \"public\".\"fulfillment_orders\".\"label_created_at\", \"public\".\"fulfillment_orders\".\"label_print_count\", \"public\".\"fulfillment_orders\".\"label_print_state_known\", \"public\".\"fulfillment_orders\".\"label_printed_at\", \"public\".\"fulfillment_orders\".\"last_synced_at\", \"public\".\"fulfillment_orders\".\"order_created_at\", \"public\".\"fulfillment_orders\".\"order_id\", \"public\".\"fulfillment_orders\".\"order_number\", \"public\".\"fulfillment_orders\".\"order_updated_at\", \"public\".\"fulfillment_orders\".\"package_height_cm\", \"public\".\"fulfillment_orders\".\"package_length_cm\", \"public\".\"fulfillment_orders\".\"package_width_cm\", \"public\".\"fulfillment_orders\".\"sendcloud_id\", \"public\".\"fulfillment_orders\".\"sendcloud_parcel_id\", \"public\".\"fulfillment_orders\".\"sendcloud_remote_id\", \"public\".\"fulfillment_orders\".\"sendcloud_shipment_id\", \"public\".\"fulfillment_orders\".\"shipping_address\", \"public\".\"fulfillment_orders\".\"shipping_cost_amount\", \"public\".\"fulfillment_orders\".\"shipping_cost_currency\", \"public\".\"fulfillment_orders\".\"shipping_cost_net_amount\", \"public\".\"fulfillment_orders\".\"shipping_cost_recorded_at\", \"public\".\"fulfillment_orders\".\"shipping_cost_source\", \"public\".\"fulfillment_orders\".\"shipping_cost_tax_amount\", \"public\".\"fulfillment_orders\".\"shipping_integration_account_id\", \"public\".\"fulfillment_orders\".\"shipping_label_url\", \"public\".\"fulfillment_orders\".\"shipping_option_code\", \"public\".\"fulfillment_orders\".\"shipping_provider\", \"public\".\"fulfillment_orders\".\"shipping_remote_id\", \"public\".\"fulfillment_orders\".\"shipping_service_name\", \"public\".\"fulfillment_orders\".\"shopify_tracking_sync_error\", \"public\".\"fulfillment_orders\".\"shopify_tracking_synced_number\", \"public\".\"fulfillment_orders\".\"source_channel\", \"public\".\"fulfillment_orders\".\"source_integration_account_id\", \"public\".\"fulfillment_orders\".\"source_status\", \"public\".\"fulfillment_orders\".\"total_amount\", \"public\".\"fulfillment_orders\".\"tracking_number\", \"public\".\"fulfillment_orders\".\"tracking_status_code\", \"public\".\"fulfillment_orders\".\"tracking_status_message\", \"public\".\"fulfillment_orders\".\"tracking_updated_at\", \"public\".\"fulfillment_orders\".\"tracking_url\", \"public\".\"fulfillment_orders\".\"raw_payload\"->$1->$2 AS \"measurement\", \"public\".\"fulfillment_orders\".\"raw_payload\"->$3 AS \"carrier_tracking\" FROM \"public\".\"fulfillment_orders\"  ORDER BY \"public\".\"fulfillment_orders\".\"order_created_at\" DESC NULLS LAST, \"public\".\"fulfillment_orders\".\"id\" DESC  LIMIT $4 OFFSET $5 )  SELECT $6::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $7) AS body, nullif(current_setting($8, $9), $10) AS response_headers, nullif(current_setting($11, $12), $13) AS response_status, $14 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "484270316194331699",
+      "calls": 13713,
+      "total_ms": "4535436.253",
+      "mean_ms": "330.740",
+      "max_ms": "114212.754",
+      "rows": 13713,
+      "query": "insert into cron.job_run_details (jobid, runid, database, username, command, status) values ($1,$2,$3,$4,$5,$6)"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-4692951574152379072",
+      "calls": 19610,
+      "total_ms": "4313010.700",
+      "mean_ms": "219.939",
+      "max_ms": "8027.228",
+      "rows": 19610,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"fulfillment_orders\".\"id\", \"public\".\"fulfillment_orders\".\"sendcloud_id\", \"public\".\"fulfillment_orders\".\"sendcloud_remote_id\", \"public\".\"fulfillment_orders\".\"order_id\", \"public\".\"fulfillment_orders\".\"order_number\", \"public\".\"fulfillment_orders\".\"source_integration_account_id\", \"public\".\"fulfillment_orders\".\"shipping_integration_account_id\", \"public\".\"fulfillment_orders\".\"integration_id\", \"public\".\"fulfillment_orders\".\"integration_name\", \"public\".\"fulfillment_orders\".\"integration_type\", \"public\".\"fulfillment_orders\".\"source_channel\", \"public\".\"fulfillment_orders\".\"source_status\", \"public\".\"fulfillment_orders\".\"order_created_at\", \"public\".\"fulfillment_orders\".\"order_updated_at\", \"public\".\"fulfillment_orders\".\"customer_name\", \"public\".\"fulfillment_orders\".\"customer_email\", \"public\".\"fulfillment_orders\".\"customer_phone\", \"public\".\"fulfillment_orders\".\"shipping_address\", \"public\".\"fulfillment_orders\".\"billing_address\", \"public\".\"fulfillment_orders\".\"items\", \"public\".\"fulfillment_orders\".\"total_amount\", \"public\".\"fulfillment_orders\".\"currency\", \"public\".\"fulfillment_orders\".\"raw_payload\"->$1->$2 AS \"shipping_measurement\", \"public\".\"fulfillment_orders\".\"raw_payload\"->$3 AS \"tracking_metadata\", \"public\".\"fulfillment_orders\".\"package_length_cm\", \"public\".\"fulfillment_orders\".\"package_width_cm\", \"public\".\"fulfillment_orders\".\"package_height_cm\", \"public\".\"fulfillment_orders\".\"sendcloud_parcel_id\", \"public\".\"fulfillment_orders\".\"sendcloud_shipment_id\", \"public\".\"fulfillment_orders\".\"shipping_provider\", \"public\".\"fulfillment_orders\".\"shipping_remote_id\", \"public\".\"fulfillment_orders\".\"shipping_label_url\", \"public\".\"fulfillment_orders\".\"tracking_number\", \"public\".\"fulfillment_orders\".\"tracking_url\", \"public\".\"fulfillment_orders\".\"tracking_status_code\", \"public\".\"fulfillment_orders\".\"tracking_status_message\", \"public\".\"fulfillment_orders\".\"tracking_updated_at\", \"public\".\"fulfillment_orders\".\"shipping_option_code\", \"public\".\"fulfillment_orders\".\"contract_id\", \"public\".\"fulfillment_orders\".\"carrier_code\", \"public\".\"fulfillment_orders\".\"carrier_name\", \"public\".\"fulfillment_orders\".\"shipping_service_name\", \"public\".\"fulfillment_orders\".\"shipping_cost_amount\", \"public\".\"fulfillment_orders\".\"shipping_cost_currency\", \"public\".\"fulfillment_orders\".\"shipping_cost_source\", \"public\".\"fulfillment_orders\".\"shipping_cost_net_amount\", \"public\".\"fulfillment_orders\".\"shipping_cost_tax_amount\", \"public\".\"fulfillment_orders\".\"shipping_cost_recorded_at\", \"public\".\"fulfillment_orders\".\"label_created_at\", \"public\".\"fulfillment_orders\".\"label_printed_at\", \"public\".\"fulfillment_orders\".\"label_print_count\", \"public\".\"fulfillment_orders\".\"label_print_state_known\", \"public\".\"fulfillment_orders\".\"fulfilled_at\", \"public\".\"fulfillment_orders\".\"last_synced_at\" FROM \"public\".\"fulfillment_orders\"  ORDER BY \"public\".\"fulfillment_orders\".\"order_created_at\" DESC NULLS LAST LIMIT $4 OFFSET $5 )  SELECT $6::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $7) AS body, nullif(current_setting($8, $9), $10) AS response_headers, nullif(current_setting($11, $12), $13) AS response_status, $14 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "5209982222647702392",
+      "calls": 107526,
+      "total_ms": "3447373.026",
+      "mean_ms": "32.061",
+      "max_ms": "82728.494",
+      "rows": 107526,
+      "query": "WITH pgrst_source AS (UPDATE \"public\".\"fulfillment_orders\" SET \"last_synced_at\" = \"pgrst_body\".\"last_synced_at\", \"order_updated_at\" = \"pgrst_body\".\"order_updated_at\", \"source_status\" = \"pgrst_body\".\"source_status\" FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"last_synced_at\", \"order_updated_at\", \"source_status\" FROM json_to_record(pgrst_payload.json_data) AS _(\"last_synced_at\" timestamp with time zone, \"order_updated_at\" timestamp with time zone, \"source_status\" text) ) pgrst_body  WHERE  \"public\".\"fulfillment_orders\".\"owner_id\" = $2 AND  \"public\".\"fulfillment_orders\".\"source_channel\" = $3 AND  \"public\".\"fulfillment_orders\".\"order_number\" = $4 RETURNING $5) SELECT $6 AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, array[]::text[] AS header, $7::text AS body, nullif(current_setting($8, $9), $10) AS response_headers, nullif(current_setting($11, $12), $13) AS response_status, $14 AS response_inserted FROM (SELECT * FROM pgrst_source) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-1196116744288657480",
+      "calls": 5977,
+      "total_ms": "3238749.905",
+      "mean_ms": "541.869",
+      "max_ms": "7908.928",
+      "rows": 5977,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"fulfillment_orders\".* FROM \"public\".\"fulfillment_orders\"  ORDER BY \"public\".\"fulfillment_orders\".\"order_created_at\" DESC NULLS LAST LIMIT $1 OFFSET $2 )  SELECT $3::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $4) AS body, nullif(current_setting($5, $6), $7) AS response_headers, nullif(current_setting($8, $9), $10) AS response_status, $11 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "4641877215150805070",
+      "calls": 416,
+      "total_ms": "2061145.425",
+      "mean_ms": "4954.677",
+      "max_ms": "24904.704",
+      "rows": 416,
+      "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"from_date\", \"to_date\", \"marketplace_ids\" FROM json_to_record(pgrst_payload.json_data) AS _(\"from_date\" date, \"to_date\" date, \"marketplace_ids\" text[]) LIMIT $4) pgrst_body , LATERAL (SELECT \"public\".\"amazon_analytics_summary\"(\"from_date\" := pgrst_body.\"from_date\", \"to_date\" := pgrst_body.\"to_date\", \"marketplace_ids\" := pgrst_body.\"marketplace_ids\") pgrst_scalar) pgrst_call) SELECT $5::bigint AS total_result_set, $6 AS page_total, coalesce(json_agg(_postgrest_t.pgrst_scalar)->$7, $8) AS body, nullif(current_setting($9, $10), $11) AS response_headers, nullif(current_setting($12, $13), $14) AS response_status, $15 AS response_inserted FROM (SELECT \"amazon_analytics_summary\".* FROM \"pgrst_source\" AS \"amazon_analytics_summary\"   LIMIT $2 OFFSET $3) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-7726440967385220442",
+      "calls": 271,
+      "total_ms": "1367519.369",
+      "mean_ms": "5046.197",
+      "max_ms": "111940.138",
+      "rows": 324116,
+      "query": "SELECT name FROM pg_timezone_names"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "3543022759440441470",
+      "calls": 9854,
+      "total_ms": "1283172.351",
+      "mean_ms": "130.218",
+      "max_ms": "21483.994",
+      "rows": 9854,
+      "query": "select net.http_post(\n    url := (select decrypted_secret from vault.decrypted_secrets where name=$1) || $2,\n    headers := jsonb_build_object(\n      $3,$4,\n      $5,(select decrypted_secret from vault.decrypted_secrets where name=$6)\n    ),\n    body := $7::jsonb,\n    timeout_milliseconds := $8\n  )"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "2992759103350534848",
+      "calls": 133596,
+      "total_ms": "1234538.896",
+      "mean_ms": "9.241",
+      "max_ms": "17186.497",
+      "rows": 133596,
+      "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"p_secret_id\" FROM json_to_record(pgrst_payload.json_data) AS _(\"p_secret_id\" uuid) LIMIT $4) pgrst_body , LATERAL (SELECT \"public\".\"integration_read_secret\"(\"p_secret_id\" := pgrst_body.\"p_secret_id\") pgrst_scalar) pgrst_call) SELECT $5::bigint AS total_result_set, $6 AS page_total, coalesce(json_agg(_postgrest_t.pgrst_scalar)->$7, $8) AS body, nullif(current_setting($9, $10), $11) AS response_headers, nullif(current_setting($12, $13), $14) AS response_status, $15 AS response_inserted FROM (SELECT \"integration_read_secret\".* FROM \"pgrst_source\" AS \"integration_read_secret\"   LIMIT $2 OFFSET $3) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-7648881030150396505",
+      "calls": 13713,
+      "total_ms": "1211888.434",
+      "mean_ms": "88.375",
+      "max_ms": "88727.585",
+      "rows": 13713,
+      "query": "update cron.job_run_details set status = $1 where runid = $2"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "901260034300151979",
+      "calls": 50188,
+      "total_ms": "1204008.066",
+      "mean_ms": "23.990",
+      "max_ms": "14173.175",
+      "rows": 50188,
+      "query": "WITH pgrst_source AS (UPDATE \"public\".\"fulfillment_orders\" SET \"carrier_code\" = \"pgrst_body\".\"carrier_code\", \"carrier_name\" = \"pgrst_body\".\"carrier_name\", \"label_created_at\" = \"pgrst_body\".\"label_created_at\", \"last_synced_at\" = \"pgrst_body\".\"last_synced_at\", \"shipping_cost_amount\" = \"pgrst_body\".\"shipping_cost_amount\", \"shipping_cost_currency\" = \"pgrst_body\".\"shipping_cost_currency\", \"shipping_cost_recorded_at\" = \"pgrst_body\".\"shipping_cost_recorded_at\", \"shipping_cost_source\" = \"pgrst_body\".\"shipping_cost_source\", \"shipping_integration_account_id\" = \"pgrst_body\".\"shipping_integration_account_id\", \"shipping_label_url\" = \"pgrst_body\".\"shipping_label_url\", \"shipping_option_code\" = \"pgrst_body\".\"shipping_option_code\", \"shipping_provider\" = \"pgrst_body\".\"shipping_provider\", \"shipping_remote_id\" = \"pgrst_body\".\"shipping_remote_id\", \"shipping_service_name\" = \"pgrst_body\".\"shipping_service_name\", \"tracking_number\" = \"pgrst_body\".\"tracking_number\", \"tracking_status_code\" = \"pgrst_body\".\"tracking_status_code\", \"tracking_status_message\" = \"pgrst_body\".\"tracking_status_message\", \"tracking_updated_at\" = \"pgrst_body\".\"tracking_updated_at\", \"tracking_url\" = \"pgrst_body\".\"tracking_url\" FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"carrier_code\", \"carrier_name\", \"label_created_at\", \"last_synced_at\", \"shipping_cost_amount\", \"shipping_cost_currency\", \"shipping_cost_recorded_at\", \"shipping_cost_source\", \"shipping_integration_account_id\", \"shipping_label_url\", \"shipping_option_code\", \"shipping_provider\", \"shipping_remote_id\", \"shipping_service_name\", \"tracking_number\", \"tracking_status_code\", \"tracking_status_message\", \"tracking_updated_at\", \"tracking_url\" FROM json_to_record(pgrst_payload.json_data) AS _(\"carrier_code\" text, \"carrier_name\" text, \"label_created_at\" timestamp with time zone, \"last_synced_at\" timestamp with time zone, \"shipping_cost_amount\" numeric, \"shipping_cost_currency\" text, \"shipping_cost_recorded_at\" timestamp with time zone, \"shipping_cost_source\" text, \"shipping_integration_account_id\" uuid, \"shipping_label_url\" text, \"shipping_option_code\" text, \"shipping_provider\" text, \"shipping_remote_id\" text, \"shipping_service_name\" text, \"tracking_number\" text, \"tracking_status_code\" text, \"tracking_status_message\" text, \"tracking_updated_at\" timestamp with time zone, \"tracking_url\" text) ) pgrst_body  WHERE  \"public\".\"fulfillment_orders\".\"id\" = $2 AND  \"public\".\"fulfillment_orders\".\"owner_id\" = $3 RETURNING $4) SELECT $5 AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, array[]::text[] AS header, $6::text AS body, nullif(current_setting($7, $8), $9) AS response_headers, nullif(current_setting($10, $11), $12) AS response_status, $13 AS response_inserted FROM (SELECT * FROM pgrst_source) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-1536522430651160044",
+      "calls": 11114,
+      "total_ms": "1195225.830",
+      "mean_ms": "107.542",
+      "max_ms": "86999.697",
+      "rows": 11114,
+      "query": "WITH pgrst_source AS (INSERT INTO \"public\".\"fulfillment_orders\"(\"billing_address\", \"carrier_name\", \"currency\", \"customer_email\", \"customer_name\", \"customer_phone\", \"fulfilled_at\", \"integration_id\", \"integration_name\", \"integration_type\", \"items\", \"last_synced_at\", \"order_created_at\", \"order_id\", \"order_number\", \"order_updated_at\", \"owner_id\", \"raw_payload\", \"sendcloud_id\", \"sendcloud_remote_id\", \"shipping_address\", \"shipping_integration_account_id\", \"source_channel\", \"source_integration_account_id\", \"source_status\", \"total_amount\", \"tracking_number\", \"tracking_status_code\", \"tracking_status_message\", \"tracking_updated_at\", \"tracking_url\") SELECT \"pgrst_body\".\"billing_address\", \"pgrst_body\".\"carrier_name\", \"pgrst_body\".\"currency\", \"pgrst_body\".\"customer_email\", \"pgrst_body\".\"customer_name\", \"pgrst_body\".\"customer_phone\", \"pgrst_body\".\"fulfilled_at\", \"pgrst_body\".\"integration_id\", \"pgrst_body\".\"integration_name\", \"pgrst_body\".\"integration_type\", \"pgrst_body\".\"items\", \"pgrst_body\".\"last_synced_at\", \"pgrst_body\".\"order_created_at\", \"pgrst_body\".\"order_id\", \"pgrst_body\".\"order_number\", \"pgrst_body\".\"order_updated_at\", \"pgrst_body\".\"owner_id\", \"pgrst_body\".\"raw_payload\", \"pgrst_body\".\"sendcloud_id\", \"pgrst_body\".\"sendcloud_remote_id\", \"pgrst_body\".\"shipping_address\", \"pgrst_body\".\"shipping_integration_account_id\", \"pgrst_body\".\"source_channel\", \"pgrst_body\".\"source_integration_account_id\", \"pgrst_body\".\"source_status\", \"pgrst_body\".\"total_amount\", \"pgrst_body\".\"tracking_number\", \"pgrst_body\".\"tracking_status_code\", \"pgrst_body\".\"tracking_status_message\", \"pgrst_body\".\"tracking_updated_at\", \"pgrst_body\".\"tracking_url\" FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"billing_address\", \"carrier_name\", \"currency\", \"customer_email\", \"customer_name\", \"customer_phone\", \"fulfilled_at\", \"integration_id\", \"integration_name\", \"integration_type\", \"items\", \"last_synced_at\", \"order_created_at\", \"order_id\", \"order_number\", \"order_updated_at\", \"owner_id\", \"raw_payload\", \"sendcloud_id\", \"sendcloud_remote_id\", \"shipping_address\", \"shipping_integration_account_id\", \"source_channel\", \"source_integration_account_id\", \"source_status\", \"total_amount\", \"tracking_number\", \"tracking_status_code\", \"tracking_status_message\", \"tracking_updated_at\", \"tracking_url\" FROM json_to_recordset(pgrst_payload.json_data) AS _(\"billing_address\" jsonb, \"carrier_name\" text, \"currency\" text, \"customer_email\" text, \"customer_name\" text, \"customer_phone\" text, \"fulfilled_at\" timestamp with time zone, \"integration_id\" bigint, \"integration_name\" text, \"integration_type\" text, \"items\" jsonb, \"last_synced_at\" timestamp with time zone, \"order_created_at\" timestamp with time zone, \"order_id\" text, \"order_number\" text, \"order_updated_at\" timestamp with time zone, \"owner_id\" uuid, \"raw_payload\" jsonb, \"sendcloud_id\" text, \"sendcloud_remote_id\" text, \"shipping_address\" jsonb, \"shipping_integration_account_id\" uuid, \"source_channel\" text, \"source_integration_account_id\" uuid, \"source_status\" text, \"total_amount\" numeric(12,2), \"tracking_number\" text, \"tracking_status_code\" text, \"tracking_status_message\" text, \"tracking_updated_at\" timestamp with time zone, \"tracking_url\" text) ) pgrst_body WHERE set_config($2, (coalesce(nullif(current_setting($3, $4), $5)::int, $6) + $7)::text, $8) <> $9 ON CONFLICT(\"owner_id\", \"sendcloud_id\") DO UPDATE SET \"billing_address\" = EXCLUDED.\"billing_address\", \"carrier_name\" = EXCLUDED.\"carrier_name\", \"currency\" = EXCLUDED.\"currency\", \"customer_email\" = EXCLUDED.\"customer_email\", \"customer_name\" = EXCLUDED.\"customer_name\", \"customer_phone\" = EXCLUDED.\"customer_phone\", \"fulfilled_at\" = EXCLUDED.\"fulfilled_at\", \"integration_id\" = EXCLUDED.\"integration_id\", \"integration_name\" = EXCLUDED.\"integration_name\", \"integration_type\" = EXCLUDED.\"integration_type\", \"items\" = EXCLUDED.\"items\", \"last_synced_at\" = EXCLUDED.\"last_synced_at\", \"order_created_at\" = EXCLUDED.\"order_created_at\", \"order_id\" = EXCLUDED.\"order_id\", \"order_number\" = EXCLUDED.\"order_number\", \"order_updated_at\" = EXCLUDED.\"order_updated_at\", \"owner_id\" = EXCLUDED.\"owner_id\", \"raw_payload\" = EXCLUDED.\"raw_payload\", \"sendcloud_id\" = EXCLUDED.\"sendcloud_id\", \"sendcloud_remote_id\" = EXCLUDED.\"sendcloud_remote_id\", \"shipping_address\" = EXCLUDED.\"shipping_address\", \"shipping_integration_account_id\" = EXCLUDED.\"shipping_integration_account_id\", \"source_channel\" = EXCLUDED.\"source_channel\", \"source_integration_account_id\" = EXCLUDED.\"source_integration_account_id\", \"source_status\" = EXCLUDED.\"source_status\", \"total_amount\" = EXCLUDED.\"total_amount\", \"tracking_number\" = EXCLUDED.\"tracking_number\", \"tracking_status_code\" = EXCLUDED.\"tracking_status_code\", \"tracking_status_message\" = EXCLUDED.\"tracking_status_message\", \"tracking_updated_at\" = EXCLUDED.\"tracking_updated_at\", \"tracking_url\" = EXCLUDED.\"tracking_url\"WHERE set_config($10, (coalesce(nullif(current_setting($11, $12), $13)::int, $14) - $15)::text, $16) <> $17 RETURNING $18) SELECT $19 AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, array[]::text[] AS header, $20::text AS body, nullif(current_setting($21, $22), $23) AS response_headers, nullif(current_setting($24, $25), $26) AS response_status, nullif(current_setting($27, $28),$29)::int AS response_inserted FROM (SELECT * FROM pgrst_source) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "4109846572353514226",
+      "calls": 8048,
+      "total_ms": "1043060.954",
+      "mean_ms": "129.605",
+      "max_ms": "99504.134",
+      "rows": 8048,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"amazon_order_items\".\"asin\", \"public\".\"amazon_order_items\".\"seller_sku\", \"public\".\"amazon_order_items\".\"marketplace_id\" FROM \"public\".\"amazon_order_items\" WHERE  \"public\".\"amazon_order_items\".\"owner_id\" = $1 AND  \"public\".\"amazon_order_items\".\"amazon_account_id\" = $2 AND NOT \"public\".\"amazon_order_items\".\"asin\" IS NULL AND NOT \"public\".\"amazon_order_items\".\"seller_sku\" IS NULL  ORDER BY \"public\".\"amazon_order_items\".\"created_at\" DESC , \"public\".\"amazon_order_items\".\"id\" DESC  LIMIT $3 OFFSET $4 )  SELECT $5::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $6) AS body, nullif(current_setting($7, $8), $9) AS response_headers, nullif(current_setting($10, $11), $12) AS response_status, $13 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "8426806584768431511",
+      "calls": 2585,
+      "total_ms": "1023353.626",
+      "mean_ms": "395.881",
+      "max_ms": "75189.590",
+      "rows": 2585,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"fulfillment_orders\".\"id\", \"public\".\"fulfillment_orders\".\"order_number\", \"public\".\"fulfillment_orders\".\"shipping_address\", \"public\".\"fulfillment_orders\".\"customer_name\", \"public\".\"fulfillment_orders\".\"customer_email\", \"public\".\"fulfillment_orders\".\"customer_phone\", \"public\".\"fulfillment_orders\".\"raw_payload\", \"public\".\"fulfillment_orders\".\"last_synced_at\" FROM \"public\".\"fulfillment_orders\" WHERE  \"public\".\"fulfillment_orders\".\"owner_id\" = $1 AND  \"public\".\"fulfillment_orders\".\"source_channel\" = $2 AND  \"public\".\"fulfillment_orders\".\"source_integration_account_id\" = $3 AND  \"public\".\"fulfillment_orders\".\"fulfilled_at\" IS NULL  ORDER BY \"public\".\"fulfillment_orders\".\"order_created_at\" DESC  LIMIT $4 OFFSET $5 )  SELECT $6::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $7) AS body, nullif(current_setting($8, $9), $10) AS response_headers, nullif(current_setting($11, $12), $13) AS response_status, $14 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-6132954899282047360",
+      "calls": 33286,
+      "total_ms": "976170.553",
+      "mean_ms": "29.327",
+      "max_ms": "36784.533",
+      "rows": 33286,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"fulfillment_orders\".\"id\", \"public\".\"fulfillment_orders\".\"shipping_provider\", \"public\".\"fulfillment_orders\".\"order_number\", \"public\".\"fulfillment_orders\".\"order_id\", \"public\".\"fulfillment_orders\".\"customer_name\", \"public\".\"fulfillment_orders\".\"customer_email\", \"public\".\"fulfillment_orders\".\"shipping_address\", \"public\".\"fulfillment_orders\".\"items\", \"public\".\"fulfillment_orders\".\"total_amount\", \"public\".\"fulfillment_orders\".\"currency\", \"public\".\"fulfillment_orders\".\"source_channel\", \"public\".\"fulfillment_orders\".\"integration_name\", \"public\".\"fulfillment_orders\".\"label_created_at\", \"public\".\"fulfillment_orders\".\"label_printed_at\", \"public\".\"fulfillment_orders\".\"label_print_state_known\" FROM \"public\".\"fulfillment_orders\" WHERE  \"public\".\"fulfillment_orders\".\"owner_id\" = $1 AND  \"public\".\"fulfillment_orders\".\"customer_email\" ilike $2 AND  \"public\".\"fulfillment_orders\".\"tracking_number\" IS NULL AND  \"public\".\"fulfillment_orders\".\"source_channel\" <> $3  ORDER BY \"public\".\"fulfillment_orders\".\"order_created_at\" DESC  LIMIT $4 OFFSET $5 )  SELECT $6::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $7) AS body, nullif(current_setting($8, $9), $10) AS response_headers, nullif(current_setting($11, $12), $13) AS response_status, $14 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "8358092516208418974",
+      "calls": 1320,
+      "total_ms": "777637.838",
+      "mean_ms": "589.120",
+      "max_ms": "94764.234",
+      "rows": 1320,
+      "query": "update cron.job_run_details set status = $1, return_message = $2, start_time = $3, end_time = $4 where runid = $5"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-626498649818289695",
+      "calls": 2644,
+      "total_ms": "707792.248",
+      "mean_ms": "267.698",
+      "max_ms": "7615.008",
+      "rows": 2644,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"gmail_imports\".\"updated_at\" FROM \"public\".\"gmail_imports\" WHERE NOT \"public\".\"gmail_imports\".\"updated_at\" IS NULL  ORDER BY \"public\".\"gmail_imports\".\"updated_at\" DESC  LIMIT $1 OFFSET $2 )  SELECT $3::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $4) AS body, nullif(current_setting($5, $6), $7) AS response_headers, nullif(current_setting($8, $9), $10) AS response_status, $11 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "5782063315651859029",
+      "calls": 12275,
+      "total_ms": "657529.405",
+      "mean_ms": "53.567",
+      "max_ms": "13652.237",
+      "rows": 12275,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"amazon_order_items\".\"asin\", \"public\".\"amazon_order_items\".\"seller_sku\", \"public\".\"amazon_order_items\".\"marketplace_id\" FROM \"public\".\"amazon_order_items\" WHERE  \"public\".\"amazon_order_items\".\"owner_id\" = $1 AND  \"public\".\"amazon_order_items\".\"amazon_account_id\" = $2 AND NOT \"public\".\"amazon_order_items\".\"asin\" IS NULL AND NOT \"public\".\"amazon_order_items\".\"seller_sku\" IS NULL   LIMIT $3 OFFSET $4 )  SELECT $5::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $6) AS body, nullif(current_setting($7, $8), $9) AS response_headers, nullif(current_setting($10, $11), $12) AS response_status, $13 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "6950191361309539487",
+      "calls": 11708,
+      "total_ms": "638562.839",
+      "mean_ms": "54.541",
+      "max_ms": "33527.802",
+      "rows": 11708,
+      "query": "WITH pgrst_source AS (INSERT INTO \"public\".\"amazon_order_items\"(\"amazon_account_id\", \"amazon_order_id\", \"asin\", \"currency_code\", \"item_price\", \"item_tax\", \"marketplace_id\", \"order_item_id\", \"owner_id\", \"promotion_discount\", \"quantity_ordered\", \"quantity_shipped\", \"seller_sku\", \"shipping_price\", \"shipping_tax\", \"synced_at\", \"updated_at\") SELECT \"pgrst_body\".\"amazon_account_id\", \"pgrst_body\".\"amazon_order_id\", \"pgrst_body\".\"asin\", \"pgrst_body\".\"currency_code\", \"pgrst_body\".\"item_price\", \"pgrst_body\".\"item_tax\", \"pgrst_body\".\"marketplace_id\", \"pgrst_body\".\"order_item_id\", \"pgrst_body\".\"owner_id\", \"pgrst_body\".\"promotion_discount\", \"pgrst_body\".\"quantity_ordered\", \"pgrst_body\".\"quantity_shipped\", \"pgrst_body\".\"seller_sku\", \"pgrst_body\".\"shipping_price\", \"pgrst_body\".\"shipping_tax\", \"pgrst_body\".\"synced_at\", \"pgrst_body\".\"updated_at\" FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"amazon_account_id\", \"amazon_order_id\", \"asin\", \"currency_code\", \"item_price\", \"item_tax\", \"marketplace_id\", \"order_item_id\", \"owner_id\", \"promotion_discount\", \"quantity_ordered\", \"quantity_shipped\", \"seller_sku\", \"shipping_price\", \"shipping_tax\", \"synced_at\", \"updated_at\" FROM json_to_recordset(pgrst_payload.json_data) AS _(\"amazon_account_id\" uuid, \"amazon_order_id\" text, \"asin\" text, \"currency_code\" text, \"item_price\" numeric(18,6), \"item_tax\" numeric(18,6), \"marketplace_id\" text, \"order_item_id\" text, \"owner_id\" uuid, \"promotion_discount\" numeric(18,6), \"quantity_ordered\" integer, \"quantity_shipped\" integer, \"seller_sku\" text, \"shipping_price\" numeric(18,6), \"shipping_tax\" numeric(18,6), \"synced_at\" timestamp with time zone, \"updated_at\" timestamp with time zone) ) pgrst_body WHERE set_config($2, (coalesce(nullif(current_setting($3, $4), $5)::int, $6) + $7)::text, $8) <> $9 ON CONFLICT(\"owner_id\", \"amazon_account_id\", \"marketplace_id\", \"amazon_order_id\", \"order_item_id\") DO UPDATE SET \"amazon_account_id\" = EXCLUDED.\"amazon_account_id\", \"amazon_order_id\" = EXCLUDED.\"amazon_order_id\", \"asin\" = EXCLUDED.\"asin\", \"currency_code\" = EXCLUDED.\"currency_code\", \"item_price\" = EXCLUDED.\"item_price\", \"item_tax\" = EXCLUDED.\"item_tax\", \"marketplace_id\" = EXCLUDED.\"marketplace_id\", \"order_item_id\" = EXCLUDED.\"order_item_id\", \"owner_id\" = EXCLUDED.\"owner_id\", \"promotion_discount\" = EXCLUDED.\"promotion_discount\", \"quantity_ordered\" = EXCLUDED.\"quantity_ordered\", \"quantity_shipped\" = EXCLUDED.\"quantity_shipped\", \"seller_sku\" = EXCLUDED.\"seller_sku\", \"shipping_price\" = EXCLUDED.\"shipping_price\", \"shipping_tax\" = EXCLUDED.\"shipping_tax\", \"synced_at\" = EXCLUDED.\"synced_at\", \"updated_at\" = EXCLUDED.\"updated_at\"WHERE set_config($10, (coalesce(nullif(current_setting($11, $12), $13)::int, $14) - $15)::text, $16) <> $17 RETURNING $18) SELECT $19 AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, array[]::text[] AS header, $20::text AS body, nullif(current_setting($21, $22), $23) AS response_headers, nullif(current_setting($24, $25), $26) AS response_status, nullif(current_setting($27, $28),$29)::int AS response_inserted FROM (SELECT * FROM pgrst_source) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-4513167227662161718",
+      "calls": 2758,
+      "total_ms": "536746.850",
+      "mean_ms": "194.615",
+      "max_ms": "7015.609",
+      "rows": 2758,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"fulfillment_orders\".\"last_synced_at\" FROM \"public\".\"fulfillment_orders\" WHERE NOT \"public\".\"fulfillment_orders\".\"last_synced_at\" IS NULL  ORDER BY \"public\".\"fulfillment_orders\".\"last_synced_at\" DESC  LIMIT $1 OFFSET $2 )  SELECT $3::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $4) AS body, nullif(current_setting($5, $6), $7) AS response_headers, nullif(current_setting($8, $9), $10) AS response_status, $11 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "5360251647081715348",
+      "calls": 205235,
+      "total_ms": "470556.995",
+      "mean_ms": "2.293",
+      "max_ms": "6281.131",
+      "rows": 205235,
+      "query": "select set_config('search_path', $1, true), set_config($2, $3, true), set_config('role', $4, true), set_config('request.jwt.claims', $5, true), set_config('request.method', $6, true), set_config('request.path', $7, true), set_config('request.headers', $8, true), set_config('request.cookies', $9, true)"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-7821780334453251234",
+      "calls": 1966596,
+      "total_ms": "463293.734",
+      "mean_ms": "0.236",
+      "max_ms": "10332.200",
+      "rows": 1966596,
+      "query": "select set_config('search_path', $1, true), set_config('role', $2, true), set_config('request.jwt.claims', $3, true), set_config('request.method', $4, true), set_config('request.path', $5, true), set_config('request.headers', $6, true), set_config('request.cookies', $7, true)"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-4202062219079640208",
+      "calls": 9192,
+      "total_ms": "454577.465",
+      "mean_ms": "49.454",
+      "max_ms": "56011.334",
+      "rows": 9192,
+      "query": "WITH pgrst_source AS (INSERT INTO \"public\".\"amazon_inventory_daily\"(\"amazon_account_id\", \"asin\", \"fulfillable_quantity\", \"inbound_quantity\", \"marketplace_id\", \"owner_id\", \"researching_quantity\", \"reserved_quantity\", \"seller_sku\", \"snapshot_date\", \"synced_at\", \"total_quantity\", \"unfulfillable_quantity\", \"updated_at\") SELECT \"pgrst_body\".\"amazon_account_id\", \"pgrst_body\".\"asin\", \"pgrst_body\".\"fulfillable_quantity\", \"pgrst_body\".\"inbound_quantity\", \"pgrst_body\".\"marketplace_id\", \"pgrst_body\".\"owner_id\", \"pgrst_body\".\"researching_quantity\", \"pgrst_body\".\"reserved_quantity\", \"pgrst_body\".\"seller_sku\", \"pgrst_body\".\"snapshot_date\", \"pgrst_body\".\"synced_at\", \"pgrst_body\".\"total_quantity\", \"pgrst_body\".\"unfulfillable_quantity\", \"pgrst_body\".\"updated_at\" FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"amazon_account_id\", \"asin\", \"fulfillable_quantity\", \"inbound_quantity\", \"marketplace_id\", \"owner_id\", \"researching_quantity\", \"reserved_quantity\", \"seller_sku\", \"snapshot_date\", \"synced_at\", \"total_quantity\", \"unfulfillable_quantity\", \"updated_at\" FROM json_to_recordset(pgrst_payload.json_data) AS _(\"amazon_account_id\" uuid, \"asin\" text, \"fulfillable_quantity\" integer, \"inbound_quantity\" integer, \"marketplace_id\" text, \"owner_id\" uuid, \"researching_quantity\" integer, \"reserved_quantity\" integer, \"seller_sku\" text, \"snapshot_date\" date, \"synced_at\" timestamp with time zone, \"total_quantity\" integer, \"unfulfillable_quantity\" integer, \"updated_at\" timestamp with time zone) ) pgrst_body WHERE set_config($2, (coalesce(nullif(current_setting($3, $4), $5)::int, $6) + $7)::text, $8) <> $9 ON CONFLICT(\"owner_id\", \"amazon_account_id\", \"marketplace_id\", \"seller_sku\", \"snapshot_date\") DO UPDATE SET \"amazon_account_id\" = EXCLUDED.\"amazon_account_id\", \"asin\" = EXCLUDED.\"asin\", \"fulfillable_quantity\" = EXCLUDED.\"fulfillable_quantity\", \"inbound_quantity\" = EXCLUDED.\"inbound_quantity\", \"marketplace_id\" = EXCLUDED.\"marketplace_id\", \"owner_id\" = EXCLUDED.\"owner_id\", \"researching_quantity\" = EXCLUDED.\"researching_quantity\", \"reserved_quantity\" = EXCLUDED.\"reserved_quantity\", \"seller_sku\" = EXCLUDED.\"seller_sku\", \"snapshot_date\" = EXCLUDED.\"snapshot_date\", \"synced_at\" = EXCLUDED.\"synced_at\", \"total_quantity\" = EXCLUDED.\"total_quantity\", \"unfulfillable_quantity\" = EXCLUDED.\"unfulfillable_quantity\", \"updated_at\" = EXCLUDED.\"updated_at\"WHERE set_config($10, (coalesce(nullif(current_setting($11, $12), $13)::int, $14) - $15)::text, $16) <> $17 RETURNING $18) SELECT $19 AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, array[]::text[] AS header, $20::text AS body, nullif(current_setting($21, $22), $23) AS response_headers, nullif(current_setting($24, $25), $26) AS response_status, nullif(current_setting($27, $28),$29)::int AS response_inserted FROM (SELECT * FROM pgrst_source) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "6452687064799248336",
+      "calls": 30990,
+      "total_ms": "449433.801",
+      "mean_ms": "14.503",
+      "max_ms": "5426.535",
+      "rows": 30990,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"amazon_product_images\".\"asin\", \"public\".\"amazon_product_images\".\"image_url\", \"public\".\"amazon_product_images\".\"product_name\", \"public\".\"amazon_product_images\".\"fetched_at\" FROM \"public\".\"amazon_product_images\" WHERE  \"public\".\"amazon_product_images\".\"asin\" = ANY ($1)   ORDER BY \"public\".\"amazon_product_images\".\"fetched_at\" DESC  LIMIT $2 OFFSET $3 )  SELECT $4::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $5) AS body, nullif(current_setting($6, $7), $8) AS response_headers, nullif(current_setting($9, $10), $11) AS response_status, $12 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-7959719576877491680",
+      "calls": 204,
+      "total_ms": "438500.721",
+      "mean_ms": "2149.513",
+      "max_ms": "7268.540",
+      "rows": 204,
+      "query": "WITH pgrst_source AS (SELECT pgrst_call.pgrst_scalar FROM (SELECT $1 AS json_data) pgrst_payload, LATERAL (SELECT \"from_date\", \"to_date\", \"integration_account_ids\" FROM json_to_record(pgrst_payload.json_data) AS _(\"from_date\" date, \"to_date\" date, \"integration_account_ids\" uuid[]) LIMIT $4) pgrst_body , LATERAL (SELECT \"public\".\"shopify_analytics_summary\"(\"from_date\" := pgrst_body.\"from_date\", \"to_date\" := pgrst_body.\"to_date\", \"integration_account_ids\" := pgrst_body.\"integration_account_ids\") pgrst_scalar) pgrst_call) SELECT $5::bigint AS total_result_set, $6 AS page_total, coalesce(json_agg(_postgrest_t.pgrst_scalar)->$7, $8) AS body, nullif(current_setting($9, $10), $11) AS response_headers, nullif(current_setting($12, $13), $14) AS response_status, $15 AS response_inserted FROM (SELECT \"shopify_analytics_summary\".* FROM \"pgrst_source\" AS \"shopify_analytics_summary\"   LIMIT $2 OFFSET $3) _postgrest_t"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "-8856799461280935852",
+      "calls": 274,
+      "total_ms": "430573.449",
+      "mean_ms": "1571.436",
+      "max_ms": "43422.204",
+      "rows": 32203,
+      "query": "WITH\n-- Recursively get the base types of domains\nbase_types AS (\n  WITH RECURSIVE\n  recurse AS (\n    SELECT\n      oid,\n      typbasetype,\n      typnamespace AS base_namespace,\n      COALESCE(NULLIF(typbasetype, $2), oid) AS base_type\n    FROM pg_type\n    UNION\n    SELECT\n      t.oid,\n      b.typbasetype,\n      b.typnamespace AS base_namespace,\n      COALESCE(NULLIF(b.typbasetype, $3), b.oid) AS base_type\n    FROM recurse t\n    JOIN pg_type b ON t.typbasetype = b.oid\n  )\n  SELECT\n    oid,\n    base_namespace,\n    base_type\n  FROM recurse\n  WHERE typbasetype = $4\n),\ncolumns AS (\n    SELECT\n        c.oid AS relid,\n        a.attname::name AS column_name,\n        d.description AS description,\n        -- typbasetype and typdefaultbin handles `CREATE DOMAIN .. DEFAULT val`,  attidentity/attgenerated handles generated columns, pg_get_expr gets the default of a column\n        CASE\n          WHEN (t.typbasetype != $5) AND (ad.adbin IS NULL) THEN pg_get_expr(t.typdefaultbin, $6)\n          WHEN a.attidentity  = $7 THEN format($8, seq.objid::regclass)\n          WHEN a.attgenerated = $9 THEN $10\n          ELSE pg_get_expr(ad.adbin, ad.adrelid)::text\n        END AS column_default,\n        not (a.attnotnull OR t.typtype = $11 AND t.typnotnull) AS is_nullable,\n        CASE\n            WHEN t.typtype = $12 THEN\n            CASE\n                WHEN bt.base_namespace = $13::regnamespace THEN format_type(bt.base_type, $14::integer)\n                ELSE format_type(a.atttypid, a.atttypmod)\n            END\n            ELSE\n            CASE\n                WHEN t.typnamespace = $15::regnamespace THEN format_type(a.atttypid, $16::integer)\n                ELSE format_type(a.atttypid, a.atttypmod)\n            END\n        END::text AS data_type,\n        format_type(a.atttypid, a.atttypmod)::text AS nominal_data_type,\n        information_schema._pg_char_max_length(\n            information_schema._pg_truetypid(a.*, t.*),\n            information_schema._pg_truetypmod(a.*, t.*)\n        )::integer AS character_maximum_length,\n        bt.base_type,\n        a.attnum::integer AS position\n    FROM pg_attribute a\n        LEFT JOIN pg_description AS d\n            ON d.objoid = a.attrelid and d.objsubid = a.attnum and d.classoid = $17::regclass\n        LEFT JOIN pg_attrdef ad\n            ON a.attrelid = ad.adrelid AND a.attnum = ad.adnum\n        JOIN pg_class c\n            ON a.attrelid = c.oid\n        JOIN pg_type t\n            ON a.atttypid = t.oid\n        LEFT JOIN base_types bt\n            ON t.oid = bt.oid\n        LEFT JOIN pg_depend seq\n            ON seq.refobjid = a.attrelid and seq.refobjsubid = a.attnum and seq.deptype = $18\n    WHERE\n        NOT pg_is_other_temp_schema(c.relnamespace)\n        AND a.attnum > $19\n        AND NOT a.attisdropped\n        AND c.relkind in ($20, $21, $22, $23, $24)\n        AND c.relnamespace = ANY($1::regnamespace[])\n),\ncolumns_agg AS (\n  SELECT\n    relid,\n    array_agg(row(\n      column_name,\n      description,\n      is_nullable::boolean,\n      data_type,\n      nominal_data_type,\n      character_maximum_length,\n      column_default,\n      coalesce(\n        (SELECT array_agg(enumlabel ORDER BY enumsortorder) FROM pg_enum WHERE enumtypid = base_type),\n        $25\n      )\n    ) order by position) as columns\n  FROM columns\n  GROUP BY relid\n),\ntbl_pk_cols AS (\n  SELECT\n    r.oid AS relid,\n    array_agg(a.attname ORDER BY a.attname) AS pk_cols\n  FROM pg_class r\n  JOIN pg_constraint c\n    ON r.oid = c.conrelid\n  JOIN pg_attribute a\n    ON a.attrelid = r.oid AND a.attnum = ANY (c.conkey)\n  WHERE\n    c.contype in ($26)\n    AND r.relkind IN ($27, $28)\n    AND r.relnamespace NOT IN ($29::regnamespace, $30::regnamespace)\n    AND NOT pg_is_other_temp_schema(r.relnamespace)\n    AND NOT a.attisdropped\n  GROUP BY r.oid\n)\nSELECT\n  n.nspname AS table_schema,\n  c.relname AS table_name,\n  d.description AS table_description,\n  c.relkind IN ($31,$32) as is_view,\n  (\n    c.relkind IN ($33,$34)\n    OR (\n      c.relkind in ($35,$36)\n      -- The function `pg_relation_is_updateable` returns a bitmask where 8\n      -- corresponds to `1 << CMD_INSERT` in the PostgreSQL source code, i.e.\n      -- it's possible to insert into the relation.\n      AND (pg_relation_is_updatable(c.oid::regclass, $37) & $38) = $39\n    )\n  ) AS insertable,\n  (\n    c.relkind IN ($40,$41)\n    OR (\n      c.relkind in ($42,$43)\n      -- CMD_UPDATE\n      AND (pg_relation_is_updatable(c.oid::regclass, $44) & $45) = $46\n    )\n  ) AS updatable,\n  (\n    c.relkind IN ($47,$48)\n    OR (\n      c.relkind in ($49,$50)\n      -- CMD_DELETE\n      AND (pg_relation_is_updatable(c.oid::regclass, $51) & $52) = $53\n    )\n  ) AS deletable,\n  coalesce(tpks.pk_cols, $54) as pk_cols,\n  coalesce(cols_agg.columns, $55) as columns\nFROM pg_class c\nJOIN pg_namespace n ON n.oid = c.relnamespace\nLEFT JOIN pg_description d on d.objoid = c.oid and d.objsubid = $56 and d.classoid = $57::regclass\nLEFT JOIN tbl_pk_cols tpks ON c.oid = tpks.relid\nLEFT JOIN columns_agg cols_agg ON c.oid = cols_agg.relid\nWHERE c.relkind IN ($58,$59,$60,$61,$62)\nAND c.relnamespace NOT IN ($63::regnamespace, $64::regnamespace)\nAND not c.relispartition\nORDER BY table_schema, table_name"
+    },
+    {
+      "captured_at": "2026-10-15 12:49:23.607986+00",
+      "queryid": "5296056181684881348",
+      "calls": 26601,
+      "total_ms": "430136.377",
+      "mean_ms": "16.170",
+      "max_ms": "95369.224",
+      "rows": 26601,
+      "query": "WITH pgrst_source AS ( SELECT \"public\".\"fulfillment_orders\".\"id\", \"public\".\"fulfillment_orders\".\"shipping_provider\", \"public\".\"fulfillment_orders\".\"order_number\", \"public\".\"fulfillment_orders\".\"order_id\", \"public\".\"fulfillment_orders\".\"customer_name\", \"public\".\"fulfillment_orders\".\"customer_email\", \"public\".\"fulfillment_orders\".\"shipping_address\", \"public\".\"fulfillment_orders\".\"items\", \"public\".\"fulfillment_orders\".\"total_amount\", \"public\".\"fulfillment_orders\".\"currency\", \"public\".\"fulfillment_orders\".\"source_channel\", \"public\".\"fulfillment_orders\".\"integration_name\", \"public\".\"fulfillment_orders\".\"label_created_at\", \"public\".\"fulfillment_orders\".\"label_printed_at\", \"public\".\"fulfillment_orders\".\"label_print_state_known\" FROM \"public\".\"fulfillment_orders\" WHERE  \"public\".\"fulfillment_orders\".\"owner_id\" = $1 AND  \"public\".\"fulfillment_orders\".\"tracking_number\" IS NULL AND  \"public\".\"fulfillment_orders\".\"source_channel\" <> $2  ORDER BY \"public\".\"fulfillment_orders\".\"order_created_at\" DESC  LIMIT $3 OFFSET $4 )  SELECT $5::bigint AS total_result_set, pg_catalog.count(_postgrest_t) AS page_total, coalesce(json_agg(_postgrest_t), $6) AS body, nullif(current_setting($7, $8), $9) AS response_headers, nullif(current_setting($10, $11), $12) AS response_status, $13 AS response_inserted FROM ( SELECT * FROM pgrst_source ) _postgrest_t"
+    }
+  ]
+}

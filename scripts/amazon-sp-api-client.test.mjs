@@ -6,15 +6,14 @@ async function source(path) {
   return readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 }
 
-test('Amazon credentials are loaded only from one server-side project secret', async () => {
+test('Amazon credentials are loaded from a coherent per-account snapshot and named server apps', async () => {
   const config=await source('supabase/functions/_shared/amazon/config.ts');
-  assert.match(config,/AMAZON_SPAPI_CREDENTIALS/);
-  assert.match(config,/Deno\.env\.get/);
-  assert.match(config,/client_id/);
-  assert.match(config,/client_secret/);
-  assert.match(config,/refresh_token/);
-  assert.match(config,/seller_id/);
-  assert.doesNotMatch(config,/VITE_/);
+  const apps=await source('supabase/functions/_shared/amazon/apps.ts');
+  assert.match(config,/integration_amazon_credential_snapshot/);
+  assert.match(apps,/AMAZON_SPAPI_PRIVATE_V1/);
+  assert.match(apps,/AMAZON_SPAPI_PUBLIC_V1/);
+  assert.doesNotMatch(config+apps,/VITE_/);
+  assert.match(config,/AMAZON_LEGACY_FALLBACK_ACCOUNT_ID/);
 });
 
 test('SP-API client exchanges LWA refresh token and calls the EU endpoint', async () => {

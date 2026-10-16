@@ -1,3 +1,4 @@
+import {loadAmazonSpApiCredentials} from '../_shared/amazon/config.ts';
 import { createAdminClient, authenticateUser } from '../_shared/amazon/supabase.ts';
 import { ensureAmazonAccountAndMarketplaces } from '../_shared/amazon/marketplaces.ts';
 
@@ -46,18 +47,18 @@ Deno.serve(async(req:Request)=>{
 
     let integration:any=null;
     if(requestedIntegrationId){
-      const result=await admin.from('integration_accounts').select('id,display_name,status,enabled,secret_id,credential_source,linked_resource_id,last_error')
+      const result=await admin.from('integration_accounts').select('id,display_name,status,enabled,secret_id,credential_source,linked_resource_id,last_error,sp_api_app_key')
         .eq('owner_id',caller.data_owner_id).eq('provider','amazon').eq('id',requestedIntegrationId).maybeSingle();
       if(result.error)throw result.error;integration=result.data;
     }else{
-      const preferred=await admin.from('integration_accounts').select('id,display_name,status,enabled,secret_id,credential_source,linked_resource_id,last_error')
+      const preferred=await admin.from('integration_accounts').select('id,display_name,status,enabled,secret_id,credential_source,linked_resource_id,last_error,sp_api_app_key')
         .eq('owner_id',caller.data_owner_id).eq('provider','amazon').neq('status','disabled')
         .order('is_default',{ascending:false}).order('updated_at',{ascending:false}).limit(1).maybeSingle();
       if(preferred.error)throw preferred.error;integration=preferred.data;
     }
 
-    const envConfigured=Boolean((Deno.env.get('AMAZON_SPAPI_CREDENTIALS')||'').trim());
-    const configured=Boolean(integration?.secret_id)||Boolean(integration&&integration.credential_source==='environment'&&envConfigured);
+    let configured=false;
+    if(integration?.id){try{await loadAmazonSpApiCredentials(admin,{ownerId:caller.data_owner_id,integrationAccountId:integration.id,amazonAccountId:integration.linked_resource_id});configured=true}catch{/* Only expose availability, never credentials. */}}
     let connectionError:string|null=null;
     let transientWarning:string|null=null;
 

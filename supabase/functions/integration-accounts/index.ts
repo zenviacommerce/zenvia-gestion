@@ -614,7 +614,7 @@ Deno.serve(async(req:Request)=>{
         amazon:{key:'integration.amazon',message:'Tu plan no incluye la integración con Amazon.'},
         shopify:{key:'integration.shopify',message:'Tu plan no incluye la integración con Shopify.'},
         sendcloud:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
-        envia:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
+        envia:{key:'integration.envia',message:'Tu plan no incluye la integración con Envia.com.'},
         mrw:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
         gmail:{key:'integration.gmail',message:'Tu plan no incluye la integración con Gmail.'},
       };
@@ -727,7 +727,7 @@ Deno.serve(async(req:Request)=>{
           amazon:{key:'integration.amazon',message:'Tu plan no incluye la integración con Amazon.'},
         shopify:{key:'integration.shopify',message:'Tu plan no incluye la integración con Shopify.'},
           sendcloud:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
-          envia:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
+          envia:{key:'integration.envia',message:'Tu plan no incluye la integración con Envia.com.'},
           gmail:{key:'integration.gmail',message:'Tu plan no incluye la integración con Gmail.'},
         };
         const configuredEntitlement=providerEntitlement[account.provider];

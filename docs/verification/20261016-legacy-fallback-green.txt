@@ -1,0 +1,20 @@
+✔ authorized integration uses fallback and logs safe account metadata every load (66.142603ms)
+✔ authorized integration-only marketplace path uses same scoped fallback (23.909202ms)
+✔ second environment account cannot use global even with same seller (14.391027ms)
+✔ second vault account cannot use global even with same seller (10.918137ms)
+✔ own refreshToken always wins even for authorized account (12.799922ms)
+✔ own refresh_token always wins even for authorized account (9.848154ms)
+✔ own token works on nonlegacy account (11.546918ms)
+✔ unset allowlist denies fallback (11.222739ms)
+✔ whitespace own token is missing and only allowed account may fallback (9.564744ms)
+✔ environment-only helper still fails closed (9.025797ms)
+✔ mismatched explicit integration cannot redirect a job to authorized legacy credentials (9.781716ms)
+✔ wrong owner cannot use allowlisted integration (9.089912ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 484.15831

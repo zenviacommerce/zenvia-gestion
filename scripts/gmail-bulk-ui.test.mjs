@@ -21,10 +21,11 @@ test('Gmail checkboxes import a selected batch and advance through manual review
  const checkbox=component('src/components/BulkSelectionToolbar.tsx','BulkSelectCheckbox',{});
  const toolbar=component('src/components/BulkSelectionToolbar.tsx','BulkSelectionToolbar',{BulkSelectCheckbox:checkbox});
  const batch=component('src/services/gmailBulkImport.ts','runGmailImportBatch',{errorMessage});
+ const background=component('src/services/gmailBackgroundImport.ts','({getGmailBackgroundState,subscribeGmailBackground,startGmailBackgroundImport,dismissGmailBackgroundResult})',{runGmailImportBatch:batch});
  const icon=()=>React.createElement('span');
  const icons=Object.fromEntries('AlertCircle CheckCircle2 ChevronLeft ChevronRight ExternalLink Eye FileText Link2 LoaderCircle Mail Paperclip RefreshCw Search ShieldCheck Sparkles X'.split(' ').map(name=>[name,icon]));
  const SelectField=({value,onChange,options,disabled})=>React.createElement('select',{value,disabled,onChange:e=>onChange(e.target.value)},options.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label)));
- const Page=component('src/pages/Gmail.tsx','GmailPage',{...icons,errorMessage,SelectField,BulkSelectCheckbox:checkbox,BulkSelectionToolbar:toolbar,runGmailImportBatch:batch,useImportActivity(){},isDecorativeGmailImage:()=>false,
+ const Page=component('src/pages/Gmail.tsx','GmailPage',{...icons,...background,errorMessage,SelectField,BulkSelectCheckbox:checkbox,BulkSelectionToolbar:toolbar,runGmailImportBatch:batch,useImportActivity(){},isDecorativeGmailImage:()=>false,
   loadRecoverableGmailImports:async()=>rows,loadRegisteredGmailAccounts:async()=>[{id:'mail',externalAccountId:'mail@example.com',config:{}}],selectDefaultGmailAccount:accounts=>accounts[0],getCachedGmailConnection:()=>({email:'mail@example.com',accessToken:'token'}),gmailOAuthConfigured:()=>true,gmailMessageUrl:()=>'',
   ensureRegisteredGmailConnection:async()=>({email:'mail@example.com',accessToken:'token'}),InvoiceCandidateForm:({candidate})=>React.createElement('div',null,'Review '+candidate.invoiceNumber),
   importGmailCandidate:async(token,source)=>{seen.push(source.id);source.status='error';source.metadata={reviewRequired:true};return {kind:'review',candidate:{invoiceNumber:source.id}};},

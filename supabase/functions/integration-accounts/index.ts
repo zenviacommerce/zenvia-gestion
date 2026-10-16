@@ -1,3 +1,8 @@
+import {loadAmazonSpApiCredentials} from '../_shared/amazon/config.ts';
+import {getLwaAccessToken} from '../_shared/amazon/sp-api.ts';
+import {commitAmazonManual,assertAmazonManagedFields,setAmazonEnabled,archiveAmazon,updateAmazonMetadata} from '../_shared/amazon/manual.ts';
+import {readAmazonOAuthConfig} from '../_shared/amazon/oauth-config.ts';
+import {authenticateAmazonOAuth} from '../_shared/amazon/oauth-auth.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { verifyShopifyInstallLaunch, shopifyDomain, shopifyError, shopifyHash, verifyShopifyCallback, shopifyTokenRequest, shopifyTokenCredentials, shopifyAccountCredentials, shopifyLegacyCredentials, commitShopifyAuthorization, shopifyStoredApplicationCredentials } from '../_shared/shopifyAuth.ts';
 import { enforceWorkspaceLimit, requireWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
@@ -13,7 +18,7 @@ const PROVIDERS=new Set(['amazon','sendcloud','envia','mrw','shopify','gmail']);
 const SENDCLOUD_BASE='https://panel.sendcloud.sc/api/v3';
 const SP_API_BASE='https://sellingpartnerapi-eu.amazon.com';
 
-type Caller={user_id:string;data_owner_id:string;role:string;active:boolean;permissions:string[]|null};
+type Caller={workspace_id:string;user_id:string;data_owner_id:string;role:string;active:boolean;permissions:string[]|null};
 type Provider='amazon'|'sendcloud'|'envia'|'mrw'|'shopify'|'gmail';
 
 function response(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers});}
@@ -35,7 +40,7 @@ async function authenticate(req:Request,admin:any,action:string):Promise<Caller>
   const {data:userData,error:userError}=await admin.auth.getUser(token);
   if(userError||!userData?.user)throw new Error('Sesión no válida.');
   const {data:caller,error}=await admin.from('app_users')
-    .select('user_id,data_owner_id,role,active,permissions')
+    .select('user_id,workspace_id,data_owner_id,role,active,permissions')
     .eq('user_id',userData.user.id).maybeSingle();
   if(error)throw error;
   if(!caller?.active)throw new Error('Tu acceso está desactivado.');
@@ -137,40 +142,9 @@ async function makeDefault(admin:any,ownerId:string,provider:Provider,id:string)
   const set=await admin.from('integration_accounts').update({is_default:true,updated_at:new Date().toISOString()}).eq('owner_id',ownerId).eq('id',id);
   if(set.error)throw set.error;
 }
-function envAmazonCredentials(){
-  const raw=clean(Deno.env.get('AMAZON_SPAPI_CREDENTIALS'));
-  if(!raw)return {};
-  try{return JSON.parse(raw)}catch{return {}}
-}
-async function amazonCredentials(admin:any,account:any){
-  const stored=account.secret_id?await readVault(admin,account.secret_id):{};
-  const env=envAmazonCredentials() as any;
-  const legacyEnvironment=account.credential_source==='environment';
-  const credentials={
-    clientId:clean((stored as any).clientId||(stored as any).client_id||env.client_id||env.clientId),
-    clientSecret:clean((stored as any).clientSecret||(stored as any).client_secret||env.client_secret||env.clientSecret),
-    refreshToken:clean((stored as any).refreshToken||(stored as any).refresh_token||(legacyEnvironment?(env.refresh_token||env.refreshToken):'')),
-    sellerId:clean((stored as any).sellerId||(stored as any).seller_id||account.external_account_id||(legacyEnvironment?(env.seller_id||env.sellerId):'')),
-  };
-  if(!credentials.clientId||!credentials.clientSecret||!credentials.refreshToken||!credentials.sellerId){
-    throw new Error('Faltan credenciales de Amazon. Se necesitan Seller ID, refresh token y credenciales de la aplicación SP-API.');
-  }
-  return credentials;
-}
-async function amazonToken(c:any){
-  const body=new URLSearchParams();
-  body.set('grant_type','refresh_token');
-  body.set('refresh_token',c.refreshToken);
-  body.set('client_id',c.clientId);
-  body.set('client_secret',c.clientSecret);
-  const res=await fetch('https://api.amazon.com/auth/o2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body});
-  const text=await res.text();let data:any={};try{data=JSON.parse(text)}catch{}
-  if(!res.ok||!data?.access_token)throw new Error(`Amazon LWA (${res.status}): ${sanitize(data?.error_description||data?.error||text)}`);
-  return String(data.access_token);
-}
 async function amazonParticipations(admin:any,ownerId:string,account:any){
-  const credentials=await amazonCredentials(admin,account);
-  const token=await amazonToken(credentials);
+  const credentials=await loadAmazonSpApiCredentials(admin,{ownerId,integrationAccountId:account.id,amazonAccountId:account.linked_resource_id});
+  const token=await getLwaAccessToken(credentials);
   const res=await fetch(`${SP_API_BASE}/sellers/v1/marketplaceParticipations`,{headers:{
     Accept:'application/json',
     'user-agent':'ZENVIA-Gestion/1.0 (Integration Manager)',
@@ -450,6 +424,10 @@ Deno.serve(async(req:Request)=>{
       await requireWorkspaceEntitlement(admin,caller.data_owner_id,'integration.shopify','Tu plan no incluye la integración con Shopify.');
     }
 
+    if(action==='amazon_oauth_capability'){
+      await authenticateAmazonOAuth(req,admin);
+      return response({enabled:readAmazonOAuthConfig(name=>Deno.env.get(name)).enabled});
+    }
     if(action==='shopify_config'){
       const config=await shopifyOAuthConfig(admin,caller.data_owner_id);
       return response({ready:config.ready,redirectUri:config.allowedOrigins[0]+'/'});
@@ -623,20 +601,11 @@ Deno.serve(async(req:Request)=>{
         await requireWorkspaceEntitlement(admin,caller.data_owner_id,configuredEntitlement.key,configuredEntitlement.message);
       }
       if(provider==='amazon'){
-        const {count,error:amazonCountError}=await admin.from('integration_accounts')
-          .select('id',{count:'exact',head:true})
-          .eq('owner_id',caller.data_owner_id)
-          .eq('provider','amazon')
-          .neq('status','disabled');
-        if(amazonCountError)throw amazonCountError;
-        await enforceWorkspaceLimit(
-          admin,
-          caller.data_owner_id,
-          'amazon_accounts',
-          Number(count||0),
-          'Tu plan no permite conectar cuentas de Amazon.',
-          limit=>`Has alcanzado el límite de ${limit} cuentas Amazon de tu plan.`,
-        );
+        assertAmazonManagedFields(body);
+        const id=await commitAmazonManual(admin,caller,body);
+        const account=await loadAccount(admin,caller.data_owner_id,id);
+        if(body?.test!==false)await testAccount(admin,caller.data_owner_id,account);
+        return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,id))});
       }
       let displayName=clean(body?.displayName);
       let externalAccountId=clean(body?.externalAccountId)||null;
@@ -644,12 +613,7 @@ Deno.serve(async(req:Request)=>{
       let parentAccountId=clean(body?.parentAccountId)||null;
       let config=(body?.config&&typeof body.config==='object'&&!Array.isArray(body.config))?body.config:{};
       const credentials=(body?.credentials&&typeof body.credentials==='object'&&!Array.isArray(body.credentials))?body.credentials:{};
-      if(provider==='amazon'){
-        externalAccountId=clean((credentials as any).sellerId||(credentials as any).seller_id||externalAccountId);
-        if(!externalAccountId)throw new Error('Indica el Seller ID de Amazon.');
-        if(!clean((credentials as any).refreshToken||(credentials as any).refresh_token))throw new Error('Indica el refresh token de Amazon.');
-        displayName=displayName||`Amazon · ${externalAccountId}`;
-      }else if(provider==='sendcloud'){
+      if(provider==='sendcloud'){
         if(!clean((credentials as any).publicKey||(credentials as any).public_key)||!clean((credentials as any).secretKey||(credentials as any).secret_key))throw new Error('Indica las claves Public y Secret de Sendcloud.');
         externalAccountId=externalAccountId||`sendcloud-${crypto.randomUUID()}`;
         displayName=displayName||'Sendcloud';
@@ -699,7 +663,7 @@ Deno.serve(async(req:Request)=>{
         }).select('*').single();
       if(result.error)throw result.error;
       let account=result.data;
-      if(provider==='amazon'||provider==='sendcloud'||provider==='envia'||provider==='mrw'||provider==='shopify'){
+      if(provider==='sendcloud'||provider==='envia'||provider==='mrw'||provider==='shopify'){
         const secretId=await writeVault(admin,account.id,provider,credentials,account.secret_id||null);
         const saved=await admin.from('integration_accounts').update({secret_id:secretId,updated_at:new Date().toISOString()})
           .eq('id',account.id).eq('owner_id',caller.data_owner_id).select('*').single();
@@ -722,6 +686,15 @@ Deno.serve(async(req:Request)=>{
       return response({accounts:await listAccounts(admin,caller.data_owner_id)});
     }
     if(action==='update'){
+      if(account.provider==='amazon'){
+        assertAmazonManagedFields(body);
+        let current=account;
+        if(body?.credentials){await commitAmazonManual(admin,caller,body,current);current=await loadAccount(admin,caller.data_owner_id,id);}
+        if(typeof body?.enabled==='boolean'){await setAmazonEnabled(admin,caller,current,body.enabled);current=await loadAccount(admin,caller.data_owner_id,id);}
+        if(body.displayName!==undefined||body.config!==undefined)await updateAmazonMetadata(admin,caller,current,body);
+        if(body?.isDefault===true)await makeDefault(admin,caller.data_owner_id,account.provider,id);
+        return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,id))});
+      }
       if(body?.enabled===true&&account.enabled===false){
         const providerEntitlement:Record<string,{key:string;message:string}>={
           amazon:{key:'integration.amazon',message:'Tu plan no incluye la integración con Amazon.'},
@@ -757,7 +730,7 @@ Deno.serve(async(req:Request)=>{
       if(typeof body?.enabled==='boolean')patch.enabled=body.enabled;
       if(body?.config&&typeof body.config==='object'&&!Array.isArray(body.config))patch.config={...(account.config||{}),...body.config};
       const credentials=(body?.credentials&&typeof body.credentials==='object'&&!Array.isArray(body.credentials))?body.credentials:null;
-      if(credentials&&(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='envia'||account.provider==='mrw'||account.provider==='shopify')){
+      if(credentials&&(account.provider==='sendcloud'||account.provider==='envia'||account.provider==='mrw'||account.provider==='shopify')){
         const existing=account.secret_id?await readVault(admin,account.secret_id):{};
         const merged=account.provider==='shopify'&&clean((credentials as any).accessToken)
           ?shopifyLegacyCredentials((credentials as any).shopDomain||account.external_account_id,(credentials as any).accessToken)
@@ -780,6 +753,7 @@ Deno.serve(async(req:Request)=>{
       return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,id))});
     }
     if(action==='delete'){
+      if(account.provider==='amazon'){await archiveAmazon(admin,caller,account,true);return response({accounts:await listAccounts(admin,caller.data_owner_id)});}
       // Deletion is an archive, not a database CASCADE. Imported orders,
       // receipts and Gmail documents must keep their original account links.
       const {data:children,error:childrenError}=await admin.from('integration_accounts')
@@ -831,6 +805,7 @@ Deno.serve(async(req:Request)=>{
       return response({accounts:await listAccounts(admin,caller.data_owner_id)});
     }
     if(action==='disconnect'){
+      if(account.provider==='amazon'){await archiveAmazon(admin,caller,account,false);return response({accounts:await listAccounts(admin,caller.data_owner_id)});}
       if(account.provider==='gmail'&&account.secret_id){
         const stored=await readVault(admin,account.secret_id);
         if(stored.refreshToken){try{await fetch('https://oauth2.googleapis.com/revoke',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({token:stored.refreshToken})});}catch{/* Disable locally even if Google is unavailable. */}}

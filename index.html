@@ -2,6 +2,32 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
+    <meta name="referrer" content="no-referrer" />
+    <script id="amazon-oauth-bootstrap">
+      (function(){
+        var w=window,l=w.location;
+        var login=l.pathname==='/amazon/oauth/login';
+        var q=new URLSearchParams(l.search);
+        if(!login&&!q.has('amazon_oauth'))return;
+        var entry={login:login,continuation:null};
+        if(login&&l.search.length<=8192){
+          var callback=q.get('amazon_callback_uri'),state=q.get('amazon_state'),seller=q.get('selling_partner_id');
+          try{
+            var url=new URL(callback);
+            if(q.getAll('amazon_callback_uri').length===1&&q.getAll('amazon_state').length===1&&q.getAll('selling_partner_id').length===1&&state&&state.length<=2048&&seller&&/^[A-Z0-9]{1,64}$/.test(seller)&&url.protocol==='https:'&&url.hostname==='sellercentral-europe.amazon.com'&&!url.username&&!url.password&&!url.port&&!url.hash&&!url.search&&/^\/apps\/authorize\/confirm\/[^/]+$/.test(url.pathname)&&!/[\r\n]/.test(callback)){
+              entry.continuation={amazonCallbackUri:callback,amazonState:state,sellingPartnerId:seller};
+            }
+          }catch(_error){}
+        }
+        if(!login&&q.getAll('amazon_oauth').length===1){
+          var result=q.get('amazon_oauth');
+          if(result==='connected'||result==='failed'||result==='unavailable')entry.result=result;
+        }
+        w.__amazonOAuthEntry=entry;
+        // Clear all parameters before imports, auth initialization and resource requests.
+        w.history.replaceState(null,'',l.pathname);
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#0f172a" />
     <script>

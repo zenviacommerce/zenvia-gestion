@@ -1,3 +1,4 @@
+import { AmazonOAuthButton } from '../components/amazon/AmazonOAuthLaunch';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
@@ -1603,6 +1604,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                 <IntegrationBrandLogo provider={id}/>
                 <div><strong>{providerMeta[id].name}</strong><small>{providerMeta[id].description}</small></div>
               </div>
+              {id==='amazon'&&<AmazonOAuthButton/>}
               <button type="button" className="secondary" disabled={busy!==null} onClick={()=>resetEditor(id)}><Plus size={14}/> {providerMeta[id].addLabel}</button>
             </div>
             <div className="integrationAccountList">

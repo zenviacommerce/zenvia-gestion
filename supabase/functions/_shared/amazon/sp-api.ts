@@ -13,9 +13,15 @@ function amazonDate(date=new Date()){
   return date.toISOString().replace(/[:-]|\.\d{3}/g,'');
 }
 
+export async function amazonLwaCacheKey(credentials:AmazonSpApiCredentials):Promise<string>{
+  const digest=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(credentials.refreshToken));
+  const hash=Array.from(new Uint8Array(digest),byte=>byte.toString(16).padStart(2,'0')).join('');
+  return JSON.stringify([credentials.appKey,credentials.clientId,credentials.sellerId,hash]);
+}
+
 export async function getLwaAccessToken(credentials:AmazonSpApiCredentials=readAmazonSpApiCredentials()){
   const now=Date.now();
-  const cacheKey=`${credentials.sellerId}:${credentials.clientId}:${credentials.refreshToken.slice(-12)}`;
+  const cacheKey=await amazonLwaCacheKey(credentials);
   const cachedToken=tokenCache.get(cacheKey);
   if(cachedToken&&cachedToken.expiresAt>now+60_000)return cachedToken.token;
   const body=new URLSearchParams();
@@ -27,7 +33,7 @@ export async function getLwaAccessToken(credentials:AmazonSpApiCredentials=readA
   const text=await response.text();
   let data:any=null;try{data=text?JSON.parse(text):null}catch{data=null}
   if(!response.ok||!data?.access_token){
-    throw new Error(`Amazon LWA (${response.status}): ${sanitizeAmazonError(data?.error_description||data?.error||text)}`);
+    throw new Error(`Amazon LWA (${response.status}): no se pudo renovar la autorización.`);
   }
   const expiresIn=Math.max(60,Number(data.expires_in)||3600);
   const next={token:String(data.access_token),expiresAt:now+(expiresIn*1000)};

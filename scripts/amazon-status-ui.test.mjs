@@ -32,7 +32,8 @@ test('Amazon status endpoint authenticates access and never returns credentials'
   const status=await source('supabase/functions/amazon-status/index.ts');
   assert.match(status,/authenticateUser/);
   assert.match(status,/permissions.*amazon|role.*admin/si);
-  assert.match(status,/AMAZON_SPAPI_CREDENTIALS/);
+  assert.match(status,/loadAmazonSpApiCredentials/);
+  assert.doesNotMatch(status,/AMAZON_SPAPI_CREDENTIALS/);
   assert.match(status,/amazon_accounts/);
   assert.match(status,/amazon_marketplaces/);
   assert.match(status,/amazon_sync_runs/);

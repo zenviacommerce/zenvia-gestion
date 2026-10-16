@@ -43,11 +43,17 @@ test('environment credentials require an explicitly grandfathered workspace',asy
 
 test('Amazon seller credentials are scoped by workspace while app credentials may be shared',async()=>{
   const config=await read('supabase/functions/_shared/amazon/config.ts');
-  assert.match(config,/ownerId\?:string\|null/);
-  assert.match(config,/allowSellerEnv=integration\.credential_source==='environment'/);
-  assert.match(config,/if\(!integrationAccountId\)[\s\S]*Amazon SP-API no está configurado para este workspace/);
-  assert.match(config,/clientId:[\s\S]*env\?\.clientId/);
-  assert.match(config,/refreshToken:[\s\S]*allowSellerEnv/);
+  assert.match(config,/ownerId:string/);
+  assert.match(config,/integration_amazon_credential_snapshot/);
+  assert.match(config,/row.owner_id!==ownerId/);
+  assert.match(config,/appKey==='private_v1'/);
+  assert.match(config,/AMAZON_LEGACY_FALLBACK_ACCOUNT_ID/);
+  assert.match(config,/allowedId===row.integration_account_id/);
+  assert.match(config,/readAmazonLwaApplication/);
+  const snapshot=await read('supabase/migrations/20261016193505_amazon_app_credentials.sql');
+  assert.match(snapshot,/i.owner_id=p_owner_id/);
+  assert.match(snapshot,/a.integration_account_id=i.id and a.owner_id=i.owner_id/);
+
 
   const paths=(await walk('supabase/functions')).filter(path=>path.endsWith('.ts')&&!path.endsWith('/config.ts'));
   for(const path of paths){

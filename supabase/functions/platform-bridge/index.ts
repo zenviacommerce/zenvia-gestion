@@ -1,8 +1,9 @@
+import { customerIntegrationSummary } from '../_shared/platformIntegrations.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { loadWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
 
 const jsonHeaders={'Content-Type':'application/json'};
-const modulePermissions=['dashboard','sales','orders','invoices','clients','products','suppliers','amazon','support'];
+const modulePermissions=['dashboard','sales','orders','invoices','clients','products','suppliers','amazon','shopify','support'];
 const customerAppUrl=(Deno.env.get('CUSTOMER_APP_URL')||'https://gestion.zenviacommerce.com').replace(/\/$/,'');
 
 function getAdminKey(){
@@ -291,7 +292,7 @@ Deno.serve(async(req:Request)=>{
         admin.from('business_settings').select('owner_id,legal_name,trade_name,tax_id,address_line1,address_line2,postal_code,city,province,country_code,email,phone,website').eq('owner_id',workspaceId).maybeSingle(),
         admin.from('company_branding').select('owner_id,logo_path').eq('owner_id',workspaceId).maybeSingle(),
         admin.from('app_users').select('user_id,email,full_name,role,active,permissions,created_at,updated_at,last_access_at').eq('workspace_id',workspaceId).order('created_at',{ascending:true}),
-        admin.from('integration_accounts').select('id,provider,display_name,external_account_id,status,enabled,is_default,last_tested_at,last_success_at,last_error,created_at').eq('owner_id',workspaceId).order('provider').order('created_at'),
+        admin.from('integration_accounts').select('id,provider,display_name,external_account_id,status,enabled,is_default,last_tested_at,last_success_at,last_error,created_at,config').eq('owner_id',workspaceId).order('provider').order('created_at'),
         admin.from('workspace_subscriptions').select('workspace_id,plan_key,status,billing_provider,trial_ends_at,current_period_ends_at,cancel_at_period_end').eq('workspace_id',workspaceId).maybeSingle(),
         admin.from('app_subscription_state').select('workspace_id,plan_key,plan_name,plan_version,status,synced_at').eq('workspace_id',workspaceId).maybeSingle(),
       ]);
@@ -308,7 +309,7 @@ Deno.serve(async(req:Request)=>{
       return ok({
         workspace,business:business||null,branding:{logoPath:branding?.logo_path||null,logoUrl},
         users:(users||[]).map((item:any)=>({...item,last_sign_in_at:item.last_access_at||authById.get(item.user_id)?.last_sign_in_at||null})),
-        integrations:integrations||[],subscription:subscriptionSnapshot?{
+        integrations:customerIntegrationSummary(integrations||[]),subscription:subscriptionSnapshot?{
           workspace_id:workspaceId,plan_key:subscriptionSnapshot.plan_key,status:subscriptionSnapshot.status,
           billing_provider:subscription?.billing_provider||'platform',
           trial_ends_at:subscription?.trial_ends_at||null,
@@ -322,7 +323,7 @@ Deno.serve(async(req:Request)=>{
           branding:Boolean(branding?.logo_path),
           owner:Boolean((users||[]).some((item:any)=>item.role==='admin'&&item.active)),
           plan:Boolean(subscriptionSnapshot?.plan_key||subscription?.plan_key),
-          integrations:Boolean((integrations||[]).some((item:any)=>item.enabled&&item.status!=='disabled')),
+          integrations:customerIntegrationSummary(integrations||[]).length>0,
         },
       });
     }

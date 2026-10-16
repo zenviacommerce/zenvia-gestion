@@ -97,9 +97,9 @@ async function candidateFromRead(
     withholding:Number(read.withholding||0),
     equivalenceSurcharge:Number(read.aiEquivalenceSurcharge||0),
   };
-  const repairedAmounts=invoiceAmountsConsistent(readAmounts)
-    ?{subtotal:readAmounts.subtotal,vat:readAmounts.vat,total:readAmounts.total,equivalenceSurcharge:readAmounts.equivalenceSurcharge}
-    :repairInvoiceAmounts(read.text,{subtotal:readAmounts.subtotal,vat:readAmounts.vat,total:readAmounts.total});
+  // Arithmetic consistency alone cannot detect gross incorrectly stored as
+  // net with zero VAT. Prefer a fully validated printed fiscal summary.
+  const repairedAmounts=repairInvoiceAmounts(read.text,readAmounts);
   const repairedLines=repairInvoiceProductLines(read.text,read.lines);
   const party=extractInvoiceParty(read.text,{role:'supplier',nameHint:read.supplierName,invoiceNumber:read.invoiceNumber,invoiceDate:read.invoiceDate});
   const contact=extractSupplierContactData(read.text,read.supplierName);

@@ -154,3 +154,17 @@ test('rejects currency-only OCR fragments without rejecting descriptive products
     assert.equal(isPriceOnlyProductName(name), false, name);
   }
 });
+
+test('repairs a labelled base VAT table even when gross was mistaken for net', async () => {
+  const { repairInvoiceAmounts } = await loadModule();
+  const text='Base Imponible % I.V.A. Importe I.V.A. TOTAL FACTURA\n4.531,25 21,00 951,56\n5.482,81 €';
+  assert.deepEqual(repairInvoiceAmounts(text,{subtotal:5482.81,vat:0,total:5482.81}),{subtotal:4531.25,vat:951.56,total:5482.81});
+});
+
+test('does not infer VAT from rates in item rows or an inconsistent fiscal table', async () => {
+  const { repairInvoiceAmounts } = await loadModule();
+  const current={subtotal:121,vat:0,total:121};
+  for(const text of ['Producto 100,00 21,00 21,00\n121,00','Base Imponible % I.V.A. Importe I.V.A. TOTAL FACTURA\n100,00 21,00 21,00\n125,00']){
+    assert.deepEqual(repairInvoiceAmounts(text,current),current);
+  }
+});

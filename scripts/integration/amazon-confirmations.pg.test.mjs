@@ -192,3 +192,28 @@ test('handler rejects crossed owner/account before token acquisition or any exte
  await pool.query('update amazon_accounts set owner_id=$1',[other]);const h=edgeHarness();const response=await h.handler({orderId:order});assert.equal(response.status,500);assert.equal(h.outgoing.length,0);
  assert.equal((await pool.query('select count(*)::int as n from amazon_confirmation_operations')).rows[0].n,0);
 });
+test('review authorization and prepared dispatch both respect an active shipping lease',async()=>{
+ const op=await begin();await finish(op,'rejected',pool,{p_http_status:400});
+ await pool.query('select integration_claim_order_shipping($1,$2,$3)',[order,owner,id(10)]);
+ await assert.rejects(pool.query('select amazon_confirmation_authorize($1,$2,$3,$4,$5)',[order,owner,id(8),'Reviewed exact package and corrected target tracking',payload]),/envío|shipping/i);
+ await pool.query('update fulfillment_orders set order_action_lease=null,order_action_lease_until=null');
+ await pool.query('select amazon_confirmation_authorize($1,$2,$3,$4,$5)',[order,owner,id(8),'Reviewed exact package and corrected target tracking',payload]);
+ await pool.query('select integration_claim_order_shipping($1,$2,$3)',[order,owner,id(10)]).catch(()=>{});
+ // Simulate an already in-flight shipping owner, independent of the new ledger gate.
+ await pool.query("update fulfillment_orders set order_action_lease_until=now()+interval '1 minute'");
+ await assert.rejects(begin(),/envío|shipping/i);
+});
+test('review binds the immutable target; workers cannot consume prepared revisions',async()=>{
+ const op=await begin();await finish(op,'rejected',pool,{p_http_status:400});
+ const reviewed={...payload,packageDetail:{...payload.packageDetail,trackingNumber:'CORRECTED'}};
+ await pool.query('select amazon_confirmation_authorize($1,$2,$3,$4,$5)',[order,owner,id(8),'Reviewed the corrected tracking with exact Amazon package evidence',reviewed]);
+ assert.equal((await pool.query('select * from amazon_confirmation_due($1,5,true)',[owner])).rows.length,0);
+ await assert.rejects(begin(),/409/);const next=await begin(pool,{p_payload:reviewed});assert.equal(next.payload.packageDetail.trackingNumber,'CORRECTED');
+});
+test('historical unknown package can recover through an explicit reviewed reference',async()=>{
+ await pool.query('update fulfillment_orders set amazon_tracking_sync_attempts=2');
+ const op=await begin(pool,{p_payload:{...payload,packageDetail:{...payload.packageDetail,packageReferenceId:null}}});await finish(op,'needs_review');
+ const h=edgeHarness();const authorized=await h.handler({action:'authorize_reviewed_attempt',orderId:order,reviewReason:'Reviewed exact package reference from Amazon before new submission',packageReferenceId:'7'});assert.equal(authorized.status,200);
+ const response=await h.handler({orderId:order});assert.equal((await response.json()).status,'confirmed');assert.equal(h.posts(),1);
+ assert.equal((await pool.query('select package_reference_id from amazon_confirmation_operations')).rows[0].package_reference_id,'7');
+});

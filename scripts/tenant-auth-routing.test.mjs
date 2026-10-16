@@ -132,9 +132,10 @@ test('remembered tenant allows passkey without probing other Supabases',async()=
 test('transient Supabase auth failures are shown as a useful retry message instead of raw JSON',async()=>{
   const auth=await read('src/components/AuthScreen.tsx');
   assert.match(auth,/function authErrorMessage/);
-  assert.match(auth,/request_timeout/);
-  assert.match(auth,/unexpected_failure/);
-  assert.match(auth,/message==='\{\}'/);
+  const resilience=await read('src/services/authResilience.ts');
+  assert.match(resilience,/request_timeout/);
+  assert.match(resilience,/unexpected_failure/);
+  assert.match(auth,/classifyAuthError\(error\)/);
   assert.match(auth,/ZENVIA Gestión está tardando en responder/);
   assert.match(auth,/setMessage\(authErrorMessage\(error\)\)/);
 });

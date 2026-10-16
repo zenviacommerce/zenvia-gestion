@@ -1,4 +1,5 @@
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, useEffect } from 'react';
+import {classifyAuthError, retryTransientAuth} from '../services/authResilience';
 import './auth-gestion-brand.css';
 import { Fingerprint, LoaderCircle, LockKeyhole, ReceiptText } from 'lucide-react';
 import { getActiveTenant, resolveAndActivateTenant, resetLocalTenantSession, supabase, type TenantPublicConfig } from '../services/supabase';
@@ -6,29 +7,9 @@ import { emailError, normalizeEmail } from '../services/validation';
 import { SelectField } from './forms/SelectField';
 
 function authErrorMessage(error:unknown){
-  const value=error&&typeof error==='object'?error as {message?:unknown;status?:unknown;code?:unknown}:null;
-  const message=typeof value?.message==='string'?value.message.trim():'';
-  const status=Number(value?.status||0);
-  const code=typeof value?.code==='string'?value.code:'';
-  if(status>=500||['request_timeout','unexpected_failure'].includes(code)||!message||message==='{}'||/context deadline|unexpected eof|failed to fetch|timeout/i.test(message)){
-    return 'ZENVIA Gestión está tardando en responder. Inténtalo de nuevo en unos segundos.';
-  }
-  return message;
-}
-
-/** A stalled GoTrue request must never leave the user locked on "Entrando…". */
-class AuthDeadlineError extends Error {
-  constructor() {
-    super('El servidor de autenticación no ha respondido en 18 segundos. Revisa tu conexión y vuelve a intentarlo. Si persiste, restablece el acceso de este dispositivo.');
-    this.name='AuthDeadlineError';
-  }
-}
-
-function withAuthDeadline<T>(promise:Promise<T>):Promise<T> {
-  return new Promise<T>((resolve,reject)=>{
-    const timer=window.setTimeout(()=>reject(new AuthDeadlineError()),18000);
-    promise.then(value=>{window.clearTimeout(timer);resolve(value)},error=>{window.clearTimeout(timer);reject(error)});
-  });
+  const kind=classifyAuthError(error);
+  if(kind==='temporarily-unavailable')return 'ZENVIA Gestión está tardando en responder. Tu sesión no se ha borrado. Inténtalo de nuevo.';
+  return error instanceof Error?error.message:'No se pudo iniciar sesión.';
 }
 
 function passkeySupported(){
@@ -48,8 +29,9 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
+  const [slowAuth,setSlowAuth]=useState(false);
   const [busyStage,setBusyStage]=useState<'tenant'|'auth'|null>(null);
-  const [showLocalRecovery,setShowLocalRecovery]=useState(false);
+  useEffect(()=>{if(!busy||busyStage!=='auth')return;const timer=window.setTimeout(()=>setSlowAuth(true),18000);return()=>window.clearTimeout(timer)},[busy,busyStage]);
   const [passkeyBusy,setPasskeyBusy]=useState(false);
   const [message, setMessage] = useState(initialMessage);
   const [tenantChoices,setTenantChoices]=useState<Array<Pick<TenantPublicConfig,'workspace_id'|'slug'|'name'>>>([]);
@@ -58,13 +40,12 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    setMessage('');
+    setMessage('');setSlowAuth(false);
     const emailMessage=emailError(email,true);
     if(emailMessage){setMessage(emailMessage);return;}
     if(password.length<8){setMessage('La contraseña debe tener al menos 8 caracteres.');return;}
     setBusy(true);
     setBusyStage('tenant');
-    setShowLocalRecovery(false);
     try {
       const normalized=normalizeEmail(email);
       const resolution=await resolveAndActivateTenant(selectedTenant?{tenant:selectedTenant}:{email:normalized});
@@ -76,12 +57,11 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
       }
       if(resolution.status!=='resolved')throw new Error('No se ha encontrado una empresa activa para este usuario.');
       setBusyStage('auth');
-      const { error } = await withAuthDeadline(supabase.auth.signInWithPassword({ email: normalized, password }));
+      const { error } = await retryTransientAuth(()=>supabase.auth.signInWithPassword({ email: normalized, password }).then(result=>{if(result.error&&classifyAuthError(result.error)==='temporarily-unavailable')throw result.error;return result;}));
       if (error) throw error;
       onTenantChanged?.();
     } catch (error) {
       setMessage(authErrorMessage(error));
-      if(error instanceof AuthDeadlineError)setShowLocalRecovery(true);
     } finally { setBusy(false);setBusyStage(null); }
   };
 
@@ -91,10 +71,10 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
     if(!email.trim()&&activeTenant){
       setPasskeyBusy(true);
       try{
-        const {error}=await withAuthDeadline(supabase.auth.signInWithPasskey());
+        const {error}=await supabase.auth.signInWithPasskey();
         if(error)throw error;
         onTenantChanged?.();
-      }catch(error){setMessage(passkeyError(error));if(error instanceof AuthDeadlineError)setShowLocalRecovery(true)}
+      }catch(error){setMessage(passkeyError(error));}
       finally{setPasskeyBusy(false)}
       return;
     }
@@ -111,10 +91,10 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
         return;
       }
       if(resolution.status!=='resolved')throw new Error('No se ha encontrado una empresa activa para este usuario.');
-      const {error}=await withAuthDeadline(supabase.auth.signInWithPasskey());
+      const {error}=await supabase.auth.signInWithPasskey();
       if(error)throw error;
       onTenantChanged?.();
-    }catch(error){setMessage(passkeyError(error));if(error instanceof AuthDeadlineError)setShowLocalRecovery(true)}
+    }catch(error){setMessage(passkeyError(error));}
     finally{setPasskeyBusy(false)}
   };
 
@@ -131,8 +111,9 @@ export function AuthScreen({onTenantChanged,initialMessage='',allowSessionReset=
         <label>Contraseña<input type="password" required minLength={8} autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••"/></label>
         <button className="primary authSubmit" disabled={busy||passkeyBusy}><LockKeyhole size={17}/>{busy ? (busyStage==='tenant'?'Localizando empresa…':'Verificando acceso…') : 'Entrar'}</button>
       </form>
+      {slowAuth&&busy&&busyStage==='auth'&&<div className="authMessage">La autenticación está tardando más de lo normal. Seguimos intentándolo…</div>}
       {message && <div className="authMessage">{message}</div>}
-      {(allowSessionReset||showLocalRecovery)&&<button type="button" className="secondary" onClick={()=>{resetLocalTenantSession();window.location.reload()}}>Restablecer acceso en este dispositivo</button>}
+      {allowSessionReset&&<button type="button" className="secondary" onClick={()=>{resetLocalTenantSession();window.location.reload()}}>Restablecer acceso en este dispositivo</button>}
       {canUsePasskey&&<p className="authPasskeyHint">La primera vez debes activar la biometría desde dentro de la aplicación.</p>}
       <div className="authMessage">Las cuentas se crean y administran desde la propia aplicación.</div>
     </div>

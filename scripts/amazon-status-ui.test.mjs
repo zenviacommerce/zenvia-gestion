@@ -53,7 +53,7 @@ test('Amazon page retains live status and manual sync without external shortcuts
   assert.match(page,/requestAmazonSync/);
   assert.doesNotMatch(page,/Seller Central|sellercentral\.amazon/);
   assert.doesNotMatch(page,/sellerboard\.com/);
-  assert.match(page,/Sincronizar ahora/);
+  assert.match(page,/Actualizar datos/);
   assert.match(page,/marketplace/i);
   assert.doesNotMatch(page,/La conexión segura con Amazon SP-API y Amazon Ads se configurará en el backend en la siguiente fase/);
 });

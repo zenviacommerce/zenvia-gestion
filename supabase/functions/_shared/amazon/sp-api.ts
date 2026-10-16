@@ -13,7 +13,7 @@ function amazonDate(date=new Date()){
   return date.toISOString().replace(/[:-]|\.\d{3}/g,'');
 }
 
-export async function getLwaAccessToken(credentials:AmazonSpApiCredentials=readAmazonSpApiCredentials()){
+export async function getLwaAccessToken(credentials:AmazonSpApiCredentials=readAmazonSpApiCredentials(),signal?:AbortSignal){
   const now=Date.now();
   const cacheKey=`${credentials.sellerId}:${credentials.clientId}:${credentials.refreshToken.slice(-12)}`;
   const cachedToken=tokenCache.get(cacheKey);
@@ -23,7 +23,7 @@ export async function getLwaAccessToken(credentials:AmazonSpApiCredentials=readA
   body.set('refresh_token',credentials.refreshToken);
   body.set('client_id',credentials.clientId);
   body.set('client_secret',credentials.clientSecret);
-  const response=await fetch(LWA_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body});
+  const response=await fetch(LWA_URL,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded;charset=UTF-8'},body,signal:AbortSignal.any([AbortSignal.timeout(10_000),...(signal?[signal]:[])])});
   const text=await response.text();
   let data:any=null;try{data=text?JSON.parse(text):null}catch{data=null}
   if(!response.ok||!data?.access_token){
@@ -40,6 +40,8 @@ export type SpApiRequestOptions={
   query?:Record<string,string|number|boolean|Array<string|number>|null|undefined>;
   body?:unknown;
   maxAttempts?:number;
+  signal?:AbortSignal;
+  onResponse?:(metadata:{status:number;requestId:string|null})=>void;
 };
 
 function buildUrl(path:string,query?:SpApiRequestOptions['query']){
@@ -56,8 +58,12 @@ function transient(status:number){return [429,500,502,503,504].includes(status);
 
 export async function spApiRequest<T=any>(path:string,options:SpApiRequestOptions={},credentials?:AmazonSpApiCredentials):Promise<T>{
   const url=buildUrl(path,options.query);
-  for(let attempt=0;attempt<(options.maxAttempts||MAX_ATTEMPTS);attempt+=1){
-    const accessToken=await getLwaAccessToken(credentials);
+  // Shipment confirmation is an external mutation: ambiguity is resolved by GET, never retry.
+  const confirmation=(options.method||'GET')==='POST'&&/\/shipmentConfirmation\/?$/.test(url.pathname);
+  const attempts=confirmation?1:Math.max(1,Math.min(MAX_ATTEMPTS,options.maxAttempts||MAX_ATTEMPTS));
+  for(let attempt=0;attempt<attempts;attempt+=1){
+    options.signal?.throwIfAborted();
+    const accessToken=await getLwaAccessToken(credentials,options.signal);
     const headers=new Headers({
       Accept:'application/json',
       'user-agent':USER_AGENT,
@@ -66,19 +72,31 @@ export async function spApiRequest<T=any>(path:string,options:SpApiRequestOption
     });
     let body:BodyInit|undefined;
     if(options.body!==undefined){headers.set('Content-Type','application/json');body=JSON.stringify(options.body);}
-    const response=await fetch(url,{method:options.method||'GET',headers,body,signal:AbortSignal.timeout(25000)});
+    const response=await fetch(url,{method:options.method||'GET',headers,body,signal:AbortSignal.any([AbortSignal.timeout(25000),...(options.signal?[options.signal]:[])])});
+    options.onResponse?.({status:response.status,requestId:response.headers.get('x-amzn-requestid')});
     const text=await response.text();
     if(response.ok){
       if(!text)return undefined as T;
       try{return JSON.parse(text) as T}catch{throw new Error('Amazon SP-API devolvió una respuesta JSON no válida.');}
     }
-    if(transient(response.status)&&attempt<(options.maxAttempts||MAX_ATTEMPTS)-1){
-      await sleep(retryAfterMs(response.headers,attempt));
+    if(transient(response.status)&&attempt<attempts-1){
+      const delay=retryAfterMs(response.headers,attempt);
+      if(options.signal){
+        const signal=options.signal;
+        await new Promise<void>((resolve,reject)=>{
+          const done=()=>{signal.removeEventListener('abort',aborted);resolve()};
+          const timer=setTimeout(done,delay);
+          const aborted=()=>{clearTimeout(timer);reject(signal.reason)};
+          if(signal.aborted)aborted();else signal.addEventListener('abort',aborted,{once:true});
+        });
+      }else await sleep(delay);
       continue;
     }
     let parsed:any=null;try{parsed=text?JSON.parse(text):null}catch{/* keep raw */}
     const detail=parsed?.errors?.map?.((item:any)=>item?.message||item?.code).filter(Boolean).join(' · ')||parsed?.message||text;
-    throw new Error(`Amazon SP-API (${response.status}): ${sanitizeAmazonError(detail)}`);
+    const error=new Error(`Amazon SP-API (${response.status}): ${sanitizeAmazonError(detail)}`);
+    Object.assign(error,{status:response.status,requestId:response.headers.get('x-amzn-requestid')});
+    throw error;
   }
   throw new Error('Amazon SP-API agotó los reintentos.');
 }

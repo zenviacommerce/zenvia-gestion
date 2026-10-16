@@ -1,0 +1,16 @@
+{
+  "project": "sjkxxbedkkmgmqnvaqjh",
+  "slug": "order-cancellation",
+  "version": 1,
+  "verify_jwt": true,
+  "files": {
+    "_shared/orderCancellation.ts": "a55825ea07755c6d105c1b5d1eb5df3ce4c59cfe2863e6b859a6ed6312ea3ade",
+    "_shared/shopifyAuth.ts": "1ed147c19666d1ed11ede1a49a7d057ba1cf0b7028c6e462227fee0ce3b9e580",
+    "_shared/cancelCarriers.ts": "a5936533df5baf2ba2bb8540784647833ea6cf0b8225c014a6294f7c1c676d9c",
+    "order-cancellation/index.ts": "71fec659b2e01dab41bcccf1e83a76df9e3a6335cdb16fc4b90d0a21969ed176",
+    "_shared/amazon/config.ts": "7332c7798b0a0999e5b021ace98baef5982fe927f2e0f60399b824fcd891fcdb",
+    "_shared/amazon/supabase.ts": "5013b69425f5744e249aadcab3887a945b04dcf9873b2412df457fbf76a04fb1",
+    "_shared/amazon/http.ts": "d95a7a0b8c608bf144c50efb677d211aa4f68b06c2e7973940ae70e356870849",
+    "_shared/amazon/sp-api.ts": "a522fb054ca6e4f6825b20409ecb593b5f8b676f59342342699141b81edc3098"
+  }
+}

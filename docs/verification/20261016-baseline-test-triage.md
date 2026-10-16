@@ -1,4 +1,4 @@
-# Triage: eight inherited test failures — no fixes
+# Eight outdated tests updated after intended behavior was confirmed
 
 Reproduced on untouched main 840e2f201f0b981f7962ebfe3e2919993faa34ce on 2026-10-16. Command: `node --test --test-reporter=tap scripts/*.test.mjs`. Actual result: exit 1; 985 tests, 977 passing, 8 failing, none skipped. These are the same eight cases reported before the Auth release. This PR changes documentation only; no test, application, Edge or migration code is changed, skipped or repaired.
 
@@ -18,3 +18,9 @@ Probable causes below are triage, not approval to change expectations. Before a 
 ## Scope and release relationship
 
 PR #214 has 20 passing real-SDK Auth tests and a passing production build. This inherited Node-suite backlog is separate. The full Node workflow is still red; this document does not claim it is green or waive it silently. The user explicitly approved the Auth release with these eight failures deferred.
+
+## Approved expectation updates (2026-10-16)
+
+The user confirmed all eight contracts are intentional. This PR now updates only the eight test files listed above. The forecast expectation follows the Europe/Madrid calendar day; manual recovery mocks support limit and assert the second HTTP result; cards assert the current net-profit metric; button text, claim size, recovery branch and table width match the intended UI/worker. Gmail's harness executes the real background-import module and keeps its sequential review assertions. No product code was changed and no actual product bug was identified.
+
+Validation: `node --test --test-reporter=tap scripts/*.test.mjs`: **985 passed, 0 failed, 0 skipped**. Historical red results above are preserved as before/after evidence, not current status.

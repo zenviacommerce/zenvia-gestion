@@ -142,7 +142,8 @@ test('forecast is a distinct estimate and selecting it shows actual month produc
  assert.ok(card);assert.match(card.textContent,/Estimación/);assert.match(card.textContent,/días completos/);
  assert.equal(card.querySelector('button.amazonTileDate'),null);
  await act(async()=>card.querySelector('.amazonPeriodSelect').click());
- assert.equal(s.selected.at(-1).from,'2026-10-01');assert.equal(s.selected.at(-1).to,'2026-10-14');
+ const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ assert.equal(s.selected.at(-1).from,today.slice(0,7)+'-01');assert.equal(s.selected.at(-1).to,today);
  await s.close();
 });
 

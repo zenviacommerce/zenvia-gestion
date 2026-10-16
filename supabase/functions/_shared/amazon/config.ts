@@ -16,22 +16,21 @@ function parseEnv(){
   if(!raw)return {} as any;
   try{return JSON.parse(raw)}catch{throw new Error('AMAZON_SPAPI_CREDENTIALS no contiene JSON válido.');}
 }
-function normalize(stored:any,env:any,fallbackSellerId='',allowSellerEnv=false):AmazonSpApiCredentials{
+function normalize(stored:any,env:any,fallbackSellerId=''):AmazonSpApiCredentials{
+  const refreshToken=clean(stored?.refreshToken)||clean(stored?.refresh_token);
+  if(!refreshToken)throw new Error('cuenta Amazon sin credenciales');
   return {
     // SP-API/LWA app credentials can be shared by every tenant using the same
     // registered application. Seller-specific credentials cannot.
     clientId:required(stored?.clientId||stored?.client_id||env?.clientId||env?.client_id,'client_id'),
     clientSecret:required(stored?.clientSecret||stored?.client_secret||env?.clientSecret||env?.client_secret,'client_secret'),
-    refreshToken:required(stored?.refreshToken||stored?.refresh_token||(allowSellerEnv?(env?.refreshToken||env?.refresh_token):''),'refresh_token'),
-    sellerId:required(stored?.sellerId||stored?.seller_id||fallbackSellerId||(allowSellerEnv?(env?.sellerId||env?.seller_id):''),'seller_id'),
+    refreshToken:refreshToken,
+    sellerId:required(stored?.sellerId||stored?.seller_id||fallbackSellerId,'seller_id'),
   };
 }
 
 export function readAmazonSpApiCredentials():AmazonSpApiCredentials{
-  const env=parseEnv();
-  if(!Object.keys(env).length)throw new Error('Amazon SP-API no está configurado en el backend.');
-  // Legacy internal-only helper. Never use this for a tenant request.
-  return normalize({},env,'',true);
+  throw new Error('cuenta Amazon sin credenciales');
 }
 
 async function readIntegrationSecret(admin:any,integrationAccountId:string,ownerId?:string|null){
@@ -78,6 +77,5 @@ export async function loadAmazonSpApiCredentials(
   }
 
   const {integration,stored}=await readIntegrationSecret(admin,integrationAccountId,ownerId||null);
-  const allowSellerEnv=integration.credential_source==='environment';
-  return normalize(stored,env,clean(integration.external_account_id)||fallbackSellerId,allowSellerEnv);
+  return normalize(stored,env,clean(integration.external_account_id)||fallbackSellerId);
 }

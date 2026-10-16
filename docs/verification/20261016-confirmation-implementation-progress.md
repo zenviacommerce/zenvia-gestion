@@ -1,0 +1,4 @@
+# SDD ledger — plan: docs/superpowers/plans/2026-10-16-amazon-confirmation-idempotency.md
+
+Pre-flight: SQL begin/finish RPC results are consumed by shipment module; endpoint and worker share that module; cancellation entry point uses integration_start_cancellation with an order-first lock, so its body must add a durable ledger predicate under that same lock. The currently deployed endpoint is not in the reconciled tree: import exact source before altering its shared exclusion.
+Ruling: PostgreSQL concurrency tests run in an isolated PostgreSQL 17 GitHub Actions service, not on production. This environment has no usable local PostgreSQL server/user namespace; real independent connections in CI provide the required evidence without production DDL. Cost if wrong: CI may reveal portability gaps before review.

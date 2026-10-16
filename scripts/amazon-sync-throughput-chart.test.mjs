@@ -44,7 +44,7 @@ test('manual sync handles an immediately drained queue without leaving stale pen
   const page=await source('src/pages/Amazon.tsx');
   assert.match(page,/const nextStatus=await refresh\(\)/);
   assert.match(page,/const nextPending=/);
-  assert.match(page,/else if\(result\.jobs\)/);
+  assert.match(page,/else if\(result\.jobs\|\|result\.recoveryJobs\)/);
   assert.match(page,/setManualSyncPending\(false\)/);
 });
 

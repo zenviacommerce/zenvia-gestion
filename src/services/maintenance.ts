@@ -1,3 +1,4 @@
+import {sensitiveRPC} from './mfa';
 import { supabase } from './supabase';
 import { syncSendcloudOrders } from './orders';
 import { requestAmazonSync } from './amazon';
@@ -165,12 +166,12 @@ export async function previewClientMerge(sourceId:string,destinationId:string):P
 }
 
 export async function mergeSupplier(sourceId:string,destinationId:string){
-  const {data,error}=await supabase.rpc('configuration_merge_supplier',{p_source_id:sourceId,p_destination_id:destinationId});
+  const {data,error}=await sensitiveRPC('configuration_merge_supplier',{p_source_id:sourceId,p_destination_id:destinationId});
   if(error)throw error;
   return data;
 }
 export async function mergeClient(sourceId:string,destinationId:string){
-  const {data,error}=await supabase.rpc('configuration_merge_client',{p_source_id:sourceId,p_destination_id:destinationId});
+  const {data,error}=await sensitiveRPC('configuration_merge_client',{p_source_id:sourceId,p_destination_id:destinationId});
   if(error)throw error;
   return data;
 }
@@ -246,7 +247,7 @@ export type ExpenseInvoiceReprocessPreview={
 };
 
 async function runMaintenanceRepairRpc(name:string,apply:boolean):Promise<MaintenanceRepairPreview>{
-  const {data,error}=await supabase.rpc(name,{p_apply:apply});
+  const {data,error}=await sensitiveRPC(name,{p_apply:apply});
   if(error)throw error;
   return (data||{ok:true,preview:!apply}) as MaintenanceRepairPreview;
 }
@@ -354,7 +355,7 @@ export async function previewExpenseInvoiceReprocess(invoiceId:string):Promise<E
 }
 
 export async function applyExpenseInvoiceReprocess(preview:ExpenseInvoiceReprocessPreview){
-  const {data,error}=await supabase.rpc('configuration_apply_invoice_reprocess',{
+  const {data,error}=await sensitiveRPC('configuration_apply_invoice_reprocess',{
     p_invoice_id:preview.invoiceId,
     p_payload:preview.parsed,
   });

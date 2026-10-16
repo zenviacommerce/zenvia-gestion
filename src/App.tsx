@@ -1,3 +1,5 @@
+import {useMfaAccess} from './context/MfaContext';
+import {MfaScreen} from './components/MfaScreen';
 import {classifyAuthError, retryTransientAuth} from './services/authResilience';
 import {shouldShowPresentation} from './services/publicEntry';
 import {RetainedImportPage} from './components/RetainedImportPage';
@@ -76,6 +78,7 @@ function initialTheme(): ThemeMode {
 }
 
 export default function App(){
+ const mfaAccess=useMfaAccess();
  const {settings,preferences,loading:settingsLoading}=useSettings();
  const [session,setSession]=useState<Session|null>(null);
  const [authReady,setAuthReady]=useState(false);
@@ -156,12 +159,16 @@ export default function App(){
    document.documentElement.dataset.density=preferences.density;
  },[preferences.density]);
 
+ const dataGeneration=useRef(0);
+ useEffect(()=>{dataGeneration.current++;return()=>{dataGeneration.current++}},[mfaAccess.ready,userId]);
  const refresh=useCallback(async()=>{
+   if(!mfaAccess.ready)return;
+   const generation=++dataGeneration.current;
    setLoading(true); setError('');
-   try { setData(await loadAppData()); }
-   catch(e){ setError(e instanceof Error?e.message:'No se pudieron cargar los datos.'); }
-   finally{ setLoading(false); }
- },[]);
+   try {const loaded=await loadAppData();if(generation===dataGeneration.current)setData(loaded);}
+   catch(e){if(generation===dataGeneration.current)setError(e instanceof Error?e.message:'No se pudieron cargar los datos.');}
+   finally{if(generation===dataGeneration.current)setLoading(false);}
+ },[mfaAccess.ready,userId]);
 
  const refreshWorkspaceBranding=useCallback(async()=>{
    try{
@@ -234,7 +241,7 @@ export default function App(){
 
  // Record application use independently of password sign-in or token refresh.
  useEffect(()=>{
-   if(!userId||!access?.active)return;
+   if(!mfaAccess.ready||!userId||!access?.active)return;
    let disposed=false;
    let inFlight=false;
    const record=async()=>{
@@ -258,32 +265,32 @@ export default function App(){
      window.removeEventListener('online',onVisible);
      document.removeEventListener('visibilitychange',onVisible);
    };
- },[userId,access?.active,authClientVersion]);
+ },[mfaAccess.ready,userId,access?.active,authClientVersion]);
 
  useEffect(()=>{
    let cancelled=false;
-   if(!userId){setAccess(null);setAccessReady(false);setData(emptyData);setWorkspaceLogo(null);return;}
+   if(!mfaAccess.ready||!userId){setAccess(null);setAccessReady(false);setData(emptyData);setWorkspaceLogo(null);return;}
    setAccessReady(false);setError('');
    withTimeout(loadAccessAndBranding(userId),90000,'El servicio de datos sigue recuperándose. Vuelve a intentarlo en unos segundos.')
      .then(({profile,workspaceLogo:nextLogo})=>{if(!cancelled){setAccess(profile);setWorkspaceLogo(nextLogo);setAccessReady(true)}})
      .catch(e=>{if(!cancelled){setAccess(null);setWorkspaceLogo(null);setAccessReady(true);setError(e instanceof Error?e.message:'No se pudo comprobar tu acceso.')}});
    return()=>{cancelled=true};
- },[userId,loadAccessAndBranding]);
+ },[mfaAccess.ready,userId,loadAccessAndBranding]);
 
  useEffect(()=>{
-   if(!userId||!access?.active){setData(emptyData);return;}
+   if(!mfaAccess.ready||!userId||!access?.active){setData(emptyData);return;}
    (async()=>{try{await bootstrapUser();await refresh();}catch(e){setError(e instanceof Error?e.message:'Error al inicializar la cuenta.')}})();
- },[userId,access?.active,refresh]);
+ },[mfaAccess.ready,userId,access?.active,refresh]);
 
  useEffect(()=>{
-   if(!userId||!access?.active)return;
+   if(!mfaAccess.ready||!userId||!access?.active)return;
    const syncBranding=()=>{void refreshWorkspaceBranding();};
    window.addEventListener('focus',syncBranding);
    return()=>window.removeEventListener('focus',syncBranding);
- },[userId,access?.active,refreshWorkspaceBranding]);
+ },[mfaAccess.ready,userId,access?.active,refreshWorkspaceBranding]);
 
  useEffect(()=>{
-   if(!accessReady||!access?.active||!allowedPages.length)return;
+   if(!mfaAccess.ready||!accessReady||!access?.active||!allowedPages.length)return;
    if(!startPageApplied.current&&!settingsLoading){
      const initial=effectiveStartPage(preferences.startPage,settings.general.startPage,allowedPages);
      if(initial)setPage(initial);
@@ -291,10 +298,10 @@ export default function App(){
      return;
    }
    if(!allowedPages.includes(page))setPage(allowedPages[0]);
- },[accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading]);
+ },[mfaAccess.ready,accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading]);
 
  useEffect(()=>{
-   if(!accessReady||!access?.active||!allowedPages.includes('settings'))return;
+   if(!mfaAccess.ready||!accessReady||!access?.active||!allowedPages.includes('settings'))return;
    const query=shopifyOAuthCallbackRef.current;
    if(!query||shopifyOAuthExchangeStarted.current)return;
    shopifyOAuthExchangeStarted.current=true;
@@ -315,7 +322,7 @@ export default function App(){
      clearShopifyOAuthCallback();
      showError(error instanceof Error?error.message:'No se pudo finalizar la conexión con Shopify.');
    });
- },[accessReady,access?.active,allowedPages]);
+ },[mfaAccess.ready,accessReady,access?.active,allowedPages]);
 
  if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> {tenantBootstrapError||'Cargando…'}</div>;
  if(recoveryToken) return <><ToastHost/><RecoveryTokenSetup tokenHash={recoveryToken} onComplete={async()=>{
@@ -339,6 +346,7 @@ export default function App(){
  if(authAvailability==='temporarily-unavailable'&&!session)return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>Servicio temporalmente no disponible</h1><p>{tenantBootstrapError}</p><div className="actions"><button className="primary" onClick={()=>setAuthClientVersion(v=>v+1)}>Reintentar conexión</button></div></div></div></>;
  if(!session&&shouldShowPresentation(false,window.location.search,window.location.hash))return <iframe title="Presentación de Zenvia Gestión" src="/presentacion.html" style={{display:'block',width:'100%',height:'100dvh',border:0,background:'#f6f7f1'}}/>;
  if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootstrapError} allowSessionReset={authAvailability==='invalid'} onTenantChanged={()=>{setTenantBootstrapError('');setAuthClientVersion(value=>value+1)}}/></>;
+ if(!mfaAccess.ready) return <><ToastHost/><MfaScreen/></>;
  if(session.user.user_metadata?.onboarding_pending===true) return <><ToastHost/><InvitePasswordSetup session={session} onComplete={async()=>{
    const {data}=await supabase.auth.getSession();
    ensureViewCacheScope(getActiveTenant()?.workspace_id,data.session?.user.id);

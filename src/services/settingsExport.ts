@@ -1,3 +1,4 @@
+import {sensitiveRPC} from './mfa';
 import { supabase } from './supabase';
 import { loadAppSettings } from './settings';
 import { APP_SETTINGS_SCHEMA_VERSION, DEFAULT_APP_SETTINGS, type AppSettings, type SettingsSection } from './settingsSchema';
@@ -95,7 +96,7 @@ export async function previewSettingsReset():Promise<SettingsResetPreview>{
 
 export async function resetAllSettingsToDefaults(){
   const preview=await previewSettingsReset();
-  const {error}=await supabase.rpc('configuration_reset_app_settings',{
+  const {error}=await sensitiveRPC('configuration_reset_app_settings',{
     p_schema_version:APP_SETTINGS_SCHEMA_VERSION,
     p_config:clone(DEFAULT_APP_SETTINGS),
   });

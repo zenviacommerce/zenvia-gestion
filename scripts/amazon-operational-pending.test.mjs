@@ -15,7 +15,9 @@ test('Amazon tracking retries only pick previously failed confirmations',async()
 
 test('Amazon tracking confirmation claims the row before calling SP-API',async()=>{
   const helper=await source('supabase/functions/_shared/amazon/shipment-confirmation.ts');
-  assert.match(helper,/claimAmazonTrackingAttempt/i);
-  assert.match(helper,/\.eq\(['"]amazon_tracking_sync_attempts['"]/i);
+  assert.match(helper,/amazon_confirmation_begin/i);
+  assert.match(helper,/amazon_confirmation_dispatch/i);
+  assert.match(helper,/p_holder:holder/);
+  assert.match(helper,/p_fence:operation\.fence/);
   assert.match(helper,/\.is\(['"]amazon_tracking_synced_at['"],\s*null\)/i);
 });

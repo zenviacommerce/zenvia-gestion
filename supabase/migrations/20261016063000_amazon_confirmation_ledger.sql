@@ -18,6 +18,8 @@ create table public.amazon_confirmation_operations (
  fence bigint not null default 1,
  lease_until timestamptz,
  submission_started_at timestamptz,
+ dispatch_started_at timestamptz,
+ last_request_id text,
  verification_attempts integer not null default 0,
  next_verification_at timestamptz not null default now(),
  last_http_status integer,
@@ -69,12 +71,12 @@ begin
  if fresh and coalesce(p_payload#>>'{packageDetail,packageReferenceId}','')!~'^[1-9][0-9]*$' then raise exception 'Package reference requerido para enviar'; end if;
  update public.amazon_confirmation_operations set holder=p_holder,fence=fence+1,lease_until=clock_timestamp()+interval '60 seconds',state='pending_verification',payload=case when fresh then p_payload else payload end,payload_hash=case when fresh then hash else payload_hash end,package_reference_id=case when fresh then p_payload#>>'{packageDetail,packageReferenceId}' else package_reference_id end,submission_started_at=case when fresh then clock_timestamp() else submission_started_at end,updated_at=clock_timestamp() where id=op.id returning * into op;
  if fresh then
-  update public.fulfillment_orders set amazon_tracking_sync_attempts=coalesce(amazon_tracking_sync_attempts,0)+1,amazon_tracking_last_attempt_at=clock_timestamp() where id=p_order_id and owner_id=p_owner_id;
+  update public.fulfillment_orders set amazon_tracking_synced_at=null,amazon_tracking_sync_error='Verificando confirmación en Amazon',amazon_tracking_sync_attempts=coalesce(amazon_tracking_sync_attempts,0)+1,amazon_tracking_last_attempt_at=clock_timestamp() where id=p_order_id and owner_id=p_owner_id;
  end if;
  return to_jsonb(op)||jsonb_build_object('send',fresh,'verify',not fresh);
 end $$;
 
-create function public.amazon_confirmation_finish(p_order_id uuid,p_owner_id uuid,p_holder uuid,p_fence bigint,p_state text,p_message text,p_http_status integer)
+create function public.amazon_confirmation_finish(p_order_id uuid,p_owner_id uuid,p_holder uuid,p_fence bigint,p_state text,p_message text,p_http_status integer,p_request_id text default null)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp set statement_timeout='3s' set lock_timeout='500ms' as $$
 declare item public.fulfillment_orders;op public.amazon_confirmation_operations; next_state text; tries integer;
 begin
@@ -91,7 +93,7 @@ begin
  else
   update public.fulfillment_orders set amazon_tracking_sync_error=case when next_state='rejected' then 'Confirmación rechazada; requiere revisión' when next_state='needs_review' then 'Confirmación requiere revisión' else 'Verificando confirmación en Amazon' end where id=p_order_id and owner_id=p_owner_id and amazon_tracking_synced_at is null;
  end if;
- update public.amazon_confirmation_operations set state=next_state,verification_attempts=tries,next_verification_at=clock_timestamp()+make_interval(secs=>least(3600,30*power(2,least(tries,6)))::integer),message=left(p_message,800),last_http_status=p_http_status,holder=null,lease_until=null,updated_at=clock_timestamp() where id=op.id returning * into op;
+ update public.amazon_confirmation_operations set state=next_state,verification_attempts=tries,next_verification_at=clock_timestamp()+make_interval(secs=>least(3600,30*power(2,least(tries,6)))::integer),message=left(p_message,800),last_http_status=p_http_status,last_request_id=coalesce(p_request_id,last_request_id),holder=null,lease_until=null,updated_at=clock_timestamp() where id=op.id returning * into op;
  return to_jsonb(op);
 end $$;
 
@@ -105,15 +107,15 @@ begin
  if not found then raise exception 'Pedido/tenant no válido';end if;
  select * into op from public.amazon_confirmation_operations where order_id=p_order_id and owner_id=p_owner_id for update;
  if not found or op.state not in('rejected','needs_review','confirmed') or op.lease_until>clock_timestamp() then raise exception '409: primero reconcilia la confirmación pendiente'; end if;
- update public.amazon_confirmation_operations set history=history||jsonb_build_array(to_jsonb(op)||jsonb_build_object('reviewed_by',p_actor,'review_reason',left(p_reason,800))),revision=revision+1,state='prepared',attempt_id=gen_random_uuid(),payload=null,payload_hash=null,holder=null,lease_until=null,verification_attempts=0,submission_started_at=null,original_tracking_number=item.tracking_number,updated_at=clock_timestamp() where id=op.id returning * into op;
+ update public.amazon_confirmation_operations set history=history||jsonb_build_array(to_jsonb(op)||jsonb_build_object('reviewed_by',p_actor,'review_reason',left(p_reason,800))),revision=revision+1,state='prepared',attempt_id=gen_random_uuid(),payload=null,payload_hash=null,holder=null,lease_until=null,verification_attempts=0,submission_started_at=null,dispatch_started_at=null,original_tracking_number=item.tracking_number,updated_at=clock_timestamp() where id=op.id returning * into op;
  return to_jsonb(op);
 end $$;
 
 revoke all on function public.amazon_confirmation_begin(uuid,uuid,uuid,text,jsonb,uuid) from public,anon,authenticated;
-revoke all on function public.amazon_confirmation_finish(uuid,uuid,uuid,bigint,text,text,integer) from public,anon,authenticated;
+revoke all on function public.amazon_confirmation_finish(uuid,uuid,uuid,bigint,text,text,integer,text) from public,anon,authenticated;
 revoke all on function public.amazon_confirmation_authorize(uuid,uuid,uuid,text) from public,anon,authenticated;
 grant execute on function public.amazon_confirmation_begin(uuid,uuid,uuid,text,jsonb,uuid) to service_role;
-grant execute on function public.amazon_confirmation_finish(uuid,uuid,uuid,bigint,text,text,integer) to service_role;
+grant execute on function public.amazon_confirmation_finish(uuid,uuid,uuid,bigint,text,text,integer,text) to service_role;
 grant execute on function public.amazon_confirmation_authorize(uuid,uuid,uuid,text) to service_role;
 
 -- Seed only unambiguous legacy attempts. Unresolved account context cannot submit through begin either.
@@ -167,3 +169,15 @@ declare item public.fulfillment_orders; op public.order_cancellation_operations;
  return jsonb_build_object('claimed',true,'operation',to_jsonb(op));end $function$
 ;
 
+
+-- Consume the one allowed send only if the original fence still owns the live lease.
+create function public.amazon_confirmation_dispatch(p_order_id uuid,p_owner_id uuid,p_holder uuid,p_fence bigint)
+returns boolean language plpgsql security definer set search_path=public,pg_temp set statement_timeout='3s' set lock_timeout='500ms' as $$
+begin
+ perform 1 from public.fulfillment_orders where id=p_order_id and owner_id=p_owner_id for update;
+ if not found then return false;end if;
+ update public.amazon_confirmation_operations set dispatch_started_at=clock_timestamp() where order_id=p_order_id and owner_id=p_owner_id and holder=p_holder and fence=p_fence and lease_until>clock_timestamp() and state='pending_verification' and submission_started_at is not null and dispatch_started_at is null;
+ return found;
+end $$;
+revoke all on function public.amazon_confirmation_dispatch(uuid,uuid,uuid,bigint) from public,anon,authenticated;
+grant execute on function public.amazon_confirmation_dispatch(uuid,uuid,uuid,bigint) to service_role;

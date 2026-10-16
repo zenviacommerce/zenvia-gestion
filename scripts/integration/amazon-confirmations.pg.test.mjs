@@ -1,6 +1,10 @@
 import test,{before,after,beforeEach} from 'node:test';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+import path from 'node:path';
 import pg from 'pg';
 const url=process.env.PG_TEST_URL;
 if(!url||new URL(url).pathname!=='/confirmations_test')throw new Error('PG_TEST_URL must name the disposable confirmations_test database');
@@ -18,10 +22,11 @@ before(async()=>{
 });
 after(()=>pool.end());
 beforeEach(async()=>{
- await pool.query('truncate fulfillment_orders,amazon_accounts,integration_accounts,amazon_orders,order_cancellation_operations cascade');
- await pool.query('insert into integration_accounts(id,owner_id) values($1,$2)',[integration,owner]);
- await pool.query('insert into amazon_accounts values($1,$2,$3)',[account,owner,integration]);
- await pool.query("insert into fulfillment_orders(id,owner_id,order_id,source_integration_account_id,tracking_number) values($1,$2,'123-1234567-1234567',$3,'REAL-FIXTURE-ONLY')",[order,owner,integration]);
+ await pool.query('truncate fulfillment_orders,amazon_accounts,integration_accounts,amazon_orders,amazon_order_items,order_cancellation_operations cascade');
+ await pool.query('insert into integration_accounts(id,owner_id,linked_resource_id,secret_id) values($1,$2,$3,$4)',[integration,owner,account,id(9)]);
+ await pool.query('insert into amazon_accounts(id,owner_id,integration_account_id) values($1,$2,$3)',[account,owner,integration]);
+ await pool.query("insert into fulfillment_orders(id,owner_id,order_id,source_integration_account_id,tracking_number,carrier_code,label_created_at) values($1,$2,'123-1234567-1234567',$3,'REAL-FIXTURE-ONLY','MRW','2026-10-16T00:00:00Z')",[order,owner,integration]);
+ await pool.query("insert into amazon_order_items values($1,$2,'123-1234567-1234567','ES','item',1)",[owner,account]);
  await pool.query("insert into amazon_orders values($1,$2,'123-1234567-1234567','ES','MFN')",[owner,account]);
 });
 test('two real connections serialize submission; pending is committed before effects',async()=>{
@@ -77,3 +82,87 @@ test('ledger RLS enabled and privileged RPC execution is service-only',async()=>
  }
 });
 export {pool,begin,finish,payload,id};
+test('dispatch consumes one send authorization; expired/stale holder cannot POST',async()=>{
+ const op=await begin();const dispatch=(who=holder,fence=op.fence)=>pool.query('select amazon_confirmation_dispatch($1,$2,$3,$4) as allowed',[order,owner,who,fence]);
+ assert.equal((await dispatch()).rows[0].allowed,true);assert.equal((await dispatch()).rows[0].allowed,false);
+ await pool.query("update amazon_confirmation_operations set lease_until=now()-interval '1 second'");
+ assert.equal((await dispatch()).rows[0].allowed,false);
+});
+test('five empty verification outcomes stop at needs_review without arming submission',async()=>{
+ await pool.query('update fulfillment_orders set amazon_tracking_sync_attempts=1');
+ for(let i=0;i<5;i++){
+  await pool.query("update amazon_confirmation_operations set next_verification_at=now()-interval '1 second'");
+  const op=await begin();assert.equal(op.send,false);assert.equal(op.verify,true);await finish(op,'pending_verification',pool,{p_http_status:null});
+ }
+ assert.equal((await begin()).state,'needs_review');assert.equal((await begin()).send,false);
+});
+test('review authorization cannot bypass pending; explicit rejected revision preserves history',async()=>{
+ const op=await begin();const authorize=()=>pool.query('select amazon_confirmation_authorize($1,$2,$3,$4)',[order,owner,id(8),'Reviewed remote evidence and corrected the invalid payload']);
+ await assert.rejects(authorize(),/409/);await finish(op,'rejected',pool,{p_http_status:400});await authorize();
+ const next=await begin();assert.equal(next.send,true);assert.equal(next.revision,2);assert.equal(next.history.length,1);
+});
+
+// Real Edge module + real PostgreSQL RPCs; only auth identity and Amazon's HTTP boundary are controlled.
+function edgeHarness({postStatus=200,loseResponse=false,timeout=false,onPost}={}){
+ const outgoing=[];let packages=[];let handler;const modules=new Map();
+ const admin={from(table){
+  assert.ok(['fulfillment_orders','integration_accounts','amazon_accounts','amazon_orders','amazon_order_items','amazon_confirmation_operations'].includes(table));
+  let columns='*',conditions=[],values=[],limit=0,sort='';
+  const column=name=>{assert.match(name,/^[a-z_]+$/);return '"'+name+'"'};
+  const chain={select(value){columns=value==='*'?'*':value.split(',').map(column).join(',');return this},eq(name,value){values.push(value);conditions.push(`${column(name)}=$${values.length}`);return this},gt(name,value){values.push(value);conditions.push(`${column(name)}>$${values.length}`);return this},is(name,value){assert.equal(value,null);conditions.push(`${column(name)} is null`);return this},not(name,op,value){assert.equal(op,'is');assert.equal(value,null);conditions.push(`${column(name)} is not null`);return this},limit(n){limit=Number(n);return this},order(name,options){sort=` order by ${column(name)} ${options?.ascending===false?'desc':'asc'}`;return this},async execute(single){try{const result=await pool.query(`select ${columns} from ${column(table)}${conditions.length?' where '+conditions.join(' and '):''}${sort}${limit?' limit '+limit:''}`,values);if(single&&result.rows.length>1)throw new Error('multiple rows');return {data:single?result.rows[0]||null:result.rows,error:null};}catch(error){return {data:null,error}}},maybeSingle(){return this.execute(true)},then(resolve,reject){return this.execute(false).then(resolve,reject)}};return chain;
+ },async rpc(name,args){
+  if(name==='integration_read_secret')return {data:JSON.stringify({refreshToken:'own-synthetic-refresh'}),error:null};
+  assert.match(name,/^amazon_confirmation_(begin|finish|dispatch|authorize)$/);
+  try{const keys=Object.keys(args);const r=await pool.query(`select ${name}(${keys.map((key,i)=>`${key}=>$${i+1}`).join(',')}) as data`,Object.values(args));return {data:r.rows[0].data,error:null};}catch(error){return {data:null,error}};
+ }};
+ const fetch=async(url,options={})=>{
+  const value=String(url),method=options.method||'GET';outgoing.push({url:value,method});
+  if(value==='https://api.amazon.com/auth/o2/token')return new Response(JSON.stringify({access_token:'own-synthetic-access',expires_in:3600}));
+  assert.ok(value.startsWith('https://sellingpartnerapi-eu.amazon.com/orders/'),'unexpected external destination');
+  if(method==='GET')return new Response(JSON.stringify({order:{orderId:'123-1234567-1234567',packages}}));
+  assert.equal(method,'POST');assert.ok(value.endsWith('/shipmentConfirmation'));
+  await onPost?.();
+  if(loseResponse){packages=[remotePackage()];throw new Error('accepted response lost');}
+  if(timeout)throw Object.assign(new Error('request aborted at timeout'),{name:'TimeoutError'});
+  return new Response('{}',{status:postStatus,headers:{'x-amzn-requestid':'synthetic-request-id'}});
+ };
+ function load(file){
+  if(modules.has(file))return modules.get(file);
+  if(file.endsWith('/amazon/supabase.ts'))return {createAdminClient:()=>admin,authenticateUser:async()=>({role:'admin',data_owner_id:owner,user_id:id(8)})};
+  const exports={};modules.set(file,exports);
+  const source=readFileSync(file,'utf8');
+  const code=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText;
+  vm.runInNewContext(code,{exports,require:relative=>load(path.resolve(path.dirname(file),relative)),fetch,Response,Headers,URL,URLSearchParams,AbortSignal,AbortController,Date,crypto:globalThis.crypto,setTimeout,clearTimeout,Deno:{env:{get:name=>name==='AMAZON_SPAPI_CREDENTIALS'?JSON.stringify({clientId:'own-app',clientSecret:'own-app-secret'}):''},serve:fn=>{handler=fn}}});return exports;
+ }
+ const module=load(path.resolve('supabase/functions/_shared/amazon/shipment-confirmation.ts'));
+ load(path.resolve('supabase/functions/amazon-confirm-shipment/index.ts'));
+ return {outgoing,admin,module,setPackages(value){packages=value},handler:body=>handler({method:'POST',json:async()=>body}),posts:()=>outgoing.filter(r=>r.url.endsWith('/shipmentConfirmation')).length};
+}
+function remotePackage(){return {packageReferenceId:'1',trackingNumber:'REAL-FIXTURE-ONLY',carrier:'MRW',packageStatus:{status:'SHIPPED'},packageItems:[{orderItemId:'item',quantity:1}]};}
+async function due(){await pool.query("update amazon_confirmation_operations set lease_until=null,next_verification_at=now()-interval '1 second'");}
+test('real handler and worker helper concurrently produce one POST across real connections',async()=>{
+ let reached,release;const entered=new Promise(r=>{reached=r}),barrier=new Promise(r=>{release=r});
+ const h=edgeHarness({postStatus:500,onPost:async()=>{reached();await barrier}});
+ const first=h.handler({action:'confirm_order_tracking',orderId:order});await entered;
+ const worker=await h.module.retryPendingAmazonTracking(h.admin,owner,5,true);assert.equal(worker.pending,1);assert.equal(h.posts(),1);
+ release();assert.equal((await first).status,202);assert.equal(h.posts(),1);
+ await due();h.setPackages([remotePackage()]);const next=await h.handler({action:'confirm_order_tracking',orderId:order});assert.equal((await next.json()).status,'confirmed');assert.equal(h.posts(),1);
+});
+for(const scenario of ['lost response','timeout','500'])test(`real handler ${scenario} stays pending until exact read; no duplicate POST`,async()=>{
+ const h=edgeHarness({loseResponse:scenario==='lost response',timeout:scenario==='timeout',postStatus:scenario==='500'?500:200});
+ assert.equal((await h.handler({orderId:order})).status,202);assert.equal(h.posts(),1);
+ await due();h.setPackages([remotePackage()]);const next=await h.handler({orderId:order});assert.equal((await next.json()).status,'confirmed');assert.equal(h.posts(),1);
+});
+test('real handler repairs a failed success save using GET without a second POST',async()=>{
+ const h=edgeHarness();await pool.query("create function fail_success() returns trigger language plpgsql as $$ begin if new.amazon_tracking_synced_at is not null then raise exception 'injected save failure';end if;return new;end $$;create trigger injected before update on fulfillment_orders for each row execute function fail_success()");
+ try{assert.equal((await h.handler({orderId:order})).status,202);assert.equal(h.posts(),1);}finally{await pool.query('drop trigger injected on fulfillment_orders;drop function fail_success()');}
+ await due();h.setPackages([remotePackage()]);assert.equal((await (await h.handler({orderId:order})).json()).status,'confirmed');assert.equal(h.posts(),1);
+});
+test('force, changed tracking and 400 cannot silently authorize a new send',async()=>{
+ const h=edgeHarness({postStatus:400});const response=await h.handler({orderId:order});assert.equal((await response.json()).status,'rejected');assert.equal(h.posts(),1);
+ await h.module.retryPendingAmazonTracking(h.admin,owner,5,true);assert.equal(h.posts(),1);
+});
+test('verification dispatch excludes terminal review and respects due time',async()=>{
+ const op=await begin();await finish(op,'needs_review');
+ const rows=await pool.query('select * from amazon_confirmation_due($1,5,false)',[owner]);assert.equal(rows.rows.length,0);
+});

@@ -49,6 +49,7 @@ test('label creation keeps the label if Amazon confirmation fails and retries no
   assert.match(orders,/createOrderLabel[\s\S]{0,1800}confirmOrderTracking/i);
   assert.match(orders,/retryAmazonTrackingConfirmations/);
   assert.match(worker,/retryPendingAmazonTracking/);
-  assert.match(helper,/legacy\|\|'1'/);
+  assert.match(helper,/legacy\?null:/);
+  assert.match(helper,/executeAmazonConfirmation/);
   assert.doesNotMatch(helper,/Sendcloud no devolvió un parcel_id/);
 });

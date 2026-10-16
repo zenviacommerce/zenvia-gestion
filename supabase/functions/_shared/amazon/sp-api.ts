@@ -40,6 +40,7 @@ export type SpApiRequestOptions={
   query?:Record<string,string|number|boolean|Array<string|number>|null|undefined>;
   body?:unknown;
   maxAttempts?:number;
+  onResponse?:(metadata:{status:number;requestId:string|null})=>void;
 };
 
 function buildUrl(path:string,query?:SpApiRequestOptions['query']){
@@ -70,6 +71,7 @@ export async function spApiRequest<T=any>(path:string,options:SpApiRequestOption
     let body:BodyInit|undefined;
     if(options.body!==undefined){headers.set('Content-Type','application/json');body=JSON.stringify(options.body);}
     const response=await fetch(url,{method:options.method||'GET',headers,body,signal:AbortSignal.timeout(25000)});
+    options.onResponse?.({status:response.status,requestId:response.headers.get('x-amzn-requestid')});
     const text=await response.text();
     if(response.ok){
       if(!text)return undefined as T;

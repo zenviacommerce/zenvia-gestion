@@ -27,7 +27,12 @@ Deno.serve(async(req:Request)=>{
         carrierName:rawOverride.carrierName==null?null:String(rawOverride.carrierName),
         shippingServiceName:rawOverride.shippingServiceName==null?null:String(rawOverride.shippingServiceName),
       }:undefined;
-      const result=await syncAmazonTracking(admin,order,trackingOverride);return response({ok:true,...result});
+      const result=await syncAmazonTracking(admin,order,trackingOverride);return response({ok:!['rejected','needs_review'].includes(result.status),...result},result.status==='pending_verification'?202:200);
+    }
+    if(action==='authorize_reviewed_attempt'){
+      if(caller.role!=='admin')return response({error:'Solo un administrador puede autorizar otro intento.'},403);
+      const {data,error}=await admin.rpc('amazon_confirmation_authorize',{p_order_id:String(body.orderId||''),p_owner_id:caller.data_owner_id,p_actor:caller.user_id,p_reason:String(body.reviewReason||'')});
+      if(error)throw error;return response({ok:true,status:data.state,revision:data.revision});
     }
     if(action==='retry_pending'){
       const result=await retryPendingAmazonTracking(admin,caller.data_owner_id,Number(body?.limit)||5,Boolean(body?.force));return response({ok:true,...result});
@@ -35,7 +40,7 @@ Deno.serve(async(req:Request)=>{
     return response({error:'Acción no válida.'},400);
   }catch(error){
     const message=error instanceof Error?error.message:String(error||'Error interno.');
-    const status=/Sesión no válida/.test(message)?401:/permiso/i.test(message)?403:500;
+    const status=/Sesión no válida/.test(message)?401:/permiso/i.test(message)?403:/409:/.test(message)?409:500;
     return response({error:message},status);
   }
 });

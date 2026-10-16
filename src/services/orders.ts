@@ -17,6 +17,7 @@ export interface FulfillmentOrder {
   packageLengthCm:number|null; packageWidthCm:number|null; packageHeightCm:number|null;
   sendcloudParcelId:number|null; sendcloudShipmentId:string|null;
   shippingProvider:'sendcloud'|'envia'|'mrw'|null; shippingRemoteId:string|null; shippingLabelUrl:string|null;
+  amazonConfirmationMessage?:string|null;
   trackingNumber:string|null; trackingUrl:string|null; carrierTrackingUrl?:string|null; trackingStatusCode:string|null; trackingStatusMessage:string|null; trackingUpdatedAt:string|null;
   shippingOptionCode:string|null; contractId:number|null;
   carrierCode:string|null; carrierName:string|null; shippingServiceName:string|null;
@@ -109,6 +110,7 @@ function mapRow(row:any):FulfillmentOrder{
     sendcloudShipmentId:row.sendcloud_shipment_id||null,
     shippingProvider:row.shipping_provider==='envia'?'envia':row.shipping_provider==='mrw'?'mrw':row.shipping_provider==='sendcloud'?'sendcloud':(row.sendcloud_parcel_id||row.sendcloud_shipment_id?'sendcloud':null),
     shippingRemoteId:row.shipping_remote_id||null, shippingLabelUrl:row.shipping_label_url||null,
+    amazonConfirmationMessage:row.source_channel==='amazon'?row.amazon_tracking_sync_error||null:null,
     trackingNumber:row.tracking_number||null, trackingUrl:row.tracking_url||null,
     carrierTrackingUrl:row.tracking_metadata?.number===row.tracking_number?row.tracking_metadata.url||null:null,
     trackingStatusCode:row.tracking_status_code||null, trackingStatusMessage:row.tracking_status_message||null, trackingUpdatedAt:row.tracking_updated_at||null,
@@ -282,7 +284,7 @@ export async function confirmOrderTracking(orderId:string,trackingOverride?:Reco
   if(error)throw error;
   const endpoint=order.source_channel==='shopify'?'shopify-confirm-shipment':order.source_channel==='amazon'?'amazon-confirm-shipment':null;
   if(!endpoint)return {ok:true,skipped:true};
-  return invokeFunction<{ok:boolean}>(endpoint,{action:'confirm_order_tracking',orderId,...(trackingOverride?{trackingOverride}:{})});
+  return invokeFunction<{ok:boolean;status?:string}>(endpoint,{action:'confirm_order_tracking',orderId,...(trackingOverride?{trackingOverride}:{})});
 }
 export async function createOrderLabel(orderId:string,option?:ShippingOption|null,pushTracking=true,onLabelReady?:(result:LabelResult&{automation:OrderLabelCreatedAutomationConfig})=>Promise<void>){
   const rule=await loadAutomationRule('order_label_created');
@@ -305,7 +307,7 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
   let confirmationError:string|undefined;
   if(pushTracking&&automation.pushToMarketplace){
     try{
-      await confirmOrderTracking(orderId,{
+      const confirmation=await confirmOrderTracking(orderId,{
           trackingNumber:result.trackingNumber,
           trackingUrl:result.trackingUrl,
           parcelId:result.parcelId,
@@ -313,6 +315,8 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
           carrierName:result.carrierName||null,
           shippingServiceName:result.shippingServiceName||null,
       });
+      if('status' in confirmation&&confirmation.status==='pending_verification')confirmationError='Verificando confirmación en Amazon';
+      else if('status' in confirmation&&['needs_review','rejected'].includes(confirmation.status||''))confirmationError='La confirmación requiere revisión antes de otro intento';
     }catch(error){confirmationError=String((error as Error)?.message||error||'No se pudo confirmar el envío.');}
   }
   if(deliveryError)throw deliveryError;

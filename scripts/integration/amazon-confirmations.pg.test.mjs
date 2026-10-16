@@ -112,7 +112,8 @@ function edgeHarness({postStatus=200,loseResponse=false,timeout=false,onPost}={}
   const chain={select(value){columns=value==='*'?'*':value.split(',').map(column).join(',');return this},eq(name,value){values.push(value);conditions.push(`${column(name)}=$${values.length}`);return this},gt(name,value){values.push(value);conditions.push(`${column(name)}>$${values.length}`);return this},is(name,value){assert.equal(value,null);conditions.push(`${column(name)} is null`);return this},not(name,op,value){assert.equal(op,'is');assert.equal(value,null);conditions.push(`${column(name)} is not null`);return this},limit(n){limit=Number(n);return this},order(name,options){sort=` order by ${column(name)} ${options?.ascending===false?'desc':'asc'}`;return this},async execute(single){try{const result=await pool.query(`select ${columns} from ${column(table)}${conditions.length?' where '+conditions.join(' and '):''}${sort}${limit?' limit '+limit:''}`,values);if(single&&result.rows.length>1)throw new Error('multiple rows');return {data:single?result.rows[0]||null:result.rows,error:null};}catch(error){return {data:null,error}}},maybeSingle(){return this.execute(true)},then(resolve,reject){return this.execute(false).then(resolve,reject)}};return chain;
  },async rpc(name,args){
   if(name==='integration_read_secret')return {data:JSON.stringify({refreshToken:'own-synthetic-refresh'}),error:null};
-  assert.match(name,/^amazon_confirmation_(begin|finish|dispatch|authorize)$/);
+  assert.match(name,/^amazon_confirmation_(begin|finish|dispatch|authorize|due)$/);
+  if(name==='amazon_confirmation_due'){const r=await pool.query('select * from amazon_confirmation_due($1,$2,$3)',Object.values(args));return {data:r.rows,error:null};}
   try{const keys=Object.keys(args);const r=await pool.query(`select ${name}(${keys.map((key,i)=>`${key}=>$${i+1}`).join(',')}) as data`,Object.values(args));return {data:r.rows[0].data,error:null};}catch(error){return {data:null,error}};
  }};
  const fetch=async(url,options={})=>{
@@ -144,7 +145,8 @@ test('real handler and worker helper concurrently produce one POST across real c
  let reached,release;const entered=new Promise(r=>{reached=r}),barrier=new Promise(r=>{release=r});
  const h=edgeHarness({postStatus:500,onPost:async()=>{reached();await barrier}});
  const first=h.handler({action:'confirm_order_tracking',orderId:order});await entered;
- const worker=await h.module.retryPendingAmazonTracking(h.admin,owner,5,true);assert.equal(worker.pending,1);assert.equal(h.posts(),1);
+ const worker=await h.module.retryPendingAmazonTracking(h.admin,owner,5,true);assert.equal(worker.attempted,0);assert.equal(h.posts(),1);
+ const concurrent=await h.handler({orderId:order});assert.equal(concurrent.status,202);assert.equal(h.posts(),1);
  release();assert.equal((await first).status,202);assert.equal(h.posts(),1);
  await due();h.setPackages([remotePackage()]);const next=await h.handler({action:'confirm_order_tracking',orderId:order});assert.equal((await next.json()).status,'confirmed');assert.equal(h.posts(),1);
 });
@@ -165,4 +167,28 @@ test('force, changed tracking and 400 cannot silently authorize a new send',asyn
 test('verification dispatch excludes terminal review and respects due time',async()=>{
  const op=await begin();await finish(op,'needs_review');
  const rows=await pool.query('select * from amazon_confirmation_due($1,5,false)',[owner]);assert.equal(rows.rows.length,0);
+});
+test('real handler stops after bounded empty evidence and never resubmits',async()=>{
+ const h=edgeHarness({postStatus:500});await h.handler({orderId:order});
+ for(let i=0;i<4;i++){await due();await h.handler({orderId:order});}
+ assert.equal((await (await h.handler({orderId:order})).json()).status,'needs_review');assert.equal(h.posts(),1);
+ const worker=await h.module.retryPendingAmazonTracking(h.admin,owner,1,true);assert.equal(worker.attempted,0);
+});
+test('real pending tracking override returns 409 with one intent and one POST',async()=>{
+ const h=edgeHarness({postStatus:500});await h.handler({orderId:order});
+ const response=await h.handler({orderId:order,trackingOverride:{trackingNumber:'DIFFERENT'}});assert.equal(response.status,409);assert.equal(h.posts(),1);
+});
+test('late in-flight holder cannot finalize after a verifier acquired the fence',async()=>{
+ let reached,release;const entered=new Promise(r=>{reached=r}),barrier=new Promise(r=>{release=r});
+ const h=edgeHarness({onPost:async()=>{reached();await barrier}}),first=h.handler({orderId:order});await entered;
+ await due();const verification=await h.handler({orderId:order});assert.equal(verification.status,202);
+ release();assert.equal((await first).status,202);assert.equal(h.posts(),1);
+ await due();h.setPackages([remotePackage()]);assert.equal((await (await h.handler({orderId:order})).json()).status,'confirmed');assert.equal(h.posts(),1);
+});
+test('crash before the POST remains GET-only in the real handler',async()=>{
+ await begin();await due();const h=edgeHarness();const response=await h.handler({orderId:order});assert.equal(response.status,202);assert.equal(h.posts(),0);
+});
+test('handler rejects crossed owner/account before token acquisition or any external request',async()=>{
+ await pool.query('update amazon_accounts set owner_id=$1',[other]);const h=edgeHarness();const response=await h.handler({orderId:order});assert.equal(response.status,500);assert.equal(h.outgoing.length,0);
+ assert.equal((await pool.query('select count(*)::int as n from amazon_confirmation_operations')).rows[0].n,0);
 });

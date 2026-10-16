@@ -27,7 +27,9 @@ test('Amazon tracking helper inspects packages and confirms shipment with the Or
 
 test('automatic retry only reprocesses confirmations previously attempted by this integration',async()=>{
   const helper=await source('supabase/functions/_shared/amazon/shipment-confirmation.ts');
-  assert.match(helper,/\.gt\(['"]amazon_tracking_sync_attempts['"],\s*0\)/i);
+  assert.match(helper,/amazon_confirmation_due/);
+  const ledger=await source('supabase/migrations/20261016063000_amazon_confirmation_ledger.sql');
+  assert.match(ledger,/coalesce\(f\.amazon_tracking_sync_attempts,0\)>0 or p_include_fresh/);
   assert.doesNotMatch(helper,/TRACKING_BACKFILL_DAYS/);
 });
 

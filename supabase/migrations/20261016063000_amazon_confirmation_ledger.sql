@@ -181,3 +181,19 @@ begin
 end $$;
 revoke all on function public.amazon_confirmation_dispatch(uuid,uuid,uuid,bigint) from public,anon,authenticated;
 grant execute on function public.amazon_confirmation_dispatch(uuid,uuid,uuid,bigint) to service_role;
+
+create function public.amazon_confirmation_due(p_owner_id uuid,p_limit integer default 5,p_include_fresh boolean default false)
+returns setof public.fulfillment_orders language sql security definer set search_path=public,pg_temp set statement_timeout='3s' as $$
+ select f.* from public.fulfillment_orders f
+ left join public.amazon_confirmation_operations op on op.order_id=f.id and op.owner_id=f.owner_id
+ where f.owner_id=p_owner_id and f.source_channel='amazon' and f.tracking_number is not null
+ and (
+  (op.state='pending_verification' and op.next_verification_at<=clock_timestamp() and (op.lease_until is null or op.lease_until<=clock_timestamp()))
+  or op.state='prepared'
+  or (op.id is null and f.amazon_tracking_synced_at is null and (coalesce(f.amazon_tracking_sync_attempts,0)>0 or p_include_fresh))
+ )
+ order by case when op.id is not null then 0 else 1 end,coalesce(op.next_verification_at,f.amazon_tracking_last_attempt_at,'epoch'::timestamptz)
+ limit greatest(1,least(coalesce(p_limit,5),25))
+$$;
+revoke all on function public.amazon_confirmation_due(uuid,integer,boolean) from public,anon,authenticated;
+grant execute on function public.amazon_confirmation_due(uuid,integer,boolean) to service_role;

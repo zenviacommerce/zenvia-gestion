@@ -35,13 +35,6 @@ function amazonOrderId(order:FulfillmentOrderRow){
   return found;
 }
 function positivePackageReference(value:unknown){const text=clean(value);return /^\d+$/.test(text)&&Number(text)>0?text:null;}
-function attemptDue(order:FulfillmentOrderRow,now=Date.now()){
-  if(!order.amazon_tracking_last_attempt_at)return true;
-  const last=new Date(order.amazon_tracking_last_attempt_at).getTime();if(!Number.isFinite(last))return true;
-  const previous=Math.max(0,Number(order.amazon_tracking_sync_attempts)||0);
-  const delayMinutes=Math.min(60,Math.max(1,2**Math.min(previous,6)));
-  return now-last>=delayMinutes*60_000;
-}
 function carrier(order:FulfillmentOrderRow){
   const raw=`${clean(order.carrier_code)} ${clean(order.carrier_name)} ${clean(order.shipping_service_name)}`.toLowerCase();
   if(raw.includes('mrw'))return {carrierCode:'MRW',carrierName:'MRW'};
@@ -102,7 +95,8 @@ export async function syncAmazonTracking(admin:any,order:FulfillmentOrderRow,ove
   const packageDetail:any={packageReferenceId,carrierCode:carrierData.carrierCode,carrierName:carrierData.carrierName,trackingNumber,shipDate:new Date(shipDate).toISOString(),orderItems:context.orderItems};
   const shippingMethod=clean(requested.shipping_service_name);if(shippingMethod)packageDetail.shippingMethod=shippingMethod;
   const holder=crypto.randomUUID();
-  const payload={marketplaceId:context.marketplaceId,packageDetail};
+  // Verification reuses immutable submitted lines/date. An explicit override must still pass the hash guard.
+  const payload=existing?.state==='pending_verification'&&existing.payload&&!override?existing.payload:{marketplaceId:context.marketplaceId,packageDetail};
   let requestId:string|null=null;
   const store={
     async begin(){
@@ -127,14 +121,11 @@ export async function syncAmazonTracking(admin:any,order:FulfillmentOrderRow,ove
 
 export async function retryPendingAmazonTracking(admin:any,ownerId:string,limit=5,force=false){
   const safeLimit=Math.max(1,Math.min(25,Math.trunc(Number(limit)||5)));
-  let query=admin.from('fulfillment_orders').select('*').eq('owner_id',ownerId).eq('source_channel','amazon').not('tracking_number','is',null).is('amazon_tracking_synced_at',null);
-  if(!force)query=query.gt('amazon_tracking_sync_attempts',0);
-  const {data,error}=await query.order('amazon_tracking_last_attempt_at',{ascending:true,nullsFirst:false}).limit(Math.max(safeLimit*4,20));
+  const {data,error}=await admin.rpc('amazon_confirmation_due',{p_owner_id:ownerId,p_limit:safeLimit,p_include_fresh:force});
   if(error)throw error;
   const results:any[]=[];
   for(const order of data||[]){
     if(results.length>=safeLimit)break;
-    if(!force&&!attemptDue(order))continue;
     try{const result=await syncAmazonTracking(admin,order);results.push({...result,ok:true})}
     catch(syncError){results.push({orderId:order.id,ok:false,error:sanitizeAmazonError(syncError instanceof Error?syncError.message:syncError)})}
   }

@@ -53,9 +53,9 @@ All commands completed and exited zero after the implementation changes:
 
 | Check | Result |
 | --- | --- |
-| `node --test scripts/*.test.mjs` | **991/991**, zero failed/canceled/skipped |
-| `npm test` | **62/62**, five files; existing Auth **20/20**, MFA **42/42** |
-| SQL cases | **23**, PGlite **0.3.14**, actual PostgreSQL **17.5** WASM engine |
+| `node --test scripts/*.test.mjs` | **993/993**, zero failed/canceled/skipped |
+| `npm test` | **69/69**, five files; existing Auth **20/20**, MFA **49/49** |
+| SQL cases | **30**, PGlite **0.3.14**, actual PostgreSQL **17.5** WASM engine |
 | React/SDK boundary cases | **11**, controlled SDK/network doubles |
 | Edge boundary cases | **8**, behavior plus source inventory checks |
 | `npm run build` | TypeScript/Vite success; production iOS icon check passed |
@@ -88,3 +88,21 @@ Do not revert Edge to versions lacking human guards during recovery: privileged 
 - [TOTP](https://supabase.com/docs/guides/auth/auth-mfa/totp) and [sessions](https://supabase.com/docs/guides/auth/sessions).
 - Installed Auth JS `GoTrueClient._enroll` confirms `data:image/svg+xml;utf-8,...` QR format.
 - Current official Auth [sessions.go](https://github.com/supabase/auth/blob/master/internal/models/sessions.go) and [amr.go](https://github.com/supabase/auth/blob/master/internal/models/amr.go) inform factor/AMR handling. Upstream master does not prove the deployed Auth version's behavior.
+
+## OAuth integration follow-up (still no deployment)
+
+Additive migration `20261016194211_admin_mfa_oauth_actor_binding.sql` closes the trusted context boundary for the separately integrated OAuth branch:
+
+- `security_mfa_oauth_start_context()` is authenticated-only, called with the original human bearer. It **forces** recent admitted TOTP independently of rollout flags, requires a current active tenant administrator/workspace and returns `{actor_user_id, actor_session_id, actor_factor_id, mfa_verified_at, actor_owner_id}`.
+- The OAuth start handler must persist that exact server-derived context in its private attempt. A browser body, an OAuth state parameter or an unverified decoded JWT is never a source of this authorization.
+- `security_mfa_oauth_actor_assert(uuid,uuid,uuid,numeric,uuid)` is service-only. Callback claim and commit pass the stored context, not request fields. It rechecks current role/owner/workspace, recovery state/epoch, live session, exact session factor, current verified admitted TOTP and the original AMR timestamp within five minutes. A subsequent challenge does not silently renew the old attempt.
+- The validator obtains `FOR SHARE` locks on the actor, workspace, principal, Auth session, factor and AMR rows until the surrounding transaction ends. Claim/commit serialize against relevant role/recovery/session/factor mutations. Actual multi-connection GoTrue lock ordering and Vault transaction behavior require the disposable integration rehearsal; local single-connection fixtures do not prove them.
+- The direct guarded start API is registered in the existing function manifest as its own guarded implementation. No unguarded private clone is introduced.
+
+Seven new PGlite cases cover forced AAL1/stale-proof denial with flags off, real-role denial despite forged metadata, service-claim independence, post-start recovery/revocation/role/tenant changes, changed subject/session/factor/proof, freshness and ACLs. The new SQL boundary is locally tested; actual callback wiring belongs to the OAuth integration branch and must be tested there as a combined tree.
+
+`scripts/local-auth-mfa-fixture.mjs` prepares a reusable **real** local Auth fixture using pinned Supabase JS: create a disposable user, invoke a caller-provided loopback SQL provisioning hook, authorize/revoke, bind a new AAL1 session, enroll/challenge/verify actual TOTP, complete server admission and obtain trusted OAuth context. It requires `RUN_LOCAL_AUTH_VAULT_TESTS=1`, explicit disposable authorization, `http://localhost:54321` or `http://127.0.0.1:54321`, in-memory keys and a custom fetch that refuses other origins/redirects. The helper prints/writes no secrets. Two executable unit tests validate origin guards and RFC6238 vectors; they are **not real Auth execution**.
+
+**Real GoTrue, Vault, multi-connection PostgreSQL and Playwright integration were NOT EXECUTED in this environment:** Docker and psql executables are absent. OAuth-owned disposable SQL/browser harnesses consume the shared fixture. Neither these preparations nor a simulated Amazon consent/LWA endpoint are evidence of a real Amazon authorization. Production activation still requires the complete reviewed integration rehearsal.
+
+Final follow-up checks exited zero: scripts **993/993**, Vitest **69/69** (Auth20 + MFA49), build and diff checks. Parent read-only metadata also confirmed the migration owner `postgres` has SELECT and UPDATE privileges on Auth sessions/factors/AMR tables, as required for row locking. This confirms privileges only, not actual GoTrue semantics.

@@ -1,3 +1,4 @@
+import {assertHumanMfa} from '../_shared/mfa.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { verifyShopifyInstallLaunch, shopifyDomain, shopifyError, shopifyHash, verifyShopifyCallback, shopifyTokenRequest, shopifyTokenCredentials, shopifyAccountCredentials, shopifyLegacyCredentials, commitShopifyAuthorization, shopifyStoredApplicationCredentials } from '../_shared/shopifyAuth.ts';
 import { enforceWorkspaceLimit, requireWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
@@ -32,6 +33,7 @@ function sanitize(value:unknown){
 async function authenticate(req:Request,admin:any,action:string):Promise<Caller>{
   const token=clean(req.headers.get('Authorization')).replace(/^Bearer\s+/i,'');
   if(!token)throw new Error('Sesión no válida.');
+  await assertHumanMfa(req,!['list','gmail_list','gmail_config','shopify_config','discover_shopify'].includes(action));
   const {data:userData,error:userError}=await admin.auth.getUser(token);
   if(userError||!userData?.user)throw new Error('Sesión no válida.');
   const {data:caller,error}=await admin.from('app_users')

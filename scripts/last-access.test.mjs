@@ -6,15 +6,15 @@ const source=readFileSync(new URL('../src/App.tsx',import.meta.url),'utf8');
 function setup(){
  const start=source.indexOf(' // Record application use');
  assert.ok(start>=0,'Application must record restored sessions');
- const end=source.indexOf(' },[userId,access?.active,authClientVersion]);',start);
+ const end=source.indexOf(' },[mfaAccess.ready,userId,access?.active,authClientVersion]);',start);
  assert.ok(end>start);
  const body=source.slice(start,end).split(' useEffect(()=>{')[1];
  const window=new Window();
  Object.defineProperty(window.document,'visibilityState',{value:'visible',configurable:true});
  let writes=0,cleanup;
  const supabase={rpc:async()=>{writes++;return {error:null}}};
- const effect=new Function('window','document','navigator','supabase','userId','access',body);
- cleanup=effect(window,window.document,window.navigator,supabase,'user-1',{active:true});
+ const effect=new Function('window','document','navigator','supabase','userId','access','mfaAccess',body);
+ cleanup=effect(window,window.document,window.navigator,supabase,'user-1',{active:true},{ready:true});
  return {window,writes:()=>writes,cleanup};
 }
 const tick=()=>new Promise(r=>setImmediate(r));

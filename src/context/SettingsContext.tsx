@@ -79,7 +79,9 @@ export function SettingsProvider({children,userId}:{children:ReactNode;userId?:s
     return()=>{active=false;subscription.unsubscribe();};
   },[userId,tenantVersion]);
 
+  const refreshGeneration=useRef(0);
   const refresh=useCallback(async()=>{
+    const generation=++refreshGeneration.current;
     if(!effectiveUserId){
       setSettings(clone(DEFAULT_APP_SETTINGS));
       // Keep the synchronously cached visual preferences while Supabase restores
@@ -105,6 +107,7 @@ export function SettingsProvider({children,userId}:{children:ReactNode;userId?:s
       errors.push(e instanceof Error?e.message:'No se pudo cargar la configuración global.');
     }
 
+    if(generation!==refreshGeneration.current)return;
     try{
       const loaded=await loadUserPreferences();
       nextPreferences=loaded.preferences;
@@ -114,6 +117,7 @@ export function SettingsProvider({children,userId}:{children:ReactNode;userId?:s
       errors.push(e instanceof Error?e.message:'No se pudieron cargar tus preferencias.');
     }
 
+    if(generation!==refreshGeneration.current)return;
     setSettings(nextSettings);
     setPreferences(nextPreferences);
     setWarnings(nextWarnings);
@@ -121,7 +125,7 @@ export function SettingsProvider({children,userId}:{children:ReactNode;userId?:s
     setLoading(false);
   },[effectiveUserId]);
 
-  useEffect(()=>{void refresh()},[refresh]);
+  useEffect(()=>{void refresh();return()=>{refreshGeneration.current++}},[refresh]);
 
   const updateSection=useCallback(async<K extends SettingsSection>(section:K,value:AppSettings[K])=>{
     const loaded=await saveSettingsSection(section,value);

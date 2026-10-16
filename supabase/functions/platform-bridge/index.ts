@@ -1,3 +1,4 @@
+import {assertBridgeMfaAllowed} from '../_shared/mfa.ts';
 import { customerIntegrationSummary } from '../_shared/platformIntegrations.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { loadWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
@@ -110,6 +111,7 @@ Deno.serve(async(req:Request)=>{
     if(bridgeError)throw bridgeError;
     if(!bridgeSecret?.active||await sha256(supplied)!==bridgeSecret.token_sha256)return fail('Puente no autorizado.',401);
 
+    await assertBridgeMfaAllowed(admin);
     const body=await req.json().catch(()=>({}));
     const action=asText(body?.action,80);
     const actor={

@@ -1,3 +1,4 @@
+import {assertHumanMfa} from '../mfa.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 export type AppCaller={
@@ -35,6 +36,7 @@ export function requireInternalSecret(req:Request){
 export async function authenticateUser(req:Request,admin:any):Promise<AppCaller>{
   const token=(req.headers.get('Authorization')||'').replace(/^Bearer\s+/i,'').trim();
   if(!token)throw new Error('Sesión no válida.');
+  await assertHumanMfa(req,false);
   const {data:userData,error:userError}=await admin.auth.getUser(token);
   if(userError||!userData?.user)throw new Error('Sesión no válida.');
   const {data:caller,error}=await admin.from('app_users')

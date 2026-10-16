@@ -56,7 +56,10 @@ function transient(status:number){return [429,500,502,503,504].includes(status);
 
 export async function spApiRequest<T=any>(path:string,options:SpApiRequestOptions={},credentials?:AmazonSpApiCredentials):Promise<T>{
   const url=buildUrl(path,options.query);
-  for(let attempt=0;attempt<(options.maxAttempts||MAX_ATTEMPTS);attempt+=1){
+  // Shipment confirmation is an external mutation: ambiguity is resolved by GET, never retry.
+  const confirmation=(options.method||'GET')==='POST'&&/\/shipmentConfirmation\/?$/.test(url.pathname);
+  const attempts=confirmation?1:Math.max(1,Math.min(MAX_ATTEMPTS,options.maxAttempts||MAX_ATTEMPTS));
+  for(let attempt=0;attempt<attempts;attempt+=1){
     const accessToken=await getLwaAccessToken(credentials);
     const headers=new Headers({
       Accept:'application/json',
@@ -72,13 +75,15 @@ export async function spApiRequest<T=any>(path:string,options:SpApiRequestOption
       if(!text)return undefined as T;
       try{return JSON.parse(text) as T}catch{throw new Error('Amazon SP-API devolvió una respuesta JSON no válida.');}
     }
-    if(transient(response.status)&&attempt<(options.maxAttempts||MAX_ATTEMPTS)-1){
+    if(transient(response.status)&&attempt<attempts-1){
       await sleep(retryAfterMs(response.headers,attempt));
       continue;
     }
     let parsed:any=null;try{parsed=text?JSON.parse(text):null}catch{/* keep raw */}
     const detail=parsed?.errors?.map?.((item:any)=>item?.message||item?.code).filter(Boolean).join(' · ')||parsed?.message||text;
-    throw new Error(`Amazon SP-API (${response.status}): ${sanitizeAmazonError(detail)}`);
+    const error=new Error(`Amazon SP-API (${response.status}): ${sanitizeAmazonError(detail)}`);
+    Object.assign(error,{status:response.status,requestId:response.headers.get('x-amzn-requestid')});
+    throw error;
   }
   throw new Error('Amazon SP-API agotó los reintentos.');
 }

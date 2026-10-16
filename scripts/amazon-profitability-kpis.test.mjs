@@ -31,7 +31,7 @@ test('Amazon series trends net profit rather than pre-Ads profit',async()=>{
   const migration=await source('supabase/migrations/20260917160000_amazon_profitability_kpis.sql');
   const summary=(await source('src/components/amazon/AmazonSummary.tsx'))+(await source('src/components/amazon/AmazonPeriodCards.tsx'));
   assert.match(migration,/'netProfit'/);
-  assert.match(summary,/dataKey="netProfit"/);
+  assert.match(summary,/data-metric="netProfit"/);
   assert.doesNotMatch(summary,/dataKey="profitBeforeAds"/);
 });
 

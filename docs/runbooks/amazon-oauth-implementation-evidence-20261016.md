@@ -34,12 +34,32 @@ The full script suite initially exposed two obsolete source-pattern expectations
 
 See `amazon-app-credentials.md` and `amazon-oauth-disabled.md` for configuration, future preflight, sensitive-data handling and compatible rollback. Successful public credentials must never be relabeled private or read with a monolithic rollback bundle.
 
-## MFA integration activation blocker
+## MFA integration and remaining activation gates
 
-Do not enable OAuth after the MFA branch is integrated until the combined security path is implemented and reviewed. The current `oauth-auth.ts` calls Auth directly and does not invoke the MFA branch's trusted human guard. Attempts also do not bind the initiating Auth session/factor/recent verification, and the service-role callback claim/commit do not revalidate recovery or the live MFA/session state. The independent branches are not ready for combined activation.
+The feature branch now incorporates the administrator MFA dependency. Start obtains a trusted actor context through `security_mfa_oauth_start_context()` using the original human JWT; no session/factor/proof fields are accepted from the request body. Attempts persist immutable actor user, owner, session, factor and original second-resolution verification time. Reserve, claim and commit call the service-only live actor validator, which checks current membership, principal recovery state, session, admitted verified TOTP factor and the original five-minute recent-proof window. Its Auth rows stay locked through the transaction; the shared context guard also locks membership, actual member workspace and owner workspace. Public capability/start/callback fail closed when the hooks are absent. Manual connection behavior remains behind the merged human MFA policy and preserves its narrow private-token exception while rollout flags are off.
 
-Before enabling the flag, route start through the trusted human/MFA authorization RPC, bind the validated principal/session and required assurance to the attempt, and revalidate current principal, session, factor/recent verification and recovery status at both claim and commit. Test AAL1/recovery-only starts, recovery or revocation after start, stale/replaced sessions and changed factors: zero exchange or credential writes as appropriate. A passing OAuth mock or frontend MFA screen is not evidence that these checks exist. This packaging follow-up adds no substitute guard and makes no MFA integration claim.
+Actual PostgreSQL 17 SQL tests apply both branches' real helpers and reject AAL1 starts, recovery/logout/factor changes, changed or stale proof, revoked membership and suspended workspace before callback writes. Auth tables and Vault are synthetic in those tests. Real GoTrue enrollment, independent PostgreSQL connections, actual Vault rollback and HTTPS browser execution remain separate release gates, explicitly **not executed** here because Docker/psql/Chromium are unavailable. Prepared loopback-only runners are described in `amazon-oauth-browser-local.md`. Keep both rollout flags off and do not interpret the feature-branch integration as approval to activate or deploy.
 
 ## Unapplied migration packaging follow-up
 
 Supabase CLI 2.121.0 `migration new` generated replacement pending filenames `20261016193505_amazon_app_credentials.sql` and `20261016193507_amazon_oauth_disabled.sql`, after the MFA migration `20261016191517`. SQL bytes were copied unchanged and verified equal before removing the old unapplied files. Harness/source-test references were updated. No migration was applied, no production migration history was repaired and no SQL behavior changed. The targeted PostgreSQL contract and tenant-isolation checks were rerun after the rename; the full-suite counts above describe the preceding product checkpoint.
+
+## MFA/OAuth feature-branch integration follow-up
+
+The OAuth feature branch merged the full administrator MFA feature branch at `a40d57de` (including helper dependency `4993c5a8`) and incorporated the timestamp-precision clarification. This is a feature-branch dependency merge, not a merge into main or authorization to deploy. The three import conflicts in App, Settings and integration-accounts were resolved by retaining both features. The OAuth first-head query sanitization and manual connection remain present; business effects and the OAuth continuation screen remain behind the merged MFA readiness gate.
+
+The additive OAuth actor-binding migration is `20261016194232_amazon_oauth_verified_actor_binding.sql`, following MFA's `20261016194211_admin_mfa_oauth_actor_binding.sql`. It invalidates old unbound attempts and removes the old reserve overload. Claim/commit never obtain actor proof from a callback parameter. The shared context helper locks current membership, member workspace and data-owner workspace; the service actor helper locks current principal, session, admitted factor and AMR rows until the enclosing transaction ends. A refreshed JWT never renews the immutable original proof's five-minute window.
+
+Final verification after the integration and lock fix (product checkpoint `f6b94f69`):
+
+| Command/check | Observed result |
+| --- | --- |
+| `node --test scripts/*.test.mjs` | 1049 passed, 0 failed, 0 skipped |
+| `npm test` | 69 passed across 5 files |
+| `npm run build` | Passed; existing large-chunk warning; icon verification passed |
+| Actual merged MFA helpers + OAuth SQL and existing OAuth SQL contract | 2 tests passed on PG17 PGlite; synthetic Auth/Vault |
+| Browser harness `--check-guards`, default prepared-only path, and runner/helper syntax checks | Passed guard/syntax checks only; real environments NOT exercised |
+
+The merged SQL test checks AAL1 start; recovery, principal epoch, logout/session disappearance, session expiry, missing/changed AMR, factor removal/admission/session change, active/role withdrawal, owner/member-workspace reassignment, suspension of distinct member and owner workspaces, and expired original proof at both claim and commit. Each denial preserves the prior token/version. A valid actor commits the existing IDs. The initial merged script run exposed three manager test fixtures lacking the newly merged real MFA policy adapter; fixtures were corrected to execute the real `assertMfaWithClient` policy with controlled backend results, and the final entire script run passed.
+
+Prepared real-environment coverage now includes actual GoTrue/TOTP setup, recovery/global logout/Auth Admin factor removal, optional real-clock proof expiry, real Vault failure rollback, two independent PostgreSQL claim/quota/snapshot/row-lock cases and HTTPS/browser binding with intercepted simulated Amazon. **None of those real-environment suites ran here.** Docker, psql, Chromium and Deno are absent. The harnesses require two explicit disposable-local opt-ins, loopback API/database URLs and environment-only local keys; they do not apply migrations, deploy or contact Amazon. All rollout flags remain off; neither local feature integration nor passing synthetic SQL authorizes activation. No further push was performed by this worker; parent publication is a separate coordinated action.

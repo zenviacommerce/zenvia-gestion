@@ -45,5 +45,5 @@ test('settings provider exposes defaults and warnings instead of blocking the ap
 test('application root is wrapped by SettingsProvider',async()=>{
   const source=await read('../src/main.tsx');
   assert.match(source,/SettingsProvider/);
-  assert.match(source,/<SettingsProvider>\s*<App\/>/);
+  assert.match(source,/<SettingsProvider[^>]+userId=\{access\.ready\?access\.userId:null\}[^>]*>\s*<App\/>/);
 });

@@ -1,3 +1,4 @@
+import {assertHumanMfa} from '../_shared/mfa.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { validateToolCall } from '../_shared/agentTools.ts';
 const headers={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type','Access-Control-Allow-Methods':'POST, OPTIONS','Content-Type':'application/json'};
@@ -11,6 +12,7 @@ Deno.serve(async(req:Request)=>{
     const url=Deno.env.get('SUPABASE_URL')||'',key=adminKey(),token=(req.headers.get('Authorization')||'').replace(/^Bearer\s+/i,'');
     if(!url||!key||!token)return reply({error:'Sesión no válida.'},401);
     const admin=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
+    await assertHumanMfa(req,false);
     const {data:auth,error:authError}=await admin.auth.getUser(token);
     if(authError||!auth?.user)return reply({error:'Sesión no válida.'},401);
     const {data:profile,error:profileError}=await admin.from('app_users').select('user_id,active,role,permissions,data_owner_id').eq('user_id',auth.user.id).maybeSingle();

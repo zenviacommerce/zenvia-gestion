@@ -1,3 +1,4 @@
+import {assertHumanMfa} from '../_shared/mfa.ts';
 import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -44,6 +45,7 @@ function getAdminKey(){
 async function authenticate(req:Request,admin:any):Promise<Caller>{
   const token=clean(req.headers.get('Authorization')).replace(/^Bearer\s+/i,'');
   if(!token)throw new Error('Sesión no válida.');
+  await assertHumanMfa(req,false);
   const {data:userData,error:userError}=await admin.auth.getUser(token);
   if(userError||!userData?.user)throw new Error('Sesión no válida.');
   const {data:caller,error}=await admin.from('app_users')

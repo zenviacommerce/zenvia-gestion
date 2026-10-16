@@ -8,6 +8,7 @@ import { UnifiedListExperience } from './components/UnifiedListExperience';
 import { ActionDialogHost } from './components/ActionDialogHost';
 import { ActivityCenter } from './components/ActivityCenter';
 import { AppErrorBoundary } from './components/AppErrorBoundary';
+import {MfaProvider,useMfaAccess} from './context/MfaContext';
 import { SettingsProvider } from './context/SettingsContext';
 import './styles.css';
 import './enhancements.css';
@@ -61,4 +62,8 @@ favicon.type='image/png';
 favicon.href='/zenvia-ios-home-180-v3.png';
 if(!favicon.parentNode)document.head.appendChild(favicon);
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><AppErrorBoundary><SettingsProvider><App/><ActionDialogHost/><ActivityCenter/><AutoPagination/><OrderLabelDefaults/><PendingOrdersKpiHighlight/><UnifiedListExperience/></SettingsProvider></AppErrorBoundary></React.StrictMode>);
+function SecuredApplication(){
+ const access=useMfaAccess();
+ return <SettingsProvider key={`${access.userId}`} userId={access.ready?access.userId:null}><App/>{access.ready&&<><ActionDialogHost/><ActivityCenter/><AutoPagination/><OrderLabelDefaults/><PendingOrdersKpiHighlight/><UnifiedListExperience/></>}</SettingsProvider>;
+}
+ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><AppErrorBoundary><MfaProvider><SecuredApplication/></MfaProvider></AppErrorBoundary></React.StrictMode>);

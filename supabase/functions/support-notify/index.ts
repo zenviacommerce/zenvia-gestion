@@ -1,3 +1,5 @@
+import {assertBridgeMfaAllowed} from '../_shared/mfa.ts';
+import {assertHumanMfa} from '../_shared/mfa.ts';
 import { adminClient } from '../_shared/support/supabase.ts';
 
 const corsHeaders={
@@ -48,9 +50,11 @@ Deno.serve(async(req:Request)=>{
       if(bridgeError)throw bridgeError;
       isPlatform=Boolean(bridge?.active)&&await sha256(bridgeToken)===bridge?.token_sha256;
       if(!isPlatform)return response({error:'Puente no autorizado.'},401);
+      await assertBridgeMfaAllowed(admin);
     }else{
       const token=(req.headers.get('Authorization')||'').replace(/^Bearer\s+/i,'').trim();
       if(!token)return response({error:'Sesión no válida.'},401);
+      await assertHumanMfa(req,false);
       const {data:userData,error:userError}=await admin.auth.getUser(token);
       if(userError||!userData?.user)return response({error:'Sesión no válida.'},401);
       const authUser=userData.user;

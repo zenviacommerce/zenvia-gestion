@@ -1,3 +1,4 @@
+import {assertHumanMfa} from '../_shared/mfa.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders={
@@ -569,6 +570,7 @@ Deno.serve(async(req:Request)=>{
 
     const token=clean(req.headers.get('Authorization'),4000).replace(/^Bearer\s+/i,'');
     if(!token)return response({error:'Sesión no válida.'},401);
+    await assertHumanMfa(req,false);
     const {data:userData,error:userError}=await admin.auth.getUser(token);
     if(userError||!userData?.user)return response({error:'Sesión no válida.'},401);
 

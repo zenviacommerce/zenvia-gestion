@@ -8,7 +8,7 @@ test('Envia plan entitlement is independent from Sendcloud when creating or reac
  globalThis.Deno={env:{get:key=>key==='SUPABASE_URL'?'https://example.supabase.co':key==='SUPABASE_SERVICE_ROLE_KEY'?'test-key':undefined},serve:fn=>{handler=fn;}};
  const queried=[];
  const entitlements={'integration.envia':{enabled:false},'integration.sendcloud':{enabled:true}};
- globalThis.__enviaPlanAdmin={auth:{getUser:async()=>({data:{user:{id:'user'}}})},from:table=>{
+ globalThis.__enviaPlanAdmin={rpc:async(name)=>{assert.equal(name,'security_mfa_assert');return {data:null,error:null};},auth:{getUser:async()=>({data:{user:{id:'user'}}})},from:table=>{
    queried.push(table);
    const data={app_users:{user_id:'user',data_owner_id:'workspace',role:'admin',active:true},workspaces:{status:'active'},app_subscription_state:{status:'active',entitlements},integration_accounts:{id:'account',owner_id:'workspace',provider:'envia',enabled:false,config:{}}}[table];
    const query={select:()=>query,eq:()=>query,maybeSingle:async()=>({data,error:null}),single:async()=>({data,error:null})};return query;

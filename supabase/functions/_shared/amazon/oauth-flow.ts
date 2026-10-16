@@ -1,9 +1,10 @@
 import {readAmazonOAuthConfig,buildAmazonConsentUrl,validateAmazonContinuation,validAmazonSeller} from './oauth-config.ts';
+import type {AmazonOAuthHumanRpc} from './oauth-auth.ts';
 import type {EnabledAmazonOAuthConfig,OAuthContinuation} from './oauth-config.ts';
-import {authenticateAmazonOAuth,authorizeAmazonOAuthEntitlement,AmazonOAuthAuthError} from './oauth-auth.ts';
+import {authenticateAmazonOAuth,authorizeAmazonOAuthEntitlement,AmazonOAuthAuthError,readTrustedAmazonOAuthActor,amazonOAuthMfaReady} from './oauth-auth.ts';
 import {encodeOAuthBytes,hashOAuthValue,signAmazonState,verifyAmazonState} from './oauth-state.ts';
 export type OAuthStartInput={workspaceId?:string;integrationAccountId?:string;continuation?:OAuthContinuation};
-export type OAuthDependencies={admin:any;fetch:typeof fetch;now:()=>number;envGet:(name:string)=>string|undefined;randomBytes:(n:number)=>Uint8Array};
+export type OAuthDependencies={admin:any;humanRpc?:AmazonOAuthHumanRpc;fetch:typeof fetch;now:()=>number;envGet:(name:string)=>string|undefined;randomBytes:(n:number)=>Uint8Array};
 const cookieName='__Host-zenvia-amazon-oauth';
 const safeHeaders={'Cache-Control':'no-store','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'none'; frame-ancestors 'none'",'X-Content-Type-Options':'nosniff'};
 function headers(config?:EnabledAmazonOAuthConfig){const h=new Headers(safeHeaders);if(config){h.set('Access-Control-Allow-Origin',config.uiOrigin);h.set('Vary','Origin');h.set('Access-Control-Allow-Headers','authorization, apikey, content-type, x-client-info');h.set('Access-Control-Allow-Methods','POST, GET, OPTIONS');}return h;}
@@ -30,7 +31,9 @@ export async function handleAmazonOAuthStart(req:Request,deps:OAuthDependencies)
       const now=deps.now(),iat=Math.floor(now/1000),nonce=opaque(deps),ticket=opaque(deps);
       const state=await signAmazonState({v:1,nonce,iat,exp:iat+600,app:'public_v1',purpose:'connect'},config.signingKey);
       if(!readAmazonOAuthConfig(deps.envGet).enabled)return failure(503,config);
-      await rpc(deps,'integration_amazon_oauth_reserve',{p_user_id:context.userId,p_workspace_id:context.workspaceId,p_owner_id:context.ownerId,p_target_integration_id:input.integrationAccountId||null,p_expected_seller_id:expectedSeller,p_nonce_hash:await hashOAuthValue(nonce),p_ticket_hash:await hashOAuthValue(ticket),p_expires_at:new Date((iat+600)*1000).toISOString(),p_ticket_expires_at:new Date(now+30000).toISOString(),p_continuation:continuation||null});
+      const actor=await readTrustedAmazonOAuthActor(req,context,deps.humanRpc);
+      if(!await amazonOAuthMfaReady(deps.admin)||!readAmazonOAuthConfig(deps.envGet).enabled)return failure(503,config);
+      await rpc(deps,'integration_amazon_oauth_reserve',{p_user_id:context.userId,p_workspace_id:context.workspaceId,p_owner_id:context.ownerId,p_target_integration_id:input.integrationAccountId||null,p_expected_seller_id:expectedSeller,p_nonce_hash:await hashOAuthValue(nonce),p_ticket_hash:await hashOAuthValue(ticket),p_expires_at:new Date((iat+600)*1000).toISOString(),p_ticket_expires_at:new Date(now+30000).toISOString(),p_actor_session_id:actor.actor_session_id,p_actor_factor_id:actor.actor_factor_id,p_mfa_verified_at:actor.mfa_verified_at,p_continuation:continuation||null});
       const launch=new URL('/functions/v1/amazon-oauth-start',config.redirectUri);launch.searchParams.set('ticket',ticket);launch.searchParams.set('state',state);const h=headers(config);h.set('Content-Type','application/json');return new Response(JSON.stringify({launchUrl:launch.href}),{headers:h});
     }
     if(req.method==='GET'){
@@ -63,6 +66,7 @@ export async function handleAmazonOAuthCallback(req:Request,deps:OAuthDependenci
     if(!validAmazonSeller(seller)||(amazonError?(!/^[a-z_]{1,64}$/.test(amazonError)||code!==null):(!code||code.length>4096||/[\x00-\x1f\x7f]/.test(code))))throw Error();
     const payload=await verifyAmazonState(state,config.signingKey,deps.now()),browser=readCookie(req);if(!browser)throw Error();
     if(!readAmazonOAuthConfig(deps.envGet).enabled)return finalRedirect(config,'unavailable');
+    if(!await amazonOAuthMfaReady(deps.admin)||!readAmazonOAuthConfig(deps.envGet).enabled)return finalRedirect(config,'unavailable');
     const claim=await rpc(deps,'integration_amazon_oauth_claim',{p_nonce_hash:await hashOAuthValue(payload.nonce),p_browser_hash:await hashOAuthValue(browser),p_seller_id:seller});
     if(!claim||typeof claim.attempt_id!=='string'||!claim.attempt_id||claim.app_key!=='public_v1')throw Error();attemptId=claim.attempt_id;
     if(amazonError)throw Error();const refreshToken=await exchange(deps,config,code!);

@@ -1,4 +1,5 @@
 import { AmazonOAuthButton } from '../components/amazon/AmazonOAuthLaunch';
+import {MfaDevices} from '../components/MfaDevices';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
@@ -2653,6 +2654,7 @@ export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;ac
       <div><strong>{error?'Configuración temporal':'Revisión de configuración'}</strong><span>{error||`${warnings.length} ajuste${warnings.length===1?'':'s'} ha${warnings.length===1?'':'n'} usado un valor seguro por defecto.`}</span></div>
     </div>}
 
+    {isAdmin&&<MfaDevices/>}
     <div className="settingsLayout">
       <nav className="settingsNav" aria-label="Secciones de configuración">
         {visibleSections.map(section=>{

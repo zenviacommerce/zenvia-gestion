@@ -9,6 +9,7 @@ const {PGlite}=require('@electric-sql/pglite');
 const pglitePackage=JSON.parse(await readFile(join(dirname(require.resolve('@electric-sql/pglite')),'../package.json'),'utf8'));
 assert.equal(pglitePackage.version,'0.3.14','SQL harness requires pinned PGlite 0.3.14');
 const migration=await readFile(new URL('../migrations/20261016193507_amazon_oauth_disabled.sql',import.meta.url),'utf8');
+const binding=await readFile(new URL('../migrations/20261016194232_amazon_oauth_verified_actor_binding.sql',import.meta.url),'utf8');
 const apps=await readFile(new URL('../migrations/20261016193505_amazon_app_credentials.sql',import.meta.url),'utf8');
 test('PGlite SQL contract: reserve/bind/claim/atomic commit, ACL and replay (Vault simulated)',async()=>{
  const db=new PGlite();
@@ -25,17 +26,51 @@ test('PGlite SQL contract: reserve/bind/claim/atomic commit, ACL and replay (Vau
  create table vault.decrypted_secrets(id uuid primary key default gen_random_uuid(),decrypted_secret text);
  create function public.integration_store_secret(p_secret text,p_name text,p_description text,p_existing_secret_id uuid) returns uuid language plpgsql as $$ declare sid uuid; begin sid:=coalesce(p_existing_secret_id,gen_random_uuid()); insert into vault.decrypted_secrets values(sid,p_secret) on conflict(id) do update set decrypted_secret=excluded.decrypted_secret; return sid; end $$;`);
  await db.exec(apps); await db.exec(migration);
+ await db.exec(`create table public.test_mfa_actor(active boolean default true, session_live boolean default true, factor_live boolean default true, recovery boolean default false,recent boolean default true);insert into test_mfa_actor default values;
+ create function public.security_mfa_oauth_start_context() returns jsonb language sql as $$ select '{}'::jsonb $$;
+ create function public.security_mfa_oauth_actor_assert(p_user uuid,p_session uuid,p_factor uuid,p_verified numeric,p_owner uuid) returns void language plpgsql as $$ begin
+ if p_session<>'00000000-0000-0000-0000-000000000010'::uuid or p_factor<>'00000000-0000-0000-0000-000000000011'::uuid or p_verified<=extract(epoch from clock_timestamp())-300 or p_verified>extract(epoch from clock_timestamp()) or not exists(select 1 from public.test_mfa_actor where active and session_live and factor_live and not recovery and recent) then raise exception 'MFA actor denied'; end if;end $$;`);
+ await db.exec(binding);
  const u='00000000-0000-0000-0000-000000000001', w='00000000-0000-0000-0000-000000000002',o='00000000-0000-0000-0000-000000000003';
  await db.exec(`insert into auth.users values('${u}');insert into workspaces values('${w}','active'),('${o}','active');insert into app_users values('${u}','${w}','${o}',true,'admin');insert into app_subscription_state values('${w}','active','{"amazon_accounts":{"limit":1}}');`);
  const nonce='a'.repeat(64),ticket='b'.repeat(64),browser='c'.repeat(64);
  const q=async(sql,args=[])=> (await db.query(sql,args)).rows;
- const [r]=await q(`select integration_amazon_oauth_reserve($1,$2,$3,null,null,$4,$5,now()+interval '9 minutes',now()+interval '29 seconds') id`,[u,w,o,nonce,ticket]);
- await assert.rejects(q(`select integration_amazon_oauth_reserve($1,$2,$3,null,null,$4,$5,now()+interval '9 minutes',now()+interval '29 seconds')`,[u,w,o,'d'.repeat(64),'e'.repeat(64)]),/limit/);
+ const [r]=await q(`select integration_amazon_oauth_reserve($1,$2,$3,null,null,$4,$5,now()+interval '9 minutes',now()+interval '29 seconds','00000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000011',extract(epoch from now())) id`,[u,w,o,nonce,ticket]);
+ await assert.rejects(q(`select integration_amazon_oauth_reserve($1,$2,$3,null,null,$4,$5,now()+interval '9 minutes',now()+interval '29 seconds','00000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000011',extract(epoch from now()))`,[u,w,o,'d'.repeat(64),'e'.repeat(64)]),/limit/);
  await q(`select integration_amazon_oauth_bind_browser($1,$2,$3)`,[ticket,nonce,browser]);
  await assert.rejects(q(`select integration_amazon_oauth_bind_browser($1,$2,$3)`,[ticket,nonce,browser]),/unavailable/);
  await assert.rejects(q(`select integration_amazon_oauth_claim($1,$2,'SELLER')`,[nonce,'f'.repeat(64)]),/unavailable/);
+ // Membership workspace and data owner are deliberately distinct fixtures.
+ await q(`update workspaces set status='suspended' where id=$1`,[w]);
+ await assert.rejects(q(`select integration_amazon_oauth_claim($1,$2,'SELLER')`,[nonce,browser]),/authorization denied/);
+ assert.equal((await q(`select status from amazon_oauth_attempts where id=$1`,[r.id]))[0].status,'pending');
+ await q(`update workspaces set status='active' where id=$1`,[w]);
+ await q(`update workspaces set status='suspended' where id=$1`,[o]);
+ await assert.rejects(q(`select integration_amazon_oauth_claim($1,$2,'SELLER')`,[nonce,browser]),/authorization denied/);
+ await q(`update workspaces set status='active' where id=$1`,[o]);
+ // These are service-validator stubs, not actual Auth/MFA verification.
+ // Every live-proof revocation after reserve fails before claim or Vault writes.
+ for(const [column,value] of [['active',false],['session_live',false],['factor_live',false],['recovery',true],['recent',false]]){
+ await db.exec(`update test_mfa_actor set ${column}=${value}`);
+ await assert.rejects(q(`select integration_amazon_oauth_claim($1,$2,'SELLER')`,[nonce,browser]),/MFA actor denied/);
+ assert.equal((await q(`select status from amazon_oauth_attempts where id=$1`,[r.id]))[0].status,'pending');
+ assert.equal((await q(`select count(*)::integer n from vault.decrypted_secrets`))[0].n,0);
+ await db.exec(`update test_mfa_actor set ${column}=${!value}`);
+ }
+ await assert.rejects(q(`update amazon_oauth_attempts set actor_factor_id=gen_random_uuid() where id=$1`,[r.id]),/immutable/);
+ await db.exec(`alter function public.security_mfa_oauth_actor_assert(uuid,uuid,uuid,numeric,uuid) rename to test_missing_mfa_hook`);
+ assert.equal((await q(`select integration_amazon_oauth_hooks_ready() ready`))[0].ready,false);
+ await assert.rejects(q(`select integration_amazon_oauth_claim($1,$2,'SELLER')`,[nonce,browser]),/MFA authorization denied/);
+ await db.exec(`alter function public.test_missing_mfa_hook(uuid,uuid,uuid,numeric,uuid) rename to security_mfa_oauth_actor_assert`);
  await q(`select integration_amazon_oauth_claim($1,$2,'SELLER')`,[nonce,browser]);
  await assert.rejects(q(`select integration_amazon_oauth_claim($1,$2,'SELLER')`,[nonce,browser]),/unavailable/);
+ for(const [column,value] of [['session_live',false],['factor_live',false],['recovery',true],['recent',false]]){
+ await db.exec(`update test_mfa_actor set ${column}=${value}`);
+ await assert.rejects(q(`select * from integration_amazon_oauth_commit($1,'SELLER','must-not-write')`,[r.id]),/MFA actor denied/);
+ assert.equal((await q(`select count(*)::integer n from vault.decrypted_secrets`))[0].n,0);
+ assert.equal((await q(`select status from amazon_oauth_attempts where id=$1`,[r.id]))[0].status,'exchanging');
+ await db.exec(`update test_mfa_actor set ${column}=${!value}`);
+ }
  const [result]=await q(`select * from integration_amazon_oauth_commit($1,'SELLER','synthetic-token')`,[r.id]);
  assert.equal(result.amazon_credential_version,1);
  const [snapshot]=await q(`select * from integration_amazon_credential_snapshot($1,$2,null)`,[o,result.integration_account_id]);
@@ -60,14 +95,14 @@ test('PGlite SQL contract: reserve/bind/claim/atomic commit, ACL and replay (Vau
  assert.equal((await q(`select has_function_privilege('anon','public.integration_amazon_oauth_claim(text,text,text)','execute') allowed`))[0].allowed,false);
  // Simulate another untargeted attempt claimed before the first commit created
  // the registry identity. It must not adopt the now-current version and overwrite.
- const [racing]=await q(`insert into amazon_oauth_attempts(user_id,workspace_id,owner_id,nonce_hash,ticket_hash,browser_hash,ticket_consumed_at,expires_at,ticket_expires_at,status,expected_seller_id) values($1,$2,$3,$4,$5,$6,now(),now()+interval '9 minutes',now()+interval '29 seconds','exchanging','SELLER') returning id`,[u,w,o,'7'.repeat(64),'8'.repeat(64),browser]);
+ const [racing]=await q(`insert into amazon_oauth_attempts(user_id,workspace_id,owner_id,nonce_hash,ticket_hash,browser_hash,ticket_consumed_at,expires_at,ticket_expires_at,status,expected_seller_id,actor_session_id,actor_factor_id,mfa_verified_at) values($1,$2,$3,$4,$5,$6,now(),now()+interval '9 minutes',now()+interval '29 seconds','exchanging','SELLER','00000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000011',extract(epoch from now())) returning id`,[u,w,o,'7'.repeat(64),'8'.repeat(64),browser]);
  await db.exec(`update app_subscription_state set entitlements='{"amazon_accounts":{"limit":10}}'`);
  await assert.rejects(q(`select * from integration_amazon_oauth_commit($1,'SELLER','racing-overwrite')`,[racing.id]),/changed/);
  await db.exec(`update app_subscription_state set entitlements='{"amazon_accounts":{"limit":1}}'`);
  await q(`select integration_amazon_oauth_fail($1,'commit_failed')`,[racing.id]);
  // A failure after writing the synthetic Vault row rolls the entire statement back.
  await db.exec(`create function public.test_commit_failure() returns trigger language plpgsql as $$ begin if new.status='complete' then raise exception 'synthetic completion failure'; end if; return new; end $$; create trigger test_commit_failure before update on public.amazon_oauth_attempts for each row execute function public.test_commit_failure();`);
- const [retry]=await q(`select integration_amazon_oauth_reserve($1,$2,$3,$4,'SELLER',$5,$6,now()+interval '9 minutes',now()+interval '29 seconds') id`,[u,w,o,result.integration_account_id,'1'.repeat(64),'2'.repeat(64)]);
+ const [retry]=await q(`select integration_amazon_oauth_reserve($1,$2,$3,$4,'SELLER',$5,$6,now()+interval '9 minutes',now()+interval '29 seconds','00000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000011',extract(epoch from now())) id`,[u,w,o,result.integration_account_id,'1'.repeat(64),'2'.repeat(64)]);
  await q(`select integration_amazon_oauth_bind_browser($1,$2,$3)`,['2'.repeat(64),'1'.repeat(64),browser]);
  await q(`select integration_amazon_oauth_claim($1,$2,'SELLER')`,['1'.repeat(64),browser]);
  await assert.rejects(q(`select * from integration_amazon_oauth_commit($1,'SELLER','must-rollback')`,[retry.id]),/synthetic completion failure/);
@@ -76,7 +111,7 @@ test('PGlite SQL contract: reserve/bind/claim/atomic commit, ACL and replay (Vau
  await assert.rejects(db.exec(`update public.integration_accounts set external_account_id='OTHER' where id='${result.integration_account_id}'`),/registry mismatch/);
  // Reactivation is serialized with reservations and preserves issuer/version.
  await q(`select integration_amazon_set_enabled($1,$2,$3,$4,1,false)`,[u,w,o,result.integration_account_id]);
- await q(`select integration_amazon_oauth_reserve($1,$2,$3,null,null,$4,$5,now()+interval '9 minutes',now()+interval '29 seconds')`,[u,w,o,'3'.repeat(64),'4'.repeat(64)]);
+ await q(`select integration_amazon_oauth_reserve($1,$2,$3,null,null,$4,$5,now()+interval '9 minutes',now()+interval '29 seconds','00000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000011',extract(epoch from now()))`,[u,w,o,'3'.repeat(64),'4'.repeat(64)]);
  await assert.rejects(q(`select integration_amazon_set_enabled($1,$2,$3,$4,2,true)`,[u,w,o,result.integration_account_id]),/limit/);
  await db.exec(`update public.amazon_oauth_attempts set status='failed' where nonce_hash='${'3'.repeat(64)}'`);
  await q(`select integration_amazon_set_enabled($1,$2,$3,$4,2,true)`,[u,w,o,result.integration_account_id]);
@@ -84,7 +119,7 @@ test('PGlite SQL contract: reserve/bind/claim/atomic commit, ACL and replay (Vau
  assert.equal(reactivated.sp_api_app_key,'public_v1'); assert.equal(reactivated.amazon_credential_version,2); assert.equal(reactivated.enabled,true);
  await assert.rejects(q(`select integration_amazon_set_enabled($1,$2,$3,$4,0,true)`,[u,w,o,result.integration_account_id]),/changed/);
  await q(`select integration_amazon_update_metadata($1,$2,$3,$4,2,'renamed','{"safe":true}')`,[u,w,o,result.integration_account_id]);
- const [pendingArchive]=await q(`select integration_amazon_oauth_reserve($1,$2,$3,$4,'SELLER',$5,$6,now()+interval '9 minutes',now()+interval '29 seconds') id`,[u,w,o,result.integration_account_id,'5'.repeat(64),'6'.repeat(64)]);
+ const [pendingArchive]=await q(`select integration_amazon_oauth_reserve($1,$2,$3,$4,'SELLER',$5,$6,now()+interval '9 minutes',now()+interval '29 seconds','00000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000011',extract(epoch from now())) id`,[u,w,o,result.integration_account_id,'5'.repeat(64),'6'.repeat(64)]);
  await q(`select integration_amazon_oauth_bind_browser($1,$2,$3)`,['6'.repeat(64),'5'.repeat(64),browser]);
  await q(`select integration_amazon_oauth_claim($1,$2,'SELLER')`,['5'.repeat(64),browser]);
  await q(`select integration_amazon_archive($1,$2,$3,$4,2,true)`,[u,w,o,result.integration_account_id]);
@@ -95,7 +130,7 @@ test('PGlite SQL contract: reserve/bind/claim/atomic commit, ACL and replay (Vau
  assert.equal((await q(`select count(*)::integer n from amazon_seller_owners where seller_id='SELLER'`))[0].n,1);
  // Targeted public reconnection restores the archived identity without replacing links.
  await db.exec(`drop trigger test_commit_failure on public.amazon_oauth_attempts`);
- const [reconnect]=await q(`select integration_amazon_oauth_reserve($1,$2,$3,$4,'SELLER',$5,$6,now()+interval '9 minutes',now()+interval '29 seconds') id`,[u,w,o,result.integration_account_id,'9'.repeat(64),'0'.repeat(64)]);
+ const [reconnect]=await q(`select integration_amazon_oauth_reserve($1,$2,$3,$4,'SELLER',$5,$6,now()+interval '9 minutes',now()+interval '29 seconds','00000000-0000-0000-0000-000000000010','00000000-0000-0000-0000-000000000011',extract(epoch from now())) id`,[u,w,o,result.integration_account_id,'9'.repeat(64),'0'.repeat(64)]);
  await q(`select integration_amazon_oauth_bind_browser($1,$2,$3)`,['0'.repeat(64),'9'.repeat(64),browser]);
  await q(`select integration_amazon_oauth_claim($1,$2,'SELLER')`,['9'.repeat(64),browser]);
  const [restored]=await q(`select * from integration_amazon_oauth_commit($1,'SELLER','restored-public')`,[reconnect.id]);

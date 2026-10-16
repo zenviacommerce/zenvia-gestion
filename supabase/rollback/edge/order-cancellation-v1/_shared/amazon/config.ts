@@ -81,4 +81,3 @@ export async function loadAmazonSpApiCredentials(
   const allowSellerEnv=integration.credential_source==='environment';
   return normalize(stored,env,clean(integration.external_account_id)||fallbackSellerId,allowSellerEnv);
 }
-

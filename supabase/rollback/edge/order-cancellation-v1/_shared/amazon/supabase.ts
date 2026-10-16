@@ -54,4 +54,3 @@ export async function authenticateAdminUser(req:Request,admin:any){
   if(caller.role!=='admin')throw new Error('Solo un administrador puede iniciar una sincronización manual de Amazon.');
   return caller;
 }
-

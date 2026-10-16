@@ -132,4 +132,3 @@ export async function commitShopifyAuthorization(admin:any,account:any,pending:a
   if(result.error)throw result.error;
   if(!result.data)throw new Error('La conexión de Shopify cambió mientras autorizabas. Vuelve a conectar la tienda.');
 }
-

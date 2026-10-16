@@ -36,4 +36,3 @@ export async function claimOrderShipping(admin:any,order:any){
  if(result.error)throw result.error;if(!result.data)throw new Error('Hay otra operación de envío o cancelación en curso.');return {id:order.id,ownerId:order.owner_id,lease};
 }
 export async function releaseOrderShipping(admin:any,claim:any){if(claim)await admin.from('fulfillment_orders').update({order_action_lease:null,order_action_lease_until:null}).eq('id',claim.id).eq('owner_id',claim.ownerId).eq('order_action_lease',claim.lease);}
-

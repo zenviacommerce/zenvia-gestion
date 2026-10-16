@@ -74,4 +74,3 @@ Deno.serve(async(req:Request)=>{
   return response({ok:true,operations:results});
  }catch(error){const message=error instanceof Error?error.message:'No se pudo gestionar la cancelación.';return response({error:message},message==='Sesión no válida.'?401:400);}
 });
-

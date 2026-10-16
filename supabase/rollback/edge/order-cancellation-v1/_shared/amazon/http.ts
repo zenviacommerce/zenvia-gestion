@@ -15,4 +15,3 @@ export function retryAfterMs(headers:Headers,attempt:number){
   if(Number.isFinite(seconds)&&seconds>=0)return Math.min(10_000,Math.max(100,seconds*1000));
   return Math.min(8_000,500*(2**attempt));
 }
-

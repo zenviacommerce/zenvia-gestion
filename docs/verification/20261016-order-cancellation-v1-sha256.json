@@ -4,13 +4,13 @@
   "version": 1,
   "verify_jwt": true,
   "files": {
-    "_shared/orderCancellation.ts": "8ea89c6f2e8fd46ed12e8f3a9d5d7047dcee0574e2f4cd963aebec070310f0b2",
-    "_shared/shopifyAuth.ts": "18a4a6a0c53ed44b3b9887bd05519903ec2891ec4af0da88750fe0642468f132",
-    "_shared/cancelCarriers.ts": "ec0486fa5e38ddce4c9537cedec0daea79c81640546db1ad15217a0ea83b0691",
-    "order-cancellation/index.ts": "007096c9c13c07a1e3357289ebe30e7eeacb15b2c7b28e6b6b1b17910cb51e1f",
-    "_shared/amazon/config.ts": "a0cc1b2f99592f206a5cbc2157d0ddfedc2142bf928f9b03a2ff3b52809c2cdd",
-    "_shared/amazon/supabase.ts": "8bf5fb9352429a578902e44b9590611cda6738174ede11fcc1b12df31c0ef64e",
-    "_shared/amazon/http.ts": "6c4d9454c9c10e4ce7274c740d903e19d54f597828faa55cc69b30948e2651bc",
-    "_shared/amazon/sp-api.ts": "d9d316c6a24ff1c4392de0540916053a8d8fab4e162fcef5180f7d77a32a14ab"
+    "_shared/orderCancellation.ts": "a55825ea07755c6d105c1b5d1eb5df3ce4c59cfe2863e6b859a6ed6312ea3ade",
+    "_shared/shopifyAuth.ts": "1ed147c19666d1ed11ede1a49a7d057ba1cf0b7028c6e462227fee0ce3b9e580",
+    "_shared/cancelCarriers.ts": "a5936533df5baf2ba2bb8540784647833ea6cf0b8225c014a6294f7c1c676d9c",
+    "order-cancellation/index.ts": "71fec659b2e01dab41bcccf1e83a76df9e3a6335cdb16fc4b90d0a21969ed176",
+    "_shared/amazon/config.ts": "7332c7798b0a0999e5b021ace98baef5982fe927f2e0f60399b824fcd891fcdb",
+    "_shared/amazon/supabase.ts": "5013b69425f5744e249aadcab3887a945b04dcf9873b2412df457fbf76a04fb1",
+    "_shared/amazon/http.ts": "d95a7a0b8c608bf144c50efb677d211aa4f68b06c2e7973940ae70e356870849",
+    "_shared/amazon/sp-api.ts": "a522fb054ca6e4f6825b20409ecb593b5f8b676f59342342699141b81edc3098"
   }
 }

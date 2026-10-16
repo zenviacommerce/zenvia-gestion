@@ -54,4 +54,3 @@ export async function cancelCarrier(admin:any,order:any,refresh=false,beforeMuta
  if(/<(?:\w+:)?(?:faultstring|DescripcionError|Mensaje)>[^<]+/i.test(xml))throw new CancellationRejected('MRW rechazó la anulación. Comprueba las condiciones del envío con tu agencia.');
  return /<(?:\w+:)?NumeroEnvio>\s*[^<]+/i.test(xml)?{status:'confirmed',message:'MRW confirmó la anulación del envío.'}:{status:'unknown',message:'MRW no devolvió una confirmación de anulación. Compruébalo con tu agencia.'};
 }
-

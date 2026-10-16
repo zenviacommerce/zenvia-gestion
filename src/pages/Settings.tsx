@@ -325,6 +325,7 @@ const entitlementLabels:Record<string,string>={
   'integration.shopify':'Shopify',
   'shopify_accounts':'Cuentas Shopify',
   'integration.sendcloud':'Sendcloud',
+  'integration.envia':'Envia.com',
   'integration.gmail':'Gmail',
 };
 

@@ -36,24 +36,26 @@ grant all on public.amazon_confirmation_operations to service_role;
 
 create function public.amazon_confirmation_begin(p_order_id uuid,p_owner_id uuid,p_account_id uuid,p_marketplace_id text,p_payload jsonb,p_holder uuid)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp set statement_timeout='3s' set lock_timeout='500ms' as $$
-declare item public.fulfillment_orders; acct public.amazon_accounts; integration public.integration_accounts; op public.amazon_confirmation_operations; fresh boolean:=false; legacy boolean; hash text;
+declare item public.fulfillment_orders; acct public.amazon_accounts; integration public.integration_accounts; op public.amazon_confirmation_operations; fresh boolean:=false; legacy boolean; hash text; order_key text;
 begin
  if p_holder is null then raise exception 'Missing holder'; end if;
  select * into item from public.fulfillment_orders where id=p_order_id and owner_id=p_owner_id for update;
  if not found or item.source_channel<>'amazon' then raise exception 'Pedido/tenant no válido'; end if;
+ order_key:=case when item.order_id~'^\d{3}-\d{7}-\d{7}$' then item.order_id when item.order_number~'^\d{3}-\d{7}-\d{7}$' then item.order_number else null end;
+ if order_key is null then raise exception 'Amazon order id inválido';end if;
  select * into acct from public.amazon_accounts where id=p_account_id and owner_id=p_owner_id;
  if not found then raise exception 'Cuenta/tenant no válido'; end if;
  select * into integration from public.integration_accounts where id=acct.integration_account_id and owner_id=p_owner_id and provider='amazon' and enabled and status<>'disabled';
  if not found or (item.source_integration_account_id is not null and item.source_integration_account_id<>integration.id) then raise exception 'Cuenta/owner de integración no válido'; end if;
- if not exists(select 1 from public.amazon_orders where owner_id=p_owner_id and amazon_account_id=p_account_id and amazon_order_id=item.order_id and marketplace_id=p_marketplace_id and fulfillment_channel='MFN') then raise exception 'Pedido/marketplace FBM no válido'; end if;
- if item.source_integration_account_id is null and (select count(*) from public.amazon_orders where owner_id=p_owner_id and amazon_order_id=item.order_id)<>1 then raise exception 'Cuenta del pedido ambigua'; end if;
+ if not exists(select 1 from public.amazon_orders where owner_id=p_owner_id and amazon_account_id=p_account_id and amazon_order_id=order_key and marketplace_id=p_marketplace_id and fulfillment_channel='MFN') then raise exception 'Pedido/marketplace FBM no válido'; end if;
+ if item.source_integration_account_id is null and (select count(*) from public.amazon_orders where owner_id=p_owner_id and amazon_order_id=order_key)<>1 then raise exception 'Cuenta del pedido ambigua'; end if;
  if exists(select 1 from public.order_cancellation_operations where order_id=p_order_id and owner_id=p_owner_id and (status in('submitting','pending','unknown') or (kind='order' and status='confirmed'))) or item.source_status ilike '%cancel%' then raise exception 'Cancelación pendiente o confirmada'; end if;
  if p_payload->>'marketplaceId' is distinct from p_marketplace_id or coalesce(btrim(p_payload#>>'{packageDetail,trackingNumber}'),'')='' or jsonb_typeof(p_payload#>'{packageDetail,orderItems}') is distinct from 'array' then raise exception 'Payload inválido'; end if;
  hash:=encode(sha256(convert_to((p_payload#-'{packageDetail,shipDate}')::text,'UTF8')),'hex');
  select * into op from public.amazon_confirmation_operations where order_id=p_order_id for update;
  if found then
   if op.owner_id<>p_owner_id or op.amazon_account_id<>p_account_id or op.integration_account_id<>integration.id or op.marketplace_id<>p_marketplace_id then raise exception 'Cuenta/tenant del intento no válido'; end if;
-  if op.state<>'prepared' and op.payload_hash is not null and op.payload_hash<>hash then raise exception '409: payload distinto con confirmación pendiente o confirmada'; end if;
+  if op.payload_hash is not null and op.payload_hash<>hash then raise exception '409: payload distinto con confirmación pendiente o confirmada'; end if;
   if op.state in('confirmed','rejected','needs_review') then return to_jsonb(op)||jsonb_build_object('send',false,'verify',false); end if;
   if op.lease_until>clock_timestamp() or (op.state='pending_verification' and op.next_verification_at>clock_timestamp()) then return to_jsonb(op)||jsonb_build_object('send',false,'verify',false); end if;
   if op.payload is null then
@@ -65,11 +67,12 @@ begin
   fresh:=not legacy;
   if fresh and (item.order_action_lease_until>now() or item.shopify_tracking_lease_until>now()) then raise exception 'Operación de envío en curso'; end if;
   insert into public.amazon_confirmation_operations(order_id,owner_id,amazon_account_id,integration_account_id,amazon_order_id,marketplace_id,package_reference_id,payload,payload_hash,original_tracking_number,state)
-  values(p_order_id,p_owner_id,p_account_id,integration.id,item.order_id,p_marketplace_id,p_payload#>>'{packageDetail,packageReferenceId}',p_payload,hash,item.tracking_number,case when item.amazon_tracking_synced_at is not null then 'confirmed' else 'pending_verification' end) returning * into op;
+  values(p_order_id,p_owner_id,p_account_id,integration.id,order_key,p_marketplace_id,p_payload#>>'{packageDetail,packageReferenceId}',p_payload,hash,item.tracking_number,case when item.amazon_tracking_synced_at is not null then 'confirmed' else 'pending_verification' end) returning * into op;
   if op.state='confirmed' then return to_jsonb(op)||jsonb_build_object('send',false,'verify',false); end if;
  end if;
+ if fresh and (item.order_action_lease_until>now() or item.shopify_tracking_lease_until>now()) then raise exception 'Operación de envío en curso'; end if;
  if fresh and coalesce(p_payload#>>'{packageDetail,packageReferenceId}','')!~'^[1-9][0-9]*$' then raise exception 'Package reference requerido para enviar'; end if;
- update public.amazon_confirmation_operations set holder=p_holder,fence=fence+1,lease_until=clock_timestamp()+interval '60 seconds',state='pending_verification',payload=case when fresh then p_payload else payload end,payload_hash=case when fresh then hash else payload_hash end,package_reference_id=case when fresh then p_payload#>>'{packageDetail,packageReferenceId}' else package_reference_id end,submission_started_at=case when fresh then clock_timestamp() else submission_started_at end,updated_at=clock_timestamp() where id=op.id returning * into op;
+ update public.amazon_confirmation_operations set holder=p_holder,fence=fence+1,lease_until=clock_timestamp()+interval '60 seconds',state='pending_verification',payload=coalesce(payload,p_payload),payload_hash=coalesce(payload_hash,hash),package_reference_id=case when fresh then p_payload#>>'{packageDetail,packageReferenceId}' else package_reference_id end,submission_started_at=case when fresh then clock_timestamp() else submission_started_at end,updated_at=clock_timestamp() where id=op.id returning * into op;
  if fresh then
   update public.fulfillment_orders set amazon_tracking_synced_at=null,amazon_tracking_sync_error='Verificando confirmación en Amazon',amazon_tracking_sync_attempts=coalesce(amazon_tracking_sync_attempts,0)+1,amazon_tracking_last_attempt_at=clock_timestamp() where id=p_order_id and owner_id=p_owner_id;
  end if;
@@ -98,25 +101,30 @@ begin
 end $$;
 
 -- Explicit operator authorization is the only way to arm another attempt/revision.
-create function public.amazon_confirmation_authorize(p_order_id uuid,p_owner_id uuid,p_actor uuid,p_reason text)
+create function public.amazon_confirmation_authorize(p_order_id uuid,p_owner_id uuid,p_actor uuid,p_reason text,p_payload jsonb default null)
 returns jsonb language plpgsql security definer set search_path=public,pg_temp set statement_timeout='3s' set lock_timeout='500ms' as $$
-declare item public.fulfillment_orders;op public.amazon_confirmation_operations;
+declare item public.fulfillment_orders;op public.amazon_confirmation_operations; hash text; reference text;
 begin
- if p_actor is null or length(btrim(p_reason))<20 then raise exception 'Debes documentar la revisión y su evidencia'; end if;
+ if p_actor is null or length(btrim(coalesce(p_reason,'')))<20 then raise exception 'Debes documentar la revisión y su evidencia'; end if;
  select * into item from public.fulfillment_orders where id=p_order_id and owner_id=p_owner_id for update;
  if not found then raise exception 'Pedido/tenant no válido';end if;
+ if item.order_action_lease_until>now() or item.shopify_tracking_lease_until>now() then raise exception 'Operación de envío en curso'; end if;
  select * into op from public.amazon_confirmation_operations where order_id=p_order_id and owner_id=p_owner_id for update;
  if not found or op.state not in('rejected','needs_review','confirmed') or op.lease_until>clock_timestamp() then raise exception '409: primero reconcilia la confirmación pendiente'; end if;
- update public.amazon_confirmation_operations set history=history||jsonb_build_array(to_jsonb(op)||jsonb_build_object('reviewed_by',p_actor,'review_reason',left(p_reason,800))),revision=revision+1,state='prepared',attempt_id=gen_random_uuid(),payload=null,payload_hash=null,holder=null,lease_until=null,verification_attempts=0,submission_started_at=null,dispatch_started_at=null,original_tracking_number=item.tracking_number,updated_at=clock_timestamp() where id=op.id returning * into op;
+ reference:=p_payload#>>'{packageDetail,packageReferenceId}';
+ if coalesce(reference,'')!~'^[1-9][0-9]*$' or p_payload->>'marketplaceId' is distinct from op.marketplace_id or coalesce(btrim(p_payload#>>'{packageDetail,trackingNumber}'),'')='' or jsonb_typeof(p_payload#>'{packageDetail,orderItems}') is distinct from 'array' then raise exception 'Debes indicar el payload y referencia de paquete revisados';end if;
+ if op.package_reference_id is not null and op.package_reference_id<>reference then raise exception 'La referencia estable del paquete no puede cambiar';end if;
+ hash:=encode(sha256(convert_to((p_payload#-'{packageDetail,shipDate}')::text,'UTF8')),'hex');
+ update public.amazon_confirmation_operations set history=history||jsonb_build_array((to_jsonb(op)-'history')||jsonb_build_object('reviewed_by',p_actor,'review_reason',left(p_reason,800))),revision=revision+1,state='prepared',attempt_id=gen_random_uuid(),payload=p_payload,payload_hash=hash,package_reference_id=reference,holder=null,lease_until=null,verification_attempts=0,submission_started_at=null,dispatch_started_at=null,original_tracking_number=item.tracking_number,updated_at=clock_timestamp() where id=op.id returning * into op;
  return to_jsonb(op);
 end $$;
 
 revoke all on function public.amazon_confirmation_begin(uuid,uuid,uuid,text,jsonb,uuid) from public,anon,authenticated;
 revoke all on function public.amazon_confirmation_finish(uuid,uuid,uuid,bigint,text,text,integer,text) from public,anon,authenticated;
-revoke all on function public.amazon_confirmation_authorize(uuid,uuid,uuid,text) from public,anon,authenticated;
+revoke all on function public.amazon_confirmation_authorize(uuid,uuid,uuid,text,jsonb) from public,anon,authenticated;
 grant execute on function public.amazon_confirmation_begin(uuid,uuid,uuid,text,jsonb,uuid) to service_role;
 grant execute on function public.amazon_confirmation_finish(uuid,uuid,uuid,bigint,text,text,integer,text) to service_role;
-grant execute on function public.amazon_confirmation_authorize(uuid,uuid,uuid,text) to service_role;
+grant execute on function public.amazon_confirmation_authorize(uuid,uuid,uuid,text,jsonb) to service_role;
 
 -- Seed only unambiguous legacy attempts. Unresolved account context cannot submit through begin either.
 insert into public.amazon_confirmation_operations(order_id,owner_id,amazon_account_id,integration_account_id,amazon_order_id,marketplace_id,original_tracking_number,state)
@@ -189,7 +197,6 @@ returns setof public.fulfillment_orders language sql security definer set search
  where f.owner_id=p_owner_id and f.source_channel='amazon' and f.tracking_number is not null
  and (
   (op.state='pending_verification' and op.next_verification_at<=clock_timestamp() and (op.lease_until is null or op.lease_until<=clock_timestamp()))
-  or op.state='prepared'
   or (op.id is null and f.amazon_tracking_synced_at is null and (coalesce(f.amazon_tracking_sync_attempts,0)>0 or p_include_fresh))
  )
  order by case when op.id is not null then 0 else 1 end,coalesce(op.next_verification_at,f.amazon_tracking_last_attempt_at,'epoch'::timestamptz)

@@ -7,7 +7,7 @@ import ts from 'typescript';
 import path from 'node:path';
 import pg from 'pg';
 const url=process.env.PG_TEST_URL;
-if(!url||new URL(url).pathname!=='/confirmations_test')throw new Error('PG_TEST_URL must name the disposable confirmations_test database');
+if(!url||new URL(url).pathname!=='/confirmations_test'||!['localhost','127.0.0.1'].includes(new URL(url).hostname))throw new Error('PG_TEST_URL must name the disposable confirmations_test database');
 const pool=new pg.Pool({connectionString:url,max:4});
 const id=n=>`00000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 const owner=id(1),other=id(2),order=id(3),account=id(4),integration=id(5),holder=id(6);
@@ -97,7 +97,7 @@ test('five empty verification outcomes stop at needs_review without arming submi
  assert.equal((await begin()).state,'needs_review');assert.equal((await begin()).send,false);
 });
 test('review authorization cannot bypass pending; explicit rejected revision preserves history',async()=>{
- const op=await begin();const authorize=()=>pool.query('select amazon_confirmation_authorize($1,$2,$3,$4)',[order,owner,id(8),'Reviewed remote evidence and corrected the invalid payload']);
+ const op=await begin();const authorize=()=>pool.query('select amazon_confirmation_authorize($1,$2,$3,$4,$5)',[order,owner,id(8),'Reviewed remote evidence and corrected the invalid payload',payload]);
  await assert.rejects(authorize(),/409/);await finish(op,'rejected',pool,{p_http_status:400});await authorize();
  const next=await begin();assert.equal(next.send,true);assert.equal(next.revision,2);assert.equal(next.history.length,1);
 });
@@ -117,7 +117,7 @@ function edgeHarness({postStatus=200,loseResponse=false,timeout=false,onPost}={}
   try{const keys=Object.keys(args);const r=await pool.query(`select ${name}(${keys.map((key,i)=>`${key}=>$${i+1}`).join(',')}) as data`,Object.values(args));return {data:r.rows[0].data,error:null};}catch(error){return {data:null,error}};
  }};
  const fetch=async(url,options={})=>{
-  const value=String(url),method=options.method||'GET';outgoing.push({url:value,method});
+  const value=String(url),method=options.method||'GET';outgoing.push({url:value,method,...(value.endsWith('/shipmentConfirmation')?{payload:JSON.parse(String(options.body))}:{})});
   if(value==='https://api.amazon.com/auth/o2/token')return new Response(JSON.stringify({access_token:'own-synthetic-access',expires_in:3600}));
   assert.ok(value.startsWith('https://sellingpartnerapi-eu.amazon.com/orders/'),'unexpected external destination');
   if(method==='GET')return new Response(JSON.stringify({order:{orderId:'123-1234567-1234567',packages}}));
@@ -195,7 +195,7 @@ test('handler rejects crossed owner/account before token acquisition or any exte
 test('review authorization and prepared dispatch both respect an active shipping lease',async()=>{
  const op=await begin();await finish(op,'rejected',pool,{p_http_status:400});
  await pool.query('select integration_claim_order_shipping($1,$2,$3)',[order,owner,id(10)]);
- await assert.rejects(pool.query('select amazon_confirmation_authorize($1,$2,$3,$4,$5)',[order,owner,id(8),'Reviewed exact package and corrected target tracking',payload]),/envío|shipping/i);
+ await assert.rejects(pool.query('select amazon_confirmation_authorize($1,$2,$3,$4)',[order,owner,id(8),'Reviewed exact package and corrected target tracking']),/envío|shipping/i);
  await pool.query('update fulfillment_orders set order_action_lease=null,order_action_lease_until=null');
  await pool.query('select amazon_confirmation_authorize($1,$2,$3,$4,$5)',[order,owner,id(8),'Reviewed exact package and corrected target tracking',payload]);
  await pool.query('select integration_claim_order_shipping($1,$2,$3)',[order,owner,id(10)]).catch(()=>{});
@@ -216,4 +216,20 @@ test('historical unknown package can recover through an explicit reviewed refere
  const h=edgeHarness();const authorized=await h.handler({action:'authorize_reviewed_attempt',orderId:order,reviewReason:'Reviewed exact package reference from Amazon before new submission',packageReferenceId:'7'});assert.equal(authorized.status,200);
  const response=await h.handler({orderId:order});assert.equal((await response.json()).status,'confirmed');assert.equal(h.posts(),1);
  assert.equal((await pool.query('select package_reference_id from amazon_confirmation_operations')).rows[0].package_reference_id,'7');
+});
+test('review audit rejects NULL reasons and stores history without recursive nesting',async()=>{
+ const op=await begin();await finish(op,'rejected',pool,{p_http_status:400});
+ await assert.rejects(pool.query('select amazon_confirmation_authorize($1,$2,$3,$4,$5)',[order,owner,id(8),null,payload]),/documentar|revisión/i);
+ await pool.query('select amazon_confirmation_authorize($1,$2,$3,$4,$5)',[order,owner,id(8),'Reviewed exact submitted package with evidence',payload]);
+ const row=(await pool.query('select history from amazon_confirmation_operations')).rows[0];assert.equal(row.history.length,1);assert.equal(Object.hasOwn(row.history[0],'history'),false);
+});
+test('canonical Amazon order number fallback keeps legitimate legacy usage working',async()=>{
+ await pool.query("update fulfillment_orders set order_id='legacy-prefixed-reference',order_number='123-1234567-1234567'");const op=await begin();assert.equal(op.send,true);assert.equal(op.amazon_order_id,'123-1234567-1234567');
+});
+test('reviewed corrected tracking is frozen before explicit submission, never consumed by worker',async()=>{
+ const rejected=edgeHarness({postStatus:400});await rejected.handler({orderId:order});
+ const next=edgeHarness();const response=await next.handler({action:'authorize_reviewed_attempt',orderId:order,reviewReason:'Verified exact package and corrected tracking against shipping evidence',trackingOverride:{trackingNumber:'CORRECTED'}});assert.equal(response.status,200);
+ const worker=await next.module.retryPendingAmazonTracking(next.admin,owner,5,true);assert.equal(worker.attempted,0);assert.equal(next.posts(),0);
+ const sent=await next.handler({orderId:order});assert.equal((await sent.json()).trackingNumber,'CORRECTED');assert.equal(next.posts(),1);
+ const post=next.outgoing.find(r=>r.url.endsWith('/shipmentConfirmation'));assert.equal(post.payload.packageDetail.trackingNumber,'CORRECTED');
 });

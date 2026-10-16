@@ -1,5 +1,5 @@
 import { createAdminClient, authenticateUser } from '../_shared/amazon/supabase.ts';
-import { retryPendingAmazonTracking, syncAmazonTracking } from '../_shared/amazon/shipment-confirmation.ts';
+import { retryPendingAmazonTracking, syncAmazonTracking, authorizeReviewedAmazonTracking } from '../_shared/amazon/shipment-confirmation.ts';
 
 const corsHeaders={
   'Access-Control-Allow-Origin':'*',
@@ -8,6 +8,18 @@ const corsHeaders={
 };
 function response(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{...corsHeaders,'Content-Type':'application/json'}});}
 function allowed(caller:any){const permissions=Array.isArray(caller?.permissions)?caller.permissions:[];return caller?.role==='admin'||permissions.includes('orders');}
+
+function normalizeOverride(body:any){
+  const rawOverride=body?.trackingOverride&&typeof body.trackingOverride==='object'?body.trackingOverride:null;
+  return rawOverride?{
+    trackingNumber:rawOverride.trackingNumber==null?null:String(rawOverride.trackingNumber),
+    trackingUrl:rawOverride.trackingUrl==null?null:String(rawOverride.trackingUrl),
+    parcelId:rawOverride.parcelId??null,
+    carrierCode:rawOverride.carrierCode==null?null:String(rawOverride.carrierCode),
+    carrierName:rawOverride.carrierName==null?null:String(rawOverride.carrierName),
+    shippingServiceName:rawOverride.shippingServiceName==null?null:String(rawOverride.shippingServiceName),
+  }:undefined;
+}
 
 Deno.serve(async(req:Request)=>{
   if(req.method==='OPTIONS')return new Response('ok',{headers:corsHeaders});
@@ -18,21 +30,15 @@ Deno.serve(async(req:Request)=>{
     if(action==='confirm_order_tracking'){
       const orderId=String(body?.orderId||'').trim();if(!orderId)return response({error:'Falta el pedido.'},400);
       const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();if(error)throw error;if(!order)return response({error:'Pedido no encontrado.'},404);
-      const rawOverride=body?.trackingOverride&&typeof body.trackingOverride==='object'?body.trackingOverride:null;
-      const trackingOverride=rawOverride?{
-        trackingNumber:rawOverride.trackingNumber==null?null:String(rawOverride.trackingNumber),
-        trackingUrl:rawOverride.trackingUrl==null?null:String(rawOverride.trackingUrl),
-        parcelId:rawOverride.parcelId??null,
-        carrierCode:rawOverride.carrierCode==null?null:String(rawOverride.carrierCode),
-        carrierName:rawOverride.carrierName==null?null:String(rawOverride.carrierName),
-        shippingServiceName:rawOverride.shippingServiceName==null?null:String(rawOverride.shippingServiceName),
-      }:undefined;
+      const trackingOverride=normalizeOverride(body);
       const result=await syncAmazonTracking(admin,order,trackingOverride);return response({ok:!['rejected','needs_review'].includes(result.status),...result},result.status==='pending_verification'?202:200);
     }
     if(action==='authorize_reviewed_attempt'){
       if(caller.role!=='admin')return response({error:'Solo un administrador puede autorizar otro intento.'},403);
-      const {data,error}=await admin.rpc('amazon_confirmation_authorize',{p_order_id:String(body.orderId||''),p_owner_id:caller.data_owner_id,p_actor:caller.user_id,p_reason:String(body.reviewReason||'')});
-      if(error)throw error;return response({ok:true,status:data.state,revision:data.revision});
+      const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('id',String(body.orderId||'')).eq('owner_id',caller.data_owner_id).maybeSingle();
+      if(error)throw error;if(!order)return response({error:'Pedido no encontrado.'},404);
+      const data=await authorizeReviewedAmazonTracking(admin,order,caller.user_id,String(body.reviewReason||''),normalizeOverride(body),String(body.packageReferenceId||''));
+      return response({ok:true,status:data.state,revision:data.revision});
     }
     if(action==='retry_pending'){
       const result=await retryPendingAmazonTracking(admin,caller.data_owner_id,Number(body?.limit)||5,Boolean(body?.force));return response({ok:true,...result});

@@ -33,3 +33,7 @@ declare item public.fulfillment_orders; op public.order_cancellation_operations;
  values(p_owner_id,p_order_id,p_kind,p_provider,p_reference,p_user_id,p_details) returning * into op;
  return jsonb_build_object('claimed',true,'operation',to_jsonb(op));end $function$
 ;
+revoke all on function integration_claim_order_shipping(uuid,uuid,uuid) from public,anon,authenticated;
+revoke all on function integration_start_cancellation(uuid,uuid,text,text,text,uuid,jsonb) from public,anon,authenticated;
+grant execute on function integration_claim_order_shipping(uuid,uuid,uuid) to service_role;
+grant execute on function integration_start_cancellation(uuid,uuid,text,text,text,uuid,jsonb) to service_role;

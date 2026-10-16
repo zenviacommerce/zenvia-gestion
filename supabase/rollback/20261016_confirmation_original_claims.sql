@@ -1,3 +1,12 @@
+-- Keep confirmation/worker/cancellation mutations paused during rollback. Retain ledger data.
+do $$ begin
+ if to_regclass('public.amazon_confirmation_operations') is not null then
+  if exists(select 1 from public.amazon_confirmation_operations where state in('prepared','pending_verification','needs_review')) then
+   raise exception 'Rollback blocked: unresolved confirmations';
+  end if;
+ end if;
+end $$;
+
 CREATE OR REPLACE FUNCTION public.integration_claim_order_shipping(p_order_id uuid, p_owner_id uuid, p_lease uuid)
  RETURNS boolean
  LANGUAGE plpgsql

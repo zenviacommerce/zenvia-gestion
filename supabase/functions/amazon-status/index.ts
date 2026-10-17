@@ -56,8 +56,9 @@ Deno.serve(async(req:Request)=>{
       if(preferred.error)throw preferred.error;integration=preferred.data;
     }
 
-    const envConfigured=Boolean((Deno.env.get('AMAZON_SPAPI_CREDENTIALS')||'').trim());
-    const configured=Boolean(integration?.secret_id)||Boolean(integration&&integration.credential_source==='environment'&&envConfigured);
+    const legacyAllowed=Boolean(integration?.id)&&integration.id===(Deno.env.get('AMAZON_LEGACY_FALLBACK_ACCOUNT_ID')||'').trim();
+    const envConfigured=legacyAllowed&&Boolean((Deno.env.get('AMAZON_SPAPI_CREDENTIALS')||'').trim());
+    const configured=Boolean(integration?.secret_id)||envConfigured;
     let connectionError:string|null=null;
     let transientWarning:string|null=null;
 

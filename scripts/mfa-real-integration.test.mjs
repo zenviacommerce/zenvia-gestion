@@ -77,11 +77,11 @@ gate('Real local Vault encrypt/decrypt round-trip',async()=>{
  sql(`BEGIN;
  DO $test$ DECLARE id uuid; n int; BEGIN
  id := vault.create_secret('ci-nonsecret-disposable-123','mfa-ci-vault');
- SELECT count(*) INTO n FROM vault.decrypted_secrets
- WHERE id=id AND decrypted_secret='ci-nonsecret-disposable-123';
+ SELECT count(*) INTO n FROM vault.decrypted_secrets d
+ WHERE d.id=id AND d.decrypted_secret='ci-nonsecret-disposable-123';
  IF n<>1 THEN RAISE EXCEPTION 'Vault mismatch'; END IF;
  END $test$;
- ROLLBACK;`.replace('WHERE id=id','WHERE decrypted_secret'));
+ ROLLBACK;`);
 });
 gate('Real GoTrue AAL1 -> TOTP -> AAL2 and admission',async()=>{
  const first=must(await admin.auth.admin.createUser({email:'mfa-owner-'+suffix+'@example.test',password:randomBytes(30).toString('base64url'),email_confirm:true}),'create owner');

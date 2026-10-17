@@ -1,0 +1,12 @@
+{
+  "slug": "mrw-label-diagnostic",
+  "version": 5,
+  "verify_jwt": true,
+  "ezbr_sha256": "5c823e402a2c371a22bf0d947324c70f1fb07235b9eed656f4cc025a9d0bd39b",
+  "files": [
+    {
+      "name": "mrw-label-diagnostic/index.ts",
+      "content": "Deno.serve(()=>new Response(JSON.stringify({error:'Diagnóstico finalizado.'}),{status:410,headers:{'Content-Type':'application/json'}}));"
+    }
+  ]
+}

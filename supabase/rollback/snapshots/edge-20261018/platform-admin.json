@@ -1,0 +1,12 @@
+{
+  "slug": "platform-admin",
+  "version": 15,
+  "verify_jwt": true,
+  "ezbr_sha256": "4febc5fd9c6e8cb97b1db2012ad43a88a2e4735a0e28c281236331a8b6a5348f",
+  "files": [
+    {
+      "name": "index.ts",
+      "content": "Deno.serve(async(req:Request)=>{\n  if(req.method==='OPTIONS')return new Response('ok',{headers:{\n    'Access-Control-Allow-Origin':'*',\n    'Access-Control-Allow-Headers':'authorization, x-client-info, apikey, content-type',\n    'Access-Control-Allow-Methods':'POST, OPTIONS',\n  }});\n  return new Response(JSON.stringify({\n    error:'Este endpoint ha sido retirado. Usa ZENVIA Platform independiente.'\n  }),{\n    status:410,\n    headers:{'Content-Type':'application/json','Access-Control-Allow-Origin':'*'}\n  });\n});"
+    }
+  ]
+}

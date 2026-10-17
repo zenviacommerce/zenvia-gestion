@@ -1,0 +1,25 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> zenvia-gestion@0.1.0 build
+> node scripts/generate-brand-icon.mjs && tsc -b && vite build && node scripts/verify-ios-touch-icon-build.mjs
+
+vite v6.2.0 building for production...
+transforming...
+✓ 2737 modules transformed.
+rendering chunks...
+computing gzip size...
+dist/index.html                              7.30 kB │ gzip:   4.91 kB
+dist/assets/pdf.worker.min-yatZIOMy.mjs  1,375.84 kB
+dist/assets/index-CHacN7e7.css             359.22 kB │ gzip:  58.50 kB
+dist/assets/index-DswDy99k.js               17.26 kB │ gzip:   7.28 kB
+dist/assets/purify.es-DTc5tPJo.js           22.10 kB │ gzip:   8.79 kB
+dist/assets/index.es-DbM8Huul.js           160.10 kB │ gzip:  53.59 kB
+dist/assets/html2canvas.esm-C4tBoHcR.js    201.80 kB │ gzip:  48.07 kB
+dist/assets/index-BnhdotKB.js            2,771.70 kB │ gzip: 797.25 kB
+
+(!) Some chunks are larger than 500 kB after minification. Consider:
+- Using dynamic import() to code-split the application
+- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks
+- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.
+✓ built in 8.82s
+iOS Home Screen icon verified in production HTML: 180x180 PNG, inline data URL

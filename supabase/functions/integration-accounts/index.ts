@@ -446,6 +446,9 @@ Deno.serve(async(req:Request)=>{
     const body=await req.json().catch(()=>({}));
     const action=clean(body?.action||'list');
     const caller=await authenticate(req,admin,action);
+    if(['shopify_client_connect','shopify_install_connect','shopify_oauth_start','shopify_oauth_exchange'].includes(action)){
+      await requireWorkspaceEntitlement(admin,caller.data_owner_id,'integration.shopify','Tu plan no incluye la integración con Shopify.');
+    }
 
     if(action==='shopify_config'){
       const config=await shopifyOAuthConfig(admin,caller.data_owner_id);
@@ -609,8 +612,9 @@ Deno.serve(async(req:Request)=>{
 
       const providerEntitlement:Record<string,{key:string;message:string}>={
         amazon:{key:'integration.amazon',message:'Tu plan no incluye la integración con Amazon.'},
+        shopify:{key:'integration.shopify',message:'Tu plan no incluye la integración con Shopify.'},
         sendcloud:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
-        envia:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
+        envia:{key:'integration.envia',message:'Tu plan no incluye la integración con Envia.com.'},
         mrw:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
         gmail:{key:'integration.gmail',message:'Tu plan no incluye la integración con Gmail.'},
       };
@@ -721,8 +725,9 @@ Deno.serve(async(req:Request)=>{
       if(body?.enabled===true&&account.enabled===false){
         const providerEntitlement:Record<string,{key:string;message:string}>={
           amazon:{key:'integration.amazon',message:'Tu plan no incluye la integración con Amazon.'},
+        shopify:{key:'integration.shopify',message:'Tu plan no incluye la integración con Shopify.'},
           sendcloud:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
-          envia:{key:'integration.sendcloud',message:'Tu plan no incluye integraciones logísticas.'},
+          envia:{key:'integration.envia',message:'Tu plan no incluye la integración con Envia.com.'},
           gmail:{key:'integration.gmail',message:'Tu plan no incluye la integración con Gmail.'},
         };
         const configuredEntitlement=providerEntitlement[account.provider];

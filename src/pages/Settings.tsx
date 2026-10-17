@@ -322,7 +322,10 @@ const entitlementLabels:Record<string,string>={
   'module.shopify':'Shopify',
   'module.support':'Soporte',
   'integration.amazon':'Amazon',
+  'integration.shopify':'Shopify',
+  'shopify_accounts':'Cuentas Shopify',
   'integration.sendcloud':'Sendcloud',
+  'integration.envia':'Envia.com',
   'integration.gmail':'Gmail',
 };
 

@@ -1,3 +1,4 @@
+import {classifyAuthError, retryTransientAuth} from './services/authResilience';
 import {shouldShowPresentation} from './services/publicEntry';
 import {RetainedImportPage} from './components/RetainedImportPage';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -78,7 +79,7 @@ export default function App(){
  const {settings,preferences,loading:settingsLoading}=useSettings();
  const [session,setSession]=useState<Session|null>(null);
  const [authReady,setAuthReady]=useState(false);
- const [authTimedOut,setAuthTimedOut]=useState(false);
+ const [authAvailability,setAuthAvailability]=useState<'ready'|'temporarily-unavailable'|'invalid'>('ready');
  const [authClientVersion,setAuthClientVersion]=useState(0);
  const [tenantBootstrapError,setTenantBootstrapError]=useState('');
  const inviteToken=typeof window!=='undefined'?(new URLSearchParams(window.location.search).get('invite_token')||'').trim():'';
@@ -185,44 +186,47 @@ export default function App(){
 
  useEffect(()=>{
    let cancelled=false;
-   let timedOut=false;
    let unsubscribe:undefined|(()=>void);
    const timeout=window.setTimeout(()=>{
      if(cancelled)return;
-     timedOut=true;
-     setAuthTimedOut(true);
-     setTenantBootstrapError('No se ha podido recuperar la sesión guardada. Puedes iniciar sesión de nuevo o restablecer el acceso de este dispositivo.');
-     ensureViewCacheScope(getActiveTenant()?.workspace_id,null);
-     setSession(null);
-     setAuthReady(true);
-   },15000);
+     setTenantBootstrapError('La autenticación está tardando más de lo normal. Seguimos intentando recuperar tu sesión.');
+   },18000);
    const showSession=(next:Session|null,feedback='')=>{
-     if(cancelled||timedOut)return;
+     if(cancelled)return;
      window.clearTimeout(timeout);
+     setAuthAvailability('ready');
      setTenantBootstrapError(feedback);
      ensureViewCacheScope(getActiveTenant()?.workspace_id,next?.user.id);
      setSession(next);
      setAuthReady(true);
    };
    setAuthReady(false);
-   setAuthTimedOut(false);
+   setAuthAvailability('ready');
    void (async()=>{
      try{
-       const resolution=await bootstrapTenantFromLocation();
-       if(cancelled||timedOut)return;
-       if(resolution.status!=='resolved'){
-         showSession(null);
-         return;
-       }
-       const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{
-         showSession(next);
-       });
+       const resolution=await retryTransientAuth(()=>bootstrapTenantFromLocation());
+       if(cancelled)return;
+       if(resolution.status!=='resolved'){showSession(null);return;}
+       const {data:{subscription}}=supabase.auth.onAuthStateChange((_event,next)=>{showSession(next);});
        unsubscribe=()=>subscription.unsubscribe();
-       const {data,error}=await supabase.auth.getSession();
-       if(error)throw error;
+       const {data,error}=await retryTransientAuth(()=>supabase.auth.getSession().then(result=>{
+         if(result.error)throw result.error;
+         return result;
+       }));
        showSession(data.session);
      }catch(error){
-       showSession(null,error instanceof Error?error.message:'No se pudo recuperar la sesión.');
+       if(cancelled)return;
+       const kind=classifyAuthError(error);
+       window.clearTimeout(timeout);
+       if(kind==='invalid-session'){
+         setAuthAvailability('invalid');
+         setTenantBootstrapError('La sesión guardada ya no es válida. Puedes restablecer el acceso de este dispositivo.');
+         setSession(null);
+       }else{
+         setAuthAvailability('temporarily-unavailable');
+         setTenantBootstrapError('No se puede comprobar tu sesión en este momento. Vuelve a intentarlo; no se han borrado tus credenciales.');
+       }
+       setAuthReady(true);
      }
    })();
    return()=>{cancelled=true;window.clearTimeout(timeout);unsubscribe?.()};
@@ -313,7 +317,7 @@ export default function App(){
    });
  },[accessReady,access?.active,allowedPages]);
 
- if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> Cargando…</div>;
+ if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> {tenantBootstrapError||'Cargando…'}</div>;
  if(recoveryToken) return <><ToastHost/><RecoveryTokenSetup tokenHash={recoveryToken} onComplete={async()=>{
    const url=new URL(window.location.href);
    url.searchParams.delete('recovery_token');
@@ -332,8 +336,9 @@ export default function App(){
    setSession(data.session);
    setAccessReady(false);
  }}/></>;
+ if(authAvailability==='temporarily-unavailable'&&!session)return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>Servicio temporalmente no disponible</h1><p>{tenantBootstrapError}</p><div className="actions"><button className="primary" onClick={()=>setAuthClientVersion(v=>v+1)}>Reintentar conexión</button></div></div></div></>;
  if(!session&&shouldShowPresentation(false,window.location.search,window.location.hash))return <iframe title="Presentación de Zenvia Gestión" src="/presentacion.html" style={{display:'block',width:'100%',height:'100dvh',border:0,background:'#f6f7f1'}}/>;
- if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootstrapError} allowSessionReset={authTimedOut} onTenantChanged={()=>{setTenantBootstrapError('');setAuthClientVersion(value=>value+1)}}/></>;
+ if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootstrapError} allowSessionReset={authAvailability==='invalid'} onTenantChanged={()=>{setTenantBootstrapError('');setAuthClientVersion(value=>value+1)}}/></>;
  if(session.user.user_metadata?.onboarding_pending===true) return <><ToastHost/><InvitePasswordSetup session={session} onComplete={async()=>{
    const {data}=await supabase.auth.getSession();
    ensureViewCacheScope(getActiveTenant()?.workspace_id,data.session?.user.id);

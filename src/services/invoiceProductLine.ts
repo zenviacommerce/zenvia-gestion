@@ -180,6 +180,22 @@ export function repairInvoiceAmounts(text:string,amounts:{subtotal:number;vat:nu
       return {subtotal:equivalence.subtotal,vat:equivalence.vat,equivalenceSurcharge:equivalence.equivalenceSurcharge,total:amounts.total||calculatedTotal};
     }
   }
+  // Column headers can precede the numeric row. Validate both the printed
+  // rate and gross total before replacing an apparently consistent zero VAT.
+  const table=text.match(/base\s+imponible\s+%\s*i\.?v\.?a\.?\s+importe\s+i\.?v\.?a\.?\s+total\s+factura\s*\n([^\n]+)\n([^\n]+)/i);
+  if(table){
+    const values=table[1].trim().split(/\s+/).map(parseNumber);
+    const printedTotal=parseNumber(table[2].replace(/[^\d.,-]/g,''));
+    if(values.length===3){
+      const [subtotal,rate,vat]=values;
+      if(subtotal>0&&rate>0&&rate<=30&&vat>0
+        &&Math.abs(round(subtotal*rate/100,2)-vat)<=0.02
+        &&Math.abs(round(subtotal+vat,2)-printedTotal)<=0.02
+        &&(!amounts.total||Math.abs(amounts.total-printedTotal)<=0.02)){
+        return {subtotal,vat,total:printedTotal};
+      }
+    }
+  }
   const summary=extractInclusiveTaxSummary(text);
   if(!summary)return amounts;
   return {subtotal:summary.subtotal,vat:summary.vat,total:summary.total};

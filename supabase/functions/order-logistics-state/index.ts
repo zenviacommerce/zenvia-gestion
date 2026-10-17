@@ -92,6 +92,7 @@ Deno.serve(async(req:Request)=>{
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('owner_id',caller.data_owner_id).eq('id',orderId).maybeSingle();
     if(error)throw error;
     if(!order)return response({error:'Pedido no encontrado.'},404);
+    if(order.pii_purged_at)return response({error:'Los datos personales de este pedido se han eliminado por retención.'},410);
 
     if(action==='resolve_tracking_link'){
       const raw=order.raw_payload&&typeof order.raw_payload==='object'?order.raw_payload:{};

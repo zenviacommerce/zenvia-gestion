@@ -1,0 +1,38 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> zenvia-gestion@0.1.0 test
+> vitest run tests/amazon-pii-operational-list.test.tsx
+
+
+ RUN  v3.2.4 /workspace/scratch/0d3486ed1618/purge-readiness
+
+stdout | tests/amazon-pii-operational-list.test.tsx
+Warning: Please use the `legacy` build in Node.js environments.
+
+ ❯ tests/amazon-pii-operational-list.test.tsx (2 tests | 1 failed) 413ms
+   ✓ renders anonymized desktop and mobile list, searches retained product and opens safe detail 262ms
+   × does not allow the pending ZIP workflow to quote or export purged records 150ms
+     → expected false to be true // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/amazon-pii-operational-list.test.tsx > does not allow the pending ZIP workflow to quote or export purged records
+AssertionError: expected false to be true // Object.is equality
+
+- Expected
++ Received
+
+- true
++ false
+
+ ❯ tests/amazon-pii-operational-list.test.tsx:15:300
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 1 passed (2)
+   Start at  22:00:07
+   Duration  1.86s (transform 521ms, setup 0ms, collect 902ms, tests 413ms, environment 294ms, prepare 68ms)
+

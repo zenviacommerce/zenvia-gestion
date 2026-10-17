@@ -1,0 +1,36 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> zenvia-gestion@0.1.0 test
+> vitest run tests/amazon-pii-dedupe.test.ts
+
+
+ RUN  v3.2.4 /workspace/scratch/0d3486ed1618/purge-readiness
+
+ ❯ tests/amazon-pii-dedupe.test.ts (6 tests | 1 failed) 12ms
+   ✓ retains purge marker and cannot resurrect legacy duplicate PII (marked first) 4ms
+   ✓ retains purge marker and cannot resurrect legacy duplicate PII (marked last) 1ms
+   ✓ does not map retained provider URLs on an already marked row 1ms
+   ✓ does not synthesize or return a tracking link for a purged order 0ms
+   ✓ maps retained destination country without reintroducing an address 0ms
+   × prefers marked row retained country over a stale duplicate country 5ms
+     → expected 'FR' to be 'ES' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/amazon-pii-dedupe.test.ts > prefers marked row retained country over a stale duplicate country
+AssertionError: expected 'FR' to be 'ES' // Object.is equality
+
+Expected: "ES"
+Received: "FR"
+
+ ❯ tests/amazon-pii-dedupe.test.ts:20:259
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 5 passed (6)
+   Start at  22:08:52
+   Duration  605ms (transform 79ms, setup 0ms, collect 97ms, tests 12ms, environment 281ms, prepare 56ms)
+

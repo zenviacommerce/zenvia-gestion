@@ -1,0 +1,71 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> zenvia-gestion@0.1.0 test
+> vitest run tests/amazon-pii-operational-list.test.tsx tests/amazon-pii-dedupe.test.ts
+
+
+ RUN  v3.2.4 /workspace/scratch/0d3486ed1618/purge-readiness
+
+ ❯ tests/amazon-pii-dedupe.test.ts (5 tests | 1 failed) 13ms
+   ✓ retains purge marker and cannot resurrect legacy duplicate PII (marked first) 4ms
+   ✓ retains purge marker and cannot resurrect legacy duplicate PII (marked last) 1ms
+   ✓ does not map retained provider URLs on an already marked row 0ms
+   ✓ does not synthesize or return a tracking link for a purged order 0ms
+   × maps retained destination country without reintroducing an address 7ms
+     → expected { id: 'purged', …(53) } to match object { destinationCountryCode: 'ES', …(2) }
+(52 matching properties omitted from actual)
+stdout | tests/amazon-pii-operational-list.test.tsx
+Warning: Please use the `legacy` build in Node.js environments.
+
+ ❯ tests/amazon-pii-operational-list.test.tsx (4 tests | 1 failed) 906ms
+   ✓ renders anonymized desktop and mobile list, searches retained product and opens safe detail 198ms
+   ✓ does not allow the pending ZIP workflow to quote or export purged records 156ms
+   ✓ exports a real ZIP/PDF from anonymized synthetic order while excluding a purged companion  427ms
+   × preserves estimated net/VAT after address purge using retained destination country 124ms
+     → expected { gross: '121,00 €', …(2) } to deeply equal { gross: '121,00 €', …(2) }
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/amazon-pii-dedupe.test.ts > maps retained destination country without reintroducing an address
+AssertionError: expected { id: 'purged', …(53) } to match object { destinationCountryCode: 'ES', …(2) }
+(52 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "billingAddress": {},
+-   "destinationCountryCode": "ES",
+    "shippingAddress": {},
+  }
+
+ ❯ tests/amazon-pii-dedupe.test.ts:19:194
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/amazon-pii-operational-list.test.tsx > preserves estimated net/VAT after address purge using retained destination country
+AssertionError: expected { gross: '121,00 €', …(2) } to deeply equal { gross: '121,00 €', …(2) }
+
+- Expected
++ Received
+
+  {
+    "gross": "121,00 €",
+-   "net": "100,00 €",
+-   "vat": "21,00 €",
++   "net": "121,00 €",
++   "vat": "0,00 €",
+  }
+
+ ❯ tests/amazon-pii-operational-list.test.tsx:39:208
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  2 failed (2)
+      Tests  2 failed | 7 passed (9)
+   Start at  22:08:20
+   Duration  2.07s (transform 482ms, setup 0ms, collect 805ms, tests 919ms, environment 519ms, prepare 114ms)
+

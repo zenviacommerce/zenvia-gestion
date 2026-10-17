@@ -32,6 +32,9 @@ async function kickWorker(){
 Deno.serve(async(req:Request)=>{
   if(req.method==='OPTIONS')return new Response('ok',{headers:corsHeaders});
   if(req.method!=='POST')return response({error:'Método no permitido.'},405);
+  if(Deno.env.get('AMAZON_SYNC_MANUAL_PAUSED')==='true'){
+    return response({error:'Sincronización de Amazon pausada por mantenimiento.'},503);
+  }
   const admin=createAdminClient();
   try{
     const caller=await authenticateAdminUser(req,admin);

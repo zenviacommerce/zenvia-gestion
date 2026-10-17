@@ -311,6 +311,7 @@ Deno.serve(async(req:Request)=>{
     const caller=await authenticate(req,admin),body=await req.json().catch(()=>({})),action=clean(body?.action),config=await workspaceConfig(admin,caller.data_owner_id),ordersConfig=config.orders,shippingConfig=config.shipping;
     const orderId=clean(body?.orderId);if(!orderId)return fail('Falta el pedido.');
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();if(error)throw error;if(!order)return fail('Pedido no encontrado.',404);
+    if(order.pii_purged_at)return fail('Los datos personales de este pedido se han eliminado por retención.',410);
     const orderCredentials=await credentialsForOrder(admin,caller.data_owner_id,order.shipping_integration_account_id||null);
     const sendcloudOrderId=remoteSendcloudId(order);
 

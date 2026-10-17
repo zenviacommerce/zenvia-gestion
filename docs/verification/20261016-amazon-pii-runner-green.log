@@ -1,0 +1,19 @@
+✔ real runner previews without writes, then purges exactly ten canonical orders with idempotent retry (1083.575514ms)
+✔ real runner fails closed before deployment/reconciliation and pilot verification (668.859509ms)
+✔ pilot shortage, leases, young duplicates and invalid limit cannot become a partial pilot (691.262398ms)
+✔ known control-copy scrub is bounded, dry-run identical, preserves control and guards future JSON/errors (635.677784ms)
+✔ runner removes legacy external capability IDs and reports policy skips without touching invoices (598.322611ms)
+✔ canonical duplicates are all redacted and remaining batches require explicit pilot smoke verification (694.183039ms)
+✔ a failure after a candidate update rolls back the entire pilot, tombstones and receipt (549.574217ms)
+✔ ordinary clients cannot call privileged runner or change its gates and control checkpoints reject PII (562.253801ms)
+✔ real full Amazon page import cannot repopulate operational copies and keeps normalized economic facts (878.153845ms)
+✔ conflicting valid Amazon references cannot bypass a tombstone on insert or update in either direction (580.431554ms)
+✔ duplicate-row budget rejects an oversized canonical batch without mutations (565.627896ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7638.603946

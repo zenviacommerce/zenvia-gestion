@@ -624,6 +624,7 @@ Deno.serve(async(req:Request)=>{
     if(!orderId)return fail('Falta el pedido.');
     const {data:order,error:orderError}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();
     if(orderError)throw orderError;if(!order)return fail('Pedido no encontrado.',404);
+    if(order.pii_purged_at)return fail('Los datos personales de este pedido se han eliminado por retención.',410);
     orderReference=clean(order.order_number||order.order_id||order.id);
     if(action==='rates'||action==='create_label')assertAmazonOrderShippable(order);
 

@@ -1,0 +1,34 @@
+✔ real runner previews without writes, then purges exactly ten canonical orders with idempotent retry (940.190344ms)
+✔ real runner fails closed before deployment/reconciliation and pilot verification (611.010984ms)
+✔ pilot shortage, leases, young duplicates and invalid limit cannot become a partial pilot (564.307134ms)
+✔ known control-copy scrub is bounded, dry-run identical, preserves control and guards future JSON/errors (578.650518ms)
+✔ runner removes legacy external capability IDs and reports policy skips without touching invoices (595.145387ms)
+✔ canonical duplicates are all redacted and remaining batches require explicit pilot smoke verification (691.825285ms)
+✔ a failure after a candidate update rolls back the entire pilot, tombstones and receipt (554.349487ms)
+✔ ordinary clients cannot call privileged runner or change its gates and control checkpoints reject PII (558.468451ms)
+✔ real full Amazon page import cannot repopulate operational copies and keeps normalized economic facts (872.402542ms)
+✖ conflicting valid Amazon references cannot bypass a tombstone on insert or update in either direction (536.121073ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 6622.332959
+
+✖ failing tests:
+
+test at scripts/amazon-pii-runner.test.mjs:57:1
+✖ conflicting valid Amazon references cannot bypass a tombstone on insert or update in either direction (536.121073ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///workspace/scratch/0d3486ed1618/purge-readiness/scripts/amazon-pii-runner.test.mjs:57:319)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: /Conflicting Amazon order references/,
+    operator: 'rejects',
+    diff: 'simple'
+  }

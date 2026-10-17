@@ -1,0 +1,11 @@
+✔ maintenance blocks manual POST before DB, queue, worker or Amazon (74.334276ms)
+✔ maintenance retains CORS preflight (21.972728ms)
+✔ unset flag retains normal authenticated handler path (14.684682ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 411.551136

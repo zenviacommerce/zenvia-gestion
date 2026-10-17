@@ -44,10 +44,10 @@ test('environment credentials require an explicitly grandfathered workspace',asy
 test('Amazon seller credentials are scoped by workspace while app credentials may be shared',async()=>{
   const config=await read('supabase/functions/_shared/amazon/config.ts');
   assert.match(config,/ownerId\?:string\|null/);
-  assert.match(config,/allowSellerEnv=integration\.credential_source==='environment'/);
+  assert.doesNotMatch(config,/allowSellerEnv/);
   assert.match(config,/if\(!integrationAccountId\)[\s\S]*Amazon SP-API no está configurado para este workspace/);
   assert.match(config,/clientId:[\s\S]*env\?\.clientId/);
-  assert.match(config,/refreshToken:[\s\S]*allowSellerEnv/);
+  assert.match(config,/cuenta Amazon sin credenciales/);
 
   const paths=(await walk('supabase/functions')).filter(path=>path.endsWith('.ts')&&!path.endsWith('/config.ts'));
   for(const path of paths){

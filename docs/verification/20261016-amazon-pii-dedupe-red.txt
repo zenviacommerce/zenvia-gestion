@@ -1,0 +1,89 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> zenvia-gestion@0.1.0 test
+> vitest run tests/amazon-pii-dedupe.test.ts
+
+
+ RUN  v3.2.4 /workspace/scratch/0d3486ed1618/purge-readiness
+
+ ❯ tests/amazon-pii-dedupe.test.ts (4 tests | 4 failed) 15ms
+   × retains purge marker and cannot resurrect legacy duplicate PII (marked first) 11ms
+     → expected { id: 'legacy', …(53) } to match object { …(10) }
+(44 matching properties omitted from actual)
+   × retains purge marker and cannot resurrect legacy duplicate PII (marked last) 1ms
+     → expected { id: 'legacy', …(53) } to match object { …(10) }
+(44 matching properties omitted from actual)
+   × does not map retained provider URLs on an already marked row 1ms
+     → expected 'https://example.invalid/label' to be null
+   × does not synthesize or return a tracking link for a purged order 1ms
+     → expected 'https://example.invalid/tracking' to be null
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/amazon-pii-dedupe.test.ts > retains purge marker and cannot resurrect legacy duplicate PII (marked first)
+ FAIL  tests/amazon-pii-dedupe.test.ts > retains purge marker and cannot resurrect legacy duplicate PII (marked last)
+AssertionError: expected { id: 'legacy', …(53) } to match object { …(10) }
+(44 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  {
+    "billingAddress": {},
+-   "carrierTrackingUrl": null,
+-   "customerEmail": null,
+-   "customerName": null,
+-   "customerPhone": null,
+-   "piiPurgedAt": "2026-10-16T00:00:00Z",
++   "carrierTrackingUrl": "https://example.invalid/carrier",
++   "customerEmail": "synthetic@example.invalid",
++   "customerName": "SYNTHETIC LEGACY BUYER",
++   "customerPhone": "000000000",
++   "piiPurgedAt": null,
+    "shippingAddress": {},
+-   "shippingLabelUrl": null,
++   "shippingLabelUrl": "https://example.invalid/label",
+    "totalAmount": 24,
+-   "trackingUrl": null,
++   "trackingUrl": "https://example.invalid/tracking",
+  }
+
+ ❯ tests/amazon-pii-dedupe.test.ts:14:277
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  tests/amazon-pii-dedupe.test.ts > does not map retained provider URLs on an already marked row
+AssertionError: expected 'https://example.invalid/label' to be null
+
+- Expected: 
+null
+
++ Received: 
+"https://example.invalid/label"
+
+ ❯ tests/amazon-pii-dedupe.test.ts:15:210
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  tests/amazon-pii-dedupe.test.ts > does not synthesize or return a tracking link for a purged order
+AssertionError: expected 'https://example.invalid/tracking' to be null
+
+- Expected: 
+null
+
++ Received: 
+"https://example.invalid/tracking"
+
+ ❯ tests/amazon-pii-dedupe.test.ts:17:258
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  4 failed (4)
+   Start at  22:05:08
+   Duration  617ms (transform 92ms, setup 0ms, collect 107ms, tests 15ms, environment 271ms, prepare 57ms)
+

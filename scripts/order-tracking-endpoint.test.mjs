@@ -5,9 +5,11 @@ import ts from 'typescript';
 const compile=source=>ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
 const dataUrl=source=>`data:text/javascript;base64,${Buffer.from(source).toString('base64')}`;
 const core=dataUrl(compile(await readFile(new URL('../supabase/functions/_shared/shipmentTracking.ts',import.meta.url),'utf8')));
+const piiRead=dataUrl(compile(await readFile(new URL('../supabase/functions/_shared/amazonPiiRead.ts',import.meta.url),'utf8')));
 const endpoint=compile(await readFile(new URL('../supabase/functions/order-logistics-state/index.ts',import.meta.url),'utf8'))
  .replace(/import \{ createClient \} from [^;]+;/,'const createClient=()=>globalThis.__trackingTestAdmin;')
- .replace("'../_shared/shipmentTracking.ts'",JSON.stringify(core));
+ .replace("'../_shared/shipmentTracking.ts'",JSON.stringify(core))
+ .replace("'../_shared/amazonPiiRead.ts'",JSON.stringify(piiRead));
 const order={id:'order-1',owner_id:'tenant-a',tracking_number:'000123',tracking_url:'https://tracking.sendcloud.sc/forward?code=000123',raw_payload:{items:['preserved']},last_synced_at:'2026-10-02',shipping_provider:'sendcloud'};
 async function run({row=order,account=null,request=async()=>new Response(null,{status:302,headers:{location:'https://future-carrier.example/result/000123'}})}={}){
  const calls=[],updates=[];

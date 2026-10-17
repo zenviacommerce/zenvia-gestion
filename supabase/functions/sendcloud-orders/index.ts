@@ -1,3 +1,4 @@
+import {withAmazonBuyerRead} from '../_shared/amazonPiiRead.ts';
 import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -228,6 +229,7 @@ Deno.serve(async(req:Request)=>{
     const orderId=String(body?.orderId||'');if(!orderId)return fail('Falta el pedido.');
     const {data:order,error:orderError}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();if(orderError)throw orderError;if(!order)return fail('Pedido no encontrado.',404);
     if(order.pii_purged_at)return fail('Los datos personales de este pedido se han eliminado por retención.',410);
+    return await withAmazonBuyerRead(admin,order,async()=>{
     if(action==='shipping_options'||action==='create_label')assertAmazonOrderShippable(order);
     const orderSendcloudAccount=await loadSendcloudAccount(admin,caller.data_owner_id,order.shipping_integration_account_id||null);
     const orderCredentials=orderSendcloudAccount.credentials;
@@ -332,5 +334,6 @@ Deno.serve(async(req:Request)=>{
       return response({parcelId:Number(order.sendcloud_parcel_id),shipmentId:order.sendcloud_shipment_id||null,trackingNumber:order.tracking_number||null,trackingUrl:order.tracking_url||null,shippingOptionCode:order.shipping_option_code||null,contractId:order.contract_id==null?null:Number(order.contract_id),carrierCode:order.carrier_code||null,carrierName:order.carrier_name||null,shippingServiceName:order.shipping_service_name||null,mimeType:file.mimeType,base64:file.base64});
     }
     return fail('Acción no válida.');
+    },(message,status)=>fail(message,status));
   }catch(error){const message=error instanceof Error?error.message:String(error||'Error interno.');const status=/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:/no admite|No se puede|deshabilitado|transportistas habilitados/.test(message)?409:500;return fail(message,status);}
 });

@@ -1,3 +1,4 @@
+import {withAmazonBuyerRead} from '../_shared/amazonPiiRead.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders={
@@ -312,6 +313,7 @@ Deno.serve(async(req:Request)=>{
     const orderId=clean(body?.orderId);if(!orderId)return fail('Falta el pedido.');
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();if(error)throw error;if(!order)return fail('Pedido no encontrado.',404);
     if(order.pii_purged_at)return fail('Los datos personales de este pedido se han eliminado por retención.',410);
+    return await withAmazonBuyerRead(admin,order,async()=>{
     const orderCredentials=await credentialsForOrder(admin,caller.data_owner_id,order.shipping_integration_account_id||null);
     const sendcloudOrderId=remoteSendcloudId(order);
 
@@ -474,5 +476,6 @@ Deno.serve(async(req:Request)=>{
       return response({ok:true,weightKg,stateProvince,dimensions:hasDimensions?{lengthCm,widthCm,heightCm}:null});
     }
     return fail('Acción no válida.');
+    },(message,status)=>fail(message,status));
   }catch(error){const message=error instanceof Error?error.message:String(error||'Error interno.');const status=/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:/Solo puedes|no admite/.test(message)?409:500;return fail(message,status)}
 });

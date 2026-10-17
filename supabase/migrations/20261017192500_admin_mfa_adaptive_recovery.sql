@@ -14,7 +14,7 @@ returns integer language sql stable security definer set search_path='' as $$
 $$;
 revoke all on function private.mfa_recovery_peer_count(uuid) from public,anon,authenticated;
 
--- Release is service-only. A second approver must be a distinct active,
+-- Remove the legacy 3-argument release, which cannot enforce adaptive quorum.\ndrop function public.security_mfa_release_enrollment(uuid,text,uuid);\n\n-- Release is service-only. A second approver must be a distinct active,
 -- admitted MFA administrator in the same workspace, not merely a text reference.
 create or replace function public.security_mfa_release_enrollment(
  p_user_id uuid,p_reference text,p_session_id uuid default null,

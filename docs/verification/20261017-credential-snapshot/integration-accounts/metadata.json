@@ -1,0 +1,12 @@
+{
+  "name": "integration-accounts",
+  "version": 41,
+  "verify_jwt": true,
+  "entrypoint_path": "integration-accounts/index.ts",
+  "files": [
+    "integration-accounts/index.ts",
+    "_shared/shopifyAuth.ts",
+    "_shared/saas/entitlements.ts",
+    "_shared/gmailOAuth.ts"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "amazon-status",
+  "version": 18,
+  "verify_jwt": false,
+  "entrypoint_path": "amazon-status/index.ts",
+  "files": [
+    "amazon-status/index.ts",
+    "_shared/amazon/supabase.ts",
+    "_shared/amazon/marketplaces.ts",
+    "_shared/amazon/config.ts",
+    "_shared/amazon/sp-api.ts",
+    "_shared/amazon/http.ts"
+  ]
+}

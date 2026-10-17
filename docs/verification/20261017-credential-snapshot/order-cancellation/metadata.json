@@ -1,0 +1,16 @@
+{
+  "name": "order-cancellation",
+  "version": 2,
+  "verify_jwt": true,
+  "entrypoint_path": "order-cancellation/index.ts",
+  "files": [
+    "order-cancellation/index.ts",
+    "_shared/amazon/supabase.ts",
+    "_shared/amazon/config.ts",
+    "_shared/amazon/sp-api.ts",
+    "_shared/amazon/http.ts",
+    "_shared/shopifyAuth.ts",
+    "_shared/orderCancellation.ts",
+    "_shared/cancelCarriers.ts"
+  ]
+}

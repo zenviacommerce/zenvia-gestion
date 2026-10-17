@@ -1,0 +1,12 @@
+{
+  "slug": "amazon-order-diagnostics",
+  "version": 3,
+  "verify_jwt": true,
+  "ezbr_sha256": "0d524bd22b5dfdf6c0a883e0a2430201a3334e04aefa1cc1b9138317aa73a87d",
+  "files": [
+    {
+      "name": "amazon-order-diagnostics/index.ts",
+      "content": "Deno.serve(()=>Response.json({error:'Diagnóstico finalizado'},{status:410}));"
+    }
+  ]
+}

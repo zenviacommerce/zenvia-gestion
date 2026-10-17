@@ -1,0 +1,12 @@
+[
+  {
+    "version": "20261017130335",
+    "name": "amazon_buyer_pii_guard",
+    "repo_version": "20261016185733"
+  },
+  {
+    "version": "20261017130337",
+    "name": "amazon_pii_bounded_runner",
+    "repo_version": "20261016194728"
+  }
+]

@@ -1,0 +1,151 @@
+{
+  "dryRun": {
+    "control_preview": {
+      "jobs": 0,
+      "runs": 0,
+      "states": 0,
+      "dry_run": true
+    },
+    "pilot_preview": {
+      "mode": "pilot",
+      "errors": 0,
+      "run_id": "23685adc-a3ed-4845-9a5c-b0880017953e",
+      "tables": {
+        "amazon_orders": 0,
+        "amazon_order_items": 0,
+        "fulfillment_orders": 10,
+        "order_cancellation_operations": 0
+      },
+      "dry_run": true,
+      "duration_ms": 72,
+      "evaluated_at": "2026-10-17T13:19:45.258324+00:00",
+      "policy_version": "amazon-pii-v2-purchase60",
+      "selected_orders": 10,
+      "fulfillment_rows": 10,
+      "cohort_fingerprint": "bcf702392d8b4df8ac1037ce1a328690",
+      "skipped_action_lease": 0,
+      "skipped_within_period": 446,
+      "invalid_identity_groups": 0,
+      "skipped_missing_purchase": 0
+    }
+  },
+  "receipt": [
+    {
+      "result": {
+        "mode": "pilot",
+        "errors": 0,
+        "run_id": "23685adc-a3ed-4845-9a5c-b0880017953e",
+        "tables": {
+          "amazon_orders": 0,
+          "amazon_order_items": 0,
+          "fulfillment_orders": 10,
+          "order_cancellation_operations": 0
+        },
+        "dry_run": false,
+        "duration_ms": 1038,
+        "evaluated_at": "2026-10-17T13:19:59.535092+00:00",
+        "policy_version": "amazon-pii-v2-purchase60",
+        "selected_orders": 10,
+        "fulfillment_rows": 10,
+        "cohort_fingerprint": "bcf702392d8b4df8ac1037ce1a328690",
+        "skipped_action_lease": 0,
+        "skipped_within_period": 446,
+        "invalid_identity_groups": 0,
+        "skipped_missing_purchase": 0
+      }
+    }
+  ],
+  "controlTotals": {
+    "jobs": 37598,
+    "runs": 3227,
+    "states": 0,
+    "calls": 754
+  },
+  "economicBefore": [
+    {
+      "surface": "amazon_orders",
+      "rows": 10,
+      "fingerprint": "2223d159b1e8f6fc9a957a3030e85bfc"
+    },
+    {
+      "surface": "amazon_order_items",
+      "rows": 10,
+      "fingerprint": "bfb01eff6d28eb777cf58bca63494d54"
+    },
+    {
+      "surface": "amazon_finance_transactions",
+      "rows": 14,
+      "fingerprint": "188522bc02b8ea3d69520b568c9695b5"
+    }
+  ],
+  "economicAfter": [
+    {
+      "surface": "amazon_orders",
+      "rows": 10,
+      "fingerprint": "2223d159b1e8f6fc9a957a3030e85bfc"
+    },
+    {
+      "surface": "amazon_order_items",
+      "rows": 10,
+      "fingerprint": "bfb01eff6d28eb777cf58bca63494d54"
+    },
+    {
+      "surface": "amazon_finance_transactions",
+      "rows": 14,
+      "fingerprint": "188522bc02b8ea3d69520b568c9695b5"
+    }
+  ],
+  "selectedOrders": [
+    {
+      "id": "a8801896-ad00-4b29-b973-597fa874838e",
+      "amazon": "407-8955292-3228323",
+      "purchase": "2026-02-11 11:21:11+00"
+    },
+    {
+      "id": "a516a79b-93de-4148-b669-7d7e7eeac3e7",
+      "amazon": "402-4482176-6710710",
+      "purchase": "2026-03-29 08:40:15+00"
+    },
+    {
+      "id": "e3b451e0-092a-418f-a740-fac7f0f2693c",
+      "amazon": "406-4572220-0247554",
+      "purchase": "2026-03-29 21:09:38+00"
+    },
+    {
+      "id": "b0e3d20d-c211-4894-8111-38ed79c28979",
+      "amazon": "403-1104705-6572360",
+      "purchase": "2026-03-30 07:32:29+00"
+    },
+    {
+      "id": "f319ee74-1489-4c64-92d3-1343e4956575",
+      "amazon": "407-1865750-8266730",
+      "purchase": "2026-03-30 10:49:52+00"
+    },
+    {
+      "id": "2cede0df-5082-4f5d-b6c1-596f0e306a14",
+      "amazon": "408-7574095-4719530",
+      "purchase": "2026-03-30 16:33:20+00"
+    },
+    {
+      "id": "4943259e-1353-4911-8e85-0f7310844c8b",
+      "amazon": "405-1739549-8265931",
+      "purchase": "2026-03-31 06:41:00+00"
+    },
+    {
+      "id": "d40b9a90-d96b-4b75-a2ba-3e739904503e",
+      "amazon": "408-7873699-8232313",
+      "purchase": "2026-04-02 08:18:50+00"
+    },
+    {
+      "id": "73f5b7c5-4ca5-4665-b73a-25843900b80b",
+      "amazon": "402-7269678-9343507",
+      "purchase": "2026-04-02 08:50:25+00"
+    },
+    {
+      "id": "0f460bcf-730a-4be7-91e0-3ecc833da2f2",
+      "amazon": "406-5007292-6629143",
+      "purchase": "2026-04-04 10:03:03+00"
+    }
+  ],
+  "executionTimestamp": "2026-10-17T13:20:00.728Z"
+}

@@ -24,6 +24,10 @@ jobs:
       - name: Start disposable GoTrue, Postgres, Vault and Edge
         run: |
           if [ ! -f supabase/config.toml ]; then supabase init; fi
+          # Two legacy repo migration pairs reuse timestamps. The disposable
+          # runner must disambiguate filenames only; production history is untouched.
+          mv supabase/migrations/20260917004000_amazon_dashboard_index_cleanup.sql supabase/migrations/20260917004001_amazon_dashboard_index_cleanup.sql
+          mv supabase/migrations/20260918033000_amazon_mapping_assign_internal_sku.sql supabase/migrations/20260918033001_amazon_mapping_assign_internal_sku.sql
           supabase start
           supabase db reset --local --yes
       - name: Real GoTrue and Vault smoke; deny unsupported/skipped gates

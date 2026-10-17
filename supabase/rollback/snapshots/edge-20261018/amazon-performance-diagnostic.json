@@ -1,0 +1,12 @@
+{
+  "slug": "amazon-performance-diagnostic",
+  "version": 10,
+  "verify_jwt": true,
+  "ezbr_sha256": "d7a4cadfb14952ef57b1ba9cf8d48ca6383cb74d28936941f55e5ce5d232fa82",
+  "files": [
+    {
+      "name": "index.ts",
+      "content": "Deno.serve(()=>new Response('Not found',{status:404}));"
+    }
+  ]
+}

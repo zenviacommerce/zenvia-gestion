@@ -15,6 +15,7 @@ export function recipientCandidate(provider:string,row:any){
  return {reference,remoteId:clean(row.id),address};
 }
 export function recipientPatch(current:any,external:any,accountId:string,provider:string){
+ if(current?.pii_purged_at)return null;
  if(current.raw_payload?._zenvia_local_shipping_updated_at)return null;
  const saved=current.shipping_address||{};
  for(const field of ['postal_code','country_code'])if(clean(saved[field])&&clean(external[field])&&clean(saved[field]).toUpperCase()!==clean(external[field]).toUpperCase())return null;

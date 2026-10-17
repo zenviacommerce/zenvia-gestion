@@ -51,9 +51,9 @@ Deno.serve(async(req:Request)=>{
   for(const amazon of (accounts||[]).filter((a:any)=>a.provider==='amazon'&&a.config?.recipientSourceAccountId)){
    try{
     const account=recipientSource(amazon,accounts||[]);if(!account)throw new Error('La cuenta seleccionada no está disponible en esta empresa.');
-    const {data:orders,error:orderError}=await admin.from('fulfillment_orders').select('id,order_number,shipping_address,customer_name,customer_email,customer_phone,raw_payload,last_synced_at').eq('owner_id',amazon.owner_id).eq('source_channel','amazon').eq('source_integration_account_id',amazon.id).is('fulfilled_at',null).order('order_created_at',{ascending:false}).limit(200);
+    const {data:orders,error:orderError}=await admin.from('fulfillment_orders').select('id,order_number,shipping_address,customer_name,customer_email,customer_phone,raw_payload,last_synced_at,pii_purged_at').eq('owner_id',amazon.owner_id).eq('source_channel','amazon').eq('source_integration_account_id',amazon.id).is('pii_purged_at',null).is('fulfilled_at',null).order('order_created_at',{ascending:false}).limit(200);
     if(orderError)throw orderError;
-    const incomplete=(orders||[]).filter((o:any)=>!o.shipping_address?.name||!o.shipping_address?.address_line_1||!o.shipping_address?.city||!o.customer_name);
+    const incomplete=(orders||[]).filter((o:any)=>!o.pii_purged_at&&(!o.shipping_address?.name||!o.shipping_address?.address_line_1||!o.shipping_address?.city||!o.customer_name));
     if(!incomplete.length)continue;
     if(!cache.has(account.id))cache.set(account.id,(await fetchRows(account,admin)).map(row=>recipientCandidate(account.provider,row)).filter(Boolean));
     for(const order of incomplete){

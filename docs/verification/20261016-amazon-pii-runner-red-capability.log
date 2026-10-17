@@ -1,0 +1,32 @@
+✔ real runner previews without writes, then purges exactly ten canonical orders with idempotent retry (1040.574788ms)
+✔ real runner fails closed before deployment/reconciliation and pilot verification (823.636545ms)
+✔ pilot shortage, leases, young duplicates and invalid limit cannot become a partial pilot (773.398504ms)
+✔ known control-copy scrub is bounded, dry-run identical, preserves control and guards future JSON/errors (599.28942ms)
+✖ runner removes legacy external capability IDs and reports policy skips without touching invoices (651.986168ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4024.880128
+
+✖ failing tests:
+
+test at scripts/amazon-pii-runner.test.mjs:37:1
+✖ runner removes legacy external capability IDs and reports policy skips without touching invoices (651.986168ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+
+    assert.ok(rows.every(row=>row.sendcloud_id==='amazon-purged:'+row.id))
+
+      at TestContext.<anonymous> (file:///workspace/scratch/0d3486ed1618/purge-readiness/scripts/amazon-pii-runner.test.mjs:37:859)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:960:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

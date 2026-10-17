@@ -1,0 +1,54 @@
+✔ real runner previews without writes, then purges exactly ten canonical orders with idempotent retry (889.473025ms)
+✔ real runner fails closed before deployment/reconciliation and pilot verification (613.164182ms)
+✔ pilot shortage, leases, young duplicates and invalid limit cannot become a partial pilot (581.499434ms)
+✔ known control-copy scrub is bounded, dry-run identical, preserves control and guards future JSON/errors (570.051649ms)
+✔ runner removes legacy external capability IDs and reports policy skips without touching invoices (601.474432ms)
+✔ canonical duplicates are all redacted and remaining batches require explicit pilot smoke verification (647.272026ms)
+✔ a failure after a candidate update rolls back the entire pilot, tombstones and receipt (557.918275ms)
+✖ ordinary clients cannot call privileged runner or change its gates and control checkpoints reject PII (509.21772ms)
+✔ real full Amazon page import cannot repopulate operational copies and keeps normalized economic facts (892.144829ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5983.66081
+
+✖ failing tests:
+
+test at scripts/amazon-pii-runner.test.mjs:40:1
+✖ ordinary clients cannot call privileged runner or change its gates and control checkpoints reject PII (509.21772ms)
+  error: record "new" has no field "error_message"
+      at ye.Ve (file:///workspace/scratch/0d3486ed1618/purge-readiness/node_modules/@electric-sql/pglite/dist/chunk-3WWIVTCY.js:1:17616)
+      at ye.nt (file:///workspace/scratch/0d3486ed1618/purge-readiness/node_modules/@electric-sql/pglite/dist/chunk-3WWIVTCY.js:1:15003)
+      at ye.parse (file:///workspace/scratch/0d3486ed1618/purge-readiness/node_modules/@electric-sql/pglite/dist/chunk-3WWIVTCY.js:1:13755)
+      at file:///workspace/scratch/0d3486ed1618/purge-readiness/node_modules/@electric-sql/pglite/dist/index.js:3:191801
+      at wasm://wasm/021cbcb2:wasm-function[3707]:0x27cef1
+      at wasm://wasm/021cbcb2:wasm-function[3717]:0x27d268
+      at wasm://wasm/021cbcb2:wasm-function[9494]:0x509d72
+      at wasm://wasm/021cbcb2:wasm-function[175]:0x598a3
+      at invoke_v (file:///workspace/scratch/0d3486ed1618/purge-readiness/node_modules/@electric-sql/pglite/dist/index.js:3:176458)
+      at wasm://wasm/021cbcb2:wasm-function[178]:0x5a0e8 {
+    length: 272,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: `SQL expression "tg_table_name='amazon_sync_runs' and new.error_message is not null"\nPL/pgSQL function private.guard_amazon_pii_controls() line 8 at IF`,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'pl_exec.c',
+    line: '5612',
+    routine: 'plpgsql_exec_get_datum_type_info',
+    query: 'insert into amazon_sync_state(owner_id,checkpoint) values($1,$2)',
+    params: [ '11111111-1111-4111-8111-111111111111', { last_job_id: '22222222-2222-4222-8222-222222222222', rows_processed: 4, buyer: 'SYNTHETIC-PII' } ],
+    queryOptions: undefined
+  }

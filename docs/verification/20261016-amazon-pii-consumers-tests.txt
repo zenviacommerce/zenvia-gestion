@@ -1,0 +1,26 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> zenvia-gestion@0.1.0 test
+> vitest run tests/amazon-pii-consumers.test.tsx tests/amazon-pii-cache.test.ts tests/amazon-pii-analytics.test.tsx tests/amazon-pii-operational-list.test.tsx tests/amazon-pii-dedupe.test.ts
+
+
+ RUN  v3.2.4 /workspace/scratch/0d3486ed1618/purge-readiness
+
+ ✓ tests/amazon-pii-cache.test.ts (1 test) 3ms
+ ✓ tests/amazon-pii-dedupe.test.ts (6 tests) 7ms
+ ✓ tests/amazon-pii-analytics.test.tsx (1 test) 83ms
+stdout | tests/amazon-pii-operational-list.test.tsx
+Warning: Please use the `legacy` build in Node.js environments.
+
+stdout | tests/amazon-pii-consumers.test.tsx
+Warning: Please use the `legacy` build in Node.js environments.
+
+ ✓ tests/amazon-pii-consumers.test.tsx (3 tests) 54ms
+ ✓ tests/amazon-pii-operational-list.test.tsx (4 tests) 933ms
+   ✓ exports a real ZIP/PDF from anonymized synthetic order while excluding a purged companion  424ms
+
+ Test Files  5 passed (5)
+      Tests  15 passed (15)
+   Start at  22:08:58
+   Duration  2.16s (transform 705ms, setup 0ms, collect 2.01s, tests 1.08s, environment 1.41s, prepare 278ms)
+

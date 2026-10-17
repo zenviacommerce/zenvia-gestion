@@ -253,6 +253,7 @@ export function shippingPriceForOrder(order:FulfillmentOrder,preview:ShippingPri
 
 
 export function trackingUrlForOrder(order:FulfillmentOrder):string|null{
+  if(order.piiPurgedAt)return null;
   // The carrier is not a URL directory. Use the shipment's recorded link;
   // provider links are resolved on the server, never guessed in the browser.
   for(const value of [order.carrierTrackingUrl,order.trackingUrl]){

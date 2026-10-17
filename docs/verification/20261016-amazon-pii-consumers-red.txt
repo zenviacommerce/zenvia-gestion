@@ -1,0 +1,119 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> zenvia-gestion@0.1.0 test
+> vitest run tests/amazon-pii-consumers.test.tsx
+
+
+ RUN  v3.2.4 /workspace/scratch/0d3486ed1618/purge-readiness
+
+stdout | tests/amazon-pii-consumers.test.tsx
+Warning: Please use the `legacy` build in Node.js environments.
+
+ ❯ tests/amazon-pii-consumers.test.tsx (3 tests | 2 failed) 69ms
+   × purged Amazon operational consumers > renders retained product and financial detail without offering shipment or recipient edits 50ms
+     → expected <button class="primary">…(1)</button> to be null
+   × purged Amazon operational consumers > does not offer retrieval of a historical label 17ms
+     → expected <button class="secondary">…(1)</button> to be null
+   ✓ purged Amazon operational consumers > keeps filename export usable without a buyer name 1ms
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/amazon-pii-consumers.test.tsx > purged Amazon operational consumers > renders retained product and financial detail without offering shipment or recipient edits
+AssertionError: expected <button class="primary">…(1)</button> to be null
+
+- Expected: 
+null
+
++ Received: 
+<button
+  class="primary"
+>
+  <svg
+    class="lucide lucide-truck"
+    fill="none"
+    height="16"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"
+    />
+    <path
+      d="M15 18H9"
+    />
+    <path
+      d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"
+    />
+    <circle
+      cx="17"
+      cy="18"
+      r="2"
+    />
+    <circle
+      cx="7"
+      cy="18"
+      r="2"
+    />
+  </svg>
+   Preparar etiqueta
+</button>
+
+ ❯ tests/amazon-pii-consumers.test.tsx:12:270
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  tests/amazon-pii-consumers.test.tsx > purged Amazon operational consumers > does not offer retrieval of a historical label
+AssertionError: expected <button class="secondary">…(1)</button> to be null
+
+- Expected: 
+null
+
++ Received: 
+<button
+  class="secondary"
+>
+  <svg
+    class="lucide lucide-download"
+    fill="none"
+    height="16"
+    stroke="currentColor"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    stroke-width="2"
+    viewBox="0 0 24 24"
+    width="16"
+    xmlns="http://www.w3.org/2000/svg"
+  >
+    <path
+      d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"
+    />
+    <polyline
+      points="7 10 12 15 17 10"
+    />
+    <line
+      x1="12"
+      x2="12"
+      y1="15"
+      y2="3"
+    />
+  </svg>
+   Descargar
+</button>
+
+ ❯ tests/amazon-pii-consumers.test.tsx:13:191
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 1 passed (3)
+   Start at  21:56:47
+   Duration  1.30s (transform 401ms, setup 0ms, collect 744ms, tests 69ms, environment 292ms, prepare 59ms)
+

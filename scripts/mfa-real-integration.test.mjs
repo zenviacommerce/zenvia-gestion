@@ -2,6 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {writeFileSync} from 'node:fs';
 import {randomBytes} from 'node:crypto';
+import {spawnSync} from 'node:child_process';
 import {createClient} from '@supabase/supabase-js';
 import {totpCode} from './local-auth-mfa-fixture.mjs';
 
@@ -58,9 +59,21 @@ gate('Direct sensitive Edge without AAL2 must reject',async()=>{
  assert.ok(res.error||res.data?.error||res.data?.status==='denied','Expected Edge rejection');
 });
 gate('Vault actual database integration',async()=>{
- // Must exercise database Vault encryption, never just an API double.
- // Pending an isolated SQL harness with one-time secrets and full cleanup.
- assert.fail('Vault SQL integration test is not implemented; cannot mark CI green');
+ // Exercise real SQL encryption/decryption in the disposable Postgres container.
+ const containers=spawnSync('docker',['ps','--filter','name=supabase_db_','--format','{{.Names}}'],{encoding:'utf8'});
+ assert.equal(containers.status,0,'Docker database discovery failed');
+ const name=containers.stdout.trim().split('\\n').filter(Boolean)[0];
+ assert.ok(name?.startsWith('supabase_db_'),'Disposable Supabase database missing');
+ const sql=`BEGIN;
+ DO $test$ DECLARE secret_id uuid; result_count int; BEGIN
+  secret_id := vault.create_secret('ci-nonsecret-disposable-123','mfa-ci-secret');
+  SELECT count(*) INTO result_count FROM vault.decrypted_secrets
+    WHERE id=secret_id AND decrypted_secret='ci-nonsecret-disposable-123';
+  IF result_count<>1 THEN RAISE EXCEPTION 'Vault roundtrip mismatch'; END IF;
+ END $test$;
+ ROLLBACK;`;
+ const run=spawnSync('docker',['exec','-i',name,'psql','-X','-v','ON_ERROR_STOP=1','-U','postgres','-d','postgres','-q'],{input:sql,encoding:'utf8'});
+ assert.equal(run.status,0,'Real Vault round-trip failed');
 });
 gate('Adaptive recovery: single admin, double admin, break-glass',async()=>{
  assert.fail('End-to-end service workflow + independent approver binding not implemented');

@@ -26,11 +26,22 @@ jobs:
       - name: Start disposable GoTrue, Postgres, Vault and Edge
         run: |
           if [ ! -f supabase/config.toml ]; then supabase init; fi
-          cat >> supabase/config.toml <<'EOF'
-          [auth.mfa.totp]
-          enroll_enabled = true
-          verify_enabled = true
-          EOF
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('supabase/config.toml')
+          s=p.read_text()
+          marker='[auth.mfa.totp]'
+          assert marker in s, 'Supabase CLI config missing totp section'
+          a=s.index(marker)
+          b=s.find('\n[',a+len(marker))
+          if b<0: b=len(s)
+          section=s[a:b]
+          for key in ('enroll_enabled','verify_enabled'):
+              assert re.search(r'(?m)^'+key+r'\s*=',section),f'Missing {key}'
+              section=re.sub(r'(?m)^('+key+r'\s*=\s*)(true|false)',r'\g<1>true',section)
+          p.write_text(s[:a]+section+s[b:])
+          PY
           # Two legacy repo migration pairs reuse timestamps. The disposable
           # runner must disambiguate filenames only; production history is untouched.
           mv supabase/migrations/20260917004000_amazon_dashboard_index_cleanup.sql supabase/migrations/20260917004001_amazon_dashboard_index_cleanup.sql

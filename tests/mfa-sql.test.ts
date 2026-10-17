@@ -35,8 +35,10 @@ beforeAll(async()=>{
  insert into auth.sessions(id,user_id,factor_id,aal) values('${sid}','${uid}','${fid}','aal2');
  insert into auth.mfa_factors values('${fid}','${uid}','totp','verified');
  insert into auth.mfa_amr_claims values('${sid}','totp',now());`);
+ await db.exec("alter table public.app_users add column workspace_id uuid; update public.app_users set workspace_id=data_owner_id;");
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016191517_admin_mfa_security.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016194211_admin_mfa_oauth_actor_binding.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261017192500_admin_mfa_adaptive_recovery.sql',import.meta.url),'utf8'));
 });
 afterAll(async()=>{await db?.close()});
 async function claims(aal='aal2',age=0){await db.query(`select set_config('request.jwt.claims',$1,false)`,[JSON.stringify({sub:uid,session_id:sid,aal,iat:Math.floor(Date.now()/1000),amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)-age}]})]);}
@@ -100,3 +102,36 @@ test('OAuth callback rejects recovery, removed admission, revoked session, disab
 test('OAuth callback cannot switch factor, subject, owner, session or verified proof',async()=>{await oauthPrincipal();const c=await oauthContext();const other='00000000-0000-0000-0000-000000000099';for(const patch of [{actor_factor_id:other},{actor_user_id:other},{actor_owner_id:other},{actor_session_id:other},{mfa_verified_at:c.mfa_verified_at-10},{mfa_verified_at:null}])await expect(callbackAuthority({...c,...patch})).rejects.toThrow(/MFA_|ACCESS_/);await db.exec(`update auth.sessions set factor_id='${other}' where id='${sid}'`);await expect(callbackAuthority(c)).rejects.toThrow('MFA_CONTEXT_CHANGED');});
 test('OAuth callback cannot refresh the stored challenge time or use proof older than five minutes',async()=>{await oauthPrincipal();const c=await oauthContext();await db.exec("update auth.mfa_amr_claims set updated_at=updated_at+interval '10 seconds'");await expect(callbackAuthority(c)).rejects.toThrow('MFA_CONTEXT_CHANGED');await db.exec("update auth.mfa_amr_claims set updated_at=now()-interval '600 seconds'");await expect(callbackAuthority({...c,mfa_verified_at:Math.floor(Date.now()/1000)-600})).rejects.toThrow('MFA_RECENT_REQUIRED');});
 test('OAuth callback actor API is service-only; human start context is not anonymously executable',async()=>{await oauthPrincipal();const c=await oauthContext();await db.exec('set role authenticated');await expect(callbackAuthority(c)).rejects.toThrow(/permission denied/);await db.exec('reset role;set role anon');await expect(oauthContext()).rejects.toThrow(/permission denied/);await db.exec('reset role');});
+
+test('adaptive recovery: no admitted peer permits owner break-glass release after revocation',async()=>{
+ await reset();
+ await db.exec("delete from private.mfa_recovery_peer_approvals");
+ await enforce();
+ await db.query(`select public.security_mfa_authorize_enrollment('${uid}','owner-verified-case-123',true)`);
+ await db.exec(`delete from auth.mfa_factors where user_id='${uid}'; insert into auth.sessions(id,user_id,aal) values('00000000-0000-0000-0000-000000000090','${uid}','aal1');`);
+ expect((await db.query<{n:number}>(`select private.mfa_recovery_peer_count('${uid}') n`)).rows[0].n).toBe(0);
+ await expect(db.query(`select public.security_mfa_release_enrollment('${uid}','owner-verified-case-123','00000000-0000-0000-0000-000000000090',null)`)).rejects.toThrow('MFA_OWNER_BREAK_GLASS_REQUIRED');
+ await db.query(`select public.security_mfa_release_enrollment('${uid}','different-owner-review-456','00000000-0000-0000-0000-000000000090',null)`);
+ expect((await db.query<{state:string}>(`select state from private.mfa_principals where user_id='${uid}'`)).rows[0].state).toBe('re_enrollment_pending');
+});
+test('adaptive recovery: admitted peer requires a real MFA-bound approval, not their UUID',async()=>{
+ await reset();
+ const peer='00000000-0000-0000-0000-000000000081',ps='00000000-0000-0000-0000-000000000082',pf='00000000-0000-0000-0000-000000000083',next='00000000-0000-0000-0000-000000000084';
+ await db.exec(`insert into auth.users values('${peer}');
+ insert into public.app_users(user_id,role,active,data_owner_id,workspace_id) values('${peer}','admin',true,'${uid}','${uid}');
+ insert into auth.sessions(id,user_id,factor_id,aal) values('${ps}','${peer}','${pf}','aal2');
+ insert into auth.mfa_factors values('${pf}','${peer}','totp','verified');
+ insert into auth.mfa_amr_claims values('${ps}','totp',now());
+ insert into private.mfa_principals(user_id,state,admitted_factor_ids) values('${peer}','active',array['${pf}'::uuid]);`);
+ await db.query(`select public.security_mfa_authorize_enrollment('${uid}','recovery-ticket-first-123',true)`);
+ await db.exec(`delete from auth.mfa_factors where user_id='${uid}';
+ insert into auth.sessions(id,user_id,aal) values('${next}','${uid}','aal1');`);
+ expect((await db.query<{n:number}>(`select private.mfa_recovery_peer_count('${uid}') n`)).rows[0].n).toBe(1);
+ await expect(db.query(`select public.security_mfa_release_enrollment('${uid}','second-ticket-456','${next}','${peer}')`)).rejects.toThrow('MFA_INDEPENDENT_APPROVAL_REQUIRED');
+ await db.query(`select set_config('request.jwt.claims',$1,false)`,[JSON.stringify({sub:peer,session_id:ps,aal:'aal2',amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)}]})]);
+ await db.query(`select public.security_mfa_approve_recovery('${uid}','recovery-ticket-first-123')`);
+ await claims();
+ await db.query(`select public.security_mfa_release_enrollment('${uid}','second-ticket-456','${next}','${peer}')`);
+ expect((await db.query<{state:string}>(`select state from private.mfa_principals where user_id='${uid}'`)).rows[0].state).toBe('re_enrollment_pending');
+ await db.exec(`delete from private.mfa_recovery_peer_approvals where target_user_id='${uid}'; delete from auth.mfa_amr_claims where session_id='${ps}';delete from auth.sessions where user_id='${peer}'; delete from private.mfa_principals where user_id='${peer}';delete from auth.mfa_factors where user_id='${peer}';delete from public.app_users where user_id='${peer}';delete from auth.users where id='${peer}';`);
+});

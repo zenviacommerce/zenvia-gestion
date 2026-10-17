@@ -27,7 +27,7 @@ const dbContainer=discovery.stdout.trim().split('\n').filter(Boolean)[0];
 assert.ok(dbContainer?.startsWith('supabase_db_'));
 function sql(query){
  const r=spawnSync('docker',['exec','-i',dbContainer,'psql','-X','-v','ON_ERROR_STOP=1','-U','postgres','-d','postgres','-q'],{input:query,encoding:'utf8'});
- assert.equal(r.status,0,'Local SQL failed; inspect disposable schema, not production');
+ assert.equal(r.status,0,'Local SQL failed: '+String(r.stderr||'').replace(/ci-nonsecret-disposable-123/g,'[REDACTED]').slice(0,500));
 }
 async function addAdmin(workspaceId,createWorkspace=false){
  const email='mfa-ci-'+randomBytes(5).toString('hex')+'@example.test',password=randomBytes(30).toString('base64url');
@@ -75,10 +75,10 @@ async function registerTotp(user,label){
 let primary,secondary;
 gate('Real local Vault encrypt/decrypt round-trip',async()=>{
  sql(`BEGIN;
- DO $test$ DECLARE id uuid; n int; BEGIN
- id := vault.create_secret('ci-nonsecret-disposable-123','mfa-ci-vault');
+ DO $test$ DECLARE v_secret_id uuid; n int; BEGIN
+ v_secret_id := vault.create_secret('ci-nonsecret-disposable-123','mfa-ci-vault');
  SELECT count(*) INTO n FROM vault.decrypted_secrets d
- WHERE d.id=id AND d.decrypted_secret='ci-nonsecret-disposable-123';
+ WHERE d.id=v_secret_id AND d.decrypted_secret='ci-nonsecret-disposable-123';
  IF n<>1 THEN RAISE EXCEPTION 'Vault mismatch'; END IF;
  END $test$;
  ROLLBACK;`);

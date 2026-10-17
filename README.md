@@ -1,6 +1,3 @@
-
-> ⚠️ **BLOQUEO DE DESPLIEGUE AMAZON:** No desplegar ninguna Edge Function de Amazon desde `main` hasta integrar y validar `feature/amazon-edge-reconciliation-20261015`. Las funciones que importan módulos `_shared/amazon/*` o `_shared/orderCancellation.ts` deben revisarse y desplegarse como conjunto compatible. Este aviso no constituye una protección automática del CI.
-
 # ZENVIA Gestión
 
 Repositorio: `zenviacommerce/ZENVIA-GESTION`.

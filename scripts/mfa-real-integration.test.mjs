@@ -140,6 +140,23 @@ gate('Real Edge denies unauthenticated or AAL1 calls (not 404)',async()=>{
  assert.notEqual(unauth.status,404,'Edge function not served; cannot claim denial');
  assert.ok([401,403].includes(unauth.status),'Expected Edge authentication denial');
 });
+gate('Real Edge rejects authenticated AAL1 when principal is recovery-locked',async()=>{
+ const browser=client();
+ const auth=must(await browser.auth.signInWithPassword({email:primary.email,password:primary.password}),'AAL1 Edge login');
+ const level=must(await browser.auth.mfa.getAuthenticatorAssuranceLevel(),'AAL1 Edge level');
+ assert.equal(level.currentLevel,'aal1');
+ sql(`update private.mfa_principals set state='recovery_locked' where user_id='${primary.id}';`);
+ const response=await fetch(url+'/functions/v1/admin-users',{
+  method:'POST',headers:{
+   'content-type':'application/json',
+   apikey:anon,
+   authorization:'Bearer '+auth.session.access_token
+  },body:JSON.stringify({action:'list'})
+ });
+ const data=await response.json().catch(()=>({}));
+ assert.ok(response.status>=400 && String(data.error||'').includes('MFA_RECOVERY_LOCKED'),
+  'Authenticated AAL1 Edge caller was not denied by live MFA guard');
+});
 after(async()=>{
  for(const c of clients){try{await c.auth.signOut({scope:'local'});}catch{}c.auth.stopAutoRefresh();}
  for(const id of created.reverse()){try{must(await admin.auth.admin.deleteUser(id),'delete local user');}catch{}}

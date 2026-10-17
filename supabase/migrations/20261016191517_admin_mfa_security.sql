@@ -159,7 +159,7 @@ do $migration$
 declare f record; definition text; original_definition text; clone_oid oid; clone_name text; call_args text; wrapper_body text;
 begin
  perform set_config('search_path','',true);
- for f in select p.*,n.nspname,pg_get_function_arguments(p.oid) args,pg_get_function_result(p.oid) result from pg_proc p join pg_namespace n on n.oid=p.pronamespace join pg_language l on l.oid=p.prolang where n.nspname='public' and p.prosecdef and p.prokind='f' and p.prorettype not in('trigger'::regtype,'event_trigger'::regtype) and p.proname not in('security_mfa_status','security_mfa_assert','security_mfa_bridge_allowed','security_mfa_prepare_enrollment','security_mfa_complete_enrollment','security_mfa_authorize_enrollment','security_mfa_release_enrollment','security_mfa_begin_factor_add','security_mfa_forget_factor') and (has_function_privilege('authenticated',p.oid,'execute') or has_function_privilege('anon',p.oid,'execute')) and l.lanname in('sql','plpgsql')
+ for f in select p.*,n.nspname,pg_get_function_arguments(p.oid) args,pg_get_function_result(p.oid) result from pg_proc p join pg_namespace n on n.oid=p.pronamespace join pg_language l on l.oid=p.prolang where n.nspname='public' and p.prosecdef and p.prokind='f' and p.prorettype not in('trigger'::regtype,'event_trigger'::regtype) and p.proname not in('security_mfa_status','security_mfa_assert','security_mfa_bridge_allowed','security_mfa_prepare_enrollment','security_mfa_complete_enrollment','security_mfa_authorize_enrollment','security_mfa_release_enrollment','security_mfa_approve_recovery','security_mfa_begin_factor_add','security_mfa_forget_factor') and (has_function_privilege('authenticated',p.oid,'execute') or has_function_privilege('anon',p.oid,'execute')) and l.lanname in('sql','plpgsql')
  loop
   if f.provariadic<>0 or (f.proargmodes is not null and f.proargmodes && array['o','b']::"char"[]) then raise exception 'MFA wrapper signature needs explicit review: %',f.oid::regprocedure;end if;
   clone_name:='mfa_impl_'||f.oid;
@@ -217,7 +217,7 @@ create function private.mfa_activation_findings() returns table(entry text,reaso
  select p.oid::regprocedure::text,'unwrapped or changed public definer' from pg_proc p join pg_namespace n on n.oid=p.pronamespace
  where n.nspname='public' and p.prosecdef and p.prokind='f' and p.prorettype not in('trigger'::regtype,'event_trigger'::regtype)
  and has_function_privilege('authenticated',p.oid,'execute')
- and p.proname not in('security_mfa_status','security_mfa_assert','security_mfa_bridge_allowed','security_mfa_prepare_enrollment','security_mfa_complete_enrollment','security_mfa_authorize_enrollment','security_mfa_release_enrollment','security_mfa_begin_factor_add','security_mfa_forget_factor')
+ and p.proname not in('security_mfa_status','security_mfa_assert','security_mfa_bridge_allowed','security_mfa_prepare_enrollment','security_mfa_complete_enrollment','security_mfa_authorize_enrollment','security_mfa_release_enrollment','security_mfa_approve_recovery','security_mfa_begin_factor_add','security_mfa_forget_factor')
  and not exists(select 1 from private.mfa_function_manifest m where m.function_oid=p.oid and m.wrapper_hash=md5(pg_get_functiondef(p.oid)))
 $$;
 create function private.mfa_configuration_guard() returns trigger language plpgsql security definer set search_path='' as $$

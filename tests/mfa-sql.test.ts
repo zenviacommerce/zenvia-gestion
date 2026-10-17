@@ -72,11 +72,11 @@ test('initial enrollment requires server authorization and session bound verifie
 test('recovery revokes sessions and never releases without factor removal and second review',async()=>{
  await reset();await enforce();await db.query(`select public.security_mfa_authorize_enrollment('${uid}','approval-one-ticket',true)`);
  expect((await db.query('select * from auth.sessions')).rows).toEqual([]);
- await expect(db.query(`select public.security_mfa_release_enrollment('${uid}','approval-two-ticket')`)).rejects.toThrow('MFA_REMOVE_OLD_FACTORS_FIRST');
+ await expect(db.query(`select public.security_mfa_release_enrollment('${uid}','approval-two-ticket',null,null)`)).rejects.toThrow('MFA_REMOVE_OLD_FACTORS_FIRST');
  await db.exec(`delete from auth.mfa_factors;insert into auth.mfa_factors values('${fid}','${uid}','totp','unverified')`);
- await expect(db.query(`select public.security_mfa_release_enrollment('${uid}','approval-one-ticket')`)).rejects.toThrow('MFA_INDEPENDENT_APPROVAL_REQUIRED');
+ await expect(db.query(`select public.security_mfa_release_enrollment('${uid}','approval-one-ticket',null,null)`)).rejects.toThrow('MFA_INDEPENDENT_APPROVAL_REQUIRED');
  await db.exec(`insert into auth.sessions(id,user_id,factor_id,aal) values('${sid}','${uid}',null,'aal1')`);
- await db.query(`select public.security_mfa_release_enrollment('${uid}','approval-two-ticket','${sid}')`);
+ await db.query(`select public.security_mfa_release_enrollment('${uid}','approval-two-ticket','${sid}',null)`);
  expect((await db.query<any>('select state from private.mfa_principals')).rows[0].state).toBe('re_enrollment_pending');
  // Restore the synthetic session for following tests only, never a product behavior.
  await db.exec(`update auth.sessions set factor_id='${fid}',aal='aal2' where id='${sid}'`);

@@ -32,7 +32,7 @@ jobs:
           mv supabase/migrations/20260918033000_amazon_mapping_assign_internal_sku.sql supabase/migrations/20260918033001_amazon_mapping_assign_internal_sku.sql
           # Historical Gmail migration uses LOCK TABLE outside a transaction.
           # Wrap it only in this disposable runner; keep repository SQL unchanged.
-          { printf 'BEGIN;\\n'; cat supabase/migrations/20261013120500_gmail_stable_message_part_identity.sql; printf '\\nCOMMIT;\\n'; } > "$RUNNER_TEMP/gmail-transaction.sql"
+          { echo 'BEGIN;'; cat supabase/migrations/20261013120500_gmail_stable_message_part_identity.sql; echo 'COMMIT;'; } > "$RUNNER_TEMP/gmail-transaction.sql"
           cp "$RUNNER_TEMP/gmail-transaction.sql" supabase/migrations/20261013120500_gmail_stable_message_part_identity.sql
           supabase start
           supabase db reset --local --yes

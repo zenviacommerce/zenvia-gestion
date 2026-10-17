@@ -1,0 +1,12 @@
+{
+  "slug": "noop",
+  "version": 10,
+  "verify_jwt": true,
+  "ezbr_sha256": "6c9dfed6f423433bcfbe723be6fbb30188b75c277da73b02fd327d462912a4b3",
+  "files": [
+    {
+      "name": "index.ts",
+      "content": "Deno.serve(()=>new Response('noop'))"
+    }
+  ]
+}

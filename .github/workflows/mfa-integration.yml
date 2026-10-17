@@ -26,6 +26,11 @@ jobs:
       - name: Start disposable GoTrue, Postgres, Vault and Edge
         run: |
           if [ ! -f supabase/config.toml ]; then supabase init; fi
+          cat >> supabase/config.toml <<'EOF'
+          [auth.mfa.totp]
+          enroll_enabled = true
+          verify_enabled = true
+          EOF
           # Two legacy repo migration pairs reuse timestamps. The disposable
           # runner must disambiguate filenames only; production history is untouched.
           mv supabase/migrations/20260917004000_amazon_dashboard_index_cleanup.sql supabase/migrations/20260917004001_amazon_dashboard_index_cleanup.sql

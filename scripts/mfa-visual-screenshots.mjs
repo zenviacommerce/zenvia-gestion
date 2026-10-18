@@ -1,5 +1,6 @@
 import {build} from 'esbuild';
 import {readFile,mkdir} from 'node:fs/promises';
+import {dirname,resolve} from 'node:path';
 import {chromium} from 'playwright';
 const stub=(code)=>({contents:code,loader:'tsx'});
 const entry=`
@@ -21,7 +22,12 @@ const mocks={
  cache:`export const ensureViewCacheScope=()=>{};`
 };
 const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,format:'iife',platform:'browser',jsx:'automatic',plugins:[{name:'mock-supabase-fixture',setup(b){b.onResolve({filter:/MfaContext$/},()=>({path:'context',namespace:'screens'}));b.onResolve({filter:/supabase$/},()=>({path:'services',namespace:'screens'}));b.onResolve({filter:/viewCache$/},()=>({path:'cache',namespace:'screens'}));b.onLoad({filter:/.*/,namespace:'screens'},args=>stub(mocks[args.path]));b.onResolve({filter:/.css$/},args=>({path:args.path,namespace:'empty-css'}));b.onLoad({filter:/.*/,namespace:'empty-css'},()=>({contents:'',loader:'js'}));}}]});
-const css=(await Promise.all(['src/styles.css','src/settings.css','src/components/auth-gestion-brand.css'].map(async p=>readFile(p,'utf8').catch(()=>'')))).join('\n');
+const main=await readFile('src/main.tsx','utf8');
+const imported=[...main.matchAll(/import ['"]([^'"]+\\.css)['"]/g)].map(x=>'src/'+x[1].replace('./',''));
+const cssFiles=[...new Set([...imported,'src/shared-forms.css','src/components/auth-gestion-brand.css'])];
+const css=(await Promise.all(cssFiles.map(p=>readFile(p,'utf8')))).join('\\n');
+const logo=await readFile('public/zenvia-brand-symbol-20261012.svg','utf8');
+const logoData='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(logo);
 await mkdir('artifacts/mfa-visual',{recursive:true});
 const browser=await chromium.launch({headless:true});
 for(const device of [{name:'desktop',width:1440,height:900},{name:'mobile',width:390,height:844}]){
@@ -30,6 +36,7 @@ for(const device of [{name:'desktop',width:1440,height:900},{name:'mobile',width
   const actual=view==='rename'?'devices':view;
   await page.goto('about:blank?view='+actual);
   await page.setContent('<html><head><meta name="viewport" content="width=device-width, initial-scale=1"/><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
+  await page.locator('.authGestionLogo img').evaluateAll((nodes,url)=>nodes.forEach(node=>node.src=url),logoData);
   if(view==='rename'){await page.getByRole('button',{name:'Renombrar'}).first().click();}
   if(view==='qr'){await page.getByLabel('Nombre del dispositivo').fill('iPhone de prueba');await page.getByRole('button',{name:'Configurar autenticador'}).click();}
   await page.screenshot({path:'artifacts/mfa-visual/'+view+'-'+device.name+'.png',fullPage:true});

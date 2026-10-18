@@ -68,6 +68,10 @@ jobs:
             created_at timestamptz default now(),
             updated_at timestamptz default now()
           );
+          alter table public.fulfillment_orders
+            add column if not exists order_action_lease uuid,
+            add column if not exists order_action_lease_until timestamptz,
+            add column if not exists shopify_tracking_lease_until timestamptz;
           SQL
           supabase start
           supabase db reset --local --yes

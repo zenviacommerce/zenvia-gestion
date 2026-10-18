@@ -43,3 +43,5 @@ it('voluntary second-factor management does not grant a recovery-locked user sel
  expect(await screen.findByText('Recuperación protegida')).toBeTruthy();
  expect(screen.queryByRole('button',{name:'Añadir autenticador'})).toBeNull();
 });
+
+it('shows fresh-login guidance when adding a backup with an old session',async()=>{sdk.rpc.mockImplementation((name:string)=>Promise.resolve(name==='security_mfa_status'?{data:{state:'ready',factor_ids:['factor']},error:null}:{data:null,error:{message:'MFA_SESSION_REQUIRED'}}));render(<MfaProvider><MfaDevices/></MfaProvider>);fireEvent.click(await screen.findByRole('button',{name:'Añadir otro autenticador'}));expect(await screen.findByText(/se creó antes de registrar el primer factor/)).toBeTruthy();});

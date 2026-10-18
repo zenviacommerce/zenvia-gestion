@@ -22,9 +22,9 @@ $$;
 -- While disabled this is backward compatible; while enabled, an actorless
 -- call must be rejected instead of bypassing the pilot.
 CREATE OR REPLACE FUNCTION public.security_mfa_bridge_allowed()
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
  SELECT public.security_mfa_bridge_allowed(NULL::uuid)
-$;
+$$;
 REVOKE ALL ON FUNCTION public.security_mfa_bridge_allowed() FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.security_mfa_bridge_allowed() TO service_role;
 REVOKE ALL ON FUNCTION public.security_mfa_bridge_allowed(uuid) FROM PUBLIC,anon,authenticated;

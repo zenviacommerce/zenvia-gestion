@@ -171,7 +171,7 @@ test('pilot cohort: trusted Platform actor comes from another Auth project and d
  expect(await scoped('platform-external-admin','pilot@example.test','list_workspaces')).toBe(false);
  expect(await scoped(uid,'other@example.test','list_workspaces')).toBe(false);
  expect(await scoped('system:plan-sync','platform@zenviacommerce.com','apply_plan_snapshot')).toBe(true);
- expect(await scoped('system:plan-sync','platform@zenviacommerce.com','list_workspaces')).toBe(true);
+ expect(await scoped('system:plan-sync','platform@zenviacommerce.com','list_workspaces')).toBe(false);
  expect(await scoped('','other@example.test','list_workspaces')).toBe(false);
  expect(await scoped('platform-external-admin','','list_workspaces')).toBe(false);
  expect((await db.query<{allowed:boolean}>('select public.security_mfa_bridge_allowed() allowed')).rows[0].allowed).toBe(false);

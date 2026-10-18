@@ -39,6 +39,7 @@ beforeAll(async()=>{
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016191517_admin_mfa_security.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016194211_admin_mfa_oauth_actor_binding.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261017192500_admin_mfa_adaptive_recovery.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261018170000_mfa_strict_pilot_cohort.sql',import.meta.url),'utf8'));
 });
 afterAll(async()=>{await db?.close()});
 async function claims(aal='aal2',age=0){await db.query(`select set_config('request.jwt.claims',$1,false)`,[JSON.stringify({sub:uid,session_id:sid,aal,iat:Math.floor(Date.now()/1000),amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)-age}]})]);}
@@ -134,4 +135,55 @@ test('adaptive recovery: admitted peer requires a real MFA-bound approval, not t
  await db.query(`select public.security_mfa_release_enrollment('${uid}','second-ticket-456','${next}','${peer}')`);
  expect((await db.query<{state:string}>(`select state from private.mfa_principals where user_id='${uid}'`)).rows[0].state).toBe('re_enrollment_pending');
  await db.exec(`delete from private.mfa_recovery_peer_approvals where target_user_id='${uid}'; delete from auth.mfa_amr_claims where session_id='${ps}';delete from auth.sessions where user_id='${peer}'; delete from private.mfa_principals where user_id='${peer}';delete from auth.mfa_factors where user_id='${peer}';delete from public.app_users where user_id='${peer}';delete from auth.users where id='${peer}';`);
+});
+
+test('pilot cohort: AAL1 owner denied, outside administrator and normal user unaffected',async()=>{
+ await reset();
+ const other='00000000-0000-0000-0000-000000000091';
+ const normal='00000000-0000-0000-0000-000000000092';
+ await db.exec(`insert into auth.users values('${other}'),('${normal}');
+ insert into public.app_users(user_id,role,active,data_owner_id,workspace_id)
+ values('${other}','admin',true,'${uid}','${uid}'),('${normal}','user',true,'${uid}','${uid}');`);
+ await enforce();
+ await db.exec(`update private.mfa_configuration set cohort_user_ids=array['${uid}'::uuid]`);
+ await claims('aal1');
+ await expect(db.query('select public.security_mfa_assert(false)')).rejects.toThrow('MFA_REQUIRED');
+ for(const actor of [other,normal]){
+  await db.query('select set_config($1,$2,false)',['request.jwt.claims',JSON.stringify({sub:actor,aal:'aal1'})]);
+  await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();
+  const status=await db.query<any>('select public.security_mfa_status() s');
+  expect(status.rows[0].s.state).toBe('ready');
+  await db.exec('set role authenticated');
+  expect((await db.query('select id from public.items')).rows.length).toBeGreaterThan(0);
+  await db.exec('reset role');
+ }
+ await claims();
+ await db.exec(`delete from public.app_users where user_id in ('${other}','${normal}');delete from auth.users where id in ('${other}','${normal}');`);
+});
+test('pilot cohort: bridge is open for active noncohort actor, denied for pilot and unknown',async()=>{
+ await reset();
+ const other='00000000-0000-0000-0000-000000000093';
+ await db.exec(`insert into auth.users values('${other}');
+ insert into public.app_users(user_id,role,active,data_owner_id,workspace_id)
+ values('${other}','admin',true,'${uid}','${uid}');`);
+ await enforce();
+ await db.exec(`update private.mfa_configuration set cohort_user_ids=array['${uid}'::uuid]`);
+ expect((await db.query<any>(`select public.security_mfa_bridge_allowed('${other}') allowed`)).rows[0].allowed).toBe(true);
+ expect((await db.query<any>(`select public.security_mfa_bridge_allowed('${uid}') allowed`)).rows[0].allowed).toBe(false);
+ expect((await db.query<any>(`select public.security_mfa_bridge_allowed(null) allowed`)).rows[0].allowed).toBe(false);
+ expect((await db.query<any>(`select public.security_mfa_bridge_allowed('00000000-0000-0000-0000-000000000099') allowed`)).rows[0].allowed).toBe(false);
+ await db.exec(`update public.app_users set active=false where user_id='${other}'`);
+ expect((await db.query<any>(`select public.security_mfa_bridge_allowed('${other}') allowed`)).rows[0].allowed).toBe(false);
+ await db.exec(`delete from public.app_users where user_id='${other}';delete from auth.users where id='${other}';`);
+});
+test('pilot cohort: role promotions outside cohort never create MFA bootstrap locks',async()=>{
+ await reset();
+ const other='00000000-0000-0000-0000-000000000094';
+ await db.exec(`insert into auth.users values('${other}');
+ insert into public.app_users(user_id,role,active,data_owner_id,workspace_id)
+ values('${other}','user',true,'${uid}','${uid}');`);
+ await db.exec(`update private.mfa_configuration set enabled=true,cohort_user_ids=array['${uid}'::uuid]`);
+ await db.exec(`update public.app_users set role='admin' where user_id='${other}'`);
+ expect((await db.query<any>(`select count(*)::int n from private.mfa_principals where user_id='${other}'`)).rows[0].n).toBe(0);
+ await db.exec(`delete from public.app_users where user_id='${other}';delete from auth.users where id='${other}';`);
 });

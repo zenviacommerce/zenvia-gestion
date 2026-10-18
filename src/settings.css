@@ -544,3 +544,5 @@ html[data-theme='dark'] .billingCurrentCard{background:linear-gradient(135deg,rg
 @media(max-width:600px){.mfaDeviceRow{flex-wrap:wrap}.mfaDeviceRow button{margin-left:auto}.mfaSettingsBody{padding:16px}}
 
 .mfaQrPanel{display:grid;justify-items:center;gap:10px;padding:18px;margin:15px 0;border:1px solid var(--border,#e5e9f0);border-radius:14px;background:var(--surface-soft,#f8fafc)}.mfaQrPanel img{background:#fff;padding:12px;border-radius:12px;max-width:100%}.mfaQrPanel p{font-size:12px;overflow-wrap:anywhere}
+
+.mfaEnrollmentDialog{max-width:500px;width:calc(100% - 32px);border-radius:20px;box-shadow:0 20px 50px rgba(15,23,42,.15)}

@@ -251,3 +251,10 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Log query returned two successful real bridge POST 200 at 20:58:06.778 and 20:58:06.919 UTC, **before** v31 deployment timestamp; they cannot be called v31 successes. Earlier 20:55–20:56 UTC calls also returned 200. No later platform-bridge request was present in the inspected latest results.
 - No post-v31 real Platform call error observed, but no post-v31 real successful Platform operation verified either. No rollback triggered on an absent post-deploy call; exact v30 rollback remains ready.
 - STOP NOW for user AFTER browser verification of ZENVIA client 5 active users, same named integrations Connected, browser console and actual bridge calls. If real calls yield 5xx or regress, restore v30 immediately and journal. No SQL/pilot/global MFA change.
+
+### Platform bridge v31 — AFTER accepted (2026-10-18)
+- ZENVIA Platform: user confirmed same five active users and roles, Amazon, Envia.com, two Gmail, MRW and Sendcloud connected, no browser console errors and no writes.
+- Real platform-bridge POST logs at 20:59:07.718 UTC and 20:59:15.681 UTC returned HTTP 200. Both occurred after v31 activation at 20:58:24.552 UTC. No 5xx observed in those requests.
+- All five files in production v31 were checked byte-for-byte against PR #230 branch and matched. JWT setting unchanged (false).
+- Signed Platform read-only flow accepted. MFA remains off; cohort pilot, system plan sync under enabled MFA and recovery tests are not covered by this validation.
+- Rollback: safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/edge-20261018/platform-bridge-pre-pr230-v30.json. No rollback needed.

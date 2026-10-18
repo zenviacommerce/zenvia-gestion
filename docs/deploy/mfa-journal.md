@@ -130,3 +130,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - CORRECTION: production web URL is **https://gestion.zenviacommerce.com**. The earlier `zenvia-gastos.vercel.app` address is obsolete (404); do not use it for checks.
 - User's genuine admin session BEFORE batches 3/4: Administración → Usuarios y accesos **5 users / 5 active / 3 admins**, full permissions visible. Configuración → Integraciones: Amazon **ZENVIA COMMERCE SL** default/connected, **2 Shopify** accounts, Sendcloud, Envia.com, MRW visible; no `Probar conexión` attempted. Pedidos: **11 pending (9 Amazon, 2 Shopify), 108 sent, 4 canceled**, console no errors.
 - Explicit approval for batch 3 then batch 4, per-function journal+rollback, STOP before batch 5/Amazon/frontend; user will do matching AFTER browser checks.
+
+### Batch 3 / step 1 — admin-users
+- Deployed production Edge admin-users v27 (baseline v26), `verify_jwt` preserved. Actual user BEFORE check: 5 users, 5 active, 3 admins. User AFTER browser verification pending. Rollback source: safety/mfa-production-snapshot-20261018, edge-20261018/admin-users.json.

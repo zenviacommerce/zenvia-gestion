@@ -95,3 +95,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 ### Phase B batch 2 / step 1 — app-agent
 - 2026-10-18: installed Edge app-agent v20 (baseline snapshot v19) preserving verify_jwt=true and baseline logic plus MFA guard. Safe unauthenticated probe: before HTTP 401 `Sesión no válida.` (request 1578), after same HTTP 401/body (1581).
 - No real privileged agent operation executed. Rollback source: safety/mfa-production-snapshot-20261018, edge-20261018/app-agent.json. Batch not closed.
+
+### Phase B batch 2 / step 2 — customer-billing
+- Deployed v10 (baseline v9), verify_jwt=true. Before safe probe 1579 HTTP 401 `Sesión no válida.`; after safe probe 1584 HTTP 401 with identical body. No billing mutation. Exact rollback snapshot: edge-20261018/customer-billing.json.

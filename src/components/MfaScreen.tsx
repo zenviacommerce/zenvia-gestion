@@ -2,6 +2,7 @@ import {useEffect,useRef,useState} from 'react';
 import {ShieldCheck,ScanQrCode,AlertCircle} from 'lucide-react';
 import './auth-gestion-brand.css';
 import {supabase} from '../services/supabase';
+import {SelectField} from './forms/SelectField';
 import {useMfaAccess} from '../context/MfaContext';
 export function MfaScreen(){
  const access=useMfaAccess();
@@ -40,7 +41,7 @@ export function MfaScreen(){
  {enrolling&&!factor&&!access.enrollment_factor_id&&<button onClick={()=>void begin()} className="primary" disabled={busy}>Configurar autenticador</button>}
  {qr&&<div className="mfaQrPanel" role="group" aria-label="Alta de autenticador"><ScanQrCode size={20}/><img alt="QR para configurar el autenticador" src={qr} style={{width:220,height:220}}/><p>Guarda el secreto solo en tu autenticador: <code>{secret}</code></p></div>}
  {(!enrolling||factor||access.enrollment_factor_id)&&<form onSubmit={event=>{event.preventDefault();void verify()}}>
- {!enrolling&&access.factor_ids.length>1&&<label className="mfaFactorSelect">Autenticador<select aria-label="Autenticador" value={factor||access.factor_ids[0]} onChange={e=>setFactor(e.target.value)}>{access.factor_ids.map((id,index)=><option key={id} value={id}>{names[id]||`Autenticador ${index+1}`}</option>)}</select></label>}
+ {!enrolling&&access.factor_ids.length>1&&<label className="mfaFactorSelect">Autenticador<SelectField ariaLabel="Autenticador" value={factor||access.factor_ids[0]} options={access.factor_ids.map((id,index)=>({value:id,label:names[id]||`Autenticador ${index+1}`}))} onChange={setFactor}/></label>}
 
  <label>Código de seis dígitos<input ref={codeRef} className="mfaCodeInput" aria-label="Código de seis dígitos" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} value={code} onChange={e=>{const next=e.target.value.replace(/\D/g,'').slice(0,6);setCode(next);setError('');if(next.length===6&&!enrolling)void verify(next)}}/></label>{error&&<div role="alert" className="mfaFieldError"><AlertCircle size={16}/>{error}</div>}<button className="primary" disabled={busy} type="submit">Verificar</button></form>}
  </>}

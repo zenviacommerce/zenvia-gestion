@@ -82,3 +82,12 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Deployed version 13, using archived configuration verify_jwt=true and the new MFA guard. Pre probe 1571: HTTP 401 `Sesión no válida.`; post probe 1574: HTTP 401 and same body.
 - Rollback source snapshot: `edge-20261018/transport-tariff-parser.json` on safety branch.
 - This batch performed only safe invalid-session probes, not a complete real authorized-user transaction. Before the next batch or UI release, perform an authorized interaction test through the browser as agreed.
+
+### Phase B batch 1 — completed 2026-10-18 ~10:36 UTC — STOP
+- The first batch consists of exactly 3 Edge Functions and no others: `app-agent-tools` (v6), `invoice-document-intelligence` (v8), `transport-tariff-parser` (v13). All were deployed using the original `verify_jwt=true`, retained production entrypoint logic plus shared MFA guard. No Amazon/shipping workers, no main merge, no Vercel frontend.
+- Each pre- and post-deployment safe invalid-session HTTP POST probe returned **401** with identical `{"error":"Sesión no válida."}` body. Baseline request IDs: 1569,1570,1571; post: 1572,1573,1574. These do not establish a full logged-in user functional test; such a test remains pending.
+- MFA SQL enabled=false, 300 public MFA policies (additional 4 policies in private schema; total count without schema filter is 304). 10 cron active. Latest observed Amazon job 8 cron at 10:35 UTC succeeded; nine newly queued jobs were created at 10:35:02 UTC after that cycle, for the next worker run.
+- Auth 5xx in 10:30–10:45 log window: 0 among 0 available records; cannot claim observed requests or end-to-end login success.
+- RLS fast-path already deployed and tested: post-deploy four-run EXPLAIN averages: fulfillment_orders 1.567ms, products 0.662ms, sales_invoices 1.051ms; benchmark variability exists. Historic pre-optimization fulfillment_orders average was 4.601ms and without MFA policies in rolled-back transaction was 0.415ms. No per-row MFA invocation in policies.
+- Source backups for each deployed function: `safety/mfa-production-snapshot-20261018`. On failure restore exactly saved files and verify_jwt and record new versions. The three deployments passed safe access probes.
+- **Stop here; next Edge batch requires a separate user turn. No global AAL2 activation.** Before batch 2 confirm new 10:35 Amazon jobs cleared and perform supported authorized functional tests where available.

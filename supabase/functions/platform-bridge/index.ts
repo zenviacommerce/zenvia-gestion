@@ -111,9 +111,11 @@ Deno.serve(async(req:Request)=>{
     if(bridgeError)throw bridgeError;
     if(!bridgeSecret?.active||await sha256(supplied)!==bridgeSecret.token_sha256)return fail('Puente no autorizado.',401);
 
-    await assertBridgeMfaAllowed(admin);
     const body=await req.json().catch(()=>({}));
     const action=asText(body?.action,80);
+    // x-platform-token has already been verified. Actor is bound to the trusted
+    // Platform request; absence never authorizes delegation with MFA enabled.
+    await assertBridgeMfaAllowed(admin,{id:asText(body?.actor?.id,80),email:asText(body?.actor?.email,254)},action);
     const actor={
       id:asText(body?.actor?.id,80),
       email:asText(body?.actor?.email,254),
@@ -813,6 +815,7 @@ Deno.serve(async(req:Request)=>{
     return fail('Acción no válida.',404);
   }catch(error){
     console.error(error);
-    return fail(error instanceof Error?error.message:'Error interno.',500);
+    const message=error instanceof Error?error.message:'Error interno.';
+    return fail(message,message==='MFA_BRIDGE_DELEGATION_REQUIRED'?403:500);
   }
 });

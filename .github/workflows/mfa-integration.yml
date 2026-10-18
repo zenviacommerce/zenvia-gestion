@@ -52,7 +52,7 @@ jobs:
           cp "$RUNNER_TEMP/gmail-transaction.sql" supabase/migrations/20261013120500_gmail_stable_message_part_identity.sql
           # Existing production table is absent from this repo's historical
           # migrations. A schema-only fixture is created IN THE RUNNER ONLY.
-          cat > supabase/migrations/20261016194727_mfa_ci_cancellation_dependency.sql <<'SQL'
+          cat > supabase/migrations/20261016191516_mfa_ci_cancellation_dependency.sql <<'SQL'
           create table if not exists public.order_cancellation_operations(
             id uuid primary key default gen_random_uuid(),
             owner_id uuid,
@@ -72,6 +72,26 @@ jobs:
             add column if not exists order_action_lease uuid,
             add column if not exists order_action_lease_until timestamptz,
             add column if not exists shopify_tracking_lease_until timestamptz;
+          SQL
+          # Production cancellation table has four restrictive MFA policies.
+          # The historical table-creation migration is missing from the repo,
+          # so give its CI-only replacement the same protection before testing
+          # cohort activation. Never weaken the global activation guard.
+          cat > supabase/migrations/20261018165000_mfa_ci_cancellation_rls.sql <<'SQL'
+          alter table public.order_cancellation_operations enable row level security;
+          drop policy if exists mfa_select_gate on public.order_cancellation_operations;
+          drop policy if exists mfa_insert_gate on public.order_cancellation_operations;
+          drop policy if exists mfa_update_gate on public.order_cancellation_operations;
+          drop policy if exists mfa_delete_gate on public.order_cancellation_operations;
+          create policy mfa_select_gate on public.order_cancellation_operations
+            as restrictive for select to authenticated using ((select private.mfa_allowed()));
+          create policy mfa_insert_gate on public.order_cancellation_operations
+            as restrictive for insert to authenticated with check ((select private.mfa_allowed()));
+          create policy mfa_update_gate on public.order_cancellation_operations
+            as restrictive for update to authenticated using ((select private.mfa_allowed()))
+            with check ((select private.mfa_allowed()));
+          create policy mfa_delete_gate on public.order_cancellation_operations
+            as restrictive for delete to authenticated using ((select private.mfa_allowed()));
           SQL
           supabase start
           supabase db reset --local --yes

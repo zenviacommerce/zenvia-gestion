@@ -26,9 +26,12 @@ describe('Edge MFA authority',()=>{
  });
  it('bridge permits only an explicit server decision',async()=>{
   for(const result of [{data:false},{data:null},{data:true,error:{message:'unavailable'}}]){
-   await expect(assertBridgeMfaAllowed({rpc:async()=>result})).rejects.toThrow();
+   await expect(assertBridgeMfaAllowed({rpc:async()=>result},{id:'platform-operator-42',email:'other@example.test'},'list_workspaces')).rejects.toThrow();
   }
-  await expect(assertBridgeMfaAllowed({rpc:async()=>({data:true,error:null})})).resolves.toBeUndefined();
+  await expect(assertBridgeMfaAllowed({rpc:async()=>({data:true,error:null})},{id:'platform-operator-42',email:'other@example.test'},'list_workspaces')).resolves.toBeUndefined();
+  const rpc=vi.fn().mockResolvedValue({data:true,error:null});
+  await assertBridgeMfaAllowed({rpc},{id:'system:plan-sync',email:'platform@zenviacommerce.com'},'apply_plan_snapshot');
+  expect(rpc).toHaveBeenCalledWith('security_mfa_bridge_allowed',{p_actor_id:'system:plan-sync',p_actor_email:'platform@zenviacommerce.com',p_action:'apply_plan_snapshot'});
  });
 });
 

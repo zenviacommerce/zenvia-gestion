@@ -1,7 +1,7 @@
 import {test,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {writeFileSync} from 'node:fs';
-import {randomBytes} from 'node:crypto';
+import {randomBytes,createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {createClient} from '@supabase/supabase-js';
 import {totpCode} from './local-auth-mfa-fixture.mjs';
@@ -134,6 +134,88 @@ gate('GoTrue factor revocation and re-enrollment',async()=>{
  must(await admin.auth.admin.mfa.deleteFactor({id:secondary.factor,userId:secondary.id}),'revoke');
  const f=must(await admin.auth.admin.mfa.listFactors({userId:secondary.id}),'factor list');
  assert.equal(f.factors?.some(x=>x.id===secondary.factor),false);
+});
+gate('Real GoTrue pilot cohort isolates RPC, Edge and trusted Platform bridge',async()=>{
+ const normal=await addAdmin(primary.id,false);
+ sql(`update public.app_users set role='user' where user_id='${normal.id}';`);
+ const outside=secondary;
+ const bridgeToken='ci-bridge-'+randomBytes(30).toString('hex');
+ const sha=createHash('sha256').update(bridgeToken).digest('hex');
+ sql(`insert into public.platform_bridge_secrets(secret_id,token_sha256,active)
+      values('primary','${sha}',true)
+      on conflict(secret_id) do update set token_sha256=excluded.token_sha256,active=true;`);
+ const getActor=async(account)=>{
+  const c=client();
+  const d=must(await c.auth.signInWithPassword({email:account.email,password:account.password}),'AAL1 cohort login');
+  const level=must(await c.auth.mfa.getAuthenticatorAssuranceLevel(),'cohort AAL');
+  assert.equal(level.currentLevel,'aal1');
+  return {c,session:d.session};
+ };
+ try{
+  // AAL2 would be required for the cohort owner, never for other users.
+  const findings=spawnSync('docker',['exec','-i',dbContainer,'psql','-X','-At','-v','ON_ERROR_STOP=1','-U','postgres','-d','postgres','-c',
+   "select entry||': '||reason from private.mfa_activation_findings() order by entry"],{encoding:'utf8'});
+ assert.equal(findings.status,0,'MFA activation audit unavailable');
+ assert.equal(findings.stdout.trim(),'','Disposable schema violates MFA activation audit: '+findings.stdout.trim().slice(0,850));
+ sql(`update private.mfa_configuration set enabled=true,
+       cohort_user_ids=array['${primary.id}'::uuid] where singleton;`);
+  const inside=await getActor(primary);
+  const outsideAuth=await getActor(outside);
+  const normalAuth=await getActor(normal);
+  const insideRpc=await inside.c.rpc('security_mfa_assert',{p_recent:false});
+  assert.ok(insideRpc.error&&String(insideRpc.error.message).includes('MFA_'),'Pilot AAL1 RPC must reject');
+  must(await outsideAuth.c.rpc('security_mfa_assert',{p_recent:false}),'Outside admin AAL1 RPC');
+  must(await normalAuth.c.rpc('security_mfa_assert',{p_recent:false}),'Ordinary user AAL1 RPC');
+
+  const invokeAdmin=async(session)=>fetch(url+'/functions/v1/admin-users',{
+   method:'POST',
+   headers:{apikey:anon,authorization:'Bearer '+session.access_token,'content-type':'application/json'},
+   body:JSON.stringify({action:'list'})
+  });
+  const pilotEdge=await invokeAdmin(inside.session);
+  const pilotBody=await pilotEdge.text();
+  assert.ok(pilotEdge.status>=400&&pilotBody.includes('MFA_'),'Pilot AAL1 Edge must reject');
+  const outsideEdge=await invokeAdmin(outsideAuth.session);
+  assert.equal(outsideEdge.status,200,'Outside admin must retain admin-users read');
+  const normalEdge=await invokeAdmin(normalAuth.session);
+  const normalBody=await normalEdge.text();
+  assert.ok(normalEdge.status>=400&&!normalBody.includes('MFA_'),
+    'Ordinary user keeps existing role denial, not MFA denial');
+
+  const bridge=async(userId,email='ci@example.test')=>fetch(url+'/functions/v1/platform-bridge',{
+   method:'POST',
+   headers:{'x-platform-token':bridgeToken,'content-type':'application/json',apikey:anon,authorization:'Bearer '+anon},
+   body:JSON.stringify({action:'resolve_identity',workspaceId:'00000000-0000-0000-0000-000000000099',
+    email:'nobody@example.test',actor:{id:userId,email}})
+  });
+  const pilotBridge=await bridge(primary.id);
+  assert.equal(pilotBridge.status,403,'Cohort owner must not delegate without human MFA');
+  assert.ok((await pilotBridge.text()).includes('MFA_BRIDGE_DELEGATION_REQUIRED'));
+  for(const actor of [outside.id,normal.id]){
+   const r=await bridge(actor);
+   assert.equal(r.status,200,'Noncohort trusted bridge delegation must work');
+   assert.equal((await r.json()).exists,false);
+  }
+  // Real Platform operators belong to a different Auth project, so their UUID
+  // is generally unknown to Gestion. The verified Platform server supplies email.
+  const external=await bridge('platform-external-operator','outside-platform@example.test');
+  assert.equal(external.status,200,'Noncohort Platform operator must retain delegation');
+  const impersonated=await bridge('platform-external-operator',primary.email);
+  assert.equal(impersonated.status,403,'Pilot email must be denied even with external actor ID');
+  // Real Platform billing cron has non-UUID actor ID. The service-only SQL
+  // path must preserve its one permitted machine action when a human pilot runs.
+  sql(`DO $check$ BEGIN
+    IF NOT public.security_mfa_bridge_allowed('system:plan-sync','platform@zenviacommerce.com','apply_plan_snapshot')
+       THEN RAISE EXCEPTION 'Machine plan sync blocked by human pilot'; END IF;
+    IF public.security_mfa_bridge_allowed('system:plan-sync','platform@zenviacommerce.com','list_workspaces')
+       THEN RAISE EXCEPTION 'Machine actor allowed human bridge action'; END IF;
+  END $check$;`);
+  const missing=await bridge('platform-external-operator','');
+  assert.equal(missing.status,403,'Missing Platform actor email must never bypass MFA');
+ }finally{
+  sql(`update private.mfa_configuration set enabled=false,cohort_user_ids=null where singleton;
+      delete from public.platform_bridge_secrets where secret_id='primary';`);
+ }
 });
 gate('Real Edge denies unauthenticated or AAL1 calls (not 404)',async()=>{
  const unauth=await fetch(url+'/functions/v1/platform-bridge',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});

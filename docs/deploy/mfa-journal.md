@@ -170,3 +170,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 
 ### Phase B batch 5 / function 2: mrw-shipping
 - Deployed **v22** over snapshot v21, verify_jwt=true preserved, original MRW transport/PII shared files retained with MFA guard. Before invalid-session nonexistent-workspace probe #1708 was HTTP 401 Sesión no válida. No shipment/label/transport operation executed. Post probe and log review pending. Exact rollback: safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/edge-20261018/mrw-shipping.json.
+
+### Phase B batch 5 / function 3: sendcloud-orders
+- Deployed **v32** over snapshot v31, verify_jwt=true preserved; original Sendcloud operations and Amazon buyer PII guard files retained, MFA guard added. Before invalid-session nonexistent-workspace probe #1709 returned HTTP 401 Sesión no válida. No carrier/label/shipment operation executed. Post probe and log review pending. Exact rollback: safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/edge-20261018/sendcloud-orders.json.

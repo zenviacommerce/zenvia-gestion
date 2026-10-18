@@ -23,7 +23,7 @@ Supabase Auth limits an enrolled TOTP user's unchallenged AAL1 session to 15 min
 
 ## Phased release (each phase requires explicit user approval)
 **Phase 1 — SQL ONLY**
-- Snapshot exact existing function definitions/ACL/config/cron; verify rollback script first; deploy only `20261018233000_mfa_voluntary_first_factor.sql`, leaving `enabled=false`, `cohort_user_ids=NULL`.
+- Snapshot exact existing function definitions/ACL/config/cron; verify rollback script first; deploy only `20261018214155_mfa_voluntary_first_factor.sql`, leaving `enabled=false`, `cohort_user_ids=NULL`.
 - Verify function exists, execute denied for anon/normal users, service recovery unchanged, voluntary admin possible, no verified GoTrue factor bypass. Record version, UTC, SQL tests, Auth 5xx/worker health, rollback.
 - SQL rollback preparation: restore prior exact `security_mfa_status`, `prepare_enrollment`, `complete_enrollment` definitions/ACL from production snapshot; revoke/drop self RPC; remove `self_enrollment_pending` constraint alternative only after verifying no principal remains in that state. Never execute destructive rollback blindly with active enrollments.
 - STOP after phase, no frontend in same turn.

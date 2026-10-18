@@ -11,9 +11,9 @@ export async function assertMfaWithClient(
   if(error)throw new Error(error.message||'MFA_UNAVAILABLE');
 }
 
-/** Shared bridge secrets do not prove a human's MFA. Disable delegation while
- * enforcement is enabled until a separately verified delegation protocol exists. */
-export async function assertBridgeMfaAllowed(admin:{rpc:(name:string)=>PromiseLike<any>}){
-  const {data,error}=await admin.rpc('security_mfa_bridge_allowed');
+/** Bridge secret authentication is performed before this call. The actor UUID must
+ * come from the trusted Platform request; missing actors fail closed under MFA. */
+export async function assertBridgeMfaAllowed(admin:{rpc:(name:string,args?:Record<string,unknown>)=>PromiseLike<any>},actorUserId:string|null){
+  const {data,error}=await admin.rpc('security_mfa_bridge_allowed',{p_actor_user_id:actorUserId});
   if(error||data!==true)throw new Error('MFA_BRIDGE_DELEGATION_REQUIRED');
 }

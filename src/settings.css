@@ -524,3 +524,21 @@ html[data-theme='dark'] .billingCurrentCard{background:linear-gradient(135deg,rg
 @media(max-width:720px){.billingInvoiceHistoryRow{grid-template-columns:1fr}.billingInvoiceTotal{align-items:flex-start;text-align:left}.billingInvoiceActions{justify-content:flex-start;flex-wrap:wrap}.billingInvoiceActions .secondary{flex:1 1 140px}.billingCurrentCard{grid-template-columns:1fr}.billingPriceBox{align-items:flex-start;text-align:left;padding:0}.billingMeta{grid-template-columns:1fr 1fr}.billingPlansHead{flex-direction:column}.billingPlanGrid,.billingUsageGrid{grid-template-columns:1fr}.billingCycleToggle{width:100%}.billingCycleToggle button{flex:1}}
 
 .integrationReadinessOk{color:var(--success-text,#047857)!important;font-weight:700}
+
+/* MFA settings — follows standard Settings card and login surfaces */
+.mfaSettings{min-height:0;margin-bottom:18px}
+.mfaSettingsBody{padding:20px 22px;display:grid;gap:15px}
+.mfaSettingsBody>button{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:max-content;margin-right:9px}
+.mfaDeviceList{display:grid;gap:9px}
+.mfaDeviceRow{display:flex;align-items:center;gap:13px;border:1px solid var(--border,#e5e9f0);border-radius:12px;background:var(--surface-soft,#f8fafc);padding:13px 15px}
+.mfaDeviceRow>svg{color:var(--muted,#64748b);flex-shrink:0}
+.mfaDeviceInfo{display:grid;gap:4px;min-width:0;flex:1}
+.mfaDeviceInfo strong{font-size:13px}
+.mfaDeviceInfo small{font-size:11px;color:var(--muted,#64748b);line-height:1.5}
+.mfaError{padding:12px 14px;display:flex;align-items:flex-start;gap:10px;border:1px solid #fca5a5;background:var(--surface-soft,#fff7f7);border-radius:11px;color:var(--text,#7f1d1d);font-size:12px}
+.mfaError button{margin-left:auto}
+.mfaModalBackdrop{position:fixed;inset:0;background:rgba(15,23,42,.65);z-index:600;display:grid;place-items:center;padding:20px}
+.mfaModal{width:min(100%,480px);padding:26px;background:var(--surface,#fff);color:var(--text,#172033);border:1px solid var(--border,#e5e9f0);border-radius:18px;box-shadow:0 20px 60px rgba(15,23,42,.25)}
+.mfaModal h3{margin:0 0 10px}.mfaModal p{font-size:13px;line-height:1.5;color:var(--muted,#64748b)}
+.mfaModal button{margin-top:15px;margin-right:10px}
+@media(max-width:600px){.mfaDeviceRow{flex-wrap:wrap}.mfaDeviceRow button{margin-left:auto}.mfaSettingsBody{padding:16px}}

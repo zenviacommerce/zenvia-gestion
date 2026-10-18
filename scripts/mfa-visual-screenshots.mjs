@@ -23,9 +23,9 @@ const mocks={
 };
 const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,format:'iife',platform:'browser',jsx:'automatic',plugins:[{name:'mock-supabase-fixture',setup(b){b.onResolve({filter:/MfaContext$/},()=>({path:'context',namespace:'screens'}));b.onResolve({filter:/supabase$/},()=>({path:'services',namespace:'screens'}));b.onResolve({filter:/viewCache$/},()=>({path:'cache',namespace:'screens'}));b.onLoad({filter:/.*/,namespace:'screens'},args=>stub(mocks[args.path]));b.onResolve({filter:/.css$/},args=>({path:args.path,namespace:'empty-css'}));b.onLoad({filter:/.*/,namespace:'empty-css'},()=>({contents:'',loader:'js'}));}}]});
 const main=await readFile('src/main.tsx','utf8');
-const imported=[...main.matchAll(/import ['"]([^'"]+\\.css)['"]/g)].map(x=>'src/'+x[1].replace('./',''));
+const imported=[...main.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map(x=>'src/'+x[1].replace('./',''));
 const cssFiles=[...new Set([...imported,'src/shared-forms.css','src/components/auth-gestion-brand.css'])];
-const css=(await Promise.all(cssFiles.map(p=>readFile(p,'utf8')))).join('\\n');
+const css=(await Promise.all(cssFiles.map(p=>readFile(p,'utf8')))).join('\n');
 const logo=await readFile('public/zenvia-brand-symbol-20261012.svg','utf8');
 const logoData='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(logo);
 await mkdir('artifacts/mfa-visual',{recursive:true});

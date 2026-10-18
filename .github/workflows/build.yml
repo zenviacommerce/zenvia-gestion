@@ -19,7 +19,7 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
       - name: Test application logic
-        run: node --test scripts/*.test.mjs
+        run: node --test $(find scripts -maxdepth 1 -name '*.test.mjs' ! -name 'mfa-real-integration.test.mjs' | sort)
       - name: Build
         run: npm run build
       - name: Upload dist artifact

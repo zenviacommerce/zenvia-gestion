@@ -133,6 +133,10 @@ gate('Self-service initial enrollment, second TOTP, out-of-cohort challenge and 
  must(await voluntary.c.auth.mfa.verify({factorId:factorOne,challengeId:challenge.id,code:totpCode(secretOne)}),'voluntary login verify');
  status=must(await voluntary.c.rpc('security_mfa_status'),'post challenge');
  assert.equal(status.state,'ready');
+ const refreshed=must(await voluntary.c.auth.refreshSession(),'voluntary AAL2 refresh');
+ assert.equal(refreshed.user.id,voluntary.id);
+ status=must(await voluntary.c.rpc('security_mfa_status'),'post refresh status');
+ assert.equal(status.state,'ready');
  must(await voluntary.c.rpc('security_mfa_begin_factor_add'),'begin second factor');
  const second=must(await voluntary.c.auth.mfa.enroll({factorType:'totp',friendlyName:'CI-voluntary-secondary'}),'second enroll');
  must(await voluntary.c.rpc('security_mfa_prepare_enrollment',{p_factor_id:second.id}),'second prepare');

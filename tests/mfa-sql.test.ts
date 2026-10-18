@@ -36,6 +36,7 @@ beforeAll(async()=>{
  insert into auth.mfa_factors values('${fid}','${uid}','totp','verified');
  insert into auth.mfa_amr_claims values('${sid}','totp',now());`);
  await db.exec("alter table public.app_users add column workspace_id uuid; update public.app_users set workspace_id=data_owner_id;");
+ await db.exec(`alter table public.app_users add column email text; update public.app_users set email='pilot@example.test' where user_id='${uid}';`);
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016191517_admin_mfa_security.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016194211_admin_mfa_oauth_actor_binding.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261017192500_admin_mfa_adaptive_recovery.sql',import.meta.url),'utf8'));
@@ -160,21 +161,20 @@ test('pilot cohort: AAL1 owner denied, outside administrator and normal user una
  await claims();
  await db.exec(`delete from public.app_users where user_id in ('${other}','${normal}');delete from auth.users where id in ('${other}','${normal}');`);
 });
-test('pilot cohort: bridge is open for active noncohort actor, denied for pilot and unknown',async()=>{
- await reset();
- const other='00000000-0000-0000-0000-000000000093';
- await db.exec(`insert into auth.users values('${other}');
- insert into public.app_users(user_id,role,active,data_owner_id,workspace_id)
- values('${other}','admin',true,'${uid}','${uid}');`);
- await enforce();
+test('pilot cohort: trusted Platform actor comes from another Auth project and does not block plan sync',async()=>{
+ await reset(); await enforce();
  await db.exec(`update private.mfa_configuration set cohort_user_ids=array['${uid}'::uuid]`);
- expect((await db.query<any>(`select public.security_mfa_bridge_allowed('${other}') allowed`)).rows[0].allowed).toBe(true);
- expect((await db.query<any>(`select public.security_mfa_bridge_allowed('${uid}') allowed`)).rows[0].allowed).toBe(false);
- expect((await db.query<any>(`select public.security_mfa_bridge_allowed(null) allowed`)).rows[0].allowed).toBe(false);
- expect((await db.query<any>(`select public.security_mfa_bridge_allowed('00000000-0000-0000-0000-000000000099') allowed`)).rows[0].allowed).toBe(false);
- await db.exec(`update public.app_users set active=false where user_id='${other}'`);
- expect((await db.query<any>(`select public.security_mfa_bridge_allowed('${other}') allowed`)).rows[0].allowed).toBe(false);
- await db.exec(`delete from public.app_users where user_id='${other}';delete from auth.users where id='${other}';`);
+ const scoped=async(id:string,email:string,action:string)=> (await db.query<{allowed:boolean}>(
+   'select public.security_mfa_bridge_allowed($1::text,$2::text,$3::text) allowed',
+   [id,email,action])).rows[0].allowed;
+ expect(await scoped('platform-external-admin','other@example.test','list_workspaces')).toBe(true);
+ expect(await scoped('platform-external-admin','pilot@example.test','list_workspaces')).toBe(false);
+ expect(await scoped(uid,'other@example.test','list_workspaces')).toBe(false);
+ expect(await scoped('system:plan-sync','platform@zenviacommerce.com','apply_plan_snapshot')).toBe(true);
+ expect(await scoped('system:plan-sync','platform@zenviacommerce.com','list_workspaces')).toBe(true);
+ expect(await scoped('','other@example.test','list_workspaces')).toBe(false);
+ expect(await scoped('platform-external-admin','','list_workspaces')).toBe(false);
+ expect((await db.query<{allowed:boolean}>('select public.security_mfa_bridge_allowed() allowed')).rows[0].allowed).toBe(false);
 });
 test('pilot cohort: role promotions outside cohort never create MFA bootstrap locks',async()=>{
  await reset();

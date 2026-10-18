@@ -275,3 +275,9 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - **STOP before deployment**, including SQL, Edge, frontend and MFA cohort. Existing production flag latest verified disabled/cohort NULL; no attempt made to alter it. CI and security review are mandatory before deployment.
 
 - Additional test-only commit `fe39e6f93a52881ebafdc78643d8aa4d2b9eade0`: mandatory cohort rejection and expired voluntary authorization safely returning to ready/restart. CI still not executed; branch remains pre-deployment. No production write.
+
+### PR #231 CI gate — in progress, no production deployment
+- PR #231 created in draft; first SHA `1e5361a203c6cd4b5167131033d6b252b01f151e` failed disposable integration **before GoTrue startup** during PGlite SQL synthetic regressions (21 failures/17 passes). No true TOTP AAL2 outcome can be claimed from that run.
+- Identified activation guard's inventory needs to account for the exact new approved SECURITY DEFINER `security_mfa_begin_self_enrollment`. Corrected in branch migration commit `59c135088642b75731f4db057b94e869f27399a9` with existing inventory logic otherwise retained. A new set of four CI workflows has been triggered; results pending.
+- First-TOTP post-verify AAL2 and immediate refresh preservation were added to the actual GoTrue integration script in commit `1e5361a203c6cd4b5167131033d6b252b01f151e`. These assertions have NOT executed in live GoTrue yet.
+- STOP SQL deployment unless all CI green, backend preflight snapshot/rollback and exact SQL provenance complete. Production unchanged.

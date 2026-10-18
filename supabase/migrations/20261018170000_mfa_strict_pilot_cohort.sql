@@ -1,34 +1,44 @@
 BEGIN;
 -- A service-to-service bridge has no auth.uid(); the trusted Platform actor is explicit.
 -- Default NULL remains safe: it never bypasses enforcement when enabled.
-CREATE FUNCTION public.security_mfa_bridge_allowed(p_actor_user_id uuid)
+-- Platform authenticates the operator in its OWN Supabase project. Its actor UUID
+-- does not necessarily exist in Gestion auth.users or app_users. The verified
+-- x-platform-token authenticates the service; operator id/email are then
+-- supplied by the trusted Platform backend, never by a browser to Gestion.
+-- Machine-origin plan sync uses its established non-UUID actor.
+CREATE FUNCTION public.security_mfa_bridge_allowed(
+ p_actor_id text, p_actor_email text, p_action text)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
  SELECT CASE
- WHEN NOT c.enabled THEN NOT EXISTS (
-   SELECT 1 FROM private.mfa_principals p
-   WHERE p.state IN ('recovery_locked','re_enrollment_pending','bootstrap_pending'))
- WHEN c.cohort_user_ids IS NULL THEN FALSE -- global enforcement: no delegation
- WHEN p_actor_user_id IS NULL THEN FALSE -- no verifiable actor: fail closed
- WHEN p_actor_user_id=ANY(c.cohort_user_ids) THEN FALSE
- ELSE EXISTS(
-   SELECT 1 FROM public.app_users u WHERE u.user_id=p_actor_user_id AND u.active
-   UNION ALL
-   SELECT 1 FROM public.platform_admins a WHERE a.user_id=p_actor_user_id AND a.active
- )
+  WHEN NOT c.enabled THEN NOT EXISTS(
+    SELECT 1 FROM private.mfa_principals p WHERE p.state IN
+       ('recovery_locked','re_enrollment_pending','bootstrap_pending'))
+  WHEN c.cohort_user_ids IS NULL THEN FALSE
+  WHEN p_action='apply_plan_snapshot' AND p_actor_id='system:plan-sync'
+      AND lower(trim(coalesce(p_actor_email,'')))='platform@zenviacommerce.com'
+    THEN TRUE
+  WHEN nullif(trim(coalesce(p_actor_id,'')),'') IS NULL
+    OR nullif(trim(coalesce(p_actor_email,'')),'') IS NULL THEN FALSE
+  ELSE NOT EXISTS(
+    SELECT 1 FROM public.app_users a
+     WHERE a.user_id=ANY(c.cohort_user_ids)
+       AND (a.user_id::text=p_actor_id
+          OR lower(trim(a.email))=lower(trim(p_actor_email)))
+  )
  END
  FROM private.mfa_configuration c WHERE c.singleton
 $$;
--- Preserve the exact zero-argument entrypoint for already deployed Edge bundles.
--- While disabled this is backward compatible; while enabled, an actorless
--- call must be rejected instead of bypassing the pilot.
+-- The pre-existing 0-argument function remains as a fail-closed compatibility
+-- entry point for any old Edge deployment. When enabled with cohort, it denies
+-- actorless requests rather than granting broad service_role delegation.
 CREATE OR REPLACE FUNCTION public.security_mfa_bridge_allowed()
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
- SELECT public.security_mfa_bridge_allowed(NULL::uuid)
+ SELECT public.security_mfa_bridge_allowed(NULL::text,NULL::text,NULL::text)
 $$;
 REVOKE ALL ON FUNCTION public.security_mfa_bridge_allowed() FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.security_mfa_bridge_allowed() TO service_role;
-REVOKE ALL ON FUNCTION public.security_mfa_bridge_allowed(uuid) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION public.security_mfa_bridge_allowed(uuid) TO service_role;
+REVOKE ALL ON FUNCTION public.security_mfa_bridge_allowed(text,text,text) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.security_mfa_bridge_allowed(text,text,text) TO service_role;
 
 -- Pilot cohort is authoritative: an old enforced bit cannot expand it.
 CREATE OR REPLACE FUNCTION private.mfa_required()

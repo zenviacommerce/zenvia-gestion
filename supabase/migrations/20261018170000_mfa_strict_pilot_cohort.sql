@@ -1,8 +1,7 @@
 BEGIN;
 -- A service-to-service bridge has no auth.uid(); the trusted Platform actor is explicit.
 -- Default NULL remains safe: it never bypasses enforcement when enabled.
-DROP FUNCTION IF EXISTS public.security_mfa_bridge_allowed();
-CREATE FUNCTION public.security_mfa_bridge_allowed(p_actor_user_id uuid DEFAULT NULL)
+CREATE FUNCTION public.security_mfa_bridge_allowed(p_actor_user_id uuid)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
  SELECT CASE
  WHEN NOT c.enabled THEN NOT EXISTS (
@@ -19,6 +18,15 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
  END
  FROM private.mfa_configuration c WHERE c.singleton
 $$;
+-- Preserve the exact zero-argument entrypoint for already deployed Edge bundles.
+-- While disabled this is backward compatible; while enabled, an actorless
+-- call must be rejected instead of bypassing the pilot.
+CREATE OR REPLACE FUNCTION public.security_mfa_bridge_allowed()
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $
+ SELECT public.security_mfa_bridge_allowed(NULL::uuid)
+$;
+REVOKE ALL ON FUNCTION public.security_mfa_bridge_allowed() FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.security_mfa_bridge_allowed() TO service_role;
 REVOKE ALL ON FUNCTION public.security_mfa_bridge_allowed(uuid) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.security_mfa_bridge_allowed(uuid) TO service_role;
 

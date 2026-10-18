@@ -281,3 +281,9 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Identified activation guard's inventory needs to account for the exact new approved SECURITY DEFINER `security_mfa_begin_self_enrollment`. Corrected in branch migration commit `59c135088642b75731f4db057b94e869f27399a9` with existing inventory logic otherwise retained. A new set of four CI workflows has been triggered; results pending.
 - First-TOTP post-verify AAL2 and immediate refresh preservation were added to the actual GoTrue integration script in commit `1e5361a203c6cd4b5167131033d6b252b01f151e`. These assertions have NOT executed in live GoTrue yet.
 - STOP SQL deployment unless all CI green, backend preflight snapshot/rollback and exact SQL provenance complete. Production unchanged.
+
+### PR231 Phase SQL preflight — CI GREEN, production not yet modified
+- Four PR workflows green on `05d494be3699a1a268b24584024cfec5f5e0b43b`: build check #39168547968, app build #39168548025, Auth resilience #39168547982, disposable GoTrue/Vault #39168547980. Real integration subtest for first TOTP -> AAL2 and refresh persistence passed; second TOTP also passed.
+- Before migration, production `private.mfa_configuration` checked `enabled=false`, `cohort_user_ids=NULL`; migration history currently has no voluntary MFA migration and most recent MFA migration `20261018170000_mfa_strict_pilot_cohort`.
+- Production exact pre-change definitions + ACL snapshot stored on safety branch at `supabase/rollback/snapshots/mfa-pre-voluntary-sql-20261018.json` (commit b4792f98). Guarded rollback SQL stored `supabase/rollback/mfa-voluntary-sql-rollback-20261018.sql` (commit 9ca04840), refuses if any self-enrollment pending. No session, factor, Edge or frontend mutation performed by preflight.
+- Next authorized operation is SQL-only migration. STOP and inspect errors if it fails; no frontend deploy.

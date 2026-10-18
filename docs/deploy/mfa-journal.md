@@ -77,3 +77,8 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 ### Phase B batch 1, step 2 — invoice-document-intelligence
 - Deployed version 8 with unchanged business source plus MFA guard, verify_jwt=true. Pre probe request 1570: HTTP 401 `Sesión no válida.`; post probe 1573: HTTP 401, same body. No authorized user flow exercised.
 - Rollback source snapshot: `edge-20261018/invoice-document-intelligence.json` on safety branch.
+
+### Phase B batch 1, step 3 — transport-tariff-parser
+- Deployed version 13, using archived configuration verify_jwt=true and the new MFA guard. Pre probe 1571: HTTP 401 `Sesión no válida.`; post probe 1574: HTTP 401 and same body.
+- Rollback source snapshot: `edge-20261018/transport-tariff-parser.json` on safety branch.
+- This batch performed only safe invalid-session probes, not a complete real authorized-user transaction. Before the next batch or UI release, perform an authorized interaction test through the browser as agreed.

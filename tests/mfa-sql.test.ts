@@ -35,10 +35,11 @@ beforeAll(async()=>{
  insert into auth.sessions(id,user_id,factor_id,aal) values('${sid}','${uid}','${fid}','aal2');
  insert into auth.mfa_factors values('${fid}','${uid}','totp','verified');
  insert into auth.mfa_amr_claims values('${sid}','totp',now());`);
- await db.exec("alter table public.app_users add column workspace_id uuid; update public.app_users set workspace_id=data_owner_id;");
+ await db.exec("alter table public.app_users add column workspace_id uuid; alter table public.app_users add column email text; update public.app_users set workspace_id=data_owner_id, email='pilot@example.test';");
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016191517_admin_mfa_security.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016194211_admin_mfa_oauth_actor_binding.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261017192500_admin_mfa_adaptive_recovery.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261018174500_mfa_strict_cohort_scope.sql',import.meta.url),'utf8'));
 });
 afterAll(async()=>{await db?.close()});
 async function claims(aal='aal2',age=0){await db.query(`select set_config('request.jwt.claims',$1,false)`,[JSON.stringify({sub:uid,session_id:sid,aal,iat:Math.floor(Date.now()/1000),amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)-age}]})]);}
@@ -90,7 +91,15 @@ test('factor removal requires another approved verified device and recent proof'
 test('wrapper preserves named defaults, strictness, ACL, owner, config and original implementation language text',async()=>{await reset();expect((await db.query<any>('select public.metadata_fixture() result')).rows[0].result).toBe('LANGUAGE sqlLANGUAGE sql');expect((await db.query<any>("select public.metadata_fixture(null) result")).rows[0].result).toBeNull();const rows=(await db.query<any>("select p.provolatile,p.proisstrict,p.proconfig,p.proowner=m.proowner same_owner,has_function_privilege('anon',p.oid,'execute') anon_can_execute,has_function_privilege('authenticated',p.oid,'execute') user_can_execute,m.provolatile original_volatility,has_function_privilege('authenticated',m.oid,'execute') clone_access from pg_proc p join private.mfa_function_manifest f on f.function_oid=p.oid join pg_proc m on m.oid=f.implementation where p.proname='metadata_fixture'")).rows;expect(rows[0]).toEqual({provolatile:'v',proisstrict:true,proconfig:['search_path=public'],same_owner:true,anon_can_execute:false,user_can_execute:true,original_volatility:'i',clone_access:false});});
 
 test('machine-only RPC definitions remain untouched',async()=>{await reset();expect((await db.query<any>("select prosrc from pg_proc where pronamespace='public'::regnamespace and proname='machine_rpc'")).rows[0].prosrc).toBe('select 42');await db.exec('set role service_role');expect((await db.query<any>('select public.machine_rpc() result')).rows[0].result).toBe(42);await db.exec('reset role');});
-test('pilot cohort applies only to chosen existing admins while new promotions stay pending',async()=>{await reset();await db.exec(`update private.mfa_configuration set cohort_user_ids=array['00000000-0000-0000-0000-000000000099'::uuid],enabled=true`);await claims('aal1');await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();await db.exec("update public.app_users set role='user';update public.app_users set role='admin'");await expect(db.query('select public.security_mfa_assert(false)')).rejects.toThrow('MFA_RECOVERY_LOCKED');});
+test('promotion outside pilot cohort does not lock an existing admin',async()=>{
+ await reset();
+ await db.exec(`update private.mfa_configuration set cohort_user_ids=array['00000000-0000-0000-0000-000000000099'::uuid],enabled=true`);
+ await claims('aal1');
+ await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();
+ await db.exec("update public.app_users set role='user';update public.app_users set role='admin'");
+ await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();
+ expect((await db.query("select count(*)::int n from private.mfa_principals where state='bootstrap_pending'")).rows[0]).toEqual({n:0});
+});
 
 async function oauthPrincipal(){await reset();await db.exec(`insert into private.mfa_principals(user_id,state,admitted_factor_ids) values('${uid}','active',array['${fid}'::uuid]);insert into auth.sessions(id,user_id,factor_id,aal) values('${sid}','${uid}','${fid}','aal2') on conflict(id) do update set factor_id=excluded.factor_id,aal='aal2',created_at=now(),not_after=null;insert into auth.mfa_factors values('${fid}','${uid}','totp','verified') on conflict(id) do update set status='verified'`);}
 async function oauthContext(){return(await db.query<any>('select public.security_mfa_oauth_start_context() context')).rows[0].context;}
@@ -134,4 +143,83 @@ test('adaptive recovery: admitted peer requires a real MFA-bound approval, not t
  await db.query(`select public.security_mfa_release_enrollment('${uid}','second-ticket-456','${next}','${peer}')`);
  expect((await db.query<{state:string}>(`select state from private.mfa_principals where user_id='${uid}'`)).rows[0].state).toBe('re_enrollment_pending');
  await db.exec(`delete from private.mfa_recovery_peer_approvals where target_user_id='${uid}'; delete from auth.mfa_amr_claims where session_id='${ps}';delete from auth.sessions where user_id='${peer}'; delete from private.mfa_principals where user_id='${peer}';delete from auth.mfa_factors where user_id='${peer}';delete from public.app_users where user_id='${peer}';delete from auth.users where id='${peer}';`);
+});
+
+test('strict cohort: chosen admin needs AAL2; other admin and normal user retain RPC and RLS access',async()=>{
+ await reset();
+ const outside='00000000-0000-0000-0000-000000000081',ordinary='00000000-0000-0000-0000-000000000082';
+ await db.exec(`
+  insert into auth.users(id) values('${outside}'),('${ordinary}') on conflict do nothing;
+  insert into public.app_users(user_id,role,active,data_owner_id,workspace_id,email)
+    values('${outside}','admin',true,'${uid}','${uid}','outside@example.test'),
+          ('${ordinary}','user',true,'${uid}','${uid}','ordinary@example.test');
+  insert into private.mfa_principals(user_id,state,admitted_factor_ids,enforced)
+    values('${uid}','active',array['${fid}'::uuid],true);
+  update private.mfa_configuration
+    set cohort_user_ids=array['${uid}'::uuid],enabled=true;
+ `);
+ await claims('aal1');
+ await expect(db.query('select public.security_mfa_assert(false)')).rejects.toThrow('MFA_REQUIRED');
+ await db.query('select set_config(\'request.jwt.claims\',$1,false)',[JSON.stringify({sub:outside,aal:'aal1',session_id:sid})]);
+ await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();
+ await db.exec('set role authenticated');
+ expect((await db.query('select id from public.items')).rows.length).toBeGreaterThan(0);
+ await db.exec('reset role');
+ await db.query('select set_config(\'request.jwt.claims\',$1,false)',[JSON.stringify({sub:ordinary,aal:'aal1',session_id:sid})]);
+ await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();
+ await db.exec('set role authenticated');
+ expect((await db.query('select id from public.items')).rows.length).toBeGreaterThan(0);
+ await db.exec('reset role');
+ await db.exec(`delete from public.app_users where user_id in ('${outside}','${ordinary}'); delete from auth.users where id in ('${outside}','${ordinary}');`);
+ await claims();
+});
+
+test('pilot cohort: historical pending principal does not block an out-of-cohort admin',async()=>{
+ await reset();
+ const outside='00000000-0000-0000-0000-000000000081';
+ await db.exec(`insert into auth.users(id) values('${outside}') on conflict do nothing;
+  insert into public.app_users(user_id,role,active,data_owner_id,workspace_id,email)
+    values('${outside}','admin',true,'${uid}','${uid}','outside@example.test');
+  insert into private.mfa_principals(user_id,state,enforced)
+    values('${outside}','bootstrap_pending',true);
+  update private.mfa_configuration
+    set cohort_user_ids=array['${uid}'::uuid],enabled=true;`);
+ await db.query('select set_config(\'request.jwt.claims\',$1,false)',[JSON.stringify({sub:outside,aal:'aal1',session_id:sid})]);
+ await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();
+ expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('ready');
+ await db.exec(`delete from private.mfa_principals where user_id='${outside}';delete from public.app_users where user_id='${outside}';delete from auth.users where id='${outside}';`);
+ await claims();
+});
+
+test('cohort-aware Platform bridge keeps other admins delegated, blocks pilot operator and target',async()=>{
+ await reset();
+ const outside='00000000-0000-0000-0000-000000000081',ordinary='00000000-0000-0000-0000-000000000082';
+ await db.exec(`insert into auth.users(id) values('${outside}'),('${ordinary}') on conflict do nothing;
+  insert into public.app_users(user_id,role,active,data_owner_id,workspace_id,email)
+    values('${outside}','admin',true,'${uid}','${uid}','outside@example.test'),
+          ('${ordinary}','user',true,'${uid}','${uid}','ordinary@example.test');
+  update private.mfa_configuration set cohort_user_ids=array['${uid}'::uuid],enabled=true;`);
+ const allowed=async(action:string,actor:string,target:string|null=null,workspace=uid)=>
+   (await db.query<{allowed:boolean}>('select public.security_mfa_bridge_allowed($1,$2,$3::uuid,$4::uuid) allowed',[action,actor,target,workspace])).rows[0].allowed;
+ expect(await allowed('workspace_detail','outside@example.test',null)).toBe(true);
+ expect(await allowed('update_workspace_user','outside@example.test',outside)).toBe(true);
+ expect(await allowed('update_workspace_user','outside@example.test',ordinary)).toBe(true);
+ expect(await allowed('update_workspace_user','pilot@example.test',outside)).toBe(false);
+ expect(await allowed('update_workspace_user','outside@example.test',uid)).toBe(false);
+ expect(await allowed('update_workspace_user','outside@example.test',null)).toBe(false);
+ expect(await allowed('delete_workspace_full','outside@example.test',null)).toBe(false);
+ expect(await allowed('apply_plan_snapshot','',null)).toBe(true);
+ expect((await db.query<{allowed:boolean}>('select public.security_mfa_bridge_allowed() allowed')).rows[0].allowed).toBe(false);
+ await db.exec('set role authenticated');
+ await expect(db.query("select public.security_mfa_bridge_allowed('workspace_detail','outside@example.test',null,null)")).rejects.toThrow(/permission denied/);
+ await db.exec('reset role');
+ await db.exec(`delete from public.app_users where user_id in ('${outside}','${ordinary}');delete from auth.users where id in ('${outside}','${ordinary}');`);
+ await claims();
+});
+
+test('cohort scope deactivates cleanly without MFA prompts for unaffected admins',async()=>{
+ await reset();
+ await db.exec(`update private.mfa_configuration set enabled=false,cohort_user_ids=array['${uid}'::uuid]`);
+ await claims('aal1');
+ await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();
 });

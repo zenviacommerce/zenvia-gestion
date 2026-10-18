@@ -109,6 +109,53 @@ gate('Direct forced MFA RPC denies fresh AAL1',async()=>{
  const result=await c.rpc('security_mfa_oauth_start_context');
  assert.ok(result.error&&String(result.error.message).includes('MFA_'),'Direct MFA RPC did not enforce aal2');
 });
+gate('Self-service initial enrollment, second TOTP, out-of-cohort challenge and recovery denial',async()=>{
+ const voluntary=await addAdmin(primary.id,false);
+ await login(voluntary);
+ let status=must(await voluntary.c.rpc('security_mfa_status'),'unregistered status');
+ assert.equal(status.state,'ready');
+ assert.deepEqual(status.factor_ids,[]);
+ must(await voluntary.c.rpc('security_mfa_begin_self_enrollment'),'voluntary begin');
+ status=must(await voluntary.c.rpc('security_mfa_status'),'first enrollment status');
+ assert.equal(status.state,'enrollment_required');
+ await registerTotp(voluntary,'CI-voluntary-primary');
+ let denied=await voluntary.c.rpc('security_mfa_begin_self_enrollment');
+ assert.ok(denied.error,'Self-enrollment must be rejected after verified factor');
+ const factorOne=voluntary.factor,secretOne=voluntary.secret;
+ // A newly signed-in session starts at AAL1 despite MFA disabled.
+ await login(voluntary);
+ const assurance=must(await voluntary.c.auth.mfa.getAuthenticatorAssuranceLevel(),'post-login assurance');
+ assert.equal(assurance.currentLevel,'aal1');
+ status=must(await voluntary.c.rpc('security_mfa_status'),'out-of-cohort MFA status');
+ assert.equal(status.state,'challenge_required');
+ assert.ok(status.factor_ids.includes(factorOne));
+ const challenge=must(await voluntary.c.auth.mfa.challenge({factorId:factorOne}),'voluntary login challenge');
+ must(await voluntary.c.auth.mfa.verify({factorId:factorOne,challengeId:challenge.id,code:totpCode(secretOne)}),'voluntary login verify');
+ status=must(await voluntary.c.rpc('security_mfa_status'),'post challenge');
+ assert.equal(status.state,'ready');
+ must(await voluntary.c.rpc('security_mfa_begin_factor_add'),'begin second factor');
+ const second=must(await voluntary.c.auth.mfa.enroll({factorType:'totp',friendlyName:'CI-voluntary-secondary'}),'second enroll');
+ must(await voluntary.c.rpc('security_mfa_prepare_enrollment',{p_factor_id:second.id}),'second prepare');
+ const c2=must(await voluntary.c.auth.mfa.challenge({factorId:second.id}),'second challenge');
+ must(await voluntary.c.auth.mfa.verify({factorId:second.id,challengeId:c2.id,code:totpCode(second.totp.secret)}),'second verification');
+ must(await voluntary.c.rpc('security_mfa_complete_enrollment',{p_factor_id:second.id}),'second admit');
+ status=must(await voluntary.c.rpc('security_mfa_status'),'two admitted factors');
+ assert.equal(status.state,'ready');
+ assert.equal(status.factor_ids.length,2);
+ denied=await voluntary.c.rpc('security_mfa_begin_self_enrollment');
+ assert.ok(denied.error,'Self-enrollment must not bypass existing factors');
+ sql(`update private.mfa_principals set state='recovery_locked' where user_id='${voluntary.id}';`);
+ denied=await voluntary.c.rpc('security_mfa_begin_self_enrollment');
+ assert.ok(denied.error,'Recovery-locked user cannot self-enroll');
+ // Do not let this disposable account influence later recovery-quorum tests.
+ sql(`update public.app_users set active=false where user_id='${voluntary.id}';`);
+ const noFactor=await addAdmin(primary.id,false);
+ await login(noFactor);
+ status=must(await noFactor.c.rpc('security_mfa_status'),'no factor outside cohort');
+ assert.equal(status.state,'ready');
+ assert.deepEqual(status.factor_ids,[]);
+ sql(`update public.app_users set active=false where user_id='${noFactor.id}';`);
+});
 gate('Two-admin recovery needs a different AAL2 approver',async()=>{
  secondary=await addAdmin(primary.id,false);
  const first='peer-first-'+suffix,second='peer-second-'+suffix;

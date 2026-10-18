@@ -202,6 +202,14 @@ gate('Real GoTrue pilot cohort isolates RPC, Edge and trusted Platform bridge',a
   assert.equal(external.status,200,'Noncohort Platform operator must retain delegation');
   const impersonated=await bridge('platform-external-operator',primary.email);
   assert.equal(impersonated.status,403,'Pilot email must be denied even with external actor ID');
+  // Real Platform billing cron has non-UUID actor ID. The service-only SQL
+  // path must preserve its one permitted machine action when a human pilot runs.
+  sql(`DO $check$ BEGIN
+    IF NOT public.security_mfa_bridge_allowed('system:plan-sync','platform@zenviacommerce.com','apply_plan_snapshot')
+       THEN RAISE EXCEPTION 'Machine plan sync blocked by human pilot'; END IF;
+    IF public.security_mfa_bridge_allowed('system:plan-sync','platform@zenviacommerce.com','list_workspaces')
+       THEN RAISE EXCEPTION 'Machine actor allowed human bridge action'; END IF;
+  END $check$;`);
   const missing=await bridge('platform-external-operator','');
   assert.equal(missing.status,403,'Missing Platform actor email must never bypass MFA');
  }finally{

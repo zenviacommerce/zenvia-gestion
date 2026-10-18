@@ -287,3 +287,7 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Before migration, production `private.mfa_configuration` checked `enabled=false`, `cohort_user_ids=NULL`; migration history currently has no voluntary MFA migration and most recent MFA migration `20261018170000_mfa_strict_pilot_cohort`.
 - Production exact pre-change definitions + ACL snapshot stored on safety branch at `supabase/rollback/snapshots/mfa-pre-voluntary-sql-20261018.json` (commit b4792f98). Guarded rollback SQL stored `supabase/rollback/mfa-voluntary-sql-rollback-20261018.sql` (commit 9ca04840), refuses if any self-enrollment pending. No session, factor, Edge or frontend mutation performed by preflight.
 - Next authorized operation is SQL-only migration. STOP and inspect errors if it fails; no frontend deploy.
+
+### PR231 Phase SQL / step 1 — migration applied, backend verification pending
+- Supabase project `sjkxxbedkkmgmqnvaqjh`: `apply_migration(name='mfa_voluntary_first_factor')` returned `{success:true}` using the EXACT committed branch SQL file `20261018233000_mfa_voluntary_first_factor.sql` from green-CI candidate. No frontend, Edge, Auth settings or cohort activation changes made.
+- Prior production function + ACL snapshot and guarded rollback SQL preserved on `safety/mfa-production-snapshot-20261018`. Need verify Supabase-recorded migration version and reconcile filename if different; backend verifications pending. DO NOT claim full release acceptance yet.

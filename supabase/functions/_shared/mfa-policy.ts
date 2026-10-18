@@ -11,9 +11,25 @@ export async function assertMfaWithClient(
   if(error)throw new Error(error.message||'MFA_UNAVAILABLE');
 }
 
-/** Shared bridge secrets do not prove a human's MFA. Disable delegation while
- * enforcement is enabled until a separately verified delegation protocol exists. */
-export async function assertBridgeMfaAllowed(admin:{rpc:(name:string)=>PromiseLike<any>}){
-  const {data,error}=await admin.rpc('security_mfa_bridge_allowed');
-  if(error||data!==true)throw new Error('MFA_BRIDGE_DELEGATION_REQUIRED');
+/** Platform bridge is a trusted service-to-service channel. The actor email
+ * comes from authenticated Zenvia Platform; target IDs are rechecked by SQL.
+ * Never use the legacy global flag without per-operation cohort scoping. */
+export type BridgeMfaScope={
+  action:string;
+  actorEmail:string;
+  targetUserId?:string|null;
+  workspaceId?:string|null;
+};
+export async function assertBridgeMfaAllowed(
+ admin:{rpc:(name:string,args?:Record<string,unknown>)=>PromiseLike<any>},
+ scope:BridgeMfaScope,
+){
+ if(!scope?.action)throw new Error('MFA_BRIDGE_DELEGATION_REQUIRED');
+ const {data,error}=await admin.rpc('security_mfa_bridge_allowed',{
+  p_action:scope.action,
+  p_actor_email:scope.actorEmail||'',
+  p_target_user_id:scope.targetUserId||null,
+  p_workspace_id:scope.workspaceId||null,
+ });
+ if(error||data!==true)throw new Error('MFA_BRIDGE_DELEGATION_REQUIRED');
 }

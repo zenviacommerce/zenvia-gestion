@@ -36,7 +36,7 @@ for(const device of [{name:'desktop',width:1440,height:900},{name:'mobile',width
   const actual=view==='rename'?'devices':view;
   await page.goto('about:blank?view='+actual);
   await page.setContent('<html><head><meta name="viewport" content="width=device-width, initial-scale=1"/><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
-  await page.locator('.authGestionLogo img').evaluateAll((nodes,url)=>nodes.forEach(node=>node.src=url),logoData);
+  if(view==='qr'||view==='challenge'){await page.locator('.authGestionLogo img').waitFor();await page.locator('.authGestionLogo img').evaluate((node,url)=>node.src=url,logoData);await page.locator('.authGestionLogo img').evaluate(node=>node.decode());}
   if(view==='rename'){await page.getByRole('button',{name:'Renombrar'}).first().click();}
   if(view==='qr'){await page.getByLabel('Nombre del dispositivo').fill('iPhone de prueba');await page.getByRole('button',{name:'Configurar autenticador'}).click();}
   await page.screenshot({path:'artifacts/mfa-visual/'+view+'-'+device.name+'.png',fullPage:true});

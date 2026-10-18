@@ -311,3 +311,11 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Live production Vercel deployment before merge: ID `dpl_33xcxSq5p7ZFgDMzwyXEqPiYMfUC`, READY, Git commit `f8c06781986563e932dfdf63bcb5b76c2afb156a`, URL `zenvia-gestion-8ib2xgt8b-sergiorojasdiaz-7097.vercel.app`; alias `gestion.zenviacommerce.com`. This is the frontend rollback target; do not rollback SQL as part of a frontend-only rollback.
 - PR #231 head baseline `b6dc7a44bfd14eab81ee68f44ca5aa100acc3abe` before journal, green preceding CI on commit `389994796a7180c44d8e625596f713532705f6c0`: Build, Build check, Auth resilience, actual GoTrue/Vault. Frontend merge explicitly authorized by user, no factor enrollment, SQL flag activation, or cohort change authorized.
 - After frontend merge: confirm actual Vercel production alias targets new merge SHA and READY, then STOP for user's AFTER browser session check. Rollback by restoring the saved production deployment alias if regression.
+
+### PR231 frontend release, awaiting browser AFTER — 2026-10-18
+- User BEFORE: Admin Configuration had no authenticators card; Dashboard, Orders and Amazon normal.
+- Production rollback baseline saved: Vercel `dpl_33xcxSq5p7ZFgDMzwyXEqPiYMfUC` from commit `f8c06781986563e932dfdf63bcb5b76c2afb156a`.
+- PR #231 merged in main at `03c6562fa78d3dd25f43e84a6d48a701ab9b7f81`.
+- Vercel live alias `gestion.zenviacommerce.com` now points to `dpl_DbqGAZbqRt6meuH7NgvELfbUYA3Q`, status READY, same exact merge SHA. No factor enrollment, no flag/cohort modification, no Edge deployment.
+- STOP for Admin browser AFTER: Config must expose "Añadir autenticador", no prompts for unenrolled accounts, Dashboard/Orders/Amazon still working, console clean. On regression revert Vercel to saved deployment.
+- This final journal record is isolated on docs branch to avoid a second unrequested main-triggered Vercel deployment during browser acceptance; merge record into main after acceptance.

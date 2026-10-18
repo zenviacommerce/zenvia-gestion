@@ -145,3 +145,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 
 ### Batch 4 / step 2 — sendcloud-order-tools
 - Deployed v34 (snapshot v33), verify_jwt=true preserved; existing code and order/PII guards retained with MFA guard. No label generation, booking, address validation, shipping-options or carrier calls made. Baseline nonexistent-workspace/order probe #1595 HTTP 401 (authentication enforced before workspace lookup); after-deployment safe probe pending. Exact rollback source edge-20261018/sendcloud-order-tools.json on safety branch.
+
+### Batch 4 / step 3 — shopify-orders
+- Deployed v12 (snapshot v11), verify_jwt=true preserved, original Shopify sync and data-mapping logic retained with MFA guard. No real Shopify sync, order mutation or outbound Shopify API executed. Baseline request #1596 with nonexistent integrationAccountId/workspace returned HTTP 401 because a valid human JWT is required; identical post-deploy probe pending. Exact rollback source safety/mfa-production-snapshot-20261018/edge-20261018/shopify-orders.json.

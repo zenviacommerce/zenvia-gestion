@@ -113,4 +113,22 @@ declare p private.mfa_principals; reason text; verified_factors jsonb;begin
  reason:=private.mfa_error(false);
  return jsonb_build_object('state',case when reason is null then 'ready' when reason in('MFA_REQUIRED','MFA_RECENT_REQUIRED','MFA_FACTOR_REQUIRED') and exists(select 1 from auth.mfa_factors f where f.id=any(p.admitted_factor_ids) and f.user_id=auth.uid() and f.factor_type::text='totp' and f.status::text='verified') then 'challenge_required' else 'recovery_locked' end,'factor_ids',coalesce((select jsonb_agg(f.id) from auth.mfa_factors f where f.id=any(p.admitted_factor_ids) and f.user_id=auth.uid() and f.factor_type::text='totp' and f.status::text='verified'),'[]'::jsonb));
 end $$;
+-- Recognize the reviewed service gate in the existing activation inventory.
+-- All other unmatched public definers remain activation blockers.
+create or replace function private.mfa_activation_findings() returns table(entry text,reason text) language sql stable security definer set search_path='' as $
+ select n.nspname||'.'||c.relname,'exposed table lacks restrictive MFA policies' from pg_class c join pg_namespace n on n.oid=c.relnamespace
+ where c.relkind in('r','p') and (n.nspname='public' or(n.nspname='storage' and c.relname='objects'))
+ and (has_table_privilege('authenticated',c.oid,'SELECT,INSERT,UPDATE,DELETE') or has_table_privilege('anon',c.oid,'SELECT,INSERT,UPDATE,DELETE'))
+ and (not c.relrowsecurity or 4<>(select count(*) from pg_policy p where p.polrelid=c.oid and p.polname in('mfa_select_gate','mfa_insert_gate','mfa_update_gate','mfa_delete_gate') and not p.polpermissive))
+ union all
+ select n.nspname||'.'||c.relname,'exposed view needs explicit invoker/RLS or grant review' from pg_class c join pg_namespace n on n.oid=c.relnamespace
+ where n.nspname='public' and c.relkind in('v','m') and(has_table_privilege('authenticated',c.oid,'SELECT') or has_table_privilege('anon',c.oid,'SELECT'))
+ and(c.relkind='m' or not coalesce(c.reloptions,'{}') @> array['security_invoker=true'])
+ union all
+ select p.oid::regprocedure::text,'unwrapped or changed public definer' from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+ where n.nspname='public' and p.prosecdef and p.prokind='f' and p.prorettype not in('trigger'::regtype,'event_trigger'::regtype)
+ and has_function_privilege('authenticated',p.oid,'execute')
+ and p.proname not in('security_mfa_status','security_mfa_assert','security_mfa_bridge_allowed','security_mfa_prepare_enrollment','security_mfa_complete_enrollment','security_mfa_authorize_enrollment','security_mfa_release_enrollment','security_mfa_approve_recovery','security_mfa_begin_factor_add','security_mfa_forget_factor','security_mfa_begin_self_enrollment')
+ and not exists(select 1 from private.mfa_function_manifest m where m.function_oid=p.oid and m.wrapper_hash=md5(pg_get_functiondef(p.oid)))
+$;
 COMMIT;

@@ -265,3 +265,49 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Re-fetched production bridge v31 and main: all FIVE files identical byte-for-byte. No further Edge or SQL deployment necessary. Source rollback v30 snapshot retained.
 - Pilot runbook added `docs/deploy/mfa-pilot-runbook.md` on main (commit `2ba8d8adfd88f485e802c49a0aef409a2c979c28`): single-user activation TEMPLATE, SQL emergency disable, two authenticator steps and acceptance tests. NO SQL executed; enabled remains last verified false, cohort last verified NULL; fresh SQL verification was blocked by connector safety controls and must be repeated at pilot preflight. No MFA activation, factor enrollment or pilot execution.
 - STOP; user explicitly authorizes pilot separately when available.
+
+### Voluntary enrollment implementation branch — 2026-10-18 / NOT DEPLOYED
+- User explicitly prohibited deployment/MFA activation. Branch `feature/mfa-voluntary-enrollment-20261018` created from main; production remains unchanged. This section describes **unverified candidate code**, not a production release.
+- SQL candidate: `20261018233000_mfa_voluntary_first_factor.sql` adds authenticated, audited first-factor RPC, session-bound `self_enrollment_pending` with expiry, and status-based AAL1 challenge for any admitted verified TOTP even outside cohort/when flag disabled. Existing service-only recovery functions left untouched. Verified-but-unadmitted Auth factors fail closed.
+- Frontend: `MfaDevices` now visible to an admin with zero admitted factors; first factor calls self-service RPC, subsequent devices use existing recent-AAL2 RPC. `MfaScreen`/App/MfaContext need no new branch logic because they already handle `enrollment_required` and `challenge_required` from SQL.
+- Added UI, PGlite SQL and disposable GoTrue integration tests for first/second factor, enabled=false, login challenge outside cohort, AAL2 refresh, unregistered user, and recovery rejection. Tests are **committed but have NOT been run or passed in CI**.
+- Proposed gated release and SQL/frontend rollback instructions: `docs/deploy/mfa-voluntary-enrollment-plan.md`.
+- **STOP before deployment**, including SQL, Edge, frontend and MFA cohort. Existing production flag latest verified disabled/cohort NULL; no attempt made to alter it. CI and security review are mandatory before deployment.
+
+- Additional test-only commit `fe39e6f93a52881ebafdc78643d8aa4d2b9eade0`: mandatory cohort rejection and expired voluntary authorization safely returning to ready/restart. CI still not executed; branch remains pre-deployment. No production write.
+
+### PR #231 CI gate — in progress, no production deployment
+- PR #231 created in draft; first SHA `1e5361a203c6cd4b5167131033d6b252b01f151e` failed disposable integration **before GoTrue startup** during PGlite SQL synthetic regressions (21 failures/17 passes). No true TOTP AAL2 outcome can be claimed from that run.
+- Identified activation guard's inventory needs to account for the exact new approved SECURITY DEFINER `security_mfa_begin_self_enrollment`. Corrected in branch migration commit `59c135088642b75731f4db057b94e869f27399a9` with existing inventory logic otherwise retained. A new set of four CI workflows has been triggered; results pending.
+- First-TOTP post-verify AAL2 and immediate refresh preservation were added to the actual GoTrue integration script in commit `1e5361a203c6cd4b5167131033d6b252b01f151e`. These assertions have NOT executed in live GoTrue yet.
+- STOP SQL deployment unless all CI green, backend preflight snapshot/rollback and exact SQL provenance complete. Production unchanged.
+
+### PR231 Phase SQL preflight — CI GREEN, production not yet modified
+- Four PR workflows green on `05d494be3699a1a268b24584024cfec5f5e0b43b`: build check #39168547968, app build #39168548025, Auth resilience #39168547982, disposable GoTrue/Vault #39168547980. Real integration subtest for first TOTP -> AAL2 and refresh persistence passed; second TOTP also passed.
+- Before migration, production `private.mfa_configuration` checked `enabled=false`, `cohort_user_ids=NULL`; migration history currently has no voluntary MFA migration and most recent MFA migration `20261018170000_mfa_strict_pilot_cohort`.
+- Production exact pre-change definitions + ACL snapshot stored on safety branch at `supabase/rollback/snapshots/mfa-pre-voluntary-sql-20261018.json` (commit b4792f98). Guarded rollback SQL stored `supabase/rollback/mfa-voluntary-sql-rollback-20261018.sql` (commit 9ca04840), refuses if any self-enrollment pending. No session, factor, Edge or frontend mutation performed by preflight.
+- Next authorized operation is SQL-only migration. STOP and inspect errors if it fails; no frontend deploy.
+
+### PR231 Phase SQL / step 1 — migration applied, backend verification pending
+- Supabase project `sjkxxbedkkmgmqnvaqjh`: `apply_migration(name='mfa_voluntary_first_factor')` returned `{success:true}` using the EXACT committed branch SQL file `20261018233000_mfa_voluntary_first_factor.sql` from green-CI candidate. No frontend, Edge, Auth settings or cohort activation changes made.
+- Prior production function + ACL snapshot and guarded rollback SQL preserved on `safety/mfa-production-snapshot-20261018`. Need verify Supabase-recorded migration version and reconcile filename if different; backend verifications pending. DO NOT claim full release acceptance yet.
+
+### PR231 SQL PHASE CLOSED — 2026-10-18 21:41 UTC — STOP
+- Applied only SQL migration `mfa_voluntary_first_factor` via Supabase migration API; successful `{success:true}`. Supabase registry assigned version `20261018214155`; renamed branch migration file to **exactly** `supabase/migrations/20261018214155_mfa_voluntary_first_factor.sql` (unchanged SQL contents). Updated test and plan paths; branch PR remains DRAFT and UNMERGED. Re-run CI after path adjustment is needed before frontend phase.
+- Before: `private.mfa_configuration.enabled=false`, `cohort_user_ids=NULL`. After: same values confirmed by SQL. Zero `self_enrollment_pending` principals observed immediately after migration.
+- Backend synthetic authenticated AAL1 checks inside explicit `BEGIN...ROLLBACK`: real active admins and ordinary users with no verified factors returned `security_mfa_status().state='ready'`; assertion required at least one of each role and passed. No user session, factor or data modified.
+- ACL check: `authenticated` may execute `security_mfa_begin_self_enrollment()`, `anon` may not. 10 active cron jobs; no Auth 5xx appeared in the inspected auth_logs filter, but this query did not prove full login volume. No Edge/frontend/Vercel deployment.
+- Snapshots: `safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/mfa-pre-voluntary-sql-20261018.json` (four exact prior SQL definitions and ACLs), rollback SQL `safety/mfa-production-snapshot-20261018/supabase/rollback/mfa-voluntary-sql-rollback-20261018.sql`. Rollback refuses an active pending voluntary enrollment. No rollback executed: checks passed.
+- CI precedent: build, build-check, Auth tests, disposable GoTrue/Vault all green at code SHA `05d494be` prior to filename-only reconciliation (MFA integration run #39168547980, successful first-TOTP AAL2 + refresh assertions). Filename reconciliation committed after deployment; any new workflow failure must be resolved before next phase.
+- STOP. Frontend and pilot are NOT authorized in this turn; user must do browser BEFORE and AFTER checks in separately agreed Phase frontend. MFA pilot not activated.
+
+### Phase SQL final CI reconciliation — green and stopped
+- After version-only migration filename reconciliation, all four PR checks also passed on commit `389994796a7180c44d8e625596f713532705f6c0`: Build check #39169097884, Build Gestión #39169097892, Auth resilience #39169097827 and real disposable GoTrue/Vault integration #39169097826. No code/SQL content changed in that reconciliation.
+- Exact Supabase registry `20261018214155` matches renamed branch migration file. Re-checked backend: `enabled=false`, `cohort_user_ids=NULL`, `cron.job` 10 active, authenticated-only self-enrollment RPC. Synthetic AAL1 admin and ordinary user without factors both pass `security_mfa_status` within transaction and rollback.
+- User-facing frontend remains unchanged; PR #231 is still DRAFT and UNMERGED; no TOTP factor enrollment in production. STOP per requested SQL-only release.
+
+### PR231 frontend deployment preflight — 2026-10-18
+- User BEFORE browser baseline: Administrator session; Configuración sections General, Plan y facturación, Facturación, Gastos e importación, Pedidos, Envíos, Productos, Clientes, Proveedores, Integraciones, Alertas y automatizaciones, Mis preferencias, Mantenimiento; security authenticators card absent. Resumen, Pedidos, Amazon working.
+- Live production Vercel deployment before merge: ID `dpl_33xcxSq5p7ZFgDMzwyXEqPiYMfUC`, READY, Git commit `f8c06781986563e932dfdf63bcb5b76c2afb156a`, URL `zenvia-gestion-8ib2xgt8b-sergiorojasdiaz-7097.vercel.app`; alias `gestion.zenviacommerce.com`. This is the frontend rollback target; do not rollback SQL as part of a frontend-only rollback.
+- PR #231 head baseline `b6dc7a44bfd14eab81ee68f44ca5aa100acc3abe` before journal, green preceding CI on commit `389994796a7180c44d8e625596f713532705f6c0`: Build, Build check, Auth resilience, actual GoTrue/Vault. Frontend merge explicitly authorized by user, no factor enrollment, SQL flag activation, or cohort change authorized.
+- After frontend merge: confirm actual Vercel production alias targets new merge SHA and READY, then STOP for user's AFTER browser session check. Rollback by restoring the saved production deployment alias if regression.

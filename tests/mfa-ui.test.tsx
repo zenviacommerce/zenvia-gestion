@@ -22,3 +22,24 @@ it('an older ready response cannot unlock a newer recovery-locked session check'
 it('device removal needs explicit confirmation, retires server admission before Auth and refreshes',async()=>{sdk.rpc.mockImplementation((name:string)=>Promise.resolve({data:name==='security_mfa_status'?{state:'ready',factor_ids:['first','backup']}:null,error:null}));render(<MfaProvider><MfaDevices/></MfaProvider>);fireEvent.click(await screen.findByRole('button',{name:'Quitar dispositivo 1'}));expect(sdk.unenroll).not.toHaveBeenCalled();fireEvent.click(screen.getByRole('button',{name:'Confirmar retirada'}));await waitFor(()=>expect(sdk.refreshSession).toHaveBeenCalledTimes(1));expect(sdk.rpc).toHaveBeenCalledWith('security_mfa_forget_factor',{p_factor_id:'first'});expect(sdk.unenroll).toHaveBeenCalledWith({factorId:'first'});expect(sdk.rpc.mock.invocationCallOrder.find((_,i)=>sdk.rpc.mock.calls[i][0]==='security_mfa_forget_factor')).toBeLessThan(sdk.unenroll.mock.invocationCallOrder[0]);});
 it('device manager never offers removal of the last admitted factor',async()=>{render(<MfaProvider><MfaDevices/></MfaProvider>);expect(await screen.findByText(/Dispositivos admitidos: 1/)).toBeTruthy();expect(screen.queryByRole('button',{name:/Quitar dispositivo/})).toBeNull();});
 it('a hung MFA status read times out without signing out or unlocking',async()=>{vi.useFakeTimers();sdk.rpc.mockImplementation(()=>new Promise(()=>{}));try{render(<MfaProvider><Probe/></MfaProvider>);await act(async()=>{await Promise.resolve()});await act(async()=>{await vi.advanceTimersByTimeAsync(6001)});expect(screen.getByText('Seguridad temporalmente no disponible')).toBeTruthy();expect(screen.queryByText('Protected content')).toBeNull();expect(sdk.signOut).not.toHaveBeenCalled();}finally{vi.useRealTimers()}});
+
+it('shows voluntary first authenticator to an admin with zero admitted devices and requests a server-authorized start',async()=>{
+ sdk.rpc.mockImplementation((name:string)=>Promise.resolve({data:name==='security_mfa_status'?{state:'ready',factor_ids:[]}:null,error:null}));
+ render(<MfaProvider><MfaDevices/></MfaProvider>);
+ expect(await screen.findByText('Autenticadores de seguridad')).toBeTruthy();
+ fireEvent.click(screen.getByRole('button',{name:'Añadir autenticador'}));
+ await waitFor(()=>expect(sdk.rpc).toHaveBeenCalledWith('security_mfa_begin_self_enrollment'));
+ expect(sdk.rpc).not.toHaveBeenCalledWith('security_mfa_begin_factor_add');
+});
+it('second-factor enrollment reuses the protected add-factor server RPC',async()=>{
+ sdk.rpc.mockImplementation((name:string)=>Promise.resolve({data:name==='security_mfa_status'?{state:'ready',factor_ids:['verified-1']}:null,error:null}));
+ render(<MfaProvider><MfaDevices/></MfaProvider>);
+ fireEvent.click(await screen.findByRole('button',{name:'Añadir otro autenticador'}));
+ await waitFor(()=>expect(sdk.rpc).toHaveBeenCalledWith('security_mfa_begin_factor_add'));
+});
+it('voluntary second-factor management does not grant a recovery-locked user self service',async()=>{
+ sdk.rpc.mockResolvedValue({data:{state:'recovery_locked',factor_ids:[]},error:null});
+ render(<MfaProvider><><MfaDevices/><Probe/></></MfaProvider>);
+ expect(await screen.findByText('Recuperación protegida')).toBeTruthy();
+ expect(screen.queryByRole('button',{name:'Añadir autenticador'})).toBeNull();
+});

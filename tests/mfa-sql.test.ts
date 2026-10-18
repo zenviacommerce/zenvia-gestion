@@ -39,11 +39,12 @@ beforeAll(async()=>{
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016191517_admin_mfa_security.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016194211_admin_mfa_oauth_actor_binding.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261017192500_admin_mfa_adaptive_recovery.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261018214155_mfa_voluntary_first_factor.sql',import.meta.url),'utf8'));
 });
 afterAll(async()=>{await db?.close()});
 async function claims(aal='aal2',age=0){await db.query(`select set_config('request.jwt.claims',$1,false)`,[JSON.stringify({sub:uid,session_id:sid,aal,iat:Math.floor(Date.now()/1000),amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)-age}]})]);}
 async function enforce(){await db.exec(`update private.mfa_configuration set enabled=true; insert into private.mfa_principals(user_id,state,admitted_factor_ids) values('${uid}','active',array['${fid}'::uuid]) on conflict(user_id) do update set state='active',admitted_factor_ids=excluded.admitted_factor_ids,not_before='epoch';`)}
-async function reset(){await db.exec(`reset role;update public.app_users set role='admin',active=true;update public.workspaces set status='active';delete from private.mfa_principals;update private.mfa_configuration set enabled=false,cohort_user_ids=null;update auth.mfa_factors set status='verified';update auth.mfa_amr_claims set updated_at=now();update auth.sessions set factor_id='${fid}',aal='aal2',not_after=null;`);await claims();}
+async function reset(){await db.exec(`reset role;update public.app_users set role='admin',active=true;update public.workspaces set status='active';delete from private.mfa_principals;update private.mfa_configuration set enabled=false,cohort_user_ids=null;update auth.mfa_factors set status='verified';update auth.mfa_amr_claims set updated_at=now();insert into auth.sessions(id,user_id,factor_id,aal,not_after) values('${sid}','${uid}','${fid}','aal2',null) on conflict(id) do update set factor_id=excluded.factor_id,aal=excluded.aal,not_after=null;insert into auth.mfa_factors(id,user_id,factor_type,status) values('${fid}','${uid}','totp','verified') on conflict(id) do update set status='verified';`);await claims();}
 test('disabled feature preserves existing access',async()=>{await reset();expect((await db.query('select public.configuration_test_mutation() result')).rows[0]).toEqual({result:2});});
 test('enabled admin aal1 is denied before definer SQL or PLpgSQL effects',async()=>{await reset();await enforce();await claims('aal1');for(const name of ['configuration_test_mutation','sensitive_sql','sensitive_table'])await expect(db.query(`select * from public.${name}()`)).rejects.toThrow('MFA_REQUIRED');});
 test('verified admitted factor and current session authorize existing permissions',async()=>{await reset();await enforce();await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();});
@@ -134,4 +135,62 @@ test('adaptive recovery: admitted peer requires a real MFA-bound approval, not t
  await db.query(`select public.security_mfa_release_enrollment('${uid}','second-ticket-456','${next}','${peer}')`);
  expect((await db.query<{state:string}>(`select state from private.mfa_principals where user_id='${uid}'`)).rows[0].state).toBe('re_enrollment_pending');
  await db.exec(`delete from private.mfa_recovery_peer_approvals where target_user_id='${uid}'; delete from auth.mfa_amr_claims where session_id='${ps}';delete from auth.sessions where user_id='${peer}'; delete from private.mfa_principals where user_id='${peer}';delete from auth.mfa_factors where user_id='${peer}';delete from public.app_users where user_id='${peer}';delete from auth.users where id='${peer}';`);
+});
+
+test('voluntary first factor remains optional but requires verified session and audit',async()=>{
+ await reset();
+ await db.exec(`update auth.mfa_factors set status='unverified'; update auth.sessions set aal='aal1',factor_id=null;`);
+ await claims('aal1');
+ await db.query('select public.security_mfa_begin_self_enrollment()');
+ const p=(await db.query<any>(`select state,authorization_reference from private.mfa_principals where user_id='${uid}'`)).rows[0];
+ expect(p.state).toBe('self_enrollment_pending');
+ expect(p.authorization_reference).toMatch(/^self-enrollment:/);
+ expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('enrollment_required');
+ expect((await db.query<any>(`select event from private.mfa_audit where user_id='${uid}' order by id desc limit 1`)).rows[0].event).toBe('self_enrollment_started');
+ await expect(db.query('select public.security_mfa_begin_self_enrollment()')).rejects.toThrow('MFA_SELF_ENROLLMENT_DENIED');
+ await db.query(`select public.security_mfa_prepare_enrollment('${fid}')`);
+ await db.exec(`update auth.mfa_factors set status='verified';update auth.sessions set aal='aal2',factor_id='${fid}';insert into auth.mfa_challenges values('${sid}','${fid}',now(),now());`);
+ await claims('aal2');
+ await db.query(`select public.security_mfa_complete_enrollment('${fid}')`);
+ expect((await db.query<any>(`select state,cardinality(admitted_factor_ids) factor_count from private.mfa_principals where user_id='${uid}'`)).rows[0]).toMatchObject({state:'active',factor_count:1});
+ await expect(db.query('select public.security_mfa_begin_self_enrollment()')).rejects.toThrow('MFA_SELF_ENROLLMENT_FACTOR_EXISTS');
+});
+test('admitted verified factor challenges AAL1 even with MFA disabled and cohort null',async()=>{
+ await reset();
+ await db.exec(`insert into private.mfa_principals(user_id,state,admitted_factor_ids) values('${uid}','active',array['${fid}'::uuid])`);
+ await claims('aal1');
+ expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('challenge_required');
+ await claims('aal2');
+ expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('ready');
+});
+test('no factors stay ready; verified but unadmitted factors require protected recovery',async()=>{
+ await reset();
+ await db.exec(`update auth.mfa_factors set status='unverified'; update auth.sessions set aal='aal1',factor_id=null`);
+ await claims('aal1');
+ expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('ready');
+ await db.exec(`update auth.mfa_factors set status='verified'`);
+ expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('recovery_locked');
+});
+test('recovery_locked denies voluntary first factor even without verified factors',async()=>{
+ await reset();
+ await db.exec(`update auth.mfa_factors set status='unverified';insert into private.mfa_principals(user_id,state) values('${uid}','recovery_locked')`);
+ await claims('aal1');
+ await expect(db.query('select public.security_mfa_begin_self_enrollment()')).rejects.toThrow('MFA_SELF_ENROLLMENT_DENIED');
+});
+
+test('mandatory cohort denies voluntary first-factor enrollment',async()=>{
+ await reset();
+ await db.exec(`update auth.mfa_factors set status='unverified'; update private.mfa_configuration set enabled=true,cohort_user_ids=array['${uid}'::uuid]`);
+ await claims('aal1');
+ await expect(db.query('select public.security_mfa_begin_self_enrollment()')).rejects.toThrow('MFA_SELF_ENROLLMENT_ALREADY_REQUIRED');
+});
+test('expired optional enrollment returns to ready and can be restarted without a recovery bypass',async()=>{
+ await reset();
+ await db.exec(`update auth.mfa_factors set status='unverified';update auth.sessions set aal='aal1',factor_id=null`);
+ await claims('aal1');
+ await db.query('select public.security_mfa_begin_self_enrollment()');
+ await db.exec(`update private.mfa_principals set authorization_expires_at=now()-interval '1 minute' where user_id='${uid}'`);
+ expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('ready');
+ await db.query('select public.security_mfa_begin_self_enrollment()');
+ expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('enrollment_required');
 });

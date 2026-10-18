@@ -55,3 +55,10 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Amazon 9 new sync jobs were enqueued at 10:25:04 UTC, four seconds **after** the 10:25 worker trigger. At 10:25:44 they remained `queued`, none held a lease. This is NOT evidence the 10:25 cycle failed or a verified drained queue; the next natural worker cycle is due at 10:30 UTC. Follow-up on these nine jobs is necessary, and the next phase must not begin if they become stuck. Do not falsely report queue empty.
 - SQL registry version `20261018121500` is aligned with repository filename.
 - Final Phase A scope: **SQL only**; Edge and frontend untouched. Stop before Phase B. No rollback because all AAL1/RPC/Auth 5xx/cron checks passed and the new queue batch has not yet missed its first eligible worker cycle.
+
+## Pre-Phase B checks — 2026-10-18 10:31 UTC
+- Amazon cycle job 8 at 10:30 UTC succeeded. Exactly nine Amazon jobs created at 10:25:04 reached `success`, one attempt each, and all released leases by 10:30:20 UTC. Zero failed among that cohort.
+- All 300 MFA RLS policies use `(SELECT private.mfa_allowed())` initPlan; `mfa_allowed`, `mfa_error`, `mfa_required` are STABLE and have explicit `search_path=''`.
+- Pre-optimization AAL1 EXPLAIN ANALYZE average milliseconds (three warmed runs): fulfillment_orders 4.601, products 0.641, sales_invoices 0.667; dropping only MFA policies inside rolled-back transaction: 0.415, 0.401, 0.434.
+- Fast-path SQL proposed `20261018123000_admin_mfa_rls_fast_path.sql`: when disabled, check only account recovery locks; otherwise retain original `mfa_error(false)` behavior. Tested inside BEGIN/ROLLBACK: average milliseconds 1.090, 0.642, 0.603 (four runs). CI was started; **do not deploy SQL optimization or any Edge batch until MFA integration CI passes and optimization is applied/verified**.
+- `pg_stat_statements` historical query means mix pre/post Phase A and cannot prove an isolated before/after; EXPLAIN transaction tests are the controlled comparison.

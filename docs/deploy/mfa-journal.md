@@ -265,3 +265,11 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Re-fetched production bridge v31 and main: all FIVE files identical byte-for-byte. No further Edge or SQL deployment necessary. Source rollback v30 snapshot retained.
 - Pilot runbook added `docs/deploy/mfa-pilot-runbook.md` on main (commit `2ba8d8adfd88f485e802c49a0aef409a2c979c28`): single-user activation TEMPLATE, SQL emergency disable, two authenticator steps and acceptance tests. NO SQL executed; enabled remains last verified false, cohort last verified NULL; fresh SQL verification was blocked by connector safety controls and must be repeated at pilot preflight. No MFA activation, factor enrollment or pilot execution.
 - STOP; user explicitly authorizes pilot separately when available.
+
+### Voluntary enrollment implementation branch — 2026-10-18 / NOT DEPLOYED
+- User explicitly prohibited deployment/MFA activation. Branch `feature/mfa-voluntary-enrollment-20261018` created from main; production remains unchanged. This section describes **unverified candidate code**, not a production release.
+- SQL candidate: `20261018233000_mfa_voluntary_first_factor.sql` adds authenticated, audited first-factor RPC, session-bound `self_enrollment_pending` with expiry, and status-based AAL1 challenge for any admitted verified TOTP even outside cohort/when flag disabled. Existing service-only recovery functions left untouched. Verified-but-unadmitted Auth factors fail closed.
+- Frontend: `MfaDevices` now visible to an admin with zero admitted factors; first factor calls self-service RPC, subsequent devices use existing recent-AAL2 RPC. `MfaScreen`/App/MfaContext need no new branch logic because they already handle `enrollment_required` and `challenge_required` from SQL.
+- Added UI, PGlite SQL and disposable GoTrue integration tests for first/second factor, enabled=false, login challenge outside cohort, AAL2 refresh, unregistered user, and recovery rejection. Tests are **committed but have NOT been run or passed in CI**.
+- Proposed gated release and SQL/frontend rollback instructions: `docs/deploy/mfa-voluntary-enrollment-plan.md`.
+- **STOP before deployment**, including SQL, Edge, frontend and MFA cohort. Existing production flag latest verified disabled/cohort NULL; no attempt made to alter it. CI and security review are mandatory before deployment.

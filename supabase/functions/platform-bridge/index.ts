@@ -17,6 +17,7 @@ function getAdminKey(){
 function fail(message:string,status=400){return new Response(JSON.stringify({error:message}),{status,headers:jsonHeaders});}
 function ok(data:unknown){return new Response(JSON.stringify(data),{headers:jsonHeaders});}
 function asText(value:unknown,max=200){return typeof value==='string'?value.trim().slice(0,max):'';}
+function uuidOrNull(value:string){return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)?value:null;}
 function slugify(value:string){
   const base=value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
     .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,48);
@@ -111,7 +112,6 @@ Deno.serve(async(req:Request)=>{
     if(bridgeError)throw bridgeError;
     if(!bridgeSecret?.active||await sha256(supplied)!==bridgeSecret.token_sha256)return fail('Puente no autorizado.',401);
 
-    await assertBridgeMfaAllowed(admin);
     const body=await req.json().catch(()=>({}));
     const action=asText(body?.action,80);
     const actor={
@@ -119,6 +119,15 @@ Deno.serve(async(req:Request)=>{
       email:asText(body?.actor?.email,254),
       name:asText(body?.actor?.name,150)||asText(body?.actor?.email,254)||'ZENVIA Platform',
     };
+
+    // Authorize each delegated operation against its real Platform operator and
+    // user target; the independent x-platform-token was verified above.
+    await assertBridgeMfaAllowed(admin,{
+      action,
+      actorEmail:actor.email,
+      targetUserId:uuidOrNull(asText(body?.userId,80)),
+      workspaceId:uuidOrNull(asText(body?.workspaceId,80)),
+    });
 
     if(action==='resolve_identity'){
       const workspaceId=asText(body?.workspaceId,80);

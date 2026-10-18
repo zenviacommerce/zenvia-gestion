@@ -24,11 +24,27 @@ describe('Edge MFA authority',()=>{
  it('fails closed when the authority request rejects',async()=>{
   await expect(assertMfaWithClient(new Request('https://edge.test',{headers:{authorization:'Bearer token'}}),false,()=>({rpc:async()=>{throw new Error('network unavailable');}}))).rejects.toThrow('network unavailable');
  });
- it('bridge permits only an explicit server decision',async()=>{
+ it('bridge passes trusted Platform actor, action, workspace and target to SQL',async()=>{
+  const scope={action:'update_workspace_user',actorEmail:'outside@example.test',
+   targetUserId:'00000000-0000-0000-0000-000000000081',
+   workspaceId:'00000000-0000-0000-0000-000000000001'};
+  const rpc=vi.fn().mockResolvedValue({data:true,error:null});
+  await expect(assertBridgeMfaAllowed({rpc},scope)).resolves.toBeUndefined();
+  expect(rpc).toHaveBeenCalledWith('security_mfa_bridge_allowed',{
+   p_action:scope.action,p_actor_email:scope.actorEmail,
+   p_target_user_id:scope.targetUserId,p_workspace_id:scope.workspaceId});
   for(const result of [{data:false},{data:null},{data:true,error:{message:'unavailable'}}]){
-   await expect(assertBridgeMfaAllowed({rpc:async()=>result})).rejects.toThrow();
+   await expect(assertBridgeMfaAllowed({rpc:async()=>result},scope)).rejects.toThrow('MFA_BRIDGE_DELEGATION_REQUIRED');
   }
-  await expect(assertBridgeMfaAllowed({rpc:async()=>({data:true,error:null})})).resolves.toBeUndefined();
+  await expect(assertBridgeMfaAllowed({rpc},{...scope,action:''})).rejects.toThrow('MFA_BRIDGE_DELEGATION_REQUIRED');
+ });
+ it('bridge verifies private service token before checking MFA target identity',()=>{
+  const source=readFileSync('supabase/functions/platform-bridge/index.ts','utf8');
+  expect(source.indexOf("sha256(supplied)!==bridgeSecret.token_sha256")).toBeGreaterThan(0);
+  expect(source.indexOf('await assertBridgeMfaAllowed(admin,{')).toBeGreaterThan(
+   source.indexOf("sha256(supplied)!==bridgeSecret.token_sha256"));
+  expect(source).toContain('targetUserId:uuidOrNull(asText(body?.userId,80))');
+  expect(source).toContain('actorEmail:actor.email');
  });
 });
 

@@ -50,6 +50,25 @@ jobs:
           # Wrap it only in this disposable runner; keep repository SQL unchanged.
           { echo 'BEGIN;'; cat supabase/migrations/20261013120500_gmail_stable_message_part_identity.sql; echo 'COMMIT;'; } > "$RUNNER_TEMP/gmail-transaction.sql"
           cp "$RUNNER_TEMP/gmail-transaction.sql" supabase/migrations/20261013120500_gmail_stable_message_part_identity.sql
+          # Existing production table is absent from this repo's historical
+          # migrations. A schema-only fixture is created IN THE RUNNER ONLY.
+          cat > supabase/migrations/20261016194727_mfa_ci_cancellation_dependency.sql <<'SQL'
+          create table if not exists public.order_cancellation_operations(
+            id uuid primary key default gen_random_uuid(),
+            owner_id uuid,
+            order_id uuid,
+            kind text,
+            provider text,
+            reference text,
+            status text,
+            remote_id text,
+            message text,
+            details jsonb,
+            requested_by uuid,
+            created_at timestamptz default now(),
+            updated_at timestamptz default now()
+          );
+          SQL
           supabase start
           supabase db reset --local --yes
       - name: Real GoTrue and Vault smoke; deny unsupported/skipped gates

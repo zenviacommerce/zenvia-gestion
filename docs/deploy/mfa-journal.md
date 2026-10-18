@@ -98,3 +98,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 
 ### Phase B batch 2 / step 2 — customer-billing
 - Deployed v10 (baseline v9), verify_jwt=true. Before safe probe 1579 HTTP 401 `Sesión no válida.`; after safe probe 1584 HTTP 401 with identical body. No billing mutation. Exact rollback snapshot: edge-20261018/customer-billing.json.
+
+### Phase B batch 2 / step 3 — support-notify
+- Deployed v11 (baseline v10), verify_jwt=false preserved, original production support helper with MFA additions. Before safe probe 1580 HTTP 401 `Sesión no válida.`; after probe 1585: see completion entry below. No message sent. Exact rollback snapshot: edge-20261018/support-notify.json.

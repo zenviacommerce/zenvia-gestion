@@ -14,9 +14,9 @@ RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
     SELECT 1 FROM private.mfa_principals p WHERE p.state IN
        ('recovery_locked','re_enrollment_pending','bootstrap_pending'))
   WHEN c.cohort_user_ids IS NULL THEN FALSE
-  WHEN p_action='apply_plan_snapshot' AND p_actor_id='system:plan-sync'
-      AND lower(trim(coalesce(p_actor_email,'')))='platform@zenviacommerce.com'
-    THEN TRUE
+  WHEN p_actor_id='system:plan-sync' THEN
+   p_action='apply_plan_snapshot' AND
+   lower(trim(coalesce(p_actor_email,'')))='platform@zenviacommerce.com'
   WHEN nullif(trim(coalesce(p_actor_id,'')),'') IS NULL
     OR nullif(trim(coalesce(p_actor_email,'')),'') IS NULL THEN FALSE
   ELSE NOT EXISTS(

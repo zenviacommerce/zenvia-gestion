@@ -91,3 +91,7 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - RLS fast-path already deployed and tested: post-deploy four-run EXPLAIN averages: fulfillment_orders 1.567ms, products 0.662ms, sales_invoices 1.051ms; benchmark variability exists. Historic pre-optimization fulfillment_orders average was 4.601ms and without MFA policies in rolled-back transaction was 0.415ms. No per-row MFA invocation in policies.
 - Source backups for each deployed function: `safety/mfa-production-snapshot-20261018`. On failure restore exactly saved files and verify_jwt and record new versions. The three deployments passed safe access probes.
 - **Stop here; next Edge batch requires a separate user turn. No global AAL2 activation.** Before batch 2 confirm new 10:35 Amazon jobs cleared and perform supported authorized functional tests where available.
+
+### Phase B batch 2 / step 1 — app-agent
+- 2026-10-18: installed Edge app-agent v20 (baseline snapshot v19) preserving verify_jwt=true and baseline logic plus MFA guard. Safe unauthenticated probe: before HTTP 401 `Sesión no válida.` (request 1578), after same HTTP 401/body (1581).
+- No real privileged agent operation executed. Rollback source: safety/mfa-production-snapshot-20261018, edge-20261018/app-agent.json. Batch not closed.

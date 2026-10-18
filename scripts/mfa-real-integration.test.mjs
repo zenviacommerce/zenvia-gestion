@@ -184,12 +184,12 @@ gate('Real GoTrue pilot cohort isolates RPC, Edge and trusted Platform bridge',a
 
   const bridge=async(userId)=>fetch(url+'/functions/v1/platform-bridge',{
    method:'POST',
-   headers:{'x-platform-token':bridgeToken,'content-type':'application/json'},
+   headers:{'x-platform-token':bridgeToken,'content-type':'application/json',apikey:anon,authorization:'Bearer '+anon},
    body:JSON.stringify({action:'resolve_identity',workspaceId:'00000000-0000-0000-0000-000000000099',
     email:'nobody@example.test',actor:{id:userId,email:'ci@example.test'}})
   });
   const pilotBridge=await bridge(primary.id);
-  assert.equal(pilotBridge.status,401,'Cohort owner must not delegate without human MFA');
+  assert.equal(pilotBridge.status,403,'Cohort owner must not delegate without human MFA');
   assert.ok((await pilotBridge.text()).includes('MFA_BRIDGE_DELEGATION_REQUIRED'));
   for(const actor of [outside.id,normal.id]){
    const r=await bridge(actor);
@@ -197,7 +197,7 @@ gate('Real GoTrue pilot cohort isolates RPC, Edge and trusted Platform bridge',a
    assert.equal((await r.json()).exists,false);
   }
   const missing=await bridge('00000000-0000-0000-0000-000000000099');
-  assert.equal(missing.status,401,'Unknown Platform actor must never bypass MFA');
+  assert.equal(missing.status,403,'Unknown Platform actor must never bypass MFA');
  }finally{
   sql(`update private.mfa_configuration set enabled=false,cohort_user_ids=null where singleton;
       delete from public.platform_bridge_secrets where secret_id='primary';`);

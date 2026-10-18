@@ -273,3 +273,5 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Added UI, PGlite SQL and disposable GoTrue integration tests for first/second factor, enabled=false, login challenge outside cohort, AAL2 refresh, unregistered user, and recovery rejection. Tests are **committed but have NOT been run or passed in CI**.
 - Proposed gated release and SQL/frontend rollback instructions: `docs/deploy/mfa-voluntary-enrollment-plan.md`.
 - **STOP before deployment**, including SQL, Edge, frontend and MFA cohort. Existing production flag latest verified disabled/cohort NULL; no attempt made to alter it. CI and security review are mandatory before deployment.
+
+- Additional test-only commit `fe39e6f93a52881ebafdc78643d8aa4d2b9eade0`: mandatory cohort rejection and expired voluntary authorization safely returning to ready/restart. CI still not executed; branch remains pre-deployment. No production write.

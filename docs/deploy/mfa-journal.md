@@ -34,3 +34,9 @@ The previous pre-rollback branch commit `bea4b22476bb` passed build, Auth tests,
 
 ## Current action
 Only recorded exact rollback SQL in the repository. A CI workflow change to test forward migration and rollback separately was blocked by tooling; no CI green result or deployment is claimed.
+
+## 2026-10-18 — forward reinstall prepared
+- Created `20261018121500_admin_mfa_reinstall_after_rollback.sql` as one transaction containing the exact three prior MFA installation statements after an absent-schema assertion; final assertion enforces `enabled=false`.
+- Does not modify applied migration history and must be run only once after historical rollback.
+- CI on commit `8d826ef973307725bb12e6c9a38f03ee577fb1b7` started; results pending. No production SQL/Edge/frontend changes in this step.
+- Stop conditions: if any CI fails, do not apply Phase A. If forward migration fails, no Edge/frontend changes.

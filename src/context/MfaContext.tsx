@@ -10,6 +10,10 @@ export function MfaProvider({children}:{children:ReactNode}){
  const [userId,setUserId]=useState<string|null>(null);
  const [version,setVersion]=useState(0);
  const forceChallenge=useRef(false);
+ const statusRef=useRef(status);
+ const checkedUserRef=useRef<string|null>(null);
+ const lastCheckedAt=useRef(0);
+ useEffect(()=>{statusRef.current=status},[status]);
  const recheck=useCallback(()=>{forceChallenge.current=false;setVersion(v=>v+1)},[]);
  const requireRecent=useCallback(()=>{forceChallenge.current=true;setVersion(v=>v+1)},[]);
  useEffect(()=>{
@@ -25,11 +29,14 @@ export function MfaProvider({children}:{children:ReactNode}){
   const clearSensitive=()=>ensureViewCacheScope(getActiveTenant()?.workspace_id,null);
   const check=async()=>{
    const current=++generation;
-   setStatus({state:'checking',factor_ids:[]});
+   if(statusRef.current.state==='checking'||statusRef.current.state==='signed_out'){setStatus({state:'checking',factor_ids:[]});}
    try{
     const {data,error}=await client.auth.getSession();if(error)throw error;
     if(cancelled||current!==generation)return;
-    setUserId(data.session?.user.id||null);
+    const incomingId=data.session?.user.id||null;
+    if(checkedUserRef.current!==null&&checkedUserRef.current!==incomingId){setStatus({state:'checking',factor_ids:[]});clearSensitive();}
+    checkedUserRef.current=incomingId;
+    setUserId(incomingId);
     if(!data.session){clearSensitive();setStatus({state:'signed_out',factor_ids:[]});return;}
     pendingRead?.abort();
     const controller=new AbortController();pendingRead=controller;
@@ -52,12 +59,13 @@ export function MfaProvider({children}:{children:ReactNode}){
     if(next.factor_ids.some(id=>typeof id!=='string'))throw new Error('MFA_UNAVAILABLE');
     const effective=forceChallenge.current&&next.state==='ready'?{...next,state:'challenge_required' as const}:next;
     if(effective.state!=='ready')clearSensitive();
-    setStatus(effective);
-   }catch{if(!cancelled&&current===generation){clearSensitive();setStatus({state:'temporarily_unavailable',factor_ids:[]})}}
+    lastCheckedAt.current=Date.now();
+    setStatus(previous=>JSON.stringify(previous)===JSON.stringify(effective)?previous:effective);
+   }catch{if(!cancelled&&current===generation){if(statusRef.current.state!=='ready'){clearSensitive();setStatus({state:'temporarily_unavailable',factor_ids:[]});}}}
   };
-  const schedule=()=>{generation++;pendingRead?.abort();setStatus({state:'checking',factor_ids:[]});clearTimeout(timer);timer=setTimeout(()=>{void check()},0)};
+  const schedule=(urgent=false)=>{if(cancelled)return;if(!urgent&&statusRef.current.state==='ready'&&Date.now()-lastCheckedAt.current<1500)return;clearTimeout(timer);timer=setTimeout(()=>{if(!cancelled)void check()},urgent?0:150)};
   // Never await SDK methods inside the Auth callback: it can hold the Auth lock.
-  const {data:{subscription}}=client.auth.onAuthStateChange(()=>schedule());
+  const {data:{subscription}}=client.auth.onAuthStateChange((event)=>schedule(event==='SIGNED_OUT'||event==='SIGNED_IN'||event==='USER_UPDATED'));
   const resume=()=>{if(document.visibilityState!=='hidden')schedule()};
   window.addEventListener('focus',resume);document.addEventListener('visibilitychange',resume);
   void check();

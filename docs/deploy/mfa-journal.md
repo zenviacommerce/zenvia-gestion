@@ -133,3 +133,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 
 ### Batch 3 / step 1 — admin-users
 - Deployed production Edge admin-users v27 (baseline v26), `verify_jwt` preserved. Actual user BEFORE check: 5 users, 5 active, 3 admins. User AFTER browser verification pending. Rollback source: safety/mfa-production-snapshot-20261018, edge-20261018/admin-users.json.
+
+### Batch 3 / step 2 — integration-accounts
+- Deployed v43 (baseline v42), original JWT requirements and Vault/Amazon account logic retained, MFA guard added; `verify_jwt=true` preserved. BEFORE: user's admin session sees ZENVIA COMMERCE SL as default connected, two Shopify accounts, Sendcloud, Envia.com and MRW; no Probar conexión. AFTER admin browser verification pending; no credentials or tokens returned by deployment checks. Exact rollback source edge-20261018/integration-accounts.json on safety branch.

@@ -1,4 +1,5 @@
 import {useState} from 'react';
+import {ShieldCheck,Plus,RefreshCw,Smartphone} from 'lucide-react';
 import {useMfaAccess} from '../context/MfaContext';
 import {supabase,getActiveTenant} from '../services/supabase';
 import {ensureViewCacheScope} from '../services/viewCache';
@@ -10,7 +11,7 @@ export function MfaDevices(){
   setBusy(true);setError('');
   try{
    const {error}=await supabase.rpc(access.factor_ids.length ? 'security_mfa_begin_factor_add' : 'security_mfa_begin_self_enrollment');
-   if(error){if(/MFA_(REQUIRED|RECENT_REQUIRED)/.test(error.message)){access.requireRecent();return;}throw error;}
+   if(error){if(/MFA_SESSION_REQUIRED/.test(error.message)){setError('La sesión actual se creó antes de registrar el primer factor. Cierra sesión, vuelve a iniciar sesión y valida el TOTP antes de añadir el segundo.');return;}if(/MFA_(REQUIRED|RECENT_REQUIRED)/.test(error.message)){access.requireRecent();return;}throw error;}
    access.recheck();
   }catch{setError('No se pudo autorizar el nuevo dispositivo. Reintenta después de verificar el autenticador.');}finally{setBusy(false)}
  };
@@ -32,8 +33,8 @@ export function MfaDevices(){
    setRemoving(null);setBusy(false);
   }
  };
- return <section className="settingsSectionCard"><h2>Autenticadores de seguridad</h2><p>Dispositivos admitidos: {access.factor_ids.length}. {access.factor_ids.length?'Añade y prueba un segundo dispositivo antes de depender de la recuperación asistida.':'Puedes configurar tu primer autenticador voluntariamente antes de que MFA sea obligatorio.'}</p><button disabled={busy} onClick={()=>void add()}>{access.factor_ids.length?'Añadir otro autenticador':'Añadir autenticador'}</button><button disabled={busy} onClick={access.requireRecent}>Verificar de nuevo</button>
- {access.factor_ids.length>1&&access.factor_ids.map((id,index)=><button key={id} disabled={busy} onClick={()=>setRemoving(id)}>Quitar dispositivo {index+1}</button>)}
+ return <section className="settingsSectionCard mfaSettings"><div className="settingsSectionHero"><div className="settingsSectionIcon"><ShieldCheck size={22}/></div><div><h2>Autenticadores de seguridad</h2><p>Dispositivos admitidos: {access.factor_ids.length}. {access.factor_ids.length?'Añade y prueba un segundo dispositivo antes de depender de la recuperación asistida.':'Puedes configurar tu primer autenticador voluntariamente antes de que MFA sea obligatorio.'}</p></div></div><div className="mfaSettingsBody"><button className="primary" disabled={busy} onClick={()=>void add()}><Plus size={16}/>{access.factor_ids.length?'Añadir otro autenticador':'Añadir autenticador'}</button><button className="secondary" disabled={busy} onClick={access.requireRecent}><RefreshCw size={16}/>Verificar de nuevo</button>
+ {access.factor_ids.length>1&&access.factor_ids.map((id,index)=><button key={id} disabled={busy} onClick={()=>setRemoving(id)}><Smartphone size={15}/>Quitar dispositivo {index+1}</button>)}
  {removing&&<div role="group" aria-label="Confirmar retirada del autenticador"><p>Dejarás de poder usar este dispositivo. Confirma que puedes acceder al otro autenticador.</p><button disabled={busy} onClick={()=>void remove()}>Confirmar retirada</button><button disabled={busy} onClick={()=>setRemoving(null)}>Cancelar</button></div>}
- {error&&<p role="alert">{error}</p>}</section>;
+ {error&&<div className="mfaError" role="alert">{error}{error.includes('Cierra sesión')&&<button className="secondary" onClick={()=>void supabase.auth.signOut()}>Cerrar sesión y volver a entrar</button>}</div>}</div></section>;
 }

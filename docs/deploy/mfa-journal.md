@@ -185,3 +185,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 
 ### Amazon final batch / amazon-status
 - Deploy amazon-status v20 from baseline v19; verify_jwt=false. Deployed production snapshot's existing code and shared modules plus MFA guard. Baseline auth/internal probe previously captured. Post-deploy safe probe pending. No real shipment confirmation or carrier call. Exact rollback safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/edge-20261018/amazon-status.json.
+
+### Amazon final batch / amazon-sync-manual
+- Deploy amazon-sync-manual v25 from baseline v24; verify_jwt=true. Deployed production snapshot's existing code and shared modules plus MFA guard. Baseline auth/internal probe previously captured. Post-deploy safe probe pending. No real shipment confirmation or carrier call. Exact rollback safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/edge-20261018/amazon-sync-manual.json.

@@ -17,6 +17,7 @@ function getAdminKey(){
 function fail(message:string,status=400){return new Response(JSON.stringify({error:message}),{status,headers:jsonHeaders});}
 function ok(data:unknown){return new Response(JSON.stringify(data),{headers:jsonHeaders});}
 function asText(value:unknown,max=200){return typeof value==='string'?value.trim().slice(0,max):'';}
+function uuidOrNull(value:string){return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value)?value:null;}
 function slugify(value:string){
   const base=value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase()
     .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'').slice(0,48);
@@ -124,8 +125,8 @@ Deno.serve(async(req:Request)=>{
     await assertBridgeMfaAllowed(admin,{
       action,
       actorEmail:actor.email,
-      targetUserId:asText(body?.userId,80)||null,
-      workspaceId:asText(body?.workspaceId,80)||null,
+      targetUserId:uuidOrNull(asText(body?.userId,80)),
+      workspaceId:uuidOrNull(asText(body?.workspaceId,80)),
     });
 
     if(action==='resolve_identity'){

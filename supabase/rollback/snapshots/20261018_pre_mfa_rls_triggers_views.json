@@ -1,0 +1,2458 @@
+{
+  "rls": [
+    {
+      "table": "agent_knowledge_chunks",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "agent_tool_registry",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_accounts",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_finance_components",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_finance_transactions",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_fx_rates",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_inventory_current",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_inventory_daily",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_marketplaces",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_order_items",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_orders",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_product_images",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_product_mappings",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_sync_jobs",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_sync_runs",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_sync_state",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "amazon_worker_leases",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "app_settings",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "app_subscription_state",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "app_users",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "audit_logs",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "automation_rules",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "billing_plans",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "business_settings",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "business_tax_registrations",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "clients",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "company_branding",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "entity_alias_rules",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "expense_categories",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "export_runs",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "fulfillment_orders",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "gmail_imports",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "integration_accounts",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "integration_secrets",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "invoice_lines",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "invoices",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "order_cancellation_operations",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "plan_entitlements",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "platform_admins",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "platform_audit_logs",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "platform_bridge_secrets",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "product_price_history",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "products",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "sales_invoice_lines",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "sales_invoice_released_numbers",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "sales_invoice_series",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "sales_invoices",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "sales_payments",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "sales_receipt_counters",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "sales_receipt_lines",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "sales_receipt_payments",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "sales_receipts",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "shipping_rules",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "shopify_analytics_catalog",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "shopify_analytics_items",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "shopify_analytics_orders",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "shopify_analytics_refund_items",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "shopify_analytics_refunds",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "shopify_analytics_sync_state",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "shopify_product_mappings",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "source_documents",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "supplier_products",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "suppliers",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "support_attachments",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "support_email_events",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "support_messages",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "support_tickets",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "transport_service_mappings",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "transport_tariff_bands",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "transport_tariff_documents",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "transport_tariff_revisions",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "transport_tariff_services",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "user_preferences",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "workspace_subscriptions",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    },
+    {
+      "table": "workspaces",
+      "schema": "public",
+      "relrowsecurity": true,
+      "relforcerowsecurity": false
+    }
+  ],
+  "views": [],
+  "policies": [
+    {
+      "cmd": "SELECT",
+      "name": "amazon_accounts_select",
+      "qual": "((owner_id = private.app_workspace_owner_id()) AND private.app_has_permission('amazon'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_accounts",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_finance_components_select",
+      "qual": "((owner_id = private.app_workspace_owner_id()) AND private.app_has_permission('amazon'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_finance_components",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_finance_transactions_select",
+      "qual": "((owner_id = private.app_workspace_owner_id()) AND private.app_has_permission('amazon'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_finance_transactions",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_inventory_current_select",
+      "qual": "((owner_id = private.app_workspace_owner_id()) AND private.app_has_permission('amazon'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_inventory_current",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_inventory_daily_select",
+      "qual": "((owner_id = private.app_workspace_owner_id()) AND private.app_has_permission('amazon'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_inventory_daily",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_marketplaces_select",
+      "qual": "((owner_id = private.app_workspace_owner_id()) AND private.app_has_permission('amazon'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_marketplaces",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_order_items_select",
+      "qual": "((owner_id = private.app_workspace_owner_id()) AND private.app_has_permission('amazon'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_order_items",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_orders_select",
+      "qual": "((owner_id = private.app_workspace_owner_id()) AND private.app_has_permission('amazon'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_orders",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_product_images_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('amazon'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_product_images",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_product_mappings_select",
+      "qual": "((owner_id = private.app_workspace_owner_id()) AND private.app_has_permission('amazon'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_product_mappings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_sync_jobs_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('amazon'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_sync_jobs",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_sync_runs_select",
+      "qual": "((owner_id = private.app_workspace_owner_id()) AND private.app_has_permission('amazon'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_sync_runs",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "amazon_sync_state_select",
+      "qual": "((owner_id = private.app_workspace_owner_id()) AND private.app_has_permission('amazon'::text))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "amazon_sync_state",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "name": "app_settings_admin_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "app_settings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "app_settings_admin_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "app_settings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "app_settings_admin_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "app_settings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "app_settings_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_active() AS app_is_active))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "app_settings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "app_subscription_state_member_read",
+      "qual": "(workspace_id = ( SELECT private.app_workspace_id() AS app_workspace_id))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "app_subscription_state",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "app_users_self_select",
+      "qual": "(user_id = ( SELECT auth.uid() AS uid))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "app_users",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "audit_logs_admin_select",
+      "qual": "((workspace_owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "audit_logs",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "name": "automation_rules_admin_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "automation_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "automation_rules_admin_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "automation_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "automation_rules_admin_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "automation_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "automation_rules_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_active() AS app_is_active))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "automation_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "billing_plans_authenticated_select",
+      "qual": "(active = true)",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "billing_plans",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "name": "business_settings_admin_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "business_settings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "business_settings_admin_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "business_settings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "business_settings_admin_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "business_settings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "business_settings_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('sales'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('clients'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "business_settings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "name": "business_tax_registrations_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "business_tax_registrations",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "business_tax_registrations_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "business_tax_registrations",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "business_tax_registrations_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "business_tax_registrations",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "business_tax_registrations_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "business_tax_registrations",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "clients_workspace_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('clients'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "clients",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "clients_workspace_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "clients",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('clients'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('sales'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "clients_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('clients'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('sales'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('dashboard'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "clients",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "clients_workspace_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('clients'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('sales'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "clients",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('clients'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('sales'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "company_branding_admin_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "company_branding",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "company_branding_admin_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "company_branding",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "company_branding_admin_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "company_branding",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "company_branding_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('sales'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('clients'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('dashboard'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "company_branding",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "name": "entity_alias_rules_admin_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "entity_alias_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "entity_alias_rules_admin_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "entity_alias_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "entity_alias_rules_admin_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "entity_alias_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "entity_alias_rules_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_active() AS app_is_active))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "entity_alias_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "name": "expense_categories_workspace_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "expense_categories",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "expense_categories_workspace_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "expense_categories",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "expense_categories_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_active() AS app_is_active))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "expense_categories",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "expense_categories_workspace_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "expense_categories",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "ALL",
+      "name": "export_runs_workspace_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "export_runs",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "fulfillment_orders_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "fulfillment_orders",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "name": "gmail_imports_workspace_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "gmail_imports",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "invoice_lines_workspace_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "invoice_lines",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "invoice_lines_workspace_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "invoice_lines",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "invoice_lines_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('dashboard'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "invoice_lines",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "invoice_lines_workspace_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "invoice_lines",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "invoices_workspace_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "invoices",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "invoices_workspace_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "invoices",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "invoices_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('dashboard'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "invoices",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "invoices_workspace_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "invoices",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "order_cancellations_read",
+      "qual": "(EXISTS ( SELECT 1\n   FROM app_users u\n  WHERE ((u.user_id = auth.uid()) AND (u.data_owner_id = order_cancellation_operations.owner_id) AND u.active AND ((u.role = 'admin'::text) OR ('orders'::text = ANY (u.permissions))))))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "order_cancellation_operations",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "plan_entitlements_authenticated_select",
+      "qual": "(EXISTS ( SELECT 1\n   FROM billing_plans bp\n  WHERE ((bp.plan_key = plan_entitlements.plan_key) AND (bp.active = true))))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "plan_entitlements",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "platform_admins_self_select",
+      "qual": "(user_id = ( SELECT auth.uid() AS uid))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "platform_admins",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "platform_audit_logs_platform_select",
+      "qual": "( SELECT private.app_is_platform_admin() AS app_is_platform_admin)",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "platform_audit_logs",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "name": "product_price_history_workspace_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "product_price_history",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "product_price_history_workspace_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "product_price_history",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "product_price_history_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('dashboard'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "product_price_history",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "product_price_history_workspace_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "product_price_history",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "products_workspace_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('products'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "products",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "products_workspace_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "products",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "products_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('dashboard'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "products",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "products_workspace_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "products",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "ALL",
+      "name": "sales_lines_workspace_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_invoice_lines",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "sales_lines_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('sales'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('dashboard'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_invoice_lines",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "name": "sales_invoice_released_numbers_workspace_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_invoice_released_numbers",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "ALL",
+      "name": "sales_series_workspace_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_invoice_series",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "ALL",
+      "name": "sales_invoices_workspace_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_invoices",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "sales_invoices_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('sales'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('dashboard'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_invoices",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "name": "sales_payments_workspace_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_payments",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "sales_payments_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('sales'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('dashboard'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_payments",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "name": "sales_receipt_counters_workspace_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_receipt_counters",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "ALL",
+      "name": "sales_receipt_lines_workspace_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_receipt_lines",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "ALL",
+      "name": "sales_receipt_payments_workspace_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_receipt_payments",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "ALL",
+      "name": "sales_receipts_workspace_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "sales_receipts",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('sales'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "shipping_rules_admin_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shipping_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "shipping_rules_admin_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shipping_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "shipping_rules_admin_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shipping_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_admin() AS app_is_admin))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "shipping_rules_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_is_active() AS app_is_active))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shipping_rules",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "shopify_read",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('shopify'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shopify_analytics_catalog",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "shopify_read",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('shopify'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shopify_analytics_items",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "shopify_read",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('shopify'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shopify_analytics_orders",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "shopify_read",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('shopify'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shopify_analytics_refund_items",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "shopify_read",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('shopify'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shopify_analytics_refunds",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "shopify_read",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('shopify'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shopify_analytics_sync_state",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "name": "shopify_mapping_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('shopify'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shopify_product_mappings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "shopify_mapping_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shopify_product_mappings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('shopify'::text) AS app_has_permission) AND private.shopify_product_owned(product_id) AND (EXISTS ( SELECT 1\n   FROM integration_accounts a\n  WHERE ((a.id = shopify_product_mappings.integration_account_id) AND (a.owner_id = shopify_product_mappings.owner_id) AND (a.provider = 'shopify'::text)))))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "shopify_mapping_read",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('shopify'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "shopify_product_mappings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "source_documents_workspace_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "source_documents",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "source_documents_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('dashboard'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "source_documents",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "DELETE",
+      "name": "supplier_products_workspace_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "supplier_products",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "supplier_products_workspace_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "supplier_products",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "supplier_products_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "supplier_products",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "supplier_products_workspace_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "supplier_products",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "suppliers_workspace_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('suppliers'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "suppliers",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "suppliers_workspace_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "suppliers",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('suppliers'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "suppliers_workspace_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('dashboard'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('products'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('suppliers'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "suppliers",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "suppliers_workspace_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('suppliers'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "suppliers",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_has_permission('suppliers'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('invoices'::text) AS app_has_permission) OR ( SELECT private.app_has_permission('gmail'::text) AS app_has_permission)))"
+    },
+    {
+      "cmd": "INSERT",
+      "name": "support_attachments_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "support_attachments",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "(( SELECT private.app_support_ticket_access(support_attachments.ticket_id, false) AS app_support_ticket_access) AND (uploaded_by = ( SELECT auth.uid() AS uid)))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "support_attachments_select",
+      "qual": "( SELECT private.app_support_ticket_access(support_attachments.ticket_id, false) AS app_support_ticket_access)",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "support_attachments",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "support_email_events_admin_select",
+      "qual": "(( SELECT private.app_is_platform_admin() AS app_is_platform_admin) OR ((EXISTS ( SELECT 1\n   FROM support_tickets t\n  WHERE ((t.id = support_email_events.ticket_id) AND (t.owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id))))) AND ( SELECT private.app_is_admin() AS app_is_admin)))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "support_email_events",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "support_messages_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "support_messages",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "(( SELECT private.app_support_ticket_access(support_messages.ticket_id, false) AS app_support_ticket_access) AND (author_user_id = ( SELECT auth.uid() AS uid)))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "support_messages_select",
+      "qual": "( SELECT private.app_support_ticket_access(support_messages.ticket_id, false) AS app_support_ticket_access)",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "support_messages",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "support_tickets_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "support_tickets",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (created_by = ( SELECT auth.uid() AS uid)) AND ( SELECT private.app_has_permission('support'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "support_tickets_select",
+      "qual": "(( SELECT private.app_is_platform_admin() AS app_is_platform_admin) OR ((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (( SELECT private.app_is_admin() AS app_is_admin) OR (( SELECT private.app_has_permission('support'::text) AS app_has_permission) AND (created_by = ( SELECT auth.uid() AS uid))))))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "support_tickets",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "name": "transport_service_mappings_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "transport_service_mappings",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "ALL",
+      "name": "transport_tariff_bands_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "transport_tariff_bands",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "transport_tariff_documents_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))",
+      "roles": [
+        "public"
+      ],
+      "table": "transport_tariff_documents",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "transport_tariff_documents_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "transport_tariff_documents",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (status = 'draft'::text) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "transport_tariff_documents_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "transport_tariff_documents",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "transport_tariff_documents_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "transport_tariff_documents",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "transport_tariff_revisions_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "transport_tariff_revisions",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "ALL",
+      "name": "transport_tariff_services_all",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "transport_tariff_services",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND ( SELECT private.app_has_permission('orders'::text) AS app_has_permission))"
+    },
+    {
+      "cmd": "DELETE",
+      "name": "user_preferences_own_delete",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT private.app_is_active() AS app_is_active))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "user_preferences",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "INSERT",
+      "name": "user_preferences_own_insert",
+      "qual": null,
+      "roles": [
+        "authenticated"
+      ],
+      "table": "user_preferences",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT private.app_is_active() AS app_is_active))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "user_preferences_own_select",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT private.app_is_active() AS app_is_active))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "user_preferences",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "UPDATE",
+      "name": "user_preferences_own_update",
+      "qual": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT private.app_is_active() AS app_is_active))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "user_preferences",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": "((owner_id = ( SELECT private.app_workspace_owner_id() AS app_workspace_owner_id)) AND (user_id = ( SELECT auth.uid() AS uid)) AND ( SELECT private.app_is_active() AS app_is_active))"
+    },
+    {
+      "cmd": "SELECT",
+      "name": "workspace_subscriptions_member_select",
+      "qual": "(workspace_id = ( SELECT private.app_membership_workspace_id() AS app_membership_workspace_id))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "workspace_subscriptions",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    },
+    {
+      "cmd": "SELECT",
+      "name": "workspaces_member_select",
+      "qual": "(id = ( SELECT private.app_membership_workspace_id() AS app_membership_workspace_id))",
+      "roles": [
+        "authenticated"
+      ],
+      "table": "workspaces",
+      "schema": "public",
+      "permissive": "PERMISSIVE",
+      "with_check": null
+    }
+  ],
+  "triggers": [
+    {
+      "name": "trg_amazon_prepare_finance_component_fast",
+      "table": "amazon_finance_components",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER trg_amazon_prepare_finance_component_fast BEFORE INSERT OR UPDATE ON public.amazon_finance_components FOR EACH ROW EXECUTE FUNCTION private.amazon_prepare_finance_component_fast()"
+    },
+    {
+      "name": "trg_amazon_mark_deferred_transaction_superseded",
+      "table": "amazon_finance_transactions",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER trg_amazon_mark_deferred_transaction_superseded AFTER INSERT OR UPDATE OF related_identifiers, transaction_status ON public.amazon_finance_transactions FOR EACH ROW EXECUTE FUNCTION private.amazon_mark_deferred_transaction_superseded()"
+    },
+    {
+      "name": "trg_amazon_track_deferred_references",
+      "table": "amazon_finance_transactions",
+      "enabled": "D",
+      "definition": "CREATE TRIGGER trg_amazon_track_deferred_references AFTER INSERT OR UPDATE OF related_identifiers, transaction_status, owner_id, amazon_account_id ON public.amazon_finance_transactions FOR EACH ROW EXECUTE FUNCTION private.amazon_track_deferred_references()"
+    },
+    {
+      "name": "amazon_order_items_auto_map",
+      "table": "amazon_order_items",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER amazon_order_items_auto_map AFTER INSERT OR UPDATE OF seller_sku ON public.amazon_order_items FOR EACH ROW EXECUTE FUNCTION private.amazon_auto_map_order_item()"
+    },
+    {
+      "name": "amazon_close_recovered_order_failures_trg",
+      "table": "amazon_sync_jobs",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER amazon_close_recovered_order_failures_trg AFTER UPDATE OF status ON public.amazon_sync_jobs FOR EACH ROW WHEN (((new.status = 'success'::text) AND (new.source = 'orders'::text) AND (new.job_key ~~ 'recovery:v2:orders:%'::text) AND (old.status IS DISTINCT FROM new.status))) EXECUTE FUNCTION amazon_close_recovered_order_failures()"
+    },
+    {
+      "name": "zzzz_amazon_pii_control_guard",
+      "table": "amazon_sync_jobs",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER zzzz_amazon_pii_control_guard BEFORE INSERT OR UPDATE ON public.amazon_sync_jobs FOR EACH ROW EXECUTE FUNCTION private.guard_amazon_pii_controls()"
+    },
+    {
+      "name": "zzzz_amazon_pii_control_guard",
+      "table": "amazon_sync_runs",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER zzzz_amazon_pii_control_guard BEFORE INSERT OR UPDATE ON public.amazon_sync_runs FOR EACH ROW EXECUTE FUNCTION private.guard_amazon_pii_controls()"
+    },
+    {
+      "name": "zzzz_amazon_pii_control_guard",
+      "table": "amazon_sync_state",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER zzzz_amazon_pii_control_guard BEFORE INSERT OR UPDATE ON public.amazon_sync_state FOR EACH ROW EXECUTE FUNCTION private.guard_amazon_pii_controls()"
+    },
+    {
+      "name": "app_settings_updated_at",
+      "table": "app_settings",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER app_settings_updated_at BEFORE UPDATE ON public.app_settings FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "audit_app_settings",
+      "table": "app_settings",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_app_settings AFTER INSERT OR DELETE OR UPDATE ON public.app_settings FOR EACH ROW EXECUTE FUNCTION private.audit_configuration_change()"
+    },
+    {
+      "name": "trg_app_users_sync_workspace",
+      "table": "app_users",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER trg_app_users_sync_workspace BEFORE INSERT OR UPDATE OF workspace_id, data_owner_id ON public.app_users FOR EACH ROW EXECUTE FUNCTION private.app_users_sync_workspace()"
+    },
+    {
+      "name": "audit_automation_rules",
+      "table": "automation_rules",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_automation_rules AFTER INSERT OR DELETE OR UPDATE ON public.automation_rules FOR EACH ROW EXECUTE FUNCTION private.audit_configuration_change()"
+    },
+    {
+      "name": "automation_rules_updated_at",
+      "table": "automation_rules",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER automation_rules_updated_at BEFORE UPDATE ON public.automation_rules FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "business_settings_updated_at",
+      "table": "business_settings",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER business_settings_updated_at BEFORE UPDATE ON public.business_settings FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "clients_updated_at",
+      "table": "clients",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER clients_updated_at BEFORE UPDATE ON public.clients FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "audit_entity_alias_rules",
+      "table": "entity_alias_rules",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_entity_alias_rules AFTER INSERT OR DELETE OR UPDATE ON public.entity_alias_rules FOR EACH ROW EXECUTE FUNCTION private.audit_configuration_change()"
+    },
+    {
+      "name": "entity_alias_rules_updated_at",
+      "table": "entity_alias_rules",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER entity_alias_rules_updated_at BEFORE UPDATE ON public.entity_alias_rules FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "expense_categories_updated_at",
+      "table": "expense_categories",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER expense_categories_updated_at BEFORE UPDATE ON public.expense_categories FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "audit_export_runs",
+      "table": "export_runs",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_export_runs AFTER INSERT OR DELETE OR UPDATE ON public.export_runs FOR EACH ROW EXECUTE FUNCTION private.audit_app_change()"
+    },
+    {
+      "name": "aaaa_amazon_pii_write_fence",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER aaaa_amazon_pii_write_fence BEFORE INSERT OR UPDATE ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION private.amazon_pii_write_fence()"
+    },
+    {
+      "name": "aaab_amazon_pii_external_lease_guard",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER aaab_amazon_pii_external_lease_guard BEFORE UPDATE OF order_action_lease, order_action_lease_until ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION private.guard_amazon_pii_external_lease()"
+    },
+    {
+      "name": "fulfillment_amazon_account_name",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER fulfillment_amazon_account_name BEFORE INSERT OR UPDATE OF integration_name, source_integration_account_id, source_channel, owner_id ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION private.fulfillment_amazon_account_name()"
+    },
+    {
+      "name": "fulfillment_amazon_status_freshness",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER fulfillment_amazon_status_freshness BEFORE INSERT OR UPDATE OF source_status, order_updated_at, source_channel, source_integration_account_id ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION private.fulfillment_amazon_status_freshness()"
+    },
+    {
+      "name": "fulfillment_orders_normalize_status",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER fulfillment_orders_normalize_status BEFORE INSERT OR UPDATE OF source_status ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION private.normalize_fulfillment_order_status()"
+    },
+    {
+      "name": "fulfillment_orders_set_updated_at",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER fulfillment_orders_set_updated_at BEFORE UPDATE ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "fulfillment_preserve_cancellations",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER fulfillment_preserve_cancellations BEFORE UPDATE ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION integration_preserve_cancellations()"
+    },
+    {
+      "name": "fulfillment_preserve_shopify_local_tracking",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER fulfillment_preserve_shopify_local_tracking BEFORE UPDATE ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION integration_preserve_shopify_local_tracking()"
+    },
+    {
+      "name": "fulfillment_preserve_shopify_shipping_edits",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER fulfillment_preserve_shopify_shipping_edits BEFORE UPDATE ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION private.preserve_shopify_shipping_edits()"
+    },
+    {
+      "name": "zzzz_amazon_pii_guard",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER zzzz_amazon_pii_guard BEFORE INSERT OR UPDATE ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION private.guard_amazon_purged_pii()"
+    },
+    {
+      "name": "zzzzz_amazon_pii_remove_capabilities",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER zzzzz_amazon_pii_remove_capabilities BEFORE INSERT OR UPDATE ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION private.amazon_pii_remove_capabilities()"
+    },
+    {
+      "name": "zzzzzz_assert_amazon_pii_country_preserved",
+      "table": "fulfillment_orders",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER zzzzzz_assert_amazon_pii_country_preserved AFTER UPDATE OF pii_purged_at ON public.fulfillment_orders FOR EACH ROW EXECUTE FUNCTION private.assert_amazon_pii_country_preserved()"
+    },
+    {
+      "name": "audit_gmail_imports",
+      "table": "gmail_imports",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_gmail_imports AFTER INSERT OR DELETE OR UPDATE ON public.gmail_imports FOR EACH ROW EXECUTE FUNCTION private.audit_app_change()"
+    },
+    {
+      "name": "gmail_imports_stable_message_part",
+      "table": "gmail_imports",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER gmail_imports_stable_message_part BEFORE INSERT ON public.gmail_imports FOR EACH ROW EXECUTE FUNCTION private.preserve_gmail_message_part()"
+    },
+    {
+      "name": "gmail_imports_updated_at",
+      "table": "gmail_imports",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER gmail_imports_updated_at BEFORE UPDATE ON public.gmail_imports FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "integration_accounts_environment_scope",
+      "table": "integration_accounts",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER integration_accounts_environment_scope BEFORE INSERT OR UPDATE OF owner_id, credential_source ON public.integration_accounts FOR EACH ROW EXECUTE FUNCTION private.enforce_environment_integration_scope()"
+    },
+    {
+      "name": "integration_accounts_shopify_plan_limit",
+      "table": "integration_accounts",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER integration_accounts_shopify_plan_limit BEFORE INSERT OR UPDATE OF provider, owner_id, enabled, status, config ON public.integration_accounts FOR EACH ROW EXECUTE FUNCTION private.enforce_shopify_account_limit()"
+    },
+    {
+      "name": "integration_secrets_set_updated_at",
+      "table": "integration_secrets",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER integration_secrets_set_updated_at BEFORE UPDATE ON public.integration_secrets FOR EACH ROW EXECUTE FUNCTION set_integration_secrets_updated_at()"
+    },
+    {
+      "name": "invoice_lines_capture_price",
+      "table": "invoice_lines",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER invoice_lines_capture_price AFTER INSERT OR UPDATE OF price_update_status, normalized_unit_price, unit_price, product_id ON public.invoice_lines FOR EACH ROW EXECUTE FUNCTION capture_confirmed_product_price()"
+    },
+    {
+      "name": "invoice_lines_sync_product_supplier",
+      "table": "invoice_lines",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER invoice_lines_sync_product_supplier AFTER INSERT OR UPDATE OF product_id, invoice_id ON public.invoice_lines FOR EACH ROW EXECUTE FUNCTION sync_product_supplier_from_invoice_line()"
+    },
+    {
+      "name": "invoice_lines_updated_at",
+      "table": "invoice_lines",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER invoice_lines_updated_at BEFORE UPDATE ON public.invoice_lines FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "audit_invoices",
+      "table": "invoices",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_invoices AFTER INSERT OR DELETE OR UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION private.audit_app_change()"
+    },
+    {
+      "name": "invoices_set_period",
+      "table": "invoices",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER invoices_set_period BEFORE INSERT OR UPDATE OF issue_date ON public.invoices FOR EACH ROW EXECUTE FUNCTION set_invoice_period()"
+    },
+    {
+      "name": "invoices_sync_product_supplier",
+      "table": "invoices",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER invoices_sync_product_supplier AFTER UPDATE OF supplier_id ON public.invoices FOR EACH ROW EXECUTE FUNCTION sync_invoice_supplier_to_products()"
+    },
+    {
+      "name": "invoices_sync_supplier_profile",
+      "table": "invoices",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER invoices_sync_supplier_profile AFTER INSERT ON public.invoices FOR EACH ROW EXECUTE FUNCTION private.sync_supplier_profile_from_invoice()"
+    },
+    {
+      "name": "invoices_updated_at",
+      "table": "invoices",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER invoices_updated_at BEFORE UPDATE ON public.invoices FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "zzzz_amazon_pii_cancellation_guard",
+      "table": "order_cancellation_operations",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER zzzz_amazon_pii_cancellation_guard BEFORE INSERT OR UPDATE ON public.order_cancellation_operations FOR EACH ROW EXECUTE FUNCTION private.guard_amazon_pii_cancellation()"
+    },
+    {
+      "name": "audit_products",
+      "table": "products",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_products AFTER INSERT OR DELETE OR UPDATE ON public.products FOR EACH ROW EXECUTE FUNCTION private.audit_app_change()"
+    },
+    {
+      "name": "products_default_sale_price",
+      "table": "products",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER products_default_sale_price BEFORE INSERT OR UPDATE OF last_cost, sale_price ON public.products FOR EACH ROW EXECUTE FUNCTION private.apply_default_product_sale_price()"
+    },
+    {
+      "name": "products_updated_at",
+      "table": "products",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER products_updated_at BEFORE UPDATE ON public.products FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "sales_invoice_lines_calculate",
+      "table": "sales_invoice_lines",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_invoice_lines_calculate BEFORE INSERT OR UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION private.sales_invoice_line_calculate()"
+    },
+    {
+      "name": "sales_invoice_lines_guard",
+      "table": "sales_invoice_lines",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_invoice_lines_guard BEFORE INSERT OR DELETE OR UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION private.guard_sales_invoice_line_edit()"
+    },
+    {
+      "name": "sales_invoice_lines_recalc",
+      "table": "sales_invoice_lines",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_invoice_lines_recalc AFTER INSERT OR DELETE OR UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION private.recalculate_sales_invoice_totals()"
+    },
+    {
+      "name": "sales_invoice_lines_updated_at",
+      "table": "sales_invoice_lines",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_invoice_lines_updated_at BEFORE UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "sales_invoice_series_updated_at",
+      "table": "sales_invoice_series",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_invoice_series_updated_at BEFORE UPDATE ON public.sales_invoice_series FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "audit_sales_invoice_number_change",
+      "table": "sales_invoices",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_sales_invoice_number_change AFTER UPDATE OF invoice_number ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION private.audit_sales_invoice_number_change()"
+    },
+    {
+      "name": "sales_invoices_default_due_date",
+      "table": "sales_invoices",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_invoices_default_due_date BEFORE INSERT OR UPDATE OF issue_date, due_date ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION private.set_default_sales_invoice_due_date()"
+    },
+    {
+      "name": "sales_invoices_immutable",
+      "table": "sales_invoices",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_invoices_immutable BEFORE DELETE OR UPDATE ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION private.guard_sales_invoice_immutable()"
+    },
+    {
+      "name": "sales_invoices_updated_at",
+      "table": "sales_invoices",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_invoices_updated_at BEFORE UPDATE ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "sales_payments_status",
+      "table": "sales_payments",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_payments_status AFTER INSERT OR DELETE OR UPDATE ON public.sales_payments FOR EACH ROW EXECUTE FUNCTION private.sync_sales_payment_status()"
+    },
+    {
+      "name": "sales_receipt_lines_calculate",
+      "table": "sales_receipt_lines",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_receipt_lines_calculate BEFORE INSERT OR UPDATE ON public.sales_receipt_lines FOR EACH ROW EXECUTE FUNCTION private.sales_receipt_line_calculate()"
+    },
+    {
+      "name": "sales_receipt_lines_recalc",
+      "table": "sales_receipt_lines",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_receipt_lines_recalc AFTER INSERT OR DELETE OR UPDATE ON public.sales_receipt_lines FOR EACH ROW EXECUTE FUNCTION private.recalculate_sales_receipt_total()"
+    },
+    {
+      "name": "sales_receipt_lines_updated_at",
+      "table": "sales_receipt_lines",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_receipt_lines_updated_at BEFORE UPDATE ON public.sales_receipt_lines FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "sales_receipt_payments_guard",
+      "table": "sales_receipt_payments",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_receipt_payments_guard BEFORE INSERT OR UPDATE ON public.sales_receipt_payments FOR EACH ROW EXECUTE FUNCTION private.guard_sales_receipt_payment()"
+    },
+    {
+      "name": "sales_receipts_assign_number",
+      "table": "sales_receipts",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_receipts_assign_number BEFORE INSERT ON public.sales_receipts FOR EACH ROW EXECUTE FUNCTION private.assign_sales_receipt_number()"
+    },
+    {
+      "name": "sales_receipts_updated_at",
+      "table": "sales_receipts",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER sales_receipts_updated_at BEFORE UPDATE ON public.sales_receipts FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "audit_shipping_rules",
+      "table": "shipping_rules",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_shipping_rules AFTER INSERT OR DELETE OR UPDATE ON public.shipping_rules FOR EACH ROW EXECUTE FUNCTION private.audit_configuration_change()"
+    },
+    {
+      "name": "shipping_rules_updated_at",
+      "table": "shipping_rules",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER shipping_rules_updated_at BEFORE UPDATE ON public.shipping_rules FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "supplier_products_updated_at",
+      "table": "supplier_products",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER supplier_products_updated_at BEFORE UPDATE ON public.supplier_products FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "audit_suppliers",
+      "table": "suppliers",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_suppliers AFTER INSERT OR DELETE OR UPDATE ON public.suppliers FOR EACH ROW EXECUTE FUNCTION private.audit_app_change()"
+    },
+    {
+      "name": "suppliers_updated_at",
+      "table": "suppliers",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER suppliers_updated_at BEFORE UPDATE ON public.suppliers FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    },
+    {
+      "name": "trg_support_prepare_attachment",
+      "table": "support_attachments",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER trg_support_prepare_attachment BEFORE INSERT ON public.support_attachments FOR EACH ROW EXECUTE FUNCTION private.support_prepare_attachment()"
+    },
+    {
+      "name": "audit_support_messages",
+      "table": "support_messages",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_support_messages AFTER INSERT ON public.support_messages FOR EACH ROW EXECUTE FUNCTION private.audit_support_change()"
+    },
+    {
+      "name": "trg_support_prepare_message",
+      "table": "support_messages",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER trg_support_prepare_message BEFORE INSERT ON public.support_messages FOR EACH ROW EXECUTE FUNCTION private.support_prepare_message()"
+    },
+    {
+      "name": "trg_support_touch_ticket",
+      "table": "support_messages",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER trg_support_touch_ticket AFTER INSERT ON public.support_messages FOR EACH ROW EXECUTE FUNCTION private.support_touch_ticket()"
+    },
+    {
+      "name": "audit_support_tickets",
+      "table": "support_tickets",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER audit_support_tickets AFTER INSERT OR DELETE OR UPDATE ON public.support_tickets FOR EACH ROW EXECUTE FUNCTION private.audit_support_change()"
+    },
+    {
+      "name": "trg_support_prepare_ticket",
+      "table": "support_tickets",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER trg_support_prepare_ticket BEFORE INSERT ON public.support_tickets FOR EACH ROW EXECUTE FUNCTION private.support_prepare_ticket()"
+    },
+    {
+      "name": "user_preferences_updated_at",
+      "table": "user_preferences",
+      "enabled": "O",
+      "definition": "CREATE TRIGGER user_preferences_updated_at BEFORE UPDATE ON public.user_preferences FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+    }
+  ],
+  "captured_at": "2026-10-18T08:50:08.792493+00:00"
+}

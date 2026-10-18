@@ -28,10 +28,10 @@ for(const device of [{name:'desktop',width:1440,height:900},{name:'mobile',width
  const page=await browser.newPage({viewport:{width:device.width,height:device.height},deviceScaleFactor:1});
  for(const view of ['devices','rename','qr','challenge']){
   const actual=view==='rename'?'devices':view;
-  await page.goto('http://localhost:4175/?view='+actual);
+  await page.goto('about:blank?view='+actual);
   await page.setContent('<html><head><meta name="viewport" content="width=device-width, initial-scale=1"/><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
   if(view==='rename'){await page.getByRole('button',{name:'Renombrar'}).first().click();}
-  if(view==='qr'){await page.getByRole('button',{name:'Configurar autenticador'}).click();}
+  if(view==='qr'){await page.getByLabel('Nombre del dispositivo').fill('iPhone de prueba');await page.getByRole('button',{name:'Configurar autenticador'}).click();}
   await page.screenshot({path:'artifacts/mfa-visual/'+view+'-'+device.name+'.png',fullPage:true});
  }
  await page.close();

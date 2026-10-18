@@ -125,3 +125,8 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Therefore prerequisite cannot be satisfied with existing available credentials; do not claim HTTP 200, do not deploy just to test 401, and do not add an insecure service_role bypass. All three functions remain unchanged at baseline versions: order-logistics-state v15, sendcloud-order-tools v33, shopify-orders v11.
 - For future authorized pre/post test, an already authenticated admin can exercise a read-only nonmutating action involving an inaccessible/absent order/integration; this may return a deliberate 404/400 rather than 200. Alternatively implement a separate safe service-only diagnostic in a tested branch, explicitly constrained to nonexistent workspace and zero operations, and obtain approval for that scope. Do not fabricate 200/zero success.
 - No lot 3 changes and no lot 5/Amazon changes. MFA enabled=false unchanged. No rollback necessary.
+
+### 2026-10-18 — Production URL and user browser baseline
+- CORRECTION: production web URL is **https://gestion.zenviacommerce.com**. The earlier `zenvia-gastos.vercel.app` address is obsolete (404); do not use it for checks.
+- User's genuine admin session BEFORE batches 3/4: Administración → Usuarios y accesos **5 users / 5 active / 3 admins**, full permissions visible. Configuración → Integraciones: Amazon **ZENVIA COMMERCE SL** default/connected, **2 Shopify** accounts, Sendcloud, Envia.com, MRW visible; no `Probar conexión` attempted. Pedidos: **11 pending (9 Amazon, 2 Shopify), 108 sent, 4 canceled**, console no errors.
+- Explicit approval for batch 3 then batch 4, per-function journal+rollback, STOP before batch 5/Amazon/frontend; user will do matching AFTER browser checks.

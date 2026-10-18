@@ -25,7 +25,7 @@ BEGIN
  END IF;
  -- Never allow initial registration if any verified factor exists, admitted or not.
  IF EXISTS(SELECT 1 FROM auth.mfa_factors f WHERE f.user_id=v_user
-   AND f.factor_type::text='totp' AND f.status::text='verified') THEN
+   AND f.status::text='verified') THEN
    RAISE EXCEPTION 'MFA_SELF_ENROLLMENT_FACTOR_EXISTS' USING errcode='42501';
  END IF;
  SELECT state INTO v_state FROM private.mfa_principals WHERE user_id=v_user FOR UPDATE;

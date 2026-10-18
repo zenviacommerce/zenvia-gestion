@@ -191,3 +191,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 
 ### Amazon final batch / amazon-confirm-shipment
 - Production is at v19 (baseline snapshot v18). Its operational/index files are unchanged vs snapshot and only _shared/amazon/supabase.ts plus the two new MFA guard files differ, exactly matching #222. Deployment completed before an orchestration tool-call limit interrupted journaling. NO real shipment confirmation invoked. Safe unauthenticated POST probe still required. Rollback: safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/edge-20261018/amazon-confirm-shipment.json.
+
+### Amazon final batch / amazon-reconcile-orders
+- Deployed production v9 from snapshot v8 with human MFA helper, preserving existing index and internal-key fast path. No actual workspace orders were processed. Baseline safe nonexistent-workspace internal probe #1721 returned HTTP 200 with processed=0/failures=0; post-deployment verification pending. Exact rollback source safety/mfa-production-snapshot-20261018/edge-20261018/amazon-reconcile-orders.json.

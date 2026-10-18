@@ -153,7 +153,11 @@ gate('Real GoTrue pilot cohort isolates RPC, Edge and trusted Platform bridge',a
  };
  try{
   // AAL2 would be required for the cohort owner, never for other users.
-  sql(`update private.mfa_configuration set enabled=true,
+  const findings=spawnSync('docker',['exec','-i',dbContainer,'psql','-X','-At','-v','ON_ERROR_STOP=1','-U','postgres','-d','postgres','-c',
+   "select entry||': '||reason from private.mfa_activation_findings() order by entry"],{encoding:'utf8'});
+ assert.equal(findings.status,0,'MFA activation audit unavailable');
+ assert.equal(findings.stdout.trim(),'','Disposable schema violates MFA activation audit: '+findings.stdout.trim().slice(0,850));
+ sql(`update private.mfa_configuration set enabled=true,
        cohort_user_ids=array['${primary.id}'::uuid] where singleton;`);
   const inside=await getActor(primary);
   const outsideAuth=await getActor(outside);

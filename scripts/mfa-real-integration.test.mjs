@@ -122,6 +122,12 @@ gate('Self-service initial enrollment, second TOTP, out-of-cohort challenge and 
  let denied=await voluntary.c.rpc('security_mfa_begin_self_enrollment');
  assert.ok(denied.error,'Self-enrollment must be rejected after verified factor');
  const factorOne=voluntary.factor,secretOne=voluntary.secret;
+ const postEnrollmentLevel=must(await voluntary.c.auth.mfa.getAuthenticatorAssuranceLevel(),'AAL immediately after first verified factor');
+ assert.equal(postEnrollmentLevel.currentLevel,'aal2','First TOTP verify must promote current session immediately');
+ const firstRefresh=must(await voluntary.c.auth.refreshSession(),'refresh immediately after first factor');
+ assert.equal(firstRefresh.session?.user.id,voluntary.id);
+ const postFirstRefreshLevel=must(await voluntary.c.auth.mfa.getAuthenticatorAssuranceLevel(),'AAL after first-factor refresh');
+ assert.equal(postFirstRefreshLevel.currentLevel,'aal2','Refresh must preserve AAL2 and avoid AAL1 timeout');
  // A newly signed-in session starts at AAL1 despite MFA disabled.
  await login(voluntary);
  const assurance=must(await voluntary.c.auth.mfa.getAuthenticatorAssuranceLevel(),'post-login assurance');

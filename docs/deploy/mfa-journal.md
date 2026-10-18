@@ -194,3 +194,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 
 ### Amazon final batch / amazon-reconcile-orders
 - Deployed production v9 from snapshot v8 with human MFA helper, preserving existing index and internal-key fast path. No actual workspace orders were processed. Baseline safe nonexistent-workspace internal probe #1721 returned HTTP 200 with processed=0/failures=0; post-deployment verification pending. Exact rollback source safety/mfa-production-snapshot-20261018/edge-20261018/amazon-reconcile-orders.json.
+
+### Amazon final batch / amazon-recipient-fallback
+- Deployed production v8 from snapshot v7, preserving service-only authorization and the restricted fallback, with new MFA check only in human auth path. No actual buyer or recipient data was read or returned during validation. Baseline safe nonexistent workspace internal probe #1722 returned HTTP 200 enriched=0 failures=[]; post-deployment probe pending. Rollback source safety/mfa-production-snapshot-20261018/edge-20261018/amazon-recipient-fallback.json.

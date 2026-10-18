@@ -245,3 +245,9 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Deployed ONLY `platform-bridge` v31 (ezbr_sha256 `66e9d0d3f569f2b6217752a40f1f6ba3ea5c17cd82d735e5470fd39c07af2414`), `verify_jwt=false`. Source index diff exclusively changes MFA check from zero-argument to `actor,action` after service token verification; `_shared/mfa-policy.ts` sends p_actor_id, p_actor_email, p_action. Other three production shared modules kept byte-identical.
 - No SQL flags, frontend/Vercel, other Edge Functions, MFA enrollment or global MFA activation changed. Rollback: redeploy all five files from exact v30 JSON with verify_jwt=false; confirm active version and Platform calls.
 - Postdeployment live calls/log evidence and user's AFTER UI acceptance PENDING. Do not claim acceptance yet. STOP after checking logs; if verified real Platform call 5xx, immediately rollback.
+
+### Platform bridge v31 — immediate post-deploy log review / STOP
+- Production deployment update timestamp from Supabase: `1792357104552` (2026-10-18 20:58:24.552 UTC). v31 active confirmed from deploy response.
+- Log query returned two successful real bridge POST 200 at 20:58:06.778 and 20:58:06.919 UTC, **before** v31 deployment timestamp; they cannot be called v31 successes. Earlier 20:55–20:56 UTC calls also returned 200. No later platform-bridge request was present in the inspected latest results.
+- No post-v31 real Platform call error observed, but no post-v31 real successful Platform operation verified either. No rollback triggered on an absent post-deploy call; exact v30 rollback remains ready.
+- STOP NOW for user AFTER browser verification of ZENVIA client 5 active users, same named integrations Connected, browser console and actual bridge calls. If real calls yield 5xx or regress, restore v30 immediately and journal. No SQL/pilot/global MFA change.

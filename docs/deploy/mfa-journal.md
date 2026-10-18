@@ -142,3 +142,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 
 ### Batch 4 / step 1 — order-logistics-state
 - Deployed v16 (snapshot v15), verify_jwt=true preserved, original user-session authentication, order data and PII guards retained; MFA guard added. No order or shipment created/modified; no carrier requests. Baseline nonexistent workspace/order internal-key probe #1594 HTTP 401 (not 200; user JWT required). Safe post-deploy probe pending; browser AFTER check pending. Rollback source safety/mfa-production-snapshot-20261018/edge-20261018/order-logistics-state.json.
+
+### Batch 4 / step 2 — sendcloud-order-tools
+- Deployed v34 (snapshot v33), verify_jwt=true preserved; existing code and order/PII guards retained with MFA guard. No label generation, booking, address validation, shipping-options or carrier calls made. Baseline nonexistent-workspace/order probe #1595 HTTP 401 (authentication enforced before workspace lookup); after-deployment safe probe pending. Exact rollback source edge-20261018/sendcloud-order-tools.json on safety branch.

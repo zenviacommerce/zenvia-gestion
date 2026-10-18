@@ -61,3 +61,13 @@ test('Platform can request a silent invite token so ZENVIA can deliver its own b
   assert.match(block,/inviteUserByEmail/);
   assert.match(block,/inviteTokenHash:customDelivery\?inviteTokenHash:null/);
 });
+
+test('MFA bridge always binds verified service token to actor identity and action',async()=>{
+ const bridge=await read('supabase/functions/platform-bridge/index.ts');
+ const policy=await read('supabase/functions/_shared/mfa-policy.ts');
+ assert.match(bridge,/sha256\(supplied\)/);
+ assert.ok(bridge.indexOf("sha256(supplied)")<bridge.indexOf("await assertBridgeMfaAllowed(admin,actor,action)"));
+ assert.ok(bridge.indexOf("const body=await req.json()")<bridge.indexOf("await assertBridgeMfaAllowed(admin,actor,action)"));
+ assert.match(policy,/security_mfa_bridge_allowed'[\s\S]*p_actor_id:actor.id,p_actor_email:actor.email,p_action:action/);
+ assert.doesNotMatch(policy,/rpc\('security_mfa_bridge_allowed'\)/);
+});

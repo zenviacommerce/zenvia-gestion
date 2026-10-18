@@ -43,7 +43,7 @@ describe('Edge MFA authority',()=>{
   expect(source.indexOf("sha256(supplied)!==bridgeSecret.token_sha256")).toBeGreaterThan(0);
   expect(source.indexOf('await assertBridgeMfaAllowed(admin,{')).toBeGreaterThan(
    source.indexOf("sha256(supplied)!==bridgeSecret.token_sha256"));
-  expect(source).toContain('targetUserId:asText(body?.userId,80)||null');
+  expect(source).toContain('targetUserId:uuidOrNull(asText(body?.userId,80))');
   expect(source).toContain('actorEmail:actor.email');
  });
 });

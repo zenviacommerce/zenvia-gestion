@@ -52,7 +52,7 @@ jobs:
           cp "$RUNNER_TEMP/gmail-transaction.sql" supabase/migrations/20261013120500_gmail_stable_message_part_identity.sql
           # Existing production table is absent from this repo's historical
           # migrations. A schema-only fixture is created IN THE RUNNER ONLY.
-          cat > supabase/migrations/20261016194727_mfa_ci_cancellation_dependency.sql <<'SQL'
+          cat > supabase/migrations/20261016191516_mfa_ci_cancellation_dependency.sql <<'SQL'
           create table if not exists public.order_cancellation_operations(
             id uuid primary key default gen_random_uuid(),
             owner_id uuid,

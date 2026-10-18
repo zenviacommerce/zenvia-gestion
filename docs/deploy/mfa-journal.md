@@ -69,3 +69,7 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Production AAL1 synthetic admin and ordinary user RPC and list reads inside ROLLBACK passed after optimization; MFA still disabled.
 - Amazon 10:25 cohort nine jobs all `success` with one attempt, 0 failed/active leases, finishing in 10:30 worker cycle. No worker/cron changes.
 - Phase B **not yet begun** at this journal entry; plan small batch of 3 non-Amazon/non-shipping Edge Functions. Snapshot located on `safety/mfa-production-snapshot-20261018`.
+
+### Phase B batch 1, step 1 — app-agent-tools
+- Deployed version 6 using archived production bundle + MFA shared guard, verify_jwt=true. Pre-deployment probe (request 1569) returned HTTP 401 `Sesión no válida.`; post-deployment (1572) returned exactly HTTP 401 and same body. No authenticated user-flow test performed.
+- Rollback: source files in `safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/edge-20261018/app-agent-tools.json`; deploy source preserving verify_jwt.

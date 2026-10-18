@@ -8,7 +8,7 @@ export function MfaDevices(){
  const access=useMfaAccess();const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [removing,setRemoving]=useState<string|null>(null);
  const [renaming,setRenaming]=useState<string|null>(null);const [newName,setNewName]=useState('');
  const [details,setDetails]=useState<Record<string,{name:string;created?:string;last?:string}>>({});
- useEffect(()=>{if(!access.ready)return;let live=true;void supabase.auth.mfa.listFactors().then(({data,error})=>{if(!live||error)return;const result:Record<string,{name:string;created?:string;last?:string}>={};for(const item of data?.totp||[]){if(access.factor_ids.includes(item.id)){result[item.id]={name:item.friendly_name||'Autenticador TOTP',created:item.created_at};}}setDetails(result);}).catch(()=>{});return()=>{live=false};},[access.ready,access.factor_ids.join(',')]);
+ useEffect(()=>{if(!access.ready)return;let live=true;void supabase.auth.mfa.listFactors().then(({data,error})=>{if(!live||error)return;const result:Record<string,{name:string;created?:string;last?:string}>={};for(const item of data?.totp||[]){if(access.factor_ids.includes(item.id)){result[item.id]={name:item.friendly_name&&!/^Autenticador\s+\d{4}-\d\d-\d\dT/.test(item.friendly_name)?item.friendly_name:`Autenticador ${access.factor_ids.indexOf(item.id)+1}`,created:item.created_at};}}setDetails(result);}).catch(()=>{});return()=>{live=false};},[access.ready,access.factor_ids.join(',')]);
  if(!access.ready)return null;
  const add=async()=>{
   setBusy(true);setError('');

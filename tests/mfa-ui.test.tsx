@@ -52,6 +52,7 @@ it('retains mounted authorized UI during TOKEN_REFRESHED and visibilitychange un
  render(<MfaProvider><Probe/></MfaProvider>);
  expect(await screen.findByText('Protected content')).toBeTruthy();
  sdk.rpc.mockImplementation(()=>new Promise(resolve=>{finish=resolve}));
+ await new Promise(resolve=>setTimeout(resolve,1550));
  await act(async()=>{sdk.callback?.('TOKEN_REFRESHED',session);document.dispatchEvent(new Event('visibilitychange'));});
  expect(screen.getByText('Protected content')).toBeTruthy();
  expect(screen.queryByText('Comprobando seguridad…')).toBeNull();

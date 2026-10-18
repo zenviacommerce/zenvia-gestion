@@ -115,7 +115,7 @@ declare p private.mfa_principals; reason text; verified_factors jsonb;begin
 end $$;
 -- Recognize the reviewed service gate in the existing activation inventory.
 -- All other unmatched public definers remain activation blockers.
-create or replace function private.mfa_activation_findings() returns table(entry text,reason text) language sql stable security definer set search_path='' as $
+create or replace function private.mfa_activation_findings() returns table(entry text,reason text) language sql stable security definer set search_path='' as $$
  select n.nspname||'.'||c.relname,'exposed table lacks restrictive MFA policies' from pg_class c join pg_namespace n on n.oid=c.relnamespace
  where c.relkind in('r','p') and (n.nspname='public' or(n.nspname='storage' and c.relname='objects'))
  and (has_table_privilege('authenticated',c.oid,'SELECT,INSERT,UPDATE,DELETE') or has_table_privilege('anon',c.oid,'SELECT,INSERT,UPDATE,DELETE'))
@@ -130,5 +130,5 @@ create or replace function private.mfa_activation_findings() returns table(entry
  and has_function_privilege('authenticated',p.oid,'execute')
  and p.proname not in('security_mfa_status','security_mfa_assert','security_mfa_bridge_allowed','security_mfa_prepare_enrollment','security_mfa_complete_enrollment','security_mfa_authorize_enrollment','security_mfa_release_enrollment','security_mfa_approve_recovery','security_mfa_begin_factor_add','security_mfa_forget_factor','security_mfa_begin_self_enrollment')
  and not exists(select 1 from private.mfa_function_manifest m where m.function_oid=p.oid and m.wrapper_hash=md5(pg_get_functiondef(p.oid)))
-$;
+$$;
 COMMIT;

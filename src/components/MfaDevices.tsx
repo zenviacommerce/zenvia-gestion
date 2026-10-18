@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useEffect,useState} from 'react';
 import {ShieldCheck,Plus,RefreshCw,Smartphone} from 'lucide-react';
 import {useMfaAccess} from '../context/MfaContext';
 import {supabase,getActiveTenant} from '../services/supabase';
@@ -6,6 +6,7 @@ import {ensureViewCacheScope} from '../services/viewCache';
 /** Factor admission is a server action. Direct Auth enrollment never admits a device. */
 export function MfaDevices(){
  const access=useMfaAccess();const [busy,setBusy]=useState(false);const [error,setError]=useState('');const [removing,setRemoving]=useState<string|null>(null);
+ const [details,setDetails]=useState<Record<string,{name:string;created?:string;last?:string}>>({});
  if(!access.ready)return null;
  const add=async()=>{
   setBusy(true);setError('');

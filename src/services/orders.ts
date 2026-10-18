@@ -12,6 +12,7 @@ export interface FulfillmentOrder {
   integrationId:number; integrationName:string|null; integrationType:string|null; sourceChannel:OrderChannel;
   sourceStatus:string|null; orderCreatedAt:string|null; orderUpdatedAt:string|null;
   customerName:string|null; customerEmail:string|null; customerPhone:string|null;
+  piiPurgedAt?:string|null; destinationCountryCode?:string|null;
   shippingAddress:Record<string,unknown>; billingAddress:Record<string,unknown>; items:Array<Record<string,unknown>>;
   totalAmount:number|null; currency:string|null; weightKg:number|null;
   packageLengthCm:number|null; packageWidthCm:number|null; packageHeightCm:number|null;
@@ -84,6 +85,11 @@ function isBalearicAddress(address:Record<string,unknown>){
   const postal=String(address?.postal_code||'').replace(/\s+/g,'').trim();
   return country==='ES'&&/^07\d{3}$/.test(postal);
 }
+function enforcePurge(order:FulfillmentOrder):FulfillmentOrder{
+  if(!order.piiPurgedAt)return order;
+  return {...order,customerName:null,customerEmail:null,customerPhone:null,
+    shippingAddress:{},billingAddress:{},shippingLabelUrl:null,trackingUrl:null,carrierTrackingUrl:null};
+}
 function mapRow(row:any):FulfillmentOrder{
   const measurement=row?.shipping_measurement||{};
   const weight=measurement?.weight;
@@ -93,13 +99,13 @@ function mapRow(row:any):FulfillmentOrder{
   const dimensionCm=(value:unknown)=>{const n=Number(value);return Number.isFinite(n)&&n>0?n*dimensionFactor:null};
   const shippingAddress=row.shipping_address||{};
   const balearicPending=isBalearicAddress(shippingAddress)&&row.sendcloud_parcel_id==null;
-  return {
+  return enforcePurge({
     id:row.id, sendcloudId:String(row.sendcloud_remote_id||row.sendcloud_id), orderId:row.order_id||null, orderNumber:row.order_number||null,
     sourceIntegrationAccountId:row.source_integration_account_id||null, shippingIntegrationAccountId:row.shipping_integration_account_id||null,
     integrationId:Number(row.integration_id), integrationName:row.integration_name||null, integrationType:row.integration_type||null,
     sourceChannel:(row.source_channel||'other') as OrderChannel, sourceStatus:row.source_status||null,
     orderCreatedAt:row.order_created_at||null, orderUpdatedAt:row.order_updated_at||null,
-    customerName:row.customer_name||null, customerEmail:row.customer_email||null, customerPhone:row.customer_phone||null,
+    customerName:row.customer_name||null, customerEmail:row.customer_email||null, customerPhone:row.customer_phone||null, piiPurgedAt:row.pii_purged_at||null, destinationCountryCode:row.destination_country_code||null,
     shippingAddress, billingAddress:row.billing_address||{}, items:Array.isArray(row.items)?row.items:[],
     totalAmount:row.total_amount==null?null:Number(row.total_amount), currency:row.currency||null, weightKg:toKg(weight?.value,weight?.unit),
     packageLengthCm:row.package_length_cm==null?dimensionCm(dimension?.length):Number(row.package_length_cm),
@@ -110,14 +116,14 @@ function mapRow(row:any):FulfillmentOrder{
     shippingProvider:row.shipping_provider==='envia'?'envia':row.shipping_provider==='mrw'?'mrw':row.shipping_provider==='sendcloud'?'sendcloud':(row.sendcloud_parcel_id||row.sendcloud_shipment_id?'sendcloud':null),
     shippingRemoteId:row.shipping_remote_id||null, shippingLabelUrl:row.shipping_label_url||null,
     trackingNumber:row.tracking_number||null, trackingUrl:row.tracking_url||null,
-    carrierTrackingUrl:row.tracking_metadata?.number===row.tracking_number?row.tracking_metadata.url||null:null,
+    carrierTrackingUrl:row.tracking_metadata?.number===row.tracking_number?row.tracking_metadata?.url||null:null,
     trackingStatusCode:row.tracking_status_code||null, trackingStatusMessage:row.tracking_status_message||null, trackingUpdatedAt:row.tracking_updated_at||null,
     shippingOptionCode:row.shipping_option_code||null, contractId:row.contract_id==null?null:Number(row.contract_id),
     carrierCode:row.carrier_code||null, carrierName:row.carrier_name||(balearicPending?'🏝 Baleares · usar Correos':null), shippingServiceName:row.shipping_service_name||null,
     shippingCostAmount:row.shipping_cost_amount==null?null:Number(row.shipping_cost_amount), shippingCostCurrency:row.shipping_cost_currency||null, shippingCostSource:row.shipping_cost_source||null,
     shippingCostNetAmount:row.shipping_cost_net_amount==null?null:Number(row.shipping_cost_net_amount), shippingCostTaxAmount:row.shipping_cost_tax_amount==null?null:Number(row.shipping_cost_tax_amount), shippingCostRecordedAt:row.shipping_cost_recorded_at||null,
     labelCreatedAt:row.label_created_at||null, labelPrintedAt:row.label_printed_at||null, labelPrintCount:Number(row.label_print_count||0), labelPrintStateKnown:row.label_print_state_known!==false, fulfilledAt:row.fulfilled_at||null, lastSyncedAt:row.last_synced_at,
-  };
+  });
 }
 
 async function invokeFunction<T>(functionName:string,body:Record<string,unknown>):Promise<T>{
@@ -170,10 +176,13 @@ function dedupeMarketplaceOrders(orders:FulfillmentOrder[]){
     const current=result[existingIndex];
     const preferred=orderCompleteness(order)>orderCompleteness(current)?order:current;
     const other=preferred===order?current:order;
+    const purged=preferred.piiPurgedAt?preferred:other.piiPurgedAt?other:null;
     // During migration a marketplace order can temporarily exist both through
     // Sendcloud and through the direct connector. Present one operational row.
-    result[existingIndex]={
+    result[existingIndex]=enforcePurge({
       ...preferred,
+      piiPurgedAt:preferred.piiPurgedAt||other.piiPurgedAt||null,
+      destinationCountryCode:purged?.destinationCountryCode||preferred.destinationCountryCode||other.destinationCountryCode||null,
       sourceIntegrationAccountId:preferred.sourceIntegrationAccountId||other.sourceIntegrationAccountId,
       customerName:preferred.customerName||other.customerName,
       customerEmail:preferred.customerEmail||other.customerEmail,
@@ -187,7 +196,7 @@ function dedupeMarketplaceOrders(orders:FulfillmentOrder[]){
       packageLengthCm:preferred.packageLengthCm??other.packageLengthCm,
       packageWidthCm:preferred.packageWidthCm??other.packageWidthCm,
       packageHeightCm:preferred.packageHeightCm??other.packageHeightCm,
-    };
+    });
   }
   return result;
 }
@@ -207,7 +216,7 @@ export function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
 }
 async function readFulfillmentOrders(client:ReturnType<typeof getActiveSupabase>):Promise<FulfillmentOrder[]>{
   const snapshotVersion=ordersSnapshotVersion();
-  const {data,error}=await client.from('fulfillment_orders').select('id,sendcloud_id,sendcloud_remote_id,order_id,order_number,source_integration_account_id,shipping_integration_account_id,integration_id,integration_name,integration_type,source_channel,source_status,order_created_at,order_updated_at,customer_name,customer_email,customer_phone,shipping_address,billing_address,items,total_amount,currency,shipping_measurement:raw_payload->shipping_details->measurement,tracking_metadata:raw_payload->_zenvia_tracking,package_length_cm,package_width_cm,package_height_cm,sendcloud_parcel_id,sendcloud_shipment_id,shipping_provider,shipping_remote_id,shipping_label_url,tracking_number,tracking_url,tracking_status_code,tracking_status_message,tracking_updated_at,shipping_option_code,contract_id,carrier_code,carrier_name,shipping_service_name,shipping_cost_amount,shipping_cost_currency,shipping_cost_source,shipping_cost_net_amount,shipping_cost_tax_amount,shipping_cost_recorded_at,label_created_at,label_printed_at,label_print_count,label_print_state_known,fulfilled_at,last_synced_at').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000).abortSignal(AbortSignal.timeout(15000));
+  const {data,error}=await client.from('fulfillment_orders').select('id,sendcloud_id,sendcloud_remote_id,order_id,order_number,source_integration_account_id,shipping_integration_account_id,integration_id,integration_name,integration_type,source_channel,source_status,order_created_at,order_updated_at,pii_purged_at,destination_country_code,customer_name,customer_email,customer_phone,shipping_address,billing_address,items,total_amount,currency,shipping_measurement:raw_payload->shipping_details->measurement,tracking_metadata:raw_payload->_zenvia_tracking,package_length_cm,package_width_cm,package_height_cm,sendcloud_parcel_id,sendcloud_shipment_id,shipping_provider,shipping_remote_id,shipping_label_url,tracking_number,tracking_url,tracking_status_code,tracking_status_message,tracking_updated_at,shipping_option_code,contract_id,carrier_code,carrier_name,shipping_service_name,shipping_cost_amount,shipping_cost_currency,shipping_cost_source,shipping_cost_net_amount,shipping_cost_tax_amount,shipping_cost_recorded_at,label_created_at,label_printed_at,label_print_count,label_print_state_known,fulfilled_at,last_synced_at').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000).abortSignal(AbortSignal.timeout(15000));
   if(error)throw error;
   const orders=dedupeMarketplaceOrders((data||[]).map(mapRow)).filter(order=>!isAmazonAwaitingPayment(order));
   // Synchronization and the database identity trigger persist the account name.

@@ -1,4 +1,5 @@
 import {assertHumanMfa} from '../_shared/mfa.ts';
+import {withAmazonBuyerRead} from '../_shared/amazonPiiRead.ts';
 import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -626,6 +627,8 @@ Deno.serve(async(req:Request)=>{
     if(!orderId)return fail('Falta el pedido.');
     const {data:order,error:orderError}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();
     if(orderError)throw orderError;if(!order)return fail('Pedido no encontrado.',404);
+    if(order.pii_purged_at)return fail('Los datos personales de este pedido se han eliminado por retención.',410);
+    return await withAmazonBuyerRead(admin,order,async()=>{
     orderReference=clean(order.order_number||order.order_id||order.id);
     if(action==='rates'||action==='create_label')assertAmazonOrderShippable(order);
 
@@ -762,6 +765,7 @@ Deno.serve(async(req:Request)=>{
       });
     }
     return fail('Acción no válida.');
+    },(message,status)=>fail(message,status));
   }catch(error){
     let message=error instanceof Error?error.message:String(error||'Error interno.');
     if(/not enough money|insufficient (?:balance|funds)|saldo insuficiente/i.test(message)){

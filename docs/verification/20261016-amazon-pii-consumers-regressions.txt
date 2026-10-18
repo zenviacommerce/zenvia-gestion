@@ -1,0 +1,13 @@
+✔ uses the order number as the PDF filename (64.533092ms)
+✔ deduplicates repeated label PDF filenames (11.774584ms)
+✔ a generated label updates the shared pending count before returning to Summary (19.620375ms)
+✔ a read started before label creation cannot replace the newer shared snapshot (4.376296ms)
+✔ workspace reset clears persisted rows and rejects a read from the previous workspace (3.565246ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 5
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 398.514982

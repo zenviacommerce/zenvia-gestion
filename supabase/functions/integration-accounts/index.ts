@@ -1,4 +1,5 @@
 import {assertHumanMfa} from '../_shared/mfa.ts';
+import {loadAmazonSpApiCredentials} from '../_shared/amazon/config.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { verifyShopifyInstallLaunch, shopifyDomain, shopifyError, shopifyHash, verifyShopifyCallback, shopifyTokenRequest, shopifyTokenCredentials, shopifyAccountCredentials, shopifyLegacyCredentials, commitShopifyAuthorization, shopifyStoredApplicationCredentials } from '../_shared/shopifyAuth.ts';
 import { enforceWorkspaceLimit, requireWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
@@ -139,25 +140,8 @@ async function makeDefault(admin:any,ownerId:string,provider:Provider,id:string)
   const set=await admin.from('integration_accounts').update({is_default:true,updated_at:new Date().toISOString()}).eq('owner_id',ownerId).eq('id',id);
   if(set.error)throw set.error;
 }
-function envAmazonCredentials(){
-  const raw=clean(Deno.env.get('AMAZON_SPAPI_CREDENTIALS'));
-  if(!raw)return {};
-  try{return JSON.parse(raw)}catch{return {}}
-}
 async function amazonCredentials(admin:any,account:any){
-  const stored=account.secret_id?await readVault(admin,account.secret_id):{};
-  const env=envAmazonCredentials() as any;
-  const legacyEnvironment=account.credential_source==='environment';
-  const credentials={
-    clientId:clean((stored as any).clientId||(stored as any).client_id||env.client_id||env.clientId),
-    clientSecret:clean((stored as any).clientSecret||(stored as any).client_secret||env.client_secret||env.clientSecret),
-    refreshToken:clean((stored as any).refreshToken||(stored as any).refresh_token||(legacyEnvironment?(env.refresh_token||env.refreshToken):'')),
-    sellerId:clean((stored as any).sellerId||(stored as any).seller_id||account.external_account_id||(legacyEnvironment?(env.seller_id||env.sellerId):'')),
-  };
-  if(!credentials.clientId||!credentials.clientSecret||!credentials.refreshToken||!credentials.sellerId){
-    throw new Error('Faltan credenciales de Amazon. Se necesitan Seller ID, refresh token y credenciales de la aplicación SP-API.');
-  }
-  return credentials;
+  return loadAmazonSpApiCredentials(admin,{integrationAccountId:account.id,ownerId:account.owner_id});
 }
 async function amazonToken(c:any){
   const body=new URLSearchParams();

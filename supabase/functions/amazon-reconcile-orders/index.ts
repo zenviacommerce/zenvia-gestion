@@ -24,9 +24,11 @@ Deno.serve(async(req:Request)=>{
   const credentialsByAccount=new Map<string,any>(),results:any[]=[],failures:any[]=[];
   for(const row of [...byOrder.values()].slice(0,30) as any[]){
    try{
-    const account=(accounts||[]).find((a:any)=>a.id===row.source_integration_account_id)||((accounts||[]).length===1?accounts[0]:null);
+    const account=row.source_integration_account_id
+      ?(accounts||[]).find((a:any)=>a.id===row.source_integration_account_id)
+      :((accounts||[]).length===1?accounts[0]:null);
     if(!account?.linked_resource_id)throw new Error('No se ha identificado la cuenta Amazon del pedido.');
-    if(!credentialsByAccount.has(account.id))credentialsByAccount.set(account.id,await loadAmazonSpApiCredentials(admin,{amazonAccountId:account.linked_resource_id,ownerId}));
+    if(!credentialsByAccount.has(account.id))credentialsByAccount.set(account.id,await loadAmazonSpApiCredentials(admin,{amazonAccountId:account.linked_resource_id,integrationAccountId:account.id,ownerId}));
     const data=await spApiRequest('/orders/2026-01-01/orders/'+encodeURIComponent(row.order_number),{query:{includedData:['FULFILLMENT','PACKAGES']}},credentialsByAccount.get(account.id));
     const order=data.order||data;
     if(!order.orderId)throw new Error('Amazon no devolvió el pedido.');

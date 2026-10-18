@@ -1,0 +1,34 @@
+npm warn Unknown env config "http-proxy". This will stop working in the next major version of npm.
+
+> zenvia-gestion@0.1.0 test
+> vitest run tests/amazon-pii-cache.test.ts
+
+
+ RUN  v3.2.4 /workspace/scratch/0d3486ed1618/purge-readiness
+
+ ❯ tests/amazon-pii-cache.test.ts (1 test | 1 failed) 6ms
+   × does not persist operational buyer data in browser session storage 5ms
+     → expected '{"savedAt":1792177026697,"value":[{"i…' to be null
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  tests/amazon-pii-cache.test.ts > does not persist operational buyer data in browser session storage
+AssertionError: expected '{"savedAt":1792177026697,"value":[{"i…' to be null
+
+- Expected: 
+null
+
++ Received: 
+"{\"savedAt\":1792177026697,\"value\":[{\"id\":\"synthetic\",\"customerName\":\"SYNTHETIC BUYER\"}]}"
+
+ ❯ tests/amazon-pii-cache.test.ts:4:269
+
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+
+ Test Files  1 failed (1)
+      Tests  1 failed (1)
+   Start at  21:57:06
+   Duration  547ms (transform 41ms, setup 0ms, collect 37ms, tests 6ms, environment 256ms, prepare 70ms)
+

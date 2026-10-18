@@ -146,7 +146,7 @@ function isProcessedOrder(order:FulfillmentOrder){
 }
 function isLabelledOrder(order:FulfillmentOrder){return hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);}
 function isPendingOrder(order:FulfillmentOrder){return !isAmazonAwaitingPayment(order)&&!hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);}
-function canPrepareOrder(order:FulfillmentOrder){return isPendingOrder(order);}
+function canPrepareOrder(order:FulfillmentOrder){return !order.piiPurgedAt&&isPendingOrder(order);}
 function orderState(order:FulfillmentOrder){
   if(isCancelledOrder(order))return {label:'Cancelado',className:'cancelled'};
   if(isLabelledOrder(order))return {label:'Etiquetado',className:'ready'};
@@ -239,25 +239,25 @@ function carrierLabel(order:FulfillmentOrder){
 
 const VAT_RATES:Record<string,number>={ES:21,PT:23,FR:20,DE:19,IT:22,NL:21,BE:21,AT:20,IE:23,PL:23,CZ:21,GR:24,HU:27,RO:21,FI:25.5,SE:25,DK:25,HR:25,SI:22,SK:23,LT:21,LV:21,EE:24,BG:20,CY:19,MT:18,LU:17,GB:20};
 function taxParts(order:FulfillmentOrder){
-  const gross=order.totalAmount||0,rate=VAT_RATES[text(order.shippingAddress.country_code).trim().toUpperCase()]||0;
+  const gross=order.totalAmount||0,rate=VAT_RATES[text(order.destinationCountryCode||order.shippingAddress.country_code).trim().toUpperCase()]||0;
   if(!rate)return {gross,net:gross,vat:0}; const net=gross/(1+rate/100); return {gross,net,vat:gross-net};
 }
 function preferredCarrier(option:ShippingOption){const h=`${option.carrierCode} ${option.carrierName} ${option.name} ${option.code}`.toLowerCase();if(h.includes('mrw'))return 'mrw';if(h.includes('correos'))return 'correos';return '';}
 
-function OrderDrawer({order,shippingPrice,validationIssues,productImages,onClose,onPrepare,onEdit,onPrint,onDownload,onInvoice,onConfirmShipment,busy}:{order:FulfillmentOrder;shippingPrice:ShippingPricePreview|null;validationIssues:OrderValidationIssue[];productImages:Record<string,string>;onClose:()=>void;onPrepare:()=>void;onEdit:()=>void;onPrint:()=>void;onDownload:()=>void;onInvoice:()=>void;onConfirmShipment:()=>void;busy:boolean}){
+export function OrderDrawer({order,shippingPrice,validationIssues,productImages,onClose,onPrepare,onEdit,onPrint,onDownload,onInvoice,onConfirmShipment,busy}:{order:FulfillmentOrder;shippingPrice:ShippingPricePreview|null;validationIssues:OrderValidationIssue[];productImages:Record<string,string>;onClose:()=>void;onPrepare:()=>void;onEdit:()=>void;onPrint:()=>void;onDownload:()=>void;onInvoice:()=>void;onConfirmShipment:()=>void;busy:boolean}){
   const {settings}=useSettings();
   const [trackingLink,setTrackingLink]=useState<string|null>(trackingUrlForOrder(order));
   useEffect(()=>{
     let cancelled=false;
     const recorded=trackingUrlForOrder(order);
     setTrackingLink(recorded);
-    if(recorded||!order.trackingNumber)return;
+    if(order.piiPurgedAt||recorded||!order.trackingNumber)return;
     void getOrderTrackingLink(order.id).then(result=>{
       if(cancelled)return;
       setTrackingLink(result.url);
     }).catch(()=>{/* Missing tracking links leave this optional action hidden. */});
     return()=>{cancelled=true};
-  },[order.id,order.trackingNumber,order.trackingUrl,order.carrierTrackingUrl]);
+  },[order.id,order.piiPurgedAt,order.trackingNumber,order.trackingUrl,order.carrierTrackingUrl]);
   const labelled=hasShippingLabel(order),state=orderState(order),tracking=trackingState(order),canPrepare=canPrepareOrder(order);
   return <div className="ordersDrawerBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget)onClose()}}><aside className="ordersDrawer">
     <div className="ordersDrawerHead"><div><span className={`ordersChannel ${order.sourceChannel}`}>{channelLabel(order)}</span><h2>Pedido {order.orderNumber||order.orderId||order.sendcloudId}</h2><p>{dateLabel(order.orderCreatedAt,settings.general)} · {order.integrationName||'Sendcloud'}</p></div><button className="iconBtn" onClick={onClose}><X size={18}/></button></div>
@@ -269,7 +269,7 @@ function OrderDrawer({order,shippingPrice,validationIssues,productImages,onClose
     {(labelled||isProcessedOrder(order))&&<section className="ordersDrawerSection"><h3>Expedición</h3>{tracking.className==='issue'&&(()=>{const detail=trackingDetail(order);return <div className="ordersTrackingIssueDetail"><AlertCircle size={17}/><div><strong>Detalle de la incidencia</strong><span>{detail.title}</span>{detail.raw&&<small>{detail.raw}</small>}{detail.code&&<small>Código: {detail.code}</small>}</div></div>})()}<div className="ordersShipmentInfo"><div><span>Transportista</span><strong>{carrierLabel(order)}</strong></div><div><span>Servicio</span><strong>{order.shippingServiceName||order.shippingOptionCode||'—'}</strong></div><div><span>Fecha pedido</span><strong>{dateLabel(order.orderCreatedAt,settings.general)}</strong></div><div><span>Fecha etiqueta</span><strong>{dateLabel(labelTimestamp(order),settings.general)}</strong></div><div><span>Seguimiento</span><strong><span className={`ordersTracking ${tracking.className}`} data-zenvia-tooltip={order.trackingStatusMessage||tracking.label} aria-label={order.trackingStatusMessage||tracking.label}>{tracking.label}</span></strong></div>{order.trackingUpdatedAt&&<div><span>Última actualización</span><strong>{dateLabel(order.trackingUpdatedAt,settings.general)}</strong></div>}<div><span>Tracking</span><strong>{order.trackingNumber||'—'}</strong></div><div><span>Impresión</span><strong>{order.labelPrintedAt?`Impreso · ${order.labelPrintCount||1} vez${(order.labelPrintCount||1)===1?'':'es'}`:order.labelPrintStateKnown?'No impreso':'Sin información histórica'}</strong></div>{trackingLink&&<a href={trackingLink} target="_blank" rel="noreferrer">Abrir seguimiento <ExternalLink size={14}/></a>}</div></section>}
     {order.sourceChannel==='shopify'&&labelled&&!isProcessedOrder(order)&&<section className="ordersDrawerSection"><h3>Confirmación del envío</h3><p>Reintenta con la etiqueta y el seguimiento ya existentes.</p><button className="secondary" disabled={busy} onClick={onConfirmShipment}><Truck size={16}/> Confirmar envío en Shopify</button></section>}
     {order.sourceChannel==='shopify'&&<section className="ordersDrawerSection"><h3>Factura</h3><p>La facturación es opcional y manual. No se emite al crear la etiqueta.</p><button className="secondary" onClick={onInvoice} disabled={busy}><FileText size={16}/> Generar / ver factura</button></section>}
-    <div className="ordersDrawerActions">{labelled?<><button className="secondary" disabled={busy} onClick={onDownload}><Download size={16}/> Descargar</button><button className="primary" disabled={busy} onClick={onPrint}><Printer size={16}/> Imprimir</button></>:canPrepare?<><button className="secondary" disabled={busy} onClick={onEdit}><Pencil size={16}/> Editar pedido</button><button className="primary" disabled={busy} onClick={onPrepare}>{busy?<><LoaderCircle className="spin" size={16}/> Preparando…</>:<><Truck size={16}/> Preparar etiqueta</>}</button></>:<div className={`ordersNoAction ${state.className}`}><AlertCircle size={16}/><span>{isCancelledOrder(order)?'Pedido cancelado. No se puede generar etiqueta.':'Este pedido ya está procesado.'}</span></div>}</div>
+    <div className="ordersDrawerActions">{order.piiPurgedAt?<div className="ordersNoAction"><AlertCircle size={16}/><span>Datos personales eliminados. Envío y etiquetas no disponibles.</span></div>:labelled?<><button className="secondary" disabled={busy} onClick={onDownload}><Download size={16}/> Descargar</button><button className="primary" disabled={busy} onClick={onPrint}><Printer size={16}/> Imprimir</button></>:canPrepare?<><button className="secondary" disabled={busy} onClick={onEdit}><Pencil size={16}/> Editar pedido</button><button className="primary" disabled={busy} onClick={onPrepare}>{busy?<><LoaderCircle className="spin" size={16}/> Preparando…</>:<><Truck size={16}/> Preparar etiqueta</>}</button></>:<div className={`ordersNoAction ${state.className}`}><AlertCircle size={16}/><span>{isCancelledOrder(order)?'Pedido cancelado. No se puede generar etiqueta.':'Este pedido ya está procesado.'}</span></div>}</div>
   </aside></div>;
 }
 
@@ -707,7 +707,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     }catch(e){showError(errorMessage(e,'Las etiquetas se generaron, pero no se pudo preparar el ZIP.'))}
     finally{setBulkGenerating(false);setBulkProgress('');activity.finish()}
   };
-  const configuredBulkTargets=settings.orders.bulkScope==='selected'?selectedOrders:pendingOrders;
+  const configuredBulkTargets=settings.orders.bulkScope==='selected'?selectedOrders:pendingOrders.filter(canPrepareOrder);
   const openBulkPreview=async(targets:FulfillmentOrder[],scope:'pendientes'|'seleccionadas')=>{
     if(!targets.length)return;
     if(bulkGenerating||bulkPreview?.loading)return;

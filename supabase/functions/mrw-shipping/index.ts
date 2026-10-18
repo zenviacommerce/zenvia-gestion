@@ -1,4 +1,5 @@
 import {assertHumanMfa} from '../_shared/mfa.ts';
+import {withAmazonBuyerRead} from '../_shared/amazonPiiRead.ts';
 import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -156,6 +157,8 @@ Deno.serve(async(req:Request)=>{
     const orderId=clean(body?.orderId);if(!orderId)return response({error:'Falta el pedido.'},400);
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('owner_id',caller.data_owner_id).eq('id',orderId).maybeSingle();
     if(error)throw error;if(!order)return response({error:'Pedido no encontrado.'},404);
+    if(order.pii_purged_at)return response({error:'Los datos personales de este pedido se han eliminado por retención.'},410);
+    return await withAmazonBuyerRead(admin,order,async()=>{
     if(action==='options'||action==='create_label')assertAmazonOrderShippable(order);
     if(action==='create_label'){
       if(order.shipping_remote_id&&order.shipping_provider==='mrw')action='fetch_label';
@@ -226,6 +229,7 @@ Deno.serve(async(req:Request)=>{
     }
 
     return response({error:'Acción no válida.'},400);
+    },(message,status)=>response({error:message},status));
   }catch(error){
     const message=error instanceof Error?error.message:'Error interno.';
     return response({error:message},/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:/requiere|Faltan|Completa|no tiene/.test(message)?409:500);

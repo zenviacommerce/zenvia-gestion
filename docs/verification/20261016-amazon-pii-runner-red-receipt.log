@@ -1,0 +1,38 @@
+✖ real runner previews without writes, then purges exactly ten canonical orders with idempotent retry (840.697063ms)
+✔ real runner fails closed before deployment/reconciliation and pilot verification (607.193582ms)
+✔ pilot shortage, leases, young duplicates and invalid limit cannot become a partial pilot (630.875885ms)
+✔ known control-copy scrub is bounded, dry-run identical, preserves control and guards future JSON/errors (610.173168ms)
+✔ runner removes legacy external capability IDs and reports policy skips without touching invoices (555.320072ms)
+✔ canonical duplicates are all redacted and remaining batches require explicit pilot smoke verification (651.949076ms)
+✔ a failure after a candidate update rolls back the entire pilot, tombstones and receipt (530.174149ms)
+✔ ordinary clients cannot call privileged runner or change its gates and control checkpoints reject PII (531.828237ms)
+✔ real full Amazon page import cannot repopulate operational copies and keeps normalized economic facts (862.039928ms)
+✔ conflicting valid Amazon references cannot bypass a tombstone on insert or update in either direction (544.990525ms)
+✔ duplicate-row budget rejects an oversized canonical batch without mutations (555.405034ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 10
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7036.582122
+
+✖ failing tests:
+
+test at scripts/amazon-pii-runner.test.mjs:22:1
+✖ real runner previews without writes, then purges exactly ten canonical orders with idempotent retry (840.697063ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+
+  undefined !== 0
+
+      at TestContext.<anonymous> (file:///workspace/scratch/0d3486ed1618/purge-readiness/scripts/amazon-pii-runner.test.mjs:25:137)
+      at async Test.run (node:internal/test_runner/test:1389:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:387:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

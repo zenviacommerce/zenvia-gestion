@@ -39,7 +39,7 @@ beforeAll(async()=>{
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016191517_admin_mfa_security.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016194211_admin_mfa_oauth_actor_binding.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261017192500_admin_mfa_adaptive_recovery.sql',import.meta.url),'utf8'));
- await db.exec(readFileSync(new URL('../supabase/migrations/20261018233000_mfa_voluntary_first_factor.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261018214155_mfa_voluntary_first_factor.sql',import.meta.url),'utf8'));
 });
 afterAll(async()=>{await db?.close()});
 async function claims(aal='aal2',age=0){await db.query(`select set_config('request.jwt.claims',$1,false)`,[JSON.stringify({sub:uid,session_id:sid,aal,iat:Math.floor(Date.now()/1000),amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)-age}]})]);}

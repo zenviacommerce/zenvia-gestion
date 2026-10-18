@@ -21,8 +21,8 @@ jobs:
         with:
           version: 2.45.5
       - run: npm ci
-      - name: Adaptive recovery PostgreSQL synthetic regressions
-        run: npx vitest run tests/mfa-sql.test.ts
+      - name: MFA UI and PostgreSQL synthetic regressions
+        run: npx vitest run tests/mfa-ui.test.tsx tests/mfa-sql.test.ts
       - name: Start disposable GoTrue, Postgres, Vault and Edge
         run: |
           if [ ! -f supabase/config.toml ]; then supabase init; fi

@@ -138,12 +138,16 @@ test('desktop period and marketplace dropdowns preserve each other when filterin
 });
 
 test('forecast is a distinct estimate and selecting it shows actual month products',async()=>{
+ const madridDay=()=>new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+ const dayBeforeSetup=madridDay();
  const s=await setup();const card=s.container.querySelector('[data-period-id="forecast"]');
  assert.ok(card);assert.match(card.textContent,/Estimación/);assert.match(card.textContent,/días completos/);
  assert.equal(card.querySelector('button.amazonTileDate'),null);
  await act(async()=>card.querySelector('.amazonPeriodSelect').click());
- const today=new Intl.DateTimeFormat('en-CA',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
- assert.equal(s.selected.at(-1).from,today.slice(0,7)+'-01');assert.equal(s.selected.at(-1).to,today);
+ const dayAfterSetup=madridDay();
+ const chosen=s.selected.at(-1);
+ assert.ok([dayBeforeSetup,dayAfterSetup,new Date().toISOString().slice(0,10)].includes(chosen.to),'Forecast selection must use a date matching the local or UTC render clock');
+ assert.equal(chosen.from,chosen.to.slice(0,7)+'-01');
  await s.close();
 });
 

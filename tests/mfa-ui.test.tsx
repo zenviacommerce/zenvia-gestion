@@ -1,14 +1,14 @@
 import {act,cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
-const sdk=vi.hoisted(()=>({rpc:vi.fn(),enroll:vi.fn(),challenge:vi.fn(),verify:vi.fn(),getSession:vi.fn(),onAuthStateChange:vi.fn(),signOut:vi.fn(),refreshSession:vi.fn(),unenroll:vi.fn(),callback:null as null|((e:string,s:any)=>void)}));
-vi.mock('../src/services/supabase',()=>({hasActiveTenant:()=>true,getActiveTenant:()=>({workspace_id:'tenant'}),getActiveSupabase:()=>({auth:{getSession:sdk.getSession,onAuthStateChange:sdk.onAuthStateChange,signOut:sdk.signOut,refreshSession:sdk.refreshSession,mfa:{enroll:sdk.enroll,challenge:sdk.challenge,verify:sdk.verify,unenroll:sdk.unenroll}},rpc:sdk.rpc}),supabase:{rpc:sdk.rpc,auth:{signOut:sdk.signOut,refreshSession:sdk.refreshSession,mfa:{enroll:sdk.enroll,challenge:sdk.challenge,verify:sdk.verify,unenroll:sdk.unenroll}}}}));
+const sdk=vi.hoisted(()=>({rpc:vi.fn(),enroll:vi.fn(),challenge:vi.fn(),verify:vi.fn(),getSession:vi.fn(),onAuthStateChange:vi.fn(),signOut:vi.fn(),refreshSession:vi.fn(),unenroll:vi.fn(),listFactors:vi.fn(),callback:null as null|((e:string,s:any)=>void)}));
+vi.mock('../src/services/supabase',()=>({hasActiveTenant:()=>true,getActiveTenant:()=>({workspace_id:'tenant'}),getActiveSupabase:()=>({auth:{getSession:sdk.getSession,onAuthStateChange:sdk.onAuthStateChange,signOut:sdk.signOut,refreshSession:sdk.refreshSession,mfa:{enroll:sdk.enroll,challenge:sdk.challenge,verify:sdk.verify,unenroll:sdk.unenroll,listFactors:sdk.listFactors}},rpc:sdk.rpc}),supabase:{rpc:sdk.rpc,auth:{signOut:sdk.signOut,refreshSession:sdk.refreshSession,mfa:{enroll:sdk.enroll,challenge:sdk.challenge,verify:sdk.verify,unenroll:sdk.unenroll,listFactors:sdk.listFactors}}}}));
 import {MfaProvider,useMfaAccess} from '../src/context/MfaContext';
 import {MfaDevices} from '../src/components/MfaDevices';
 import {MfaScreen} from '../src/components/MfaScreen';
 import {sensitiveRPC} from '../src/services/mfa';
 const session={user:{id:'user'},access_token:'token'};
 function Probe(){const m=useMfaAccess();return m.ready?<div>Protected content</div>:<MfaScreen/>}
-beforeEach(()=>{vi.clearAllMocks();sdk.getSession.mockResolvedValue({data:{session},error:null});sdk.onAuthStateChange.mockImplementation((cb:any)=>{sdk.callback=cb;return {data:{subscription:{unsubscribe:vi.fn()}}}});sdk.rpc.mockResolvedValue({data:{state:'ready',factor_ids:['factor']},error:null});sdk.challenge.mockResolvedValue({data:{id:'challenge'},error:null});sdk.verify.mockResolvedValue({data:{},error:null});sdk.unenroll.mockResolvedValue({data:{},error:null});sdk.refreshSession.mockResolvedValue({data:{session},error:null});});
+beforeEach(()=>{vi.clearAllMocks();sdk.getSession.mockResolvedValue({data:{session},error:null});sdk.onAuthStateChange.mockImplementation((cb:any)=>{sdk.callback=cb;return {data:{subscription:{unsubscribe:vi.fn()}}}});sdk.rpc.mockResolvedValue({data:{state:'ready',factor_ids:['factor']},error:null});sdk.challenge.mockResolvedValue({data:{id:'challenge'},error:null});sdk.verify.mockResolvedValue({data:{},error:null});sdk.unenroll.mockResolvedValue({data:{},error:null});sdk.listFactors.mockResolvedValue({data:{totp:[]},error:null});sdk.refreshSession.mockResolvedValue({data:{session},error:null});});
 afterEach(cleanup);
 it('does not mount protected content before backend authority resolves',async()=>{let resolve:any;sdk.rpc.mockImplementation(()=>new Promise(r=>{resolve=r}));render(<MfaProvider><Probe/></MfaProvider>);expect(screen.queryByText('Protected content')).toBeNull();await waitFor(()=>expect(resolve).toBeTypeOf('function'));await act(async()=>resolve({data:{state:'ready',factor_ids:[]},error:null}));expect(await screen.findByText('Protected content')).toBeTruthy();});
 it('fails closed on unavailable RPC and allows deliberate retry',async()=>{sdk.rpc.mockResolvedValueOnce({data:null,error:{message:'503'}});render(<MfaProvider><Probe/></MfaProvider>);expect(await screen.findByText('Seguridad temporalmente no disponible')).toBeTruthy();expect(screen.queryByText('Protected content')).toBeNull();fireEvent.click(screen.getByText('Reintentar'));expect(await screen.findByText('Protected content')).toBeTruthy();});
@@ -43,3 +43,23 @@ it('voluntary second-factor management does not grant a recovery-locked user sel
  expect(await screen.findByText('Recuperación protegida')).toBeTruthy();
  expect(screen.queryByRole('button',{name:'Añadir autenticador'})).toBeNull();
 });
+
+it('shows fresh-login guidance when adding a backup with an old session',async()=>{sdk.rpc.mockImplementation((name:string)=>Promise.resolve(name==='security_mfa_status'?{data:{state:'ready',factor_ids:['factor']},error:null}:{data:null,error:{message:'MFA_SESSION_REQUIRED'}}));render(<MfaProvider><MfaDevices/></MfaProvider>);fireEvent.click(await screen.findByRole('button',{name:'Añadir otro autenticador'}));expect(await screen.findByText(/se creó antes de registrar el primer factor/)).toBeTruthy();});
+
+it('retains mounted authorized UI during TOKEN_REFRESHED and visibilitychange until a changed authorization arrives',async()=>{
+ let finish:any;
+ sdk.rpc.mockResolvedValue({data:{state:'ready',factor_ids:[]},error:null});
+ render(<MfaProvider><Probe/></MfaProvider>);
+ expect(await screen.findByText('Protected content')).toBeTruthy();
+ sdk.rpc.mockImplementation(()=>new Promise(resolve=>{finish=resolve}));
+ await new Promise(resolve=>setTimeout(resolve,1550));
+ await act(async()=>{sdk.callback?.('TOKEN_REFRESHED',session);document.dispatchEvent(new Event('visibilitychange'));});
+ expect(screen.getByText('Protected content')).toBeTruthy();
+ expect(screen.queryByText('Comprobando seguridad…')).toBeNull();
+ await waitFor(()=>expect(finish).toBeTypeOf('function'));
+ await act(async()=>finish({data:{state:'ready',factor_ids:[]},error:null}));
+ expect(screen.getByText('Protected content')).toBeTruthy();
+ expect(screen.queryByText('Comprobando seguridad…')).toBeNull();
+});
+
+it('shows correct protected state after two devices',async()=>{sdk.rpc.mockResolvedValue({data:{state:'ready',factor_ids:['first','second']},error:null});render(<MfaProvider><MfaDevices/></MfaProvider>);expect(await screen.findByText(/Protegida con 2 dispositivos/)).toBeTruthy();});

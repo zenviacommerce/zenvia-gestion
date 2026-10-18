@@ -62,3 +62,10 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Pre-optimization AAL1 EXPLAIN ANALYZE average milliseconds (three warmed runs): fulfillment_orders 4.601, products 0.641, sales_invoices 0.667; dropping only MFA policies inside rolled-back transaction: 0.415, 0.401, 0.434.
 - Fast-path SQL proposed `20261018123000_admin_mfa_rls_fast_path.sql`: when disabled, check only account recovery locks; otherwise retain original `mfa_error(false)` behavior. Tested inside BEGIN/ROLLBACK: average milliseconds 1.090, 0.642, 0.603 (four runs). CI was started; **do not deploy SQL optimization or any Edge batch until MFA integration CI passes and optimization is applied/verified**.
 - `pg_stat_statements` historical query means mix pre/post Phase A and cannot prove an isolated before/after; EXPLAIN transaction tests are the controlled comparison.
+
+### 2026-10-18 10:34 UTC — RLS fast-path verified and applied
+- Migration `20261018123000_admin_mfa_rls_fast_path.sql` applied to production; registry version aligned to the file version.
+- Green integration run [39119496157](https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39119496157) plus green build/Auth tests on commit `92b20107`.
+- Production AAL1 synthetic admin and ordinary user RPC and list reads inside ROLLBACK passed after optimization; MFA still disabled.
+- Amazon 10:25 cohort nine jobs all `success` with one attempt, 0 failed/active leases, finishing in 10:30 worker cycle. No worker/cron changes.
+- Phase B **not yet begun** at this journal entry; plan small batch of 3 non-Amazon/non-shipping Edge Functions. Snapshot located on `safety/mfa-production-snapshot-20261018`.

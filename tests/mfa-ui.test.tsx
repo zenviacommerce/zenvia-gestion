@@ -61,3 +61,5 @@ it('retains mounted authorized UI during TOKEN_REFRESHED and visibilitychange un
  expect(screen.getByText('Protected content')).toBeTruthy();
  expect(screen.queryByText('Comprobando seguridad…')).toBeNull();
 });
+
+it('shows correct protected state after two devices',async()=>{sdk.rpc.mockResolvedValue({data:{state:'ready',factor_ids:['first','second']},error:null});render(<MfaProvider><MfaDevices/></MfaProvider>);expect(await screen.findByText(/Protegida con 2 dispositivos/)).toBeTruthy();});

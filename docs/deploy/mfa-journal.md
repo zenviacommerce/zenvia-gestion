@@ -139,3 +139,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 
 ### Batch 3 / step 3 — platform-bridge
 - Deployed v30 (baseline v29), `verify_jwt=false` preserved, existing x-platform-token authentication preserved and MFA bridge guard added. User BEFORE tested administrative app and integrations, but Platform browser AFTER verification still pending. No plan/customer mutations. Exact rollback source edge-20261018/platform-bridge.json on safety branch.
+
+### Batch 4 / step 1 — order-logistics-state
+- Deployed v16 (snapshot v15), verify_jwt=true preserved, original user-session authentication, order data and PII guards retained; MFA guard added. No order or shipment created/modified; no carrier requests. Baseline nonexistent workspace/order internal-key probe #1594 HTTP 401 (not 200; user JWT required). Safe post-deploy probe pending; browser AFTER check pending. Rollback source safety/mfa-production-snapshot-20261018/edge-20261018/order-logistics-state.json.

@@ -73,3 +73,7 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 ### Phase B batch 1, step 1 — app-agent-tools
 - Deployed version 6 using archived production bundle + MFA shared guard, verify_jwt=true. Pre-deployment probe (request 1569) returned HTTP 401 `Sesión no válida.`; post-deployment (1572) returned exactly HTTP 401 and same body. No authenticated user-flow test performed.
 - Rollback: source files in `safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/edge-20261018/app-agent-tools.json`; deploy source preserving verify_jwt.
+
+### Phase B batch 1, step 2 — invoice-document-intelligence
+- Deployed version 8 with unchanged business source plus MFA guard, verify_jwt=true. Pre probe request 1570: HTTP 401 `Sesión no válida.`; post probe 1573: HTTP 401, same body. No authorized user flow exercised.
+- Rollback source snapshot: `edge-20261018/invoice-document-intelligence.json` on safety branch.

@@ -13,7 +13,7 @@ export async function assertMfaWithClient(
 
 /** Bridge secret authentication is performed before this call. The actor UUID must
  * come from the trusted Platform request; missing actors fail closed under MFA. */
-export async function assertBridgeMfaAllowed(admin:{rpc:(name:string,args?:Record<string,unknown>)=>PromiseLike<any>},actorUserId:string|null){
-  const {data,error}=await admin.rpc('security_mfa_bridge_allowed',{p_actor_user_id:actorUserId});
+export async function assertBridgeMfaAllowed(admin:{rpc:(name:string,args?:Record<string,unknown>)=>PromiseLike<any>},actor:{id:string;email:string},action:string){
+  const {data,error}=await admin.rpc('security_mfa_bridge_allowed',{p_actor_id:actor.id,p_actor_email:actor.email,p_action:action});
   if(error||data!==true)throw new Error('MFA_BRIDGE_DELEGATION_REQUIRED');
 }

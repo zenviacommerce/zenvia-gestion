@@ -815,6 +815,7 @@ Deno.serve(async(req:Request)=>{
     return fail('Acción no válida.',404);
   }catch(error){
     console.error(error);
-    return fail(error instanceof Error?error.message:'Error interno.',500);
+    const message=error instanceof Error?error.message:'Error interno.';
+    return fail(message,message==='MFA_BRIDGE_DELEGATION_REQUIRED'?403:500);
   }
 });

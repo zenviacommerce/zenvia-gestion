@@ -248,3 +248,8 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - At 18:25 UTC, normal Amazon worker cycle had one `running` and one `queued` job created at 18:25:03, not yet failed. Verify resolution in the next scheduled cycle, do not misstate queue empty.
 - Strict cohort only when later independently approved to enable: direct MFA, RLS, recovery status, promotion trigger now check the selected cohort; bridge verifies Platform operator identity via its own authenticated backend profile, rejects pilot email/ID, permits operators outside cohort, allows only apply_plan_snapshot for system:plan-sync. Global activation schema-audit remains intentionally fail-closed.
 - Deployment stops after SQL. `platform-bridge/index.ts` and `_shared/mfa-policy.ts` CHANGED in PR #228, so a **separate small Edge deployment turn with before/after browser checks** remains required; any future pilot must NOT be activated until that Edge change has passed production testing. No pilot flag/cohort activation and no factors changed.
+
+### SQL Phase A final health close — 2026-10-18 after 18:25 UTC cycle
+- Amazon worker cron 8 at 18:25 UTC: `succeeded`. The previously observed `running`/`queued` jobs cleared by the next observation: **zero jobs outside success/superseded**, zero held leases among unresolved jobs, no failed jobs. Cron 15 (PII purge) remains active, schedule `30 2 * * *` UTC.
+- Auth logs 18:18–18:35 UTC: 4 records, **0 5xx**. MFA remains disabled; no nonpilot forced TOTP requests were activated by this SQL phase.
+- SQL phase **closed**. No Edge / frontend changes in this turn; awaiting explicit approval for a one-function Platform bridge Edge batch and user browser comparison. Pilot remains OFF.

@@ -61,7 +61,7 @@ export function MfaProvider({children}:{children:ReactNode}){
     if(effective.state!=='ready')clearSensitive();
     lastCheckedAt.current=Date.now();
     setStatus(previous=>JSON.stringify(previous)===JSON.stringify(effective)?previous:effective);
-   }catch{if(!cancelled&&current===generation){if(statusRef.current.state!=='ready'){clearSensitive();setStatus({state:'temporarily_unavailable',factor_ids:[]});}}}
+   }catch{if(!cancelled&&current===generation){clearSensitive();setStatus({state:'temporarily_unavailable',factor_ids:[]});}}
   };
   const schedule=(urgent=false)=>{if(cancelled)return;if(!urgent&&statusRef.current.state==='ready'&&Date.now()-lastCheckedAt.current<1500)return;clearTimeout(timer);timer=setTimeout(()=>{if(!cancelled)void check()},urgent?0:150)};
   // Never await SDK methods inside the Auth callback: it can hold the Auth lock.

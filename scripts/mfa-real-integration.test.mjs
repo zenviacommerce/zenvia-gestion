@@ -1,7 +1,7 @@
 import {test,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {writeFileSync} from 'node:fs';
-import {randomBytes} from 'node:crypto';
+import {randomBytes,createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {createClient} from '@supabase/supabase-js';
 import {totpCode} from './local-auth-mfa-fixture.mjs';
@@ -135,6 +135,68 @@ gate('GoTrue factor revocation and re-enrollment',async()=>{
  const f=must(await admin.auth.admin.mfa.listFactors({userId:secondary.id}),'factor list');
  assert.equal(f.factors?.some(x=>x.id===secondary.factor),false);
 });
+gate('Real GoTrue cohort isolation: pilot AAL1 blocked, outside admin and normal user allowed in RPC/Edge',async()=>{
+  assert.ok(primary?.id&&secondary?.id);
+  const ordinary=await addAdmin(primary.id,false);
+  sql(`update public.app_users set role='user' where user_id='${ordinary.id}';
+  update private.mfa_configuration
+  set cohort_user_ids=array['${primary.id}'::uuid],enabled=true;`);
+  // Cohort owner has an admitted TOTP factor but starts a fresh AAL1 session.
+  const ownerAal1=client();
+  must(await ownerAal1.auth.signInWithPassword({email:primary.email,password:primary.password}),'owner AAL1');
+  const refused=await ownerAal1.rpc('security_mfa_assert',{p_recent:false});
+  assert.ok(refused.error?.message?.includes('MFA_REQUIRED'),'Cohort admin AAL1 was not challenged');
+  const outside=client();
+  must(await outside.auth.signInWithPassword({email:secondary.email,password:secondary.password}),'outside admin AAL1');
+  must(await outside.rpc('security_mfa_assert',{p_recent:false}),'outside admin RPC');
+  const list=await outside.functions.invoke('admin-users',{body:{action:'list'}});
+  assert.equal(list.error,null,'Outside-cohort admin Edge invocation was rejected');
+  const ordinaryClient=client();
+  must(await ordinaryClient.auth.signInWithPassword({email:ordinary.email,password:ordinary.password}),'ordinary user AAL1');
+  must(await ordinaryClient.rpc('security_mfa_assert',{p_recent:false}),'ordinary user RPC');
+  const edge=await ordinaryClient.functions.invoke('admin-users',{body:{action:'list'}});
+  assert.ok(!JSON.stringify(edge).includes('MFA_'),'Ordinary user received cohort MFA rejection');
+  // This user does not have admin permissions, so the Edge may deny on role.
+  // The denial must NOT be attributed to pilot MFA.
+  sql(`update private.mfa_configuration set enabled=false,cohort_user_ids=null;
+    delete from public.app_users where user_id='${ordinary.id}';`);
+});
+
+gate('Real service-only Platform bridge: outside admins and users work; cohort operator is denied',async()=>{
+  // Uses only a disposable bridge token in Docker; never a production secret.
+  const token='mfa-ci-disposable-'+suffix;
+  const hash=createHash('sha256').update(token).digest('hex');
+  sql(`insert into public.platform_bridge_secrets(secret_id,token_sha256,active)
+     values('primary','${hash}',true)
+     on conflict(secret_id) do update set token_sha256=excluded.token_sha256,active=true;`);
+  // Recreate a disposable ordinary user not subject to the pilot.
+  const ordinary=await addAdmin(primary.id,false);
+  sql(`update public.app_users set role='user' where user_id='${ordinary.id}';
+    update private.mfa_configuration set enabled=true,cohort_user_ids=array['${primary.id}'::uuid];`);
+  const urlBridge=url+'/functions/v1/platform-bridge';
+  const bridge=async(actorEmail)=>{
+    const response=await fetch(urlBridge,{
+      method:'POST',
+      headers:{'content-type':'application/json','x-platform-token':token},
+      body:JSON.stringify({action:'resolve_identity',workspaceId:primary.id,email:secondary.email,
+        actor:{id:'test-platform-actor',email:actorEmail,name:'CI actor'}})
+    });
+    const data=await response.json().catch(()=>({}));
+    return {status:response.status,data};
+  };
+  const outside=await bridge(secondary.email);
+  assert.equal(outside.status,200,'Outside-cohort admin delegation unavailable');
+  assert.equal(outside.data.exists,true,'Bridge identity lookup lost access');
+  const normal=await bridge(ordinary.email);
+  assert.equal(normal.status,200,'Ordinary user delegation unavailable');
+  const owner=await bridge(primary.email);
+  assert.ok(owner.status>=400,'Cohort owner bypassed delegated MFA');
+  assert.ok(String(owner.data.error||'').includes('MFA_BRIDGE_DELEGATION_REQUIRED'));
+  sql(`update private.mfa_configuration set enabled=false,cohort_user_ids=null;
+    delete from public.app_users where user_id='${ordinary.id}';
+    delete from public.platform_bridge_secrets where secret_id='primary';`);
+});
+
 gate('Real Edge denies unauthenticated or AAL1 calls (not 404)',async()=>{
  const unauth=await fetch(url+'/functions/v1/platform-bridge',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});
  assert.notEqual(unauth.status,404,'Edge function not served; cannot claim denial');

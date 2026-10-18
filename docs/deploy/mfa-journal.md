@@ -222,3 +222,39 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - **BLOCKER identified during code review:** production `public.security_mfa_bridge_allowed()` currently returns `not enabled and not exists(...pending states...)`; therefore enabling MFA even for a single-user cohort will deny **all** platform-bridge delegations globally. Separate explicit design/code/CI acceptance required before any pilot that promises no impact to the other four users. Do not bypass the bridge with service_role; delegate safely or account for this downtime.
 - Enrollment requires service-only `security_mfa_authorize_enrollment` and recovery workflow; the initial challenge UI is `MfaScreen` gating App; secondary authenticator control `MfaDevices` in Configuración (admin-only), visible only if `factor_ids.length>0` (therefore not visible for an unenrolled user with disabled feature). The 15-minute AAL1 enforcement means immediate challenge on next login after first TOTP registration.
 - Pilot, factor changes, global AAL2 and bridge modification **NOT authorized/executed**. User will explicitly schedule pilot after preparation.
+
+### Bridge cohort correction follow-up — 2026-10-18, NOT DEPLOYED
+- User requested genuine backend pre/post calls for (a) delegation from an operator outside cohort, (b) system:plan-sync, and (c) no service token rejection.
+- Existing production `platform-bridge` v30 calls the zero-argument `security_mfa_bridge_allowed()` despite cohort-sensitive three-argument SQL installed; this is a verified caller mismatch.
+- New branch `fix/mfa-platform-bridge-actor-20261018` changes shared `_shared/mfa-policy.ts` to send actor id, email and action to SQL, and `platform-bridge/index.ts` to parse the body **after verifying the bridge token** and bind those values to the authorization call. Added a static regression test in `scripts/platform-bridge.test.mjs`.
+- SQL transaction simulation with enabled=true, one-user cohort, then ROLLBACK: outside-cohort operator allowed=true, system:plan-sync allowed=true, missing actor=false. This is not a live bridge HTTP test.
+- No plaintext `x-platform-token` is available via the connected tools; the `platform_bridge_secrets` table holds its hash and no related Vault name was found. Real authenticated pre-deployment bridge calls cannot be reproduced here without the authorized service caller. **No production redeploy**, no production MFA activation, no secret extraction. Need real authorized internal caller test plus CI and a user-visible platform read-only screen check before deploy.
+- Production MFA flag confirmed enabled=false. User's pilot and any expansion of Amazon access remain NOT activated.
+- Design-only future requirements: all users with Amazon data access; failed login/TOTP lockout and anomaly detection; annual client secret rotation using Amazon Application Management API and annual LWA refresh-token reauthorization with dual-app staged cutover. No design-only item implemented.
+
+### Cohort bridge fix CI result — 2026-10-18
+- Draft PR #230 contains caller-to-SQL binding and updated tests, **NOT DEPLOYED**. CI green: Build check #39160752105, Auth resilience #39160752065, Build ZENVIA Gestión #39160752074, MFA real integration (GoTrue/Vault) #39160752098.
+- Verified live production no-platform-token HTTP probe request #1970: HTTP 401 `{\"error\":\"Puente no autorizado.\"}`; no service delegation executed. SQL transaction simulation with temporary enabled=true + one user cohort and ROLLBACK produced outside-cohort operator=true, system:plan-sync=true, missing actor=false; production remains enabled=false.
+- **Release gate still unmet**: real authorized bridge calls with valid x-platform-token from existing trusted Platform backend for outside-cohort operator and system:plan-sync before/after. Only token hash in public.platform_bridge_secrets and no matching Vault name; cannot honestly claim those HTTP results. Do not extract token, bypass guard, merge or deploy until verified safe authenticated calls are available.
+- User requested UI check: ZENVIA Platform → Clientes list, selected client details, users/integrations; platform plans screen exercises bridge on an actual plan sync but must not mutate live plan merely for testing. Exact custom Platform hostname not verified.
+
+### Platform bridge PR #230 — production Edge step, 2026-10-18 20:58 UTC
+- User authorized ONLY platform-bridge deploy after real Platform BEFORE baseline: ZENVIA customer 5 active users, Amazon / Envia.com / 2 Gmail / MRW / Sendcloud connected; browser console clean. Real predeploy bridge calls observed 20:55–20:56 UTC HTTP 200.
+- Production preflight: `private.mfa_configuration.enabled=false`, `cohort_user_ids=NULL`. Live `platform-bridge` v30, `verify_jwt=false`.
+- Exact predeploy complete bundle (five files, original verify_jwt=false, ezbr_sha256 b4321683aeeb1680d6f88a20d8f3640a212cfc4d4c0073f860cf021b9a9bd618) persisted to `safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/edge-20261018/platform-bridge-pre-pr230-v30.json`, safety commit `33111a8522c5b034484e58dddbc847032cc4d82a`.
+- Deployed ONLY `platform-bridge` v31 (ezbr_sha256 `66e9d0d3f569f2b6217752a40f1f6ba3ea5c17cd82d735e5470fd39c07af2414`), `verify_jwt=false`. Source index diff exclusively changes MFA check from zero-argument to `actor,action` after service token verification; `_shared/mfa-policy.ts` sends p_actor_id, p_actor_email, p_action. Other three production shared modules kept byte-identical.
+- No SQL flags, frontend/Vercel, other Edge Functions, MFA enrollment or global MFA activation changed. Rollback: redeploy all five files from exact v30 JSON with verify_jwt=false; confirm active version and Platform calls.
+- Postdeployment live calls/log evidence and user's AFTER UI acceptance PENDING. Do not claim acceptance yet. STOP after checking logs; if verified real Platform call 5xx, immediately rollback.
+
+### Platform bridge v31 — immediate post-deploy log review / STOP
+- Production deployment update timestamp from Supabase: `1792357104552` (2026-10-18 20:58:24.552 UTC). v31 active confirmed from deploy response.
+- Log query returned two successful real bridge POST 200 at 20:58:06.778 and 20:58:06.919 UTC, **before** v31 deployment timestamp; they cannot be called v31 successes. Earlier 20:55–20:56 UTC calls also returned 200. No later platform-bridge request was present in the inspected latest results.
+- No post-v31 real Platform call error observed, but no post-v31 real successful Platform operation verified either. No rollback triggered on an absent post-deploy call; exact v30 rollback remains ready.
+- STOP NOW for user AFTER browser verification of ZENVIA client 5 active users, same named integrations Connected, browser console and actual bridge calls. If real calls yield 5xx or regress, restore v30 immediately and journal. No SQL/pilot/global MFA change.
+
+### Platform bridge v31 — AFTER accepted (2026-10-18)
+- ZENVIA Platform: user confirmed same five active users and roles, Amazon, Envia.com, two Gmail, MRW and Sendcloud connected, no browser console errors and no writes.
+- Real platform-bridge POST logs at 20:59:07.718 UTC and 20:59:15.681 UTC returned HTTP 200. Both occurred after v31 activation at 20:58:24.552 UTC. No 5xx observed in those requests.
+- All five files in production v31 were checked byte-for-byte against PR #230 branch and matched. JWT setting unchanged (false).
+- Signed Platform read-only flow accepted. MFA remains off; cohort pilot, system plan sync under enabled MFA and recovery tests are not covered by this validation.
+- Rollback: safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/edge-20261018/platform-bridge-pre-pr230-v30.json. No rollback needed.

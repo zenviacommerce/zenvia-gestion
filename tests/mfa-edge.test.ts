@@ -25,10 +25,16 @@ describe('Edge MFA authority',()=>{
   await expect(assertMfaWithClient(new Request('https://edge.test',{headers:{authorization:'Bearer token'}}),false,()=>({rpc:async()=>{throw new Error('network unavailable');}}))).rejects.toThrow('network unavailable');
  });
  it('bridge permits only an explicit server decision',async()=>{
+  const actor={id:'operator-outside-cohort',email:'operator@example.invalid'};
+  const action='resolve_identity';
   for(const result of [{data:false},{data:null},{data:true,error:{message:'unavailable'}}]){
-   await expect(assertBridgeMfaAllowed({rpc:async()=>result})).rejects.toThrow();
+   await expect(assertBridgeMfaAllowed({rpc:async()=>result},actor,action)).rejects.toThrow();
   }
-  await expect(assertBridgeMfaAllowed({rpc:async()=>({data:true,error:null})})).resolves.toBeUndefined();
+  await expect(assertBridgeMfaAllowed({rpc:async(name,args)=>{
+   expect(name).toBe('security_mfa_bridge_allowed');
+   expect(args).toEqual({p_actor_id:actor.id,p_actor_email:actor.email,p_action:action});
+   return {data:true,error:null};
+  }},actor,action)).resolves.toBeUndefined();
  });
 });
 

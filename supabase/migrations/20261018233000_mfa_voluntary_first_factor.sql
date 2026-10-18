@@ -97,6 +97,13 @@ declare p private.mfa_principals; reason text; verified_factors jsonb;begin
  select coalesce(jsonb_agg(f.id),'[]'::jsonb) into verified_factors
  from auth.mfa_factors f where f.user_id=auth.uid() and f.id=any(coalesce(p.admitted_factor_ids,'{}'::uuid[]))
    and f.factor_type::text='totp' and f.status::text='verified';
+ -- Do not mark a user ready if GoTrue knows a verified factor that is not
+ -- admitted by our application. This requires protected recovery, not a bypass.
+ if exists(select 1 from auth.mfa_factors f where f.user_id=auth.uid()
+   and f.factor_type::text='totp' and f.status::text='verified')
+   and jsonb_array_length(verified_factors)=0 then
+   return jsonb_build_object('state','recovery_locked','factor_ids','[]'::jsonb);
+ end if;
  if jsonb_array_length(verified_factors)>0 and auth.jwt()->>'aal'<>'aal2' then
    return jsonb_build_object('state','challenge_required','factor_ids',verified_factors);
  end if;

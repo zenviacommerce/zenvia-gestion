@@ -136,3 +136,6 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 
 ### Batch 3 / step 2 — integration-accounts
 - Deployed v43 (baseline v42), original JWT requirements and Vault/Amazon account logic retained, MFA guard added; `verify_jwt=true` preserved. BEFORE: user's admin session sees ZENVIA COMMERCE SL as default connected, two Shopify accounts, Sendcloud, Envia.com and MRW; no Probar conexión. AFTER admin browser verification pending; no credentials or tokens returned by deployment checks. Exact rollback source edge-20261018/integration-accounts.json on safety branch.
+
+### Batch 3 / step 3 — platform-bridge
+- Deployed v30 (baseline v29), `verify_jwt=false` preserved, existing x-platform-token authentication preserved and MFA bridge guard added. User BEFORE tested administrative app and integrations, but Platform browser AFTER verification still pending. No plan/customer mutations. Exact rollback source edge-20261018/platform-bridge.json on safety branch.

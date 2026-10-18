@@ -63,3 +63,5 @@ it('retains mounted authorized UI during TOKEN_REFRESHED and visibilitychange un
 });
 
 it('shows correct protected state after two devices',async()=>{sdk.rpc.mockResolvedValue({data:{state:'ready',factor_ids:['first','second']},error:null});render(<MfaProvider><MfaDevices/></MfaProvider>);expect(await screen.findByText(/Protegida con 2 dispositivos/)).toBeTruthy();});
+
+it('requires a readable device label before requesting TOTP enrollment',async()=>{sdk.rpc.mockResolvedValue({data:{state:'enrollment_required',factor_ids:[]},error:null});render(<MfaProvider><Probe/></MfaProvider>);fireEvent.click(await screen.findByRole('button',{name:'Configurar autenticador'}));expect(sdk.enroll).not.toHaveBeenCalled();expect(await screen.findByRole('alert')).toBeTruthy();});

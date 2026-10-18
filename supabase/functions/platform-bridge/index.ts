@@ -115,7 +115,7 @@ Deno.serve(async(req:Request)=>{
     const action=asText(body?.action,80);
     // x-platform-token has already been verified. Actor is bound to the trusted
     // Platform request; absence never authorizes delegation with MFA enabled.
-    await assertBridgeMfaAllowed(admin,asText(body?.actor?.id,80)||null);
+    await assertBridgeMfaAllowed(admin,{id:asText(body?.actor?.id,80),email:asText(body?.actor?.email,254)},action);
     const actor={
       id:asText(body?.actor?.id,80),
       email:asText(body?.actor?.email,254),

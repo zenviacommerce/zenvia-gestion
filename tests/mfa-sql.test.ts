@@ -177,3 +177,20 @@ test('recovery_locked denies voluntary first factor even without verified factor
  await claims('aal1');
  await expect(db.query('select public.security_mfa_begin_self_enrollment()')).rejects.toThrow('MFA_SELF_ENROLLMENT_DENIED');
 });
+
+test('mandatory cohort denies voluntary first-factor enrollment',async()=>{
+ await reset();
+ await db.exec(`update auth.mfa_factors set status='unverified'; update private.mfa_configuration set enabled=true,cohort_user_ids=array['${uid}'::uuid]`);
+ await claims('aal1');
+ await expect(db.query('select public.security_mfa_begin_self_enrollment()')).rejects.toThrow('MFA_SELF_ENROLLMENT_ALREADY_REQUIRED');
+});
+test('expired optional enrollment returns to ready and can be restarted without a recovery bypass',async()=>{
+ await reset();
+ await db.exec(`update auth.mfa_factors set status='unverified';update auth.sessions set aal='aal1',factor_id=null`);
+ await claims('aal1');
+ await db.query('select public.security_mfa_begin_self_enrollment()');
+ await db.exec(`update private.mfa_principals set authorization_expires_at=now()-interval '1 minute' where user_id='${uid}'`);
+ expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('ready');
+ await db.query('select public.security_mfa_begin_self_enrollment()');
+ expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('enrollment_required');
+});

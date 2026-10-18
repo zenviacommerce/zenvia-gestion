@@ -27,6 +27,12 @@ const dbContainer=discovery.stdout.trim().split('\n').filter(Boolean)[0];
 assert.ok(dbContainer?.startsWith('supabase_db_'));
 function sql(query){
  const r=spawnSync('docker',['exec','-i',dbContainer,'psql','-X','-v','ON_ERROR_STOP=1','-U','postgres','-d','postgres','-q'],{input:query,encoding:'utf8'});
+ if(r.status!==0 && /MFA_ACTIVATION_BLOCKED/.test(String(r.stderr||''))){
+  const diag=spawnSync('docker',['exec',dbContainer,'psql','-X','-At','-v','ON_ERROR_STOP=1','-U','postgres','-d','postgres','-c',
+    "select entry || ':' || reason from private.mfa_activation_findings()"],{encoding:'utf8'});
+  // Only object identifiers and predefined reason strings, never secrets.
+  throw new Error('Local activation findings: '+String(diag.stdout||diag.stderr||'').slice(0,1600));
+ }
  assert.equal(r.status,0,'Local SQL failed: '+String(r.stderr||'').replace(/ci-nonsecret-disposable-123/g,'[REDACTED]').slice(0,500));
 }
 async function addAdmin(workspaceId,createWorkspace=false){

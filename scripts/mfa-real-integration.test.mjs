@@ -182,11 +182,11 @@ gate('Real GoTrue pilot cohort isolates RPC, Edge and trusted Platform bridge',a
   assert.ok(normalEdge.status>=400&&!normalBody.includes('MFA_'),
     'Ordinary user keeps existing role denial, not MFA denial');
 
-  const bridge=async(userId)=>fetch(url+'/functions/v1/platform-bridge',{
+  const bridge=async(userId,email='ci@example.test')=>fetch(url+'/functions/v1/platform-bridge',{
    method:'POST',
    headers:{'x-platform-token':bridgeToken,'content-type':'application/json',apikey:anon,authorization:'Bearer '+anon},
    body:JSON.stringify({action:'resolve_identity',workspaceId:'00000000-0000-0000-0000-000000000099',
-    email:'nobody@example.test',actor:{id:userId,email:'ci@example.test'}})
+    email:'nobody@example.test',actor:{id:userId,email}})
   });
   const pilotBridge=await bridge(primary.id);
   assert.equal(pilotBridge.status,403,'Cohort owner must not delegate without human MFA');
@@ -196,8 +196,14 @@ gate('Real GoTrue pilot cohort isolates RPC, Edge and trusted Platform bridge',a
    assert.equal(r.status,200,'Noncohort trusted bridge delegation must work');
    assert.equal((await r.json()).exists,false);
   }
-  const missing=await bridge('00000000-0000-0000-0000-000000000099');
-  assert.equal(missing.status,403,'Unknown Platform actor must never bypass MFA');
+  // Real Platform operators belong to a different Auth project, so their UUID
+  // is generally unknown to Gestion. The verified Platform server supplies email.
+  const external=await bridge('platform-external-operator','outside-platform@example.test');
+  assert.equal(external.status,200,'Noncohort Platform operator must retain delegation');
+  const impersonated=await bridge('platform-external-operator',primary.email);
+  assert.equal(impersonated.status,403,'Pilot email must be denied even with external actor ID');
+  const missing=await bridge('platform-external-operator','');
+  assert.equal(missing.status,403,'Missing Platform actor email must never bypass MFA');
  }finally{
   sql(`update private.mfa_configuration set enabled=false,cohort_user_ids=null where singleton;
       delete from public.platform_bridge_secrets where secret_id='primary';`);

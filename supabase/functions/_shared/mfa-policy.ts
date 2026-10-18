@@ -13,7 +13,13 @@ export async function assertMfaWithClient(
 
 /** Shared bridge secrets do not prove a human's MFA. Disable delegation while
  * enforcement is enabled until a separately verified delegation protocol exists. */
-export async function assertBridgeMfaAllowed(admin:{rpc:(name:string)=>PromiseLike<any>}){
-  const {data,error}=await admin.rpc('security_mfa_bridge_allowed');
+export async function assertBridgeMfaAllowed(
+  admin:{rpc:(name:string,args?:Record<string,unknown>)=>PromiseLike<any>},
+  actor:{id:string,email:string},
+  action:string,
+){
+  const {data,error}=await admin.rpc('security_mfa_bridge_allowed',{
+    p_actor_id:actor.id,p_actor_email:actor.email,p_action:action
+  });
   if(error||data!==true)throw new Error('MFA_BRIDGE_DELEGATION_REQUIRED');
 }

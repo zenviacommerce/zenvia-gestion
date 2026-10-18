@@ -75,6 +75,28 @@ jobs:
           SQL
           supabase start
           supabase db reset --local --yes
+          # The historical cancellation-table fixture is created only in CI.
+          # Production already has the restrictive MFA policies; add them here
+          # so the REAL activation guard passes without being bypassed.
+          DB_CONTAINER=$(docker ps --filter name=supabase_db_ --format '{{.Names}}' | head -n 1)
+          test -n "$DB_CONTAINER"
+          docker exec -i "$DB_CONTAINER" psql -X -v ON_ERROR_STOP=1 -U postgres -d postgres <<'SQL'
+          ALTER TABLE public.order_cancellation_operations ENABLE ROW LEVEL SECURITY;
+          CREATE POLICY mfa_select_gate ON public.order_cancellation_operations
+            AS RESTRICTIVE FOR SELECT TO authenticated USING ((SELECT private.mfa_allowed()));
+          CREATE POLICY mfa_insert_gate ON public.order_cancellation_operations
+            AS RESTRICTIVE FOR INSERT TO authenticated WITH CHECK ((SELECT private.mfa_allowed()));
+          CREATE POLICY mfa_update_gate ON public.order_cancellation_operations
+            AS RESTRICTIVE FOR UPDATE TO authenticated
+            USING ((SELECT private.mfa_allowed())) WITH CHECK ((SELECT private.mfa_allowed()));
+          CREATE POLICY mfa_delete_gate ON public.order_cancellation_operations
+            AS RESTRICTIVE FOR DELETE TO authenticated USING ((SELECT private.mfa_allowed()));
+          DO $check$ BEGIN
+            IF EXISTS(SELECT 1 FROM private.mfa_activation_findings()) THEN
+              RAISE EXCEPTION 'CI_MFA_ACTIVATION_FINDINGS_REMAIN';
+            END IF;
+          END $check$;
+          SQL
       - name: Real GoTrue and Vault smoke; deny unsupported/skipped gates
         env:
           RUN_LOCAL_AUTH_VAULT_TESTS: '1'

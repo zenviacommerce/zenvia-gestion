@@ -258,3 +258,10 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - All five files in production v31 were checked byte-for-byte against PR #230 branch and matched. JWT setting unchanged (false).
 - Signed Platform read-only flow accepted. MFA remains off; cohort pilot, system plan sync under enabled MFA and recovery tests are not covered by this validation.
 - Rollback: safety/mfa-production-snapshot-20261018/supabase/rollback/snapshots/edge-20261018/platform-bridge-pre-pr230-v30.json. No rollback needed.
+
+### PR #230 merged; pilot prepared, NOT activated — 2026-10-18
+- Accepted AFTER Platform browser check and real bridge HTTP 200 at 20:59:07.718 and 20:59:15.681 UTC after v31 activation. No observed 5xx on these calls. User saw same five active ZENVIA users, roles and connected integrations, no console error/no write.
+- PR #230 merged into main: merge commit `4a7fa1064de032d42ef4a3cddcf8593677b5bb00`.
+- Re-fetched production bridge v31 and main: all FIVE files identical byte-for-byte. No further Edge or SQL deployment necessary. Source rollback v30 snapshot retained.
+- Pilot runbook added `docs/deploy/mfa-pilot-runbook.md` on main (commit `2ba8d8adfd88f485e802c49a0aef409a2c979c28`): single-user activation TEMPLATE, SQL emergency disable, two authenticator steps and acceptance tests. NO SQL executed; enabled remains last verified false, cohort last verified NULL; fresh SQL verification was blocked by connector safety controls and must be repeated at pilot preflight. No MFA activation, factor enrollment or pilot execution.
+- STOP; user explicitly authorizes pilot separately when available.

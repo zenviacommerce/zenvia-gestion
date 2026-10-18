@@ -546,3 +546,7 @@ html[data-theme='dark'] .billingCurrentCard{background:linear-gradient(135deg,rg
 .mfaQrPanel{display:grid;justify-items:center;gap:10px;padding:18px;margin:15px 0;border:1px solid var(--border,#e5e9f0);border-radius:14px;background:var(--surface-soft,#f8fafc)}.mfaQrPanel img{background:#fff;padding:12px;border-radius:12px;max-width:100%}.mfaQrPanel p{font-size:12px;overflow-wrap:anywhere}
 
 .mfaEnrollmentDialog{max-width:500px;width:calc(100% - 32px);border-radius:20px;box-shadow:0 20px 50px rgba(15,23,42,.15)}
+
+.mfaCodeInput{font-size:clamp(23px,5vw,34px)!important;font-weight:700!important;letter-spacing:.3em;text-align:center;min-height:62px;font-variant-numeric:tabular-nums;width:100%;border-radius:12px}
+.mfaFactorSelect{display:grid;gap:7px}.mfaFactorSelect select{min-height:42px;border:1px solid var(--border,#dbe2ea);border-radius:10px;background:var(--surface,#fff);color:var(--text,#172033);padding:8px 12px}
+.mfaFieldError{display:flex;align-items:flex-start;gap:8px;color:#b91c1c;font-size:12px;margin:8px 0 12px}.mfaFieldError svg{flex-shrink:0}.mfaLogoutLink{background:transparent!important;border:0!important;color:var(--muted,#64748b)!important;text-decoration:underline;font-size:12px;padding:9px!important}

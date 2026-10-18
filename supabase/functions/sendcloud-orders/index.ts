@@ -1,3 +1,4 @@
+import {assertHumanMfa} from '../_shared/mfa.ts';
 import {withAmazonBuyerRead} from '../_shared/amazonPiiRead.ts';
 import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -95,6 +96,7 @@ async function sendcloudBinary(credentials:SendcloudCredentials,path:string,acce
 }
 async function authenticate(req:Request,admin:any):Promise<Caller>{
   const token=(req.headers.get('Authorization')||'').replace(/^Bearer\s+/i,'').trim();if(!token)throw new Error('Sesión no válida.');
+  await assertHumanMfa(req,false);
   const {data:userData,error:userError}=await admin.auth.getUser(token);if(userError||!userData.user)throw new Error('Sesión no válida.');
   const {data:caller,error}=await admin.from('app_users').select('user_id,data_owner_id,role,active,permissions').eq('user_id',userData.user.id).maybeSingle();if(error)throw error;
   if(!caller?.active)throw new Error('Tu acceso está desactivado.');

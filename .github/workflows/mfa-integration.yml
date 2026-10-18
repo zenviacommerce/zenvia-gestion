@@ -1,0 +1,93 @@
+name: MFA real integration (disposable Supabase)
+on:
+  push:
+    branches: [feature/admin-mfa-20261016]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  real-auth-vault:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: supabase/setup-cli@v1
+        with:
+          version: 2.45.5
+      - run: npm ci
+      - name: Adaptive recovery PostgreSQL synthetic regressions
+        run: npx vitest run tests/mfa-sql.test.ts
+      - name: Start disposable GoTrue, Postgres, Vault and Edge
+        run: |
+          if [ ! -f supabase/config.toml ]; then supabase init; fi
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          p=Path('supabase/config.toml')
+          s=p.read_text()
+          marker='[auth.mfa.totp]'
+          assert marker in s, 'Supabase CLI config missing totp section'
+          a=s.index(marker)
+          b=s.find('\n[',a+len(marker))
+          if b<0: b=len(s)
+          section=s[a:b]
+          for key in ('enroll_enabled','verify_enabled'):
+              assert re.search(r'(?m)^'+key+r'\s*=',section),f'Missing {key}'
+              section=re.sub(r'(?m)^('+key+r'\s*=\s*)(true|false)',r'\g<1>true',section)
+          p.write_text(s[:a]+section+s[b:])
+          PY
+          # Two legacy repo migration pairs reuse timestamps. The disposable
+          # runner must disambiguate filenames only; production history is untouched.
+          mv supabase/migrations/20260917004000_amazon_dashboard_index_cleanup.sql supabase/migrations/20260917004001_amazon_dashboard_index_cleanup.sql
+          mv supabase/migrations/20260918033000_amazon_mapping_assign_internal_sku.sql supabase/migrations/20260918033001_amazon_mapping_assign_internal_sku.sql
+          # Historical Gmail migration uses LOCK TABLE outside a transaction.
+          # Wrap it only in this disposable runner; keep repository SQL unchanged.
+          { echo 'BEGIN;'; cat supabase/migrations/20261013120500_gmail_stable_message_part_identity.sql; echo 'COMMIT;'; } > "$RUNNER_TEMP/gmail-transaction.sql"
+          cp "$RUNNER_TEMP/gmail-transaction.sql" supabase/migrations/20261013120500_gmail_stable_message_part_identity.sql
+          # Existing production table is absent from this repo's historical
+          # migrations. A schema-only fixture is created IN THE RUNNER ONLY.
+          cat > supabase/migrations/20261016194727_mfa_ci_cancellation_dependency.sql <<'SQL'
+          create table if not exists public.order_cancellation_operations(
+            id uuid primary key default gen_random_uuid(),
+            owner_id uuid,
+            order_id uuid,
+            kind text,
+            provider text,
+            reference text,
+            status text,
+            remote_id text,
+            message text,
+            details jsonb,
+            requested_by uuid,
+            created_at timestamptz default now(),
+            updated_at timestamptz default now()
+          );
+          alter table public.fulfillment_orders
+            add column if not exists order_action_lease uuid,
+            add column if not exists order_action_lease_until timestamptz,
+            add column if not exists shopify_tracking_lease_until timestamptz;
+          SQL
+          supabase start
+          supabase db reset --local --yes
+      - name: Real GoTrue and Vault smoke; deny unsupported/skipped gates
+        env:
+          RUN_LOCAL_AUTH_VAULT_TESTS: '1'
+        run: |
+          supabase status -o env > "$RUNNER_TEMP/local-supabase.env"
+          set -a
+          . "$RUNNER_TEMP/local-supabase.env"
+          set +a
+          node --test scripts/mfa-real-integration.test.mjs
+      - name: Real integration report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mfa-real-integration-results
+          path: mfa-real-results.json
+          if-no-files-found: warn

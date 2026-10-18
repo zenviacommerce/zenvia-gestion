@@ -1,3 +1,4 @@
+import {mfaFixtureUrl} from './mfa-edge-fixture.mjs';
 import assert from 'node:assert/strict';
 import {readFile} from 'node:fs/promises';
 import test from 'node:test';
@@ -9,11 +10,12 @@ const piiRead=dataUrl(compile(await readFile(new URL('../supabase/functions/_sha
 const endpoint=compile(await readFile(new URL('../supabase/functions/order-logistics-state/index.ts',import.meta.url),'utf8'))
  .replace(/import \{ createClient \} from [^;]+;/,'const createClient=()=>globalThis.__trackingTestAdmin;')
  .replace("'../_shared/shipmentTracking.ts'",JSON.stringify(core))
- .replace("'../_shared/amazonPiiRead.ts'",JSON.stringify(piiRead));
+ .replace("'../_shared/amazonPiiRead.ts'",JSON.stringify(piiRead))
+ .replace("'../_shared/mfa.ts'",JSON.stringify(await mfaFixtureUrl("__trackingTestAdmin")));
 const order={id:'order-1',owner_id:'tenant-a',tracking_number:'000123',tracking_url:'https://tracking.sendcloud.sc/forward?code=000123',raw_payload:{items:['preserved']},last_synced_at:'2026-10-02',shipping_provider:'sendcloud'};
 async function run({row=order,account=null,request=async()=>new Response(null,{status:302,headers:{location:'https://future-carrier.example/result/000123'}})}={}){
  const calls=[],updates=[];
- const admin={auth:{getUser:async()=>({data:{user:{id:'user-1'}}})},rpc:async()=>({data:'{"token":"test-token"}'}),from(table){const filters=[];const q={select(){return q},eq(key,value){filters.push([key,value]);calls.push([table,key,value]);return q},neq(){return q},order(){return q},limit(){return q},update(value){updates.push(value);return q},async maybeSingle(){return {data:table==='app_users'?{active:true,role:'admin',data_owner_id:'tenant-a'}:table==='fulfillment_orders'?row:account,error:null}}};return q}};
+ const admin={auth:{getUser:async()=>({data:{user:{id:'user-1'}}})},rpc:async(name)=>name==='security_mfa_assert'?{data:null,error:null}:({data:'{"token":"test-token"}'}),from(table){const filters=[];const q={select(){return q},eq(key,value){filters.push([key,value]);calls.push([table,key,value]);return q},neq(){return q},order(){return q},limit(){return q},update(value){updates.push(value);return q},async maybeSingle(){return {data:table==='app_users'?{active:true,role:'admin',data_owner_id:'tenant-a'}:table==='fulfillment_orders'?row:account,error:null}}};return q}};
  const previous={Deno:globalThis.Deno,fetch:globalThis.fetch};let handler;
  globalThis.__trackingTestAdmin=admin;globalThis.Deno={env:{get:key=>key==='SUPABASE_URL'?'https://supabase.example':key==='SUPABASE_SERVICE_ROLE_KEY'?'test-key':undefined},serve:value=>{handler=value}};globalThis.fetch=request;
  try{await import(dataUrl(endpoint+`\n// test ${Math.random()}`));const response=await handler(new Request('https://function.example/',{method:'POST',headers:{Authorization:'Bearer token','Content-Type':'application/json'},body:JSON.stringify({action:'resolve_tracking_link',orderId:'order-1'})}));return {status:response.status,body:await response.json(),calls,updates}}finally{globalThis.Deno=previous.Deno;globalThis.fetch=previous.fetch;delete globalThis.__trackingTestAdmin}

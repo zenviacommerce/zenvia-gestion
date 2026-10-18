@@ -21,7 +21,7 @@ test('settings and preferences refresh when the effective authenticated user cha
   const context=await read('src/context/SettingsContext.tsx');
   assert.match(context,/const refresh=useCallback\(async\(\)=>\{/);
   assert.match(context,/\},\[effectiveUserId\]\);/);
-  assert.match(context,/useEffect\(\(\)=>\{void refresh\(\)\},\[refresh\]\)/);
+  assert.match(context,/useEffect\(\(\)=>\{void refresh\(\);return\(\)=>\{refreshGeneration\.current\+\+\}\},\[refresh\]\)/);
 });
 
 test('tablet account drawer keeps Settings and Administration available',async()=>{

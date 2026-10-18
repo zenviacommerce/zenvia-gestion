@@ -1,3 +1,4 @@
+import {assertHumanMfa} from '../_shared/mfa.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders = {
@@ -148,6 +149,7 @@ Deno.serve(async (req: Request) => {
     const admin = createClient(url, adminKey, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
+    await assertHumanMfa(req,false);
     const { data: userData, error: userError } = await admin.auth.getUser(token);
     if (userError || !userData.user) return fail('Sesión no válida.', 401);
 
@@ -167,6 +169,7 @@ Deno.serve(async (req: Request) => {
 
     const body = await req.json().catch(() => ({}));
     const action = String(body?.action || 'list');
+    if(action!=='list')await assertHumanMfa(req,true);
 
     if (action === 'list') {
       const { data: rows, error } = await admin

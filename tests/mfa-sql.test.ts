@@ -1,0 +1,137 @@
+// @vitest-environment node
+// Real PostgreSQL (PGlite 0.3.14) execution with synthetic Auth schema; no live project.
+import {beforeAll, afterAll, expect, test} from 'vitest';
+import {PGlite} from '@electric-sql/pglite';
+import {readFileSync} from 'node:fs';
+let db:PGlite;
+const uid='00000000-0000-0000-0000-000000000001', sid='00000000-0000-0000-0000-000000000002', fid='00000000-0000-0000-0000-000000000003';
+beforeAll(async()=>{
+ db=new PGlite();
+ await db.exec(`create role anon; create role authenticated; create role service_role bypassrls;
+ create schema auth; create schema private; create schema storage;
+ create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
+ create function auth.uid() returns uuid language sql stable as $$select (auth.jwt()->>'sub')::uuid$$;
+ create table auth.users(id uuid primary key);
+ create table auth.sessions(id uuid primary key,user_id uuid,factor_id uuid,aal text,created_at timestamptz default now(),not_after timestamptz);
+ create table auth.mfa_factors(id uuid primary key,user_id uuid,factor_type text,status text);
+ create table auth.mfa_challenges(id uuid,factor_id uuid,created_at timestamptz,verified_at timestamptz);
+ create table auth.mfa_amr_claims(session_id uuid,authentication_method text,updated_at timestamptz);
+ create table public.app_users(user_id uuid,role text,active boolean,data_owner_id uuid);
+ create table public.platform_admins(user_id uuid,active boolean);
+ create table public.workspaces(id uuid,status text);
+ create table public.items(id int); insert into public.items values(1);
+ alter table public.items enable row level security;
+ create policy permissive on public.items to authenticated using(true) with check(true);
+ grant usage on schema auth,private to authenticated; grant execute on all functions in schema auth to authenticated; grant select,insert,update,delete on public.items to authenticated;
+ create function public.configuration_test_mutation() returns integer language plpgsql security definer as $$begin insert into public.items values(2);return 2;end$$;
+ create function public.machine_rpc() returns int language sql security definer as $$select 42$$;revoke all on function public.machine_rpc() from public,anon,authenticated;grant execute on function public.machine_rpc() to service_role;
+ create function public.metadata_fixture(value text default 'LANGUAGE sql') returns text language sql immutable strict security definer set search_path='public' as $$select value || 'LANGUAGE sql'$$;
+ revoke execute on function public.metadata_fixture(text) from public;grant execute on function public.metadata_fixture(text) to authenticated;
+ create function public.immutable_read() returns int language sql immutable security definer as $$select 7$$;
+ create function public.sensitive_sql() returns int language sql security definer as $$select count(*)::int from public.items$$;
+ create function public.sensitive_table() returns table(id int) language sql security definer as $$select id from public.items$$;
+ create function public.get_workspace_context() returns jsonb language sql security definer as $$select '{}'::jsonb$$;
+ insert into auth.users values('${uid}');insert into public.app_users values('${uid}','admin',true,'${uid}');insert into public.workspaces values('${uid}','active');
+ insert into auth.sessions(id,user_id,factor_id,aal) values('${sid}','${uid}','${fid}','aal2');
+ insert into auth.mfa_factors values('${fid}','${uid}','totp','verified');
+ insert into auth.mfa_amr_claims values('${sid}','totp',now());`);
+ await db.exec("alter table public.app_users add column workspace_id uuid; update public.app_users set workspace_id=data_owner_id;");
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261016191517_admin_mfa_security.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261016194211_admin_mfa_oauth_actor_binding.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261017192500_admin_mfa_adaptive_recovery.sql',import.meta.url),'utf8'));
+});
+afterAll(async()=>{await db?.close()});
+async function claims(aal='aal2',age=0){await db.query(`select set_config('request.jwt.claims',$1,false)`,[JSON.stringify({sub:uid,session_id:sid,aal,iat:Math.floor(Date.now()/1000),amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)-age}]})]);}
+async function enforce(){await db.exec(`update private.mfa_configuration set enabled=true; insert into private.mfa_principals(user_id,state,admitted_factor_ids) values('${uid}','active',array['${fid}'::uuid]) on conflict(user_id) do update set state='active',admitted_factor_ids=excluded.admitted_factor_ids,not_before='epoch';`)}
+async function reset(){await db.exec(`reset role;update public.app_users set role='admin',active=true;update public.workspaces set status='active';delete from private.mfa_principals;update private.mfa_configuration set enabled=false,cohort_user_ids=null;update auth.mfa_factors set status='verified';update auth.mfa_amr_claims set updated_at=now();update auth.sessions set factor_id='${fid}',aal='aal2',not_after=null;`);await claims();}
+test('disabled feature preserves existing access',async()=>{await reset();expect((await db.query('select public.configuration_test_mutation() result')).rows[0]).toEqual({result:2});});
+test('enabled admin aal1 is denied before definer SQL or PLpgSQL effects',async()=>{await reset();await enforce();await claims('aal1');for(const name of ['configuration_test_mutation','sensitive_sql','sensitive_table'])await expect(db.query(`select * from public.${name}()`)).rejects.toThrow('MFA_REQUIRED');});
+test('verified admitted factor and current session authorize existing permissions',async()=>{await reset();await enforce();await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();});
+test('normal user aal1 retains ordinary access but MFA never grants admin',async()=>{await reset();await enforce();await db.exec("update public.app_users set role='user'");await claims('aal1');await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();});
+test('old MFA remains stale after freshly issued JWT',async()=>{await reset();await enforce();await claims('aal2',600);await db.exec("update auth.mfa_amr_claims set updated_at=now()-interval '600 seconds'");await expect(db.query('select public.security_mfa_assert(true)')).rejects.toThrow('MFA_RECENT_REQUIRED');});
+test('removed factor, revoked session, suspended workspace and recovery lock deny stale aal2',async()=>{for(const mutation of [`update auth.mfa_factors set status='unverified'`,`update auth.sessions set not_after=now()-interval '1 minute'`,`update public.workspaces set status='suspended'`,`update private.mfa_principals set state='recovery_locked'`]){await reset();await enforce();await db.exec(mutation);await expect(db.query('select public.security_mfa_assert(false)')).rejects.toThrow(/MFA_|ACCESS_/);}});
+test('restrictive policy defeats an existing permissive policy',async()=>{await reset();await enforce();await claims('aal1');await db.exec('set role authenticated');expect((await db.query('select * from public.items')).rows).toEqual([]);await expect(db.query('insert into public.items values(9)')).rejects.toThrow(/row-level security/);await db.exec('reset role');});
+test('bootstrap returns only own state, never auto-admits existing factors',async()=>{await reset();await enforce();await db.exec('delete from private.mfa_principals');expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('recovery_locked');});
+test('bridge is closed under enforcement, and its capability is not granted to authenticated',async()=>{await reset();await enforce();expect((await db.query('select public.security_mfa_bridge_allowed() allowed')).rows[0]).toEqual({allowed:false});await db.exec('set role authenticated');await expect(db.query('select public.security_mfa_bridge_allowed()')).rejects.toThrow(/permission denied/);await db.exec('reset role');});
+
+test('read-only definer remains available after five minutes but maintenance requires recent proof',async()=>{await reset();await enforce();await claims('aal2',600);await db.exec("update auth.mfa_amr_claims set updated_at=now()-interval '600 seconds'");await expect(db.query('select public.sensitive_sql()')).resolves.toBeDefined();await expect(db.query('select public.configuration_test_mutation()')).rejects.toThrow('MFA_RECENT_REQUIRED');});
+test('recovery lock survives feature rollback',async()=>{await reset();await enforce();await db.exec("update private.mfa_principals set state='recovery_locked';update private.mfa_configuration set enabled=false");await expect(db.query('select public.security_mfa_assert(false)')).rejects.toThrow('MFA_RECOVERY_LOCKED');expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('recovery_locked');});
+test('immutable original cannot cache authorization across changed claims',async()=>{await reset();await db.exec('prepare mfa_cached as select public.immutable_read()');await db.query('execute mfa_cached');await enforce();await claims('aal1');await expect(db.query('execute mfa_cached')).rejects.toThrow('MFA_REQUIRED');await db.exec('deallocate mfa_cached');});
+test('unapproved factor cannot satisfy MFA even with valid aal2',async()=>{await reset();await enforce();await db.exec("update private.mfa_principals set admitted_factor_ids='{}'");await expect(db.query('select public.security_mfa_assert(false)')).rejects.toThrow('MFA_FACTOR_REQUIRED');});
+test('initial enrollment requires server authorization and session bound verified proof',async()=>{
+ await reset();await db.exec(`update auth.mfa_factors set status='unverified';update auth.sessions set aal='aal1',factor_id=null`);await claims('aal1');
+ await expect(db.query(`select public.security_mfa_prepare_enrollment('${fid}')`)).rejects.toThrow('MFA_ENROLLMENT_NOT_AUTHORIZED');
+ await db.exec(`insert into private.mfa_principals(user_id,state,authorization_expires_at,authorization_reference) values('${uid}','bootstrap_pending',now()+interval '15 minutes','two-person-ticket-123')`);
+ await db.query(`select public.security_mfa_prepare_enrollment('${fid}')`);
+ await expect(db.query(`select public.security_mfa_complete_enrollment('${fid}')`)).rejects.toThrow('MFA_ENROLLMENT_NOT_AUTHORIZED');
+ await db.exec(`update auth.mfa_factors set status='verified';update auth.sessions set aal='aal2',factor_id='${fid}';insert into auth.mfa_challenges values('${sid}','${fid}',now(),now());update auth.mfa_amr_claims set updated_at=now()`);await claims();
+ await db.query(`select public.security_mfa_complete_enrollment('${fid}')`);
+ expect((await db.query<any>('select state,admitted_factor_ids from private.mfa_principals')).rows[0]).toEqual({state:'active',admitted_factor_ids:[fid]});
+ await expect(db.query(`select public.security_mfa_complete_enrollment('${fid}')`)).rejects.toThrow('MFA_ENROLLMENT_NOT_AUTHORIZED');
+});
+test('recovery revokes sessions and never releases without factor removal and second review',async()=>{
+ await reset();await enforce();await db.query(`select public.security_mfa_authorize_enrollment('${uid}','approval-one-ticket',true)`);
+ expect((await db.query('select * from auth.sessions')).rows).toEqual([]);
+ await expect(db.query(`select public.security_mfa_release_enrollment('${uid}','approval-two-ticket',null,null)`)).rejects.toThrow('MFA_REMOVE_OLD_FACTORS_FIRST');
+ await db.exec(`delete from auth.mfa_factors;insert into auth.mfa_factors values('${fid}','${uid}','totp','unverified')`);
+ await expect(db.query(`select public.security_mfa_release_enrollment('${uid}','approval-one-ticket',null,null)`)).rejects.toThrow('MFA_OWNER_BREAK_GLASS_REQUIRED');
+ await db.exec(`insert into auth.sessions(id,user_id,factor_id,aal) values('${sid}','${uid}',null,'aal1')`);
+ await db.query(`select public.security_mfa_release_enrollment('${uid}','approval-two-ticket','${sid}',null)`);
+ expect((await db.query<any>('select state from private.mfa_principals')).rows[0].state).toBe('re_enrollment_pending');
+ // Restore the synthetic session for following tests only, never a product behavior.
+ await db.exec(`update auth.sessions set factor_id='${fid}',aal='aal2' where id='${sid}'`);
+});
+test('activation refuses an exposed unsafe view or newly unwrapped definer',async()=>{await reset();await db.exec('create view public.unsafe_view as select * from public.items;grant select on public.unsafe_view to authenticated');await expect(db.exec('update private.mfa_configuration set enabled=true')).rejects.toThrow('MFA_ACTIVATION_BLOCKED');await db.exec('drop view public.unsafe_view;create function public.new_unguarded() returns integer language sql security definer as $$select 1$$');await expect(db.exec('update private.mfa_configuration set enabled=true')).rejects.toThrow('MFA_ACTIVATION_BLOCKED');await db.exec('drop function public.new_unguarded()');});
+test('bridge rollback remains closed while recovery locks exist',async()=>{await reset();await db.exec(`insert into private.mfa_principals(user_id,state) values('${uid}','recovery_locked')`);expect((await db.query<any>('select public.security_mfa_bridge_allowed() allowed')).rows[0].allowed).toBe(false);});
+test('adding a backup factor requires recent approved proof even before global enforcement',async()=>{await reset();await db.exec(`insert into private.mfa_principals(user_id,state,admitted_factor_ids) values('${uid}','active',array['${fid}'::uuid])`);await claims('aal1');await expect(db.query('select public.security_mfa_begin_factor_add()')).rejects.toThrow('MFA_REQUIRED');await claims();await db.query('select public.security_mfa_begin_factor_add()');expect((await db.query<any>('select state from private.mfa_principals')).rows[0].state).toBe('bootstrap_pending');});
+test('factor-add intent is bound to the initiating approved session',async()=>{await reset();await db.exec(`insert into private.mfa_principals(user_id,state,admitted_factor_ids) values('${uid}','active',array['${fid}'::uuid]);insert into auth.sessions(id,user_id,aal) values('00000000-0000-0000-0000-000000000004','${uid}','aal1');insert into auth.mfa_factors values('00000000-0000-0000-0000-000000000005','${uid}','totp','unverified')`);await db.query('select public.security_mfa_begin_factor_add()');await db.query(`select set_config('request.jwt.claims',$1,false)`,[JSON.stringify({sub:uid,session_id:'00000000-0000-0000-0000-000000000004',aal:'aal1'})]);await expect(db.query(`select public.security_mfa_prepare_enrollment('00000000-0000-0000-0000-000000000005')`)).rejects.toThrow('MFA_ENROLLMENT_NOT_AUTHORIZED');await db.exec("delete from auth.sessions where id='00000000-0000-0000-0000-000000000004';delete from auth.mfa_factors where id='00000000-0000-0000-0000-000000000005'");});
+test('factor removal requires another approved verified device and recent proof',async()=>{await reset();await db.exec(`insert into private.mfa_principals(user_id,state,admitted_factor_ids) values('${uid}','active',array['${fid}'::uuid])`);await expect(db.query(`select public.security_mfa_forget_factor('${fid}')`)).rejects.toThrow('MFA_LAST_FACTOR');await db.exec(`insert into auth.mfa_factors values('00000000-0000-0000-0000-000000000005','${uid}','totp','verified');update private.mfa_principals set admitted_factor_ids=array['${fid}'::uuid,'00000000-0000-0000-0000-000000000005'::uuid]`);await db.query(`select public.security_mfa_forget_factor('${fid}')`);expect((await db.query<any>('select admitted_factor_ids from private.mfa_principals')).rows[0].admitted_factor_ids).toEqual(['00000000-0000-0000-0000-000000000005']);await db.exec("delete from auth.mfa_factors where id='00000000-0000-0000-0000-000000000005'");});
+
+test('wrapper preserves named defaults, strictness, ACL, owner, config and original implementation language text',async()=>{await reset();expect((await db.query<any>('select public.metadata_fixture() result')).rows[0].result).toBe('LANGUAGE sqlLANGUAGE sql');expect((await db.query<any>("select public.metadata_fixture(null) result")).rows[0].result).toBeNull();const rows=(await db.query<any>("select p.provolatile,p.proisstrict,p.proconfig,p.proowner=m.proowner same_owner,has_function_privilege('anon',p.oid,'execute') anon_can_execute,has_function_privilege('authenticated',p.oid,'execute') user_can_execute,m.provolatile original_volatility,has_function_privilege('authenticated',m.oid,'execute') clone_access from pg_proc p join private.mfa_function_manifest f on f.function_oid=p.oid join pg_proc m on m.oid=f.implementation where p.proname='metadata_fixture'")).rows;expect(rows[0]).toEqual({provolatile:'v',proisstrict:true,proconfig:['search_path=public'],same_owner:true,anon_can_execute:false,user_can_execute:true,original_volatility:'i',clone_access:false});});
+
+test('machine-only RPC definitions remain untouched',async()=>{await reset();expect((await db.query<any>("select prosrc from pg_proc where pronamespace='public'::regnamespace and proname='machine_rpc'")).rows[0].prosrc).toBe('select 42');await db.exec('set role service_role');expect((await db.query<any>('select public.machine_rpc() result')).rows[0].result).toBe(42);await db.exec('reset role');});
+test('pilot cohort applies only to chosen existing admins while new promotions stay pending',async()=>{await reset();await db.exec(`update private.mfa_configuration set cohort_user_ids=array['00000000-0000-0000-0000-000000000099'::uuid],enabled=true`);await claims('aal1');await expect(db.query('select public.security_mfa_assert(false)')).resolves.toBeDefined();await db.exec("update public.app_users set role='user';update public.app_users set role='admin'");await expect(db.query('select public.security_mfa_assert(false)')).rejects.toThrow('MFA_RECOVERY_LOCKED');});
+
+async function oauthPrincipal(){await reset();await db.exec(`insert into private.mfa_principals(user_id,state,admitted_factor_ids) values('${uid}','active',array['${fid}'::uuid]);insert into auth.sessions(id,user_id,factor_id,aal) values('${sid}','${uid}','${fid}','aal2') on conflict(id) do update set factor_id=excluded.factor_id,aal='aal2',created_at=now(),not_after=null;insert into auth.mfa_factors values('${fid}','${uid}','totp','verified') on conflict(id) do update set status='verified'`);}
+async function oauthContext(){return(await db.query<any>('select public.security_mfa_oauth_start_context() context')).rows[0].context;}
+async function callbackAuthority(c:any){return db.query('select public.security_mfa_oauth_actor_assert($1::uuid,$2::uuid,$3::uuid,$4::numeric,$5::uuid)',[c.actor_user_id,c.actor_session_id,c.actor_factor_id,c.mfa_verified_at,c.actor_owner_id]);}
+test('OAuth start forces recent admitted TOTP while global MFA stays off',async()=>{await oauthPrincipal();await claims('aal1');await expect(oauthContext()).rejects.toThrow('MFA_REQUIRED');await claims('aal2',600);await db.exec("update auth.mfa_amr_claims set updated_at=now()-interval '600 seconds'");await expect(oauthContext()).rejects.toThrow('MFA_RECENT_REQUIRED');await db.exec('update auth.mfa_amr_claims set updated_at=now()');await claims();const c=await oauthContext();expect(c).toEqual({actor_user_id:uid,actor_session_id:sid,actor_factor_id:fid,actor_owner_id:uid,mfa_verified_at:expect.any(Number)});});
+test('OAuth start rejects an ordinary user even with aal2 and forged metadata role',async()=>{await oauthPrincipal();await db.exec("update public.app_users set role='user'");await db.query("select set_config('request.jwt.claims',$1,false)",[JSON.stringify({sub:uid,session_id:sid,aal:'aal2',user_metadata:{role:'admin'},amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)}]})]);await expect(oauthContext()).rejects.toThrow('ACCESS_ADMIN_REQUIRED');});
+test('OAuth actor callback validates stored context independently of service JWT claims',async()=>{await oauthPrincipal();const c=await oauthContext();await db.query("select set_config('request.jwt.claims','{}',false)");await db.exec('set role service_role');try{await expect(callbackAuthority(c)).resolves.toBeDefined();}finally{await db.exec('reset role')}});
+test('OAuth callback rejects recovery, removed admission, revoked session, disabled role or changed tenant after start',async()=>{for(const mutation of ["update private.mfa_principals set state='recovery_locked'","update private.mfa_principals set admitted_factor_ids='{}'",`delete from auth.sessions where id='${sid}'`,"update public.app_users set active=false","update public.app_users set role='user'","update public.app_users set data_owner_id='00000000-0000-0000-0000-000000000099'","update public.workspaces set status='suspended'"]){await oauthPrincipal();const c=await oauthContext();await db.exec(mutation);await expect(callbackAuthority(c)).rejects.toThrow(/MFA_|ACCESS_/);await db.exec(`update public.app_users set data_owner_id='${uid}'`);}});
+test('OAuth callback cannot switch factor, subject, owner, session or verified proof',async()=>{await oauthPrincipal();const c=await oauthContext();const other='00000000-0000-0000-0000-000000000099';for(const patch of [{actor_factor_id:other},{actor_user_id:other},{actor_owner_id:other},{actor_session_id:other},{mfa_verified_at:c.mfa_verified_at-10},{mfa_verified_at:null}])await expect(callbackAuthority({...c,...patch})).rejects.toThrow(/MFA_|ACCESS_/);await db.exec(`update auth.sessions set factor_id='${other}' where id='${sid}'`);await expect(callbackAuthority(c)).rejects.toThrow('MFA_CONTEXT_CHANGED');});
+test('OAuth callback cannot refresh the stored challenge time or use proof older than five minutes',async()=>{await oauthPrincipal();const c=await oauthContext();await db.exec("update auth.mfa_amr_claims set updated_at=updated_at+interval '10 seconds'");await expect(callbackAuthority(c)).rejects.toThrow('MFA_CONTEXT_CHANGED');await db.exec("update auth.mfa_amr_claims set updated_at=now()-interval '600 seconds'");await expect(callbackAuthority({...c,mfa_verified_at:Math.floor(Date.now()/1000)-600})).rejects.toThrow('MFA_RECENT_REQUIRED');});
+test('OAuth callback actor API is service-only; human start context is not anonymously executable',async()=>{await oauthPrincipal();const c=await oauthContext();await db.exec('set role authenticated');await expect(callbackAuthority(c)).rejects.toThrow(/permission denied/);await db.exec('reset role;set role anon');await expect(oauthContext()).rejects.toThrow(/permission denied/);await db.exec('reset role');});
+
+test('adaptive recovery: no admitted peer permits owner break-glass release after revocation',async()=>{
+ await reset();
+ await db.exec("delete from private.mfa_recovery_peer_approvals");
+ await enforce();
+ await db.query(`select public.security_mfa_authorize_enrollment('${uid}','owner-verified-case-123',true)`);
+ await db.exec(`delete from auth.mfa_factors where user_id='${uid}'; insert into auth.sessions(id,user_id,aal) values('00000000-0000-0000-0000-000000000090','${uid}','aal1');`);
+ expect((await db.query<{n:number}>(`select private.mfa_recovery_peer_count('${uid}') n`)).rows[0].n).toBe(0);
+ await expect(db.query(`select public.security_mfa_release_enrollment('${uid}','owner-verified-case-123','00000000-0000-0000-0000-000000000090',null)`)).rejects.toThrow('MFA_OWNER_BREAK_GLASS_REQUIRED');
+ await db.query(`select public.security_mfa_release_enrollment('${uid}','different-owner-review-456','00000000-0000-0000-0000-000000000090',null)`);
+ expect((await db.query<{state:string}>(`select state from private.mfa_principals where user_id='${uid}'`)).rows[0].state).toBe('re_enrollment_pending');
+});
+test('adaptive recovery: admitted peer requires a real MFA-bound approval, not their UUID',async()=>{
+ await reset();
+ const peer='00000000-0000-0000-0000-000000000081',ps='00000000-0000-0000-0000-000000000082',pf='00000000-0000-0000-0000-000000000083',next='00000000-0000-0000-0000-000000000084';
+ await db.exec(`insert into auth.users values('${peer}');
+ insert into public.app_users(user_id,role,active,data_owner_id,workspace_id) values('${peer}','admin',true,'${uid}','${uid}');
+ insert into auth.sessions(id,user_id,factor_id,aal) values('${ps}','${peer}','${pf}','aal2');
+ insert into auth.mfa_factors values('${pf}','${peer}','totp','verified');
+ insert into auth.mfa_amr_claims values('${ps}','totp',now());
+ insert into private.mfa_principals(user_id,state,admitted_factor_ids) values('${peer}','active',array['${pf}'::uuid]);`);
+ await db.query(`select public.security_mfa_authorize_enrollment('${uid}','recovery-ticket-first-123',true)`);
+ await db.exec(`delete from auth.mfa_factors where user_id='${uid}';
+ insert into auth.sessions(id,user_id,aal) values('${next}','${uid}','aal1');`);
+ expect((await db.query<{n:number}>(`select private.mfa_recovery_peer_count('${uid}') n`)).rows[0].n).toBe(1);
+ await expect(db.query(`select public.security_mfa_release_enrollment('${uid}','second-ticket-456','${next}','${peer}')`)).rejects.toThrow('MFA_INDEPENDENT_APPROVAL_REQUIRED');
+ await db.query(`select set_config('request.jwt.claims',$1,false)`,[JSON.stringify({sub:peer,session_id:ps,aal:'aal2',amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)}]})]);
+ await db.query(`select public.security_mfa_approve_recovery('${uid}','recovery-ticket-first-123')`);
+ await claims();
+ await db.query(`select public.security_mfa_release_enrollment('${uid}','second-ticket-456','${next}','${peer}')`);
+ expect((await db.query<{state:string}>(`select state from private.mfa_principals where user_id='${uid}'`)).rows[0].state).toBe('re_enrollment_pending');
+ await db.exec(`delete from private.mfa_recovery_peer_approvals where target_user_id='${uid}'; delete from auth.mfa_amr_claims where session_id='${ps}';delete from auth.sessions where user_id='${peer}'; delete from private.mfa_principals where user_id='${peer}';delete from auth.mfa_factors where user_id='${peer}';delete from public.app_users where user_id='${peer}';delete from auth.users where id='${peer}';`);
+});

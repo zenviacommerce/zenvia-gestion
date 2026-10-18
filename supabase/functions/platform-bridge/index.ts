@@ -111,7 +111,6 @@ Deno.serve(async(req:Request)=>{
     if(bridgeError)throw bridgeError;
     if(!bridgeSecret?.active||await sha256(supplied)!==bridgeSecret.token_sha256)return fail('Puente no autorizado.',401);
 
-    await assertBridgeMfaAllowed(admin);
     const body=await req.json().catch(()=>({}));
     const action=asText(body?.action,80);
     const actor={
@@ -119,6 +118,15 @@ Deno.serve(async(req:Request)=>{
       email:asText(body?.actor?.email,254),
       name:asText(body?.actor?.name,150)||asText(body?.actor?.email,254)||'ZENVIA Platform',
     };
+
+    // Authorize each delegated operation against its real Platform operator and
+    // user target; the independent x-platform-token was verified above.
+    await assertBridgeMfaAllowed(admin,{
+      action,
+      actorEmail:actor.email,
+      targetUserId:asText(body?.userId,80)||null,
+      workspaceId:asText(body?.workspaceId,80)||null,
+    });
 
     if(action==='resolve_identity'){
       const workspaceId=asText(body?.workspaceId,80);

@@ -1,3 +1,5 @@
+import { AmazonOAuthLaunch } from './components/amazon/AmazonOAuthLaunch';
+import { amazonOAuthResultMessage, clearAmazonOAuthLaunch, getAmazonOAuthResult, isAmazonOAuthLogin, readAmazonOAuthLaunch } from './services/amazonOAuthLaunch';
 import {useMfaAccess} from './context/MfaContext';
 import {MfaScreen} from './components/MfaScreen';
 import {classifyAuthError, retryTransientAuth} from './services/authResilience';
@@ -106,6 +108,9 @@ export default function App(){
  const [passkeySetupVisible,setPasskeySetupVisible]=useState(false);
  const [workspaceLogo,setWorkspaceLogo]=useState<string|null>(null);
  const startPageApplied=useRef(false);
+ const [amazonLogin,setAmazonLogin]=useState(isAmazonOAuthLogin);
+ const [amazonContinuation]=useState(()=>readAmazonOAuthLaunch(window.location));
+ const amazonResult=useRef(getAmazonOAuthResult());
  const shopifyOAuthCallbackRef=useRef<string|null>(getShopifyOAuthCallback());
  const shopifyOAuthExchangeStarted=useRef(false);
  const userId=session?.user.id||null;
@@ -292,6 +297,12 @@ export default function App(){
  useEffect(()=>{
    if(!mfaAccess.ready||!accessReady||!access?.active||!allowedPages.length)return;
    if(!startPageApplied.current&&!settingsLoading){
+     if(amazonResult.current&&allowedPages.includes('settings')){
+       setPage('settings');setSettingsInitialSection('integrations');
+       const result=amazonResult.current;amazonResult.current=undefined;
+       if(result==='connected')showSuccess(amazonOAuthResultMessage(result));else showError(amazonOAuthResultMessage(result));
+       startPageApplied.current=true;return;
+     }
      const initial=effectiveStartPage(preferences.startPage,settings.general.startPage,allowedPages);
      if(initial)setPage(initial);
      startPageApplied.current=true;
@@ -344,7 +355,7 @@ export default function App(){
    setAccessReady(false);
  }}/></>;
  if(authAvailability==='temporarily-unavailable'&&!session)return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>Servicio temporalmente no disponible</h1><p>{tenantBootstrapError}</p><div className="actions"><button className="primary" onClick={()=>setAuthClientVersion(v=>v+1)}>Reintentar conexión</button></div></div></div></>;
- if(!session&&shouldShowPresentation(false,window.location.search,window.location.hash))return <iframe title="Presentación de Zenvia Gestión" src="/presentacion.html" style={{display:'block',width:'100%',height:'100dvh',border:0,background:'#f6f7f1'}}/>;
+ if(!session&&!amazonLogin&&shouldShowPresentation(false,window.location.search,window.location.hash))return <iframe title="Presentación de Zenvia Gestión" src="/presentacion.html" style={{display:'block',width:'100%',height:'100dvh',border:0,background:'#f6f7f1'}}/>;
  if(!session) return <><ToastHost/><AuthScreen initialMessage={tenantBootstrapError} allowSessionReset={authAvailability==='invalid'} onTenantChanged={()=>{setTenantBootstrapError('');setAuthClientVersion(value=>value+1)}}/></>;
  if(!mfaAccess.ready) return <><ToastHost/><MfaScreen/></>;
  if(session.user.user_metadata?.onboarding_pending===true) return <><ToastHost/><InvitePasswordSetup session={session} onComplete={async()=>{
@@ -356,6 +367,8 @@ export default function App(){
  if(!accessReady) return <><ToastHost/><div className="fullLoader"><LoaderCircle className="spin"/> Comprobando acceso…</div></>;
  if(access&&!['active','trialing'].includes(access.workspaceStatus)) return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>{access.workspaceStatus==='suspended'?'Empresa suspendida':'Servicio cancelado'}</h1><p>{access.workspaceStatus==='suspended'?'El acceso de tu empresa a ZENVIA Gestión está suspendido temporalmente. Contacta con soporte para reactivarlo.':'La suscripción de tu empresa ya no está activa. Contacta con soporte si necesitas recuperar el acceso.'}</p><div className="actions"><button className="secondary" onClick={()=>supabase.auth.signOut()}>Cerrar sesión</button></div></div></div></>;
  if(!access||!access.active||!allowedPages.length) return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>{error?'No se pudo cargar el acceso':'Acceso no autorizado'}</h1><p>{error?error:access&&!access.active?'Tu acceso a ZENVIA Gestión está desactivado.':'Esta cuenta no está autorizada para utilizar ZENVIA Gestión. Contacta con el administrador.'}</p><div className="actions">{error&&<button className="primary" onClick={()=>{setAccessReady(false);setError('');withTimeout(loadAccessAndBranding(session.user.id),90000,'El servicio de datos sigue recuperándose. Vuelve a intentarlo en unos segundos.').then(({profile,workspaceLogo:nextLogo})=>{setAccess(profile);setWorkspaceLogo(nextLogo);setAccessReady(true)}).catch(e=>{setAccess(null);setWorkspaceLogo(null);setAccessReady(true);setError(errorMessage(e,'No se pudo comprobar tu acceso.'))})}}>Reintentar</button>}<button className="secondary" onClick={()=>supabase.auth.signOut()}>Cerrar sesión</button></div></div></div></>;
+
+ if(amazonLogin)return <><ToastHost/><AmazonOAuthLaunch continuation={amazonContinuation} onCancel={()=>{clearAmazonOAuthLaunch();window.history.replaceState(null,'','/');setAmazonLogin(false);setPage('settings');setSettingsInitialSection('integrations')}}/></>;
 
  const navigate=async(next:Page,options?:{pendingOrders?:boolean})=>{
    if(!allowedPages.includes(next))return;

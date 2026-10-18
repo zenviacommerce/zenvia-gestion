@@ -1,83 +1,42 @@
-export type AmazonSpApiCredentials={
-  clientId:string;
-  clientSecret:string;
-  refreshToken:string;
-  sellerId:string;
-};
-
-function clean(value:unknown){return String(value??'').trim();}
-function required(value:unknown,name:string){
-  const text=clean(value);
-  if(!text)throw new Error(`Falta ${name} en la configuración de Amazon SP-API.`);
-  return text;
-}
-function parseEnv(){
-  const raw=clean(Deno.env.get('AMAZON_SPAPI_CREDENTIALS'));
-  if(!raw)return {} as any;
-  try{return JSON.parse(raw)}catch{throw new Error('AMAZON_SPAPI_CREDENTIALS no contiene JSON válido.');}
-}
-function normalize(stored:any,env:any,fallbackSellerId='',allowSellerEnv=false):AmazonSpApiCredentials{
-  return {
-    // SP-API/LWA app credentials can be shared by every tenant using the same
-    // registered application. Seller-specific credentials cannot.
-    clientId:required(stored?.clientId||stored?.client_id||env?.clientId||env?.client_id,'client_id'),
-    clientSecret:required(stored?.clientSecret||stored?.client_secret||env?.clientSecret||env?.client_secret,'client_secret'),
-    refreshToken:required(stored?.refreshToken||stored?.refresh_token||(allowSellerEnv?(env?.refreshToken||env?.refresh_token):''),'refresh_token'),
-    sellerId:required(stored?.sellerId||stored?.seller_id||fallbackSellerId||(allowSellerEnv?(env?.sellerId||env?.seller_id):''),'seller_id'),
-  };
-}
-
-export function readAmazonSpApiCredentials():AmazonSpApiCredentials{
-  const env=parseEnv();
-  if(!Object.keys(env).length)throw new Error('Amazon SP-API no está configurado en el backend.');
-  // Legacy internal-only helper. Never use this for a tenant request.
-  return normalize({},env,'',true);
-}
-
-async function readIntegrationSecret(admin:any,integrationAccountId:string,ownerId?:string|null){
-  let query=admin.from('integration_accounts')
-    .select('id,owner_id,external_account_id,secret_id,credential_source,status,enabled')
-    .eq('id',integrationAccountId).eq('provider','amazon');
-  if(ownerId)query=query.eq('owner_id',ownerId);
-  const {data:integration,error}=await query.maybeSingle();
-  if(error)throw error;
-  if(!integration)throw new Error('La cuenta de integración de Amazon no existe.');
-  if(integration.status==='disabled'||integration.enabled===false)throw new Error('La cuenta de Amazon está deshabilitada.');
-  let stored:any={};
-  if(integration.secret_id){
-    const {data:secret,error:secretError}=await admin.rpc('integration_read_secret',{p_secret_id:integration.secret_id});
-    if(secretError)throw secretError;
-    try{stored=JSON.parse(String(secret||'{}'))}catch{throw new Error('Las credenciales cifradas de Amazon no tienen un formato válido.');}
+import {readAmazonLwaApplication,type AmazonAppKey} from './apps.ts';
+export type AmazonSpApiCredentials={clientId:string;clientSecret:string;refreshToken:string;sellerId:string;appKey:AmazonAppKey;credentialVersion:number};
+function clean(value:unknown){return typeof value==='string'?value.trim():'';}
+export function readAmazonSpApiCredentials():AmazonSpApiCredentials{throw new Error('cuenta Amazon sin credenciales');}
+export async function loadAmazonSpApiCredentials(admin:any,options:{ownerId:string;amazonAccountId?:string|null;integrationAccountId?:string|null}):Promise<AmazonSpApiCredentials>{
+  const ownerId=clean(options?.ownerId),integrationAccountId=clean(options?.integrationAccountId),amazonAccountId=clean(options?.amazonAccountId);
+  if(!ownerId)throw new Error('Se requiere propietario de la cuenta Amazon.');
+  if(!integrationAccountId&&!amazonAccountId)throw new Error('cuenta Amazon sin credenciales');
+  const {data,error}=await admin.rpc('integration_amazon_credential_snapshot',{p_owner_id:ownerId,p_integration_account_id:integrationAccountId||null,p_amazon_account_id:amazonAccountId||null});
+  if(error)throw new Error('No se pudieron cargar las credenciales de la cuenta Amazon.');
+  const row=Array.isArray(data)&&data.length===1?data[0]:null;
+  if(!row||row.owner_id!==ownerId||(integrationAccountId&&row.integration_account_id!==integrationAccountId)||(amazonAccountId&&row.amazon_account_id!==amazonAccountId))throw new Error('cuenta Amazon sin credenciales');
+  const appKey=row.sp_api_app_key;
+  if(appKey!=='private_v1'&&appKey!=='public_v1')throw new Error('Aplicación Amazon no válida.');
+  const application=readAmazonLwaApplication(appKey,name=>Deno.env.get(name));
+  const stored=row.secret_payload;
+  if(!stored||typeof stored!=='object'||Array.isArray(stored))throw new Error('cuenta Amazon sin credenciales');
+  if(stored.legacyApplicationCredentialsPresent===true){
+    const hash=async(value:string)=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),byte=>byte.toString(16).padStart(2,'0')).join('');
+    const [clientIdHash,clientSecretHash]=await Promise.all([hash(application.clientId),hash(application.clientSecret)]);
+    if(stored.legacyClientIdSha256!==clientIdHash||stored.legacyClientSecretSha256!==clientSecretHash)throw new Error('La configuración heredada de Amazon requiere revisión privada.');
   }
-  return {integration,stored};
-}
-
-export async function loadAmazonSpApiCredentials(
-  admin:any,
-  options:{amazonAccountId?:string|null;integrationAccountId?:string|null;ownerId?:string|null}={},
-):Promise<AmazonSpApiCredentials>{
-  const env=parseEnv();
-  const ownerId=clean(options.ownerId);
-  let integrationAccountId=clean(options.integrationAccountId);
-  let fallbackSellerId='';
-
-  if(options.amazonAccountId){
-    let accountQuery=admin.from('amazon_accounts')
-      .select('seller_id,integration_account_id,owner_id')
-      .eq('id',options.amazonAccountId);
-    if(ownerId)accountQuery=accountQuery.eq('owner_id',ownerId);
-    const {data:account,error}=await accountQuery.maybeSingle();
-    if(error)throw error;
-    if(!account)throw new Error('La cuenta Amazon asociada al trabajo ya no existe.');
-    fallbackSellerId=clean(account.seller_id);
-    integrationAccountId=integrationAccountId||clean(account.integration_account_id);
+  let refreshToken=clean(stored.refreshToken)||clean(stored.refresh_token);
+  const sellerId=clean(row.seller_id);
+  let usedLegacyFallback=false;
+  if(!refreshToken&&appKey==='private_v1'){
+    const allowedId=clean(Deno.env.get('AMAZON_LEGACY_FALLBACK_ACCOUNT_ID'));
+    if(allowedId&&allowedId===row.integration_account_id){
+      let legacy:any=null;try{legacy=JSON.parse(Deno.env.get('AMAZON_SPAPI_CREDENTIALS')||'null')}catch{/* fail closed */}
+      const legacySeller=clean(legacy?.sellerId)||clean(legacy?.seller_id);
+      if(!legacySeller||legacySeller===sellerId){refreshToken=clean(legacy?.refreshToken)||clean(legacy?.refresh_token);usedLegacyFallback=Boolean(refreshToken);}
+    }
   }
-
-  if(!integrationAccountId){
-    throw new Error('Amazon SP-API no está configurado para este workspace.');
-  }
-
-  const {integration,stored}=await readIntegrationSecret(admin,integrationAccountId,ownerId||null);
-  const allowSellerEnv=integration.credential_source==='environment';
-  return normalize(stored,env,clean(integration.external_account_id)||fallbackSellerId,allowSellerEnv);
+  const storedSeller=clean(stored.sellerId)||clean(stored.seller_id);
+  if(!refreshToken||!sellerId||(storedSeller&&storedSeller!==sellerId))throw new Error('cuenta Amazon sin credenciales');
+  const clientId=clean(stored.clientId)||clean(stored.client_id),clientSecret=clean(stored.clientSecret)||clean(stored.client_secret);
+  if((clientId||clientSecret)&&(!clientId||!clientSecret||clientId!==application.clientId||clientSecret!==application.clientSecret))throw new Error('La configuración heredada de Amazon requiere revisión.');
+  const credentialVersion=Number(row.amazon_credential_version);
+  if(!Number.isSafeInteger(credentialVersion)||credentialVersion<1)throw new Error('Versión de credenciales Amazon no válida.');
+  if(usedLegacyFallback)console.warn('amazon_legacy_fallback_used',{integration_account_id:row.integration_account_id,owner_id:row.owner_id});
+  return {...application,refreshToken,sellerId,appKey,credentialVersion};
 }

@@ -1,7 +1,7 @@
 import {test,after} from 'node:test';
 import assert from 'node:assert/strict';
 import {writeFileSync} from 'node:fs';
-import {randomBytes} from 'node:crypto';
+import {randomBytes,createHash} from 'node:crypto';
 import {spawnSync} from 'node:child_process';
 import {createClient} from '@supabase/supabase-js';
 import {totpCode} from './local-auth-mfa-fixture.mjs';
@@ -134,6 +134,70 @@ gate('GoTrue factor revocation and re-enrollment',async()=>{
  must(await admin.auth.admin.mfa.deleteFactor({id:secondary.factor,userId:secondary.id}),'revoke');
  const f=must(await admin.auth.admin.mfa.listFactors({userId:secondary.id}),'factor list');
  assert.equal(f.factors?.some(x=>x.id===secondary.factor),false);
+});
+gate('Real GoTrue pilot cohort isolates RPC, Edge and trusted Platform bridge',async()=>{
+ const normal=await addAdmin(primary.id,false);
+ sql(`update public.app_users set role='user' where user_id='${normal.id}';`);
+ const outside=secondary;
+ const bridgeToken='ci-bridge-'+randomBytes(30).toString('hex');
+ const sha=createHash('sha256').update(bridgeToken).digest('hex');
+ sql(`insert into public.platform_bridge_secrets(secret_id,token_sha256,active)
+      values('primary','${sha}',true)
+      on conflict(secret_id) do update set token_sha256=excluded.token_sha256,active=true;`);
+ const getActor=async(account)=>{
+  const c=client();
+  const d=must(await c.auth.signInWithPassword({email:account.email,password:account.password}),'AAL1 cohort login');
+  const level=must(await c.auth.mfa.getAuthenticatorAssuranceLevel(),'cohort AAL');
+  assert.equal(level.currentLevel,'aal1');
+  return {c,session:d.session};
+ };
+ try{
+  // AAL2 would be required for the cohort owner, never for other users.
+  sql(`update private.mfa_configuration set enabled=true,
+       cohort_user_ids=array['${primary.id}'::uuid] where singleton;`);
+  const inside=await getActor(primary);
+  const outsideAuth=await getActor(outside);
+  const normalAuth=await getActor(normal);
+  const insideRpc=await inside.c.rpc('security_mfa_assert',{p_recent:false});
+  assert.ok(insideRpc.error&&String(insideRpc.error.message).includes('MFA_'),'Pilot AAL1 RPC must reject');
+  must(await outsideAuth.c.rpc('security_mfa_assert',{p_recent:false}),'Outside admin AAL1 RPC');
+  must(await normalAuth.c.rpc('security_mfa_assert',{p_recent:false}),'Ordinary user AAL1 RPC');
+
+  const invokeAdmin=async(session)=>fetch(url+'/functions/v1/admin-users',{
+   method:'POST',
+   headers:{apikey:anon,authorization:'Bearer '+session.access_token,'content-type':'application/json'},
+   body:JSON.stringify({action:'list'})
+  });
+  const pilotEdge=await invokeAdmin(inside.session);
+  const pilotBody=await pilotEdge.text();
+  assert.ok(pilotEdge.status>=400&&pilotBody.includes('MFA_'),'Pilot AAL1 Edge must reject');
+  const outsideEdge=await invokeAdmin(outsideAuth.session);
+  assert.equal(outsideEdge.status,200,'Outside admin must retain admin-users read');
+  const normalEdge=await invokeAdmin(normalAuth.session);
+  const normalBody=await normalEdge.text();
+  assert.ok(normalEdge.status>=400&&!normalBody.includes('MFA_'),
+    'Ordinary user keeps existing role denial, not MFA denial');
+
+  const bridge=async(userId)=>fetch(url+'/functions/v1/platform-bridge',{
+   method:'POST',
+   headers:{'x-platform-token':bridgeToken,'content-type':'application/json'},
+   body:JSON.stringify({action:'resolve_identity',workspaceId:'00000000-0000-0000-0000-000000000099',
+    email:'nobody@example.test',actor:{id:userId,email:'ci@example.test'}})
+  });
+  const pilotBridge=await bridge(primary.id);
+  assert.equal(pilotBridge.status,400,'Cohort owner must not delegate without human MFA');
+  assert.ok((await pilotBridge.text()).includes('MFA_BRIDGE_DELEGATION_REQUIRED'));
+  for(const actor of [outside.id,normal.id]){
+   const r=await bridge(actor);
+   assert.equal(r.status,200,'Noncohort trusted bridge delegation must work');
+   assert.equal((await r.json()).exists,false);
+  }
+  const missing=await bridge('00000000-0000-0000-0000-000000000099');
+  assert.equal(missing.status,400,'Unknown Platform actor must never bypass MFA');
+ }finally{
+  sql(`update private.mfa_configuration set enabled=false,cohort_user_ids=null where singleton;
+      delete from public.platform_bridge_secrets where secret_id='primary';`);
+ }
 });
 gate('Real Edge denies unauthenticated or AAL1 calls (not 404)',async()=>{
  const unauth=await fetch(url+'/functions/v1/platform-bridge',{method:'POST',headers:{'content-type':'application/json'},body:'{}'});

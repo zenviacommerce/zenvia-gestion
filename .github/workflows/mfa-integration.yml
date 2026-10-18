@@ -1,7 +1,7 @@
 name: MFA real integration (disposable Supabase)
 on:
   push:
-    branches: [feature/admin-mfa-20261016]
+    branches: [feature/admin-mfa-20261016, fix/mfa-cohort-scoping-20261018]
   pull_request:
     branches: [main]
   workflow_dispatch:

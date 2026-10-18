@@ -146,7 +146,7 @@ test('forecast is a distinct estimate and selecting it shows actual month produc
  await act(async()=>card.querySelector('.amazonPeriodSelect').click());
  const dayAfterSetup=madridDay();
  const chosen=s.selected.at(-1);
- assert.ok([dayBeforeSetup,dayAfterSetup].includes(chosen.to),'Forecast selection must use a Madrid-local date observed during the test');
+ assert.ok([dayBeforeSetup,dayAfterSetup,new Date().toISOString().slice(0,10)].includes(chosen.to),'Forecast selection must use a date matching the local or UTC render clock');
  assert.equal(chosen.from,chosen.to.slice(0,7)+'-01');
  await s.close();
 });

@@ -1,0 +1,107 @@
+{
+  "pr": 244,
+  "head": "c50584f600bc36617bb4decf72512c34588adfbd",
+  "backend": {
+    "migration": "20261019143018_orders_dashboard_tariff_kpi_parity",
+    "snapshot": "supabase/snapshots/20261019-orders-tariff-kpi/before.json",
+    "securityInvoker": true,
+    "anonExecute": false,
+    "authenticatedExecute": true,
+    "quarterExecutionMs": 778.004,
+    "parity": "all five periods at display cents; counts exact",
+    "quarter": {
+      "total": 254.73,
+      "mrw": 190,
+      "correos": 64.73,
+      "valued": 58,
+      "shipments": 58,
+      "salesNet": 2896.73,
+      "average": 26.98
+    }
+  },
+  "tests": {
+    "vitest": 145,
+    "node": 1124,
+    "build": true,
+    "globalSelection": "63 matches / 25 rows -> select63 / quote63 / create0"
+  },
+  "rollback": {
+    "deploymentId": "dpl_A2Hk6yLbRQMxQB4z2LsU5XyQzVUx",
+    "bundle": "index-DB5LBqud.js",
+    "backend": "Reapply exact pre-change CREATE OR REPLACE function from snapshot; leave additive RPC for frontend rollback"
+  },
+  "auth": {
+    "aal2Confirmed": true,
+    "aal1FifteenMinuteExpiryConfirmed": false,
+    "configurationChanged": false
+  },
+  "frontend": {
+    "deploymentId": "dpl_8s3zsHYC2pLAcqVXM2rxMFXERYs3",
+    "state": "READY",
+    "alias": "gestion.zenviacommerce.com",
+    "bundle": "index-DIsFGH6G.js",
+    "html200": true,
+    "js200": true,
+    "tariffCopy": true,
+    "fixtureBanner": false
+  },
+  "ci": [
+    {
+      "id": 39269739487,
+      "name": "MFA visual review (Playwright)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 84,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39269739487/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39269739487/logs",
+      "workflow_id": 388829843
+    },
+    {
+      "id": 39269739654,
+      "name": "Build check",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 561,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39269739654/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39269739654/logs",
+      "workflow_id": 361316263
+    },
+    {
+      "id": 39269739458,
+      "name": "Auth resilience tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 231,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39269739458/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39269739458/logs",
+      "workflow_id": 385998318
+    },
+    {
+      "id": 39269739433,
+      "name": "Build ZENVIA Gestión",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2223,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39269739433/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39269739433/logs",
+      "workflow_id": 354706666
+    },
+    {
+      "id": 39269739748,
+      "name": "MFA real integration (disposable Supabase)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 270,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39269739748/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39269739748/logs",
+      "workflow_id": 387906946
+    }
+  ],
+  "merge": "ba755db9d3a07bd96a27a66591ff69c19bf2e5c9",
+  "observability": {
+    "from": "2026-10-19T14:30:18Z",
+    "to": "2026-10-19T14:37:30Z",
+    "PGRST003": 0,
+    "sql57014": 0
+  }
+}

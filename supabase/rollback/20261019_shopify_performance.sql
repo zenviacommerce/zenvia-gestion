@@ -1,0 +1,73 @@
+delete from private.mfa_function_manifest where function_oid='public.shopify_analytics_summary_batch(jsonb,uuid[])'::regprocedure::oid;
+CREATE OR REPLACE FUNCTION private.shopify_shipping(owner uuid, store uuid, remote_order text, event_date date)
+ RETURNS numeric
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+ select f.shipping_cost_net_amount*private.amazon_rate_to_eur(coalesce(nullif(f.shipping_cost_currency,''),'EUR'),coalesce((f.shipping_cost_recorded_at at time zone private.amazon_analytics_timezone())::date,event_date))
+ from public.fulfillment_orders f where f.owner_id=owner and owner=private.shopify_analytics_owner() and f.source_channel='shopify'
+ and f.source_integration_account_id=store and (f.order_id=remote_order or f.sendcloud_id='shopify:'||store::text||':'||remote_order)
+ order by f.shipping_cost_recorded_at desc nulls last,f.last_synced_at desc nulls last limit 1;$function$
+;
+drop function public.shopify_analytics_summary_batch(jsonb,uuid[]);
+CREATE OR REPLACE FUNCTION private.mfa_impl_3790979(from_date date, to_date date, integration_account_ids uuid[] DEFAULT NULL::uuid[])
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare v uuid:=private.shopify_analytics_owner(); result jsonb;begin
+ if from_date is null or to_date is null or from_date>to_date then raise exception 'El período no es válido.';end if;
+ with eligible as(select o.*,(o.event_at at time zone private.amazon_analytics_timezone())::date d,private.amazon_rate_to_eur(o.currency,(o.event_at at time zone private.amazon_analytics_timezone())::date) fx
+ from public.shopify_analytics_orders o join public.integration_accounts a on a.id=o.integration_account_id and a.owner_id=v and a.enabled and a.status<>'disabled'
+ where o.owner_id=v and not o.test and o.financial_status in ('PAID','PARTIALLY_PAID','PARTIALLY_REFUNDED','REFUNDED')
+ and o.event_at>=(from_date::timestamp at time zone private.amazon_analytics_timezone()) and o.event_at<((to_date+1)::timestamp at time zone private.amazon_analytics_timezone()) and (coalesce(cardinality(integration_account_ids),0)=0 or o.integration_account_id=any(integration_account_ids))),
+ sales as(select count(*) orders,coalesce(sum(gross_sales*fx),0) gross,coalesce(sum(sales_vat*fx),0) vat,coalesce(sum(discounts*fx),0) discounts,coalesce(sum(shipping_charged*fx),0) shipping_charged,count(*) filter(where fx is null) missing_fx from eligible),
+ cost_rows as(select i.quantity,c.cost,c.missing,c.mapping_count from eligible o join public.shopify_analytics_items i on i.integration_account_id=o.integration_account_id and i.order_id=o.order_id and i.owner_id=v left join lateral private.shopify_cost(v,i.integration_account_id,i.seller_sku,o.d) c on true),
+ costs as(select coalesce(sum(quantity),0) units,coalesce(sum(quantity*cost),0) product_cost,count(*) filter(where mapping_count=0) unmapped,count(*) filter(where mapping_count=0 or missing>0) missing from cost_rows),
+ shipping_rows as(select case when not requires_shipping then 0 else private.shopify_shipping(v,integration_account_id,order_id,d) end cost from eligible),
+ shipping as(select coalesce(sum(cost),0) cost,count(*) filter(where cost is null) missing from shipping_rows),
+ refund_rows as(select r.*,private.amazon_rate_to_eur(r.currency,(r.event_at at time zone private.amazon_analytics_timezone())::date) fx from public.shopify_analytics_refunds r join public.integration_accounts a on a.id=r.integration_account_id and a.owner_id=v and a.enabled and a.status<>'disabled'
+ where r.owner_id=v and exists(select 1 from public.shopify_analytics_orders ro where ro.integration_account_id=r.integration_account_id and ro.order_id=r.order_id and ro.owner_id=v and not ro.test) and r.event_at>=(from_date::timestamp at time zone private.amazon_analytics_timezone()) and r.event_at<((to_date+1)::timestamp at time zone private.amazon_analytics_timezone()) and (coalesce(cardinality(integration_account_ids),0)=0 or r.integration_account_id=any(integration_account_ids))),
+ refunds as(select count(*) n,coalesce(sum(gross_amount*fx),0) gross,coalesce(sum(net_amount*fx),0) net,count(*) filter(where fx is null) missing_fx from refund_rows)
+ select jsonb_build_object('grossSales',case when s.missing_fx=0 then round(s.gross,2) end,'salesVat',case when s.missing_fx=0 then round(s.vat,2) end,'netSales',case when s.missing_fx=0 then round(s.gross-s.vat,2) end,'orders',s.orders,'units',c.units,'refunds',case when r.missing_fx=0 then round(r.net,2) end,'refundGross',case when r.missing_fx=0 then round(r.gross,2) end,'refundCount',r.n,'discounts',case when s.missing_fx=0 then round(s.discounts,2) end,'shippingCharged',case when s.missing_fx=0 then round(s.shipping_charged,2) end,'productCost',case when c.missing=0 then round(c.product_cost,2) end,'shippingCost',case when sh.missing=0 then round(sh.cost,2) end,'paymentFees',null,'adsCost',null,'netProfit',null,'profitBeforeAds',case when c.missing+sh.missing+s.missing_fx+r.missing_fx=0 then round(s.gross-s.vat-r.net-c.product_cost-sh.cost,2) end,'marginPct',null,'knownMarginPct',case when s.missing_fx=0 and r.missing_fx=0 and s.gross-s.vat>0 then round(100*(s.gross-s.vat-r.net-c.product_cost-sh.cost)/nullif(s.gross-s.vat,0),1) end,'unmappedSkuCount',c.unmapped,'missingCostCount',c.missing+sh.missing,'missingFxCount',s.missing_fx+r.missing_fx,'profitComplete',false,'currency','EUR','availableFrom',(select min(st.available_from) from public.shopify_analytics_sync_state st where st.owner_id=v and (coalesce(cardinality(integration_account_ids),0)=0 or st.integration_account_id=any(integration_account_ids)))) into result from sales s cross join costs c cross join shipping sh cross join refunds r;
+ return result;end;$function$
+;
+CREATE OR REPLACE FUNCTION private.mfa_impl_3793373(from_date date, to_date date, integration_account_ids uuid[] DEFAULT NULL::uuid[], search text DEFAULT NULL::text, page integer DEFAULT 1, page_size integer DEFAULT 50, sort_by text DEFAULT 'product_name'::text, sort_dir text DEFAULT 'asc'::text, include_catalog boolean DEFAULT false)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare v uuid:=private.shopify_analytics_owner(); result jsonb;v_sort text:=coalesce(sort_by,'product_name');v_dir text:=case when lower(sort_dir)='desc' then 'desc' else 'asc' end;v_page integer:=greatest(1,coalesce(page,1));v_size integer:=greatest(1,least(200,coalesce(page_size,50)));begin
+ if from_date is null or to_date is null or from_date>to_date then raise exception 'El período no es válido.';end if;
+ with stores as(select a.id,a.display_name from public.integration_accounts a where a.owner_id=v and a.provider='shopify' and a.enabled and a.status<>'disabled' and a.credential_source<>'derived' and (coalesce(cardinality(integration_account_ids),0)=0 or a.id=any(integration_account_ids))),
+ eligible as(select o.*,(o.event_at at time zone private.amazon_analytics_timezone())::date d,private.amazon_rate_to_eur(o.currency,(o.event_at at time zone private.amazon_analytics_timezone())::date) fx from public.shopify_analytics_orders o join stores s on s.id=o.integration_account_id
+ where o.owner_id=v and not o.test and o.financial_status in ('PAID','PARTIALLY_PAID','PARTIALLY_REFUNDED','REFUNDED') and o.event_at>=(from_date::timestamp at time zone private.amazon_analytics_timezone()) and o.event_at<((to_date+1)::timestamp at time zone private.amazon_analytics_timezone())),
+ item_rows as(select i.*,o.fx,c.cost,c.missing,c.mapping_count from eligible o join public.shopify_analytics_items i on i.integration_account_id=o.integration_account_id and i.order_id=o.order_id and i.owner_id=v left join lateral private.shopify_cost(v,i.integration_account_id,i.seller_sku,o.d) c on true),
+ sales as(select integration_account_id,seller_sku,max(variant_id) variant_id,max(name) name,max(image_url) image_url,count(distinct order_id) orders,sum(quantity) units,sum(gross_sales*fx) gross,sum(net_sales*fx) net,sum(quantity*cost) cost,count(*) filter(where fx is null) missing_fx,count(*) filter(where missing>0 or mapping_count=0 or fx is null) missing from item_rows group by integration_account_id,seller_sku),
+ refunds as(select r.integration_account_id,r.seller_sku,sum(r.net_amount*private.amazon_rate_to_eur(r.currency,(r.event_at at time zone private.amazon_analytics_timezone())::date)) net,count(*) filter(where private.amazon_rate_to_eur(r.currency,(r.event_at at time zone private.amazon_analytics_timezone())::date) is null) missing from public.shopify_analytics_refund_items r join stores s on s.id=r.integration_account_id where r.owner_id=v and exists(select 1 from public.shopify_analytics_orders ro where ro.integration_account_id=r.integration_account_id and ro.order_id=r.order_id and ro.owner_id=v and not ro.test) and r.event_at>=(from_date::timestamp at time zone private.amazon_analytics_timezone()) and r.event_at<((to_date+1)::timestamp at time zone private.amazon_analytics_timezone()) group by r.integration_account_id,r.seller_sku),
+ catalog as(select c.integration_account_id,c.seller_sku,max(c.variant_id) variant_id,max(c.name) name,max(c.image_url) image_url,case when count(*) filter(where c.inventory_quantity is null)>0 then null else sum(c.inventory_quantity)::integer end inventory from public.shopify_analytics_catalog c join stores s on s.id=c.integration_account_id where c.owner_id=v group by c.integration_account_id,c.seller_sku),
+ keys as(select integration_account_id,seller_sku from sales union select integration_account_id,seller_sku from catalog where include_catalog union select integration_account_id,seller_sku from refunds),
+ mappings as(select m.integration_account_id,m.seller_sku,(array_agg(p.id order by p.name))[1] product_id,string_agg(p.name,' + ' order by p.name) name,(array_agg(m.consumption_factor order by p.name))[1] factor from public.shopify_product_mappings m join public.products p on p.id=m.product_id and p.owner_id=v where m.owner_id=v group by m.integration_account_id,m.seller_sku),
+ rows as(select k.*,st.display_name,coalesce(c.variant_id,s.variant_id) variant_id,coalesce(c.name,s.name,k.seller_sku) name,coalesce(c.image_url,s.image_url) image_url,coalesce(s.orders,0) orders,coalesce(s.units,0) units,coalesce(s.gross,0) gross,coalesce(s.net,0) net,coalesce(r.net,0) refunds,coalesce(s.cost,0) cost,coalesce(s.missing,0)+coalesce(r.missing,0) missing,coalesce(s.missing_fx,0)+coalesce(r.missing,0) missing_fx,c.inventory,m.product_id,m.name mapping_name,coalesce(m.factor,1) factor from keys k join stores st on st.id=k.integration_account_id left join sales s using(integration_account_id,seller_sku) left join catalog c using(integration_account_id,seller_sku) left join refunds r using(integration_account_id,seller_sku) left join mappings m using(integration_account_id,seller_sku)
+ where coalesce(search,'')='' or k.seller_sku ilike '%'||search||'%' or coalesce(c.name,s.name,'') ilike '%'||search||'%'),
+ sortable as(select rows.*,case v_sort when 'product_name' then name when 'mapping_product_name' then mapping_name end sort_text,case v_sort when 'units' then units when 'orders' then orders when 'gross_sales' then gross when 'net_sales' then net when 'refunds' then refunds when 'product_cost' then case when missing=0 then cost end when 'inventory_quantity' then inventory else null end sort_number from rows),
+ selected as(select * from sortable order by case when v_dir='asc' then sort_text end asc nulls last,case when v_dir='desc' then sort_text end desc nulls last,case when v_dir='asc' then sort_number end asc nulls last,case when v_dir='desc' then sort_number end desc nulls last,seller_sku,integration_account_id limit v_size offset (v_page-1)*v_size)
+ select jsonb_build_object('items',coalesce((select jsonb_agg(jsonb_build_object('id',integration_account_id::text||':'||seller_sku,'storeId',integration_account_id,'storeName',display_name,'sku',seller_sku,'variantId',variant_id,'name',name,'imageUrl',image_url,'mappingProductId',product_id,'mappingProductName',mapping_name,'consumptionFactor',factor,'orders',orders,'units',units,'grossSales',case when missing_fx=0 then round(gross,2) end,'netSales',case when missing_fx=0 then round(net,2) end,'refunds',case when missing_fx=0 then round(refunds,2) end,'productCost',case when missing=0 then round(cost,2) end,'shippingCost',null,'profitBeforeAds',null,'profitComplete',false,'currency','EUR','inventoryQuantity',inventory) order by case when v_dir='asc' then sort_text end asc nulls last,case when v_dir='desc' then sort_text end desc nulls last,case when v_dir='asc' then sort_number end asc nulls last,case when v_dir='desc' then sort_number end desc nulls last,seller_sku,integration_account_id) from selected),'[]'::jsonb),'total',(select count(*) from rows),'page',v_page,'pageSize',v_size) into result;
+ return result;end;$function$
+;
+CREATE OR REPLACE FUNCTION private.amazon_analytics_timezone()
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+  select coalesce((select z.name from public.app_settings s join pg_catalog.pg_timezone_names z
+    on z.name=s.config->'general'->>'timezone' where s.owner_id=private.app_workspace_owner_id() limit 1),'Europe/Madrid')
+$function$
+;
+drop function private.shopify_summary_period(uuid,date,date,uuid[],text);drop function private.shopify_shipping_at_timezone(uuid,uuid,text,date,text);drop trigger app_settings_validate_timezone on public.app_settings;drop function private.validate_analytics_timezone();drop table private.analytics_timezone_names;
+
+drop function private.mfa_impl_shopify_summary_batch(jsonb,uuid[]);

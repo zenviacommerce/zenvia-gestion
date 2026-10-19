@@ -1,0 +1,93 @@
+[
+  {
+    "name": "shopify_today",
+    "phase": "before",
+    "execution_ms": "973.338",
+    "shared_hits": "163",
+    "parity": true
+  },
+  {
+    "name": "shopify_previous",
+    "phase": "before",
+    "execution_ms": "818.578",
+    "shared_hits": "155",
+    "parity": true
+  },
+  {
+    "name": "shopify_month",
+    "phase": "before",
+    "execution_ms": "4398.403",
+    "shared_hits": "972",
+    "parity": true
+  },
+  {
+    "name": "shopify_products",
+    "phase": "before",
+    "execution_ms": "1077.018",
+    "shared_hits": "202",
+    "parity": true
+  },
+  {
+    "name": "amazon_today",
+    "phase": "before",
+    "execution_ms": "191.850",
+    "shared_hits": "2477",
+    "parity": true
+  },
+  {
+    "name": "amazon_previous",
+    "phase": "before",
+    "execution_ms": "474.769",
+    "shared_hits": "37334",
+    "parity": true
+  },
+  {
+    "name": "shopify_today",
+    "phase": "after",
+    "execution_ms": "4.896",
+    "shared_hits": "51",
+    "parity": true
+  },
+  {
+    "name": "shopify_previous",
+    "phase": "after",
+    "execution_ms": "5.082",
+    "shared_hits": "59",
+    "parity": true
+  },
+  {
+    "name": "shopify_month",
+    "phase": "after",
+    "execution_ms": "15.522",
+    "shared_hits": "395",
+    "parity": true
+  },
+  {
+    "name": "shopify_products",
+    "phase": "after",
+    "execution_ms": "7.065",
+    "shared_hits": "102",
+    "parity": true
+  },
+  {
+    "name": "amazon_today",
+    "phase": "after",
+    "execution_ms": "108.692",
+    "shared_hits": "2175",
+    "parity": true
+  },
+  {
+    "name": "amazon_previous",
+    "phase": "after",
+    "execution_ms": "335.939",
+    "shared_hits": "60031",
+    "parity": true
+  },
+  {
+    "name": "shopify_batch",
+    "phase": "after",
+    "execution_ms": "20.271",
+    "shared_hits": "539",
+    "parity": true
+  }
+]

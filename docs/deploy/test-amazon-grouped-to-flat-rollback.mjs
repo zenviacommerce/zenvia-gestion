@@ -1,0 +1,20 @@
+import fs from 'node:fs';import assert from 'node:assert/strict';import {createRequire} from 'node:module';
+const root='/workspace/scratch/5f3f70af5a39/grouped-jobs';const require=createRequire(root+'/package.json');const {PGlite}=require('@electric-sql/pglite');
+const db=new PGlite();const schema=fs.readFileSync(root+'/supabase/migrations/20260916190000_amazon_analytics_phase_b.sql','utf8').match(/create table if not exists public.amazon_sync_jobs \([\s\S]*?\n\);/)[0];
+await db.exec('create schema private;create table amazon_accounts(id uuid primary key);create table amazon_sync_runs(id uuid primary key);'+schema+fs.readFileSync(root+'/supabase/migrations/20261015160950_amazon_phase1_worker_lease_table.sql','utf8').split('alter table')[0]);
+await db.exec('alter table amazon_sync_jobs add column lease_holder_id uuid;');
+const runner=fs.readFileSync(root+'/supabase/migrations/20261016194728_amazon_pii_bounded_runner.sql','utf8');
+await db.exec(fs.readFileSync(root+'/supabase/migrations/20261019131844_amazon_grouped_orders_controls.sql','utf8'));
+await db.exec(runner.match(/create function private.amazon_pii_error_code[\s\S]*?\$\$;/)[0]);
+await db.exec(runner.match(/create function private.guard_amazon_pii_controls[\s\S]*?end \$\$;/)[0]);
+await db.exec('create trigger zzzz_amazon_pii_control_guard before insert or update on amazon_sync_jobs for each row execute function private.guard_amazon_pii_controls();');
+const ids=['A1RKKUPIHCS9HS','A13V1IB3VIYZZH','A1PA6795UKMFR9','APJ6JRA9NG5V4','A1805IZSGTT6HS','A2NODRKZP88ZB9','A1C3SOZRARQ6R3','AMEN7PMS3EDWL','A1F83G8C2ARO7P'];
+await db.exec("insert into amazon_accounts values('00000000-0000-4000-8000-000000000001')");
+await db.query(`insert into amazon_sync_jobs(owner_id,amazon_account_id,job_key,source,scope_key,window_from,window_to,payload,status,attempts) values('00000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000001','group','orders','region:EU','2026-10-19T01:00:00Z','2026-10-19T02:00:00Z',$1,'queued',1)`,[JSON.stringify({mode:'hourly',region:'EU',marketplace_ids:ids})]);
+const sql=fs.readFileSync('/tmp/amazon-grouped-to-flat-rollback.sql','utf8');
+await db.exec("insert into amazon_worker_leases(lease_key,holder_id,expires_at) values('amazon-sync-worker','00000000-0000-4000-8000-000000000003',now()+interval '10 minutes')");
+await assert.rejects(db.exec(sql),/active Amazon worker lease/);await db.exec('rollback;delete from amazon_worker_leases;');
+await db.exec("update amazon_sync_jobs set status='running'");await assert.rejects(db.exec(sql),/running Amazon sync job/);await db.exec("rollback;update amazon_sync_jobs set status='queued';");
+await db.exec(sql);let rows=(await db.query('select * from amazon_sync_jobs')).rows;assert.equal(rows.length,10);let original=rows.find(r=>r.job_key==='group');assert.equal(original.status,'success');assert.equal(original.payload.superseded,true);const flat=rows.filter(r=>r.job_key!=='group');assert.deepEqual(flat.map(r=>r.marketplace_id).sort(),ids.sort());for(const r of flat){assert.equal(r.status,'queued');assert.equal(r.attempts,0);assert.equal(r.window_from.toISOString(),'2026-10-19T01:00:00.000Z');assert.equal(r.window_to.toISOString(),'2026-10-19T02:00:00.000Z');assert.deepEqual(r.payload,{mode:'hourly'});}
+await db.exec(sql);assert.equal((await db.query('select count(*) n from amazon_sync_jobs')).rows[0].n,10);
+console.log('PASS: production queue schema + actual PII guard, lease rejection, running-job rejection, nine exact-window flat replacements, safe supersession, idempotent replay.');await db.close();

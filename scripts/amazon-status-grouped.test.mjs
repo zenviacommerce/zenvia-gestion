@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
-const sql=readFileSync(new URL('../supabase/migrations/20261019125000_amazon_job_status_grouped_counts.sql',import.meta.url),'utf8');
+const sql=readFileSync(new URL('../supabase/migrations/20261019110237_amazon_job_status_grouped_counts.sql',import.meta.url),'utf8');
 const edge=readFileSync(new URL('../supabase/functions/amazon-status/index.ts',import.meta.url),'utf8');
 test('four statuses counted in one query and existing index reused',()=>{
  for(const status of ['queued','running','success','failed'])assert.match(sql,new RegExp("FILTER\\(WHERE status='"+status+"'\\)"));

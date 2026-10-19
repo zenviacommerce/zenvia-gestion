@@ -22,7 +22,9 @@ Datos actuales leídos con RLS authenticated y transacción revertida, 990 filas
 | Año | 1.538,34 € | 353/361 | 18.353,63 € | 24,29 € |
 | Todo | 1.538,34 € | 353/361 | 18.353,63 € | 24,29 € |
 
-Desviación explícita del dato histórico del usuario: la referencia anterior aplicada a los datos actuales clasifica MRW 194,57 € y Correos 60,16 €, manteniendo total 254,73 €. No se ha forzado un reparto histórico de 190,00/64,73 ni modificado envíos para ajustarlo. Es paridad de código/datos actuales; la causa histórica del reparto no está acreditada.
+La primera lectura mostró temporalmente MRW 194,57 € / Correos 60,16 €. Una segunda lectura detectó actualización de carrier_code/carrier_name de un envío de 4,57 € de MRW a Correos Express durante la comprobación. Con los datos actuales, referencia anterior y nueva RPC + estimador coinciden exactamente en el reparto informado: MRW 190,00 € / Correos 64,73 €, total 254,73 €. Sin cambios manuales en pedidos.
+
+Backend aplicado por migración 20261019143018_orders_dashboard_tariff_kpi_parity. SECURITY INVOKER, anon sin EXECUTE, authenticated permitido. Comprobación real con RLS, cinco periodos, resultados en production-parity-results.json. Snapshot preparado antes de aplicar. 145 tests Vitest aprobados. CI pendiente antes de frontend.
 
 Selección global: test real de Orders con 63 coincidencias y página de 25 exige el enlace «Seleccionar los 63 pedidos que coinciden con los filtros», selección completa y 63 cotizaciones simuladas, cero creaciones de etiqueta. SQL cubre además >200 candidatos de tarifa fuera de página, filtros, aislamiento por tenant y direcciones purgadas.
 

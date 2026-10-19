@@ -2,6 +2,10 @@
 
 Procedimiento preparado, NO ejecutado. Requiere aprobación final. No mezclar con MFA.
 
+**Puerta de seguridad actual:** consultar `invoice-engine-mfa-compatibility-20261019.md`.
+La auditoría posterior detectó una migración MFA aplicada ausente en main; la aprobación
+permanece bloqueada. No desplegar el HEAD aislado del PR sobre la versión estable.
+
 ## Alcance y compatibilidad
 
 No hay migraciones ni se requieren columnas, RPC, RLS o triggers nuevos. Es código cliente:

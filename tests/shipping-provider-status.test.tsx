@@ -10,3 +10,7 @@ it('keeps every provider visible and retries only the failed provider',()=>{
  view.rerender(<ShippingProviderStatus states={{sendcloud:{state:'not_applicable',options:[],message:'No conectado'}}} onRetry={retry}/>);
  expect(screen.getByText('No aplica: No conectado')).toBeTruthy();expect(screen.getByText('Envia.com')).toBeTruthy();expect(screen.getByText('MRW directo')).toBeTruthy();
 });
+it('renders singular for one option and plural for multiple options',()=>{
+ render(<ShippingProviderStatus states={{sendcloud:{state:'ready',options:['one'],message:''},envia:{state:'ready',options:['one','two'],message:''}}} onRetry={()=>{}}/>);
+ expect(screen.getByText('1 opción')).toBeTruthy();expect(screen.getByText('2 opciones')).toBeTruthy();expect(screen.queryByText('1 opciones')).toBeNull();
+});

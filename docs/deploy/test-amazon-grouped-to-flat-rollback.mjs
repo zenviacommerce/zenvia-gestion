@@ -8,7 +8,7 @@ await db.exec(fs.readFileSync(root+'/supabase/migrations/20261019131844_amazon_g
 await db.exec(runner.match(/create function private.amazon_pii_error_code[\s\S]*?\$\$;/)[0]);
 await db.exec(runner.match(/create function private.guard_amazon_pii_controls[\s\S]*?end \$\$;/)[0]);
 await db.exec('create trigger zzzz_amazon_pii_control_guard before insert or update on amazon_sync_jobs for each row execute function private.guard_amazon_pii_controls();');
-const ids=['A1RKKUPIHCS9HS','A13V1IB3VIYZZH','A1PA6795UKMFR9','APJ6JRA9NG5V4','A1805IZSGTT6HS','A2NODRKZP88ZB9','A1C3SOZRARQ6R3','AMEN7PMS3EDWL','A1F83G8C2ARO7P'];
+const ids=['A1RKKUPIHCS9HS','A13V1IB3VIYZZH','A1PA6795UKMFR9','APJ6JRA9NG5V4','A1805IZSGTT6HS','A2NODRKZP88ZB9','A1C3SOZRARQ6R3','AMEN7PMS3EDWL','A28R8C7NBKEWEA'];
 await db.exec("insert into amazon_accounts values('00000000-0000-4000-8000-000000000001')");
 await db.query(`insert into amazon_sync_jobs(owner_id,amazon_account_id,job_key,source,scope_key,window_from,window_to,payload,status,attempts) values('00000000-0000-4000-8000-000000000002','00000000-0000-4000-8000-000000000001','group','orders','region:EU','2026-10-19T01:00:00Z','2026-10-19T02:00:00Z',$1,'queued',1)`,[JSON.stringify({mode:'hourly',region:'EU',marketplace_ids:ids})]);
 const sql=fs.readFileSync('/tmp/amazon-grouped-to-flat-rollback.sql','utf8');

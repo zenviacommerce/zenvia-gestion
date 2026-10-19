@@ -41,7 +41,7 @@ BEGIN
    (SELECT count(DISTINCT v#>>'{}') FROM jsonb_array_elements(j.payload->'marketplace_ids') v)<>9 OR
    EXISTS(SELECT 1 FROM jsonb_array_elements(j.payload->'marketplace_ids') v
     WHERE jsonb_typeof(v)<>'string' OR v#>>'{}' NOT IN
-     ('A1RKKUPIHCS9HS','A13V1IB3VIYZZH','A1PA6795UKMFR9','APJ6JRA9NG5V4','A1805IZSGTT6HS','A2NODRKZP88ZB9','A1C3SOZRARQ6R3','AMEN7PMS3EDWL','A1F83G8C2ARO7P')) THEN
+     ('A1RKKUPIHCS9HS','A13V1IB3VIYZZH','A1PA6795UKMFR9','APJ6JRA9NG5V4','A1805IZSGTT6HS','A2NODRKZP88ZB9','A1C3SOZRARQ6R3','AMEN7PMS3EDWL','A28R8C7NBKEWEA')) THEN
    RAISE EXCEPTION 'Rollback blocked: job % is not the expected nine-market scope',j.id;
   END IF;
   FOR m IN SELECT jsonb_array_elements_text(j.payload->'marketplace_ids') ORDER BY 1 LOOP

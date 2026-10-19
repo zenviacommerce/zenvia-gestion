@@ -1,0 +1,683 @@
+{
+  "source_sha": "f525a4d34fe7776bbab05a6f0291206670522f81",
+  "ci": [
+    {
+      "id": 39259476407,
+      "name": "Build check",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 556,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476407/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476407/logs",
+      "workflow_id": 361316263
+    },
+    {
+      "id": 39259476415,
+      "name": "MFA visual review (Playwright)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 79,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476415/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476415/logs",
+      "workflow_id": 388829843
+    },
+    {
+      "id": 39259476436,
+      "name": "Auth resilience tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 226,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476436/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476436/logs",
+      "workflow_id": 385998318
+    },
+    {
+      "id": 39259476445,
+      "name": "Build ZENVIA Gestión",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2216,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476445/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476445/logs",
+      "workflow_id": 354706666
+    },
+    {
+      "id": 39259476554,
+      "name": "MFA real integration (disposable Supabase)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 265,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476554/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476554/logs",
+      "workflow_id": 387906946
+    }
+  ],
+  "bundle_verification": [
+    {
+      "slug": "amazon-sync-worker",
+      "version": 40,
+      "jwt": false,
+      "preservedJwt": true,
+      "exactBundle": true,
+      "files": 12
+    },
+    {
+      "slug": "amazon-sync-orders",
+      "version": 22,
+      "jwt": false,
+      "preservedJwt": true,
+      "exactBundle": true,
+      "files": 6
+    },
+    {
+      "slug": "amazon-sync-manual",
+      "version": 26,
+      "jwt": true,
+      "preservedJwt": true,
+      "exactBundle": true,
+      "files": 10
+    },
+    {
+      "slug": "amazon-sync-orchestrator",
+      "version": 19,
+      "jwt": false,
+      "preservedJwt": true,
+      "exactBundle": true,
+      "files": 8
+    }
+  ],
+  "guard_proof": [
+    {
+      "payload": {
+        "mode": "hourly",
+        "region": "EU",
+        "marketplace_ids": [
+          "A1RKKUPIHCS9HS",
+          "A28R8C7NBKEWEA"
+        ]
+      }
+    }
+  ],
+  "legacy": [
+    {
+      "successful": 9,
+      "unfinished": 0
+    }
+  ],
+  "first_completed_cycle": [
+    {
+      "result": {
+        "lease": null,
+        "queue": null,
+        "generation": [
+          {
+            "n": 117,
+            "grouped": 0,
+            "hour_bucket": "2026-10-19T11:00:00+00:00"
+          },
+          {
+            "n": 117,
+            "grouped": 0,
+            "hour_bucket": "2026-10-19T12:00:00+00:00"
+          },
+          {
+            "n": 47,
+            "grouped": 2,
+            "hour_bucket": "2026-10-19T13:00:00+00:00"
+          }
+        ],
+        "checkpoints": [
+          {
+            "hwm": "2026-10-19T13:23:08.123+00:00",
+            "checkpoint": {
+              "last_job_id": "b54fa3a7-5a71-493a-afd4-2e4588170d48",
+              "rows_processed": 234
+            },
+            "marketplace_id": "A1C3SOZRARQ6R3"
+          },
+          {
+            "hwm": "2026-10-19T13:23:08.123+00:00",
+            "checkpoint": {
+              "last_job_id": "b54fa3a7-5a71-493a-afd4-2e4588170d48",
+              "rows_processed": 234
+            },
+            "marketplace_id": "A1PA6795UKMFR9"
+          },
+          {
+            "hwm": "2026-10-19T13:23:08.123+00:00",
+            "checkpoint": {
+              "last_job_id": "b54fa3a7-5a71-493a-afd4-2e4588170d48",
+              "rows_processed": 234
+            },
+            "marketplace_id": "A13V1IB3VIYZZH"
+          },
+          {
+            "hwm": "2026-10-19T13:23:08.123+00:00",
+            "checkpoint": {
+              "last_job_id": "b54fa3a7-5a71-493a-afd4-2e4588170d48",
+              "rows_processed": 234
+            },
+            "marketplace_id": "A1805IZSGTT6HS"
+          },
+          {
+            "hwm": "2026-10-19T13:23:08.123+00:00",
+            "checkpoint": {
+              "last_job_id": "b54fa3a7-5a71-493a-afd4-2e4588170d48",
+              "rows_processed": 234
+            },
+            "marketplace_id": "A1RKKUPIHCS9HS"
+          },
+          {
+            "hwm": "2026-10-19T13:23:08.123+00:00",
+            "checkpoint": {
+              "last_job_id": "b54fa3a7-5a71-493a-afd4-2e4588170d48",
+              "rows_processed": 234
+            },
+            "marketplace_id": "A28R8C7NBKEWEA"
+          },
+          {
+            "hwm": "2026-10-19T13:23:08.123+00:00",
+            "checkpoint": {
+              "last_job_id": "b54fa3a7-5a71-493a-afd4-2e4588170d48",
+              "rows_processed": 234
+            },
+            "marketplace_id": "A2NODRKZP88ZB9"
+          },
+          {
+            "hwm": "2026-10-19T13:23:08.123+00:00",
+            "checkpoint": {
+              "last_job_id": "b54fa3a7-5a71-493a-afd4-2e4588170d48",
+              "rows_processed": 234
+            },
+            "marketplace_id": "AMEN7PMS3EDWL"
+          },
+          {
+            "hwm": "2026-10-19T13:23:08.123+00:00",
+            "checkpoint": {
+              "last_job_id": "b54fa3a7-5a71-493a-afd4-2e4588170d48",
+              "rows_processed": 234
+            },
+            "marketplace_id": "APJ6JRA9NG5V4"
+          }
+        ],
+        "observed_at": "2026-10-19T13:25:37.216412+00:00"
+      }
+    }
+  ],
+  "before_hours": [
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 13:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 13:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 13:00:00+00",
+      "jobs": 27
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 12:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 12:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 12:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 11:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 11:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 11:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 10:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 10:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 10:00:00+00",
+      "jobs": 90
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 09:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 09:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 09:00:00+00",
+      "jobs": 108
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 08:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 08:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 08:00:00+00",
+      "jobs": 99
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 07:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 07:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 07:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 06:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 06:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 06:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 05:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 05:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 05:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 04:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 04:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 04:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 03:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 03:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 03:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 02:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 02:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 02:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 01:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 01:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 01:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-19 00:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-19 00:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-19 00:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 23:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 23:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 23:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 22:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 22:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 22:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 21:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 21:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 21:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 20:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 20:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 20:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 19:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 19:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 19:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 18:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 18:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 18:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 17:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 17:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 17:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 16:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 16:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 16:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 15:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 15:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 15:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 14:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 14:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 14:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 13:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 13:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 13:00:00+00",
+      "jobs": 108
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "finances",
+      "hour_bucket": "2026-10-18 12:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "inventory",
+      "hour_bucket": "2026-10-18 12:00:00+00",
+      "jobs": 9
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 12:00:00+00",
+      "jobs": 117
+    },
+    {
+      "observed_at": "2026-10-19 13:09:07.312158+00",
+      "source": "orders",
+      "hour_bucket": "2026-10-18 11:00:00+00",
+      "jobs": 90
+    }
+  ]
+}

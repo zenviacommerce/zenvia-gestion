@@ -1,0 +1,92 @@
+{
+  "start": {
+    "observed_at": "2026-10-19 12:36:45.329551+00",
+    "updates": [
+      {
+        "rows": 607,
+        "calls": 607,
+        "queryid": "-4282386414496591837"
+      },
+      {
+        "rows": 563,
+        "calls": 563,
+        "queryid": "-5890979862673247919"
+      },
+      {
+        "rows": 3,
+        "calls": 3,
+        "queryid": "4716842965389204526"
+      },
+      {
+        "rows": 591,
+        "calls": 591,
+        "queryid": "2231040304283779326"
+      },
+      {
+        "rows": 1692,
+        "calls": 1692,
+        "queryid": "5209982222647702392"
+      }
+    ],
+    "jobs": [
+      {
+        "jobs": 9,
+        "source": "orders",
+        "status": "success",
+        "processed": 222,
+        "started_at": "2026-10-19T12:36:13.87043+00:00",
+        "finished_at": "2026-10-19T12:36:25.351+00:00"
+      }
+    ],
+    "leases": null,
+    "queue": null
+  },
+  "end": {
+    "observed_at": "2026-10-19 12:48:11.943878+00",
+    "updates": [
+      {
+        "rows": 607,
+        "calls": 607,
+        "queryid": "-4282386414496591837"
+      },
+      {
+        "rows": 563,
+        "calls": 563,
+        "queryid": "-5890979862673247919"
+      },
+      {
+        "rows": 6,
+        "calls": 6,
+        "queryid": "4716842965389204526"
+      },
+      {
+        "rows": 591,
+        "calls": 591,
+        "queryid": "2231040304283779326"
+      },
+      {
+        "rows": 1692,
+        "calls": 1692,
+        "queryid": "5209982222647702392"
+      },
+      {
+        "rows": 3,
+        "calls": 3,
+        "queryid": "-6498180574068604616"
+      }
+    ],
+    "jobs": [
+      {
+        "jobs": 18,
+        "source": "orders",
+        "status": "success",
+        "processed": 474,
+        "started_at": "2026-10-19T12:45:01.004943+00:00",
+        "finished_at": "2026-10-19T12:45:28.498+00:00"
+      }
+    ],
+    "leases": null
+  },
+  "operationalUpdates": 6,
+  "normalizedReductionPercent": 97.81046869654465
+}

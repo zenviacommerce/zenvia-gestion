@@ -20,6 +20,7 @@ const ENABLED=Boolean(PGRST&&SECRET&&PSQL);
 const GATEWAY_PORT=54329;
 const USER_ID='22222222-2222-4222-8222-222222222222';
 const OWNER_ID='11111111-1111-4111-8111-111111111111';
+const SYNTHETIC_DATE='2022-02-03';
 
 const reads:any[]=[];
 vi.mock('../src/services/invoiceReaderEnhanced',()=>({
@@ -97,7 +98,7 @@ const pdf=(name:string)=>new File([`%PDF-1.4 ${name} ${++fileCounter} ${Math.ran
 const line=(description:string,quantity:number,unitPrice:number,extra:Record<string,unknown>={})=>({description,quantity,unit:'ud',unitPrice,lineNet:Math.round(quantity*unitPrice*100)/100,taxRate:21,verified:true,...extra});
 function readResult(overrides:Record<string,unknown>){
   return {
-    supplierName:'Synthetic Supplier Integration',invoiceNumber:'IT-1',invoiceDate:'2031-02-03',categoryId:merchandiseId(),
+    supplierName:'Synthetic Supplier Integration',invoiceNumber:'IT-1',invoiceDate:SYNTHETIC_DATE,categoryId:merchandiseId(),
     subtotal:0,vat:0,withholding:0,total:0,currency:'EUR',lines:[],text:'',confidence:0.95,usedOcr:false,
     analysisEngine:'hybrid-ai-verified',aiIssuer:{name:'Synthetic Supplier Integration',taxId:'SYNTH-TAX-INTEGRATION',email:null,phone:null,address:null,countryCode:'ES'},
     aiRecipient:{name:'Synthetic Recipient',taxId:null,email:null,phone:null,address:null,countryCode:'ES'},
@@ -115,6 +116,11 @@ async function importManual(read:Record<string,unknown>,name:string){
 const invoiceRow=(id:string)=>json(`select status, net_amount::float, tax_amount::float, total_amount::float, extraction->'integrityCheck'->>'status' as integrity, extraction->>'integrityRequestedStatus' as requested from public.invoices where id='${id}'`)[0];
 const lineRows=(id:string)=>json(`select description, quantity::float, unit_price::float, line_net::float, price_update_status, normalized_unit_price::float from public.invoice_lines where invoice_id='${id}' order by created_at, line_net`);
 const historyCount=(id:string)=>Number(sql(`select count(*) from public.product_price_history where invoice_id='${id}'`));
+
+it('synthetic fixture date passes the real candidate safety gate before testing persistence',async()=>{
+  const {validateInvoiceCandidateIntegrity}=await import('../src/services/invoiceImportPipeline');
+  expect(validateInvoiceCandidateIntegrity({supplierName:'Synthetic Supplier Safety',invoiceNumber:'SYNTHETIC-SAFETY-01',invoiceDate:SYNTHETIC_DATE,subtotal:137,vat:28.77,equivalenceSurcharge:0,withholding:0,total:165.77})).toMatchObject({safe:true,reasons:[]});
+});
 
 describe.skipIf(!ENABLED)('Importación de facturas contra el esquema real (PostgREST + Postgres)',()=>{
   beforeEach(()=>{cleanDatabase();reads.length=0;});

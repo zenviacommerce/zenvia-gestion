@@ -8,9 +8,9 @@ import { syncInventoryJob } from '../_shared/amazon/inventory.ts';
 const MAX_WORKER_RUNTIME_MS=300_000;
 const HEARTBEAT_MS=60_000;
 function response(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});}
-async function dispatch(admin:any,job:any){
+async function dispatch(admin:any,job:any,deadline:number){
   if(job.source==='orders'){
-    const rows=await syncOrdersJob(admin,job);
+    const rows=await syncOrdersJob(admin,job,deadline);
     try{await retryPendingAmazonTracking(admin,job.owner_id,10)}catch{/* Tracking must not fail order sync. */}
     return rows;
   }
@@ -38,7 +38,7 @@ async function run(admin:any,holderId:string){
       if(!jobs?.length)break;
       for(const job of jobs){
         try{
-          const rowsProcessed=await dispatch(admin,job);
+          const rowsProcessed=await dispatch(admin,job,deadline);
           if(leaseLost)throw new Error('Worker lease lost during job');
           const {data:stillOwner,error:renewError}=await admin.rpc('amazon_worker_renew_lease',{p_holder_id:holderId});
           if(renewError||stillOwner!==true){leaseLost=true;throw new Error('Worker lease lost before job completion');}

@@ -4,6 +4,7 @@ import { loadAmazonSpApiCredentials } from './config.ts';
 const INCLUDED_DATA=['PROCEEDS','EXPENSE','PROMOTION','CANCELLATION','FULFILLMENT','PACKAGES','TAX'];
 const OPERATIONAL_INCLUDED_DATA=[...INCLUDED_DATA,'BUYER','RECIPIENT'];
 const SAFE_LAG_MS=2*60*1000;
+const EU_MARKETPLACE_IDS=new Set(['A1RKKUPIHCS9HS','A13V1IB3VIYZZH','A1PA6795UKMFR9','APJ6JRA9NG5V4','A1805IZSGTT6HS','A2NODRKZP88ZB9','A1C3SOZRARQ6R3','AMEN7PMS3EDWL','A28R8C7NBKEWEA','A1F83G8C2ARO7P']);
 
 type Money={amount?:string|number|null;currencyCode?:string|null}|null|undefined;
 function money(value:Money){const n=Number(value?.amount);return Number.isFinite(n)?n:null;}
@@ -348,14 +349,17 @@ async function upsertPage(admin:any,orders:any[],job:any){
   return orderRows.length+itemRows.length+operational;
 }
 
-export async function syncOrdersJob(admin:any,job:any){
-  if(!job?.marketplace_id||!job?.window_from)throw new Error('Job de pedidos incompleto.');
+export async function syncOrdersJob(admin:any,job:any,deadline=Date.now()+300_000){
+  const grouped=Array.isArray(job?.payload?.marketplace_ids);
+  const marketplaceIds:string[]=grouped?[...new Set<string>(job.payload.marketplace_ids)].sort():[job?.marketplace_id];
+  if(grouped&&(job.payload.region!=='EU'||job.scope_key!=='region:EU'||job.marketplace_id||!marketplaceIds.length||marketplaceIds.some(id=>!EU_MARKETPLACE_IDS.has(id))))throw new Error('Unsupported Amazon region, scope or marketplace.');
+  if(!marketplaceIds[0]||!job?.window_from)throw new Error('Job de pedidos incompleto.');
   const mode=String(job?.payload?.mode||'hourly');
   const safeBefore=new Date(Date.now()-SAFE_LAG_MS);
   const before=minIso(job.window_to,safeBefore);
-  if(new Date(job.window_from)>=new Date(before))return 0;
+  if(new Date(job.window_from)>=new Date(before)){job.orders_completed_before=before;return 0;}
   const baseQuery:any={
-    marketplaceIds:[job.marketplace_id],
+    marketplaceIds,
     maxResultsPerPage:100,
     includedData:OPERATIONAL_INCLUDED_DATA,
   };
@@ -370,6 +374,9 @@ export async function syncOrdersJob(admin:any,job:any){
   let paginationToken:string|undefined;
   let processed=0;
   do{
+    // Leave room for the client's bounded retries and lease/failure bookkeeping.
+    // No cursor is discarded on success: budget exhaustion retries the whole window.
+    if(grouped&&Date.now()>=deadline-150_000)throw new Error('Amazon Orders runtime budget exhausted before page completion.');
     const query={...baseQuery,...(paginationToken?{paginationToken}:{})};
     let data:any;
     try{
@@ -387,8 +394,17 @@ export async function syncOrdersJob(admin:any,job:any){
       data=await spApiRequest('/orders/2026-01-01/orders',{query:{...query,includedData:INCLUDED_DATA}},credentials);
     }
     const orders=Array.isArray(data?.orders)?data.orders:[];
-    processed+=await upsertPage(admin,orders,job);
+    // Validate the entire page before any write; never attribute a grouped
+    // response with absent marketplace identity to the first requested market.
+    if(orders.some((order:any)=>grouped?(!order?.salesChannel?.marketplaceId||!marketplaceIds.includes(order.salesChannel.marketplaceId)):(order?.salesChannel?.marketplaceId&&!marketplaceIds.includes(order.salesChannel.marketplaceId))))throw new Error('Amazon response marketplace outside requested scope.');
+    if(grouped){
+      for(const marketplaceId of marketplaceIds){
+        const scoped=orders.filter((order:any)=>order.salesChannel.marketplaceId===marketplaceId);
+        if(scoped.length)processed+=await upsertPage(admin,scoped,{...job,marketplace_id:marketplaceId});
+      }
+    }else processed+=await upsertPage(admin,orders,job);
     paginationToken=data?.pagination?.nextToken||undefined;
   }while(paginationToken);
+  job.orders_completed_before=before;
   return processed;
 }

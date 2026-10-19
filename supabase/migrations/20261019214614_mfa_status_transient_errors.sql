@@ -1,4 +1,5 @@
--- Preserve actual recovery locks; never turn a transient read/session error into one.
+-- Requires a disabled policy during this maintenance step; never activates MFA.
+DO $$BEGIN IF NOT EXISTS(SELECT 1 FROM private.mfa_configuration WHERE singleton AND NOT enabled) THEN RAISE EXCEPTION 'MFA_DISABLE_BEFORE_STATUS_MIGRATION';END IF;END$$;
 CREATE OR REPLACE FUNCTION public.security_mfa_status()
  RETURNS jsonb
  LANGUAGE plpgsql

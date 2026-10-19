@@ -3,7 +3,7 @@
 BEGIN;
 SET LOCAL statement_timeout='8s';
 DO $test$
-DECLARE pilot uuid; c jsonb; other record; outside_admins int:=0; outside_users int:=0; plan_ok boolean; owner_bridge boolean;
+DECLARE pilot uuid; c jsonb; other record; outside_admins int:=0; outside_users int:=0; plan_ok boolean; pilot_email_control boolean;
 BEGIN
  IF NOT EXISTS(SELECT 1 FROM private.mfa_configuration WHERE singleton AND NOT enabled AND cohort_user_ids IS NULL) THEN RAISE EXCEPTION 'unexpected MFA baseline';END IF;
  IF EXISTS(SELECT 1 FROM private.mfa_activation_findings()) THEN RAISE EXCEPTION 'integrity findings';END IF;
@@ -34,13 +34,14 @@ BEGIN
  END LOOP;
  IF outside_admins<1 OR outside_users<1 THEN RAISE EXCEPTION 'outside cohort comparison subjects missing';END IF;
  plan_ok:=public.security_mfa_bridge_allowed('system:plan-sync','platform@zenviacommerce.com','apply_plan_snapshot');
- owner_bridge:=public.security_mfa_bridge_allowed('verified-platform-actor','info@zenviacommerce.com','list_users');
+ pilot_email_control:=public.security_mfa_bridge_allowed('verified-platform-actor','info@zenviacommerce.com','list_users');
+ IF pilot_email_control THEN RAISE EXCEPTION 'pilot delegation unexpectedly allowed';END IF;
  IF NOT plan_ok THEN RAISE EXCEPTION 'plan sync blocked';END IF;
  UPDATE private.mfa_configuration SET enabled=false WHERE singleton;
  PERFORM set_config('request.jwt.claims',(c||jsonb_build_object('aal','aal1'))::text,true);
  EXECUTE 'SET LOCAL ROLE authenticated';PERFORM public.security_mfa_assert(false);EXECUTE 'RESET ROLE';
  IF (SELECT enabled FROM private.mfa_configuration WHERE singleton) THEN RAISE EXCEPTION 'kill switch failed';END IF;
- PERFORM set_config('mfa.preflight_receipt',jsonb_build_object('pilot_aal1_denied',true,'pilot_aal2_ready',true,'orders_rpc_aal2',true,'outside_admins',outside_admins,'outside_users',outside_users,'plan_sync',plan_ok,'owner_platform_bridge',owner_bridge,'kill_switch',true)::text,true);
+ PERFORM set_config('mfa.preflight_receipt',jsonb_build_object('pilot_aal1_denied',true,'pilot_aal2_ready',true,'orders_rpc_aal2',true,'outside_admins',outside_admins,'outside_users',outside_users,'plan_sync',plan_ok,'pilot_email_bridge_denied',NOT pilot_email_control,'kill_switch',true)::text,true);
 END $test$;
 SELECT current_setting('mfa.preflight_receipt')::jsonb AS receipt;
 ROLLBACK;

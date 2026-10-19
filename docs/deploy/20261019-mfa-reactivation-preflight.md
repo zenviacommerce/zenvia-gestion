@@ -11,8 +11,8 @@ Historical limit: retrieved gateway POSTs07:00–13:00UTC contain200 responses a
 ## Frontend correction
 Enabled/unknown release mode: six-second read deadline, max3 reads separated by500/1500ms, then explicit Reintentar. Focus/visibility/token events cannot restart an exhausted budget; active token events cannot create unlimited superseding reads. Successful reads reset the budget. No signOut, credential removal or durable lock. Existing disabled fail-open remains intact. Tests cover503x3→manual200 with two factors, hung reads, active/exhausted event storms and stale-ready races. Production build flag is still false: do not claim enabled startup enforcement deployed until the activation release explicitly changes it and records frontend rollback.
 
-## Phase 2: transaction rehearsal / gate failure
-With cohort limited to owner inside BEGIN/ROLLBACK, bridge plan-sync=true and outside-cohort actor=true; Platform actor with owner's email=false. This is existing intentional MFA_BRIDGE_DELEGATION_REQUIRED protection: a shared bridge secret is not human MFA proof. It conflicts with an unconditional requirement that the same Platform operator be unaffected. No bypass was added. No activation is permitted until this is resolved or its intended scope clarified.
+## Phase 2: transaction rehearsal / identity correction
+With cohort limited to owner inside BEGIN/ROLLBACK, bridge plan-sync=true and outside-cohort actor=true; a synthetic Platform actor using the pilot email=false. This is an intentional negative security control, not proof of a real Platform outage. Initial reporting wrongly treated it as a blocker before identifying the actual operator. Read-only verification in the independent Platform Auth project finds no account with pilot email; the active actual operator uses a different identity. Rehearsal with that actual actor's ID/email passes the live SQL bridge gate, as does plan-sync. No bridge protection was weakened. No real actor UUID/email is committed here. This validates SQL policy; no signed external bridge request under an uncommitted transaction was claimed.
 
 Emergency switch tested inside BEGIN/ROLLBACK: enable single-owner cohort, disable enabled, assert disabled and cohort retained. Rollback restores enabled=false,cohortNULL. No factor/session changes or production revocations. Final live flag recheck required after every rehearsal.
 
@@ -22,9 +22,15 @@ Corrections require green CI and backend snapshot/rollback rehearsal before appl
 Subsequent phase receipts belong on audit/production-resume-20261019 to avoid documentation-only production deployments.
 
 ## Phase 3: real database rehearsals, all rolled back
-- SQL claims under authenticated: pilot AAL1 denied + challenge; current real AAL2 session/proof permits status and orders_dashboard_page_v1;3 outside admins and2 ordinary users unaffected. Plan sync permitted. Owner-email Platform actor remains denied (activation gate failure). These are SQL/role tests, not newly minted bearer tokens or an HTTP owner login.
+- SQL claims under authenticated: pilot AAL1 denied + challenge; current real AAL2 session/proof permits status and orders_dashboard_page_v1;3 outside admins and2 ordinary users unaffected. Plan sync permitted. Pilot-email negative control denies as intended; actual active Platform actor passes in a separate rolled-back rehearsal. These are SQL/role tests, not newly minted bearer tokens or an HTTP owner login.
 - Exact production status reproduction: old function + two real admitted verified factors + absent session returns recovery_locked. Revised function raises42501 MFA_SESSION_REQUIRED. Restoring snapshot reproduces original canonical md5 6bec4d51a567fa26b8b6e6570a6f796b; principal stays active. Entire rehearsal ROLLBACK.
 - Browser captures: real MfaProvider+MfaScreen, synthetic offline503x3 then manual retry→two-factor challenge, desktop/mobile. Three reads maximum, zero logout calls. No visual component/layout/copy changes; only context retry scheduling.
 - Local Node suite initially1129/1130: existing Amazon forecast clock test fails when host's local date differs from Europe/Madrid/UTC. Re-running focused suite with TZ=Europe/Madrid passes19/19. Full Madrid suite1130/1130 passed; no unrelated product/test edits.
 
 Independent review corrected active token-storm retry resets and stale identity after exhausted budget; regressions added. Local final Vitest165/165, Node1130/1130 in Europe/Madrid, build passed.
+
+## Phase 4: corrective backend deployment (policy stays OFF)
+- Original head4708cd963ffd4499cb72f4e1314fb50cfd56e9e9: all five workflows green, including real disposable GoTrue/Vault.
+- Applied migration20261019214614_mfa_status_transient_errors (Supabase assigns application version; CLI-generated filename was renamed to match actual history). New status hash a18577108e2b660f8effe809b55e2663, old6bec4d51a567fa26b8b6e6570a6f796b.
+- Post-apply: enabled=false, cohortNULL, activation guard0, anonEXECUTEfalse/authenticatedtrue. No factor/session/bridge/Auth configuration changes.
+- Remaining activation gates: exact historical200 reason not recoverable from retrieved evidence; direct CPU measurement unavailable; activation frontend release must change the currently-false build flag and retain tested rollback. Keep policyOFF.

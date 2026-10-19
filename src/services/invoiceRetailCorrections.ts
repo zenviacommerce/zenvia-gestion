@@ -184,7 +184,7 @@ export function getCashSierraNevadaProductLines(lines:string[],fullText:string):
       });
     }
   }
-  return result.slice(0,50);
+  return result.slice(0,400); // antes 50: se perdían líneas en facturas largas
 }
 
 export function getRetailInvoiceCorrection(lines: string[], fullText: string): RetailInvoiceCorrection | null {

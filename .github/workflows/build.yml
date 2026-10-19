@@ -20,6 +20,8 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Test application logic
         run: node --test $(find scripts -maxdepth 1 -name '*.test.mjs' ! -name 'mfa-real-integration.test.mjs' | sort)
+      - name: Unit and component tests (vitest)
+        run: npx vitest run
       - name: Build
         run: npm run build
       - name: Upload dist artifact
@@ -29,3 +31,44 @@ jobs:
           path: dist
           if-no-files-found: error
           retention-days: 7
+
+  invoice-import-integration:
+    # Flujo completo importación → guardado contra el esquema real (Postgres + PostgREST + supabase-js).
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: 127.0.0.1
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      ZG_IT_JWT_SECRET: zenvia-ci-integration-secret-0123456789abcdef
+      ZG_IT_PGRST: http://127.0.0.1:3000
+      ZG_IT_PSQL: psql -d zvit
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Create database from production schema snapshot
+        run: |
+          psql -v ON_ERROR_STOP=1 -f tests/integration/roles.sql
+          createdb zvit
+          psql -d zvit -v ON_ERROR_STOP=1 -f tests/integration/schema.sql -f tests/integration/grants.sql
+      - name: Start PostgREST
+        run: |
+          curl -sSL -o /tmp/postgrest.tar.xz https://github.com/PostgREST/postgrest/releases/download/v12.2.3/postgrest-v12.2.3-linux-static-x64.tar.xz
+          tar -xf /tmp/postgrest.tar.xz -C /tmp
+          printf 'db-uri = "postgres://authenticator:authpw@127.0.0.1:5432/zvit"\ndb-schemas = "public"\ndb-anon-role = "anon"\njwt-secret = "%s"\nserver-port = 3000\n' "$ZG_IT_JWT_SECRET" > /tmp/pgrst.conf
+          nohup /tmp/postgrest /tmp/pgrst.conf > /tmp/pgrst.log 2>&1 &
+          for i in $(seq 1 30); do curl -sf http://127.0.0.1:3000/ >/dev/null && break; sleep 1; done
+          curl -sf http://127.0.0.1:3000/ >/dev/null || (cat /tmp/pgrst.log; exit 1)
+      - name: Invoice import integration tests
+        run: npx vitest run tests/invoice-import.integration.test.ts

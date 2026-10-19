@@ -193,7 +193,7 @@ export function extractCompactProductLines(lines:string[]):NewInvoiceLineInput[]
     if(description.length<3)continue;
     result.push({supplierSku,description:description.slice(0,250),quantity,unitPrice,lineTotal});
   }
-  return result.slice(0,50);
+  return result.slice(0,400); // antes 50: se perdían líneas en facturas largas
 }
 
 export function extractServiceTableLines(lines: string[]): NewInvoiceLineInput[] {

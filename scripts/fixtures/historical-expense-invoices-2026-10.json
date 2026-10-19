@@ -1,0 +1,1993 @@
+[
+  {
+    "id8": "SYNTHETIC-SCENARIO-001",
+    "number": "SYNTHETIC-INVOICE-001",
+    "supplier": "Synthetic Supplier 001",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 43.2,
+    "vat": 9.07,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 52.27,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "duplicate-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 001-1",
+        "supplierSku": "SYNTHETIC-SKU-001-1",
+        "quantity": 12,
+        "unit": "ud",
+        "unitPrice": 3.6,
+        "lineNet": 43.2,
+        "taxRate": 21
+      },
+      {
+        "description": "Synthetic item 001-1",
+        "supplierSku": "SYNTHETIC-SKU-001-1",
+        "quantity": 12,
+        "unit": "ud",
+        "unitPrice": 3.6,
+        "lineNet": 43.2,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-002",
+    "number": "SYNTHETIC-INVOICE-002",
+    "supplier": "Synthetic Supplier 002",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 74.12,
+    "vat": 15.57,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 89.69,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 002-1",
+        "supplierSku": "SYNTHETIC-SKU-002-1",
+        "quantity": 13,
+        "unit": "ud",
+        "unitPrice": 4.03,
+        "lineNet": 52.39,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-003",
+    "number": "SYNTHETIC-INVOICE-003",
+    "supplier": "Synthetic Supplier 003",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 85.17,
+    "vat": 17.89,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 103.06,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 003-1",
+        "supplierSku": "SYNTHETIC-SKU-003-1",
+        "quantity": 14,
+        "unit": "ud",
+        "unitPrice": 4.46,
+        "lineNet": 62.44,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-004",
+    "number": "SYNTHETIC-INVOICE-004",
+    "supplier": "Synthetic Supplier 004",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 97.08,
+    "vat": 20.39,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 117.47,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 004-1",
+        "supplierSku": "SYNTHETIC-SKU-004-1",
+        "quantity": 15,
+        "unit": "ud",
+        "unitPrice": 4.89,
+        "lineNet": 73.35,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-005",
+    "number": "SYNTHETIC-INVOICE-005",
+    "supplier": "Synthetic Supplier 005",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 109.85,
+    "vat": 23.07,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 132.92,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 005-1",
+        "supplierSku": "SYNTHETIC-SKU-005-1",
+        "quantity": 16,
+        "unit": "ud",
+        "unitPrice": 5.32,
+        "lineNet": 85.12,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-006",
+    "number": "SYNTHETIC-INVOICE-006",
+    "supplier": "Synthetic Supplier 006",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 123.48,
+    "vat": 25.93,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 149.41,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 006-1",
+        "supplierSku": "SYNTHETIC-SKU-006-1",
+        "quantity": 17,
+        "unit": "ud",
+        "unitPrice": 5.75,
+        "lineNet": 97.75,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-007",
+    "number": "SYNTHETIC-INVOICE-007",
+    "supplier": "Synthetic Supplier 007",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 137.97,
+    "vat": 28.97,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 166.94,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 007-1",
+        "supplierSku": "SYNTHETIC-SKU-007-1",
+        "quantity": 18,
+        "unit": "ud",
+        "unitPrice": 6.18,
+        "lineNet": 111.24,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-008",
+    "number": "SYNTHETIC-INVOICE-008",
+    "supplier": "Synthetic Supplier 008",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 153.32,
+    "vat": 32.2,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 185.52,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 008-1",
+        "supplierSku": "SYNTHETIC-SKU-008-1",
+        "quantity": 19,
+        "unit": "ud",
+        "unitPrice": 6.61,
+        "lineNet": 125.59,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-009",
+    "number": "SYNTHETIC-INVOICE-009",
+    "supplier": "Synthetic Supplier 009",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 169.53,
+    "vat": 35.6,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 205.13,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 009-1",
+        "supplierSku": "SYNTHETIC-SKU-009-1",
+        "quantity": 20,
+        "unit": "ud",
+        "unitPrice": 7.04,
+        "lineNet": 140.8,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-010",
+    "number": "SYNTHETIC-INVOICE-010",
+    "supplier": "Synthetic Supplier 010",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 186.6,
+    "vat": 39.19,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 225.79,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 010-1",
+        "supplierSku": "SYNTHETIC-SKU-010-1",
+        "quantity": 21,
+        "unit": "ud",
+        "unitPrice": 7.47,
+        "lineNet": 156.87,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-011",
+    "number": "SYNTHETIC-INVOICE-011",
+    "supplier": "Synthetic Supplier 011",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 204.53,
+    "vat": 42.95,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 247.48,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 011-1",
+        "supplierSku": "SYNTHETIC-SKU-011-1",
+        "quantity": 22,
+        "unit": "ud",
+        "unitPrice": 7.9,
+        "lineNet": 173.8,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-012",
+    "number": "SYNTHETIC-INVOICE-012",
+    "supplier": "Synthetic Supplier 012",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 223.32,
+    "vat": 46.9,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 270.22,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 012-1",
+        "supplierSku": "SYNTHETIC-SKU-012-1",
+        "quantity": 23,
+        "unit": "ud",
+        "unitPrice": 8.33,
+        "lineNet": 191.59,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-013",
+    "number": "SYNTHETIC-INVOICE-013",
+    "supplier": "Synthetic Supplier 013",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 242.97,
+    "vat": 51.02,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 293.99,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 013-1",
+        "supplierSku": "SYNTHETIC-SKU-013-1",
+        "quantity": 24,
+        "unit": "ud",
+        "unitPrice": 8.76,
+        "lineNet": 210.24,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-014",
+    "number": "SYNTHETIC-INVOICE-014",
+    "supplier": "Synthetic Supplier 014",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 263.48,
+    "vat": 55.33,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 318.81,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-and-price-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 014-1",
+        "supplierSku": "SYNTHETIC-SKU-014-1",
+        "quantity": 48,
+        "unit": "ud",
+        "unitPrice": 9.19,
+        "lineNet": 229.75,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Alta"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-015",
+    "number": "SYNTHETIC-INVOICE-015",
+    "supplier": "Synthetic Supplier 015",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 250.12,
+    "vat": 52.53,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 302.65,
+    "lineImportWarning": "Synthetic numeric overflow",
+    "detectedLineCount": 3,
+    "scenario": "lost-goods",
+    "lines": [],
+    "incidentSeverity": "Media"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-016",
+    "number": "SYNTHETIC-INVOICE-016",
+    "supplier": "Synthetic Supplier 016",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 271.35,
+    "vat": 56.98,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 328.33,
+    "lineImportWarning": "Synthetic numeric overflow",
+    "detectedLineCount": 4,
+    "scenario": "lost-goods",
+    "lines": [],
+    "incidentSeverity": "Media"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-017",
+    "number": "SYNTHETIC-INVOICE-017",
+    "supplier": "Synthetic Supplier 017",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 293.44,
+    "vat": 61.62,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 355.06,
+    "lineImportWarning": "Synthetic numeric overflow",
+    "detectedLineCount": 5,
+    "scenario": "lost-goods",
+    "lines": [],
+    "incidentSeverity": "Media"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-018",
+    "number": "SYNTHETIC-INVOICE-018",
+    "supplier": "Synthetic Supplier 018",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 316.39,
+    "vat": 66.44,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 382.83,
+    "lineImportWarning": "Synthetic numeric overflow",
+    "detectedLineCount": 6,
+    "scenario": "lost-goods",
+    "lines": [],
+    "incidentSeverity": "Media"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-019",
+    "number": "SYNTHETIC-INVOICE-019",
+    "supplier": "Synthetic Supplier 019",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 340.2,
+    "vat": 71.44,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 411.64,
+    "lineImportWarning": "Synthetic numeric overflow",
+    "detectedLineCount": 7,
+    "scenario": "lost-goods",
+    "lines": [],
+    "incidentSeverity": "Media"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-020",
+    "number": "SYNTHETIC-INVOICE-020",
+    "supplier": "Synthetic Supplier 020",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 364.87,
+    "vat": 76.62,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 441.49,
+    "lineImportWarning": "Synthetic numeric overflow",
+    "detectedLineCount": 3,
+    "scenario": "lost-service",
+    "lines": [],
+    "incidentSeverity": "Baja"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-021",
+    "number": "SYNTHETIC-INVOICE-021",
+    "supplier": "Synthetic Supplier 021",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 390.4,
+    "vat": 81.98,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 472.38,
+    "lineImportWarning": "Synthetic numeric overflow",
+    "detectedLineCount": 4,
+    "scenario": "lost-service",
+    "lines": [],
+    "incidentSeverity": "Baja"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-022",
+    "number": "SYNTHETIC-INVOICE-022",
+    "supplier": "Synthetic Supplier 022",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 458.52,
+    "vat": 96.29,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 554.81,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 022-1",
+        "supplierSku": "SYNTHETIC-SKU-022-1",
+        "quantity": 33,
+        "unit": "ud",
+        "unitPrice": 12.63,
+        "lineNet": 416.79,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Baja"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-023",
+    "number": "SYNTHETIC-INVOICE-023",
+    "supplier": "Synthetic Supplier 023",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 486.77,
+    "vat": 102.22,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 588.99,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 023-1",
+        "supplierSku": "SYNTHETIC-SKU-023-1",
+        "quantity": 34,
+        "unit": "ud",
+        "unitPrice": 13.06,
+        "lineNet": 444.04,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Baja"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-024",
+    "number": "SYNTHETIC-INVOICE-024",
+    "supplier": "Synthetic Supplier 024",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 515.88,
+    "vat": 108.33,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 624.21,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 024-1",
+        "supplierSku": "SYNTHETIC-SKU-024-1",
+        "quantity": 35,
+        "unit": "ud",
+        "unitPrice": 13.49,
+        "lineNet": 472.15,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Baja"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-025",
+    "number": "SYNTHETIC-INVOICE-025",
+    "supplier": "Synthetic Supplier 025",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 545.85,
+    "vat": 114.63,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 660.48,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 025-1",
+        "supplierSku": "SYNTHETIC-SKU-025-1",
+        "quantity": 36,
+        "unit": "ud",
+        "unitPrice": 13.92,
+        "lineNet": 501.12,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Baja"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-026",
+    "number": "SYNTHETIC-INVOICE-026",
+    "supplier": "Synthetic Supplier 026",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 576.68,
+    "vat": 121.1,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 697.78,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-and-price-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 026-1",
+        "supplierSku": "SYNTHETIC-SKU-026-1",
+        "quantity": 60,
+        "unit": "ud",
+        "unitPrice": 14.35,
+        "lineNet": 530.95,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Baja"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-027",
+    "number": "SYNTHETIC-INVOICE-027",
+    "supplier": "Synthetic Supplier 027",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 608.37,
+    "vat": 127.76,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 736.13,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-and-price-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 027-1",
+        "supplierSku": "SYNTHETIC-SKU-027-1",
+        "quantity": 61,
+        "unit": "ud",
+        "unitPrice": 14.78,
+        "lineNet": 561.64,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Baja"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-028",
+    "number": "SYNTHETIC-INVOICE-028",
+    "supplier": "Synthetic Supplier 028",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 640.92,
+    "vat": 134.59,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 775.51,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "subtotal-and-price-mismatch",
+    "lines": [
+      {
+        "description": "Synthetic item 028-1",
+        "supplierSku": "SYNTHETIC-SKU-028-1",
+        "quantity": 62,
+        "unit": "ud",
+        "unitPrice": 15.21,
+        "lineNet": 593.19,
+        "taxRate": 21
+      }
+    ],
+    "incidentSeverity": "Baja"
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-029",
+    "number": "SYNTHETIC-INVOICE-029",
+    "supplier": "Synthetic Supplier 029",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 1057.11,
+    "vat": 221.99,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1279.1,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "reconciled-nine-lines",
+    "lines": [
+      {
+        "description": "Synthetic item 029-1",
+        "supplierSku": "SYNTHETIC-SKU-029-1",
+        "quantity": 13,
+        "unit": "ud",
+        "unitPrice": 4.23,
+        "lineNet": 54.99,
+        "taxRate": 21
+      },
+      {
+        "description": "Synthetic item 029-2",
+        "supplierSku": "SYNTHETIC-SKU-029-2",
+        "quantity": 14,
+        "unit": "ud",
+        "unitPrice": 4.84,
+        "lineNet": 67.76,
+        "taxRate": 21
+      },
+      {
+        "description": "Synthetic item 029-3",
+        "supplierSku": "SYNTHETIC-SKU-029-3",
+        "quantity": 15,
+        "unit": "ud",
+        "unitPrice": 5.45,
+        "lineNet": 81.75,
+        "taxRate": 21
+      },
+      {
+        "description": "Synthetic item 029-4",
+        "supplierSku": "SYNTHETIC-SKU-029-4",
+        "quantity": 16,
+        "unit": "ud",
+        "unitPrice": 6.06,
+        "lineNet": 96.96,
+        "taxRate": 21
+      },
+      {
+        "description": "Synthetic item 029-5",
+        "supplierSku": "SYNTHETIC-SKU-029-5",
+        "quantity": 17,
+        "unit": "ud",
+        "unitPrice": 6.67,
+        "lineNet": 113.39,
+        "taxRate": 21
+      },
+      {
+        "description": "Synthetic item 029-6",
+        "supplierSku": "SYNTHETIC-SKU-029-6",
+        "quantity": 18,
+        "unit": "ud",
+        "unitPrice": 7.28,
+        "lineNet": 131.04,
+        "taxRate": 21
+      },
+      {
+        "description": "Synthetic item 029-7",
+        "supplierSku": "SYNTHETIC-SKU-029-7",
+        "quantity": 19,
+        "unit": "ud",
+        "unitPrice": 7.89,
+        "lineNet": 149.91,
+        "taxRate": 21
+      },
+      {
+        "description": "Synthetic item 029-8",
+        "supplierSku": "SYNTHETIC-SKU-029-8",
+        "quantity": 20,
+        "unit": "ud",
+        "unitPrice": 8.5,
+        "lineNet": 170,
+        "taxRate": 21
+      },
+      {
+        "description": "Synthetic item 029-9",
+        "supplierSku": "SYNTHETIC-SKU-029-9",
+        "quantity": 21,
+        "unit": "ud",
+        "unitPrice": 9.11,
+        "lineNet": 191.31,
+        "taxRate": 21
+      }
+    ],
+    "resolvedIncident": true
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-030",
+    "number": "SYNTHETIC-INVOICE-030",
+    "supplier": "Synthetic Supplier 030",
+    "supplier_type": "service",
+    "category": "Mercancía",
+    "subtotal": 658.87,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 658.87,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service-in-goods-category",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-031",
+    "number": "SYNTHETIC-INVOICE-031",
+    "supplier": "Synthetic Supplier 031",
+    "supplier_type": "service",
+    "category": "Mercancía",
+    "subtotal": 693,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 693,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service-in-goods-category",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-032",
+    "number": "SYNTHETIC-INVOICE-032",
+    "supplier": "Synthetic Supplier 032",
+    "supplier_type": "service",
+    "category": "Mercancía",
+    "subtotal": 727.99,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 727.99,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service-in-goods-category",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-033",
+    "number": "SYNTHETIC-INVOICE-033",
+    "supplier": "Synthetic Supplier 033",
+    "supplier_type": "service",
+    "category": "Mercancía",
+    "subtotal": 763.84,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 763.84,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service-in-goods-category",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-034",
+    "number": "SYNTHETIC-INVOICE-034",
+    "supplier": "Synthetic Supplier 034",
+    "supplier_type": "service",
+    "category": "Mercancía",
+    "subtotal": 800.55,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 800.55,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service-in-goods-category",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-035",
+    "number": "SYNTHETIC-INVOICE-035",
+    "supplier": "Synthetic Supplier 035",
+    "supplier_type": "service",
+    "category": "Mercancía",
+    "subtotal": 838.12,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 838.12,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service-in-goods-category",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-036",
+    "number": "SYNTHETIC-INVOICE-036",
+    "supplier": "Synthetic Supplier 036",
+    "supplier_type": "service",
+    "category": "Mercancía",
+    "subtotal": 876.55,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 876.55,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service-in-goods-category",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-037",
+    "number": "SYNTHETIC-INVOICE-037",
+    "supplier": "Synthetic Supplier 037",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 915.84,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 915.84,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-038",
+    "number": "SYNTHETIC-INVOICE-038",
+    "supplier": "Synthetic Supplier 038",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 955.99,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 955.99,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-039",
+    "number": "SYNTHETIC-INVOICE-039",
+    "supplier": "Synthetic Supplier 039",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 997,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 997,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-040",
+    "number": "SYNTHETIC-INVOICE-040",
+    "supplier": "Synthetic Supplier 040",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 1038.87,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1038.87,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-041",
+    "number": "SYNTHETIC-INVOICE-041",
+    "supplier": "Synthetic Supplier 041",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 1081.6,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1081.6,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-042",
+    "number": "SYNTHETIC-INVOICE-042",
+    "supplier": "Synthetic Supplier 042",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 1125.19,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1125.19,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-043",
+    "number": "SYNTHETIC-INVOICE-043",
+    "supplier": "Synthetic Supplier 043",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 1169.64,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1169.64,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-044",
+    "number": "SYNTHETIC-INVOICE-044",
+    "supplier": "Synthetic Supplier 044",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 1214.95,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1214.95,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-045",
+    "number": "SYNTHETIC-INVOICE-045",
+    "supplier": "Synthetic Supplier 045",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 1261.12,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1261.12,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-046",
+    "number": "SYNTHETIC-INVOICE-046",
+    "supplier": "Synthetic Supplier 046",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 1308.15,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1308.15,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-047",
+    "number": "SYNTHETIC-INVOICE-047",
+    "supplier": "Synthetic Supplier 047",
+    "supplier_type": "service",
+    "category": "Synthetic service",
+    "subtotal": 1356.04,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1356.04,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "service",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-048",
+    "number": "SYNTHETIC-INVOICE-048",
+    "supplier": "Synthetic Supplier 048",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 1404.79,
+    "vat": 295.01,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1699.8,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "missing-goods",
+    "lines": []
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-049",
+    "number": "SYNTHETIC-INVOICE-049",
+    "supplier": "Synthetic Supplier 049",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 1454.4,
+    "vat": 305.42,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1759.82,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "ambiguous-unit",
+    "lines": [
+      {
+        "description": "Synthetic item 049-1 240U R/8 C/9",
+        "supplierSku": "SYNTHETIC-SKU-049-1",
+        "quantity": 60,
+        "unit": "Retractil",
+        "unitPrice": 24.24,
+        "lineNet": 1454.4,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-050",
+    "number": "SYNTHETIC-INVOICE-050",
+    "supplier": "Synthetic Supplier 050",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 5876.53,
+    "vat": 1234.07,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 7110.6,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "large-quantity",
+    "lines": [
+      {
+        "description": "Synthetic item 050-1",
+        "supplierSku": "SYNTHETIC-SKU-050-1",
+        "quantity": 345678,
+        "unit": "ud",
+        "unitPrice": 0.017,
+        "lineNet": 5876.53,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-051",
+    "number": "SYNTHETIC-INVOICE-051",
+    "supplier": "Synthetic Supplier 051",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 3112.4,
+    "vat": 653.6,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 3766,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "legitimate-repetition",
+    "lines": [
+      {
+        "description": "Synthetic item 051-1",
+        "supplierSku": "SYNTHETIC-SKU-051-1",
+        "quantity": 62,
+        "unit": "ud",
+        "unitPrice": 25.1,
+        "lineNet": 1556.2,
+        "taxRate": 21
+      },
+      {
+        "description": "Synthetic item 051-1",
+        "supplierSku": "SYNTHETIC-SKU-051-1",
+        "quantity": 62,
+        "unit": "ud",
+        "unitPrice": 25.1,
+        "lineNet": 1556.2,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-052",
+    "number": "SYNTHETIC-INVOICE-052",
+    "supplier": "Synthetic Supplier 052",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 1608.39,
+    "vat": 337.76,
+    "equivalenceSurcharge": 0,
+    "withholding": -241.26,
+    "total": 1704.89,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "negative-withholding",
+    "lines": [
+      {
+        "description": "Synthetic item 052-1",
+        "supplierSku": "SYNTHETIC-SKU-052-1",
+        "quantity": 63,
+        "unit": "ud",
+        "unitPrice": 25.53,
+        "lineNet": 1608.39,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-053",
+    "number": "SYNTHETIC-INVOICE-053",
+    "supplier": "Synthetic Supplier 053",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 1661.44,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1661.44,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 053-1",
+        "supplierSku": "SYNTHETIC-SKU-053-1",
+        "quantity": 64,
+        "unit": "ud",
+        "unitPrice": 25.96,
+        "lineNet": 1661.44,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-054",
+    "number": "SYNTHETIC-INVOICE-054",
+    "supplier": "Synthetic Supplier 054",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 1715.35,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1715.35,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 054-1",
+        "supplierSku": "SYNTHETIC-SKU-054-1",
+        "quantity": 65,
+        "unit": "ud",
+        "unitPrice": 26.39,
+        "lineNet": 1715.35,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-055",
+    "number": "SYNTHETIC-INVOICE-055",
+    "supplier": "Synthetic Supplier 055",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 1770.12,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1770.12,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 055-1",
+        "supplierSku": "SYNTHETIC-SKU-055-1",
+        "quantity": 66,
+        "unit": "ud",
+        "unitPrice": 26.82,
+        "lineNet": 1770.12,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-056",
+    "number": "SYNTHETIC-INVOICE-056",
+    "supplier": "Synthetic Supplier 056",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 1825.75,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1825.75,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 056-1",
+        "supplierSku": "SYNTHETIC-SKU-056-1",
+        "quantity": 67,
+        "unit": "ud",
+        "unitPrice": 27.25,
+        "lineNet": 1825.75,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-057",
+    "number": "SYNTHETIC-INVOICE-057",
+    "supplier": "Synthetic Supplier 057",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 1882.24,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1882.24,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 057-1",
+        "supplierSku": "SYNTHETIC-SKU-057-1",
+        "quantity": 68,
+        "unit": "ud",
+        "unitPrice": 27.68,
+        "lineNet": 1882.24,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-058",
+    "number": "SYNTHETIC-INVOICE-058",
+    "supplier": "Synthetic Supplier 058",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 1939.59,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1939.59,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 058-1",
+        "supplierSku": "SYNTHETIC-SKU-058-1",
+        "quantity": 69,
+        "unit": "ud",
+        "unitPrice": 28.11,
+        "lineNet": 1939.59,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-059",
+    "number": "SYNTHETIC-INVOICE-059",
+    "supplier": "Synthetic Supplier 059",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 1997.8,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 1997.8,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 059-1",
+        "supplierSku": "SYNTHETIC-SKU-059-1",
+        "quantity": 70,
+        "unit": "ud",
+        "unitPrice": 28.54,
+        "lineNet": 1997.8,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-060",
+    "number": "SYNTHETIC-INVOICE-060",
+    "supplier": "Synthetic Supplier 060",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2056.87,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 2056.87,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 060-1",
+        "supplierSku": "SYNTHETIC-SKU-060-1",
+        "quantity": 71,
+        "unit": "ud",
+        "unitPrice": 28.97,
+        "lineNet": 2056.87,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-061",
+    "number": "SYNTHETIC-INVOICE-061",
+    "supplier": "Synthetic Supplier 061",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2116.8,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 2116.8,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 061-1",
+        "supplierSku": "SYNTHETIC-SKU-061-1",
+        "quantity": 72,
+        "unit": "ud",
+        "unitPrice": 29.4,
+        "lineNet": 2116.8,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-062",
+    "number": "SYNTHETIC-INVOICE-062",
+    "supplier": "Synthetic Supplier 062",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2177.59,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 2177.59,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 062-1",
+        "supplierSku": "SYNTHETIC-SKU-062-1",
+        "quantity": 73,
+        "unit": "ud",
+        "unitPrice": 29.83,
+        "lineNet": 2177.59,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-063",
+    "number": "SYNTHETIC-INVOICE-063",
+    "supplier": "Synthetic Supplier 063",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2239.24,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 2239.24,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 063-1",
+        "supplierSku": "SYNTHETIC-SKU-063-1",
+        "quantity": 74,
+        "unit": "ud",
+        "unitPrice": 30.26,
+        "lineNet": 2239.24,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-064",
+    "number": "SYNTHETIC-INVOICE-064",
+    "supplier": "Synthetic Supplier 064",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2301.75,
+    "vat": 0,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 2301.75,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 064-1",
+        "supplierSku": "SYNTHETIC-SKU-064-1",
+        "quantity": 75,
+        "unit": "ud",
+        "unitPrice": 30.69,
+        "lineNet": 2301.75,
+        "taxRate": 0
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-065",
+    "number": "SYNTHETIC-INVOICE-065",
+    "supplier": "Synthetic Supplier 065",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2365.12,
+    "vat": 496.68,
+    "equivalenceSurcharge": 122.99,
+    "withholding": 0,
+    "total": 2984.79,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 065-1",
+        "supplierSku": "SYNTHETIC-SKU-065-1",
+        "quantity": 76,
+        "unit": "ud",
+        "unitPrice": 31.12,
+        "lineNet": 2365.12,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-066",
+    "number": "SYNTHETIC-INVOICE-066",
+    "supplier": "Synthetic Supplier 066",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2429.35,
+    "vat": 510.16,
+    "equivalenceSurcharge": 126.33,
+    "withholding": 0,
+    "total": 3065.84,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 066-1",
+        "supplierSku": "SYNTHETIC-SKU-066-1",
+        "quantity": 77,
+        "unit": "ud",
+        "unitPrice": 31.55,
+        "lineNet": 2429.35,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-067",
+    "number": "SYNTHETIC-INVOICE-067",
+    "supplier": "Synthetic Supplier 067",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2494.44,
+    "vat": 523.83,
+    "equivalenceSurcharge": 129.71,
+    "withholding": 0,
+    "total": 3147.98,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 067-1",
+        "supplierSku": "SYNTHETIC-SKU-067-1",
+        "quantity": 78,
+        "unit": "ud",
+        "unitPrice": 31.98,
+        "lineNet": 2494.44,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-068",
+    "number": "SYNTHETIC-INVOICE-068",
+    "supplier": "Synthetic Supplier 068",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2560.39,
+    "vat": 537.68,
+    "equivalenceSurcharge": 133.14,
+    "withholding": 0,
+    "total": 3231.21,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 068-1",
+        "supplierSku": "SYNTHETIC-SKU-068-1",
+        "quantity": 79,
+        "unit": "ud",
+        "unitPrice": 32.41,
+        "lineNet": 2560.39,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-069",
+    "number": "SYNTHETIC-INVOICE-069",
+    "supplier": "Synthetic Supplier 069",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2627.2,
+    "vat": 551.71,
+    "equivalenceSurcharge": 136.61,
+    "withholding": 0,
+    "total": 3315.52,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 069-1",
+        "supplierSku": "SYNTHETIC-SKU-069-1",
+        "quantity": 80,
+        "unit": "ud",
+        "unitPrice": 32.84,
+        "lineNet": 2627.2,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-070",
+    "number": "SYNTHETIC-INVOICE-070",
+    "supplier": "Synthetic Supplier 070",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2694.87,
+    "vat": 565.92,
+    "equivalenceSurcharge": 140.13,
+    "withholding": 0,
+    "total": 3400.92,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 070-1",
+        "supplierSku": "SYNTHETIC-SKU-070-1",
+        "quantity": 81,
+        "unit": "ud",
+        "unitPrice": 33.27,
+        "lineNet": 2694.87,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-071",
+    "number": "SYNTHETIC-INVOICE-071",
+    "supplier": "Synthetic Supplier 071",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2763.4,
+    "vat": 580.31,
+    "equivalenceSurcharge": 143.7,
+    "withholding": 0,
+    "total": 3487.41,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 071-1",
+        "supplierSku": "SYNTHETIC-SKU-071-1",
+        "quantity": 82,
+        "unit": "ud",
+        "unitPrice": 33.7,
+        "lineNet": 2763.4,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-072",
+    "number": "SYNTHETIC-INVOICE-072",
+    "supplier": "Synthetic Supplier 072",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2832.79,
+    "vat": 594.89,
+    "equivalenceSurcharge": 147.31,
+    "withholding": 0,
+    "total": 3574.99,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 072-1",
+        "supplierSku": "SYNTHETIC-SKU-072-1",
+        "quantity": 83,
+        "unit": "ud",
+        "unitPrice": 34.13,
+        "lineNet": 2832.79,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-073",
+    "number": "SYNTHETIC-INVOICE-073",
+    "supplier": "Synthetic Supplier 073",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2903.04,
+    "vat": 609.64,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 3512.68,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 073-1",
+        "supplierSku": "SYNTHETIC-SKU-073-1",
+        "quantity": 84,
+        "unit": "ud",
+        "unitPrice": 34.56,
+        "lineNet": 2903.04,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-074",
+    "number": "SYNTHETIC-INVOICE-074",
+    "supplier": "Synthetic Supplier 074",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 2974.15,
+    "vat": 624.57,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 3598.72,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 074-1",
+        "supplierSku": "SYNTHETIC-SKU-074-1",
+        "quantity": 85,
+        "unit": "ud",
+        "unitPrice": 34.99,
+        "lineNet": 2974.15,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-075",
+    "number": "SYNTHETIC-INVOICE-075",
+    "supplier": "Synthetic Supplier 075",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 3046.12,
+    "vat": 639.69,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 3685.81,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 075-1",
+        "supplierSku": "SYNTHETIC-SKU-075-1",
+        "quantity": 86,
+        "unit": "ud",
+        "unitPrice": 35.42,
+        "lineNet": 3046.12,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-076",
+    "number": "SYNTHETIC-INVOICE-076",
+    "supplier": "Synthetic Supplier 076",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 3118.95,
+    "vat": 654.98,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 3773.93,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 076-1",
+        "supplierSku": "SYNTHETIC-SKU-076-1",
+        "quantity": 87,
+        "unit": "ud",
+        "unitPrice": 35.85,
+        "lineNet": 3118.95,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-077",
+    "number": "SYNTHETIC-INVOICE-077",
+    "supplier": "Synthetic Supplier 077",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 3192.64,
+    "vat": 670.45,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 3863.09,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 077-1",
+        "supplierSku": "SYNTHETIC-SKU-077-1",
+        "quantity": 88,
+        "unit": "ud",
+        "unitPrice": 36.28,
+        "lineNet": 3192.64,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-078",
+    "number": "SYNTHETIC-INVOICE-078",
+    "supplier": "Synthetic Supplier 078",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 3267.19,
+    "vat": 686.11,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 3953.3,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 078-1",
+        "supplierSku": "SYNTHETIC-SKU-078-1",
+        "quantity": 89,
+        "unit": "ud",
+        "unitPrice": 36.71,
+        "lineNet": 3267.19,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-079",
+    "number": "SYNTHETIC-INVOICE-079",
+    "supplier": "Synthetic Supplier 079",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 3342.6,
+    "vat": 701.95,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 4044.55,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 079-1",
+        "supplierSku": "SYNTHETIC-SKU-079-1",
+        "quantity": 90,
+        "unit": "ud",
+        "unitPrice": 37.14,
+        "lineNet": 3342.6,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-080",
+    "number": "SYNTHETIC-INVOICE-080",
+    "supplier": "Synthetic Supplier 080",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 3418.87,
+    "vat": 717.96,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 4136.83,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 080-1",
+        "supplierSku": "SYNTHETIC-SKU-080-1",
+        "quantity": 91,
+        "unit": "ud",
+        "unitPrice": 37.57,
+        "lineNet": 3418.87,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-081",
+    "number": "SYNTHETIC-INVOICE-081",
+    "supplier": "Synthetic Supplier 081",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 3496,
+    "vat": 734.16,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 4230.16,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 081-1",
+        "supplierSku": "SYNTHETIC-SKU-081-1",
+        "quantity": 92,
+        "unit": "ud",
+        "unitPrice": 38,
+        "lineNet": 3496,
+        "taxRate": 21
+      }
+    ]
+  },
+  {
+    "id8": "SYNTHETIC-SCENARIO-082",
+    "number": "SYNTHETIC-INVOICE-082",
+    "supplier": "Synthetic Supplier 082",
+    "supplier_type": "goods",
+    "category": "Mercancía",
+    "subtotal": 3573.99,
+    "vat": 750.54,
+    "equivalenceSurcharge": 0,
+    "withholding": 0,
+    "total": 4324.53,
+    "lineImportWarning": null,
+    "detectedLineCount": null,
+    "scenario": "correct",
+    "lines": [
+      {
+        "description": "Synthetic item 082-1",
+        "supplierSku": "SYNTHETIC-SKU-082-1",
+        "quantity": 93,
+        "unit": "ud",
+        "unitPrice": 38.43,
+        "lineNet": 3573.99,
+        "taxRate": 21
+      }
+    ]
+  }
+]

@@ -130,7 +130,7 @@ function isSupplierNumberDuplicate(error: unknown) {
     .filter(item => typeof item === 'string')
     .join(' ')
     .toLowerCase();
-  return haystack.includes('invoices_supplier_number_uidx') || (haystack.includes('23505') && haystack.includes('invoice'));
+  return haystack.includes('invoices_supplier_number_uidx') || (haystack.includes('23505') && haystack.includes('invoice')) || haystack.includes('parece estar subida ya');
 }
 
 async function markDuplicateAsImported(candidate: GmailCandidate, invoiceId: string, reason: string) {
@@ -204,6 +204,11 @@ async function persistPreparedGmailInvoice(
           ...(invoiceInput.extraction||{}),
           detectedLineCount:prepared.lines.length,
           lineImportWarning:firstMessage,
+          // Las líneas detectadas no se pierden: quedan guardadas para revisarlas y reimportarlas.
+          unsavedLines:prepared.lines.map(line=>({
+            description:line.description,supplierSku:line.supplierSku??null,quantity:line.quantity,unit:line.unit??null,
+            unitPrice:line.unitPrice??null,lineNet:line.lineNet??line.lineTotal??null,taxRate:line.taxRate??null,
+          })),
         },
       });
     }catch(fallbackError){

@@ -98,9 +98,10 @@ test('repairs invoice header amounts from inclusive tax summary', async()=>{
 test('repository persists normalized net cost instead of gross printed price', async()=>{
   const source=await readFile(new URL('../src/services/repository.ts',import.meta.url),'utf8');
   assert.match(source,/line\.normalizedUnitPrice\s*\?\?\s*line\.unitPrice/);
-  assert.match(source,/line_net:\s*line\.lineNet\s*\?\?\s*line\.lineTotal/);
+  // Los importes se guardan a través de safeNumber (rangos de las columnas numeric), sin cambiar su origen.
+  assert.match(source,/line_net:\s*safeNumber\(line\.lineNet\s*\?\?\s*line\.lineTotal/);
   assert.match(source,/tax_rate:\s*line\.taxRate/);
-  assert.match(source,/tax_amount:\s*line\.taxAmount/);
+  assert.match(source,/tax_amount:\s*safeNumber\(line\.taxAmount/);
   assert.match(source,/repairInvoiceAmounts/);
 });
 

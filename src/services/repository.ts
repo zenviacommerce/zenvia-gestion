@@ -14,6 +14,7 @@ import { expenseImportPolicyFromSettings, type ExpenseImportPolicy } from './exp
 import { DEFAULT_APP_SETTINGS, type ProductsSettings, type SuppliersSettings } from './settingsSchema';
 import { applyExpenseInvoiceImportedAutomation, loadAutomationRule } from './automationRules';
 import { startActivity } from './activity';
+import { checkInvoiceIntegrity, implausibleLineValues, INVOICE_LINE_LIMITS, invoiceIntegritySummary } from './invoiceCore';
 
 const numberOrZero = (value: unknown) => Number(value ?? 0) || 0;
 const normalizeProductKey = normalizeImportedProductName;
@@ -33,8 +34,8 @@ export async function loadAppData(): Promise<AppData> {
   });
   try{
   const [invoiceResult, lineResult, supplierResult, categoryResult, productResult, sourceDocumentResult] = await Promise.all([
-    supabase.from('invoices').select('id,source_document_id,supplier_id,invoice_number,issue_date,received_date,fiscal_year,fiscal_quarter,expense_category_id,net_amount,tax_amount,equivalence_surcharge_amount,withholding_amount,total_amount,currency,source,status,payment_status,paid_at,file_name,file_path,file_hash').order('issue_date', { ascending: false, nullsFirst: false }),
-    supabase.from('invoice_lines').select('id,invoice_id,description,quantity,unit_price,normalized_unit_price,line_total,supplier_sku,product_id,price_update_status'),
+    supabase.from('invoices').select('id,source_document_id,supplier_id,invoice_number,issue_date,received_date,fiscal_year,fiscal_quarter,expense_category_id,net_amount,tax_amount,equivalence_surcharge_amount,withholding_amount,total_amount,currency,source,status,payment_status,paid_at,file_name,file_path,file_hash,line_import_warning:extraction->>lineImportWarning,detected_line_count:extraction->>detectedLineCount').order('issue_date', { ascending: false, nullsFirst: false }),
+    supabase.from('invoice_lines').select('id,invoice_id,description,quantity,unit,unit_price,normalized_unit_price,line_net,tax_rate,line_total,supplier_sku,product_id,price_update_status'),
     supabase.from('suppliers').select('id,name,tax_id,email,phone,address,website,supplier_type,default_category_id').order('name'),
     supabase.from('expense_categories').select('id,name,icon').eq('active', true).order('sort_order'),
     supabase.from('products').select('id,name,sku,category,base_unit,last_cost,previous_cost,last_supplier_id,last_purchase_date').eq('active', true).order('name'),
@@ -96,6 +97,8 @@ export async function loadAppData(): Promise<AppData> {
     fileName: sourceDocument?.original_name||i.file_name,
     filePath: sourceDocument?.storage_path||i.file_path,
     fileHash: sourceDocument?.file_hash||i.file_hash,
+    lineImportWarning: i.line_import_warning || null,
+    detectedLineCount: i.detected_line_count == null ? null : Number(i.detected_line_count),
     lines: (linesByInvoice.get(i.id) ?? []).map((l: any) => ({
       id: l.id,
       description: l.description,
@@ -103,6 +106,9 @@ export async function loadAppData(): Promise<AppData> {
       unitPrice: l.unit_price == null ? null : numberOrZero(l.unit_price),
       normalizedUnitPrice: l.normalized_unit_price == null ? null : numberOrZero(l.normalized_unit_price),
       lineTotal: l.line_total == null ? null : numberOrZero(l.line_total),
+      lineNet: l.line_net == null ? null : numberOrZero(l.line_net),
+      taxRate: l.tax_rate == null ? null : numberOrZero(l.tax_rate),
+      unit: l.unit ?? null,
       supplierSku: l.supplier_sku,
       productId: l.product_id,
       priceUpdateStatus: l.price_update_status,
@@ -259,7 +265,7 @@ function cleanSupplierContact(contact: SupplierProfileData): SupplierProfileData
   };
 }
 
-async function ensureSupplier(name: string, contactInput: SupplierProfileData = {}, supplierTypeHint?: 'goods', policy:ExpenseImportPolicy=expenseImportPolicyFromSettings(undefined), supplierSettings:SuppliersSettings=DEFAULT_APP_SETTINGS.suppliers): Promise<{ id: string; created: boolean }> {
+async function ensureSupplier(name: string, contactInput: SupplierProfileData = {}, supplierTypeHint?: 'goods', policy:ExpenseImportPolicy=expenseImportPolicyFromSettings(undefined), supplierSettings:SuppliersSettings=DEFAULT_APP_SETTINGS.suppliers, observed:{knownType?:string|null}={}): Promise<{ id: string; created: boolean }> {
   const clean = sanitizeDatabaseSingleLine(canonicalizeSupplierName(name) || name).slice(0, 120);
   const cleanKey = supplierIdentityKey(clean);
   const plausibleName=isPlausibleSupplierName(clean);
@@ -317,6 +323,8 @@ async function ensureSupplier(name: string, contactInput: SupplierProfileData = 
       const { error: updateError } = await supabase.from('suppliers').update(patch).eq('id', match.id);
       if (updateError) throw updateError;
     }
+    // Tipo del proveedor antes de cualquier ajuste por la pista «goods» (lo usa la validación de líneas).
+    observed.knownType=(match.supplier_type as string|null)??null;
     return { id: match.id as string, created: false };
   }
 
@@ -362,15 +370,17 @@ async function isMerchandiseCategory(categoryId?: string) {
   return Boolean(data?.name && normalizeProductKey(data.name).includes('mercancia'));
 }
 
-async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: string, input: NewInvoiceInput, policy:ExpenseImportPolicy, productSettings:ProductsSettings, baseCurrencyCode:string) {
+async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: string, input: NewInvoiceInput, policy:ExpenseImportPolicy, productSettings:ProductsSettings, baseCurrencyCode:string, integrityReady=true) {
   if (!input.lines?.length) return;
 
   const merchandise = await isMerchandiseCategory(input.categoryId);
   const manageProducts = merchandise && ((policy.autoCreateProducts && productSettings.autoCreateFromInvoice) || policy.createSupplierProductRelation);
   const invoiceCurrencyCode=String(input.currency||baseCurrencyCode||'EUR').toUpperCase();
   const foreignCurrency=invoiceCurrencyCode!==String(baseCurrencyCode||'EUR').toUpperCase();
-  const updateImportedCost = policy.updateProductCosts && productSettings.updateCostFromImports && productSettings.costMethod !== 'manual' && !foreignCurrency;
-  const writePriceHistory = policy.updatePriceHistory;
+  // Una factura que no supera el motor de integridad (líneas que no cuadran, duplicados,
+  // líneas no verificadas…) se guarda para revisión SIN tocar costes ni historial de precios.
+  const updateImportedCost = integrityReady && policy.updateProductCosts && productSettings.updateCostFromImports && productSettings.costMethod !== 'manual' && !foreignCurrency;
+  const writePriceHistory = integrityReady && policy.updatePriceHistory;
   const roundCost=(value:number)=>Number(value.toFixed(productSettings.costDecimals));
   const createdProductIds: string[] = [];
   const createdSupplierProductIds: string[] = [];
@@ -460,7 +470,12 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
         }
       }
 
-      const normalizedPriceRaw = productId && line.unitPrice != null ? (line.normalizedUnitPrice ?? line.unitPrice) : null;
+      // Valores fuera de rango (códigos leídos como cantidad/precio) ya no hacen fallar el INSERT
+      // de todas las líneas: se guardan vacíos, la línea queda para revisión y el valor leído
+      // se conserva en invoices.extraction.integrityCheck.
+      const outOfRange = implausibleLineValues(line).length > 0;
+      const safeNumber = (value: number | null | undefined, limit: number) => value == null || !Number.isFinite(Number(value)) || Math.abs(Number(value)) >= limit ? null : Number(value);
+      const normalizedPriceRaw = productId && line.unitPrice != null && !line.priceReview && !outOfRange ? (line.normalizedUnitPrice ?? line.unitPrice) : null;
       const normalizedPrice = normalizedPriceRaw == null ? null : roundCost(Number(normalizedPriceRaw));
       lineRows.push({
         invoice_id: invoiceId,
@@ -468,14 +483,15 @@ async function createInvoiceLinesWithProducts(invoiceId: string, supplierId: str
         supplier_product_id: supplierProductId,
         description,
         supplier_sku: sanitizeDatabaseSingleLine(line.supplierSku) || null,
-        quantity: line.quantity || 1,
+        // Cantidad imposible: se guarda 0 (no 1) para que nunca parezca un dato real; la línea queda en revisión.
+        quantity: line.quantity == null || !Number.isFinite(Number(line.quantity)) || Number(line.quantity) === 0 ? 1 : safeNumber(line.quantity, INVOICE_LINE_LIMITS.quantity) ?? 0,
         unit,
-        unit_price: line.unitPrice ?? null,
+        unit_price: safeNumber(line.unitPrice, INVOICE_LINE_LIMITS.unitPrice),
         normalized_unit_price: normalizedPrice,
-        line_net: line.lineNet ?? line.lineTotal ?? null,
-        tax_rate: line.taxRate ?? null,
-        tax_amount: line.taxAmount ?? null,
-        line_total: line.lineTotal ?? null,
+        line_net: safeNumber(line.lineNet ?? line.lineTotal, INVOICE_LINE_LIMITS.lineNet),
+        tax_rate: line.taxRate != null && line.taxRate >= 0 && line.taxRate <= INVOICE_LINE_LIMITS.taxRate ? line.taxRate : null,
+        tax_amount: safeNumber(line.taxAmount, INVOICE_LINE_LIMITS.lineNet),
+        line_total: safeNumber(line.lineTotal, INVOICE_LINE_LIMITS.lineNet),
         price_update_status: normalizedPrice != null && updateImportedCost && writePriceHistory && productSettings.costMethod==='last_purchase' ? 'confirmed' : normalizedPrice != null ? 'ignored' : 'pending',
       });
     }
@@ -596,15 +612,18 @@ export async function createInvoice(input: NewInvoiceInput) {
   const extractedContact = input.ocrText ? extractSupplierContactData(input.ocrText, input.supplierName) : {};
   const extractedDetails = input.ocrText ? extractSupplierInvoiceDetails(input.ocrText, input.supplierName) : {};
   const merchandiseSupplier = await isMerchandiseCategory(preparedInput.categoryId);
+  const observedSupplier:{knownType?:string|null}={};
   const supplierResult = await ensureSupplier(input.supplierName, {
     taxId: input.supplierTaxId || extractedContact.taxId || extractedDetails.taxId,
     email: input.supplierEmail || extractedContact.email,
     phone: input.supplierPhone || extractedContact.phone,
     address: input.supplierAddress || extractedDetails.address,
     website: input.supplierWebsite || extractedDetails.website,
-  }, merchandiseSupplier ? 'goods' : undefined, policy, loadedSettings.settings.suppliers);
+  }, merchandiseSupplier ? 'goods' : undefined, policy, loadedSettings.settings.suppliers, observedSupplier);
   const supplierId = supplierResult.id;
-  if(policy.detectDuplicates&&multiInvoiceSource&&sanitizeDatabaseSingleLine(input.invoiceNumber)){
+  // Mismo proveedor + mismo número = la misma factura, venga del canal que venga
+  // (antes solo se comprobaba en PDFs con varias facturas).
+  if(policy.detectDuplicates&&sanitizeDatabaseSingleLine(input.invoiceNumber)){
     const {data:duplicates,error:duplicateError}=await supabase
       .from('invoices')
       .select('id,invoice_number')
@@ -617,6 +636,44 @@ export async function createInvoice(input: NewInvoiceInput) {
       throw new Error(`Esta factura parece estar subida ya (${duplicates[0].invoice_number || 'sin número'}).`);
     }
   }
+  // Última barrera común a todos los canales (subida, masiva, Gmail, reproceso, manual).
+  const integrity=checkInvoiceIntegrity({
+    header:{
+      supplierName:input.supplierName,
+      supplierTaxId:input.supplierTaxId,
+      invoiceNumber:input.invoiceNumber,
+      invoiceDate:input.invoiceDate,
+      subtotal:Number(preparedInput.subtotal),
+      vat:Number(preparedInput.vat),
+      equivalenceSurcharge:Number(preparedInput.equivalenceSurcharge??0),
+      withholding:Number(input.withholding??0),
+      total:Number(preparedInput.total),
+    },
+    sources:[{kind:input.source==='manual'&&!input.ocrText?'manual':'ai',lines:(preparedInput.lines||[]).map(line=>({
+      description:line.description,
+      supplierSku:line.supplierSku,
+      quantity:line.quantity,
+      unit:line.unit,
+      unitPrice:line.unitPrice,
+      lineNet:line.lineNet??line.lineTotal??null,
+      taxRate:line.taxRate,
+      verified:line.verified,
+    }))}],
+    documentText:input.ocrText,
+    // Un proveedor ya clasificado como servicio (software, transporte…) no trae líneas de mercancía:
+    // su factura sin líneas no es un error de mercancía aunque la categoría por defecto sea «Mercancía».
+    requireLines:merchandiseSupplier&&observedSupplier.knownType!=='service',
+  });
+  // Si un canal tuvo que guardar la cabecera sin sus líneas (p. ej. error al insertarlas),
+  // la factura nunca puede quedar confirmada: queda pendiente con las líneas detectadas en `extraction`.
+  const forcedReview=Boolean(input.extraction&&(input.extraction as Record<string,unknown>).lineImportWarning);
+  const integrityReady=integrity.status==='ready'&&!forcedReview;
+  preparedInput.lines=(preparedInput.lines||[]).map((line,index)=>{
+    const checked=integrity.lines[index];
+    return checked&&(checked.status==='review'||checked.priceReview.length)?{...line,priceReview:true}:line;
+  });
+  const initialStatus=integrityReady?policy.initialStatus:'pending';
+
   const { data: invoice, error } = await supabase.from('invoices').insert({
     supplier_id: supplierId,
     invoice_number: sanitizeDatabaseSingleLine(input.invoiceNumber) || null,
@@ -629,7 +686,7 @@ export async function createInvoice(input: NewInvoiceInput) {
     total_amount: preparedInput.total,
     currency:String(input.currency||loadedSettings.settings.general.currencyCode||'EUR').toUpperCase(),
     source: input.source,
-    status: policy.initialStatus,
+    status: initialStatus,
     source_document_id:archivedSource.id,
     file_path: archivedSource.storagePath,
     file_name: sanitizeDatabaseSingleLine(archivedSource.originalName),
@@ -645,6 +702,8 @@ export async function createInvoice(input: NewInvoiceInput) {
       supplierWebsite: input.supplierWebsite || extractedDetails.website || null,
       equivalenceSurcharge: preparedInput.equivalenceSurcharge ?? 0,
       normalizedLineCount: preparedInput.lines?.length || 0,
+      integrityCheck: invoiceIntegritySummary(integrity,new Date().toISOString()),
+      integrityRequestedStatus: policy.initialStatus,
     }),
     extraction_confidence: input.extractionConfidence ?? null,
   }).select('id').single();
@@ -655,7 +714,7 @@ export async function createInvoice(input: NewInvoiceInput) {
   }
 
   try {
-    await createInvoiceLinesWithProducts(invoice.id, supplierId, preparedInput, policy, loadedSettings.settings.products, loadedSettings.settings.general.currencyCode);
+    await createInvoiceLinesWithProducts(invoice.id, supplierId, preparedInput, policy, loadedSettings.settings.products, loadedSettings.settings.general.currencyCode, integrityReady);
   } catch (lineError) {
     await supabase.from('invoices').delete().eq('id', invoice.id);
     if (supplierResult.created) await cleanupCreatedSupplier(supplierId);

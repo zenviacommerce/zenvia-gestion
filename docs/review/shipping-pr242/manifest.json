@@ -1,0 +1,17 @@
+{
+  "note": "Actual LabelModal, collectProviderQuotes classifier and production CSS. Offline synthetic provider replies: DHL/Cainiao route exclusions, real collector timeout for MRW, successful Sendcloud rate retained. All browser network aborted; no label operations.",
+  "screenshots": [
+    {
+      "state": "route-exclusions-and-timeout",
+      "device": "desktop",
+      "width": 1440,
+      "path": "docs/review/shipping-pr242/route-exclusions-and-timeout-desktop.png"
+    },
+    {
+      "state": "route-exclusions-and-timeout",
+      "device": "mobile",
+      "width": 390,
+      "path": "docs/review/shipping-pr242/route-exclusions-and-timeout-mobile.png"
+    }
+  ]
+}

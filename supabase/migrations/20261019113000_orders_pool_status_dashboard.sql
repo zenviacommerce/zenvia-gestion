@@ -151,24 +151,31 @@ shipping AS (
   coalesce(sum(shipping_cost_amount) FILTER (WHERE has_label AND in_cost_period AND carrier_label LIKE '%correos%' AND coalesce(shipping_cost_currency,'EUR')='EUR'),0) AS correos
  FROM scope
 ),
+counts AS (
+ SELECT
+  count(*) FILTER (WHERE order_state='pending') pending,
+  count(*) FILTER (WHERE order_state='pending' AND source_channel='amazon') amazon,
+  count(*) FILTER (WHERE order_state='pending' AND source_channel='shopify') shopify,
+  count(*) FILTER (WHERE order_state='pending' AND source_channel NOT IN ('amazon','shopify')) manual,
+  count(*) FILTER (WHERE order_state='labelled') labelled,
+  count(*) FILTER (WHERE order_state='shipped' AND in_shipped_period) shipped,
+  count(*) FILTER (WHERE is_cancelled AND in_order_period) cancelled,
+  count(*) FILTER (WHERE order_state='pending' AND order_created_at < now()-make_interval(hours=>greatest(p_overdue_hours,1))) overdue
+ FROM scope
+),
 kpis AS (
  SELECT jsonb_build_object(
-  'pending',count(*) FILTER (WHERE order_state='pending'),
-  'amazon',count(*) FILTER (WHERE order_state='pending' AND source_channel='amazon'),
-  'shopify',count(*) FILTER (WHERE order_state='pending' AND source_channel='shopify'),
-  'manual',count(*) FILTER (WHERE order_state='pending' AND source_channel NOT IN ('amazon','shopify')),
-  'labelled',count(*) FILTER (WHERE order_state='labelled'),
-  'shipped',count(*) FILTER (WHERE order_state='shipped' AND in_shipped_period),
-  'cancelled',count(*) FILTER (WHERE is_cancelled AND in_order_period),
-  'overduePending',count(*) FILTER (WHERE order_state='pending' AND order_created_at < now()-make_interval(hours=>greatest(p_overdue_hours,1))),
+  'pending',c.pending,
+  'amazon',c.amazon,'shopify',c.shopify,'manual',c.manual,
+  'labelled',c.labelled,'shipped',c.shipped,'cancelled',c.cancelled,
+  'overduePending',c.overdue,
   'sales',jsonb_build_object('gross',s.gross,'net',s.net,'vat',s.gross-s.net,'count',s.count,
     'average',CASE WHEN s.count>0 THEN s.gross/s.count ELSE 0 END),
   'transport',jsonb_build_object('total',t.total,'net',t.net,'tax',t.tax,'mrw',t.mrw,'correos',t.correos,
     'other',t.total-t.mrw-t.correos,'shipments',t.shipments,'valued',t.valued,'missing',t.missing,
     'basis','recorded_only')
  ) AS data
- FROM scope CROSS JOIN sales s CROSS JOIN shipping t
- GROUP BY s.gross,s.net,s.count,t.total,t.net,t.tax,t.mrw,t.correos,t.shipments,t.valued,t.missing
+ FROM counts c CROSS JOIN sales s CROSS JOIN shipping t
 ),
 eligible AS (
  SELECT * FROM scope WHERE

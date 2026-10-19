@@ -12,9 +12,9 @@ Regresión rojo→verde: antes fallaba mrw !== correosExpress; después pasan 15
 
 ## Producción y rollback
 
-Snapshot exacto por función en supabase/snapshots/20261019-carrier-attribution/: worker40, orders22 y reconcile10. Se despliega únicamente el pequeño guard sobre los bundles vivos, conservando dependencias y verify_jwt de cada función; reconcile contiene diferencias previas y no se sustituye por todo el código de main. Rollback: redesplegar los tres snapshots exactos; para el registro reparado, restaurar exclusivamente carrier_code, carrier_name y shipping_service_name desde order-before.json. Esto reintroduciría la causa y el desglose incorrecto, por lo que se reserva a incidentes de la corrección.
+Snapshot exacto por función en supabase/snapshots/20261019-carrier-attribution/: worker40, orders22 y reconcile10. Se despliega únicamente el pequeño guard sobre los bundles vivos, conservando dependencias y verify_jwt de cada función; reconcile contiene diferencias previas y no se sustituye por todo el código de main. Rollback: redesplegar los tres snapshots exactos; el registro se capturó para evidencia, pero no se alteró manualmente y no necesita rollback de datos. Esto reintroduciría la causa y el desglose incorrecto, por lo que se reserva a incidentes de la corrección.
 
-Backend autorizado tras CI verde. Reparación guardada del único registro afectado a Correos Express/epaq_24, sin tocar precio, seguimiento, etiqueta ni estado. Verificación posterior: desglose por cinco periodos comparado con referencia previa, y ciclo natural del worker sin pérdida del transportista real.
+Backend autorizado tras CI verde. No se ejecutó reparación manual: el sync de Envia ya restauró la identidad real y el propietario corrigió el dato de Amazon. Verificación posterior: desglose por cinco periodos comparado con referencia previa, y ciclo natural del worker sin pérdida del transportista real.
 
 Frontend sin cambio funcional: el bundle actual ya calcula correctamente a partir de la identidad persistida. No se compran etiquetas ni se cambian MFA/configuración Auth.
 
@@ -27,3 +27,7 @@ Confirmó que la etiqueta MRW se canceló y el envío real se hizo con Correos E
 A petición del propietario, se protegen también tracking (número, enlace, estado/fecha), todos los campos de coste, referencia/proveedor/cuenta, etiqueta y fulfilled_at cuando ya hay envío local. Amazon solo actualiza su declaración separada marketplace_carrier; la columna aditiva se instala antes de las funciones. No se guarda tracking adicional de Amazon. Estado comercial source_status sigue sincronizándose. Prueba exacta usa tracking MRW-CANCELLED frente a CORREOS-ACTIVE y exige conservación del coste/provider_actual y marketplace_carrier=MRW.
 
 El propietario corrigió Amazon a Correos Express a las16:44Madrid. La lectura de Zenvia a14:46UTC ya muestra Correos Express/epaq_24 y4,57€ tras el sync de Envia. No se ha ejecutado reparación SQL manual. El siguiente ciclo Amazon se verifica por separado. Se elimina la reparación propuesta: no es necesaria si los datos reales ya están correctos.
+
+## Backend fase1
+
+CincoCIverdes en2fbacb81d314147f5feac9fd53d1f822d29b827f antes de tocar producción. Migración 20261019145139 amazon_marketplace_carrier aplicada. Preflight sin drift de worker40/orders22/reconcile10. 45/45regresiones contra los tresbundles candidatos. Siguiente: orders/reconcile, luego worker, re-fetch exacto y ciclo natural. No reparaciónSQL de datos.

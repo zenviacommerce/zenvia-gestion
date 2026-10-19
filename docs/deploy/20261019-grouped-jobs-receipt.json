@@ -819,5 +819,21 @@
       "workflow_id": 387906946
     }
   ],
-  "probe_retired_http_status": 410
+  "probe_retired_http_status": 410,
+  "final_frontend": {
+    "main": "58badb4d0584b0c3217f7556f56b98babe7a9ba1",
+    "deployment": "dpl_FVjSSCg41z7RBdCLFPSz1PzMUYJa",
+    "state": "READY",
+    "public_http": 200,
+    "bundle": "index-BTiT_pl4.js"
+  },
+  "final_health": {
+    "observed_at": "2026-10-19T13:33:58.950336Z",
+    "queued": 0,
+    "running": 0,
+    "failed": 0,
+    "active_lease": 0,
+    "log_window": "2026-10-19T13:18:44Z/2026-10-19T13:33:00Z",
+    "pgrst003_57014_worker_background_lease_loss": 0
+  }
 }

@@ -13,9 +13,16 @@ El snapshot `tests/integration/schema.sql` incluye las columnas existentes: JSON
 `invoices.extraction`, `invoice_lines.line_net`, `tax_rate`, `unit`, tipos numeric y triggers.
 Los nuevos campos son metadatos JSONB: `integrityCheck`, `integrityRequestedStatus`,
 `lineImportWarning`, `detectedLineCount` y `unsavedLines`. La compatibilidad se prueba contra
-el snapshot con PostgreSQL/PostgREST; no se ha vuelto a consultar producción. Antes del
+el snapshot con PostgreSQL/PostgREST; no se han vuelto a consultar datos operativos de producción. Antes del
 release, confirmar por metadatos que esas columnas y límites no han cambiado; abortar ante
 deriva. NUNCA aplicar el snapshot en producción: contiene stubs y grants de pruebas.
+
+Comprobación del 19/10/2026: consulta exclusivamente de `information_schema.columns` en
+el proyecto Gestión. Las 16 columnas utilizadas y sus tipos/límites coinciden con el snapshot
+(JSONB, numeric(14,2), quantity numeric(14,4), precios numeric(14,6), tax_rate numeric(7,4)
+y campos text). No se leyeron facturas, proveedores, credenciales ni configuración MFA.
+Esta comprobación no certifica todos los permisos/triggers; la integración aislada cubre
+la estructura y persistencia, y el smoke de lectura autorizado sigue siendo una puerta del release.
 
 ## Datos sintéticos
 

@@ -7,7 +7,7 @@ Ordinary logout is local in Gestión (sidebar, mobile, suspended/denied access, 
 - Gestión RecoveryTokenSetup and Platform PlatformPasswordRecovery: after password save, explicit global logout, then return to login. If revocation fails, retain saved-password phase: retry only revocation; do not resubmit same password.
 - Gestión InviteTokenSetup / InvitePasswordSetup and Platform InviteTokenSetup / InviteSetup: initial password / invitation activation, keep current onboarding session; not ordinary logout and no added global signOut.
 - admin-users password update for another user: Auth admin.updateUserById, not caller signOut. GoTrue admin update calls User.UpdatePassword(tx,nil), which logs out all target sessions; no Edge change needed. Current upstream source inspected (internal/api/admin.go and internal/models/user.go); no password/reset experiment against real owner.
-- Assisted MFA recovery: existing private.mfa_lock_recovery deletes all auth.sessions for target; stays global. Closing the locked screen itself is local and cannot unlock recovery.
+- Assisted MFA recovery: existing public.security_mfa_authorize_enrollment deletes all auth.sessions for target; stays global. Closing the locked screen itself is local and cannot unlock recovery.
 - Auth errors: SDK removes its own invalid persisted session on terminal refresh failure; app does not issue global logout on 5xx/timeout/startup. Existing retryable-error resilience and MFA disabled fail-open preserved.
 
 ## Rollback recorded before publication

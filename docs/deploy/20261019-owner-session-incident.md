@@ -18,8 +18,8 @@ Confirmed cross-device invalidation mechanism: explicit global logout request fr
 
 PR247 changed only Shopify service/cards in src; no Auth/MFA startup change. MFA AAL2 does not protect against intentional global sign-out. Expiry is not the evidenced cause of this invalidation.
 
-## Proposed correction (not implemented)
-Centralize ordinary logout in signOutCurrentDevice using auth.signOut({scope:'local'}); use it in all eight ordinary controls, including MFA logout/relogin. Local scope signs out shared tabs of the current session/browser while preserving other devices. Reserve global scope for an explicitly labelled all-sessions action. Do not remove SDK cleanup after an actually revoked refresh token and do not revive revoked credentials.
+## Correction approved after investigation
+Use explicit auth.signOut({scope:'local'}) in all eight ordinary controls, including MFA logout/relogin. Implementation and release are tracked in 20261019-logout-scope.md. Local scope signs out shared tabs of the current session/browser while preserving other devices. Reserve global scope for an explicitly labelled all-sessions action. Do not remove SDK cleanup after an actually revoked refresh token and do not revive revoked credentials.
 
 ## Reproduction tests
  tests/auth-logout-scope.incident.test.ts uses REAL supabase-js2.105.0 with two independent synthetic storage stores and controlled offline GoTrue responses. Default logout emits scope=global; other browser's next refresh400 removes its persisted session. Explicit local logout preserves other browser's refresh/session. Both tests pass. This is SDK/client behaviour against a simulated Auth server, not a live production revocation experiment.

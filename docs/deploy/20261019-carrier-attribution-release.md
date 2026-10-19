@@ -8,7 +8,7 @@ Pedido 402-4191875-5589160, registro 0a30e623-2948-4ad9-be50-19ee3fa5b672. Etiqu
 
 preservePersistedFields conserva la identidad del transportista y servicio cuando el pedido tiene proveedor local y referencia/etiqueta de envío. Se aplica al importador completo y al reconcile independiente. Amazon sigue aportando estado y datos de transportista para envíos sin propiedad logística local. Se conserva la supresión de UPDATE sin cambios.
 
-Regresión rojo→verde: antes fallaba mrw !== correosExpress; después pasan 14 tests, con tres proveedores y ambos caminos, repetición sin UPDATE y envío externo sin propiedad local. No se modifica el estimador ni el frontend del KPI.
+Regresión rojo→verde: antes fallaba mrw !== correosExpress; después pasan 15 tests, con tres proveedores y ambos caminos, repetición sin UPDATE y envío externo sin propiedad local. No se modifica el estimador ni el frontend del KPI.
 
 ## Producción y rollback
 
@@ -17,3 +17,7 @@ Snapshot exacto por función en supabase/snapshots/20261019-carrier-attribution/
 Backend autorizado tras CI verde. Reparación guardada del único registro afectado a Correos Express/epaq_24, sin tocar precio, seguimiento, etiqueta ni estado. Verificación posterior: desglose por cinco periodos comparado con referencia previa, y ciclo natural del worker sin pérdida del transportista real.
 
 Frontend sin cambio funcional: el bundle actual ya calcula correctamente a partir de la identidad persistida. No se compran etiquetas ni se cambian MFA/configuración Auth.
+
+## Aclaración del propietario
+
+Confirmó que la etiqueta MRW se canceló y el envío real se hizo con Correos Express; él corregirá Amazon. Tanto la referencia anterior como el KPI nuevo leen carrier_code/carrier_name persistidos en fulfillment_orders; ninguno debe usar la tarifa ni la preferencia predeterminada para sustituir al transportista real de una etiqueta. El anterior acertó cuando Envia acababa de sincronizar y el nuevo mostró MRW tras sobrescribir Amazon los mismos campos. Se protege la fuente local, sin forzar totales ni depender de que Amazon se corrija. Coste registrado válido tiene prioridad frente a tarifa (shippingPriceForOrder); sin propiedad logística local se mantiene el dato del marketplace. Prueba específica MRW cancelado → etiqueta activa Correos, coste real4,57 intacto.

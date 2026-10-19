@@ -234,13 +234,14 @@ export type OrdersDashboardKpis={
   pending:number;preparablePending:number;amazon:number;shopify:number;manual:number;labelled:number;
   shipped:number;cancelled:number;overduePending:number;
   sales:{gross:number;net:number;vat:number;count:number;average:number};
-  // These totals represent persisted amounts only. Do not mistake an
-  // unpriced tariff preview for a recorded carrier charge.
+  // Server totals are the recorded baseline; narrow tariff candidates restore
+  // the same fallback and repricing used by order shipping prices.
   transport:{total:number;net:number;tax:number;mrw:number;correos:number;other:number;
-    shipments:number;valued:number;missing:number;basis:'recorded_only'};
+    shipments:number;valued:number;missing:number;basis:'recorded_only'|'recorded_and_tariff'};
 };
 export type OrdersDashboardPage={
   orders:FulfillmentOrder[];total:number;selectableTotal:number;page:number;pageSize:number;
+  tariffCandidates:Array<FulfillmentOrder & {kpiCarrierLabel:string}>;
   kpis:OrdersDashboardKpis;
   facets:{countries:string[];carriers:string[]};
 };
@@ -265,6 +266,7 @@ export async function fetchOrdersDashboardPage(filters:OrdersDashboardFilters):P
   if(!data||!Array.isArray(data.rows)||!data.kpis)throw new Error('La respuesta de estadísticas de pedidos no es válida.');
   return {
     orders:data.rows.map(mapRow),
+    tariffCandidates:(Array.isArray(data.tariffCandidates)?data.tariffCandidates:[]).map((row:any)=>({...mapRow(row),kpiCarrierLabel:String(row.kpi_carrier_label||'')})),
     total:Number(data.total||0),
     selectableTotal:Number(data.selectableTotal||0),
     page:Number(data.page||0),

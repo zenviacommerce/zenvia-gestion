@@ -1,0 +1,9 @@
+# 2026-10-19 — MFA corrective release, pilot remains OFF
+
+PR #249 merged at480cfba0cc055881c328c9cc92add639c05753ba after all five required workflows succeeded for90c8a9231bf3012bcfbd56c054e6fd5261090060 (run IDs in adjacent receipt). Backend migration20261019214614 applied with policy disabled, snapshot and transactional rollback verified. Vercel dpl_DLT8CGvp4zuFH7yQurn734LUYaS4 READY, alias assigned, public HTML and index-DqmjjHIX.js both HTTP200. Frontend enforcement build flag remains false. Rollback: dpl_5g5QN5ZfoW5BfjmPD7oR8BPgSAVH / index-DGoL6EBd.js; backend exact snapshot retained.
+
+Direct browser read of Supabase Database report, last60minutes20:52:39–21:52:39UTC: CPU usage display8.80% (report value, not asserted peak). SQL21:52:31UTC:31/90connections, guard0,11activecron,0failedcron,30successfuljobs, no queued/running/failed, latest finished21:50:32.727UTC. Log window20:53–21:53UTC:0PGRST003/57014 errors across ten sources. Six substring57014 matches in gateway metadata are Cloudflare ray identifiers only.
+
+Rehearsals under authenticated claims and BEGIN/ROLLBACK passed: AAL1 denied/challenge, AAL2 ready and orders RPC,3other admins+2users unaffected, actual Platform operator gate allowed, system:plan-sync allowed, emergency disable allowedAAL1 again. No live bearer HTTP login implied. No factor/session writes or revocations.
+
+Activation NOT performed: enabled=false, cohortNULL. Exact reason behind reported historical503x3→200 cannot be proven because body/reason and matching trace are absent from retrieved logs. Confirmed reproducible defect was missing/invalid session or access-disabled reason classified as recovery_locked; fixed to return errors, internal57014 propagates, two factors remain active. Do not equate this reproduction with definitive historical attribution. User's mandatory historical evidence gate therefore remains unmet. No new frontend enforcement build/activation release was attempted.

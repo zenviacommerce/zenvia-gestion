@@ -37,3 +37,6 @@ RLS direct count: authenticated3.549ms vs definer0.128ms. Shopify cron18,48 * * 
 
 ## Visual review / stop
 Four screenshots are on audit/production-resume-20261019 under docs/deploy/shopify-performance-20261019. Both ready and products-ready/cards-loading states at1440px and390px. Synthetic fixture only, production components/CSS, all network aborted. PR247 unmerged; do not publish frontend before owner review.
+
+## Final closure
+All five workflows succeeded on final PR247 head5c7e354ffe6a3f043928985b904a714f023774f6 (runs39290887309,39290887352,39290887335,39290887334,39290887419). Fresh checkout of exact final head:147 Vitest passed. Normal Node suite1129passed, build passed. Backend remains deployed/verified; frontend remains unmerged pending owner visual review. No deviations in deployment gate; observed limitations: one old-frontend gateway summary213ms and Amazon previous-month SQL331ms exceed200ms, and no claim is made about exact browser paint timing.

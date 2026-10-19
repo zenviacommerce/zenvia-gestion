@@ -679,5 +679,145 @@
       "hour_bucket": "2026-10-18 11:00:00+00",
       "jobs": 90
     }
-  ]
+  ],
+  "second_distinct_worker_cycle": [
+    {
+      "result": {
+        "now": "2026-10-19T13:30:47.185544+00:00",
+        "lease": null,
+        "latest": {
+          "id": "75687fb6-1672-4fec-84a1-98bd04b341ea",
+          "status": "success",
+          "job_key": "incremental:orders:region:EU:2026-10-19T13:30:00.000Z",
+          "attempts": 1,
+          "last_error": null,
+          "started_at": "2026-10-19T13:30:27.658841+00:00",
+          "duration_ms": 4858,
+          "finished_at": "2026-10-19T13:30:32.516+00:00",
+          "rows_processed": 236
+        }
+      }
+    }
+  ],
+  "final_checkpoints_and_buckets": [
+    {
+      "result": {
+        "now": "2026-10-19T13:30:57.116955+00:00",
+        "states": [
+          {
+            "hwm": "2026-10-19T13:28:27.666+00:00",
+            "last_job_id": "75687fb6-1672-4fec-84a1-98bd04b341ea",
+            "marketplace_id": "A13V1IB3VIYZZH"
+          },
+          {
+            "hwm": "2026-10-19T13:28:27.666+00:00",
+            "last_job_id": "75687fb6-1672-4fec-84a1-98bd04b341ea",
+            "marketplace_id": "A1805IZSGTT6HS"
+          },
+          {
+            "hwm": "2026-10-19T13:28:27.666+00:00",
+            "last_job_id": "75687fb6-1672-4fec-84a1-98bd04b341ea",
+            "marketplace_id": "A1C3SOZRARQ6R3"
+          },
+          {
+            "hwm": "2026-10-19T13:28:27.666+00:00",
+            "last_job_id": "75687fb6-1672-4fec-84a1-98bd04b341ea",
+            "marketplace_id": "A1PA6795UKMFR9"
+          },
+          {
+            "hwm": "2026-10-19T13:28:27.666+00:00",
+            "last_job_id": "75687fb6-1672-4fec-84a1-98bd04b341ea",
+            "marketplace_id": "A1RKKUPIHCS9HS"
+          },
+          {
+            "hwm": "2026-10-19T13:28:27.666+00:00",
+            "last_job_id": "75687fb6-1672-4fec-84a1-98bd04b341ea",
+            "marketplace_id": "A28R8C7NBKEWEA"
+          },
+          {
+            "hwm": "2026-10-19T13:28:27.666+00:00",
+            "last_job_id": "75687fb6-1672-4fec-84a1-98bd04b341ea",
+            "marketplace_id": "A2NODRKZP88ZB9"
+          },
+          {
+            "hwm": "2026-10-19T13:28:27.666+00:00",
+            "last_job_id": "75687fb6-1672-4fec-84a1-98bd04b341ea",
+            "marketplace_id": "AMEN7PMS3EDWL"
+          },
+          {
+            "hwm": "2026-10-19T13:28:27.666+00:00",
+            "last_job_id": "75687fb6-1672-4fec-84a1-98bd04b341ea",
+            "marketplace_id": "APJ6JRA9NG5V4"
+          }
+        ],
+        "buckets": [
+          {
+            "jobs": 1,
+            "bucket": "2026-10-19T13:20:00+00:00"
+          },
+          {
+            "jobs": 1,
+            "bucket": "2026-10-19T13:25:00+00:00"
+          },
+          {
+            "jobs": 1,
+            "bucket": "2026-10-19T13:30:00+00:00"
+          }
+        ]
+      }
+    }
+  ],
+  "final_ci": [
+    {
+      "id": 39259476407,
+      "name": "Build check",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 556,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476407/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476407/logs",
+      "workflow_id": 361316263
+    },
+    {
+      "id": 39259476415,
+      "name": "MFA visual review (Playwright)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 79,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476415/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476415/logs",
+      "workflow_id": 388829843
+    },
+    {
+      "id": 39259476436,
+      "name": "Auth resilience tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 226,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476436/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476436/logs",
+      "workflow_id": 385998318
+    },
+    {
+      "id": 39259476445,
+      "name": "Build ZENVIA Gestión",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2216,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476445/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476445/logs",
+      "workflow_id": 354706666
+    },
+    {
+      "id": 39259476554,
+      "name": "MFA real integration (disposable Supabase)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 265,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476554/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39259476554/logs",
+      "workflow_id": 387906946
+    }
+  ],
+  "probe_retired_http_status": 410
 }

@@ -35,6 +35,6 @@ BEGIN
           old_definition,
           md5(pg_get_functiondef('public.security_mfa_rename_factor(uuid,text)'::regprocedure)));
   IF EXISTS (SELECT 1 FROM private.mfa_activation_findings()) THEN
-    RAISE EXCEPTION 'MFA_INTEGRITY_FINDINGS_AFTER_RENAME_WRAP';
+    RAISE EXCEPTION 'MFA_INTEGRITY_FINDINGS_AFTER_RENAME_WRAP: %', (SELECT string_agg(entry || ': ' || reason, '; ') FROM private.mfa_activation_findings());
   END IF;
 END $migration$;

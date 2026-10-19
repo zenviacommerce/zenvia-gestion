@@ -15,7 +15,7 @@ All pages must finish before the worker calls success. Success records per-marke
 
 ## Necessary schema companion
 
-`20261019183000_amazon_grouped_orders_controls.sql` replaces only the existing PII control whitelist function. It retains only `region: EU` and arrays of 1–10 known EU marketplace strings, canonicalized by sorted uniqueness, plus the exact prior controls. Arbitrary payload keys and invalid marketplace values are discarded. This migration is required: the deployed control trigger otherwise strips the grouped routing payload. No PII or pagination token is added to retention controls.
+`20261019131844_amazon_grouped_orders_controls.sql` replaces only the existing PII control whitelist function. It retains only `region: EU` and arrays of 1–10 known EU marketplace strings, canonicalized by sorted uniqueness, plus the exact prior controls. Arbitrary payload keys and invalid marketplace values are discarded. This migration is required: the deployed control trigger otherwise strips the grouped routing payload. No PII or pagination token is added to retention controls.
 
 ## Pagination/runtime limitation for review
 

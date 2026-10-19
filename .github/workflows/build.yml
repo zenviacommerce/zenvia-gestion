@@ -21,7 +21,7 @@ jobs:
       - name: Test application logic
         run: node --test $(find scripts -maxdepth 1 -name '*.test.mjs' ! -name 'mfa-real-integration.test.mjs' | sort)
       - name: Orders pool-pressure and KPI regressions
-        run: npx vitest run tests/orders-pool.test.ts
+        run: npx vitest run tests/orders-pool.test.ts tests/shopify-performance-sql.test.ts
       - name: Build
         run: npm run build
       - name: Upload dist artifact

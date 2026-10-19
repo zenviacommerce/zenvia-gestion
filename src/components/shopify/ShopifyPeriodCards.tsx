@@ -2,7 +2,7 @@ import {useEffect,useRef,useState,type CSSProperties} from 'react';
 import {CalendarDays,ChevronLeft,ChevronRight,LoaderCircle,X} from 'lucide-react';
 import {amazonCalendarDate} from '../../services/amazonCalendar';
 import {amazonDashboardPeriods} from '../../services/amazonDashboard';
-import {loadShopifySummary,type ShopifyFilters,type ShopifySummary} from '../../services/shopifyAnalytics';
+import {loadShopifySummaryBatch,type ShopifyFilters,type ShopifySummary} from '../../services/shopifyAnalytics';
 import {shopifyMonthForecast} from '../../services/shopifyAnalyticsCore';
 export const shopifyMoney=(value:number|null|undefined)=>value==null?'No disponible':new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR'}).format(value===0?0:value);
 const dateLabel=(day:string)=>new Date(day+'T12:00:00').toLocaleDateString('es-ES',{day:'numeric',month:'short',year:'numeric'});
@@ -13,7 +13,16 @@ export function ShopifyPeriodCards({filters,onChange,calendarDay,refreshToken}:{
  const periods=bases.map(p=>({...p,filters:{...p.filters,...(p.id==='forecast'?{}:overrides[p.id])}}));const same=(a:ShopifyFilters,b:ShopifyFilters)=>a.from===b.from&&a.to===b.to;
  if(!periods.some(p=>p.id!=='forecast'&&same(p.filters,filters)))periods.push({id:'selected',label:'Periodo seleccionado',filters});
  const key=JSON.stringify([periods,calendarDay,refreshToken]);
- useEffect(()=>{let alive=true;setSnapshots({});const requests=periods.filter(p=>p.id!=='forecast');const baseMonth=bases.find(p=>p.id==='current_month')!,baseToday=bases[0];requests.forEach(period=>{setSnapshots(current=>({...current,[period.id]:{data:null,error:'',loading:true}}));void loadShopifySummary(period.filters).then(data=>{if(alive)setSnapshots(current=>({...current,[period.id]:{data,error:'',loading:false}}));}).catch(e=>{if(alive)setSnapshots(current=>({...current,[period.id]:{data:null,error:e instanceof Error?e.message:'No se pudo consultar el periodo.',loading:false}}));});});return()=>{alive=false;};},[key]);
+ useEffect(()=>{
+  let alive=true;const requests=periods.filter(p=>p.id!=='forecast');
+  setSnapshots(Object.fromEntries(requests.map(p=>[p.id,{data:null,error:'',loading:true}])));
+  void loadShopifySummaryBatch(requests).then(results=>{
+   if(!alive)return;
+   const byId=new Map(results.map(r=>[r.id,r]));
+   setSnapshots(Object.fromEntries(requests.map(p=>{const r=byId.get(p.id);return [p.id,{data:r?.data||null,error:r?.error||(!r?'No se pudo consultar el periodo.':''),loading:false}];})));
+  }).catch(e=>{if(alive)setSnapshots(Object.fromEntries(requests.map(p=>[p.id,{data:null,error:e instanceof Error?e.message:'No se pudo consultar el periodo.',loading:false}])));});
+  return()=>{alive=false;};
+ },[key]);
  useEffect(()=>{if(editor)editorRef.current?.querySelector<HTMLInputElement>('input')?.focus();},[editor?.id]);const close=()=>{setEditor(null);trigger.current?.focus();};
  const month=snapshots.current_month?.data,today=snapshots[bases[0].id]?.data;const forecast=month&&today?shopifyMonthForecast(month,today,now):null;
  return <section className="amazonPeriodSection" aria-label="Periodos de Shopify"><div className="amazonSectionHead"><div><span className="amazonSectionLabel">RENDIMIENTO DE LA TIENDA</span><h2>Resumen por periodo</h2></div><div className="shopifyCarouselActions"><span>Selecciona un periodo para ver todos sus productos</span><button aria-label="Desplazar periodos a la izquierda" onClick={()=>rail.current?.scrollBy({left:-350,behavior:'smooth'})}><ChevronLeft size={18}/></button><button aria-label="Desplazar periodos a la derecha" onClick={()=>rail.current?.scrollBy({left:350,behavior:'smooth'})}><ChevronRight size={18}/></button></div></div>

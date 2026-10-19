@@ -10,3 +10,11 @@ test('queued Shopify reads reject when account changes instead of displaying pre
 test('response cannot cross workspace scope even when the Supabase client is reused',async()=>{const s=setup();let resolve;s.a.rpc=()=>new Promise(r=>resolve=r);const request=s.api.loadShopifySummary(filters);await new Promise(r=>setImmediate(r));s.current.workspace='workspace-b';resolve({data:'private-workspace-a',error:null});await assert.rejects(request,/sesión o empresa ha cambiado/);});
 test('all stores is sent as null so the backend includes every permitted store',async()=>{const s=setup();await s.api.loadShopifySummary({...filters,storeIds:[]});assert.equal(s.calls[0].params.integration_account_ids,null);});
 test('sales products and full inventory use distinct scoped requests',async()=>{const s=setup();await s.api.loadShopifyProducts(filters);await s.api.loadShopifyProducts(filters,'',1,25,'product_name','asc',true);assert.equal(s.calls[0].params.include_catalog,false);assert.equal(s.calls[1].params.include_catalog,true);assert.equal(s.calls[0].params.from_date,filters.from);assert.equal(s.calls[0].params.to_date,filters.to);});
+test('four periods use one scoped batch RPC and products start while batch is pending',async()=>{
+ const s=setup();let finish;s.a.rpc=async(name,params)=>{s.calls.push({name,params});if(name==='shopify_analytics_summary_batch')return new Promise(r=>finish=r);return {data:'product',error:null};};
+ assert.equal(typeof s.api.loadShopifySummaryBatch,'function');
+ const periods=[{id:'today',filters},{id:'yesterday',filters:{...filters,from:'2026-10-13',to:'2026-10-13'}}];
+ const pending=s.api.loadShopifySummaryBatch(periods);await new Promise(r=>setImmediate(r));assert.equal(await s.api.loadShopifyProducts(filters),'product');
+ assert.equal(s.calls.filter(c=>c.name==='shopify_analytics_summary_batch').length,1);assert.deepEqual(s.calls[0].params.integration_account_ids,['store-a']);
+ finish({data:[{id:'today',data:{orders:1}},{id:'yesterday',data:{orders:0}}],error:null});assert.equal((await pending)[0].data.orders,1);
+});

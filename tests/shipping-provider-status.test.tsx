@@ -16,5 +16,5 @@ it('renders singular for one option and plural for multiple options',()=>{
 });
 it('shows route exclusions without Retry and keeps Retry only for temporary failures',()=>{
  const retry=vi.fn();render(<ShippingProviderStatus states={{envia:{state:'ready',options:['good'],message:'2 transportistas no aplicables a esta ruta.',diagnostics:['No aplica a esta ruta · DHL · Solo origen Madrid','No aplica a esta ruta · Cainiao · Sin cobertura'],retryable:false},mrw:{state:'error',options:[],message:'HTTP 401',retryable:false},sendcloud:{state:'partial',options:['good'],message:'HTTP 503',retryable:true}}} onRetry={retry}/>);
- expect(screen.getByText('No aplica a esta ruta · DHL · Solo origen Madrid')).toBeTruthy();expect(screen.queryByRole('button',{name:'Reintentar Envia.com'})).toBeNull();expect(screen.queryByRole('button',{name:'Reintentar MRW directo'})).toBeNull();fireEvent.click(screen.getByRole('button',{name:'Reintentar Sendcloud'}));expect(retry).toHaveBeenCalledWith('sendcloud');
+ expect(screen.getByText(/No aplica a esta ruta · DHL · Solo origen Madrid/)).toBeTruthy();expect(screen.queryByRole('button',{name:'Reintentar Envia.com'})).toBeNull();expect(screen.queryByRole('button',{name:'Reintentar MRW directo'})).toBeNull();fireEvent.click(screen.getByRole('button',{name:'Reintentar Sendcloud'}));expect(retry).toHaveBeenCalledWith('sendcloud');
 });

@@ -31,6 +31,7 @@ jobs:
           name: mfa-security-ui-desktop-mobile
           path: artifacts/mfa-visual/*.png
           if-no-files-found: error
+      # Published screenshots remain in this review branch; content-identical PNGs do not produce a new commit.
       - name: Commit review PNGs to PR branch
         if: github.event_name == 'pull_request'
         run: |

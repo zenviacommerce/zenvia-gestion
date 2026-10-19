@@ -1,0 +1,21 @@
+{
+  "final_rehearsal": {
+    "shopify_today_ms": 4.957,
+    "shopify_previous_ms": 5.156,
+    "shopify_month_ms": 15.92,
+    "shopify_products_ms": 6.756,
+    "amazon_today_ms": 19.356,
+    "amazon_previous_ms": 341.602,
+    "all_six_exact_json_parity": true,
+    "mfa_findings_after": 0,
+    "mfa_findings_rollback": 0,
+    "rollback_exact_hashes": true
+  },
+  "review": "Independent reviewer verified both fixes, ran SQL test, no blockers",
+  "tests": {
+    "vitest": 146,
+    "node_normal": 1129,
+    "build": "pass"
+  },
+  "production_deployed": false
+}

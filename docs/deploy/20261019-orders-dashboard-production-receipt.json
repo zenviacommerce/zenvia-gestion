@@ -381,5 +381,218 @@
     "records": 3,
     "json_equal": true
   },
-  "frontend_not_published": true
+  "frontend_not_published": true,
+  "optimization_migration": "20261019140644",
+  "installed_optimized_execution_ms": 700.602,
+  "optimized_kpis": {
+    "comparison": [
+      {
+        "kpis": {
+          "sales": {
+            "net": 150.91735537190084,
+            "vat": 31.692644628099174,
+            "count": 6,
+            "gross": 182.61,
+            "average": 30.435
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 25,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 0,
+          "transport": {
+            "mrw": 22.05,
+            "net": 0,
+            "tax": 0,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 30.39,
+            "valued": 7,
+            "correos": 8.34,
+            "missing": 0,
+            "shipments": 7
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        },
+        "equal": true,
+        "period": "Hoy",
+        "states_equal": true,
+        "sales_equal_cents": true,
+        "transport_equal_cents": true
+      },
+      {
+        "kpis": {
+          "sales": {
+            "net": 2878.567022777666,
+            "vat": 606.3629772223342,
+            "count": 129,
+            "gross": 3484.93,
+            "average": 27.01496124031008
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 131,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 4,
+          "transport": {
+            "mrw": 164.4,
+            "net": 0,
+            "tax": 0,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 224.56,
+            "valued": 51,
+            "correos": 60.16,
+            "missing": 7,
+            "shipments": 58
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        },
+        "equal": true,
+        "period": "Mes actual",
+        "states_equal": true,
+        "sales_equal_cents": true,
+        "transport_equal_cents": true
+      },
+      {
+        "kpis": {
+          "sales": {
+            "net": 2878.567022777666,
+            "vat": 606.3629772223342,
+            "count": 129,
+            "gross": 3484.93,
+            "average": 27.01496124031008
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 131,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 4,
+          "transport": {
+            "mrw": 164.4,
+            "net": 0,
+            "tax": 0,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 224.56,
+            "valued": 51,
+            "correos": 60.16,
+            "missing": 7,
+            "shipments": 58
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        },
+        "equal": true,
+        "period": "Trimestre",
+        "states_equal": true,
+        "sales_equal_cents": true,
+        "transport_equal_cents": true
+      },
+      {
+        "kpis": {
+          "sales": {
+            "net": 18335.463884969427,
+            "vat": 3869.626115030572,
+            "count": 914,
+            "gross": 22205.09,
+            "average": 24.29440919037199
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 912,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 61,
+          "transport": {
+            "mrw": 714.27,
+            "net": 454.2,
+            "tax": 95.67,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 774.43,
+            "valued": 178,
+            "correos": 60.16,
+            "missing": 183,
+            "shipments": 361
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        },
+        "equal": true,
+        "period": "Año",
+        "states_equal": true,
+        "sales_equal_cents": true,
+        "transport_equal_cents": true
+      },
+      {
+        "kpis": {
+          "sales": {
+            "net": 18335.463884969427,
+            "vat": 3869.626115030572,
+            "count": 914,
+            "gross": 22205.09,
+            "average": 24.29440919037199
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 912,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 61,
+          "transport": {
+            "mrw": 714.27,
+            "net": 454.2,
+            "tax": 95.67,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 774.43,
+            "valued": 178,
+            "correos": 60.16,
+            "missing": 183,
+            "shipments": 361
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        },
+        "equal": true,
+        "period": "Todo",
+        "states_equal": true,
+        "sales_equal_cents": true,
+        "transport_equal_cents": true
+      }
+    ],
+    "observed_at": "2026-10-19T14:08:32.479398+00:00"
+  },
+  "optimized_selection": {
+    "exact_ids": true,
+    "selection": {
+      "ids": [
+        "10a5445c-f0e8-4773-a8cd-34045bd78a01",
+        "57557641-2d95-4597-9ec3-16c01a7adf80"
+      ],
+      "limit": 2000,
+      "total": 2,
+      "exceeded": false
+    },
+    "observed_at": "2026-10-19T14:09:44.041853+00:00",
+    "recovered_total": 2
+  },
+  "optimization_source_ci": {
+    "head": "e852d98f04552fa11b56e6447e3bbf8420885954",
+    "five": "success"
+  },
+  "final_metadata_head": "b6b14838b19772296ddee4d8d94424205ecbeba0",
+  "ledger_aligned": true,
+  "comparison_note": "Initial same-statement baseline/RPC JSON equality exact. Post-optimization receipt passed through JS numeric serialization; compare counts/states exactly and money at EUR cents. SQL instrumented old/new core full JSON parity separately tested."
 }

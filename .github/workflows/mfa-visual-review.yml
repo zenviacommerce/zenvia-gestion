@@ -1,0 +1,33 @@
+name: MFA visual review (Playwright)
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  screenshots:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Install screenshot browser
+        run: |
+          npm install --no-save --package-lock=false playwright@1.58.2
+          npx playwright install --with-deps chromium
+      - name: Render actual MFA components with test-only authentication fixtures
+        run: node scripts/mfa-visual-screenshots.mjs
+      - name: Upload eight mobile and desktop screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mfa-security-ui-desktop-mobile
+          path: artifacts/mfa-visual/*.png
+          if-no-files-found: error

@@ -63,7 +63,8 @@ type SettingsSectionId =
   | 'integrations'
   | 'automations'
   | 'preferences'
-  | 'maintenance';
+  | 'maintenance'
+  | 'security';
 
 type SettingsSection = {
   id: SettingsSectionId;
@@ -121,6 +122,7 @@ const sections:SettingsSection[]=[
   {id:'products',label:'Productos',description:'IVA, costes, márgenes y creación automática.',icon:Box,adminOnly:true},
   {id:'clients',label:'Clientes',description:'Defaults, identidad y enriquecimiento de clientes.',icon:Users,adminOnly:true},
   {id:'suppliers',label:'Proveedores',description:'Defaults, alias, identidad y categorización.',icon:Building2,adminOnly:true},
+  {id:'security',label:'Seguridad',description:'Autenticadores y verificación de acceso.',icon:ShieldCheck,adminOnly:true},
   {id:'integrations',label:'Integraciones',description:'Estado y comportamiento de servicios conectados.',icon:PlugZap,adminOnly:true},
   {id:'automations',label:'Alertas y automatizaciones',description:'Alertas de negocio y acciones automáticas controladas.',icon:BellRing,adminOnly:true},
   {id:'preferences',label:'Mis preferencias',description:'Preferencias de interfaz exclusivas de tu usuario.',icon:UserRound,adminOnly:false},
@@ -2652,7 +2654,6 @@ export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;ac
       <div><strong>{error?'Configuración temporal':'Revisión de configuración'}</strong><span>{error||`${warnings.length} ajuste${warnings.length===1?'':'s'} ha${warnings.length===1?'':'n'} usado un valor seguro por defecto.`}</span></div>
     </div>}
 
-    {isAdmin&&<MfaDevices/>}
     <div className="settingsLayout">
       <nav className="settingsNav" aria-label="Secciones de configuración">
         {visibleSections.map(section=>{
@@ -2662,8 +2663,8 @@ export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;ac
           </button>;
         })}
       </nav>
-      <div className="settingsContent" onChangeCapture={()=>setDirty(true)}>
-        {active&&active.id==='preferences'?<PreferencesSection onDirtyChange={setDirty}/>:active&&active.id==='general'?<GeneralSection onDirtyChange={setDirty}/>:active&&active.id==='billing'?<BillingSection access={access}/>:active&&active.id==='sales'?<SalesSection onDirtyChange={setDirty}/>:active&&active.id==='orders'?<OrdersSection onDirtyChange={setDirty}/>:active&&active.id==='shipping'?<ShippingSection onDirtyChange={setDirty}/>:active&&active.id==='integrations'?<IntegrationsSection onDirtyChange={setDirty}/>:active&&active.id==='automations'?<AlertsSection onDirtyChange={setDirty}/>:active&&active.id==='expenses'?<ExpensesSection onDirtyChange={setDirty}/>:active&&active.id==='products'?<ProductsSection onDirtyChange={setDirty}/>:active&&active.id==='clients'?<ClientsSection onDirtyChange={setDirty}/>:active&&active.id==='suppliers'?<SuppliersSection onDirtyChange={setDirty}/>:active&&active.id==='maintenance'?<MaintenanceSection onDirtyChange={setDirty}/>:active&&<SectionPlaceholder section={active}/>} 
+      <div className="settingsContent" onChangeCapture={active?.id==="security"?undefined:()=>setDirty(true)}>
+        {active&&active.id==='security'?<MfaDevices/>:active.id==='preferences'?<PreferencesSection onDirtyChange={setDirty}/>:active&&active.id==='general'?<GeneralSection onDirtyChange={setDirty}/>:active&&active.id==='billing'?<BillingSection access={access}/>:active&&active.id==='sales'?<SalesSection onDirtyChange={setDirty}/>:active&&active.id==='orders'?<OrdersSection onDirtyChange={setDirty}/>:active&&active.id==='shipping'?<ShippingSection onDirtyChange={setDirty}/>:active&&active.id==='integrations'?<IntegrationsSection onDirtyChange={setDirty}/>:active&&active.id==='automations'?<AlertsSection onDirtyChange={setDirty}/>:active&&active.id==='expenses'?<ExpensesSection onDirtyChange={setDirty}/>:active&&active.id==='products'?<ProductsSection onDirtyChange={setDirty}/>:active&&active.id==='clients'?<ClientsSection onDirtyChange={setDirty}/>:active&&active.id==='suppliers'?<SuppliersSection onDirtyChange={setDirty}/>:active&&active.id==='maintenance'?<MaintenanceSection onDirtyChange={setDirty}/>:active&&<SectionPlaceholder section={active}/>} 
       </div>
     </div>
   </div>;

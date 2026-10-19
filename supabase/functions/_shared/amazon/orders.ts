@@ -152,7 +152,7 @@ function preservePersistedFields(current:any,patch:any){
   // echo an old/default carrier even when the locally purchased label differs.
   // Preserve that identity in both the full import and standalone reconciliation.
   if(current?.shipping_provider&&(current.shipping_remote_id||current.sendcloud_parcel_id||current.label_created_at)){
-    for(const key of ['carrier_code','carrier_name','shipping_service_name'])delete patch[key];
+    for(const key of ['carrier_code','carrier_name','shipping_service_name','shipping_option_code','contract_id','shipping_provider','shipping_remote_id','sendcloud_parcel_id','sendcloud_shipment_id','shipping_integration_account_id','shipping_label_url','label_created_at','tracking_number','tracking_url','tracking_status_code','tracking_status_message','tracking_updated_at','shipping_cost_amount','shipping_cost_currency','shipping_cost_source','shipping_cost_net_amount','shipping_cost_tax_amount','shipping_cost_recorded_at','fulfilled_at'])delete patch[key];
   }
   if(!current?.pii_purged_at)return;
   // Match the SQL retention guard before comparing, so redacted rows do not
@@ -171,7 +171,7 @@ function operationalStatePatch(order:any,current:any={}){
   if(shipment){
     patch.tracking_number=clean(shipment.trackingNumber);
     const carrier=typeof shipment.carrier==='string'?shipment.carrier:shipment.carrier?.name||shipment.carrier?.carrierCode;
-    if(carrier){patch.carrier_name=clean(carrier);patch.carrier_code=clean(carrier).toLowerCase()}
+    if(carrier){patch.marketplace_carrier=clean(carrier);patch.carrier_name=clean(carrier);patch.carrier_code=clean(carrier).toLowerCase()}
     if(shipment.shippingService)patch.shipping_service_name=typeof shipment.shippingService==='string'?shipment.shippingService:shipment.shippingService.name||null;
     patch.tracking_status_code=clean(shipment.packageStatus?.status)||status;
     patch.tracking_status_message=clean(shipment.packageStatus?.detailedStatus)||status;

@@ -69,6 +69,6 @@ test('Amazon still supplies carrier and service for externally fulfilled shipmen
 test('cancelled MRW label never displaces its active Correos replacement',async()=>{
  const f=fixture();await f.sync();Object.assign(f.rows[0],{shipping_provider:'envia',shipping_remote_id:'CORREOS-ACTIVE',tracking_number:'CORREOS-ACTIVE',label_created_at:'2026-10-18T02:00:00Z',carrier_code:'correosExpress',carrier_name:'Correos Express',shipping_option_code:'epaq_24',shipping_service_name:'ePaq 24',shipping_cost_amount:4.57,shipping_cost_source:'provider_actual'});
  f.cancellations.push({order_id:'row',kind:'label',status:'confirmed',details:{shipmentRef:'MRW-CANCELLED',trackingNumber:'MRW-CANCELLED'}});
- f.orders[0].fulfillment.fulfillmentStatus='SHIPPED';f.orders[0].packages=[{trackingNumber:'CORREOS-ACTIVE',carrier:'MRW',shippingService:'MRW cancelled service',shipTime:'2026-10-18T02:00:00Z'}];
- await f.sync();assert.equal(f.rows[0].carrier_code,'correosExpress');assert.equal(f.rows[0].shipping_service_name,'ePaq 24');assert.equal(f.rows[0].shipping_remote_id,'CORREOS-ACTIVE');assert.equal(f.rows[0].shipping_cost_amount,4.57);
+ f.orders[0].fulfillment.fulfillmentStatus='SHIPPED';f.orders[0].packages=[{trackingNumber:'MRW-CANCELLED',carrier:'MRW',shippingService:'MRW cancelled service',shipTime:'2026-10-18T02:00:00Z'}];
+ await f.sync();assert.equal(f.rows[0].carrier_code,'correosExpress');assert.equal(f.rows[0].shipping_service_name,'ePaq 24');assert.equal(f.rows[0].shipping_remote_id,'CORREOS-ACTIVE');assert.equal(f.rows[0].shipping_cost_amount,4.57);assert.equal(f.rows[0].tracking_number,'CORREOS-ACTIVE');assert.equal(f.rows[0].marketplace_carrier,'MRW');
 });

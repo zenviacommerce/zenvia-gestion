@@ -21,3 +21,9 @@ Frontend sin cambio funcional: el bundle actual ya calcula correctamente a parti
 ## Aclaración del propietario
 
 Confirmó que la etiqueta MRW se canceló y el envío real se hizo con Correos Express; él corregirá Amazon. Tanto la referencia anterior como el KPI nuevo leen carrier_code/carrier_name persistidos en fulfillment_orders; ninguno debe usar la tarifa ni la preferencia predeterminada para sustituir al transportista real de una etiqueta. El anterior acertó cuando Envia acababa de sincronizar y el nuevo mostró MRW tras sobrescribir Amazon los mismos campos. Se protege la fuente local, sin forzar totales ni depender de que Amazon se corrija. Coste registrado válido tiene prioridad frente a tarifa (shippingPriceForOrder); sin propiedad logística local se mantiene el dato del marketplace. Prueba específica MRW cancelado → etiqueta activa Correos, coste real4,57 intacto.
+
+## Integridad ampliada y corrección del origen
+
+A petición del propietario, se protegen también tracking (número, enlace, estado/fecha), todos los campos de coste, referencia/proveedor/cuenta, etiqueta y fulfilled_at cuando ya hay envío local. Amazon solo actualiza su declaración separada marketplace_carrier; la columna aditiva se instala antes de las funciones. No se guarda tracking adicional de Amazon. Estado comercial source_status sigue sincronizándose. Prueba exacta usa tracking MRW-CANCELLED frente a CORREOS-ACTIVE y exige conservación del coste/provider_actual y marketplace_carrier=MRW.
+
+El propietario corrigió Amazon a Correos Express a las16:44Madrid. La lectura de Zenvia a14:46UTC ya muestra Correos Express/epaq_24 y4,57€ tras el sync de Envia. No se ha ejecutado reparación SQL manual. El siguiente ciclo Amazon se verifica por separado. Se elimina la reparación propuesta: no es necesaria si los datos reales ya están correctos.

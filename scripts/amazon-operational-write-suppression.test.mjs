@@ -37,3 +37,6 @@ test('purged orders remain redacted and unchanged on repeated full sync',async()
 test('stale Amazon state cannot rewrite an already fulfilled order or its observation time',async()=>{
  const f=fixture();await f.sync();Object.assign(f.rows[0],{source_status:'SHIPPED',fulfilled_at:'2026-10-18T03:00:00Z',order_updated_at:'2026-10-18T03:00:00Z'});f.writes.length=0;await f.sync();assert.equal(f.writes.length,0);assert.equal(f.rows[0].source_status,'SHIPPED');
 });
+test('full sync updates status on every legacy copy, with no second write of its canonical row',async()=>{
+ const f=fixture();await f.sync();f.rows.push({...structuredClone(f.rows[0]),id:'legacy-copy'});f.writes.length=0;f.orders[0].fulfillment.fulfillmentStatus='SHIPPED';await f.sync();assert.ok(f.rows.every(row=>row.source_status==='SHIPPED'));assert.equal(f.writes.length,2);f.writes.length=0;await f.sync();assert.equal(f.writes.length,0);
+});

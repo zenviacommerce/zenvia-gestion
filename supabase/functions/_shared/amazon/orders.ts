@@ -180,7 +180,7 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
   if(!candidates.length)return 0;
   const sourceAccount=await amazonIntegrationAccount(admin,job);
   const sourceIntegrationAccountId=sourceAccount?.id?String(sourceAccount.id):null;
-  if(!sourceIntegrationAccountId)return 0;
+  if(!sourceIntegrationAccountId){await reconcileOperationalAmazonStates(admin,candidates,job.owner_id);return 0;}
   const orderIds=candidates.map(order=>String(order.orderId));
   const {data:existing,error:existingError}=await admin.from('fulfillment_orders')
     .select('*')
@@ -242,6 +242,10 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
     }
     synced+=1;
   }
+  // Legacy carrier imports may leave additional copies of the same order.
+  // Re-read after our merged write: the canonical copy is now a no-op, while
+  // differing legacy copies still receive the authoritative status once.
+  await reconcileOperationalAmazonStates(admin,candidates,job.owner_id);
   return synced;
 }
 

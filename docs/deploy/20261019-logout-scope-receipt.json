@@ -1,0 +1,124 @@
+{
+  "checked_at": "2026-10-19T20:10:54.652386+00:00",
+  "gestion": {
+    "pr": 248,
+    "head": "4e33de265bb53816780ed6940348468078385c5a",
+    "merge": "700a626ef98c2b79f52589c98429548489927ef2",
+    "ci": [
+      {
+        "id": 39316155580,
+        "name": "Build check",
+        "conclusion": "success",
+        "head_sha": "4e33de265bb53816780ed6940348468078385c5a",
+        "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39316155580"
+      },
+      {
+        "id": 39316152078,
+        "name": "Build ZENVIA Gestión",
+        "conclusion": "success",
+        "head_sha": "4e33de265bb53816780ed6940348468078385c5a",
+        "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39316152078"
+      },
+      {
+        "id": 39316151741,
+        "name": "MFA visual review (Playwright)",
+        "conclusion": "success",
+        "head_sha": "4e33de265bb53816780ed6940348468078385c5a",
+        "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39316151741"
+      },
+      {
+        "id": 39316151945,
+        "name": "Auth resilience tests",
+        "conclusion": "success",
+        "head_sha": "4e33de265bb53816780ed6940348468078385c5a",
+        "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39316151945"
+      },
+      {
+        "id": 39316151959,
+        "name": "MFA real integration (disposable Supabase)",
+        "conclusion": "success",
+        "head_sha": "4e33de265bb53816780ed6940348468078385c5a",
+        "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39316151959"
+      }
+    ],
+    "main_ci": {
+      "id": 39316923172,
+      "conclusion": "success"
+    },
+    "deployment": {
+      "id": "dpl_5g5QN5ZfoW5BfjmPD7oR8BPgSAVH",
+      "url": "zenvia-gestion-3po88kwig-sergiorojasdiaz-7097.vercel.app",
+      "state": "READY",
+      "sha": "700a626ef98c2b79f52589c98429548489927ef2"
+    },
+    "alias": "gestion.zenviacommerce.com",
+    "http": {
+      "checked_at": "2026-10-19T20:10:54.652386+00:00",
+      "url": "https://gestion.zenviacommerce.com",
+      "html_status": 200,
+      "asset": "/assets/index-DGoL6EBd.js",
+      "asset_status": 200,
+      "local_scope_occurrences": 9,
+      "global_action_present": true,
+      "confirmation_present": true,
+      "password_saved_retry_present": true,
+      "sha256": "0c2239b06b98952cc985025c6af9a127b32c342f221b95322180340e672d8a7f"
+    },
+    "rollback": {
+      "id": "dpl_Fp5stLrGQMk34DMMjyrXsyjzrREX",
+      "url": "zenvia-gestion-q9m6tnk2a-sergiorojasdiaz-7097.vercel.app",
+      "asset": "index-DqlURX7K.js"
+    }
+  },
+  "platform": {
+    "pr": 76,
+    "head": "8105c860f7557ca43b82858a2d2339593f08333b",
+    "merge": "c9a10ea3831ac05247af3349be819269be6bee85",
+    "workflow": {
+      "id": 39315978787,
+      "name": "Build ZENVIA Platform",
+      "conclusion": "success"
+    },
+    "deployment": {
+      "id": "dpl_8K29gsU9v1XSDFgHCw5FYyEhF7pc",
+      "url": "zenvia-platform-jzh4kpstn-sergiorojasdiaz-7097.vercel.app",
+      "state": "READY"
+    },
+    "alias": "admin.zenviacommerce.com",
+    "asset": "index-C8G9Ghgi.js",
+    "htmlStatus": 200,
+    "assetStatus": 200,
+    "localScopeOccurrences": 2,
+    "recoveryPhasePresent": true,
+    "rollback": {
+      "id": "dpl_4hptdBNNaGyNLBo4fhLgGFuqSCa9",
+      "url": "zenvia-platform-bdfamc6bq-sergiorojasdiaz-7097.vercel.app"
+    },
+    "localTests": 248,
+    "localBuild": true,
+    "main_ci": {
+      "id": 39316150233,
+      "conclusion": "success"
+    }
+  },
+  "validation": {
+    "gestion_vitest": 156,
+    "gestion_node": 1130,
+    "platform_node": 248,
+    "focused_scope_tests": 9,
+    "offline_playwright": [
+      "desktop/mobile security",
+      "desktop/mobile confirmation",
+      "desktop/mobile timeout"
+    ],
+    "independent_review": "No critical/important findings after recovery retry fix",
+    "production_session_revocation_tested": false,
+    "owner_browser_check": "pending"
+  },
+  "production_changes": {
+    "database": false,
+    "edge_functions": false,
+    "auth_configuration": false,
+    "mfa_activation": false
+  }
+}

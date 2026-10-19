@@ -1,0 +1,78 @@
+{
+  "start": {
+    "observed_at": "2026-10-19 12:24:13.127717+00",
+    "updates": [
+      {
+        "rows": 561,
+        "calls": 561,
+        "queryid": "-4282386414496591837"
+      },
+      {
+        "rows": 516,
+        "calls": 516,
+        "queryid": "-5890979862673247919"
+      },
+      {
+        "rows": 547,
+        "calls": 547,
+        "queryid": "2231040304283779326"
+      },
+      {
+        "rows": 1562,
+        "calls": 1562,
+        "queryid": "5209982222647702392"
+      }
+    ],
+    "jobs": [
+      {
+        "jobs": 1,
+        "source": "orders",
+        "status": "queued",
+        "processed": 0
+      },
+      {
+        "jobs": 17,
+        "source": "orders",
+        "status": "success",
+        "processed": 440
+      }
+    ],
+    "leases": null
+  },
+  "end": {
+    "observed_at": "2026-10-19 12:31:02.47333+00",
+    "updates": [
+      {
+        "rows": 607,
+        "calls": 607,
+        "queryid": "-4282386414496591837"
+      },
+      {
+        "rows": 563,
+        "calls": 563,
+        "queryid": "-5890979862673247919"
+      },
+      {
+        "rows": 591,
+        "calls": 591,
+        "queryid": "2231040304283779326"
+      },
+      {
+        "rows": 1684,
+        "calls": 1684,
+        "queryid": "5209982222647702392"
+      }
+    ],
+    "jobs": [
+      {
+        "jobs": 19,
+        "source": "orders",
+        "status": "success",
+        "processed": 448,
+        "started_at": "2026-10-19T12:25:01.671113+00:00",
+        "finished_at": "2026-10-19T12:30:38.47+00:00"
+      }
+    ],
+    "leases": null
+  }
+}

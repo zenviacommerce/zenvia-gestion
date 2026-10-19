@@ -1,0 +1,65 @@
+{
+  "note": "Actual LabelModal and production CSS. Synthetic props; no network or label operations. Direct-contract suppression is an explicit post-filter fixture, not backend execution.",
+  "screenshots": [
+    {
+      "state": "all-ready",
+      "device": "desktop",
+      "width": 1440,
+      "path": "artifacts/shipping-visual/all-ready-desktop.png"
+    },
+    {
+      "state": "loading",
+      "device": "desktop",
+      "width": 1440,
+      "path": "artifacts/shipping-visual/loading-desktop.png"
+    },
+    {
+      "state": "envia-error",
+      "device": "desktop",
+      "width": 1440,
+      "path": "artifacts/shipping-visual/envia-error-desktop.png"
+    },
+    {
+      "state": "mrw-not-applicable",
+      "device": "desktop",
+      "width": 1440,
+      "path": "artifacts/shipping-visual/mrw-not-applicable-desktop.png"
+    },
+    {
+      "state": "mrw-direct-contract",
+      "device": "desktop",
+      "width": 1440,
+      "path": "artifacts/shipping-visual/mrw-direct-contract-desktop.png"
+    },
+    {
+      "state": "all-ready",
+      "device": "mobile",
+      "width": 390,
+      "path": "artifacts/shipping-visual/all-ready-mobile.png"
+    },
+    {
+      "state": "loading",
+      "device": "mobile",
+      "width": 390,
+      "path": "artifacts/shipping-visual/loading-mobile.png"
+    },
+    {
+      "state": "envia-error",
+      "device": "mobile",
+      "width": 390,
+      "path": "artifacts/shipping-visual/envia-error-mobile.png"
+    },
+    {
+      "state": "mrw-not-applicable",
+      "device": "mobile",
+      "width": 390,
+      "path": "artifacts/shipping-visual/mrw-not-applicable-mobile.png"
+    },
+    {
+      "state": "mrw-direct-contract",
+      "device": "mobile",
+      "width": 390,
+      "path": "artifacts/shipping-visual/mrw-direct-contract-mobile.png"
+    }
+  ]
+}

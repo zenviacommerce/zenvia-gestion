@@ -1,0 +1,50 @@
+[
+  {
+    "metrics": [
+      {
+        "name": "amazon_previous",
+        "avg_ms": 330.894,
+        "max_ms": 368.273,
+        "min_ms": 303.605
+      },
+      {
+        "name": "amazon_today",
+        "avg_ms": 27.161,
+        "max_ms": 40.462,
+        "min_ms": 20.276
+      },
+      {
+        "name": "shopify_batch",
+        "avg_ms": 18.73,
+        "max_ms": 20.5,
+        "min_ms": 17.579
+      },
+      {
+        "name": "shopify_month",
+        "avg_ms": 14.715,
+        "max_ms": 15.824,
+        "min_ms": 13.42
+      },
+      {
+        "name": "shopify_previous",
+        "avg_ms": 7.184,
+        "max_ms": 7.315,
+        "min_ms": 7.062
+      },
+      {
+        "name": "shopify_products",
+        "avg_ms": 12.275,
+        "max_ms": 21.537,
+        "min_ms": 7.166
+      },
+      {
+        "name": "shopify_today",
+        "avg_ms": 13.999,
+        "max_ms": 26.277,
+        "min_ms": 7.512
+      }
+    ],
+    "mfa_findings": 0,
+    "version": "20261019170119"
+  }
+]

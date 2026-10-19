@@ -1,5 +1,6 @@
+import {loadDirectCarrierIds,filterAggregatorOptions} from '../_shared/carrierPolicy.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
-import {withAmazonBuyerRead} from '../_shared/amazonPiiRead.ts';
+import {withAmazonBuyerRead,withOrderQuote,withOrderLabelCreation} from '../_shared/amazonPiiRead.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders={
@@ -315,7 +316,7 @@ Deno.serve(async(req:Request)=>{
     const orderId=clean(body?.orderId);if(!orderId)return fail('Falta el pedido.');
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();if(error)throw error;if(!order)return fail('Pedido no encontrado.',404);
     if(order.pii_purged_at)return fail('Los datos personales de este pedido se han eliminado por retención.',410);
-    return await withAmazonBuyerRead(admin,order,async()=>{
+    return await (action==='shipping_options'?withOrderQuote:action==='create_label'?withOrderLabelCreation:withAmazonBuyerRead)(admin,order,async()=>{
     const orderCredentials=await credentialsForOrder(admin,caller.data_owner_id,order.shipping_integration_account_id||null);
     const sendcloudOrderId=remoteSendcloudId(order);
 
@@ -359,6 +360,7 @@ Deno.serve(async(req:Request)=>{
     }
 
     if(action==='shipping_options'){
+      const direct=await loadDirectCarrierIds(admin,caller.data_owner_id);
       if(!canEdit(order.source_status)||order.sendcloud_parcel_id)return fail('Este pedido ya no admite una nueva etiqueta.',409);
       let address=order.shipping_address||{};
       // For zonal carriers (Correos / Correos Express), Sendcloud v2 requires
@@ -422,7 +424,7 @@ Deno.serve(async(req:Request)=>{
         }],
       };
       const {data}=await sendcloudJson(orderCredentials,'/shipping-options',{method:'POST',body:JSON.stringify(requestBody)});
-      const options=(data?.data||[]).map((item:any)=>normalizeOption(item,weightKg)).filter((x:any)=>x.code).filter((x:any)=>enabledCarrier(x,shippingConfig.enabledCarriers));
+      const options=filterAggregatorOptions((data?.data||[]).map((item:any)=>normalizeOption(item,weightKg)).filter((x:any)=>x.code).filter((x:any)=>enabledCarrier(x,shippingConfig.enabledCarriers)),direct,'sendcloud');
       await enrichSendcloudV3Quotes(orderCredentials,options,weightKg,requestBody);
       const rateDiagnostics=await enrichSendcloudPrices(
         orderCredentials,

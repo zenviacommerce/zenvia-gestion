@@ -1,5 +1,6 @@
+import {loadDirectCarrierIds,filterAggregatorOptions} from '../_shared/carrierPolicy.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
-import {withAmazonBuyerRead} from '../_shared/amazonPiiRead.ts';
+import {withAmazonBuyerRead,withOrderQuote,withOrderLabelCreation} from '../_shared/amazonPiiRead.ts';
 import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -231,21 +232,25 @@ Deno.serve(async(req:Request)=>{
     const orderId=String(body?.orderId||'');if(!orderId)return fail('Falta el pedido.');
     const {data:order,error:orderError}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();if(orderError)throw orderError;if(!order)return fail('Pedido no encontrado.',404);
     if(order.pii_purged_at)return fail('Los datos personales de este pedido se han eliminado por retención.',410);
-    return await withAmazonBuyerRead(admin,order,async()=>{
+    return await (action==='shipping_options'?withOrderQuote:action==='create_label'?withOrderLabelCreation:withAmazonBuyerRead)(admin,order,async()=>{
     if(action==='shipping_options'||action==='create_label')assertAmazonOrderShippable(order);
     const orderSendcloudAccount=await loadSendcloudAccount(admin,caller.data_owner_id,order.shipping_integration_account_id||null);
     const orderCredentials=orderSendcloudAccount.credentials;
 
     if(action==='shipping_options'){
+      const direct=await loadDirectCarrierIds(admin,caller.data_owner_id);
       if(nonActionable(order.source_status))return fail('Este pedido ya no admite preparación de etiqueta por su estado actual.',409);
       const address=order.shipping_address||{},requestBody:any={calculate_quotes:false};if(address.country_code||address.postal_code||address.city)requestBody.to_address={country_code:address.country_code||undefined,postal_code:address.postal_code||undefined,city:address.city||undefined,address_line_1:address.address_line_1||undefined,house_number:address.house_number||undefined};
       const weight=order?.raw_payload?.shipping_details?.measurement?.weight;if(weight?.value)requestBody.weight={value:Number(weight.value),unit:weight.unit||'kg'};
-      const {data}=await sendcloudJson(orderCredentials,'/shipping-options',{method:'POST',body:JSON.stringify(requestBody)});return response({options:(data?.data||[]).map(normalizeShippingOption).filter((i:any)=>i.code)});
+      const {data}=await sendcloudJson(orderCredentials,'/shipping-options',{method:'POST',body:JSON.stringify(requestBody)});return response({options:filterAggregatorOptions((data?.data||[]).map(normalizeShippingOption).filter((i:any)=>i.code),direct,'sendcloud')});
     }
 
     if(action==='create_label'){
       if(order.sendcloud_parcel_id)return fail('Este pedido ya tiene una etiqueta creada.',409);if(nonActionable(order.source_status))return fail('No se puede crear una etiqueta para un pedido cancelado o ya procesado.',409);
       const selected=body?.shippingOption||null;
+      const direct=await loadDirectCarrierIds(admin,caller.data_owner_id);
+      if(!selected&&direct.size)return fail('Selecciona un servicio para comprobar los contratos directos activos.',409);
+      if(selected&&!filterAggregatorOptions([selected],direct,'sendcloud').length)return fail('Este transportista tiene una integración directa activa. Utiliza su contrato directo.',409);
       if(selected&&!enabledCarrier(selected,shippingConfig.enabledCarriers))return fail('El transportista seleccionado está deshabilitado en Configuración.',409);
       if(!selected&&Array.isArray(shippingConfig.enabledCarriers)&&shippingConfig.enabledCarriers.length)return fail('Selecciona un servicio de uno de los transportistas habilitados.',409);
 

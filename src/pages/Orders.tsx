@@ -1,3 +1,4 @@
+import {ShippingProviderStatus} from '../components/ShippingProviderStatus';
 import { isAmazonAwaitingPayment } from '../services/orderStatus';
 import { watchFulfillmentOrders } from '../services/orderLiveUpdates';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -21,7 +22,7 @@ import {
   markEnviaHistorySyncDone, openLabelForPrint, printLabelWithClient,
   shouldRunEnviaHistorySync, syncEnviaShipments, syncShopifyOrders, reconcileAmazonOrders, retryAmazonTrackingConfirmations, updateFulfillmentOrder,
   type FulfillmentOrder, type LocalPrinter, type ManualOrderItem, type OrderChannel, type OrderUpdateInput,
-  type SendcloudStatus, type ShippingOption,
+  type SendcloudStatus, type ShippingOption, type ProviderQuotes, type QuoteProvider,
 } from '../services/orders';
 import { bulkLabelZipFilename, labelPdfFilename, uniqueLabelPdfFilename } from '../services/orderLabelFiles';
 import { firstMatchingShippingRule, selectShippingOptionWithDefault } from '../services/shippingRuleCore';
@@ -278,7 +279,7 @@ function shippingOptionKey(option:ShippingOption|null|undefined){
   return [option.provider,option.integrationAccountId||'',option.carrierCode||'',option.code||'',option.contractId??''].join('|');
 }
 
-function LabelModal({order,options,tariffs,message,loading,preferredOption,onClose,onCreate}:{order:FulfillmentOrder;options:ShippingOption[];tariffs:TransportTariffDocument[];message:string;loading:boolean;preferredOption:ShippingOption|null;onClose:()=>void;onCreate:(option:ShippingOption|null)=>void}){
+function LabelModal({order,options,tariffs,message,loading,providerStates,onRetry,preferredOption,onClose,onCreate}:{order:FulfillmentOrder;options:ShippingOption[];tariffs:TransportTariffDocument[];message:string;loading:boolean;providerStates:ProviderQuotes<ShippingOption>;onRetry:(provider:QuoteProvider)=>void;preferredOption:ShippingOption|null;onClose:()=>void;onCreate:(option:ShippingOption|null)=>void}){
   const {settings}=useSettings();
   const providers=Array.from(new Set(options.map(option=>option.provider)));
   const priced=options.filter(option=>option.price!=null&&Number.isFinite(option.price)&&Number(option.price)>0).sort((a,b)=>(a.price??Number.MAX_VALUE)-(b.price??Number.MAX_VALUE));
@@ -292,7 +293,7 @@ function LabelModal({order,options,tariffs,message,loading,preferredOption,onClo
 
   useEffect(()=>{
     const available=new Set(options.map(shippingOptionKey));
-    if(preferredKey&&available.has(preferredKey)){setSelectedKey(preferredKey);return}
+    if(preferredKey&&available.has(preferredKey)){setSelectedKey(current=>available.has(current)?current:preferredKey);return}
     setSelectedKey(current=>available.has(current)?current:shippingOptionKey(firstUsable));
   },[order.id,preferredKey,options.length]);
 
@@ -304,7 +305,9 @@ function LabelModal({order,options,tariffs,message,loading,preferredOption,onClo
     <div className="modalHead"><div><h3>Crear etiqueta · {order.orderNumber||order.orderId}</h3><p>Compara los servicios disponibles de tus proveedores logísticos, selecciona uno y confirma la creación de la etiqueta.</p></div><button onClick={onClose}><X size={18}/></button></div>
     <div className="ordersLabelBody">
       <div className="ordersLabelContext"><div><span>Peso del paquete</span><strong>{weightLabel(order,settings.shipping.weightUnit)}</strong></div><div><span>Destino</span><strong>{text(order.shippingAddress.postal_code)||'—'} · {text(order.shippingAddress.city)||text(order.shippingAddress.country_code)||'—'}</strong></div></div>
-      {loading?<div className="ordersOptionsLoading"><LoaderCircle className="spin"/><span>Consultando proveedores, servicios y precios…</span></div>:<>
+      <ShippingProviderStatus states={providerStates} onRetry={onRetry}/>
+      {loading&&<div className="ordersOptionsLoading"><LoaderCircle className="spin"/><span>Consultando proveedores, servicios y precios…</span></div>}
+      <>
         {message&&<div className="ordersQuoteMessage"><AlertCircle size={15}/><span>{message}</span></div>}
         {options.length>0&&<section className="ordersComparison">
           <div className="ordersComparisonHead"><div><strong>Opciones de envío</strong><span>Ordenadas por precio final para que puedas elegir directamente la opción más conveniente.</span></div><small>{priced.length?priced.length+' opciones con precio':'Sin precios disponibles'}</small></div>
@@ -358,9 +361,9 @@ function LabelModal({order,options,tariffs,message,loading,preferredOption,onClo
             </section>;
           })}
         </div>}
-      </>}
+      </>
     </div>
-    <div className="modalActions"><button className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={loading||!selected} onClick={()=>selected&&onCreate(selected)}>{selected?'Crear etiqueta':'Selecciona un servicio'}</button></div>
+    <div className="modalActions"><button className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={!selected} onClick={()=>selected&&onCreate(selected)}>{selected?'Crear etiqueta':'Selecciona un servicio'}</button></div>
   </section></div>;
 }
 function ManualOrderModal({saving,defaultCountryCode,fallbackWeightKg,weightUnit,onClose,onSave}:{saving:boolean;defaultCountryCode:string;fallbackWeightKg:number;weightUnit:ShippingSettings['weightUnit'];onClose:()=>void;onSave:(value:any)=>void}){
@@ -387,6 +390,9 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const [loading,setLoading]=useState(true),[syncing,setSyncing]=useState(false),[error,setError]=useState('');
   const syncingRef=useRef(false);
   const [query,setQuery]=useState(pendingOnly?'':remembered.query),[channel,setChannel]=useState<'all'|OrderChannel>('all'),[state,setState]=useState<OrderFilter>(pendingOnly?'pending':remembered.state),[trackingFilter,setTrackingFilter]=useState<TrackingFilter>(pendingOnly?'all':remembered.trackingFilter),[countryFilter,setCountryFilter]=useState(pendingOnly?'all':remembered.countryFilter),[carrierFilter,setCarrierFilter]=useState(pendingOnly?'all':remembered.carrierFilter);
+  const [providerStates,setProviderStates]=useState<ProviderQuotes<ShippingOption>>({});
+  const quoteGeneration=useRef(0),quoteStates=useRef<ProviderQuotes<ShippingOption>>({});
+  useEffect(()=>{const reset=()=>{quoteGeneration.current++;setLabelOrder(null);setPreparingOrder(null)};window.addEventListener('zenvia:tenant-changed',reset);return()=>{quoteGeneration.current++;window.removeEventListener('zenvia:tenant-changed',reset)}},[]);
   const [selected,setSelected]=useState<FulfillmentOrder|null>(null),[labelOrder,setLabelOrder]=useState<FulfillmentOrder|null>(null),[options,setOptions]=useState<ShippingOption[]>([]),[optionsMessage,setOptionsMessage]=useState(''),[optionsLoading,setOptionsLoading]=useState(false),[preparingOrder,setPreparingOrder]=useState<string|null>(null),[busyOrder,setBusyOrder]=useState<string|null>(null);
   const [printers,setPrinters]=useState<LocalPrinter[]>([]),[printer,setPrinter]=useState(preferences.labelPrinterId||''),[printerChecking,setPrinterChecking]=useState(false);
   const [dateFilter,setDateFilter]=useState(remembered.dateFilter);
@@ -591,21 +597,33 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   };
   const validationCarrier=(order:FulfillmentOrder)=>firstMatchingShippingRule(order,shippingRules)?.action.carrierContains||settings.orders.defaultCarrier||'';
 
+  const publishQuotes=(order:FulfillmentOrder,generation:number,states:ProviderQuotes<ShippingOption>)=>{
+    if(generation!==quoteGeneration.current)return;
+    const filtered=Object.fromEntries(Object.entries(states).map(([provider,result])=>{
+      const options=applyTariffPrices(order,enabledShippingOptions(result.options));
+      return [provider,{...result,options,...(result.state==='ready'&&!options.length?{state:'not_applicable' as const,message:'Servicios excluidos por Configuración > Envíos.'}:{})}];
+    })) as ProviderQuotes<ShippingOption>;
+    const next={...quoteStates.current,...filtered};quoteStates.current=next;
+    setProviderStates(next);
+    setOptions(applyTariffPrices(order,enabledShippingOptions(Object.values(next).flatMap(result=>result.options))));
+    setOptionsLoading(Object.values(next).some(result=>result.state==='loading'));
+  };
   const prepare=async(order:FulfillmentOrder)=>{
-    if(preparingOrder||busyOrder)return;
+    if(busyOrder)return;
     if(!canPrepareOrder(order)){showError('Este pedido ya no admite una nueva etiqueta.');return}
+    const generation=++quoteGeneration.current;quoteStates.current={};setProviderStates({});
     setPreparingOrder(order.id);
     setOptions([]);setOptionsMessage('');setOptionsLoading(true);setLabelOrder(order);
-    try{
-      const result=await getShippingOptions(order.id);
-      const allowed=applyTariffPrices(order,enabledShippingOptions(result.options));
-      setOptionsMessage(result.message||'');
-      if(!allowed.length){setLabelOrder(null);showError('No hay servicios disponibles entre los transportistas habilitados.');return}
-      setOptions(allowed);
-    }catch(e){
-      setLabelOrder(null);
-      showError(errorMessage(e,'No se pudieron consultar los servicios y precios.'));
-    }finally{setOptionsLoading(false);setPreparingOrder(null)}
+    try{await getShippingOptions(order.id,states=>publishQuotes(order,generation,states))}
+    catch(e){if(generation===quoteGeneration.current)setOptionsMessage(errorMessage(e,'No se pudieron consultar los servicios y precios.'))}
+    finally{if(generation===quoteGeneration.current){setOptionsLoading(false);setPreparingOrder(null)}}
+  };
+  const retryProvider=(provider:QuoteProvider)=>{
+    if(!labelOrder)return;
+    const order=labelOrder,generation=quoteGeneration.current;
+    void getShippingOptions(order.id,states=>publishQuotes(order,generation,states),[provider]).catch(e=>{
+      publishQuotes(order,generation,{[provider]:{state:'error',options:[],message:errorMessage(e,'No se pudo consultar el proveedor.')}});
+    });
   };
   const handleBlob=async(blob:Blob,order:FulfillmentOrder,mode:'print'|'download')=>{
     const prepared=await prepareLabelPdf(blob,settings.shipping);
@@ -873,7 +891,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     {invoiceSelectionOpen&&<div className="modalBackdrop"><div className="modal polishedModal"><div className="modalHead"><div><h3>Facturar pedidos Shopify</h3><p>Selecciona los pedidos. Revisarás cada factura antes de emitirla o enviarla.</p></div><button onClick={()=>setInvoiceSelectionOpen(false)} aria-label="Cerrar"><X/></button></div><div style={{maxHeight:'50vh',overflowY:'auto'}}>{filtered.filter(o=>o.sourceChannel==='shopify'&&!isCancelledOrder(o)).map(o=><label key={o.id} style={{display:'flex',gap:12,padding:12}}><input type="checkbox" checked={invoiceSelection.has(o.id)} onChange={e=>{const checked=e.target.checked;setInvoiceSelection(ids=>{const next=new Set(ids);if(checked)next.add(o.id);else next.delete(o.id);return next})}}/>{o.orderNumber} · {o.customerName} · {money(o.totalAmount,o.currency||'EUR')}</label>)}</div><div className="modalActions"><button className="secondary" onClick={()=>setInvoiceSelectionOpen(false)}>Cancelar</button><button className="primary" disabled={!invoiceSelection.size} onClick={()=>{const targets=filtered.filter(o=>invoiceSelection.has(o.id));setInvoiceOrder(targets[0]);setInvoiceQueue(targets.slice(1));setInvoiceSelectionOpen(false)}}>Revisar {invoiceSelection.size} pedidos</button></div></div></div>}
     {invoiceOrder&&<OrderInvoiceModal key={invoiceOrder.id} order={invoiceOrder} hasNext={invoiceQueue.length>0} onClose={()=>{setInvoiceOrder(invoiceQueue[0]||null);setInvoiceQueue(q=>q.slice(1))}} onSaved={()=>void refresh()}/> }
     {selected&&(()=>{const current=orders.find(item=>item.id===selected.id)||selected;const validation=canPrepareOrder(current)?validateOrderForCarrier(current,undefined,settings.shipping):{blocking:false,issues:[] as OrderValidationIssue[]};const shipping=shippingPriceForOrder(current,tariffPreviews[current.id]);return <OrderDrawer order={current} shippingPrice={shipping} validationIssues={validation.issues} productImages={amazonImages} onClose={()=>setSelected(null)} onEdit={()=>{setEditValidationCarrier(validationCarrier(current));setEditOrder(current)}} onPrepare={()=>prepare(current)} onPrint={()=>existingLabel(current,'print')} onDownload={()=>existingLabel(current,'download')} onInvoice={()=>{setSelected(null);setInvoiceOrder(current)}} onConfirmShipment={()=>{setBusyOrder(current.id);void confirmOrderTracking(current.id).then(async()=>{await refresh();showSuccess('Envío confirmado en Shopify.');}).catch(e=>showError(errorMessage(e,'No se pudo confirmar el envío en Shopify.'))).finally(()=>setBusyOrder(null))}} busy={busyOrder===selected.id||preparingOrder===selected.id}/>})()}
-    {labelOrder&&<LabelModal order={labelOrder} options={options} tariffs={tariffs} message={optionsMessage} loading={optionsLoading} preferredOption={automaticShippingOption(labelOrder,options)} onClose={()=>setLabelOrder(null)} onCreate={createLabel}/>}
+    {labelOrder&&<LabelModal order={labelOrder} options={options} tariffs={tariffs} message={optionsMessage} loading={optionsLoading} providerStates={providerStates} onRetry={retryProvider} preferredOption={automaticShippingOption(labelOrder,options)} onClose={()=>{quoteGeneration.current++;setPreparingOrder(null);setLabelOrder(null)}} onCreate={createLabel}/>}
     {manualOpen&&<ManualOrderModal saving={manualSaving} defaultCountryCode={settings.orders.originCountryCode} fallbackWeightKg={settings.shipping.fallbackWeightKg} weightUnit={settings.shipping.weightUnit} onClose={()=>setManualOpen(false)} onSave={saveManual}/>}
     {editOrder&&<OrderEditModal order={editOrder} fallbackWeightKg={settings.shipping.fallbackWeightKg} saving={editSaving} validationCarrier={editValidationCarrier} onClose={()=>{setEditValidationCarrier('');setEditOrder(null)}} onSave={saveEdit}/>}
   </div>;

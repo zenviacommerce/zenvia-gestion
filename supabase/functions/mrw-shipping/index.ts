@@ -1,5 +1,5 @@
 import {assertHumanMfa} from '../_shared/mfa.ts';
-import {withAmazonBuyerRead} from '../_shared/amazonPiiRead.ts';
+import {withAmazonBuyerRead,withOrderQuote,withOrderLabelCreation} from '../_shared/amazonPiiRead.ts';
 import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -158,7 +158,10 @@ Deno.serve(async(req:Request)=>{
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('owner_id',caller.data_owner_id).eq('id',orderId).maybeSingle();
     if(error)throw error;if(!order)return response({error:'Pedido no encontrado.'},404);
     if(order.pii_purged_at)return response({error:'Los datos personales de este pedido se han eliminado por retención.'},410);
-    return await withAmazonBuyerRead(admin,order,async()=>{
+    // A PDF retry for an already persisted MRW shipment is a read, not another
+    // creation. Concurrent stale create requests are rejected after lease/read.
+    if(action==='create_label'&&order.shipping_provider==='mrw'&&order.shipping_remote_id)action='fetch_label';
+    return await (action==='options'?withOrderQuote:action==='create_label'?withOrderLabelCreation:withAmazonBuyerRead)(admin,order,async()=>{
     if(action==='options'||action==='create_label')assertAmazonOrderShippable(order);
     if(action==='create_label'){
       if(order.shipping_remote_id&&order.shipping_provider==='mrw')action='fetch_label';

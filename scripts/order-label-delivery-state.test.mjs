@@ -7,7 +7,7 @@ const source=readFileSync(new URL('../src/pages/Orders.tsx',import.meta.url),'ut
 const handler=source.slice(source.indexOf('  const existingLabel=async'),source.indexOf('  const generateLabels=async'));
 for(const mode of ['print','download'])test(`successful ${mode} records label delivery and refreshes state`,async()=>{
  const events=[];const order={id:'shopify-1018'};
- const context=vm.createContext({setBusyOrder:()=>{},fetchOrderLabel:async()=>({}),labelBlob:()=>({}),handleBlob:async()=>events.push('delivered'),markOrderLabelPrinted:async id=>events.push(`saved:${id}`),listFulfillmentOrders:async()=>{events.push('refresh');return [order]},setOrders:()=>{},setSelected:()=>{},showError:()=>{},errorMessage:()=>''});
+ const context=vm.createContext({setBusyOrder:()=>{},fetchOrderLabel:async()=>({}),labelBlob:()=>({}),handleBlob:async()=>events.push('delivered'),markOrderLabelPrinted:async id=>events.push(`saved:${id}`),refresh:async()=>{events.push('refresh');return [order]},setOrders:()=>{},setSelected:()=>{},showError:()=>{},errorMessage:()=>''});
  vm.runInContext(ts.transpile(handler+';globalThis.run=existingLabel;'),context);
  await context.run(order,mode);assert.deepEqual(events,['delivered','saved:shopify-1018','refresh']);
 });

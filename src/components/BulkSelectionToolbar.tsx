@@ -11,7 +11,7 @@ export function BulkSelectCheckbox({
 }
 
 export function BulkSelectionToolbar({
-  selectedCount,totalCount,allSelected,onToggleAll,children,label='seleccionados',disabled=false,
+  selectedCount,totalCount,allSelected,onToggleAll,children,label='seleccionados',disabled=false,scopeLabel='',
 }:{
   disabled?:boolean;
   selectedCount:number;
@@ -20,6 +20,7 @@ export function BulkSelectionToolbar({
   onToggleAll:(checked:boolean)=>void;
   children?:ReactNode;
   label?:string;
+  scopeLabel?:string;
 }){
   if(totalCount<=0)return null;
   return <div className="bulkSelectionToolbar">
@@ -28,10 +29,10 @@ export function BulkSelectionToolbar({
         disabled={disabled}
         checked={allSelected}
         onChange={onToggleAll}
-        label={allSelected?'Deseleccionar todos':'Seleccionar todos'}
+        label={`${allSelected?'Deseleccionar todos':'Seleccionar todos'}${scopeLabel?' de '+scopeLabel:''}`}
       />
       <button type="button" disabled={disabled} className="bulkSelectionTextButton" onClick={()=>onToggleAll(!allSelected)}>
-        {allSelected?'Deseleccionar todos':'Seleccionar todos'}
+        {allSelected?'Deseleccionar todos':'Seleccionar todos'}{scopeLabel?' de '+scopeLabel:''}
       </button>
       <span className="bulkSelectionCount">{selectedCount} de {totalCount} {label}</span>
     </div>

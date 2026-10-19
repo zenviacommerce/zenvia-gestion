@@ -225,6 +225,98 @@ async function readFulfillmentOrders(client:ReturnType<typeof getActiveSupabase>
   if(getActiveSupabase()!==client)return readOrdersSnapshot();
   return publishOrdersSnapshot(orders,snapshotVersion);
 }
+export type OrdersDashboardFilters={
+  from:string;to:string;state:'pending'|'labelled'|'shipped'|'cancelled'|'all';
+  channel:'all'|OrderChannel;query:string;tracking:string;country:string;carrier:string;
+  selectedIds?:string[];page:number;pageSize:number;overdueHours:number;sortKey:string;sortDirection:'asc'|'desc';
+};
+export type OrdersDashboardKpis={
+  pending:number;preparablePending:number;amazon:number;shopify:number;manual:number;labelled:number;
+  shipped:number;cancelled:number;overduePending:number;
+  sales:{gross:number;net:number;vat:number;count:number;average:number};
+  // These totals represent persisted amounts only. Do not mistake an
+  // unpriced tariff preview for a recorded carrier charge.
+  transport:{total:number;net:number;tax:number;mrw:number;correos:number;other:number;
+    shipments:number;valued:number;missing:number;basis:'recorded_only'};
+};
+export type OrdersDashboardPage={
+  orders:FulfillmentOrder[];total:number;selectableTotal:number;page:number;pageSize:number;
+  kpis:OrdersDashboardKpis;
+  facets:{countries:string[];carriers:string[]};
+};
+/**
+ * One tenant-RLS-protected RPC provides the selected server page AND KPI
+ * aggregates over all matching orders, not merely those visible on the page.
+ * No full-list download on initial screen load.
+ */
+export async function fetchOrdersDashboardPage(filters:OrdersDashboardFilters):Promise<OrdersDashboardPage>{
+  const client=getActiveSupabase();
+  const {data,error}=await client.rpc('orders_dashboard_page_v1',{
+    p_from:filters.from||null,p_to:filters.to||null,
+    p_state:filters.state,p_channel:filters.channel,p_query:filters.query,
+    p_tracking:filters.tracking,p_country:filters.country,p_carrier:filters.carrier,
+    p_page:Math.max(0,filters.page),
+    p_page_size:Math.min(100,Math.max(1,filters.pageSize)),
+    p_overdue_hours:filters.overdueHours,
+    p_sort_key:filters.sortKey,p_sort_direction:filters.sortDirection,
+    ...(filters.selectedIds?{p_selected_ids:filters.selectedIds}:{}),
+  }).abortSignal(AbortSignal.timeout(15000));
+  if(error)throw error;
+  if(!data||!Array.isArray(data.rows)||!data.kpis)throw new Error('La respuesta de estadísticas de pedidos no es válida.');
+  return {
+    orders:data.rows.map(mapRow),
+    total:Number(data.total||0),
+    selectableTotal:Number(data.selectableTotal||0),
+    page:Number(data.page||0),
+    pageSize:Number(data.pageSize||filters.pageSize),
+    kpis:data.kpis as OrdersDashboardKpis,
+    facets:{
+      countries:Array.isArray(data.facets?.countries)?data.facets.countries:[],
+      carriers:Array.isArray(data.facets?.carriers)?data.facets.carriers:[],
+    },
+  };
+}
+
+/** IDs come from the same server-side eligibility/filter scope as the dashboard. */
+export async function fetchMatchingOrderIds(filters:OrdersDashboardFilters):Promise<string[]>{
+  const {data,error}=await getActiveSupabase().rpc('orders_dashboard_selection_v1',{
+    p_from:filters.from||null,p_to:filters.to||null,p_state:filters.state,
+    p_channel:filters.channel,p_query:filters.query,p_tracking:filters.tracking,
+    p_country:filters.country,p_carrier:filters.carrier,p_limit:2000,
+  }).abortSignal(AbortSignal.timeout(15000));
+  if(error)throw error;
+  if(data?.exceeded||Number(data?.total)>2000)throw new Error('Hay más de 2.000 pedidos elegibles. Reduce los filtros antes de seleccionar todos.');
+  if(!data||!Array.isArray(data.ids)||!Number.isInteger(data.total)||data.total<0||data.ids.length!==data.total||data.ids.some((id:unknown)=>typeof id!=='string'||!id)||new Set(data.ids).size!==data.total)throw new Error('La selección de pedidos ha cambiado o no es válida. Actualiza y vuelve a intentarlo.');
+  return data.ids;
+}
+/** Re-read only the saved IDs; never silently add new arrivals or omit changed orders. */
+export async function listSelectedOrdersForBulk(filters:OrdersDashboardFilters,ids:string[]):Promise<FulfillmentOrder[]>{
+  if(!ids.length)return [];
+  if(ids.length>2000||new Set(ids).size!==ids.length)throw new Error('La selección no es válida. Reduce los filtros y vuelve a seleccionar.');
+  const result=await listMatchingOrdersForAction({...filters,selectedIds:ids});
+  const actual=new Set(result.map(order=>order.id));
+  if(actual.size!==ids.length||ids.some(id=>!actual.has(id)))throw new Error('El conjunto de pedidos ha cambiado. Actualiza y vuelve a seleccionar antes de generar etiquetas.');
+  return result;
+}
+
+/** Only invoked by an explicit bulk/invoicing action, never on mount. */
+export async function listMatchingOrdersForAction(filters:OrdersDashboardFilters):Promise<FulfillmentOrder[]>{
+  const first=await fetchOrdersDashboardPage({...filters,page:0,pageSize:100});
+  if(first.total>2000)throw new Error('Demasiados pedidos para una operación masiva. Reduce los filtros antes de continuar.');
+  const result=[...first.orders];
+  const pages=Math.ceil(first.total/100);
+  for(let page=1;page<pages;page++){
+    const next=await fetchOrdersDashboardPage({...filters,page,pageSize:100});
+    if(next.total!==first.total)throw new Error('El conjunto de pedidos ha cambiado. Actualiza y vuelve a intentarlo.');
+    result.push(...next.orders);
+  }
+  if(new Set(result.map(order=>order.id)).size!==first.total)throw new Error('El conjunto de pedidos ha cambiado. Actualiza y vuelve a intentarlo.');
+  return result;
+}
+export async function listMatchingPendingOrdersForBulk(filters:OrdersDashboardFilters):Promise<FulfillmentOrder[]>{
+  return listMatchingOrdersForAction({...filters,state:'pending'});
+}
+
 export function getSendcloudStatus(){return invokeSendcloud<SendcloudStatus>({action:'status'});}
 export interface EnviaSyncResult{
   ok:true;configured:boolean;found:number;synced:number;

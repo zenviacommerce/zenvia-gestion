@@ -1,0 +1,45 @@
+{
+  "note": "Actual Orders component and production CSS. Synthetic service responses. All network blocked. Generate selected opens quote preview only; no purchase confirmation.",
+  "checks": [
+    {
+      "device": "desktop",
+      "rows": 25,
+      "total": 63,
+      "filters": [
+        "search:1",
+        "shopify:31",
+        "FR:21",
+        "MRW:31"
+      ],
+      "pageSelected": 25,
+      "allResultsSelected": 63,
+      "quotes": 63,
+      "uniqueQuoteOrders": 63,
+      "selectedFetchCount": 1,
+      "selectedFetchIds": 63,
+      "globalSelectionPreservedOnPage": true,
+      "globalSelectionClearedOnFilter": true,
+      "errors": []
+    },
+    {
+      "device": "mobile",
+      "rows": 25,
+      "total": 63,
+      "filters": [
+        "search:1",
+        "shopify:31",
+        "FR:21",
+        "MRW:31"
+      ],
+      "pageSelected": 25,
+      "allResultsSelected": 63,
+      "quotes": 63,
+      "uniqueQuoteOrders": 63,
+      "selectedFetchCount": 1,
+      "selectedFetchIds": 63,
+      "globalSelectionPreservedOnPage": true,
+      "globalSelectionClearedOnFilter": true,
+      "errors": []
+    }
+  ]
+}

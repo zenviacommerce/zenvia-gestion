@@ -76,6 +76,19 @@ jobs:
             add column if not exists order_action_lease_until timestamptz,
             add column if not exists shopify_tracking_lease_until timestamptz;
           SQL
+          # Schema-only production columns absent from historical repository SQL.
+          # This affects the disposable runner only, never a production migration.
+          python3 - <<'PYFIXTURE'
+          from pathlib import Path
+          schema=Path('tests/fixtures/orders-table-schema.sql').read_text()
+          body=schema.split('CREATE TABLE public.fulfillment_orders (',1)[1].rsplit(');',1)[0]
+          target=Path('supabase/migrations/20261016194727_mfa_ci_cancellation_dependency.sql')
+          with target.open('a') as out:
+              for line in body.splitlines():
+                  column=line.strip().rstrip(',')
+                  if column:
+                      out.write('ALTER TABLE public.fulfillment_orders ADD COLUMN IF NOT EXISTS '+column+';\n')
+          PYFIXTURE
           supabase start
           supabase db reset --local --yes
       - name: Real GoTrue and Vault smoke; deny unsupported/skipped gates

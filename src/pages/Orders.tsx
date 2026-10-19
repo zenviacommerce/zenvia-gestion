@@ -32,7 +32,7 @@ import { useSettings } from '../context/SettingsContext';
 import { loadAmazonProductImages } from '../services/amazon';
 import { listTransportTariffs, type TransportTariffDocument } from '../services/transportTariffs';
 import {
-  calculateDefaultShippingPreview, trackingUrlForOrder, estimateTransportTariffForOption, shippingPriceForOrder, validateOrderForCarrier,
+  transportKpisWithTariffs, calculateDefaultShippingPreview, trackingUrlForOrder, estimateTransportTariffForOption, shippingPriceForOrder, validateOrderForCarrier,
   type OrderValidationIssue, type ShippingPricePreview,
 } from '../services/orderShipping';
 import { errorMessage, showError, showInfo, showSuccess } from '../services/toast';
@@ -389,6 +389,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const [orders,setOrders]=useState<FulfillmentOrder[]>([]),[status,setStatus]=useState<SendcloudStatus|null>(null),[enviaStatus,setEnviaStatus]=useState<{configured:boolean;accounts:Array<{id:string;displayName:string;environment:string;isDefault:boolean}>}|null>(null);
   const [loading,setLoading]=useState(true),[syncing,setSyncing]=useState(false),[error,setError]=useState('');
   const [page,setPage]=useState(0),[matchingTotal,setMatchingTotal]=useState(0),[selectableTotal,setSelectableTotal]=useState(0);
+  const [tariffCandidates,setTariffCandidates]=useState<Array<FulfillmentOrder & {kpiCarrierLabel:string}>>([]);
   const [dashboardKpis,setDashboardKpis]=useState<OrdersDashboardKpis|null>(null);
   const [dashboardFacets,setDashboardFacets]=useState<{countries:string[];carriers:string[]}|null>(null);
   const syncingRef=useRef(false);
@@ -453,6 +454,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
           setMatchingTotal(result.total);
           setSelectableTotal(result.selectableTotal);
           setDashboardKpis(result.kpis);
+          setTariffCandidates(result.tariffCandidates||[]);
           setDashboardFacets(result.facets);
           setError('');
         }
@@ -582,7 +584,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   // RPC aggregations are over the full RLS-visible scope, not the selected
   // 25/50/100 list rows. Never derive global dashboard numbers from a page.
   const salesKpis=dashboardKpis?.sales||salesKpisFromPage;
-  const transportKpis=dashboardKpis?.transport||transportKpisFromPage;
+  const transportKpis=useMemo(()=>dashboardKpis?transportKpisWithTariffs(dashboardKpis.transport,tariffCandidates,tariffs):transportKpisFromPage,[dashboardKpis,tariffCandidates,tariffs,transportKpisFromPage]);
   const overduePending=dashboardKpis?.overduePending??pendingOrders.filter(order=>orderAgeHours(order)>=settings.orders.overdueHours).length;
   const pending=dashboardKpis?.pending??pendingOrders.length,
     amazon=dashboardKpis?.amazon??pendingOrders.filter(o=>o.sourceChannel==='amazon').length,
@@ -955,7 +957,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
 
     <PeriodFilterPanel filter={dateFilter} onChange={setDateFilter} title="Periodo global" className="ordersPeriodPanel" note="Ventas, enviados, cancelados y costes respetan el periodo. Pendientes y etiquetados son colas operativas reales y no desaparecen al cambiar de mes o trimestre."/>
 
-    <div className="stats ordersSalesStats"><div className="stat"><div className="statIcon"><Euro/></div><div><span>Total vendido</span><strong>{money(salesKpis.gross)}</strong><small>{salesKpis.count} pedidos · {selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><Percent/></div><div><span>IVA estimado</span><strong>{money(salesKpis.vat)}</strong><small>{selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><Calculator/></div><div><span>Neto sin IVA</span><strong>{money(salesKpis.net)}</strong><small>{selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><ShoppingBag/></div><div><span>Ticket medio</span><strong>{money(salesKpis.average)}</strong><small>{selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><Truck/></div><div><span>Coste transportistas (IVA incl.)</span><strong>{money(transportKpis.total)}</strong><small>MRW {money(transportKpis.mrw)} · Correos {money(transportKpis.correos)}</small><small>{transportKpis.valued}/{transportKpis.shipments} envíos con coste{transportKpis.missing?` · ${transportKpis.missing} sin valorar`:``}</small>{dashboardKpis?.transport.basis==='recorded_only'&&<small>Costes registrados; sin estimaciones de tarifa</small>}</div></div></div>
+    <div className="stats ordersSalesStats"><div className="stat"><div className="statIcon"><Euro/></div><div><span>Total vendido</span><strong>{money(salesKpis.gross)}</strong><small>{salesKpis.count} pedidos · {selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><Percent/></div><div><span>IVA estimado</span><strong>{money(salesKpis.vat)}</strong><small>{selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><Calculator/></div><div><span>Neto sin IVA</span><strong>{money(salesKpis.net)}</strong><small>{selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><ShoppingBag/></div><div><span>Ticket medio</span><strong>{money(salesKpis.average)}</strong><small>{selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><Truck/></div><div><span>Coste transportistas (IVA incl.)</span><strong>{money(transportKpis.total)}</strong><small>MRW {money(transportKpis.mrw)} · Correos {money(transportKpis.correos)}</small><small>{transportKpis.valued}/{transportKpis.shipments} envíos con coste{transportKpis.missing?` · ${transportKpis.missing} sin valorar`:``}</small><small>Costes registrados y estimaciones por tarifa</small></div></div></div>
     <div className="stats ordersStats"><div className={overduePending>0?'stat dashboardPendingOrders':'stat'}><div className="statIcon"><ShoppingBag/></div><div><span>Pendientes</span><strong>{pending}</strong><small>{overduePending>0?`${overduePending} con más de ${settings.orders.overdueHours} h`:selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><Store/></div><div><span>Amazon pendientes</span><strong>{amazon}</strong><small>{selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><ShoppingBag/></div><div><span>Shopify pendientes</span><strong>{shopify}</strong><small>{selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><ShoppingBag/></div><div><span>Manual / API pendientes</span><strong>{manual}</strong><small>{selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><PackageCheck/></div><div><span>Etiquetados</span><strong>{labelled}</strong><small>Etiquetas listas · sin limitar por periodo</small></div></div><div className="stat"><div className="statIcon"><Truck/></div><div><span>Enviados</span><strong>{shipped}</strong><small>Fecha expedición · {selectedPeriod}</small></div></div><div className="stat"><div className="statIcon"><AlertCircle/></div><div><span>Cancelados</span><strong>{cancelled}</strong><small>{selectedPeriod}</small></div></div></div>
 
     <div className="ordersToolbar businessFilterBar">

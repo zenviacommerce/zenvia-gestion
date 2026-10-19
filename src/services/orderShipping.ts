@@ -268,3 +268,32 @@ export function trackingUrlForOrder(order:FulfillmentOrder):string|null{
   }
   return null;
 }
+
+/** Reconcile the full-scope recorded baseline with the legacy tariff fallback.
+ * Candidates must come from the RPC cost scope, never the current list page.
+ */
+export function transportKpisWithTariffs(
+  baseline:import('./orders').OrdersDashboardKpis['transport'],
+  candidates:Array<FulfillmentOrder & {kpiCarrierLabel:string}>,
+  tariffs:TransportTariffDocument[],
+){
+  const result={...baseline,basis:'recorded_and_tariff' as const};
+  for(const order of candidates){
+    const preview=calculateDefaultShippingPreview(order,tariffs);
+    const shipping=shippingPriceForOrder(order,preview);
+    const carrier=order.kpiCarrierLabel.toLowerCase();
+    const bucket=carrier.includes('mrw')?'mrw':carrier.includes('correos')?'correos':'other';
+    // Remove any persisted estimate already counted in SQL before repricing.
+    const previous=order.shippingCostAmount;
+    if(previous!=null&&(order.shippingCostCurrency||'EUR')==='EUR'){
+      result.total-=previous;result.net-=order.shippingCostNetAmount??previous;
+      result.tax-=order.shippingCostTaxAmount??0;result[bucket]-=previous;
+      result.valued--;result.missing++;
+    }
+    if(!shipping||shipping.totalAmount==null||!Number.isFinite(shipping.totalAmount)||shipping.currency.toUpperCase()!=='EUR')continue;
+    result.total+=shipping.totalAmount;result.net+=shipping.netAmount??shipping.totalAmount;
+    result.tax+=shipping.taxAmount??0;result[bucket]+=shipping.totalAmount;
+    result.valued++;result.missing--;
+  }
+  return result;
+}

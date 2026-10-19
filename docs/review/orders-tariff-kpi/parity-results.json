@@ -1,0 +1,122 @@
+[
+  {
+    "period": "Hoy",
+    "differences": [],
+    "sales": {
+      "net": 169.08264462809916,
+      "vat": 35.50735537190083,
+      "count": 7,
+      "gross": 204.59,
+      "average": 29.22714285714286
+    },
+    "transport": {
+      "mrw": 22.05,
+      "net": 27.35,
+      "tax": 3.04,
+      "basis": "recorded_and_tariff",
+      "other": 0,
+      "total": 30.39,
+      "valued": 7,
+      "correos": 8.34,
+      "missing": 0,
+      "shipments": 7
+    },
+    "candidates": 4
+  },
+  {
+    "period": "Mes actual",
+    "differences": [],
+    "sales": {
+      "net": 2896.732312033864,
+      "vat": 610.1776879661359,
+      "count": 130,
+      "gross": 3506.91,
+      "average": 26.97623076923077
+    },
+    "transport": {
+      "mrw": 194.57000000000002,
+      "net": 223.17,
+      "tax": 31.56,
+      "basis": "recorded_and_tariff",
+      "other": 0,
+      "total": 254.73000000000002,
+      "valued": 58,
+      "correos": 60.16,
+      "missing": 0,
+      "shipments": 58
+    },
+    "candidates": 44
+  },
+  {
+    "period": "Trimestre",
+    "differences": [],
+    "sales": {
+      "net": 2896.732312033864,
+      "vat": 610.1776879661359,
+      "count": 130,
+      "gross": 3506.91,
+      "average": 26.97623076923077
+    },
+    "transport": {
+      "mrw": 194.57000000000002,
+      "net": 223.17,
+      "tax": 31.56,
+      "basis": "recorded_and_tariff",
+      "other": 0,
+      "total": 254.73000000000002,
+      "valued": 58,
+      "correos": 60.16,
+      "missing": 0,
+      "shipments": 58
+    },
+    "candidates": 44
+  },
+  {
+    "period": "A\u00f1o",
+    "differences": [],
+    "sales": {
+      "net": 18353.629174225625,
+      "vat": 3873.4408257743735,
+      "count": 915,
+      "gross": 22227.07,
+      "average": 24.291879781420764
+    },
+    "transport": {
+      "mrw": 1478.179999999992,
+      "net": 1283.459999999992,
+      "tax": 254.88000000000017,
+      "basis": "recorded_and_tariff",
+      "other": 0,
+      "total": 1538.3399999999922,
+      "valued": 353,
+      "correos": 60.16,
+      "missing": 8,
+      "shipments": 361
+    },
+    "candidates": 347
+  },
+  {
+    "period": "Todo",
+    "differences": [],
+    "sales": {
+      "net": 18353.629174225625,
+      "vat": 3873.4408257743735,
+      "count": 915,
+      "gross": 22227.07,
+      "average": 24.291879781420764
+    },
+    "transport": {
+      "mrw": 1478.179999999992,
+      "net": 1283.459999999992,
+      "tax": 254.88000000000017,
+      "basis": "recorded_and_tariff",
+      "other": 0,
+      "total": 1538.3399999999922,
+      "valued": 353,
+      "correos": 60.16,
+      "missing": 8,
+      "shipments": 361
+    },
+    "candidates": 347
+  }
+]

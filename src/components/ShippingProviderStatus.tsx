@@ -7,7 +7,7 @@ export function ShippingProviderStatus<T>({states,onRetry}:{states:ProviderQuote
    <strong>{name}</strong>
    <span>{!result||result.state==='loading'?'Cargando…':result.state==='error'?`Error · ${result.message}`:result.state==='not_applicable'?`No aplica: ${result.message}`:`${result.options.length} ${result.options.length===1?'opción':'opciones'}${result.message?' · '+result.message:''}`}</span>
    {result?.diagnostics?.length?<span>{result.diagnostics.join(' · ')}</span>:null}
-   {(result?.state==='error'||result?.state==='partial')&&<button type="button" className="secondary" aria-label={`Reintentar ${name}`} onClick={()=>onRetry(provider)}>Reintentar</button>}
+   {(result?.state==='error'||result?.state==='partial')&&result.retryable!==false&&<button type="button" className="secondary" aria-label={`Reintentar ${name}`} onClick={()=>onRetry(provider)}>Reintentar</button>}
   </div>;
  })}</div>;
 }

@@ -139,7 +139,7 @@ async function invokeFunction<T>(functionName:string,body:Record<string,unknown>
         detail=String(payload?.error||payload?.message||'').trim();
       }catch{/* respuesta no JSON */}
     }
-    throw new Error(detail||error.message||`No se pudo conectar con ${functionName==='envia-shipping'?'Envia.com':functionName.startsWith('sendcloud')?'Sendcloud':'el servicio logístico'}.`);
+    throw Object.assign(new Error(detail||error.message||`No se pudo conectar con ${functionName==='envia-shipping'?'Envia.com':functionName.startsWith('sendcloud')?'Sendcloud':'el servicio logístico'}.`),{status:context instanceof Response?context.status:undefined});
   }
   if(data?.error)throw new Error(String(data.error));
   return data as T;

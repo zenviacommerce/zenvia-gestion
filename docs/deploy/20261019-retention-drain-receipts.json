@@ -1,0 +1,202 @@
+{
+  "batches": 21,
+  "deleted": 10280,
+  "elapsed_sum_ms": 1113,
+  "min_ms": 31,
+  "max_ms": 116,
+  "first": "2026-10-19T11:48:40.42395+00:00",
+  "last": "2026-10-19T11:49:12.413181+00:00",
+  "peak_active": 3,
+  "failed_seen": 0,
+  "receipts": [
+    {
+      "id": 6,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 52,
+      "executed_at": "2026-10-19T11:48:40.301753+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 7,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 116,
+      "executed_at": "2026-10-19T11:48:42.022764+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 8,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 54,
+      "executed_at": "2026-10-19T11:48:43.684394+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 9,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 45,
+      "executed_at": "2026-10-19T11:48:45.218501+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 10,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 49,
+      "executed_at": "2026-10-19T11:48:46.791866+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 11,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 48,
+      "executed_at": "2026-10-19T11:48:48.553522+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 12,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 49,
+      "executed_at": "2026-10-19T11:48:50.054295+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 13,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 46,
+      "executed_at": "2026-10-19T11:48:51.633094+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 14,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 44,
+      "executed_at": "2026-10-19T11:48:53.083689+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 15,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 63,
+      "executed_at": "2026-10-19T11:48:54.643917+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 16,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 75,
+      "executed_at": "2026-10-19T11:48:56.229992+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 17,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 82,
+      "executed_at": "2026-10-19T11:48:57.801044+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 18,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 52,
+      "executed_at": "2026-10-19T11:48:59.712522+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 19,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 48,
+      "executed_at": "2026-10-19T11:49:01.202325+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 20,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 48,
+      "executed_at": "2026-10-19T11:49:02.762578+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 21,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 52,
+      "executed_at": "2026-10-19T11:49:04.372078+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 22,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 44,
+      "executed_at": "2026-10-19T11:49:06.171623+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 23,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 38,
+      "executed_at": "2026-10-19T11:49:07.669113+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 24,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 35,
+      "executed_at": "2026-10-19T11:49:09.133873+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 25,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 42,
+      "executed_at": "2026-10-19T11:49:10.772588+00:00",
+      "deleted_count": 500,
+      "skipped_reason": null
+    },
+    {
+      "id": 26,
+      "keep_days": 14,
+      "batch_size": 500,
+      "elapsed_ms": 31,
+      "executed_at": "2026-10-19T11:49:12.343401+00:00",
+      "deleted_count": 280,
+      "skipped_reason": null
+    }
+  ]
+}

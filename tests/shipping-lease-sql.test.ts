@@ -8,7 +8,7 @@ it('real PostgreSQL lease excludes competing claims, lasts beyond Edge wall-cloc
    CREATE TABLE public.fulfillment_orders(id uuid PRIMARY KEY,owner_id uuid,source_status text,pii_purged_at timestamptz,order_action_lease uuid,order_action_lease_until timestamptz,shopify_tracking_lease_until timestamptz);
    CREATE TABLE public.order_cancellation_operations(order_id uuid,owner_id uuid,status text,kind text);
    INSERT INTO public.fulfillment_orders(id,owner_id,source_status) VALUES('00000000-0000-4000-8000-000000000001','00000000-0000-4000-8000-000000000002','Unshipped');`);
-  await db.exec(readFileSync('supabase/migrations/20261019112741_shipping_creation_lease_480_seconds.sql','utf8'));
+  await db.exec(readFileSync('supabase/migrations/20261019120309_shipping_creation_lease_480_seconds.sql','utf8'));
   const claim=(owner='00000000-0000-4000-8000-000000000002')=>db.query<{claimed:boolean}>(`select public.integration_claim_order_shipping('00000000-0000-4000-8000-000000000001',$1,'00000000-0000-4000-8000-000000000003') as claimed`,[owner]);
   expect((await claim('00000000-0000-4000-8000-000000000099')).rows[0].claimed).toBe(false);
   const competing=await Promise.all([claim(),claim()]);expect(competing.map(x=>x.rows[0].claimed)).toEqual([true,false]);

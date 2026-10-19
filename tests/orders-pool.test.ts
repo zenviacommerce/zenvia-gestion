@@ -2,7 +2,7 @@ import {it,expect} from 'vitest';
 import {PGlite} from '@electric-sql/pglite';
 import {readFileSync} from 'node:fs';
 const migration=readFileSync('supabase/migrations/20261019135436_orders_pool_status_dashboard.sql','utf8');
-const recordOnceMigration=readFileSync('supabase/migrations/20261019141000_orders_dashboard_record_once.sql','utf8');
+const recordOnceMigration=readFileSync('supabase/migrations/20261019140644_orders_dashboard_record_once.sql','utf8');
 it('real SQL pages 120 matches while aggregating the whole RLS tenant scope',async()=>{
  const db=new PGlite();try{
  await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;`+readFileSync('tests/fixtures/orders-table-schema.sql','utf8'));

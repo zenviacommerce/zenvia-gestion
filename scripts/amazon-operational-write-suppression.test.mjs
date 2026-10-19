@@ -72,3 +72,8 @@ test('cancelled MRW label never displaces its active Correos replacement',async(
  f.orders[0].fulfillment.fulfillmentStatus='SHIPPED';f.orders[0].packages=[{trackingNumber:'MRW-CANCELLED',carrier:'MRW',shippingService:'MRW cancelled service',shipTime:'2026-10-18T02:00:00Z'}];
  await f.sync();assert.equal(f.rows[0].carrier_code,'correosExpress');assert.equal(f.rows[0].shipping_service_name,'ePaq 24');assert.equal(f.rows[0].shipping_remote_id,'CORREOS-ACTIVE');assert.equal(f.rows[0].shipping_cost_amount,4.57);assert.equal(f.rows[0].tracking_number,'CORREOS-ACTIVE');assert.equal(f.rows[0].marketplace_carrier,'MRW');
 });
+
+test('legacy Sendcloud labels without shipping_provider still own shipment identity and tracking',async()=>{
+ const f=fixture();await f.sync();Object.assign(f.rows[0],{shipping_provider:null,sendcloud_parcel_id:123,carrier_code:'correosExpress',carrier_name:'Correos Express',shipping_service_name:'ePaq 24',tracking_number:'REAL-CORREOS',shipping_cost_amount:4.57,shipping_cost_source:'provider_actual'});
+ f.orders[0].fulfillment.fulfillmentStatus='SHIPPED';f.orders[0].packages=[{trackingNumber:'OLD-MRW',carrier:'MRW',shippingService:'Old cancelled service'}];await f.sync();assert.equal(f.rows[0].carrier_code,'correosExpress');assert.equal(f.rows[0].tracking_number,'REAL-CORREOS');assert.equal(f.rows[0].shipping_cost_amount,4.57);assert.equal(f.rows[0].marketplace_carrier,'MRW');
+});

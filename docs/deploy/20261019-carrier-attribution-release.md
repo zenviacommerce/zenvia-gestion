@@ -31,3 +31,11 @@ El propietario corrigió Amazon a Correos Express a las16:44Madrid. La lectura d
 ## Backend fase1
 
 CincoCIverdes en2fbacb81d314147f5feac9fd53d1f822d29b827f antes de tocar producción. Migración 20261019145139 amazon_marketplace_carrier aplicada. Preflight sin drift de worker40/orders22/reconcile10. 45/45regresiones contra los tresbundles candidatos. Siguiente: orders/reconcile, luego worker, re-fetch exacto y ciclo natural. No reparaciónSQL de datos.
+
+## Backend fase2
+
+A14:52UTC ACTIVE sync-orders23/reconcile11 y worker41. Re-fetch exacto de todos los archivos contra cada bundle candidato; únicamente dos ediciones enorders.ts, dependencias/JWT conservados. No se modificaron datos de pedidos manualmente. Paridad real14:52:51UTC frente a referencia58badb4d, mismo snapshotRLS de990filas: cinco periodos sin diferencias a céntimos y conteos. Esperando ciclo natural14:55 y CI de alineación del nombre de migración.
+
+## Cierre de hueco histórico Sendcloud
+
+Revisión final detectó etiquetas Sendcloud con parcel_id pero shipping_providerNULL. Test rojo probó sobrescritura en ese caso; el predicado de envío real ahora reconoce parcel_id/shipment_id históricos y referencias de etiqueta con coste real registrado, además del proveedor explícito. No incluye importes source=tariff_estimate por sí solos como autoridad logística. Nueva verificación sobre bundles y CI antes de ampliar la publicación.

@@ -151,7 +151,9 @@ function preservePersistedFields(current:any,patch:any){
   // The label provider owns the dispatched carrier and service. Amazon may
   // echo an old/default carrier even when the locally purchased label differs.
   // Preserve that identity in both the full import and standalone reconciliation.
-  if(current?.shipping_provider&&(current.shipping_remote_id||current.sendcloud_parcel_id||current.label_created_at)){
+  if(current&&(current.sendcloud_parcel_id!=null||current.sendcloud_shipment_id||
+    ((current.shipping_provider||(current.shipping_cost_amount!=null&&current.shipping_cost_source&&current.shipping_cost_source!=='tariff_estimate'))&&
+      (current.shipping_remote_id||current.label_created_at)))){
     for(const key of ['carrier_code','carrier_name','shipping_service_name','shipping_option_code','contract_id','shipping_provider','shipping_remote_id','sendcloud_parcel_id','sendcloud_shipment_id','shipping_integration_account_id','shipping_label_url','label_created_at','tracking_number','tracking_url','tracking_status_code','tracking_status_message','tracking_updated_at','shipping_cost_amount','shipping_cost_currency','shipping_cost_source','shipping_cost_net_amount','shipping_cost_tax_amount','shipping_cost_recorded_at','fulfilled_at'])delete patch[key];
   }
   if(!current?.pii_purged_at)return;

@@ -91,7 +91,7 @@ Deno.serve(async(req:Request)=>{
     const jobCounts={queued:0,running:0,success:0,failed:0};
 
     if(account){
-      const [marketResult,runResult,...countResults]=await Promise.all([
+      const [marketResult,runResult,countResult]=await Promise.all([
         admin.from('amazon_marketplaces')
           .select('marketplace_id,country_code,name,currency_code,active')
           .eq('owner_id',caller.data_owner_id).eq('amazon_account_id',account.id)
@@ -100,20 +100,18 @@ Deno.serve(async(req:Request)=>{
           .select('source,mode,status,started_at,finished_at,rows_processed,error_message')
           .eq('owner_id',caller.data_owner_id).eq('amazon_account_id',account.id)
           .order('started_at',{ascending:false}).limit(1).maybeSingle(),
-        ...(['queued','running','success','failed'] as const).map(status=>
-          admin.from('amazon_sync_jobs').select('id',{count:'exact',head:true})
-            .eq('owner_id',caller.data_owner_id).eq('amazon_account_id',account.id).eq('status',status)
-        ),
+        admin.rpc('amazon_sync_job_status_counts',{
+          p_owner_id:caller.data_owner_id,p_account_id:account.id,
+        }),
       ]);
       if(!marketResult.error)marketplaces=marketResult.data||[];
       else transientWarning=transientWarning||errText(marketResult.error,'No se pudieron leer los marketplaces.');
       if(!runResult.error)latestRun=runResult.data;
       else transientWarning=transientWarning||errText(runResult.error,'No se pudo leer la última sincronización.');
-      (['queued','running','success','failed'] as const).forEach((status,index)=>{
-        const result=countResults[index];
-        if(!result?.error)jobCounts[status]=Number(result?.count||0);
-        else transientWarning=transientWarning||errText(result.error,'No se pudo contar la cola de sincronización.');
-      });
+      if(!countResult.error&&countResult.data&&typeof countResult.data==='object'){
+        for(const status of ['queued','running','success','failed'] as const)
+          jobCounts[status]=Number((countResult.data as Record<string,unknown>)[status]||0);
+      }else transientWarning=transientWarning||errText(countResult.error,'No se pudo contar la cola de sincronización.');
     }
 
     return response({

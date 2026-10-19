@@ -66,3 +66,8 @@ Fuera del cierre de rendimiento: el propietario corregirá el carrier histórico
 ## Cierre operativo17:06Madrid
 
 Última versión verificada en ciclo natural17:05: dosjobs correctos,240registros porjob,4.959/4.075ms; cola vacía,0failed y lease liberado. Integridad del envío real y last_synced_at conservados. Cinco periodos sin diferencia tras el ciclo final; trimestre MRW190,00€ + Correos64,73€ =254,73€,58/58. Vercel READYdpl_4yNticX5jfyyibqMe2yChVxp6rfH y dominio con index-DIsFGH6G.js, HTTP200. MFA continúa enabled=false/cohortNULL. Ventana de logs15:01:50–15:05:45UTC sinPGRST003/57014/lease_lost. Bloque de rendimiento e integridad cerrado con los límites y pendientes anteriores.
+
+
+## Nueva incidencia funcional 18:12 Madrid — Shopify mappings
+
+RPC Shopify fallaba42P01 por referencia a parámetros calificados con el nombre público anterior dentro del clon MFA privado. Aplicado hotfix20261019162221 tras reproducción con claimsAAL2 y tests/rollback; wrapperMFA intacto. Escaneo226funciones/34clones:solo1implementación afectada,corregida. Mapeos y costesAmazon verificados. No fue una regresión de las migraciones de rendimiento de hoy: el mecanismo venía del instaladorMFA y su reinstalación18oct. Detalle y desviaciónCI (workflowsqueued sinrunner;PR246pendiente de fusión) en20261019-shopify-mapping-rpc-release.md. Funcionalidad restaurada enproducción,pendiente comprobación deusuario en navegador.

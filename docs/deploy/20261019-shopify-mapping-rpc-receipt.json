@@ -1,0 +1,40 @@
+{
+  "mfa": {
+    "cohort": null,
+    "enabled": false
+  },
+  "captured_at": "2026-10-19T16:24:42.68441+00:00",
+  "stale_clones": 0,
+  "function_count": 226,
+  "wrapper_hash_ok": true,
+  "pr": 246,
+  "head": "a141b9d99f80847f2d9a637bed27a508f92d3022",
+  "migration": "20261019162221",
+  "exactBodyDelta": [
+    "shopify_get_product_mappings.integration_account_id -> $1",
+    "shopify_get_product_mappings.seller_sku -> $2"
+  ],
+  "actualRoleProof": {
+    "role": "authenticated",
+    "aal": "aal2",
+    "shopifyVariant": "gid://shopify/ProductVariant/57896618983756",
+    "shopifyMappings": 1,
+    "wrongStore": 0,
+    "amazonMappings": 1,
+    "amazonCostProduct": 1,
+    "writesRolledBack": true
+  },
+  "tests": {
+    "mfaSqlIntegration": 39,
+    "vitest": 146,
+    "node": 1128,
+    "build": true,
+    "independentReview": "no blockers"
+  },
+  "ci": {
+    "status": "queued",
+    "runnerAssigned": false,
+    "merged": false
+  },
+  "deviation": "Minimal production SQL hotfix authorized for incident, applied after local integration and independent review while remote CI had no runner; merge remains gated."
+}

@@ -26,3 +26,14 @@ it('preserves successful options and actual diagnostics for partial provider fai
  const result=await collectProviderQuotes({envia:async()=>({options:[{code:'good'}],diagnostics:[{carrier:'correos',message:'HTTP 503'}]})},()=>{});
  expect(result.envia).toMatchObject({state:'partial',options:[{code:'good'}],diagnostics:['correos · HTTP 503']});
 });
+it('route exclusions remain visible as not applicable while successful rates keep no Retry',async()=>{
+ const result=await collectProviderQuotes({envia:async()=>({options:[{code:'good'}],message:'2 cotizaciones de transportista han fallado.',diagnostics:[{carrier:'DHL',message:'Envia.com (400): solo pueden partir con origen en Madrid'},{carrier:'Cainiao',message:'sin cobertura para el origen'}]})},()=>{});
+ expect(result.envia).toMatchObject({state:'ready',retryable:false});expect(result.envia.message).toContain('no aplicables');expect(result.envia.message).not.toContain('fallado');expect(result.envia.diagnostics?.every(d=>d.startsWith('No aplica a esta ruta'))).toBe(true);
+});
+it('a route with no applicable rates does not become a retryable error',async()=>{
+ const result=await collectProviderQuotes({envia:async()=>({options:[],diagnostics:[{carrier:'Cainiao',message:'sin cobertura para el origen'}]})},()=>{});expect(result.envia).toMatchObject({state:'not_applicable',retryable:false});
+});
+it('retries only temporary failures even when route exclusions are also returned',async()=>{
+ const result=await collectProviderQuotes({envia:async()=>({options:[{code:'good'}],diagnostics:[{carrier:'Cainiao',message:'sin cobertura para el origen'},{carrier:'DHL',message:'Envia.com (503): temporary failure'}]}),sendcloud:async()=>{throw Error('HTTP 401: invalid credentials')},mrw:async()=>{throw Error('HTTP 500')}},()=>{});
+ expect(result.envia).toMatchObject({state:'partial',retryable:true});expect(result.sendcloud).toMatchObject({state:'error',retryable:false});expect(result.mrw).toMatchObject({state:'error',retryable:true});
+});

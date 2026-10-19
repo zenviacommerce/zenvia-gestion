@@ -168,7 +168,7 @@ gate('Self-service initial enrollment, second TOTP, out-of-cohort challenge and 
  sql(`update public.app_users set active=false where user_id='${noFactor.id}';`);
 });
 gate('Rename wrapper manifest, ownership isolation and cohort AAL2 (real GoTrue)',async()=>{
- sql("DO $ BEGIN IF EXISTS(SELECT 1 FROM private.mfa_activation_findings()) THEN RAISE EXCEPTION 'Manifest findings'; END IF; END $;");
+ sql("select 1 / (case when exists(select 1 from private.mfa_activation_findings()) then 0 else 1 end);");
  await login(primary);
  let denied=await primary.c.rpc('security_mfa_rename_factor',{p_factor_id:primary.factor,p_friendly_name:'CI-current'});
  assert.ok(denied.error,'Rename must require AAL2 even before cohort activation (existing forced protection)');

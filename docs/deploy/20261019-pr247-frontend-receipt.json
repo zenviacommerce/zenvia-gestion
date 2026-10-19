@@ -1,0 +1,55 @@
+{
+  "pr": 247,
+  "head": "121ccc2713d5eb337bbcf4d4b585d8c0edc26795",
+  "merge": {
+    "sha": "7014c13a774c2646e0f036c577f5c0517a5a8a5a",
+    "merged": true,
+    "message": "Pull Request successfully merged"
+  },
+  "ci": [
+    {
+      "id": 39311902296,
+      "name": "MFA visual review (Playwright)",
+      "conclusion": "success"
+    },
+    {
+      "id": 39311902396,
+      "name": "Build check",
+      "conclusion": "success"
+    },
+    {
+      "id": 39311902380,
+      "name": "Build ZENVIA Gestión",
+      "conclusion": "success"
+    },
+    {
+      "id": 39311902279,
+      "name": "Auth resilience tests",
+      "conclusion": "success"
+    },
+    {
+      "id": 39311902287,
+      "name": "MFA real integration (disposable Supabase)",
+      "conclusion": "success"
+    }
+  ],
+  "deployment": {
+    "id": "dpl_Fp5stLrGQMk34DMMjyrXsyjzrREX",
+    "state": "READY",
+    "sha": "7014c13a774c2646e0f036c577f5c0517a5a8a5a",
+    "alias": "gestion.zenviacommerce.com",
+    "bundle": "index-DqlURX7K.js",
+    "htmlStatus": 200,
+    "jsStatus": 200,
+    "batchRpcPresent": true
+  },
+  "rollback": {
+    "id": "dpl_5y3USsBQYrJ32KSAdE2GLvMVbWua",
+    "bundle": "index-DIsFGH6G.js"
+  },
+  "ownerBrowserReview": "pending",
+  "deferred": [
+    "Margen parcial 100% with unavailable product cost: display Sin coste or Incompleto instead of numeric 100%.",
+    "Amazon previous-month RPC ~331ms."
+  ]
+}

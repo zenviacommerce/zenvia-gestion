@@ -1,0 +1,385 @@
+{
+  "initial_migration": "20261019135436",
+  "initial_ci": {
+    "head": "f25e62cd4ddf80cc77ef943c3c5f4837db3c288c",
+    "all_five": "success"
+  },
+  "authenticated_kpis": {
+    "comparison": [
+      {
+        "rpc": {
+          "sales": {
+            "net": 150.91735537190084,
+            "vat": 31.692644628099174,
+            "count": 6,
+            "gross": 182.61,
+            "average": 30.435
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 25,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 0,
+          "transport": {
+            "mrw": 22.05,
+            "net": 0,
+            "tax": 0,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 30.39,
+            "valued": 7,
+            "correos": 8.34,
+            "missing": 0,
+            "shipments": 7
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        },
+        "equal": true,
+        "period": "Hoy",
+        "current": {
+          "sales": {
+            "net": 150.91735537190084,
+            "vat": 31.692644628099174,
+            "count": 6,
+            "gross": 182.61,
+            "average": 30.435
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 25,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 0,
+          "transport": {
+            "mrw": 22.05,
+            "net": 0,
+            "tax": 0,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 30.39,
+            "valued": 7,
+            "correos": 8.34,
+            "missing": 0,
+            "shipments": 7
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        }
+      },
+      {
+        "rpc": {
+          "sales": {
+            "net": 2878.567022777666,
+            "vat": 606.3629772223342,
+            "count": 129,
+            "gross": 3484.93,
+            "average": 27.01496124031008
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 131,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 4,
+          "transport": {
+            "mrw": 164.4,
+            "net": 0,
+            "tax": 0,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 224.56,
+            "valued": 51,
+            "correos": 60.16,
+            "missing": 7,
+            "shipments": 58
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        },
+        "equal": true,
+        "period": "Mes actual",
+        "current": {
+          "sales": {
+            "net": 2878.567022777666,
+            "vat": 606.3629772223342,
+            "count": 129,
+            "gross": 3484.93,
+            "average": 27.01496124031008
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 131,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 4,
+          "transport": {
+            "mrw": 164.4,
+            "net": 0,
+            "tax": 0,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 224.56,
+            "valued": 51,
+            "correos": 60.16,
+            "missing": 7,
+            "shipments": 58
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        }
+      },
+      {
+        "rpc": {
+          "sales": {
+            "net": 2878.567022777666,
+            "vat": 606.3629772223342,
+            "count": 129,
+            "gross": 3484.93,
+            "average": 27.01496124031008
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 131,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 4,
+          "transport": {
+            "mrw": 164.4,
+            "net": 0,
+            "tax": 0,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 224.56,
+            "valued": 51,
+            "correos": 60.16,
+            "missing": 7,
+            "shipments": 58
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        },
+        "equal": true,
+        "period": "Trimestre",
+        "current": {
+          "sales": {
+            "net": 2878.567022777666,
+            "vat": 606.3629772223342,
+            "count": 129,
+            "gross": 3484.93,
+            "average": 27.01496124031008
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 131,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 4,
+          "transport": {
+            "mrw": 164.4,
+            "net": 0,
+            "tax": 0,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 224.56,
+            "valued": 51,
+            "correos": 60.16,
+            "missing": 7,
+            "shipments": 58
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        }
+      },
+      {
+        "rpc": {
+          "sales": {
+            "net": 18335.463884969427,
+            "vat": 3869.626115030572,
+            "count": 914,
+            "gross": 22205.09,
+            "average": 24.29440919037199
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 912,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 61,
+          "transport": {
+            "mrw": 714.27,
+            "net": 454.2,
+            "tax": 95.67,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 774.43,
+            "valued": 178,
+            "correos": 60.16,
+            "missing": 183,
+            "shipments": 361
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        },
+        "equal": true,
+        "period": "Año",
+        "current": {
+          "sales": {
+            "net": 18335.463884969427,
+            "vat": 3869.626115030572,
+            "count": 914,
+            "gross": 22205.09,
+            "average": 24.29440919037199
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 912,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 61,
+          "transport": {
+            "mrw": 714.27,
+            "net": 454.2,
+            "tax": 95.67,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 774.43,
+            "valued": 178,
+            "correos": 60.16,
+            "missing": 183,
+            "shipments": 361
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        }
+      },
+      {
+        "rpc": {
+          "sales": {
+            "net": 18335.463884969427,
+            "vat": 3869.626115030572,
+            "count": 914,
+            "gross": 22205.09,
+            "average": 24.29440919037199
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 912,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 61,
+          "transport": {
+            "mrw": 714.27,
+            "net": 454.2,
+            "tax": 95.67,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 774.43,
+            "valued": 178,
+            "correos": 60.16,
+            "missing": 183,
+            "shipments": 361
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        },
+        "equal": true,
+        "period": "Todo",
+        "current": {
+          "sales": {
+            "net": 18335.463884969427,
+            "vat": 3869.626115030572,
+            "count": 914,
+            "gross": 22205.09,
+            "average": 24.29440919037199
+          },
+          "amazon": 1,
+          "manual": 0,
+          "pending": 2,
+          "shipped": 912,
+          "shopify": 1,
+          "labelled": 0,
+          "cancelled": 61,
+          "transport": {
+            "mrw": 714.27,
+            "net": 454.2,
+            "tax": 95.67,
+            "basis": "recorded_only",
+            "other": 0,
+            "total": 774.43,
+            "valued": 178,
+            "correos": 60.16,
+            "missing": 183,
+            "shipments": 361
+          },
+          "overduePending": 0,
+          "preparablePending": 2
+        }
+      }
+    ],
+    "observed_at": "2026-10-19T13:55:50.590032+00:00"
+  },
+  "authenticated_selection": [
+    {
+      "result": {
+        "row_ids": [
+          "57557641-2d95-4597-9ec3-16c01a7adf80",
+          "10a5445c-f0e8-4773-a8cd-34045bd78a01"
+        ],
+        "selection": {
+          "ids": [
+            "10a5445c-f0e8-4773-a8cd-34045bd78a01",
+            "57557641-2d95-4597-9ec3-16c01a7adf80"
+          ],
+          "limit": 2000,
+          "total": 2,
+          "exceeded": false
+        },
+        "observed_at": "2026-10-19T13:54:51.897243+00:00",
+        "no_raw_payload": true,
+        "retrieved_total": 2,
+        "limit_overflow_probe": {
+          "ids": [],
+          "limit": 1,
+          "total": 2,
+          "exceeded": true
+        }
+      }
+    }
+  ],
+  "permissions": [
+    {
+      "proname": "orders_dashboard_page_v1",
+      "prosecdef": false,
+      "proconfig": "{\"search_path=\\\"\\\"\"}",
+      "anon_execute": false,
+      "authenticated_execute": true
+    },
+    {
+      "proname": "orders_dashboard_selection_v1",
+      "prosecdef": false,
+      "proconfig": "{\"search_path=\\\"\\\"\"}",
+      "anon_execute": false,
+      "authenticated_execute": true
+    }
+  ],
+  "performance_before": 8859.129,
+  "readonly_candidate_performance": 637.818,
+  "record_conversion_test": {
+    "old_calls": 216,
+    "new_calls": 3,
+    "records": 3,
+    "json_equal": true
+  },
+  "frontend_not_published": true
+}

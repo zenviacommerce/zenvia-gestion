@@ -169,10 +169,8 @@ gate('Self-service initial enrollment, second TOTP, out-of-cohort challenge and 
 });
 gate('Rename wrapper manifest, ownership isolation and cohort AAL2 (real GoTrue)',async()=>{
  sql("select 1 / (case when exists(select 1 from private.mfa_activation_findings()) then 0 else 1 end);");
- const actor=await addAdmin(primary.id,false);
- await startEnrollment(actor,'rename-initial-'+suffix,'rename-release-'+suffix);
- await registerTotp(actor,'CI-rename-device');
- await login(actor); // fresh AAL1 session after first admission
+ const actor={...primary,c:null,session:null};
+ await login(actor); // independent fresh AAL1 session; preserve primary's AAL2 approver client
  let denied=await actor.c.rpc('security_mfa_rename_factor',{p_factor_id:actor.factor,p_friendly_name:'CI-current'});
  assert.ok(denied.error,'Rename must require AAL2 even before cohort activation (existing forced protection)');
  const outside=await addAdmin(primary.id,false);
@@ -191,7 +189,7 @@ gate('Rename wrapper manifest, ownership isolation and cohort AAL2 (real GoTrue)
   assert.ok(denied.error&&String(denied.error.message).includes('MFA_FACTOR_NOT_ADMITTED'),'Another user factor must reject');
  }finally{
   sql('update private.mfa_configuration set enabled=false,cohort_user_ids=null where singleton=true;');
-  sql(`update public.app_users set active=false where user_id in ('${actor.id}','${outside.id}');`);
+  sql(`update public.app_users set active=false where user_id='${outside.id}';`);
  }
 });
 gate('Two-admin recovery needs a different AAL2 approver',async()=>{

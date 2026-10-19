@@ -211,7 +211,7 @@ test('actual Shopify mapping survives MFA implementation rename with tenant/stor
  const before=await meta();
  const implMeta=async()=> (await db.query<any>(`select prosecdef,provolatile,proowner,proacl::text,proconfig,proparallel,proisstrict from pg_proc where oid=${before.impl}`)).rows[0];
  const originalImplMeta=await implMeta();
- await db.exec(readFileSync(new URL('../supabase/migrations/20261019182000_shopify_mapping_renamed_parameters.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261019162221_shopify_mapping_renamed_parameters.sql',import.meta.url),'utf8'));
  const after=await meta();expect(after).toEqual(before);expect(await implMeta()).toEqual(originalImplMeta);
  await db.exec('set role authenticated');expect((await call()).rows[0].result).toHaveLength(1);await db.exec('reset role');
  expect((await call()).rows[0].result).toMatchObject([{productName:'Synthetic cups',unitCost:2.5,consumptionFactor:200}]);

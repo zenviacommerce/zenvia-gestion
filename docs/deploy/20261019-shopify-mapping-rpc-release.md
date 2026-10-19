@@ -35,3 +35,11 @@ Integration in tests/mfa-sql.test.ts installs the exact original production busi
 ## Deployment sequence
 
 CI first; additive repair migration only; production call replay and Amazon mapping/cost smoke in rollback transactions. Align repository filename to actual migration ledger version, then merge with green CI. Backend is sufficient to restore the existing modal; no UI publication required. Journal receipt follows with actual results.
+
+## Hotfix aplicado 20261019162221
+
+Desviación operativa explícita: GitHub mantuvo los cinco workflows queued sin runner asignado. Para restaurar la incidencia se aplicó únicamente el parche SQL tras39tests de integración,146Vitest,1128Node,build y revisión independiente aprobados. No se declaró CI verde ni se fusionó main; la fusión sigue condicionada a CI. Nombre del fichero alineado a la versión real del ledger para evitar reaplicación.
+
+Reproducción posterior con mismo sub/AAL2/rol authenticated: SKU afectado devuelve1vínculo; otra tienda0; Amazonget1 y producto con coste1. Shopifyadd/delete y Amazonadd/set/delete_item/delete ejecutados dentro deBEGIN/ROLLBACK sin cambios persistidos. Helpers internos Amazon: mapping_count1, unit_cost_eur2,90, sin coste histórico/FX pendiente; coste histórico presente. La llamada interna de helpers se hizo con el rol de inspección, y el camino público de costes con authenticated.
+
+Comparación exacta del cuerpo: solo dos sustituciones; wrapper hash ok, prolang/prosecdef/provolatile/proowner/proacl/proconfig conservados. Escaneo posterior de34clones:0calificadores obsoletos; MFAenabled=false/cohortNULL sin cambio. La interfaz no necesita nuevo bundle. Se avisa al usuario para comprobación en navegador; CI remoto pendiente de runner.

@@ -273,17 +273,20 @@ export async function fetchOrdersDashboardPage(filters:OrdersDashboardFilters):P
   };
 }
 
-/** Only invoked by the explicit "all pending" bulk action, never on mount. */
-export async function listMatchingPendingOrdersForBulk(filters:OrdersDashboardFilters):Promise<FulfillmentOrder[]>{
-  const first=await fetchOrdersDashboardPage({...filters,state:'pending',page:0,pageSize:100});
-  if(first.total>2000)throw new Error('Demasiados pedidos pendientes para una operación masiva. Reduce los filtros antes de continuar.');
+/** Only invoked by an explicit bulk/invoicing action, never on mount. */
+export async function listMatchingOrdersForAction(filters:OrdersDashboardFilters):Promise<FulfillmentOrder[]>{
+  const first=await fetchOrdersDashboardPage({...filters,page:0,pageSize:100});
+  if(first.total>2000)throw new Error('Demasiados pedidos para una operación masiva. Reduce los filtros antes de continuar.');
   const result=[...first.orders];
   const pages=Math.ceil(first.total/100);
   for(let page=1;page<pages;page++){
-    const next=await fetchOrdersDashboardPage({...filters,state:'pending',page,pageSize:100});
+    const next=await fetchOrdersDashboardPage({...filters,page,pageSize:100});
     result.push(...next.orders);
   }
   return result;
+}
+export async function listMatchingPendingOrdersForBulk(filters:OrdersDashboardFilters):Promise<FulfillmentOrder[]>{
+  return listMatchingOrdersForAction({...filters,state:'pending'});
 }
 
 export function getSendcloudStatus(){return invokeSendcloud<SendcloudStatus>({action:'status'});}

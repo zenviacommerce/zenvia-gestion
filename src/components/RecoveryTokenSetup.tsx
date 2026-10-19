@@ -7,6 +7,7 @@ export function RecoveryTokenSetup({tokenHash,onComplete}:{tokenHash:string;onCo
   const [password,setPassword]=useState('');
   const [confirm,setConfirm]=useState('');
   const [verified,setVerified]=useState(false);
+  const [passwordSaved,setPasswordSaved]=useState(false);
   const [busy,setBusy]=useState(false);
   const [message,setMessage]=useState('');
 
@@ -23,8 +24,14 @@ export function RecoveryTokenSetup({tokenHash,onComplete}:{tokenHash:string;onCo
         if(!data.session||!data.user)throw new Error('No se pudo validar el enlace de recuperación.');
         setVerified(true);
       }
-      const {error:updateError}=await supabase.auth.updateUser({password});
-      if(updateError)throw updateError;
+      if(!passwordSaved){
+        const {error:updateError}=await supabase.auth.updateUser({password});
+        if(updateError)throw updateError;
+        setPasswordSaved(true);
+      }
+      // Password recovery is a security action: revoke all device sessions.
+      const {error:logoutError}=await supabase.auth.signOut({scope:'global'});
+      if(logoutError)throw new Error('La contraseña se ha actualizado, pero no se pudieron cerrar todas las sesiones. Vuelve a intentarlo antes de continuar.');
       await onComplete();
     }catch(error){
       const raw=error instanceof Error?error.message:'No se pudo restablecer la contraseña.';
@@ -43,9 +50,9 @@ export function RecoveryTokenSetup({tokenHash,onComplete}:{tokenHash:string;onCo
       <h1>Crea una contraseña nueva</h1>
       <p>Introduce la nueva contraseña que quieres utilizar para acceder a ZENVIA Gestión.</p>
       <form onSubmit={submit} className="authForm" noValidate>
-        <label>Nueva contraseña<input type="password" required minLength={8} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mínimo 8 caracteres"/></label>
-        <label>Repite la contraseña<input type="password" required minLength={8} autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="Repite la contraseña"/></label>
-        <button className="primary authSubmit" disabled={busy}><KeyRound size={17}/>{busy?<><LoaderCircle className="spin" size={17}/> Guardando…</>:'Guardar nueva contraseña'}</button>
+        <label>Nueva contraseña<input type="password" disabled={passwordSaved} required minLength={8} autoComplete="new-password" value={password} onChange={e=>setPassword(e.target.value)} placeholder="Mínimo 8 caracteres"/></label>
+        <label>Repite la contraseña<input type="password" disabled={passwordSaved} required minLength={8} autoComplete="new-password" value={confirm} onChange={e=>setConfirm(e.target.value)} placeholder="Repite la contraseña"/></label>
+        <button className="primary authSubmit" disabled={busy}><KeyRound size={17}/>{busy?<><LoaderCircle className="spin" size={17}/> Guardando…</>:passwordSaved?'Cerrar todas las sesiones y continuar':'Guardar nueva contraseña'}</button>
       </form>
       {message&&<div className="authMessage inviteSetupError">{message}</div>}
     </div>

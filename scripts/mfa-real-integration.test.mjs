@@ -72,7 +72,7 @@ async function registerTotp(user,label){
  assert.equal(assurance.currentLevel,'aal2');
  must(await user.c.rpc('security_mfa_complete_enrollment',{p_factor_id:user.factor}),'admit');
 }
-let primary,secondary;
+let primary,secondary,foreignFactorId;
 gate('Real local Vault encrypt/decrypt round-trip',async()=>{
  sql(`BEGIN;
  DO $test$ DECLARE v_secret_id uuid; n int; BEGIN
@@ -145,6 +145,7 @@ gate('Self-service initial enrollment, second TOTP, out-of-cohort challenge and 
  assert.equal(status.state,'ready');
  must(await voluntary.c.rpc('security_mfa_begin_factor_add'),'begin second factor');
  const second=must(await voluntary.c.auth.mfa.enroll({factorType:'totp',friendlyName:'CI-voluntary-secondary'}),'second enroll');
+ foreignFactorId=second.id;
  must(await voluntary.c.rpc('security_mfa_prepare_enrollment',{p_factor_id:second.id}),'second prepare');
  const c2=must(await voluntary.c.auth.mfa.challenge({factorId:second.id}),'second challenge');
  must(await voluntary.c.auth.mfa.verify({factorId:second.id,challengeId:c2.id,code:totpCode(second.totp.secret)}),'second verification');
@@ -165,6 +166,31 @@ gate('Self-service initial enrollment, second TOTP, out-of-cohort challenge and 
  assert.equal(status.state,'ready');
  assert.deepEqual(status.factor_ids,[]);
  sql(`update public.app_users set active=false where user_id='${noFactor.id}';`);
+});
+gate('Rename wrapper manifest, ownership isolation and cohort AAL2 (real GoTrue)',async()=>{
+ sql("select 1 / (case when exists(select 1 from private.mfa_activation_findings()) then 0 else 1 end);");
+ const actor={...primary,c:null,session:null};
+ await login(actor); // independent fresh AAL1 session; preserve primary's AAL2 approver client
+ let denied=await actor.c.rpc('security_mfa_rename_factor',{p_factor_id:actor.factor,p_friendly_name:'CI-current'});
+ assert.ok(denied.error,'Rename must require AAL2 even before cohort activation (existing forced protection)');
+ const outside=await addAdmin(primary.id,false);
+ await login(outside);
+ const baseline=must(await outside.c.rpc('security_mfa_status'),'outside cohort baseline');
+ sql(`update private.mfa_configuration set enabled=true,cohort_user_ids=array['${actor.id}'::uuid] where singleton=true;`);
+ try{
+  denied=await actor.c.rpc('security_mfa_rename_factor',{p_factor_id:actor.factor,p_friendly_name:'CI-denied'});
+  assert.ok(denied.error&&/MFA_(REQUIRED|SESSION_REQUIRED)/.test(denied.error.message),'Cohort AAL1 must deny rename');
+  const other=must(await outside.c.rpc('security_mfa_status'),'outside cohort after activation');
+  assert.deepEqual(other,baseline,'Noncohort admin security state must not change');
+  const challenge=must(await actor.c.auth.mfa.challenge({factorId:actor.factor}),'rename challenge');
+  must(await actor.c.auth.mfa.verify({factorId:actor.factor,challengeId:challenge.id,code:totpCode(actor.secret)}),'rename verify');
+  must(await actor.c.rpc('security_mfa_rename_factor',{p_factor_id:actor.factor,p_friendly_name:'CI-owned factor'}),'own AAL2 rename');
+  denied=await actor.c.rpc('security_mfa_rename_factor',{p_factor_id:foreignFactorId,p_friendly_name:'CI-not-owned'});
+  assert.ok(denied.error&&String(denied.error.message).includes('MFA_FACTOR_NOT_ADMITTED'),'Another user factor must reject');
+ }finally{
+  sql('update private.mfa_configuration set enabled=false,cohort_user_ids=null where singleton=true;');
+  sql(`update public.app_users set active=false where user_id='${outside.id}';`);
+ }
 });
 gate('Two-admin recovery needs a different AAL2 approver',async()=>{
  secondary=await addAdmin(primary.id,false);

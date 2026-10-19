@@ -19,7 +19,7 @@ All pages must finish before the worker calls success. Success records per-marke
 
 ## Pagination/runtime limitation for review
 
-No durable cursor is introduced. The worker passes its existing 300-second deadline to Orders. Before each grouped page, Orders requires 150 seconds remaining to allow existing SP-API retries/failure bookkeeping; insufficient budget throws and retries the whole original window. Partial pages may already be upserted, but checkpoint remains unchanged and replay is idempotent. This does not silently truncate a successful window.
+No durable cursor is introduced. The worker passes its existing 300-second deadline to Orders and stops claiming new jobs when only 150 seconds remain. Claims remain limited to one job, so jobs that cannot start do not consume attempts. Before each grouped page, Orders requires 150 seconds remaining to allow existing SP-API retries/failure bookkeeping; insufficient budget throws and retries the whole original window. Partial pages may already be upserted, but checkpoint remains unchanged and replay is idempotent. This does not silently truncate a successful window.
 
 This is a bounded-runtime implementation, not a guarantee for arbitrarily large backlogs. Large windows can repeatedly replay their early pages and exhaust attempts; operations must inspect failures and choose a separately reviewed narrower-window or durable-cursor design if observed. The unchanged LWA token-refresh fetch has no timeout, and DB/HTTP latency can exceed the reserve. The existing global heartbeat and job-owner completion guards remain unchanged. Durable cursors would require a separate safe persistence/retention design; raw response pagination tokens are not retained here.
 
@@ -46,3 +46,5 @@ TDD: initial grouped-flow run failed eight cases (10 flat jobs instead of one; u
 `npm test`: 14 files, 121 tests passed. Expected auth-resilience stderr simulates transport failures.
 
 Broad `node --test scripts/*.test.mjs`: 1120 passed, 1 failed. The sole failure is the pre-existing environment-gated `scripts/mfa-real-integration.test.mjs` top-level assertion requiring `RUN_LOCAL_AUTH_VAULT_TESTS=1`, local Docker Auth/Vault and credentials. Those services were not provisioned or bypassed. A second broad run excludes only that integration fixture; final counts are recorded in the completion report.
+
+Review correction: added an executable worker-handler regression test with a fake clock. Before the fix it made three claim calls and consumed the second job at the reserve boundary; after the fix it makes one claim, completes the first job and leaves the second unclaimed with zero failed attempts.

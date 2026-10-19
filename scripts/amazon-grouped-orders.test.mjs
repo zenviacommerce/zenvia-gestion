@@ -42,3 +42,29 @@ test('real orchestrator handler omits hourly Orders and retains initial Orders b
   assert.deepEqual(Array.from(calls[0].sources),['orders','finances','inventory']);
   assert.deepEqual(Array.from(calls[1].sources),['finances','inventory']);
 });
+test('worker stops claiming when its grouped-page reserve begins, without consuming another attempt',async()=>{
+  let handler,background,clock=0,claims=0,completed=0,failed=0;
+  class ClockDate extends Date{static now(){return clock}}
+  const jobs=[{id:'first',source:'orders'},{id:'unstarted',source:'orders'}];
+  const admin={rpc:async(name,args)=>{
+    if(name==='amazon_claim_sync_jobs'){
+      assert.equal(args.limit_count,1);
+      claims+=1;
+      return {data:jobs.length?[jobs.shift()]:[],error:null};
+    }
+    return {data:true,error:null};
+  }};
+  load('supabase/functions/amazon-sync-worker/index.ts',name=>{
+    if(name.includes('/supabase'))return {createAdminClient:()=>admin,requireInternalSecret:()=>{}};
+    if(name.includes('/sync'))return {markJobSuccess:async()=>{completed+=1},markJobFailed:async()=>{failed+=1}};
+    if(name.includes('/orders'))return {syncOrdersJob:async()=>{if(clock>=150_000)throw new Error('runtime budget');clock=150_000;return 0}};
+    if(name.includes('/shipment-confirmation'))return {retryPendingAmazonTracking:async()=>{}};
+    return {};
+  },{Deno:{serve:callback=>{handler=callback}},Response,Date:ClockDate,crypto:{randomUUID:()=> 'holder'},EdgeRuntime:{waitUntil:promise=>{background=promise}},setInterval:()=>1,clearInterval:()=>{},console:{info(){},error(){}}});
+  assert.equal((await handler({method:'POST'})).status,202);
+  await background;
+  assert.equal(claims,1);
+  assert.equal(completed,1);
+  assert.equal(failed,0);
+  assert.equal(jobs.length,1);
+});

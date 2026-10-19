@@ -7,6 +7,7 @@ import { syncInventoryJob } from '../_shared/amazon/inventory.ts';
 
 const MAX_WORKER_RUNTIME_MS=300_000;
 const HEARTBEAT_MS=60_000;
+const JOB_START_RESERVE_MS=150_000;
 function response(data:unknown,status=200){return new Response(JSON.stringify(data),{status,headers:{'Content-Type':'application/json'}});}
 async function dispatch(admin:any,job:any,deadline:number){
   if(job.source==='orders'){
@@ -32,7 +33,9 @@ async function run(admin:any,holderId:string){
     finally{renewing=false;}
   },HEARTBEAT_MS);
   try{
-    while(Date.now()<deadline&&!leaseLost){
+    // Stop before claiming: a lease claim consumes an attempt even if the job
+    // cannot start. Keep the same reserve required by grouped Orders pages.
+    while(Date.now()<deadline-JOB_START_RESERVE_MS&&!leaseLost){
       const {data:jobs,error}=await admin.rpc('amazon_claim_sync_jobs',{limit_count:1,p_holder_id:holderId});
       if(error)throw error;
       if(!jobs?.length)break;

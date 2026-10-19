@@ -35,6 +35,14 @@ it('real SQL pages 120 matches while aggregating the whole RLS tenant scope',asy
  await db.exec(`RESET ROLE;UPDATE fulfillment_orders SET items='[{"sku":{"buyerName":"SYNTHETIC-PRIVATE"},"quantity":"SYNTHETIC-PRIVATE","unit_price":{"value":"SYNTHETIC-PRIVATE"}}]' WHERE id=md5('legacy')::uuid;SET ROLE authenticated;`);
  const guarded=await call("p_state=>'all',p_query=>'SAME'");expect(JSON.stringify(guarded)).not.toContain('SYNTHETIC-PRIVATE');
  const incident=await call("p_state=>'all',p_query=>'INCIDENT',p_tracking=>'issue'");expect(incident.total).toBe(1);expect((await call("p_state=>'all',p_query=>'INCIDENT',p_tracking=>'transit'")).total).toBe(0);
+ await db.exec(`RESET ROLE;
+ INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,sendcloud_remote_id,order_number,source_channel,source_status,order_created_at,shipping_address,items,raw_payload)
+ VALUES(md5('weight-first')::uuid,'00000000-0000-4000-8000-000000000001','amazon:weighted',null,'WEIGHT-PARITY','amazon','UNSHIPPED','2026-01-01','{}','[]','{"shipping_details":{"measurement":{"weight":{"value":2,"unit":"kg"}}}}'),
+ (md5('weight-newer')::uuid,'00000000-0000-4000-8000-000000000001','amazon:empty',null,'WEIGHT-PARITY','amazon','UNSHIPPED','2026-02-01','{}','[]','{}'),
+ (md5('remote-first')::uuid,'00000000-0000-4000-8000-000000000001','amazon:remote','carrier-remote','REMOTE-PARITY','amazon','UNSHIPPED','2026-01-01','{}','[]','{}'),
+ (md5('remote-newer')::uuid,'00000000-0000-4000-8000-000000000001','amazon:local',null,'REMOTE-PARITY','amazon','UNSHIPPED','2026-02-01','{}','[]','{}');SET ROLE authenticated;`);
+ const weighted=await call("p_state=>'all',p_query=>'WEIGHT-PARITY'");expect(weighted.rows[0].sendcloud_id).toBe('amazon:weighted');
+ const remote=await call("p_state=>'all',p_query=>'REMOTE-PARITY'");expect(remote.rows[0].sendcloud_id).toBe('amazon:remote');
  await db.exec(`SET test.owner='00000000-0000-4000-8000-000000000002';`);const other=await call();expect(other.total).toBe(1);expect(other.rows[0].order_number).toBe('OTHER-TENANT');expect(other.kpis.pending).toBe(1);
  }finally{await db.close()}
 },20000);

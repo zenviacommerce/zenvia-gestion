@@ -310,7 +310,7 @@ function LabelModal({order,options,tariffs,message,loading,providerStates,onRetr
       <>
         {message&&<div className="ordersQuoteMessage"><AlertCircle size={15}/><span>{message}</span></div>}
         {options.length>0&&<section className="ordersComparison">
-          <div className="ordersComparisonHead"><div><strong>Opciones de envío</strong><span>Ordenadas por precio final para que puedas elegir directamente la opción más conveniente.</span></div><small>{priced.length?priced.length+' opciones con precio':'Sin precios disponibles'}</small></div>
+          <div className="ordersComparisonHead"><div><strong>Opciones de envío</strong><span>Ordenadas por precio final para que puedas elegir directamente la opción más conveniente.</span></div><small>{priced.length?priced.length+(priced.length===1?' opción con precio':' opciones con precio'):'Sin precios disponibles'}</small></div>
           {priced.length>0&&<div className="ordersBestOptions">
             <div className="ordersBestOptionsTitle"><strong>Mejores opciones</strong><span>Las {settings.shipping.topOptionsCount} tarifas más económicas disponibles ahora mismo.</span></div>
             <div className="ordersBestOptionsGrid">{priced.slice(0,settings.shipping.topOptionsCount).map((option,index)=>{
@@ -930,14 +930,15 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
         <label className="filterField"><span>Seguimiento</span><SelectField value={trackingFilter} onChange={value=>setTrackingFilter(value as TrackingFilter)} ariaLabel="Filtrar por seguimiento" options={[{value:'all',label:'Todos'},{value:'none',label:'Sin etiqueta / pendiente'},{value:'ready',label:'Preparado'},{value:'transit',label:'En tránsito'},{value:'route',label:'En reparto'},{value:'pickup',label:'Punto de recogida'},{value:'delivered',label:'Entregado'},{value:'issue',label:'Incidencia'},{value:'cancelled',label:'Cancelado'}]}/></label>
       </div>
     </div>
-    {selectableOrders.length>0&&<BulkSelectionToolbar selectedCount={selectedOrders.length} totalCount={selectableOrders.length} allSelected={allSelectableSelected} onToggleAll={toggleAllOrders} label="pedidos con etiqueta pendiente">
+    {selectableOrders.length>0&&<BulkSelectionToolbar selectedCount={selectedOrders.length} totalCount={selectableOrders.length} allSelected={allSelectableSelected} onToggleAll={toggleAllOrders} label="pedidos con etiqueta pendiente de esta página" scopeLabel="esta página">
       <button className="primary" type="button" disabled={!selectedOrders.length||bulkGenerating} onClick={()=>void generateSelectedLabels()}><Download size={15}/> {bulkGenerating&&selectedOrders.length?`Generando ${bulkProgress}`:`Generar etiquetas seleccionadas (${selectedOrders.length})`}</button>
     </BulkSelectionToolbar>}
+    {selectableOrders.length>0&&<p className="muted" role="note">La selección solo incluye esta página ({selectableOrders.length} pedidos preparables de {matchingTotal} resultados). Se borra al cambiar de página o filtros.</p>}
     {printer&&<div className="ordersPrinterBar"><Printer size={15}/><span>Impresora directa:</span>{printers.length?<SearchableSelect value={printer} options={printers.map(item=>({value:item.id,label:`${item.name}${item.default?' · predeterminada':''}`,searchText:item.name}))} onChange={value=>{setPrinter(value);void patchPreferences({labelPrinterId:value})}} searchPlaceholder="Buscar impresora…" ariaLabel="Impresora directa"/>:<strong>{printer}</strong>}<button className="link" onClick={()=>{setPrinter('');void patchPreferences({labelPrinterId:null})}}>Usar PDF</button></div>}
 
     {filtered.some(order=>order.sourceChannel==='shopify')&&<div className="ordersPrinterBar"><FileText size={16}/><span>Facturación manual de Shopify</span><button className="secondary" onClick={()=>void openShopifyInvoiceSelection()}>Seleccionar pedidos para facturar</button></div>}
     {pager}
-    <section className="card tableCard ordersTableCard">{loading?<div className="emptyState large"><LoaderCircle className="spin"/> Cargando pedidos…</div>:filtered.length?<table className="ordersTable"><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allSelectableSelected} disabled={!selectableOrders.length} onChange={toggleAllOrders} label={allSelectableSelected?'Deseleccionar pedidos pendientes':'Seleccionar pedidos pendientes'}/></th>
+    <section className="card tableCard ordersTableCard">{loading?<div className="emptyState large"><LoaderCircle className="spin"/> Cargando pedidos…</div>:filtered.length?<table className="ordersTable"><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allSelectableSelected} disabled={!selectableOrders.length} onChange={toggleAllOrders} label={allSelectableSelected?'Deseleccionar pedidos pendientes de esta página':'Seleccionar pedidos pendientes de esta página'}/></th>
       <SortableTableHeader label="Canal" sortKey="channel" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Pedido" sortKey="order" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Cliente" sortKey="customer" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>

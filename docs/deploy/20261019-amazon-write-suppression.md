@@ -9,3 +9,5 @@ Tests first: unchanged page2 UPDATE vs expected0; status change2 vs expected1; s
 Snapshots: exact deployed worker38, sync-orders20, reconcile9 under supabase/snapshots/20261019-amazon-writes. Before production, compare/refetch no drift. Deploy only _shared/amazon/orders.ts into each exact live bundle; preserve unrelated production dependencies. No SQL migration needed.
 
 Verification: collect pg_stat_statements UPDATE calls/rows and completed jobs over complete natural worker windows before/after. Separate unchanged suppression from source-data differences. Inspect lease release/queue/failed. Roll back by redeploying exact snapshot files on a failed cycle/regression. No frontend merge/deploy authorized by this task.
+
+Review caught and fixed confirmed order/label cancellation trigger rewrites and optional null item keys. New regressions exercise nonempty items, cancelled tracking and replacement shipment preservation. Cancellation metadata is read in one owner/selected-rows-scoped batch and used in memory only. Final target source/test commit is the only version eligible for deployment; earlier green SHAs are insufficient.

@@ -47,3 +47,9 @@ test('nonempty items do not receive optional-null writes on unchanged replay',as
 test('confirmed local cancellation is preserved before comparison while Amazon remains unshipped',async()=>{
  const f=fixture();await f.sync();f.rows[0].source_status='cancelled';f.cancellations.push({order_id:'row',kind:'order',status:'confirmed'});f.writes.length=0;await f.sync();assert.equal(f.writes.length,0);assert.equal(f.rows[0].source_status,'cancelled');
 });
+test('confirmed label cancellation does not repeatedly restore tracking removed by SQL',async()=>{
+ const f=fixture();f.orders[0].fulfillment.fulfillmentStatus='SHIPPED';f.orders[0].packages=[{trackingNumber:'CANCELLED-TRACK',carrier:'MRW',shipTime:'2026-10-18T01:00:00Z'}];await f.sync();Object.assign(f.rows[0],{tracking_number:null,tracking_status_code:null,tracking_status_message:null,tracking_updated_at:null,fulfilled_at:null});f.cancellations.push({order_id:'row',kind:'label',status:'confirmed',details:{trackingNumber:'CANCELLED-TRACK'}});f.writes.length=0;await f.sync();assert.equal(f.writes.length,0);assert.equal(f.rows[0].tracking_number,null);
+});
+test('cancelled old package cannot overwrite a subsequent replacement label',async()=>{
+ const f=fixture();f.orders[0].fulfillment.fulfillmentStatus='SHIPPED';f.orders[0].packages=[{trackingNumber:'OLD',carrier:'MRW',shipTime:'2026-10-18T01:00:00Z'}];await f.sync();Object.assign(f.rows[0],{label_created_at:'2026-10-18T02:00:00Z',shipping_remote_id:'NEW-LABEL',tracking_number:'NEW',tracking_status_code:'NEW',tracking_status_message:'New label',fulfilled_at:'2026-10-18T02:00:00Z'});f.cancellations.push({order_id:'row',kind:'label',status:'confirmed',details:{trackingNumber:'OLD'}});f.writes.length=0;await f.sync();assert.equal(f.writes.length,0);assert.equal(f.rows[0].tracking_number,'NEW');assert.equal(f.rows[0].shipping_remote_id,'NEW-LABEL');
+});

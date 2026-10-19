@@ -138,7 +138,15 @@ function preservePersistedFields(current:any,patch:any){
     patch.source_status=current.source_status;patch.order_updated_at=current.order_updated_at;
     if('fulfilled_at' in patch)patch.fulfilled_at=current.fulfilled_at;
   }
-  if(current?._amazonConfirmedCancellation)patch.source_status=current.source_status;
+  const cancellations=current?._amazonConfirmedCancellations||[];
+  if(cancellations.some((op:any)=>op.kind==='order'))patch.source_status=current.source_status;
+  const matchesLabel=(row:any,op:any)=>op.kind==='label'&&(op.details?.shipmentRef===String(row.shipping_remote_id??row.sendcloud_parcel_id??row.tracking_number??'')||clean(op.details?.trackingNumber)&&op.details.trackingNumber===row.tracking_number);
+  if(cancellations.some((op:any)=>matchesLabel({...current,...patch},op))){
+    const replacement=current.label_created_at&&!cancellations.some((op:any)=>matchesLabel(current,op));
+    for(const key of ['tracking_number','tracking_status_code','tracking_status_message','tracking_updated_at','fulfilled_at']){
+      if(replacement)delete patch[key];else patch[key]=null;
+    }
+  }
   if(!current?.pii_purged_at)return;
   // Match the SQL retention guard before comparing, so redacted rows do not
   // receive the same doomed-to-be-redacted PII on every page.
@@ -167,10 +175,9 @@ function operationalStatePatch(order:any,current:any={}){
 }
 async function attachConfirmedCancellations(admin:any,rows:any[],ownerId:string){
   if(!rows.length)return;
-  const {data,error}=await admin.from('order_cancellation_operations').select('order_id').eq('owner_id',ownerId).eq('kind','order').eq('status','confirmed').in('order_id',rows.map(row=>row.id));
+  const {data,error}=await admin.from('order_cancellation_operations').select('order_id,kind,details').eq('owner_id',ownerId).eq('status','confirmed').in('order_id',rows.map(row=>row.id));
   if(error)throw error;
-  const cancelled=new Set((data||[]).map((row:any)=>row.order_id));
-  for(const row of rows)if(cancelled.has(row.id))row._amazonConfirmedCancellation=true;
+  for(const row of rows)row._amazonConfirmedCancellations=(data||[]).filter((op:any)=>op.order_id===row.id);
 }
 export async function reconcileOperationalAmazonStates(admin:any,orders:any[],ownerId:string){
   const valid=orders.filter(order=>order?.orderId&&clean(order?.fulfillment?.fulfillmentStatus));

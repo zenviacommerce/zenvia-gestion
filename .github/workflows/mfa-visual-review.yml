@@ -31,3 +31,4 @@ jobs:
           name: mfa-security-ui-desktop-mobile
           path: artifacts/mfa-visual/*.png
           if-no-files-found: error
+

@@ -44,3 +44,10 @@ Redeploy each exact JSON snapshot with verify_jwt=true; restore SQL function fro
 - Public production HTML HTTP200 and bundle HTTP200: `/assets/index-BNSeQGme.js`. Actual served bundle does not contain `Fixture sintética`. Receipt `20261019-shipping-production-receipt.json`.
 - STOP for user's authenticated browser checks: startup, Orders and real order Create label modal. No label purchased/created. No claim of authenticated UI or real-provider price verification.
 - Instant Rollback remains dpl_3W2T4KqMQYqspkCT6FAupXTH2jba / index-BkauntMi.js. SQL/Edge snapshots in main; post-publication journal stored on audit branch to avoid triggering another deployment during user review.
+
+
+## User acceptance and closure — 2026-10-19 14:19 Europe/Madrid
+
+User verified the real session: production index-BNSeQGme.js, startup without security screen/session loss; Orders 2 pending (Amazon1/Shopify1),131 shipped. Real order quote: Sendcloud9 + Envia33 + direct MRW1 (Urgent19:00,4.31 EUR),43 priced options, no aggregator MRW. No label created. PR240 CLOSED and accepted.
+
+Separate nonurgent follow-up: classify Envia DHL Madrid-origin restriction/Cainiao no-origin-coverage as route not_applicable, without Retry. Reserve retryable error for timeout/5xx. Not part of Amazon write-suppression release.

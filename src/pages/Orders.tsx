@@ -540,15 +540,15 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const selectedPeriod=periodLabel(dateFilter);
   const orderPeriodOrders=useMemo(()=>orders.filter(order=>inPeriod(orderDateKey(order),dateFrom,dateTo)),[orders,dateFrom,dateTo]);
   const shippedPeriodOrders=useMemo(()=>orders.filter(order=>isProcessedOrder(order)&&inPeriod(shippedDateKey(order),dateFrom,dateTo)),[orders,dateFrom,dateTo]);
-  const countryOptions=useMemo(()=>[...new Set(orders.map(order=>text(order.shippingAddress.country_code).trim().toUpperCase()||'XX'))].sort((a,b)=>countryName(a).localeCompare(countryName(b),'es')).map(code=>({value:code,label:code==='XX'?'País pendiente':`${countryName(code)} · ${code}`})),[orders]);
-  const carrierOptions=useMemo(()=>[...new Set(orders.map(order=>carrierLabel(order)).filter(value=>value&&value!=='—'))].sort((a,b)=>a.localeCompare(b,'es')).map(value=>({value:value.toLowerCase(),label:value})),[orders]);
+  const countryOptions=useMemo(()=>(dashboardFacets?.countries||[...new Set(orders.map(order=>text(order.shippingAddress.country_code).trim().toUpperCase()||'XX'))]).sort((a,b)=>countryName(a).localeCompare(countryName(b),'es')).map(code=>({value:code,label:code==='XX'?'País pendiente':`${countryName(code)} · ${code}`})),[orders,dashboardFacets]);
+  const carrierOptions=useMemo(()=>(dashboardFacets?.carriers||[...new Set(orders.map(order=>carrierLabel(order)).filter(value=>value&&value!=='—'))]).sort((a,b)=>a.localeCompare(b,'es')).map(value=>({value:value.toLowerCase(),label:value})),[orders,dashboardFacets]);
   const orderContextOrders=useMemo(()=>orderPeriodOrders.filter(order=>matchesOrderContext(order,query,channel,trackingFilter,countryFilter,carrierFilter)),[orderPeriodOrders,query,channel,trackingFilter,countryFilter,carrierFilter]);
   const operationalContextOrders=useMemo(()=>orders.filter(order=>matchesOrderContext(order,query,channel,trackingFilter,countryFilter,carrierFilter)),[orders,query,channel,trackingFilter,countryFilter,carrierFilter]);
   const labelContextOrders=useMemo(()=>operationalContextOrders.filter(isLabelledOrder),[operationalContextOrders]);
   const shippedContextOrders=useMemo(()=>shippedPeriodOrders.filter(order=>matchesOrderContext(order,query,channel,trackingFilter,countryFilter,carrierFilter)),[shippedPeriodOrders,query,channel,trackingFilter,countryFilter,carrierFilter]);
   const pendingOrders=useMemo(()=>operationalContextOrders.filter(isPendingOrder),[operationalContextOrders]);
   const tariffPreviews=useMemo(()=>{const map:Record<string,ShippingPricePreview>={};for(const order of orders){const configuredCarrier=firstMatchingShippingRule(order,shippingRules)?.action.carrierContains||settings.orders.defaultCarrier||'';const preview=calculateDefaultShippingPreview(order,tariffs,configuredCarrier);if(preview)map[order.id]=preview}return map},[orders,tariffs,shippingRules,settings.orders.defaultCarrier]);
-  const transportKpis=useMemo(()=>{
+  const transportKpisFromPage=useMemo(()=>{
     let total=0,net=0,tax=0,valued=0,missing=0,mrw=0,correos=0,other=0;
     const shipments=orders.filter(order=>hasShippingLabel(order)&&inPeriod(timestampDateKey(order.shippingCostRecordedAt||order.fulfilledAt||order.labelCreatedAt||order.trackingUpdatedAt||order.orderCreatedAt),dateFrom,dateTo)&&matchesOrderContext(order,query,channel,trackingFilter,countryFilter,carrierFilter));
     for(const order of shipments){
@@ -566,9 +566,19 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   // Previously this effect invoked up to 90 Edge Functions per refresh and
   // amplified expired-session errors into an authentication request storm.
 
-  const salesKpis=useMemo(()=>{const sales=orderContextOrders.filter(order=>!isCancelledOrder(order)&&order.totalAmount!=null&&(order.currency==null||order.currency==='EUR'));let gross=0,net=0,vat=0;for(const order of sales){const parts=taxParts(order);gross+=parts.gross;net+=parts.net;vat+=parts.vat}return {gross,net,vat,count:sales.length,average:sales.length?gross/sales.length:0}},[orderContextOrders]);
-  const overduePending=pendingOrders.filter(order=>orderAgeHours(order)>=settings.orders.overdueHours).length;
-  const pending=pendingOrders.length,amazon=pendingOrders.filter(o=>o.sourceChannel==='amazon').length,shopify=pendingOrders.filter(o=>o.sourceChannel==='shopify').length,manual=pendingOrders.filter(o=>o.sourceChannel==='other').length,labelled=labelContextOrders.length,shipped=shippedContextOrders.length,cancelled=orderContextOrders.filter(isCancelledOrder).length;
+  const salesKpisFromPage=useMemo(()=>{const sales=orderContextOrders.filter(order=>!isCancelledOrder(order)&&order.totalAmount!=null&&(order.currency==null||order.currency==='EUR'));let gross=0,net=0,vat=0;for(const order of sales){const parts=taxParts(order);gross+=parts.gross;net+=parts.net;vat+=parts.vat}return {gross,net,vat,count:sales.length,average:sales.length?gross/sales.length:0}},[orderContextOrders]);
+  // RPC aggregations are over the full RLS-visible scope, not the selected
+  // 25/50/100 list rows. Never derive global dashboard numbers from a page.
+  const salesKpis=dashboardKpis?.sales||salesKpisFromPage;
+  const transportKpis=dashboardKpis?.transport||transportKpisFromPage;
+  const overduePending=dashboardKpis?.overduePending??pendingOrders.filter(order=>orderAgeHours(order)>=settings.orders.overdueHours).length;
+  const pending=dashboardKpis?.pending??pendingOrders.length,
+    amazon=dashboardKpis?.amazon??pendingOrders.filter(o=>o.sourceChannel==='amazon').length,
+    shopify=dashboardKpis?.shopify??pendingOrders.filter(o=>o.sourceChannel==='shopify').length,
+    manual=dashboardKpis?.manual??pendingOrders.filter(o=>o.sourceChannel==='other').length,
+    labelled=dashboardKpis?.labelled??labelContextOrders.length,
+    shipped=dashboardKpis?.shipped??shippedContextOrders.length,
+    cancelled=dashboardKpis?.cancelled??orderContextOrders.filter(isCancelledOrder).length;
   const filtered=useMemo(()=>{const base=state==='pending'?pendingOrders:state==='labelled'?labelContextOrders:state==='shipped'?shippedContextOrders:orderContextOrders;return base.filter(order=>{if(state==='pending'&&!isPendingOrder(order))return false;if(state==='labelled'&&!isLabelledOrder(order))return false;if(state==='shipped'&&!isProcessedOrder(order))return false;if(state==='cancelled'&&!isCancelledOrder(order))return false;return true})},[orderContextOrders,pendingOrders,labelContextOrders,shippedContextOrders,state]);
   const sorting=useSortableTable('orders',filtered,{
     channel:order=>channelLabel(order),
@@ -587,6 +597,29 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     labelDate:order=>labelTimestamp(order)||'',
     printStatus:order=>labelPrintState(order).sort,
   },{key:'orderDate',direction:'desc'});
+  pageParamsRef.current={
+    from:dateFrom,to:dateTo,state,channel,query,tracking:trackingFilter,
+    country:countryFilter,carrier:carrierFilter,page,pageSize:preferences.pageSize,
+    overdueHours:settings.orders.overdueHours,
+    sortKey:sorting.sort.key,sortDirection:sorting.sort.direction,
+  };
+  useEffect(()=>{setPage(0)},[query,state,channel,trackingFilter,countryFilter,carrierFilter,dateFrom,dateTo,sorting.sort.key,sorting.sort.direction,preferences.pageSize]);
+  useEffect(()=>{
+    let active=true;
+    setLoading(true);
+    const delay=window.setTimeout(()=>{
+      void refresh().finally(()=>{if(active)setLoading(false)});
+    },query.trim()?300:0);
+    return()=>{active=false;window.clearTimeout(delay)};
+  },[refresh,query,state,channel,trackingFilter,countryFilter,carrierFilter,dateFrom,dateTo,sorting.sort.key,sorting.sort.direction,page,preferences.pageSize,settings.orders.overdueHours]);
+  const totalPages=Math.max(1,Math.ceil(matchingTotal/preferences.pageSize));
+  const pager=<div className="ordersPager" role="navigation" aria-label="Paginación de pedidos">
+    <span>{matchingTotal} pedidos · Página {Math.min(page+1,totalPages)} de {totalPages}</span>
+    <div className="ordersPagerActions">
+      <button type="button" className="secondary" disabled={loading||page===0} onClick={()=>setPage(current=>Math.max(0,current-1))}>Anterior</button>
+      <button type="button" className="secondary" disabled={loading||page+1>=totalPages} onClick={()=>setPage(current=>current+1)}>Siguiente</button>
+    </div>
+  </div>;
   const sortedOrders=sorting.rows;
   const selectableOrders=filtered.filter(canPrepareOrder);
   const selectedOrders=selectableOrders.filter(order=>checkedIds.has(order.id));

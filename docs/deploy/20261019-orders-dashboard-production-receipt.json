@@ -594,5 +594,93 @@
   },
   "final_metadata_head": "b6b14838b19772296ddee4d8d94424205ecbeba0",
   "ledger_aligned": true,
-  "comparison_note": "Initial same-statement baseline/RPC JSON equality exact. Post-optimization receipt passed through JS numeric serialization; compare counts/states exactly and money at EUR cents. SQL instrumented old/new core full JSON parity separately tested."
+  "comparison_note": "Initial same-statement baseline/RPC JSON equality exact. Post-optimization receipt passed through JS numeric serialization; compare counts/states exactly and money at EUR cents. SQL instrumented old/new core full JSON parity separately tested.",
+  "final_ci": [
+    {
+      "id": 39266350824,
+      "name": "Build check",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 559,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39266350824/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39266350824/logs",
+      "workflow_id": 361316263
+    },
+    {
+      "id": 39266350947,
+      "name": "MFA visual review (Playwright)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 82,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39266350947/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39266350947/logs",
+      "workflow_id": 388829843
+    },
+    {
+      "id": 39266350847,
+      "name": "Auth resilience tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 229,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39266350847/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39266350847/logs",
+      "workflow_id": 385998318
+    },
+    {
+      "id": 39266350832,
+      "name": "Build ZENVIA Gestión",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2220,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39266350832/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39266350832/logs",
+      "workflow_id": 354706666
+    },
+    {
+      "id": 39266350819,
+      "name": "MFA real integration (disposable Supabase)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 268,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39266350819/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39266350819/logs",
+      "workflow_id": 387906946
+    }
+  ],
+  "merge": "4fa95260592cd1208d27252e975e16de4027b10d",
+  "worker_health": [
+    {
+      "result": {
+        "observed_at": "2026-10-19T14:13:25.241564+00:00",
+        "active_lease": 0,
+        "last_orders_jobs": [
+          {
+            "status": "success",
+            "job_key": "incremental:orders:region:EU:2026-10-19T14:10:00.000Z",
+            "attempts": 1,
+            "last_error": null,
+            "duration_ms": 4165,
+            "rows_processed": 242
+          },
+          {
+            "status": "success",
+            "job_key": "incremental:orders:region:EU:2026-10-19T14:05:00.000Z",
+            "attempts": 1,
+            "last_error": null,
+            "duration_ms": 3667,
+            "rows_processed": 242
+          },
+          {
+            "status": "success",
+            "job_key": "incremental:orders:region:EU:2026-10-19T14:00:00.000Z",
+            "attempts": 1,
+            "last_error": null,
+            "duration_ms": 5353,
+            "rows_processed": 238
+          }
+        ]
+      }
+    }
+  ],
+  "logs_note": "Supabase log service returned Backend error during optional post-migration diagnostic; no zero-error claim derived from that call. Worker/database functional checks passed."
 }

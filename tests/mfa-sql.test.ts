@@ -47,6 +47,7 @@ beforeAll(async()=>{
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016194211_admin_mfa_oauth_actor_binding.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261017192500_admin_mfa_adaptive_recovery.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261018214155_mfa_voluntary_first_factor.sql',import.meta.url),'utf8'));
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261019214614_mfa_status_transient_errors.sql',import.meta.url),'utf8'));
 });
 afterAll(async()=>{await db?.close()});
 async function claims(aal='aal2',age=0){await db.query(`select set_config('request.jwt.claims',$1,false)`,[JSON.stringify({sub:uid,session_id:sid,aal,iat:Math.floor(Date.now()/1000),amr:[{method:'totp',timestamp:Math.floor(Date.now()/1000)-age}]})]);}
@@ -222,4 +223,22 @@ test('actual Shopify mapping survives MFA implementation rename with tenant/stor
  expect((await db.query<any>(`select has_function_privilege('anon',${after.impl},'execute') anon,has_function_privilege('authenticated',${after.impl},'execute') authenticated`)).rows[0]).toEqual({anon:false,authenticated:false});
  await enforce();await claims('aal1');await expect(call()).rejects.toThrow('MFA_REQUIRED');await claims('aal2');expect((await call()).rows[0].result).toHaveLength(1);
  await reset();
+});
+
+test('two admitted verified factors plus missing session is an error, never recovery lock',async()=>{
+ await reset();await enforce();const second='00000000-0000-0000-0000-000000000088';
+ await db.exec(`insert into auth.mfa_factors values('${second}','${uid}','totp','verified');update private.mfa_principals set admitted_factor_ids=array['${fid}'::uuid,'${second}'::uuid];delete from auth.sessions where id='${sid}';`);
+ try{await expect(db.query('select public.security_mfa_status()')).rejects.toThrow('MFA_SESSION_REQUIRED');expect((await db.query<any>(`select state from private.mfa_principals where user_id='${uid}'`)).rows[0].state).toBe('active');}finally{await db.exec(`delete from auth.mfa_factors where id='${second}'`);await reset()}
+});
+
+test('internal query cancellation propagates 57014 without a recovery state or principal mutation',async()=>{
+ await reset();await enforce();await db.exec('begin');
+ try{
+  await db.exec(`create or replace function private.mfa_error(p_recent boolean default false,p_force boolean default false) returns text language plpgsql stable security definer set search_path='' as $$begin raise exception 'synthetic internal read timeout' using errcode='57014';end$$;`);
+  try{await db.query('select public.security_mfa_status()');throw new Error('unexpected status response')}catch(e:any){expect(e.code).toBe('57014')}
+ }finally{await db.exec('rollback')}
+ expect((await db.query<any>(`select state from private.mfa_principals where user_id='${uid}'`)).rows[0].state).toBe('active');
+});
+test('an actual persisted recovery lock remains locked after the transient-error correction',async()=>{
+ await reset();await enforce();await db.exec("update private.mfa_principals set state='recovery_locked'");expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('recovery_locked');
 });

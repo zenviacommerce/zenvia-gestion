@@ -36,6 +36,13 @@ beforeAll(async()=>{
  insert into auth.mfa_factors values('${fid}','${uid}','totp','verified');
  insert into auth.mfa_amr_claims values('${sid}','totp',now());`);
  await db.exec("alter table public.app_users add column workspace_id uuid; update public.app_users set workspace_id=data_owner_id;");
+ await db.exec(`create table public.products(id uuid,owner_id uuid,name text,sku text,last_cost numeric,cost_unit text,last_supplier_id uuid);
+ create table public.suppliers(id uuid,owner_id uuid,name text);
+ create table public.shopify_product_mappings(id uuid,owner_id uuid,integration_account_id uuid,seller_sku text,product_id uuid,consumption_factor numeric);
+ create function private.shopify_analytics_owner() returns uuid language sql stable as $$select auth.uid()$$;
+ insert into public.products values('00000000-0000-0000-0000-000000000011','${uid}','Synthetic cups','CUPS',2.5,'ud',null);
+ insert into public.shopify_product_mappings values('00000000-0000-0000-0000-000000000012','${uid}','00000000-0000-0000-0000-000000000013','gid://shopify/ProductVariant/57896618983756','00000000-0000-0000-0000-000000000011',200);`);
+ await db.exec(readFileSync(new URL('./fixtures/shopify-mapping-before-mfa.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016191517_admin_mfa_security.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261016194211_admin_mfa_oauth_actor_binding.sql',import.meta.url),'utf8'));
  await db.exec(readFileSync(new URL('../supabase/migrations/20261017192500_admin_mfa_adaptive_recovery.sql',import.meta.url),'utf8'));
@@ -193,4 +200,26 @@ test('expired optional enrollment returns to ready and can be restarted without 
  expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('ready');
  await db.query('select public.security_mfa_begin_self_enrollment()');
  expect((await db.query<any>('select public.security_mfa_status() s')).rows[0].s.state).toBe('enrollment_required');
+});
+
+test('actual Shopify mapping survives MFA implementation rename with tenant/store/SKU isolation and MFA intact',async()=>{
+ await reset();
+ const args="'00000000-0000-0000-0000-000000000013','gid://shopify/ProductVariant/57896618983756'";
+ const call=()=>db.query<any>(`select public.shopify_get_product_mappings(${args}) result`);
+ await expect(call()).rejects.toThrow('missing FROM-clause entry for table "shopify_get_product_mappings"');
+ const meta=async()=> (await db.query<any>(`select md5(pg_get_functiondef(function_oid)) wrapper,md5(original_definition) original,implementation::oid impl from private.mfa_function_manifest where signature like '%shopify_get_product_mappings%'`)).rows[0];
+ const before=await meta();
+ const implMeta=async()=> (await db.query<any>(`select prosecdef,provolatile,proowner,proacl::text,proconfig,proparallel,proisstrict from pg_proc where oid=${before.impl}`)).rows[0];
+ const originalImplMeta=await implMeta();
+ await db.exec(readFileSync(new URL('../supabase/migrations/20261019182000_shopify_mapping_renamed_parameters.sql',import.meta.url),'utf8'));
+ const after=await meta();expect(after).toEqual(before);expect(await implMeta()).toEqual(originalImplMeta);
+ await db.exec('set role authenticated');expect((await call()).rows[0].result).toHaveLength(1);await db.exec('reset role');
+ expect((await call()).rows[0].result).toMatchObject([{productName:'Synthetic cups',unitCost:2.5,consumptionFactor:200}]);
+ expect((await db.query<any>(`select public.shopify_get_product_mappings('00000000-0000-0000-0000-000000000099','gid://shopify/ProductVariant/57896618983756') result`)).rows[0].result).toEqual([]);
+ expect((await db.query<any>(`select public.shopify_get_product_mappings('00000000-0000-0000-0000-000000000013','OTHER') result`)).rows[0].result).toEqual([]);
+ await db.exec(`insert into public.shopify_product_mappings values('00000000-0000-0000-0000-000000000022','00000000-0000-0000-0000-000000000099','00000000-0000-0000-0000-000000000013','gid://shopify/ProductVariant/57896618983756','00000000-0000-0000-0000-000000000011',999);`);
+ expect((await call()).rows[0].result).toHaveLength(1);
+ expect((await db.query<any>(`select has_function_privilege('anon',${after.impl},'execute') anon,has_function_privilege('authenticated',${after.impl},'execute') authenticated`)).rows[0]).toEqual({anon:false,authenticated:false});
+ await enforce();await claims('aal1');await expect(call()).rejects.toThrow('MFA_REQUIRED');await claims('aal2');expect((await call()).rows[0].result).toHaveLength(1);
+ await reset();
 });

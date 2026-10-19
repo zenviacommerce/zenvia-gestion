@@ -1,0 +1,66 @@
+{
+  "pattern": [
+    {
+      "signature": "private.mfa_impl_3790982(uuid,text)",
+      "nspname": "private",
+      "lanname": "plpgsql",
+      "prosecdef": true,
+      "proacl": "{postgres=X/postgres}",
+      "definition": "CREATE OR REPLACE FUNCTION private.mfa_impl_3790982(integration_account_id uuid, seller_sku text)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v uuid:=private.shopify_analytics_owner();result jsonb;begin\n select coalesce(jsonb_agg(jsonb_build_object('id',m.id,'productId',p.id,'productName',p.name,'productSku',p.sku,'unitCost',p.last_cost,'costUnit',p.cost_unit,'consumptionFactor',m.consumption_factor,'supplierName',s.name) order by p.name),'[]'::jsonb) into result from public.shopify_product_mappings m join public.products p on p.id=m.product_id and p.owner_id=v left join public.suppliers s on s.id=p.last_supplier_id and s.owner_id=v where m.owner_id=v and m.integration_account_id=shopify_get_product_mappings.integration_account_id and m.seller_sku=trim(shopify_get_product_mappings.seller_sku);return result;end;$function$\n"
+    },
+    {
+      "signature": "shopify_delete_product_mapping_item(uuid,text,uuid)",
+      "nspname": "public",
+      "lanname": "plpgsql",
+      "prosecdef": false,
+      "proacl": "{postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres}",
+      "definition": "CREATE OR REPLACE FUNCTION public.shopify_delete_product_mapping_item(integration_account_id uuid, seller_sku text, product_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare v uuid:=private.shopify_analytics_owner();begin delete from public.shopify_product_mappings m where m.owner_id=v and m.integration_account_id=shopify_delete_product_mapping_item.integration_account_id and m.seller_sku=trim(shopify_delete_product_mapping_item.seller_sku) and m.product_id=shopify_delete_product_mapping_item.product_id;return jsonb_build_object('ok',true);end;$function$\n"
+    }
+  ],
+  "manifest": [
+    {
+      "signature": "public.shopify_get_product_mappings(uuid,text)",
+      "wrapper": "shopify_get_product_mappings(uuid,text)",
+      "implementation": "private.mfa_impl_3790982(uuid,text)",
+      "original_definition": "CREATE OR REPLACE FUNCTION public.shopify_get_product_mappings(integration_account_id uuid, seller_sku text)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare v uuid:=private.shopify_analytics_owner();result jsonb;begin\n select coalesce(jsonb_agg(jsonb_build_object('id',m.id,'productId',p.id,'productName',p.name,'productSku',p.sku,'unitCost',p.last_cost,'costUnit',p.cost_unit,'consumptionFactor',m.consumption_factor,'supplierName',s.name) order by p.name),'[]'::jsonb) into result from public.shopify_product_mappings m join public.products p on p.id=m.product_id and p.owner_id=v left join public.suppliers s on s.id=p.last_supplier_id and s.owner_id=v where m.owner_id=v and m.integration_account_id=shopify_get_product_mappings.integration_account_id and m.seller_sku=trim(shopify_get_product_mappings.seller_sku);return result;end;$function$\n",
+      "wrapper_hash": "7c8eed52178bae95bb1f6c78a8388805"
+    }
+  ],
+  "audit": [
+    {
+      "audit": {
+        "counts": [
+          {
+            "lanname": "plpgsql",
+            "nspname": "private",
+            "functions": 89
+          },
+          {
+            "lanname": "sql",
+            "nspname": "private",
+            "functions": 31
+          },
+          {
+            "lanname": "plpgsql",
+            "nspname": "public",
+            "functions": 90
+          },
+          {
+            "lanname": "sql",
+            "nspname": "public",
+            "functions": 16
+          }
+        ],
+        "manifest_count": 34,
+        "shopify_columns": null,
+        "renamed_qualifiers": [
+          {
+            "wrapper": "public.shopify_get_product_mappings(uuid,text)",
+            "implementation": "private.mfa_impl_3790982(uuid,text)"
+          }
+        ],
+        "sql_self_qualified": []
+      }
+    }
+  ]
+}

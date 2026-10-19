@@ -36,7 +36,7 @@ test('Amazon status endpoint authenticates access and never returns credentials'
   assert.match(status,/amazon_accounts/);
   assert.match(status,/amazon_marketplaces/);
   assert.match(status,/amazon_sync_runs/);
-  assert.match(status,/amazon_sync_jobs/);
+  assert.match(status,/amazon_sync_job_status_counts/);
   assert.doesNotMatch(status,/clientSecret|refreshToken|accessToken/);
 });
 

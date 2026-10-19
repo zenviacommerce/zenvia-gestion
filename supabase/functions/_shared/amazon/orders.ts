@@ -4,6 +4,7 @@ import { loadAmazonSpApiCredentials } from './config.ts';
 const INCLUDED_DATA=['PROCEEDS','EXPENSE','PROMOTION','CANCELLATION','FULFILLMENT','PACKAGES','TAX'];
 const OPERATIONAL_INCLUDED_DATA=[...INCLUDED_DATA,'BUYER','RECIPIENT'];
 const SAFE_LAG_MS=2*60*1000;
+const EU_MARKETPLACE_IDS=new Set(['A1RKKUPIHCS9HS','A13V1IB3VIYZZH','A1PA6795UKMFR9','APJ6JRA9NG5V4','A1805IZSGTT6HS','A2NODRKZP88ZB9','A1C3SOZRARQ6R3','AMEN7PMS3EDWL','A28R8C7NBKEWEA','A1F83G8C2ARO7P']);
 
 type Money={amount?:string|number|null;currencyCode?:string|null}|null|undefined;
 function money(value:Money){const n=Number(value?.amount);return Number.isFinite(n)?n:null;}
@@ -112,33 +113,95 @@ async function fallbackWeightKg(admin:any,ownerId:string){
   const value=Number(data?.config?.shipping?.fallbackWeightKg);
   return Number.isFinite(value)&&value>0?value:1;
 }
-export async function reconcileOperationalAmazonStates(admin:any,orders:any[],ownerId:string){
-  for(const order of orders){
-    const status=clean(order?.fulfillment?.fulfillmentStatus);
-    if(!order?.orderId||!status)continue;
-    const shipment=(Array.isArray(order.packages)?order.packages:[]).find((p:any)=>clean(p?.trackingNumber));
-    const patch:any={source_status:status,order_updated_at:order.lastUpdatedTime||new Date().toISOString(),last_synced_at:new Date().toISOString()};
-    if(shipment){
-      patch.tracking_number=clean(shipment.trackingNumber);
-      const carrier=typeof shipment.carrier==='string'?shipment.carrier:shipment.carrier?.name||shipment.carrier?.carrierCode;
-      if(carrier){patch.carrier_name=clean(carrier);patch.carrier_code=clean(carrier).toLowerCase()}
-      if(shipment.shippingService)patch.shipping_service_name=typeof shipment.shippingService==='string'?shipment.shippingService:shipment.shippingService.name||null;
-      patch.tracking_updated_at=new Date().toISOString();
-      patch.tracking_status_code=clean(shipment.packageStatus?.status)||status;
-      patch.tracking_status_message=clean(shipment.packageStatus?.detailedStatus)||status;
+// Compare PostgreSQL JSONB values independently of object-key order. Observation
+// timestamps are not business changes; unchanged rows keep their last write time.
+function canonical(value:any):string{
+  if(Array.isArray(value))return '['+value.map(canonical).join(',')+']';
+  if(value&&typeof value==='object')return '{'+Object.keys(value).sort().map(key=>JSON.stringify(key)+':'+canonical(value[key])).join(',')+'}';
+  return JSON.stringify(value??null);
+}
+function sameField(key:string,a:any,b:any){
+  if(a==null&&b==null)return true;
+  if((key.endsWith('_at')||key==='order_created_at'||key==='order_updated_at')&&a&&b){
+    const left=Date.parse(a),right=Date.parse(b);if(Number.isFinite(left)&&Number.isFinite(right))return left===right;
+  }
+  if(key==='items'){
+    const normalized=(items:any)=>Array.isArray(items)?items.map(item=>Object.fromEntries(Object.entries(item).filter(([k,v])=>!(['image_url','measurement'].includes(k)&&v==null)))):items;
+    return canonical(normalized(a))===canonical(normalized(b));
+  }
+  return canonical(a)===canonical(b);
+}
+function preservePersistedFields(current:any,patch:any){
+  const pending=['pending','pendingavailability','invoiceunconfirmed','unshipped','partiallyshipped'].includes(clean(patch.source_status).toLowerCase().replaceAll('_',''));
+  // Same monotonic-state rules as fulfillment_amazon_status_freshness: stale
+  // reads must not generate writes that the SQL trigger would immediately undo.
+  if(current&&(current.fulfilled_at&&pending||current.order_updated_at&&patch.order_updated_at&&Date.parse(patch.order_updated_at)<Date.parse(current.order_updated_at))){
+    patch.source_status=current.source_status;patch.order_updated_at=current.order_updated_at;
+    if('fulfilled_at' in patch)patch.fulfilled_at=current.fulfilled_at;
+  }
+  const cancellations=current?._amazonConfirmedCancellations||[];
+  if(cancellations.some((op:any)=>op.kind==='order'))patch.source_status=current.source_status;
+  const matchesLabel=(row:any,op:any)=>op.kind==='label'&&(op.details?.shipmentRef===String(row.shipping_remote_id??row.sendcloud_parcel_id??row.tracking_number??'')||clean(op.details?.trackingNumber)&&op.details.trackingNumber===row.tracking_number);
+  if(cancellations.some((op:any)=>matchesLabel({...current,...patch},op))){
+    const replacement=current.label_created_at&&!cancellations.some((op:any)=>matchesLabel(current,op));
+    for(const key of ['tracking_number','tracking_status_code','tracking_status_message','tracking_updated_at','fulfilled_at']){
+      if(replacement)delete patch[key];else patch[key]=null;
     }
-    if(status.toUpperCase()==='SHIPPED')patch.fulfilled_at=shipment?.shipTime||order.lastUpdatedTime||new Date().toISOString();
-    const {error}=await admin.from('fulfillment_orders').update(patch).eq('owner_id',ownerId).eq('source_channel','amazon').eq('order_number',String(order.orderId));
+  }
+  if(!current?.pii_purged_at)return;
+  // Match the SQL retention guard before comparing, so redacted rows do not
+  // receive the same doomed-to-be-redacted PII on every page.
+  for(const key of ['customer_name','customer_email','customer_phone','shipping_address','raw_payload','tracking_number','tracking_status_message'])delete patch[key];
+  if(patch.items)patch.items=patch.items.map((item:any)=>Object.fromEntries(['item_id','sku','product_id','quantity','unit_price','total_price'].filter(key=>item[key]!=null).map(key=>[key,item[key]])));
+}
+function changedBusiness(current:any,patch:any){
+  return Object.entries(patch).some(([key,value])=>key!=='last_synced_at'&&key!=='tracking_updated_at'&&!sameField(key,current?.[key],value));
+}
+function operationalStatePatch(order:any,current:any={}){
+  const status=clean(order?.fulfillment?.fulfillmentStatus);
+  if(!status)return {};
+  const shipment=(Array.isArray(order.packages)?order.packages:[]).find((p:any)=>clean(p?.trackingNumber));
+  const patch:any={source_status:status,order_updated_at:order.lastUpdatedTime||current.order_updated_at||null};
+  if(shipment){
+    patch.tracking_number=clean(shipment.trackingNumber);
+    const carrier=typeof shipment.carrier==='string'?shipment.carrier:shipment.carrier?.name||shipment.carrier?.carrierCode;
+    if(carrier){patch.carrier_name=clean(carrier);patch.carrier_code=clean(carrier).toLowerCase()}
+    if(shipment.shippingService)patch.shipping_service_name=typeof shipment.shippingService==='string'?shipment.shippingService:shipment.shippingService.name||null;
+    patch.tracking_status_code=clean(shipment.packageStatus?.status)||status;
+    patch.tracking_status_message=clean(shipment.packageStatus?.detailedStatus)||status;
+    if(Object.entries(patch).some(([key,value])=>key.startsWith('tracking_')&&!sameField(key,current[key],value)))patch.tracking_updated_at=new Date().toISOString();
+  }
+  if(status.toUpperCase()==='SHIPPED')patch.fulfilled_at=shipment?.shipTime||order.lastUpdatedTime||current.fulfilled_at||new Date().toISOString();
+  return patch;
+}
+async function attachConfirmedCancellations(admin:any,rows:any[],ownerId:string){
+  if(!rows.length)return;
+  const {data,error}=await admin.from('order_cancellation_operations').select('order_id,kind,details').eq('owner_id',ownerId).eq('status','confirmed').in('order_id',rows.map(row=>row.id));
+  if(error)throw error;
+  for(const row of rows)row._amazonConfirmedCancellations=(data||[]).filter((op:any)=>op.order_id===row.id);
+}
+export async function reconcileOperationalAmazonStates(admin:any,orders:any[],ownerId:string){
+  const valid=orders.filter(order=>order?.orderId&&clean(order?.fulfillment?.fulfillmentStatus));
+  if(!valid.length)return;
+  const {data:existing,error:readError}=await admin.from('fulfillment_orders').select('*').eq('owner_id',ownerId).eq('source_channel','amazon').in('order_number',valid.map(order=>String(order.orderId)));
+  if(readError)throw readError;
+  await attachConfirmedCancellations(admin,existing||[],ownerId);
+  for(const order of valid)for(const current of (existing||[]).filter((row:any)=>row.order_number===String(order.orderId))){
+    const patch=operationalStatePatch(order,current);
+    preservePersistedFields(current,patch);
+    if(!changedBusiness(current,patch))continue;
+    const {error}=await admin.from('fulfillment_orders').update({...patch,last_synced_at:new Date().toISOString()}).eq('owner_id',ownerId).eq('id',current.id);
     if(error)throw error;
   }
 }
 async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
-  await reconcileOperationalAmazonStates(admin,orders,job.owner_id);
+  // Merchant states are merged into their single business-data write below.
+  await reconcileOperationalAmazonStates(admin,orders.filter(order=>!merchantFulfilled(order)),job.owner_id);
   const candidates=orders.filter(order=>order?.orderId&&merchantFulfilled(order));
   if(!candidates.length)return 0;
   const sourceAccount=await amazonIntegrationAccount(admin,job);
   const sourceIntegrationAccountId=sourceAccount?.id?String(sourceAccount.id):null;
-  if(!sourceIntegrationAccountId)return 0;
+  if(!sourceIntegrationAccountId){await reconcileOperationalAmazonStates(admin,candidates,job.owner_id);return 0;}
   const orderIds=candidates.map(order=>String(order.orderId));
   const {data:existing,error:existingError}=await admin.from('fulfillment_orders')
     .select('*')
@@ -146,6 +209,7 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
     .eq('source_channel','amazon')
     .in('order_number',orderIds);
   if(existingError)throw existingError;
+  await attachConfirmedCancellations(admin,existing||[],job.owner_id);
   const existingByOrder=new Map((existing||[]).map((row:any)=>[String(row.order_number||row.order_id||''),row]));
   const fallbackWeight=await fallbackWeightKg(admin,job.owner_id);
   let synced=0;
@@ -179,9 +243,11 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
       shipping_address:address,
       items:freshItems.length?mergeOperationalItems(current?.items||[],freshItems):(current?.items||[]),
       total_amount:grandTotal?money(grandTotal):(current?.total_amount??null),currency:currency(grandTotal)||current?.currency||null,
-      raw_payload:rawPayload,last_synced_at:new Date().toISOString(),
+      raw_payload:rawPayload,...operationalStatePatch(order,current||{}),last_synced_at:new Date().toISOString(),
     };
     if(current?.id){
+      preservePersistedFields(current,patch);
+      if(!changedBusiness(current,patch)){synced+=1;continue;}
       const {error:updateError}=await admin.from('fulfillment_orders').update(patch).eq('id',current.id).eq('owner_id',job.owner_id);
       if(updateError)throw updateError;
     }else{
@@ -198,6 +264,10 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
     }
     synced+=1;
   }
+  // Legacy carrier imports may leave additional copies of the same order.
+  // Re-read after our merged write: the canonical copy is now a no-op, while
+  // differing legacy copies still receive the authoritative status once.
+  await reconcileOperationalAmazonStates(admin,candidates,job.owner_id);
   return synced;
 }
 
@@ -279,14 +349,17 @@ async function upsertPage(admin:any,orders:any[],job:any){
   return orderRows.length+itemRows.length+operational;
 }
 
-export async function syncOrdersJob(admin:any,job:any){
-  if(!job?.marketplace_id||!job?.window_from)throw new Error('Job de pedidos incompleto.');
+export async function syncOrdersJob(admin:any,job:any,deadline=Date.now()+300_000){
+  const grouped=Array.isArray(job?.payload?.marketplace_ids);
+  const marketplaceIds:string[]=grouped?[...new Set<string>(job.payload.marketplace_ids)].sort():[job?.marketplace_id];
+  if(grouped&&(job.payload.region!=='EU'||job.scope_key!=='region:EU'||job.marketplace_id||!marketplaceIds.length||marketplaceIds.some(id=>!EU_MARKETPLACE_IDS.has(id))))throw new Error('Unsupported Amazon region, scope or marketplace.');
+  if(!marketplaceIds[0]||!job?.window_from)throw new Error('Job de pedidos incompleto.');
   const mode=String(job?.payload?.mode||'hourly');
   const safeBefore=new Date(Date.now()-SAFE_LAG_MS);
   const before=minIso(job.window_to,safeBefore);
-  if(new Date(job.window_from)>=new Date(before))return 0;
+  if(new Date(job.window_from)>=new Date(before)){job.orders_completed_before=before;return 0;}
   const baseQuery:any={
-    marketplaceIds:[job.marketplace_id],
+    marketplaceIds,
     maxResultsPerPage:100,
     includedData:OPERATIONAL_INCLUDED_DATA,
   };
@@ -301,6 +374,9 @@ export async function syncOrdersJob(admin:any,job:any){
   let paginationToken:string|undefined;
   let processed=0;
   do{
+    // Leave room for the client's bounded retries and lease/failure bookkeeping.
+    // No cursor is discarded on success: budget exhaustion retries the whole window.
+    if(grouped&&Date.now()>=deadline-150_000)throw new Error('Amazon Orders runtime budget exhausted before page completion.');
     const query={...baseQuery,...(paginationToken?{paginationToken}:{})};
     let data:any;
     try{
@@ -318,8 +394,17 @@ export async function syncOrdersJob(admin:any,job:any){
       data=await spApiRequest('/orders/2026-01-01/orders',{query:{...query,includedData:INCLUDED_DATA}},credentials);
     }
     const orders=Array.isArray(data?.orders)?data.orders:[];
-    processed+=await upsertPage(admin,orders,job);
+    // Validate the entire page before any write; never attribute a grouped
+    // response with absent marketplace identity to the first requested market.
+    if(orders.some((order:any)=>grouped?(!order?.salesChannel?.marketplaceId||!marketplaceIds.includes(order.salesChannel.marketplaceId)):(order?.salesChannel?.marketplaceId&&!marketplaceIds.includes(order.salesChannel.marketplaceId))))throw new Error('Amazon response marketplace outside requested scope.');
+    if(grouped){
+      for(const marketplaceId of marketplaceIds){
+        const scoped=orders.filter((order:any)=>order.salesChannel.marketplaceId===marketplaceId);
+        if(scoped.length)processed+=await upsertPage(admin,scoped,{...job,marketplace_id:marketplaceId});
+      }
+    }else processed+=await upsertPage(admin,orders,job);
     paginationToken=data?.pagination?.nextToken||undefined;
   }while(paginationToken);
+  job.orders_completed_before=before;
   return processed;
 }

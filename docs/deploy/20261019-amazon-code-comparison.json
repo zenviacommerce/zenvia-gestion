@@ -1,0 +1,291 @@
+[
+  {
+    "function": "amazon-backfill-finance-components",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": []
+    }
+  },
+  {
+    "function": "amazon-confirm-shipment",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "_shared/mfa.ts",
+        "_shared/orderCancellation.ts",
+        "_shared/mfa-policy.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/shipment-confirmation.ts",
+        "_shared/amazon/config.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-order-diagnostics",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "amazon-order-diagnostics/index.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "amazon-order-diagnostics/index.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "amazon-order-diagnostics/index.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "amazon-order-diagnostics/index.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-performance-diagnostic",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "index.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "index.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "index.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "index.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-recipient-fallback",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "amazon-recipient-fallback/index.ts",
+        "_shared/mfa.ts",
+        "_shared/recipientFallback.ts",
+        "_shared/mfa-policy.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-reconcile-orders",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/mfa-policy.ts",
+        "_shared/amazon/orders.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "_shared/mfa.ts",
+        "_shared/mfa-policy.ts",
+        "amazon-reconcile-orders/index.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/config.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-status",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/mfa-policy.ts",
+        "amazon-status/index.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/mfa-policy.ts",
+        "amazon-status/index.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "_shared/mfa.ts",
+        "_shared/mfa-policy.ts",
+        "amazon-status/index.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/config.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-sync-finances",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/config.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-sync-fx",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": []
+    }
+  },
+  {
+    "function": "amazon-sync-inventory",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/config.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-sync-manual",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/mfa-policy.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "_shared/mfa.ts",
+        "_shared/mfa-policy.ts",
+        "amazon-sync-manual/index.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/config.ts",
+        "_shared/amazon/supabase.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-sync-orchestrator",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/config.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-sync-orders",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/amazon/orders.ts",
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/config.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-sync-product-images",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/config.ts"
+      ]
+    }
+  },
+  {
+    "function": "amazon-sync-worker",
+    "differences_ignoring_trailing_whitespace": {
+      "main": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/fix/orders-pool-pressure-kpis-20261019": [
+        "_shared/amazon/orders.ts",
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/perf/amazon-status-grouped-20261019": [
+        "_shared/amazon/supabase.ts"
+      ],
+      "origin/sync/production-snapshot-20261015": [
+        "_shared/orderCancellation.ts",
+        "_shared/amazon/sp-api.ts",
+        "_shared/amazon/shipment-confirmation.ts",
+        "_shared/amazon/config.ts"
+      ]
+    }
+  }
+]

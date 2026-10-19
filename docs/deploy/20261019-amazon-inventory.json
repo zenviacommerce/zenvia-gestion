@@ -1,0 +1,92 @@
+[
+  {
+    "slug": "amazon-status",
+    "version": 21,
+    "updated_at": "2026-10-19T11:03:16.287Z",
+    "bundle_sha256": "81e74da5f47611523a26c12e2cb95a49422be3f30c7425e55a6fd58439d0fbec"
+  },
+  {
+    "slug": "amazon-sync-manual",
+    "version": 25,
+    "updated_at": "2026-10-18T13:44:58.157Z",
+    "bundle_sha256": "53d581dc879d913d69eeb5c04d1f2015da12e26526eea8606b781c8c767680f8"
+  },
+  {
+    "slug": "amazon-sync-orders",
+    "version": 20,
+    "updated_at": "2026-10-17T11:56:37.355Z",
+    "bundle_sha256": "f7d51c96ac9b9e387116d166907b607b28e7b2a3016378ead9ca4dc73a07bc90"
+  },
+  {
+    "slug": "amazon-sync-finances",
+    "version": 18,
+    "updated_at": "2026-10-17T11:56:31.293Z",
+    "bundle_sha256": "46da0b9676e552d5c6361080a049e7fca3d2ae3c84d5bc717c15b1387973ecf9"
+  },
+  {
+    "slug": "amazon-sync-inventory",
+    "version": 13,
+    "updated_at": "2026-10-17T11:56:25.246Z",
+    "bundle_sha256": "4900ab294ac784457d295d04b13ccb8ed701d47b7fd09b7cb9b953476d659ae1"
+  },
+  {
+    "slug": "amazon-sync-orchestrator",
+    "version": 18,
+    "updated_at": "2026-10-17T11:57:16.898Z",
+    "bundle_sha256": "e654f903fa2c3e069a4e5821f34fc3386fa1d8a6ad5f285052ab658550b473c1"
+  },
+  {
+    "slug": "amazon-sync-worker",
+    "version": 38,
+    "updated_at": "2026-10-17T11:57:21.172Z",
+    "bundle_sha256": "694bd6fd8cd508eed668c7121c3c928b5fd469ab24c748aee5249b78cd413b52"
+  },
+  {
+    "slug": "amazon-sync-fx",
+    "version": 35,
+    "updated_at": "2026-10-17T11:56:15.675Z",
+    "bundle_sha256": "b87a4caea1b1708b24075c50d217d78b7b4275bffdbb658a0579dfbb05bb3633"
+  },
+  {
+    "slug": "amazon-backfill-finance-components",
+    "version": 18,
+    "updated_at": "2026-10-17T11:56:21.075Z",
+    "bundle_sha256": "6e2d24042c763e7aa49607a578f554568305f6b7903a71995cb09c0e31d2dafd"
+  },
+  {
+    "slug": "amazon-confirm-shipment",
+    "version": 19,
+    "updated_at": "2026-10-18T13:45:25.786Z",
+    "bundle_sha256": "9779ae9feaf8360c492ed898da1131841dc511328f83c9b51d9ce19efa93f173"
+  },
+  {
+    "slug": "amazon-sync-product-images",
+    "version": 23,
+    "updated_at": "2026-10-17T11:56:44.833Z",
+    "bundle_sha256": "488695d168909e388bfadae5622543351c98494bdaebf6ce1c4aac365f97283a"
+  },
+  {
+    "slug": "amazon-reconcile-orders",
+    "version": 9,
+    "updated_at": "2026-10-18T13:48:22.679Z",
+    "bundle_sha256": "ab80d8abfa99b66ed6c1ffe99cf8aee77160c3d098e633cd96cccaf46e0c99d3"
+  },
+  {
+    "slug": "amazon-order-diagnostics",
+    "version": 3,
+    "updated_at": "2026-10-05T21:58:33.514Z",
+    "bundle_sha256": "0d524bd22b5dfdf6c0a883e0a2430201a3334e04aefa1cc1b9138317aa73a87d"
+  },
+  {
+    "slug": "amazon-recipient-fallback",
+    "version": 8,
+    "updated_at": "2026-10-18T13:49:10.210Z",
+    "bundle_sha256": "c302031c32f8d3200e880c3328fb0a7d82fb3a33892d03d4b62615e304054037"
+  },
+  {
+    "slug": "amazon-performance-diagnostic",
+    "version": 10,
+    "updated_at": "2026-10-14T17:35:07.900Z",
+    "bundle_sha256": "d7a4cadfb14952ef57b1ba9cf8d48ca6383cb74d28936941f55e5ce5d232fa82"
+  }
+]

@@ -36,3 +36,11 @@ Redeploy each exact JSON snapshot with verify_jwt=true; restore SQL function fro
 - Final source e2d2d009faba912e07ab1ee9aaa08f5432baaffa: all five workflows completed success (39249361202 Playwright; 39249361343 Auth; 39249361265 Build; 39249361304 Build check; 39249361400 disposable real integration). Real integration includes synthetic UI/PostgreSQL and actual GoTrue/Vault gates; no skipped gate inferred as success.
 - Local full suites: 121 Vitest and 1,098 Node tests passed, zero failures/skips. Build passed. Specific disabled-MFA RPC503/hung tests passed before merge.
 - PR240 merged only after backend verification and CI: merge SHA 966a41acca9f794e97513f7735b0aea990e0c353. Waiting Vercel; no user UI validation claimed.
+
+## Publication and stop — 12:11 UTC
+
+- Vercel production deployment dpl_2DCedbffF6nnkrJvEeh32pru8nZE READY, source merge966a41acca9f794e97513f7735b0aea990e0c353.
+- Deployment built successfully but custom domain remained on the pinned rollback. Explicitly promoted the authorized release; fetched alias now points to the new deployment.
+- Public production HTML HTTP200 and bundle HTTP200: `/assets/index-BNSeQGme.js`. Actual served bundle does not contain `Fixture sintética`. Receipt `20261019-shipping-production-receipt.json`.
+- STOP for user's authenticated browser checks: startup, Orders and real order Create label modal. No label purchased/created. No claim of authenticated UI or real-provider price verification.
+- Instant Rollback remains dpl_3W2T4KqMQYqspkCT6FAupXTH2jba / index-BkauntMi.js. SQL/Edge snapshots in main; post-publication journal stored on audit branch to avoid triggering another deployment during user review.

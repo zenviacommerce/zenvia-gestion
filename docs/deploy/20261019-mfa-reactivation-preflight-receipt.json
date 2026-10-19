@@ -25,9 +25,11 @@
     "outside_admins": 3,
     "outside_users": 2,
     "plan_sync": true,
-    "owner_platform_bridge": false,
     "kill_switch": "passed",
-    "transaction": "ROLLBACK"
+    "transaction": "ROLLBACK",
+    "pilot_email_bridge_denied": true,
+    "actual_platform_actor_count": 1,
+    "actual_platform_actor_allowed": true
   },
   "status_reproduction": {
     "before": "recovery_locked",
@@ -42,14 +44,51 @@
     "host_timezone_deviation": "one pre-existing Amazon clock assertion failed with host date20Oct vsMadrid19Oct; all1130 pass TZ=Europe/Madrid"
   },
   "blockers": [
-    "owner Platform actor denied by existing cohort bridge policy",
     "CPU metric not available",
     "historical 503x3+200 response reason not proven; do not substitute reproducible defect for historical proof"
   ],
   "pr": "https://github.com/zenviacommerce/zenvia-gestion/pull/249",
-  "head": "4708cd963ffd4499cb72f4e1314fb50cfd56e9e9",
+  "head": "90c8a9231bf3012bcfbd56c054e6fd5261090060",
   "rollback": {
     "id": "dpl_5g5QN5ZfoW5BfjmPD7oR8BPgSAVH",
     "url": "zenvia-gestion-3po88kwig-sergiorojasdiaz-7097.vercel.app"
+  },
+  "identity_correction": "Initial synthetic pilot-email denial was a negative security control, incorrectly described as an actual Platform blocker. Verified the real active Platform actor in independent Auth project: different identity, passes gate under rolled-back cohort.",
+  "backend_deployment": {
+    "version": "20261019214614",
+    "name": "mfa_status_transient_errors",
+    "status_hash": "a18577108e2b660f8effe809b55e2663",
+    "enabled": false,
+    "cohort": null,
+    "guard_findings": 0,
+    "acl_unchanged": true,
+    "source_ci_head": "4708cd963ffd4499cb72f4e1314fb50cfd56e9e9",
+    "source_ci": [
+      {
+        "name": "Build check",
+        "id": 39329374742,
+        "conclusion": "success"
+      },
+      {
+        "name": "MFA visual review (Playwright)",
+        "id": 39329374540,
+        "conclusion": "success"
+      },
+      {
+        "name": "Auth resilience tests",
+        "id": 39329374615,
+        "conclusion": "success"
+      },
+      {
+        "name": "Build ZENVIA Gestión",
+        "id": 39329374648,
+        "conclusion": "success"
+      },
+      {
+        "name": "MFA real integration (disposable Supabase)",
+        "id": 39329374543,
+        "conclusion": "success"
+      }
+    ]
   }
 }

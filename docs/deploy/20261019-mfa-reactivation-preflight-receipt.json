@@ -1,0 +1,55 @@
+{
+  "date": "2026-10-19",
+  "activation": "NOT ACTIVATED",
+  "production_baseline": {
+    "enabled": false,
+    "cohort_user_ids": null,
+    "guard_findings": 0,
+    "principal_state": "active",
+    "verified_admitted_totp": 2,
+    "connections": 34,
+    "max_connections": 90,
+    "active_connections": 2
+  },
+  "health_window": {
+    "from": "2026-10-19T20:25:00Z",
+    "to": "2026-10-19T21:25:00Z",
+    "PGRST003": 0,
+    "SQLSTATE57014": 0,
+    "cpu": "not measured"
+  },
+  "transaction_rehearsal": {
+    "pilot_AAL1": "denied",
+    "pilot_AAL2": "ready",
+    "orders_rpc": "passed",
+    "outside_admins": 3,
+    "outside_users": 2,
+    "plan_sync": true,
+    "owner_platform_bridge": false,
+    "kill_switch": "passed",
+    "transaction": "ROLLBACK"
+  },
+  "status_reproduction": {
+    "before": "recovery_locked",
+    "after": "42501 MFA_SESSION_REQUIRED",
+    "rollback_hash": "6bec4d51a567fa26b8b6e6570a6f796b",
+    "principal_mutated": false,
+    "transaction": "ROLLBACK"
+  },
+  "tests": {
+    "vitest": 165,
+    "node": 1130,
+    "host_timezone_deviation": "one pre-existing Amazon clock assertion failed with host date20Oct vsMadrid19Oct; all1130 pass TZ=Europe/Madrid"
+  },
+  "blockers": [
+    "owner Platform actor denied by existing cohort bridge policy",
+    "CPU metric not available",
+    "historical 503x3+200 response reason not proven; do not substitute reproducible defect for historical proof"
+  ],
+  "pr": "https://github.com/zenviacommerce/zenvia-gestion/pull/249",
+  "head": "4708cd963ffd4499cb72f4e1314fb50cfd56e9e9",
+  "rollback": {
+    "id": "dpl_5g5QN5ZfoW5BfjmPD7oR8BPgSAVH",
+    "url": "zenvia-gestion-3po88kwig-sergiorojasdiaz-7097.vercel.app"
+  }
+}

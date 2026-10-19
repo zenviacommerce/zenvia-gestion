@@ -9,6 +9,7 @@ import { extractInvoiceParty, formatInvoicePartyAddress } from './invoicePartyEx
 import { isLikelySameSupplier, isPlausibleSupplierName } from './supplierIdentity';
 import { expenseImportPolicyFromSettings, expenseRequiresReview, type ExpenseImportPolicy } from './expenseImportPolicy';
 import { invoiceAmountsConsistent } from './invoiceFiscalReconciler';
+import { checkInvoiceIntegrity, invoiceIntegritySummary, invoiceReviewReasons } from './invoiceCore';
 
 async function sha256File(file:File){
   const buffer=await file.arrayBuffer();
@@ -83,12 +84,19 @@ export async function createManualInvoiceCandidate(file:File):Promise<InvoiceImp
   };
 }
 
+
+function isMerchandiseCategoryId(categories:ExpenseCategory[],categoryId?:string|null){
+  const category=categories.find(item=>item.id===categoryId);
+  return Boolean(category&&normalizeKey(category.name).includes('mercancia'));
+}
+
 async function candidateFromRead(
   file:File,
   fileHash:string,
   read:InvoiceReadResult,
   policy:ExpenseImportPolicy,
   bundle?:{index:number;count:number},
+  options?:{merchandise?:boolean},
 ):Promise<InvoiceImportCandidate>{
   const readAmounts={
     subtotal:Number(read.subtotal||0),
@@ -149,16 +157,28 @@ async function candidateFromRead(
     withholding:read.withholding,
     total:repairedAmounts.total,
   });
-  // A fiscal total can be internally consistent while OCR silently drops
-  // expensive item rows. Do not auto-save such invoices.
-  const amounts=repairedLines.map(line=>Number(line.lineNet)).filter(value=>Number.isFinite(value));
-  if(repairedLines.length>0&&amounts.length===repairedLines.length&&Number(repairedAmounts.subtotal)>0){
-    const rowsTotal=amounts.reduce((sum,value)=>sum+value,0);
-    const difference=Math.abs(rowsTotal-Number(repairedAmounts.subtotal));
-    if(difference>Math.max(0.05,Number(repairedAmounts.subtotal)*0.01)){
-      status='needs_review';
-      reviewReason=[reviewReason,`Las líneas suman ${rowsTotal.toFixed(2)} y la base declarada ${Number(repairedAmounts.subtotal).toFixed(2)}; comprueba si faltan artículos.`].filter(Boolean).join(' · ');
-    }
+  // Motor común de integridad: concilia las fuentes del documento, conserva las líneas
+  // no verificadas, detecta duplicados/ausencias y valida base, IVA y total. Una factura
+  // que no cuadra nunca sale de aquí como «ready».
+  const integrityCheck=checkInvoiceIntegrity({
+    header:{
+      supplierName:read.supplierName,
+      supplierTaxId:details.taxId||read.aiIssuer?.taxId||contact.taxId||party.taxId,
+      invoiceNumber:read.invoiceNumber,
+      invoiceDate:read.invoiceDate,
+      subtotal:Number(repairedAmounts.subtotal),
+      vat:Number(repairedAmounts.vat),
+      equivalenceSurcharge,
+      withholding:Number(read.withholding||0),
+      total:Number(repairedAmounts.total),
+    },
+    sources:[{kind:read.analysisEngine==='hybrid-ai-verified'?'ai':read.usedOcr?'ocr':'text_layer',lines:repairedLines}],
+    documentText:read.text,
+    requireLines:Boolean(options?.merchandise),
+  });
+  if(integrityCheck.status!=='ready'){
+    status='needs_review';
+    reviewReason=[reviewReason,...invoiceReviewReasons(integrityCheck)].filter(Boolean).join(' · ');
   }
   if(!integrity.safe){
     status='needs_review';
@@ -194,7 +214,11 @@ async function candidateFromRead(
     analysisEngine:read.analysisEngine,
     analysisModel:read.analysisModel,
     analysisWarnings:read.analysisWarnings,
-    lines:repairedLines,
+    lines:repairedLines.map((line,index)=>{
+      const checked=integrityCheck.lines[index];
+      return checked&&(checked.status==='review'||checked.priceReview.length)?{...line,priceReview:true}:line;
+    }),
+    integrityCheck:invoiceIntegritySummary(integrityCheck,new Date().toISOString()),
     multiInvoiceSource:Boolean(bundle&&bundle.count>1),
     bundleIndex:bundle?.index,
     bundleCount:bundle?.count,
@@ -212,7 +236,7 @@ export async function prepareInvoiceCandidate(
     readInvoiceDocumentEnhanced(analysisFile,categories,onProgress),
     sha256File(file),
   ]);
-  return candidateFromRead(file,fileHash,read,policy);
+  return candidateFromRead(file,fileHash,read,policy,undefined,{merchandise:isMerchandiseCategoryId(categories,read.categoryId||policy.defaultCategoryId)});
 }
 
 export async function prepareInvoiceCandidates(
@@ -233,6 +257,7 @@ export async function prepareInvoiceCandidates(
     read,
     policy,
     count>1?{index:index+1,count}:undefined,
+    {merchandise:isMerchandiseCategoryId(categories,read.categoryId||policy.defaultCategoryId)},
   )));
 }
 
@@ -293,6 +318,7 @@ export function invoiceCandidateToInput(candidate:InvoiceImportCandidate,source:
       bundleIndex:candidate.bundleIndex??null,
       bundleCount:candidate.bundleCount??null,
       detectedCurrency:candidate.currency??null,
+      integrityCheck:candidate.integrityCheck??null,
     },
     extractionConfidence:candidate.confidence,
     lines:candidate.lines,

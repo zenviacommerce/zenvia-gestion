@@ -144,6 +144,17 @@ function normalizeInclusiveLine(line:RepairableInvoiceLine,summary:InclusiveTaxS
   return {...line,normalizedUnitPrice,lineNet,taxRate:summary.taxRate,taxAmount};
 }
 
+/** Límite de seguridad muy por encima de una factura real (antes 50: se perdían líneas). */
+export const MAX_INVOICE_PRODUCT_LINES=400;
+
+function hasConsistentLineAmounts(line:RepairableInvoiceLine){
+  const quantity=Number(line.quantity),unitPrice=Number(line.unitPrice),net=Number(line.lineNet??line.lineTotal);
+  if(![quantity,unitPrice,net].every(Number.isFinite))return false;
+  if(quantity<=0||quantity>=1e7||unitPrice<=0||net<=0)return false;
+  if(!/[A-Za-zÁÉÍÓÚÑÜáéíóúñü]/.test(String(line.description||'')))return false;
+  return Math.abs(quantity*unitPrice-net)<=0.02+quantity*0.005;
+}
+
 export function repairInvoiceProductLines(text:string,lines:RepairableInvoiceLine[]):RepairableInvoiceLine[]{
   const inclusiveSummary=extractInclusiveTaxSummary(text);
   const sourceLines=text.split(/\r?\n/);
@@ -155,9 +166,11 @@ export function repairInvoiceProductLines(text:string,lines:RepairableInvoiceLin
     .filter((line):line is SimpleInvoiceProductRow=>Boolean(line));
   const provided=lines
     .filter(line=>!isNonProductInvoiceLine(line.description))
-    .map(line=>({...line,description:cleanInvoiceProductDescription(line.description)}))
-    .filter(line=>isLikelyProductDescription(line.description))
-    .slice(0,50);
+    .map(line=>({...line,description:cleanInvoiceProductDescription(line.description)||line.description}))
+    // Una descripción con pocas letras sigue siendo un artículo si
+    // cantidad × precio = importe: no se descarta una línea real por su descripción.
+    .filter(line=>isLikelyProductDescription(line.description)||hasConsistentLineAmounts(line))
+    .slice(0,MAX_INVOICE_PRODUCT_LINES);
   // Cash Sierra PDFs expose their columns in separate visual blocks. The enhanced
   // reader reconstructs those rows before this generic safety pass; reparsing the
   // raw text here would turn the numeric columns back into fake product rows.
@@ -165,9 +178,9 @@ export function repairInvoiceProductLines(text:string,lines:RepairableInvoiceLin
   const repaired=preferProvided
     ? provided
     : coded.length>=2
-      ? coded.slice(0,50)
+      ? coded.slice(0,MAX_INVOICE_PRODUCT_LINES)
       : simple.length>=2
-        ? simple.slice(0,50)
+        ? simple.slice(0,MAX_INVOICE_PRODUCT_LINES)
         : provided;
   return inclusiveSummary?repaired.map(line=>normalizeInclusiveLine(line,inclusiveSummary)):repaired;
 }

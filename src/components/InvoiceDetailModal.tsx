@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ExternalLink, FileText, Trash2, X } from 'lucide-react';
+import { AlertCircle, ExternalLink, FileText, Trash2, X } from 'lucide-react';
 import type { ExpenseCategory, Invoice, InvoicePaymentStatus, Supplier } from '../types';
 import { SearchableSelect } from './forms/SearchableSelect';
 import { SortableTableHeader, useSortableTable } from './SortableTableHeader';
 import { useSettings } from '../context/SettingsContext';
 import { formatAppMoney } from '../services/formatting';
+import { checkStoredInvoice, storedInvoiceRequiresLines } from '../services/invoiceCore';
 
 export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenFile,onDelete,onSupplierChange,onCategoryChange,onPaymentStatusChange,deleting=false}:{invoice:Invoice|null;suppliers:Supplier[];categories:ExpenseCategory[];onClose:()=>void;onOpenFile:(invoice:Invoice)=>Promise<void>;onDelete:(invoice:Invoice)=>Promise<void>;onSupplierChange:(invoice:Invoice,supplierId:string)=>Promise<void>;onCategoryChange:(invoice:Invoice,categoryId:string)=>Promise<void>;onPaymentStatusChange:(id:string,status:InvoicePaymentStatus,paidAt?:string|null)=>Promise<void>;deleting?:boolean}) {
   const {settings}=useSettings();
@@ -23,6 +24,11 @@ export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenF
     description:s.taxId||s.email||undefined,
     searchText:[s.name,s.taxId,s.email,s.phone,s.address].filter(Boolean).join(' '),
   })),[suppliers]);
+  // Revisión de solo lectura: no modifica la factura, solo avisa de descuadres.
+  const integrity=useMemo(()=>invoice?checkStoredInvoice({
+    subtotal:invoice.subtotal,vat:invoice.vat,lineImportWarning:invoice.lineImportWarning,detectedLineCount:invoice.detectedLineCount,equivalenceSurcharge:invoice.equivalenceSurcharge,withholding:invoice.withholding,total:invoice.total,
+    lines:invoice.lines.map(line=>({description:line.description,supplierSku:line.supplierSku,quantity:line.quantity,unit:line.unit,unitPrice:line.unitPrice,lineNet:line.lineNet??line.lineTotal??null,taxRate:line.taxRate})),
+  },{merchandise:storedInvoiceRequiresLines(invoice.category,suppliers.find(s=>s.id===invoice.supplierId)?.supplierType)}):null,[invoice,suppliers]);
   const categoryOptions=useMemo(()=>categories.map(category=>({value:category.id,label:category.name,searchText:category.name})),[categories]);
 
   useEffect(()=>{
@@ -121,6 +127,8 @@ export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenF
       <div><span>Retención</span><strong>{money(invoice.withholding,invoice.currency)}</strong></div>
       <div className="detailTotal"><span>Total</span><strong>{money(invoice.total,invoice.currency)}</strong></div>
     </div>
+
+    {integrity&&integrity.status!=='ready'&&integrity.reasons.length>0&&<div className="warningBox" role="alert" data-testid="invoice-integrity-warning"><AlertCircle size={18}/><div><strong>Esta factura no cuadra y debe revisarse antes de contabilizarla.</strong><ul>{integrity.reasons.map(reason=><li key={reason}>{reason}</li>)}</ul></div></div>}
 
     <div className="detailSection">
       <div className="detailSectionHead"><div><strong>Líneas de producto</strong><span>{invoice.lines.length ? `${invoice.lines.length} línea${invoice.lines.length>1?'s':''} registrada${invoice.lines.length>1?'s':''}` : 'No se detectaron líneas'}</span></div></div>

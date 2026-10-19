@@ -29,6 +29,10 @@ export interface InvoiceLine {
   unitPrice?: number | null;
   normalizedUnitPrice?: number | null;
   lineTotal?: number | null;
+  /** Base imponible de la línea (sin IVA). */
+  lineNet?: number | null;
+  taxRate?: number | null;
+  unit?: string | null;
   supplierSku?: string | null;
   productId?: string | null;
   priceUpdateStatus: 'pending' | 'confirmed' | 'ignored';
@@ -58,6 +62,9 @@ export interface Invoice {
   fileName?: string | null;
   filePath?: string | null;
   fileHash?: string | null;
+  /** Aviso del importador si la cabecera se guardó sin sus líneas. */
+  lineImportWarning?: string | null;
+  detectedLineCount?: number | null;
   lines: InvoiceLine[];
 }
 
@@ -96,6 +103,10 @@ export interface NewInvoiceLineInput {
   taxRate?: number | null;
   taxAmount?: number | null;
   lineTotal?: number | null;
+  /** false = la IA no encontró la línea en el documento; se conserva para revisión. */
+  verified?: boolean | null;
+  /** Línea que no debe alimentar costes ni historial de precios (unidad ambigua, sin verificar…). */
+  priceReview?: boolean;
 }
 
 export interface NewInvoiceInput {
@@ -157,4 +168,6 @@ export interface InvoiceImportCandidate {
   multiInvoiceSource?: boolean;
   bundleIndex?: number;
   bundleCount?: number;
+  /** Resultado del motor común de integridad (invoiceCore). */
+  integrityCheck?: Record<string, unknown>;
 }

@@ -45,9 +45,11 @@ function validDate(value:string){
   return !Number.isNaN(date.getTime())&&date.toISOString().slice(0,10)===value;
 }
 function validCurrency(value:string){return /^[A-Z]{3}$/.test(value);}
+// Las líneas que el verificador no encuentra en el documento ya NO se descartan en silencio:
+// se conservan con verified:false y el motor común (invoiceCore) deja la factura en revisión.
 function verifiedLines(response:IntelligenceResponse):NewInvoiceLineInput[]{
   return (response.verification?.verifiedLines||[])
-    .filter(line=>line?.verified&&clean(line?.description).length>=2)
+    .filter(line=>clean(line?.description).length>=2)
     .map(line=>{
       const quantity=finite(line.quantity)??1;
       const unitPrice=finite(line.unitPrice);
@@ -60,10 +62,11 @@ function verifiedLines(response:IntelligenceResponse):NewInvoiceLineInput[]{
         quantity:quantity>0?quantity:1,
         unit:clean(line.unit)||null,
         unitPrice:unitPrice!=null&&unitPrice>=0?unitPrice:null,
-        lineNet:lineNet!=null&&lineNet>=0?lineNet:null,
+        lineNet:lineNet!=null?lineNet:null,
         taxRate:taxRate!=null&&taxRate>=0&&taxRate<=100?taxRate:null,
         taxAmount,
         lineTotal:lineTotal!=null&&lineTotal>=0?lineTotal:null,
+        verified:line?.verified===true,
       } satisfies NewInvoiceLineInput;
     });
 }
@@ -118,7 +121,9 @@ export async function analyzeInvoiceWithIntelligence(
   }
 
   const lines=verifiedLines(data);
-  if(lines.length)next.lines=lines;
+  if(lines.some(line=>line.verified))next.lines=lines;
+  const unverified=lines.filter(line=>!line.verified).length;
+  if(unverified&&lines.some(line=>line.verified))next.analysisWarnings=[...(next.analysisWarnings||[]),`${unverified} línea(s) no verificadas en el documento: se conservan para revisión.`];
   next.confidence=Math.max(deterministic.confidence,Math.min(.99,Math.max(0,Number(extracted.confidence)||0)));
   return next;
 }

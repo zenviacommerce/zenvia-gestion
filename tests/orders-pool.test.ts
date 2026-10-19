@@ -1,7 +1,8 @@
 import {it,expect} from 'vitest';
 import {PGlite} from '@electric-sql/pglite';
 import {readFileSync} from 'node:fs';
-const migration=readFileSync('supabase/migrations/20261019113000_orders_pool_status_dashboard.sql','utf8');
+const migration=readFileSync('supabase/migrations/20261019135436_orders_pool_status_dashboard.sql','utf8');
+const recordOnceMigration=readFileSync('supabase/migrations/20261019141000_orders_dashboard_record_once.sql','utf8');
 it('real SQL pages 120 matches while aggregating the whole RLS tenant scope',async()=>{
  const db=new PGlite();try{
  await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;`+readFileSync('tests/fixtures/orders-table-schema.sql','utf8'));
@@ -12,6 +13,7 @@ it('real SQL pages 120 matches while aggregating the whole RLS tenant scope',asy
  INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,shipping_address,items)
  VALUES(md5('other')::uuid,'00000000-0000-4000-8000-000000000002','other','OTHER-TENANT','amazon','UNSHIPPED',now(),'{}','[]');`);
  await db.exec(migration);
+ await db.exec(recordOnceMigration);
  const flags=await db.query<any>(`select prosecdef,has_function_privilege('anon',oid,'EXECUTE') anon,has_function_privilege('authenticated',oid,'EXECUTE') admitted from pg_proc where proname='orders_dashboard_page_v1'`);expect(flags.rows[0]).toMatchObject({prosecdef:false,anon:false,admitted:true});
  await db.exec(`SET ROLE authenticated;SET test.owner='00000000-0000-4000-8000-000000000001';`);
  const call=async(args='')=>(await db.query<any>(`select public.orders_dashboard_page_v1(${args}) data`)).rows[0].data;
@@ -66,6 +68,7 @@ it('selects the complete filtered eligible set under RLS and retrieves only live
  INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,shipping_address,items,destination_country_code,carrier_code)
  VALUES(md5('selection-duplicate')::uuid,'00000000-0000-4000-8000-000000000001','selection-duplicate','SELECT-1','shopify','unfulfilled','2026-09-01','{}','[]','ES','mrw');`);
  await db.exec(migration);
+ await db.exec(recordOnceMigration);
  await db.exec(`SET ROLE authenticated;SET test.owner='00000000-0000-4000-8000-000000000001';`);
  const filters="p_from=>'2026-10-01',p_to=>'2026-10-19',p_state=>'all',p_channel=>'shopify',p_query=>'SELECT-',p_tracking=>'none',p_country=>'ES',p_carrier=>'mrw'";
  const call=async(args='')=>(await db.query<any>(`select public.orders_dashboard_page_v1(${args}) data`)).rows[0].data;
@@ -82,5 +85,22 @@ it('selects the complete filtered eligible set under RLS and retrieves only live
  await expect(call(`p_selected_ids=>array_fill('${selection.ids[0]}'::uuid,ARRAY[2001])`)).rejects.toThrow();
  await db.exec(`SET test.owner='00000000-0000-4000-8000-000000000002';`);expect((await select()).ids).toEqual([(await db.query<any>(`SELECT md5('foreign-selection')::uuid id`)).rows[0].id]);expect((await call(`p_selected_ids=>${ids}`)).rows).toEqual([]);
  await db.exec('RESET ROLE');const flags=await db.query<any>(`SELECT proname,prosecdef,has_function_privilege('anon',oid,'EXECUTE') anon,has_function_privilege('authenticated',oid,'EXECUTE') admitted,has_function_privilege('service_role',oid,'EXECUTE') service FROM pg_proc WHERE proname IN ('orders_dashboard_page_v1','orders_dashboard_selection_v1')`);expect(flags.rows).toHaveLength(2);for(const flag of flags.rows)expect(flag).toMatchObject({prosecdef:false,anon:false,admitted:true,service:true});
+ }finally{await db.close()}
+},20000);
+
+it('populates each deduped record once rather than once per composite column',async()=>{
+ const db=new PGlite();try{
+ await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE ROLE service_role;`+readFileSync('tests/fixtures/orders-table-schema.sql','utf8'));
+ await db.exec(`CREATE SEQUENCE public.populate_calls;
+ CREATE FUNCTION public.tracked_populate_record(base public.fulfillment_orders, data jsonb) RETURNS public.fulfillment_orders
+ LANGUAGE plpgsql VOLATILE AS $$BEGIN PERFORM nextval('public.populate_calls'); RETURN pg_catalog.jsonb_populate_record(base,data); END$$;
+ INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,shipping_address,items)
+ SELECT md5('once-'||n)::uuid,'00000000-0000-4000-8000-000000000001','once-'||n,CASE WHEN n=4 THEN 'ONCE-1' ELSE 'ONCE-'||n END,'shopify','unfulfilled','2026-10-10','{}','[]' FROM generate_series(1,4)n;`);
+ await db.exec(migration);
+ const baseline=(await db.query<any>('SELECT public.orders_dashboard_page_v1() data')).rows[0].data;
+ await db.exec(recordOnceMigration.replaceAll('jsonb_populate_record(', 'public.tracked_populate_record('));
+ const first=(await db.query<any>('SELECT public.orders_dashboard_page_v1() data')).rows[0].data;
+ expect(first.total).toBe(3);expect(first).toEqual(baseline);
+ expect((await db.query<any>('SELECT last_value::int calls FROM public.populate_calls')).rows[0].calls).toBe(3);
  }finally{await db.close()}
 },20000);

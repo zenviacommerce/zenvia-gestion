@@ -11,3 +11,8 @@ Production preflight 13:45:41UTC: both dashboard and IDs RPCs absent. Previous f
 Order: final CI/captures → apply RPC migration → authenticated-role production KPI and ID checks → align migration filename to actual ledger → final CI → merge frontend → Vercel READY and public bundle check. Stop if backend parity/RLS fails. Rollback frontend first, then drop the two new functions if required; old frontend needs neither function. Never drop backend while a new frontend is still being served.
 
 Status: implementation complete locally; production not changed. Backend and frontend publication authorized by Sergio after passing checks and new capture.
+
+
+13:54:36UTC applied initial migration ledger20261019135436 after all5CIgreen on f25e62cd. Bothfunctions priorabsent snapshot in repo. Authenticated-role/RLS proof: real2pendingIDs returned and recovered exactly; p_limit1 gives exceeded+emptyIDs; anonEXECUTEfalse, authtrue, SECURITYINVOKER. Five periods exact KPI JSON equal against independent baseline at13:55:50UTC, including sales/states/transport.
+
+Performance gate caught8,859.129ms RPC. Instrumented regression exposed216 jsonb_populate_record evaluations for3deduped rows (72columns each). New follow-up migration evaluates once using a lateral record source:3calls for3rows, exactfullJSONparity. Read-only production candidate EXPLAIN under authenticated role:637.818ms, not deployed yet. Frontend remains oldbundle. Original applied migration is preserved; follow-up requires CI and separate deployment. Initial migration filename aligned to actualledger. Visible-page checkbox now excludes/includes only currentpage from global snapshot, not clearing otherpages; test proved38remaining then63restored.

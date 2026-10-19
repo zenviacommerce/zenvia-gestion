@@ -640,6 +640,10 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const allSelectableSelected=selectableOrders.length>0&&selectableOrders.every(order=>checkedIds.has(order.id));
   const toggleOrder=(id:string,checked:boolean)=>{selectionKeyRef.current=selectionFilterKey;setCheckedIds(current=>{const next=new Set(current);if(checked)next.add(id);else next.delete(id);return next;});};
   const toggleAllOrders=(checked:boolean)=>{selectionKeyRef.current=selectionFilterKey;setSelectionScope('page');setCheckedIds(checked?new Set(selectableOrders.map(order=>order.id)):new Set());};
+  const toggleVisiblePage=(checked:boolean)=>{
+    if(selectionScope==='page'){toggleAllOrders(checked);return;}
+    setCheckedIds(current=>{const next=new Set(current);for(const order of selectableOrders){if(checked)next.add(order.id);else next.delete(order.id);}return next;});
+  };
   const selectAllMatching=async()=>{
     const revision=++selectionRevision.current,key=selectionFilterKey;
     setSelectionBusy(true);setSelectionError('');
@@ -977,7 +981,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
 
     {filtered.some(order=>order.sourceChannel==='shopify')&&<div className="ordersPrinterBar"><FileText size={16}/><span>Facturación manual de Shopify</span><button className="secondary" onClick={()=>void openShopifyInvoiceSelection()}>Seleccionar pedidos para facturar</button></div>}
     {pager}
-    <section className="card tableCard ordersTableCard">{loading?<div className="emptyState large"><LoaderCircle className="spin"/> Cargando pedidos…</div>:filtered.length?<table className="ordersTable"><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allSelectableSelected} disabled={selectionBusy||bulkGenerating||!selectableOrders.length} onChange={toggleAllOrders} label={allSelectableSelected?'Deseleccionar pedidos pendientes de esta página':'Seleccionar pedidos pendientes de esta página'}/></th>
+    <section className="card tableCard ordersTableCard">{loading?<div className="emptyState large"><LoaderCircle className="spin"/> Cargando pedidos…</div>:filtered.length?<table className="ordersTable"><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allSelectableSelected} disabled={selectionBusy||bulkGenerating||!selectableOrders.length} onChange={toggleVisiblePage} label={allSelectableSelected?'Deseleccionar pedidos pendientes de esta página':'Seleccionar pedidos pendientes de esta página'}/></th>
       <SortableTableHeader label="Canal" sortKey="channel" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Pedido" sortKey="order" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Cliente" sortKey="customer" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>

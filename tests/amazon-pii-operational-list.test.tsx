@@ -57,8 +57,12 @@ it('selects all 63 matching IDs beyond the visible 25 and previews all without b
  fireEvent.click(screen.getByRole('button',{name:'Seleccionar todos de esta página'}));
  fireEvent.click(screen.getByRole('button',{name:'Seleccionar los 63 pedidos que coinciden con los filtros'}));
  await waitFor(()=>expect(screen.getByText(/Seleccionados.*63.*todos los resultados/)).toBeTruthy());
+ fireEvent.click(screen.getByRole('checkbox',{name:'Deseleccionar pedidos pendientes de esta página'}));
+ await waitFor(()=>expect(screen.getByText(/Seleccionados.*38.*todos los resultados/)).toBeTruthy());
+ fireEvent.click(screen.getByRole('checkbox',{name:'Seleccionar pedidos pendientes de esta página'}));
+ await waitFor(()=>expect(screen.getByText(/Seleccionados.*63.*todos los resultados/)).toBeTruthy());
  fireEvent.click(within(container.querySelector('.bulkSelectionActions') as HTMLElement).getByRole('button',{name:'Generar etiquetas seleccionadas (63)'}));
- await waitFor(()=>expect(boundary.selectedRows).toHaveBeenCalledWith(expect.objectContaining({state:'pending'}),boundary.rows.map(o=>o.id)));
+ await waitFor(()=>expect(boundary.selectedRows).toHaveBeenCalled());expect(boundary.selectedRows.mock.calls[0][0]).toEqual(expect.objectContaining({state:'pending'}));expect(new Set(boundary.selectedRows.mock.calls[0][1])).toEqual(new Set(boundary.rows.map(o=>o.id)));
  await waitFor(()=>expect(boundary.quotes).toHaveBeenCalledTimes(63));expect(boundary.createLabel).not.toHaveBeenCalled();
  expect(screen.getByText(/para los 63 pedidos/)).toBeTruthy();
 });

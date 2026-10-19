@@ -3,6 +3,8 @@ import { isAmazonAwaitingPayment } from './orderStatus';
 import {markOrderLabelCreated,ordersSnapshotVersion,publishOrdersSnapshot,readOrdersSnapshot,resetOrdersSnapshot} from './ordersSnapshot';
 import { loadAutomationRule, type OrderLabelCreatedAutomationConfig } from './automationRules';
 import type { ShippingSettings } from './settingsSchema';
+import {collectProviderQuotes,type ProviderQuotes,type QuoteProvider} from './providerQuotes';
+export type {ProviderQuotes,QuoteProvider} from './providerQuotes';
 
 export type OrderChannel = 'amazon' | 'shopify' | 'other';
 
@@ -126,8 +128,8 @@ function mapRow(row:any):FulfillmentOrder{
   });
 }
 
-async function invokeFunction<T>(functionName:string,body:Record<string,unknown>):Promise<T>{
-  const {data,error}=await supabase.functions.invoke(functionName,{body});
+async function invokeFunction<T>(functionName:string,body:Record<string,unknown>,signal?:AbortSignal):Promise<T>{
+  const {data,error}=await supabase.functions.invoke(functionName,{body,signal});
   if(error){
     let detail='';
     const context=(error as any)?.context;
@@ -246,39 +248,22 @@ export async function syncShopifyOrders(history=false){
   return invokeFunction<{ok:true;configured:boolean;synced:number;history?:boolean;accounts?:Array<{accountId:string;displayName:string;synced:number;shopDomain:string}>}>('shopify-orders',{history});
 }
 export function createManualOrder(order:ManualOrderInput){return invokeOrderState<{ok:true;id:string;sendcloudId:string|null;orderNumber:string}>({action:'create_manual_order',order});}
-export async function getShippingOptions(orderId:string){
-  const [sendcloudResult,enviaResult,mrwResult]=await Promise.allSettled([
-    invokeOrderTools<{weightKg:number;options:Array<Omit<ShippingOption,'provider'|'providerName'>>;message?:string|null}>({action:'shipping_options',orderId}),
-    invokeEnvia<{configured:boolean;options:ShippingOption[];message?:string|null;diagnostics?:Array<{account?:string;carrier?:string|null;message:string}>}>({action:'rates',orderId}),
-    invokeMrw<{configured:boolean;options:ShippingOption[];message?:string|null}>({action:'options',orderId}),
-  ]);
-  const sendcloud=sendcloudResult.status==='fulfilled'?sendcloudResult.value:null;
-  const envia=enviaResult.status==='fulfilled'?enviaResult.value:null;
-  const mrw=mrwResult.status==='fulfilled'?mrwResult.value:null;
-  const directMrwAvailable=Boolean(mrw?.configured&&(mrw?.options||[]).length);
-  const sendcloudOptions=(sendcloud?.options||[]).map(option=>({
-    ...option,provider:'sendcloud' as const,providerName:'Sendcloud',
-  })).filter(option=>{
-    const label=`${option.carrierCode||''} ${option.carrierName||''} ${option.code||''} ${option.name||''}`.toLowerCase();
-    if(Number(option.price)===0&&/unstamped|sin franqueo|unfranked/.test(label))return false;
-    if(directMrwAvailable&&/\bmrw\b/.test(label))return false;
-    return true;
-  });
-  const enviaOptions=(envia?.options||[]).filter(option=>!(directMrwAvailable&&/\bmrw\b/i.test(`${option.carrierCode||''} ${option.carrierName||''}`)));
-  const mrwOptions=mrw?.options||[];
-  const noProviderOptions=!sendcloud&&!envia&&!mrw;
-  if(noProviderOptions){
-    if(mrwResult.status==='rejected')throw mrwResult.reason;
-    if(enviaResult.status==='rejected')throw enviaResult.reason;
-    if(sendcloudResult.status==='rejected')throw sendcloudResult.reason;
+export async function getShippingOptions(orderId:string,onUpdate?:(states:ProviderQuotes<ShippingOption>)=>void,onlyProviders:QuoteProvider[]=['sendcloud','envia','mrw']){
+  const requests:Partial<Record<QuoteProvider,(signal:AbortSignal)=>Promise<{configured?:boolean;options:ShippingOption[];message?:string|null}>>>={};
+  for(const provider of onlyProviders){
+    requests[provider]=async signal=>{
+      const endpoint=provider==='sendcloud'?'sendcloud-order-tools':provider==='envia'?'envia-shipping':'mrw-shipping';
+      const action=provider==='sendcloud'?'shipping_options':provider==='envia'?'rates':'options';
+      const result=await invokeFunction<{configured?:boolean;options:ShippingOption[];message?:string|null}>(endpoint,{action,orderId},signal);
+      const options=(result.options||[]).map(option=>({...option,provider,providerName:provider==='envia'?'Envia.com':provider==='mrw'?'MRW directo':'Sendcloud'})).filter(option=>!(Number(option.price)===0&&/unstamped|sin franqueo|unfranked/i.test(option.name||'')));
+      return {...result,options};
+    };
   }
-  const options=[...sendcloudOptions,...enviaOptions,...mrwOptions].sort((a,b)=>{
-    const ap=a.price==null?Number.MAX_VALUE:a.price,bp=b.price==null?Number.MAX_VALUE:b.price;
-    return ap-bp;
-  });
-  const messages=[sendcloud?.message,envia?.message,mrw?.message].filter(Boolean).join(' · ');
-  return {weightKg:sendcloud?.weightKg??null,options,message:messages||null,diagnostics:envia?.diagnostics||[]};
+  const providers=await collectProviderQuotes(requests,onUpdate||(()=>{}));
+  const options=Object.values(providers).flatMap(p=>p.options).sort((a,b)=>(a.price??Infinity)-(b.price??Infinity));
+  return {weightKg:null,options,message:Object.values(providers).map(p=>p.message).filter(Boolean).join(' · ')||null,providers};
 }
+
 export function updateFulfillmentOrder(orderId:string,order:OrderUpdateInput){
   // ZENVIA is the operational source of truth. Provider systems are only
   // synchronized when that provider is actually used to quote/create a label.

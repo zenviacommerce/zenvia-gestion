@@ -136,7 +136,7 @@ test('label modal restores a preferred selection and explicit create action',asy
   assert.match(page,/const \[selectedKey,setSelectedKey\]/);
   assert.match(page,/Predeterminada/);
   assert.match(page,/Crear etiqueta/);
-  assert.match(page,/disabled=\{loading\|\|!selected\}/);
+  assert.match(page,/disabled=\{!selected\}/);
   assert.match(css,/ordersComparisonRow\.selected/);
   assert.match(page,/Number\(option\.price\)>0/,'zero-cost placeholders must not become the cheapest priced recommendation');
 });

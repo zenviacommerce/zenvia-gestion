@@ -13,11 +13,12 @@ export function MfaProvider({children}:{children:ReactNode}){
  const statusRef=useRef(status);
  const checkedUserRef=useRef<string|null>(null);
  const lastCheckedAt=useRef(0);
+ const restrictedUser=useRef<string|null>(null);
  useEffect(()=>{statusRef.current=status},[status]);
  const recheck=useCallback(()=>{forceChallenge.current=false;setVersion(v=>v+1)},[]);
  const requireRecent=useCallback(()=>{forceChallenge.current=true;setVersion(v=>v+1)},[]);
  useEffect(()=>{
-  const changed=()=>{forceChallenge.current=false;setStatus({state:'checking',factor_ids:[]});setUserId(null);setVersion(v=>v+1)};
+  const changed=()=>{restrictedUser.current=null;forceChallenge.current=false;setStatus({state:'checking',factor_ids:[]});setUserId(null);setVersion(v=>v+1)};
   window.addEventListener('zenvia:tenant-changed',changed);
   window.addEventListener('zenvia:mfa-required',requireRecent);
   return()=>{window.removeEventListener('zenvia:tenant-changed',changed);window.removeEventListener('zenvia:mfa-required',requireRecent)};
@@ -25,10 +26,15 @@ export function MfaProvider({children}:{children:ReactNode}){
  useEffect(()=>{
   if(!hasActiveTenant()){setStatus({state:'signed_out',factor_ids:[]});setUserId(null);return;}
   const client=getActiveSupabase();
+  // Explicit release setting; unknown/enabled configurations continue to fail
+  // closed. Backend RLS/Edge MFA checks remain authoritative for operations.
+  const enforcementDisabled=import.meta.env.VITE_MFA_ENFORCEMENT_ENABLED==='false';
   let cancelled=false,generation=0;let pendingRead:AbortController|undefined;let timer:ReturnType<typeof setTimeout>|undefined;
   const clearSensitive=()=>ensureViewCacheScope(getActiveTenant()?.workspace_id,null);
   const check=async()=>{
    const current=++generation;
+   let hasSession=false;
+   let disabledStartup=false;
    if(statusRef.current.state==='checking'||statusRef.current.state==='signed_out'){setStatus({state:'checking',factor_ids:[]});}
    try{
     const {data,error}=await client.auth.getSession();if(error)throw error;
@@ -37,7 +43,10 @@ export function MfaProvider({children}:{children:ReactNode}){
     if(checkedUserRef.current!==null&&checkedUserRef.current!==incomingId){setStatus({state:'checking',factor_ids:[]});clearSensitive();}
     checkedUserRef.current=incomingId;
     setUserId(incomingId);
-    if(!data.session){clearSensitive();setStatus({state:'signed_out',factor_ids:[]});return;}
+    if(!data.session){restrictedUser.current=null;clearSensitive();setStatus({state:'signed_out',factor_ids:[]});return;}
+    hasSession=true;
+    disabledStartup=enforcementDisabled&&!forceChallenge.current&&restrictedUser.current!==incomingId;
+    if(disabledStartup)setStatus(previous=>previous.state==='ready'?previous:{state:'ready',factor_ids:[]});
     pendingRead?.abort();
     const controller=new AbortController();pendingRead=controller;
     const request=client.rpc('security_mfa_status');
@@ -58,10 +67,14 @@ export function MfaProvider({children}:{children:ReactNode}){
     if(!next||!['ready','enrollment_required','challenge_required','recovery_locked'].includes(next.state)||!Array.isArray(next.factor_ids))throw new Error('MFA_UNAVAILABLE');
     if(next.factor_ids.some(id=>typeof id!=='string'))throw new Error('MFA_UNAVAILABLE');
     const effective=forceChallenge.current&&next.state==='ready'?{...next,state:'challenge_required' as const}:next;
+    restrictedUser.current=effective.state==='ready'?null:incomingId;
     if(effective.state!=='ready')clearSensitive();
     lastCheckedAt.current=Date.now();
     setStatus(previous=>JSON.stringify(previous)===JSON.stringify(effective)?previous:effective);
-   }catch{if(!cancelled&&current===generation){clearSensitive();setStatus({state:'temporarily_unavailable',factor_ids:[]});}}
+   }catch{if(!cancelled&&current===generation){
+    if(disabledStartup&&hasSession&&!forceChallenge.current){setStatus(previous=>previous.state==='ready'?previous:{state:'ready',factor_ids:[]});}
+    else{clearSensitive();setStatus({state:'temporarily_unavailable',factor_ids:[]});}
+   }}
   };
   const schedule=(urgent=false)=>{if(cancelled)return;if(!urgent&&statusRef.current.state==='ready'&&Date.now()-lastCheckedAt.current<1500)return;clearTimeout(timer);timer=setTimeout(()=>{if(!cancelled)void check()},urgent?0:150)};
   // Never await SDK methods inside the Auth callback: it can hold the Auth lock.

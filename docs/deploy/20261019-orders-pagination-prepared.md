@@ -9,3 +9,5 @@ Real PGlite/PostgreSQL test uses production column types only, synthetic records
 Independent review caught and fixed loss of fallback duplicate data, purge-country mismatch, shipped/incident precedence, and malformed-item PII propagation. No schema/function change applied to production. Local validation and CI receipts to follow.
 
 STOP before merge, migration application or publication. Future rollback: Vercel Instant Rollback to last accepted build; remove only the newly installed dashboard RPC if reverting a future SQL rollout (no historical Amazon functions touched). Production remains accepted index-BNSeQGme.js; Amazon worker39/reconcile10/sync-orders21 are separate backend release.
+
+CI exposed repository-history schema gaps (tracking_status_code absent in disposable database). Extended ONLY the existing runner-only schema fixture with production column types from tests/fixtures/orders-table-schema.sql. No production migration/history/schema alteration for this fixture. Other four workflows were already green; rerun all on final SHA.

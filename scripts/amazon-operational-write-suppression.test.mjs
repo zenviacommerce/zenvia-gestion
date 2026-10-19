@@ -53,3 +53,15 @@ test('confirmed label cancellation does not repeatedly restore tracking removed 
 test('cancelled old package cannot overwrite a subsequent replacement label',async()=>{
  const f=fixture();f.orders[0].fulfillment.fulfillmentStatus='SHIPPED';f.orders[0].packages=[{trackingNumber:'OLD',carrier:'MRW',shipTime:'2026-10-18T01:00:00Z'}];await f.sync();Object.assign(f.rows[0],{label_created_at:'2026-10-18T02:00:00Z',shipping_remote_id:'NEW-LABEL',tracking_number:'NEW',tracking_status_code:'NEW',tracking_status_message:'New label',fulfilled_at:'2026-10-18T02:00:00Z'});f.cancellations.push({order_id:'row',kind:'label',status:'confirmed',details:{trackingNumber:'OLD'}});f.writes.length=0;await f.sync();assert.equal(f.writes.length,0);assert.equal(f.rows[0].tracking_number,'NEW');assert.equal(f.rows[0].shipping_remote_id,'NEW-LABEL');
 });
+
+test('Amazon cannot replace the actual local shipment carrier or service in either sync path',async()=>{
+ for(const provider of ['envia','sendcloud','mrw'])for(const path of ['sync','reconcile']){
+  const f=fixture();await f.sync();Object.assign(f.rows[0],{shipping_provider:provider,shipping_remote_id:'LOCAL-SHIPMENT',label_created_at:'2026-10-18T01:00:00Z',carrier_code:'correosExpress',carrier_name:'Correos Express',shipping_option_code:'epaq_24',shipping_service_name:'ePaq 24',shipping_cost_amount:4.57,shipping_cost_source:'provider_actual'});
+  f.orders[0].fulfillment.fulfillmentStatus='SHIPPED';f.orders[0].packages=[{trackingNumber:'TRACK',carrier:'MRW',shippingService:'MRW Urgent 19:00',shipTime:'2026-10-18T01:00:00Z'}];
+  await f[path]();assert.equal(f.rows[0].carrier_code,'correosExpress',`${provider}/${path}`);assert.equal(f.rows[0].carrier_name,'Correos Express');assert.equal(f.rows[0].shipping_service_name,'ePaq 24');assert.equal(f.rows[0].shipping_cost_amount,4.57);assert.equal(f.rows[0].source_status,'SHIPPED');
+  f.writes.length=0;await f[path]();assert.equal(f.writes.length,0);
+ }
+});
+test('Amazon still supplies carrier and service for externally fulfilled shipments without local ownership',async()=>{
+ const f=fixture();await f.sync();f.orders[0].fulfillment.fulfillmentStatus='SHIPPED';f.orders[0].packages=[{trackingNumber:'TRACK',carrier:'MRW',shippingService:'Urgent',shipTime:'2026-10-18T01:00:00Z'}];await f.sync();assert.equal(f.rows[0].carrier_code,'mrw');assert.equal(f.rows[0].shipping_service_name,'Urgent');
+});

@@ -148,6 +148,12 @@ function preservePersistedFields(current:any,patch:any){
       if(replacement)delete patch[key];else patch[key]=null;
     }
   }
+  // The label provider owns the dispatched carrier and service. Amazon may
+  // echo an old/default carrier even when the locally purchased label differs.
+  // Preserve that identity in both the full import and standalone reconciliation.
+  if(current?.shipping_provider&&(current.shipping_remote_id||current.sendcloud_parcel_id||current.label_created_at)){
+    for(const key of ['carrier_code','carrier_name','shipping_service_name'])delete patch[key];
+  }
   if(!current?.pii_purged_at)return;
   // Match the SQL retention guard before comparing, so redacted rows do not
   // receive the same doomed-to-be-redacted PII on every page.

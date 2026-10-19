@@ -46,3 +46,8 @@ Ver 20261019-auth-session-evidence.md: TOTP y AAL2 confirmados; causa del cierre
 ## Publicación verificada
 
 Vercel READY dpl_8s3zsHYC2pLAcqVXM2rxMFXERYs3 y alias gestion.zenviacommerce.com apuntan al merge autorizado. HTML y JS HTTP200, bundle index-DIsFGH6G.js; texto «Costes registrados y estimaciones por tarifa» presente, banner de fixture ausente. Sin PGRST003/57014 en logs de 14:30:18–14:37:30 UTC. Recibo 20261019-orders-tariff-kpi-receipt.json. Se avisa al usuario para revisión con sesión real.
+
+
+## Root-cause follow-up closed by PR245
+
+The €4.57 split oscillation was not just an incidental carrier update: Amazon was repeatedly overwriting the actual Envia/Correos shipment carrier with the cancelled MRW declaration. Owner confirmed and corrected Amazon. PR245 now preserves real local carrier/tracking/cost and stores marketplace_carrier separately, including legacy Sendcloud ownership. Natural worker42 cycle17:05Madrid retained exact shipment integrity; all five periods matched legacy calculation after that cycle. Quarter MRW190.00 + Correos64.73 =254.73. No manual row repair. See 20261019-carrier-attribution-receipt.json and 20261019-performance-day-close.md.

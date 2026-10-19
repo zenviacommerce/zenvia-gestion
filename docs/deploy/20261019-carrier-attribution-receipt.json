@@ -1,0 +1,127 @@
+{
+  "mfa": {
+    "cohort": null,
+    "enabled": false
+  },
+  "jobs": [
+    {
+      "id": "57bcb839-d602-47d8-8ac9-7c1ed57f094f",
+      "status": "success",
+      "started_at": "2026-10-19T15:05:08.727035+00:00",
+      "duration_ms": 4075,
+      "finished_at": "2026-10-19T15:05:12.802+00:00",
+      "rows_processed": 240
+    },
+    {
+      "id": "afa3303f-5983-4922-b36d-4263e6678b4f",
+      "status": "success",
+      "started_at": "2026-10-19T15:05:02.5204+00:00",
+      "duration_ms": 4959,
+      "finished_at": "2026-10-19T15:05:07.479+00:00",
+      "rows_processed": 240
+    }
+  ],
+  "order": {
+    "id": "0a30e623-2948-4ad9-be50-19ee3fa5b672",
+    "cost": 4.57,
+    "carrier": "correosExpress",
+    "cost_source": "provider_actual",
+    "order_number": "402-4191875-5589160",
+    "integrity_hash": "b1d9acb55060e06cae4838aa05c9c915",
+    "last_synced_at": "2026-10-19T14:55:08.08+00:00",
+    "marketplace_carrier": "Correos Express"
+  },
+  "queue": {
+    "failed": 0,
+    "queued": 0,
+    "running": 0
+  },
+  "observed_at": "2026-10-19T15:05:48.76325+00:00",
+  "active_leases": 0,
+  "pr": 245,
+  "head": "53685e5916b8e329eb147887b0dbdb13f04bf2d1",
+  "merge": "6c5b6a42e226c79e9ba96877c240adbeeebaae1f",
+  "ci": [
+    {
+      "id": 39273610796,
+      "name": "Build check",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 565,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39273610796/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39273610796/logs",
+      "workflow_id": 361316263
+    },
+    {
+      "id": 39273610769,
+      "name": "MFA visual review (Playwright)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 88,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39273610769/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39273610769/logs",
+      "workflow_id": 388829843
+    },
+    {
+      "id": 39273611355,
+      "name": "Auth resilience tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 235,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39273611355/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39273611355/logs",
+      "workflow_id": 385998318
+    },
+    {
+      "id": 39273610767,
+      "name": "Build ZENVIA Gestión",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2228,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39273610767/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39273610767/logs",
+      "workflow_id": 354706666
+    },
+    {
+      "id": 39273610569,
+      "name": "MFA real integration (disposable Supabase)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 274,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39273610569/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39273610569/logs",
+      "workflow_id": 387906946
+    }
+  ],
+  "deployed": {
+    "worker": 42,
+    "orders": 24,
+    "reconcile": 12,
+    "migration": "20261019145139",
+    "exactBundles": true,
+    "jwtPreserved": true
+  },
+  "tests": {
+    "vitest": 145,
+    "node": 1128,
+    "liveBundles": 48
+  },
+  "beforeIntegrityHash": "b1d9acb55060e06cae4838aa05c9c915",
+  "manualDataRepair": false,
+  "vercel": {
+    "deploymentId": "dpl_4yNticX5jfyyibqMe2yChVxp6rfH",
+    "state": "READY",
+    "aliasVerified": true,
+    "bundle": "index-DIsFGH6G.js"
+  },
+  "errorWindow": {
+    "from": "2026-10-19T15:01:50Z",
+    "to": "2026-10-19T15:05:45Z",
+    "PGRST003": 0,
+    "sql57014": 0,
+    "workerLeaseLost": 0,
+    "missingColumn": 0
+  },
+  "parityFile": "docs/review/carrier-attribution/final-five-period-parity.json",
+  "rollback": "Restore exact Edge snapshots orders22/reconcile10/worker40; additive marketplace_carrier can remain. No row data repair to roll back."
+}

@@ -31,16 +31,3 @@ jobs:
           name: mfa-security-ui-desktop-mobile
           path: artifacts/mfa-visual/*.png
           if-no-files-found: error
-      # Published screenshots remain in this review branch; content-identical PNGs do not produce a new commit.
-      - name: Commit review PNGs to PR branch
-        if: github.event_name == 'pull_request'
-        run: |
-          mkdir -p docs/review/mfa-redesign
-          cp artifacts/mfa-visual/*.png docs/review/mfa-redesign/
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add docs/review/mfa-redesign/*.png
-          if ! git diff --cached --quiet; then
-            git commit -m 'docs(mfa): publish eight Playwright review screenshots'
-            git push origin HEAD:${{ github.event.pull_request.head.ref }}
-          fi

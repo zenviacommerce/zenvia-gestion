@@ -1,0 +1,13 @@
+# Orders pagination and complete filtered selection — PR237
+
+Approved: page selection offers all eligible matching IDs, then previews and generates the exact saved selection across pages. Keep configured page size. Limit 2,000; overflow returns no IDs and instructs the user to narrow filters. Filters or workspace changes invalidate selection; global selection survives page navigation. Revalidate saved IDs against live pending/unpurged eligibility before quoting. New arrivals are never silently added; missing IDs abort.
+
+Core RPC shares classification/filter/dedupe scope with the IDs wrapper. SECURITY INVOKER, tenant RLS, empty search_path; EXECUTE only authenticated/service_role. No exclusive shipping lease for selecting or quoting. Existing creation exclusivity unchanged. No labels purchased in release verification.
+
+Test-first failures observed for missing selection service, missing select-all UI, and bulk quote batches continuing after a workspace change. Focused regressions now pass. Real PostgreSQL-compatible tests exercise RLS, dedupe, filters, 63 IDs across 25/25/13 rows, live invalidation, empty scope and overflow without truncation. Playwright desktop/mobile confirms page25 → all63 → page2 preserves63 →63 unique mock quotes. Purchase confirmation never clicked. Fixture banner remains harness-only.
+
+Production preflight 13:45:41UTC: both dashboard and IDs RPCs absent. Previous frontend accepted bundle index-BTiT_pl4.js, deployment dpl_FVjSSCg41z7RBdCLFPSz1PzMUYJa; emergency index-BkauntMi.js deployment dpl_3W2T4KqMQYqspkCT6FAupXTH2jba retained. Snapshot of absent functions and exact rollback prepared before schema change.
+
+Order: final CI/captures → apply RPC migration → authenticated-role production KPI and ID checks → align migration filename to actual ledger → final CI → merge frontend → Vercel READY and public bundle check. Stop if backend parity/RLS fails. Rollback frontend first, then drop the two new functions if required; old frontend needs neither function. Never drop backend while a new frontend is still being served.
+
+Status: implementation complete locally; production not changed. Backend and frontend publication authorized by Sergio after passing checks and new capture.

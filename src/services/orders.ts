@@ -139,7 +139,7 @@ async function invokeFunction<T>(functionName:string,body:Record<string,unknown>
         detail=String(payload?.error||payload?.message||'').trim();
       }catch{/* respuesta no JSON */}
     }
-    throw new Error(detail||error.message||`No se pudo conectar con ${functionName==='envia-shipping'?'Envia.com':functionName.startsWith('sendcloud')?'Sendcloud':'el servicio logístico'}.`);
+    throw Object.assign(new Error(detail||error.message||`No se pudo conectar con ${functionName==='envia-shipping'?'Envia.com':functionName.startsWith('sendcloud')?'Sendcloud':'el servicio logístico'}.`),{status:context instanceof Response?context.status:undefined});
   }
   if(data?.error)throw new Error(String(data.error));
   return data as T;
@@ -228,7 +228,7 @@ async function readFulfillmentOrders(client:ReturnType<typeof getActiveSupabase>
 export type OrdersDashboardFilters={
   from:string;to:string;state:'pending'|'labelled'|'shipped'|'cancelled'|'all';
   channel:'all'|OrderChannel;query:string;tracking:string;country:string;carrier:string;
-  page:number;pageSize:number;overdueHours:number;sortKey:string;sortDirection:'asc'|'desc';
+  selectedIds?:string[];page:number;pageSize:number;overdueHours:number;sortKey:string;sortDirection:'asc'|'desc';
 };
 export type OrdersDashboardKpis={
   pending:number;preparablePending:number;amazon:number;shopify:number;manual:number;labelled:number;
@@ -240,7 +240,7 @@ export type OrdersDashboardKpis={
     shipments:number;valued:number;missing:number;basis:'recorded_only'};
 };
 export type OrdersDashboardPage={
-  orders:FulfillmentOrder[];total:number;page:number;pageSize:number;
+  orders:FulfillmentOrder[];total:number;selectableTotal:number;page:number;pageSize:number;
   kpis:OrdersDashboardKpis;
   facets:{countries:string[];carriers:string[]};
 };
@@ -259,12 +259,14 @@ export async function fetchOrdersDashboardPage(filters:OrdersDashboardFilters):P
     p_page_size:Math.min(100,Math.max(1,filters.pageSize)),
     p_overdue_hours:filters.overdueHours,
     p_sort_key:filters.sortKey,p_sort_direction:filters.sortDirection,
+    ...(filters.selectedIds?{p_selected_ids:filters.selectedIds}:{}),
   }).abortSignal(AbortSignal.timeout(15000));
   if(error)throw error;
   if(!data||!Array.isArray(data.rows)||!data.kpis)throw new Error('La respuesta de estadísticas de pedidos no es válida.');
   return {
     orders:data.rows.map(mapRow),
     total:Number(data.total||0),
+    selectableTotal:Number(data.selectableTotal||0),
     page:Number(data.page||0),
     pageSize:Number(data.pageSize||filters.pageSize),
     kpis:data.kpis as OrdersDashboardKpis,
@@ -273,6 +275,28 @@ export async function fetchOrdersDashboardPage(filters:OrdersDashboardFilters):P
       carriers:Array.isArray(data.facets?.carriers)?data.facets.carriers:[],
     },
   };
+}
+
+/** IDs come from the same server-side eligibility/filter scope as the dashboard. */
+export async function fetchMatchingOrderIds(filters:OrdersDashboardFilters):Promise<string[]>{
+  const {data,error}=await getActiveSupabase().rpc('orders_dashboard_selection_v1',{
+    p_from:filters.from||null,p_to:filters.to||null,p_state:filters.state,
+    p_channel:filters.channel,p_query:filters.query,p_tracking:filters.tracking,
+    p_country:filters.country,p_carrier:filters.carrier,p_limit:2000,
+  }).abortSignal(AbortSignal.timeout(15000));
+  if(error)throw error;
+  if(data?.exceeded||Number(data?.total)>2000)throw new Error('Hay más de 2.000 pedidos elegibles. Reduce los filtros antes de seleccionar todos.');
+  if(!data||!Array.isArray(data.ids)||!Number.isInteger(data.total)||data.total<0||data.ids.length!==data.total||data.ids.some((id:unknown)=>typeof id!=='string'||!id)||new Set(data.ids).size!==data.total)throw new Error('La selección de pedidos ha cambiado o no es válida. Actualiza y vuelve a intentarlo.');
+  return data.ids;
+}
+/** Re-read only the saved IDs; never silently add new arrivals or omit changed orders. */
+export async function listSelectedOrdersForBulk(filters:OrdersDashboardFilters,ids:string[]):Promise<FulfillmentOrder[]>{
+  if(!ids.length)return [];
+  if(ids.length>2000||new Set(ids).size!==ids.length)throw new Error('La selección no es válida. Reduce los filtros y vuelve a seleccionar.');
+  const result=await listMatchingOrdersForAction({...filters,selectedIds:ids});
+  const actual=new Set(result.map(order=>order.id));
+  if(actual.size!==ids.length||ids.some(id=>!actual.has(id)))throw new Error('El conjunto de pedidos ha cambiado. Actualiza y vuelve a seleccionar antes de generar etiquetas.');
+  return result;
 }
 
 /** Only invoked by an explicit bulk/invoicing action, never on mount. */

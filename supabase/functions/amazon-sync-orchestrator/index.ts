@@ -62,7 +62,8 @@ Deno.serve(async(req:Request)=>{
             const historical=await enqueueInitialBackfill(admin,account,marketplaces,new Date(),enabledSources);
             created.push(...historical);
           }
-          const incremental=await enqueueHourlySync(admin,account,marketplaces,'hourly',new Date(),enabledSources);
+          const incrementalSources=ordersOnly?enabledSources:enabledSources.filter(source=>source!=='orders');
+          const incremental=await enqueueHourlySync(admin,account,marketplaces,'hourly',new Date(),incrementalSources);
           created.push(...incremental);
         }else{
           created=await enqueueHourlySync(admin,account,marketplaces,'reconcile',new Date(),enabledSources);

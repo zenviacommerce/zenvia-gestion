@@ -6,8 +6,8 @@ const read=path=>readFile(new URL(path,import.meta.url),'utf8');
 
 test('bulk label generation is not disabled by background sync or status health checks',async()=>{
   const source=await read('../src/pages/Orders.tsx');
-  assert.match(source,/disabled=\{bulkGenerating\|\|\(settings\.orders\.bulkScope/);
-  assert.match(source,/disabled=\{!selectedOrders\.length\|\|bulkGenerating\}/);
+  assert.match(source,/disabled=\{bulkGenerating\|\|selectionBusy\|\|bulkPreview\?\.loading\|\|\(settings\.orders\.bulkScope/);
+  assert.match(source,/disabled=\{!selectedCount\|\|bulkGenerating\|\|selectionBusy\}/);
   assert.doesNotMatch(source,/disabled=\{bulkGenerating\|\|syncing\|\|!status\?\.configured\|\|configuredBulkTargets\.length===0\}/);
   assert.doesNotMatch(source,/disabled=\{!selectedOrders\.length\|\|bulkGenerating\|\|syncing\|\|!status\?\.configured\}/);
 });

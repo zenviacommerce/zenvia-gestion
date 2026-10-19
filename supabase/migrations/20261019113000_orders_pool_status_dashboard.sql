@@ -14,7 +14,10 @@ CREATE OR REPLACE FUNCTION public.orders_dashboard_page_v1(
   p_page_size integer DEFAULT 25,
   p_overdue_hours integer DEFAULT 24,
   p_sort_key text DEFAULT 'orderDate',
-  p_sort_direction text DEFAULT 'desc'
+  p_sort_direction text DEFAULT 'desc',
+  p_selection_ids_only boolean DEFAULT false,
+  p_selection_limit integer DEFAULT 2000,
+  p_selected_ids uuid[] DEFAULT NULL
 ) RETURNS jsonb
 LANGUAGE sql STABLE SECURITY INVOKER SET search_path='' AS $fn$
 WITH ranked AS (
@@ -197,13 +200,21 @@ kpis AS (
  ) AS data
  FROM counts c CROSS JOIN sales s CROSS JOIN shipping t
 ),
-eligible AS (
+eligible_scope AS (
  SELECT * FROM scope WHERE
    (p_state='pending' AND order_state='pending')
    OR (p_state='labelled' AND order_state='labelled')
    OR (p_state='shipped' AND order_state='shipped' AND in_shipped_period)
    OR (p_state='cancelled' AND is_cancelled AND in_order_period)
    OR (p_state='all' AND in_order_period)
+),
+-- Selection and row retrieval reuse the exact deduped, classified filter scope.
+eligible AS (
+ SELECT * FROM eligible_scope WHERE p_selected_ids IS NULL
+   OR (id=ANY(p_selected_ids) AND order_state='pending' AND pii_purged_at IS NULL)
+),
+selectable AS (
+ SELECT id FROM eligible WHERE order_state='pending' AND pii_purged_at IS NULL
 ),
 numbered AS (
  SELECT e.*,row_number() OVER (ORDER BY
@@ -253,8 +264,20 @@ facets AS (
     (SELECT DISTINCT carrier_label FROM classified WHERE carrier_label<>'—') carriers),'[]'::jsonb)
  ) AS data
 )
-SELECT jsonb_build_object(
+SELECT CASE
+ -- Reject oversized caller arrays before returning any rows. A negative LIMIT
+ -- raises an error, including when the tenant/filter scope contains no rows.
+ WHEN cardinality(p_selected_ids)>2000 THEN
+   (SELECT '{}'::jsonb LIMIT (0-cardinality(p_selected_ids)))
+ WHEN p_selection_ids_only THEN jsonb_build_object(
+   'ids',CASE WHEN (SELECT count(*) FROM selectable)>least(greatest(coalesce(p_selection_limit,2000),1),2000)
+     THEN '[]'::jsonb ELSE coalesce((SELECT jsonb_agg(id ORDER BY id) FROM selectable),'[]'::jsonb) END,
+   'total',(SELECT count(*) FROM selectable),
+   'limit',least(greatest(coalesce(p_selection_limit,2000),1),2000),
+   'exceeded',(SELECT count(*) FROM selectable)>least(greatest(coalesce(p_selection_limit,2000),1),2000)
+ ) ELSE jsonb_build_object(
  'total',(SELECT count(*) FROM eligible),
+ 'selectableTotal',(SELECT count(*) FROM selectable),
  'page',greatest(p_page,0),
  'pageSize',least(greatest(p_page_size,1),100),
  'rows',coalesce((
@@ -268,7 +291,29 @@ SELECT jsonb_build_object(
     ORDER BY p.ordinal) FROM paged p), '[]'::jsonb),
  'kpis',(SELECT data FROM kpis),
  'facets',(SELECT data FROM facets)
-);
+) END;
 $fn$;
-REVOKE ALL ON FUNCTION public.orders_dashboard_page_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION public.orders_dashboard_page_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text) TO authenticated;
+REVOKE ALL ON FUNCTION public.orders_dashboard_page_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[]) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.orders_dashboard_page_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[]) TO authenticated,service_role;
+
+-- The small public selection API delegates all scope logic to the page core.
+CREATE OR REPLACE FUNCTION public.orders_dashboard_selection_v1(
+ p_from date DEFAULT NULL,
+ p_to date DEFAULT NULL,
+ p_state text DEFAULT 'pending',
+ p_channel text DEFAULT 'all',
+ p_query text DEFAULT '',
+ p_tracking text DEFAULT 'all',
+ p_country text DEFAULT 'all',
+ p_carrier text DEFAULT 'all',
+ p_limit integer DEFAULT 2000
+) RETURNS jsonb
+LANGUAGE sql STABLE SECURITY INVOKER SET search_path='' AS $fn$
+ SELECT public.orders_dashboard_page_v1(
+   p_from=>p_from,p_to=>p_to,p_state=>p_state,p_channel=>p_channel,
+   p_query=>p_query,p_tracking=>p_tracking,p_country=>p_country,p_carrier=>p_carrier,
+   p_selection_ids_only=>true,p_selection_limit=>p_limit
+ );
+$fn$;
+REVOKE ALL ON FUNCTION public.orders_dashboard_selection_v1(date,date,text,text,text,text,text,text,integer) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.orders_dashboard_selection_v1(date,date,text,text,text,text,text,text,integer) TO authenticated,service_role;

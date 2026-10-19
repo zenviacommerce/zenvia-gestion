@@ -4,7 +4,7 @@ import {readFileSync} from 'node:fs';
 const migration=readFileSync('supabase/migrations/20261019113000_orders_pool_status_dashboard.sql','utf8');
 it('real SQL pages 120 matches while aggregating the whole RLS tenant scope',async()=>{
  const db=new PGlite();try{
- await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated;`+readFileSync('tests/fixtures/orders-table-schema.sql','utf8'));
+ await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated; CREATE ROLE service_role;`+readFileSync('tests/fixtures/orders-table-schema.sql','utf8'));
  await db.exec(`ALTER TABLE fulfillment_orders ENABLE ROW LEVEL SECURITY;GRANT SELECT ON fulfillment_orders TO authenticated;
  CREATE POLICY tenant ON fulfillment_orders TO authenticated USING(owner_id=current_setting('test.owner')::uuid);
  INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,order_updated_at,total_amount,currency,shipping_address,raw_payload,items,destination_country_code)
@@ -44,5 +44,43 @@ it('real SQL pages 120 matches while aggregating the whole RLS tenant scope',asy
  const weighted=await call("p_state=>'all',p_query=>'WEIGHT-PARITY'");expect(weighted.rows[0].sendcloud_id).toBe('amazon:weighted');
  const remote=await call("p_state=>'all',p_query=>'REMOTE-PARITY'");expect(remote.rows[0].sendcloud_id).toBe('amazon:remote');
  await db.exec(`SET test.owner='00000000-0000-4000-8000-000000000002';`);const other=await call();expect(other.total).toBe(1);expect(other.rows[0].order_number).toBe('OTHER-TENANT');expect(other.kpis.pending).toBe(1);
+ }finally{await db.close()}
+},20000);
+
+it('selects the complete filtered eligible set under RLS and retrieves only live selected rows',async()=>{
+ const db=new PGlite();try{
+ await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE ROLE service_role;`+readFileSync('tests/fixtures/orders-table-schema.sql','utf8'));
+ await db.exec(`ALTER TABLE fulfillment_orders ENABLE ROW LEVEL SECURITY;GRANT SELECT ON fulfillment_orders TO authenticated;
+ CREATE POLICY tenant ON fulfillment_orders TO authenticated USING(owner_id=current_setting('test.owner')::uuid);
+ INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,shipping_address,items,destination_country_code,carrier_code)
+ SELECT md5('selection-'||n)::uuid,'00000000-0000-4000-8000-000000000001','selection-'||n,'SELECT-'||n,'shopify','unfulfilled','2026-10-10','{}','[]','ES','mrw' FROM generate_series(1,70)n;
+ UPDATE fulfillment_orders SET pii_purged_at=now() WHERE order_number='SELECT-64';
+ UPDATE fulfillment_orders SET label_created_at=now() WHERE order_number='SELECT-65';
+ UPDATE fulfillment_orders SET source_status='cancelled' WHERE order_number='SELECT-66';
+ UPDATE fulfillment_orders SET destination_country_code='FR' WHERE order_number='SELECT-67';
+ UPDATE fulfillment_orders SET carrier_code='correos' WHERE order_number='SELECT-68';
+ UPDATE fulfillment_orders SET source_channel='manual' WHERE order_number='SELECT-69';
+ UPDATE fulfillment_orders SET order_created_at='2026-09-01' WHERE order_number='SELECT-70';
+ INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,shipping_address,items,destination_country_code,carrier_code)
+ VALUES(md5('foreign-selection')::uuid,'00000000-0000-4000-8000-000000000002','foreign','SELECT-FOREIGN','shopify','unfulfilled','2026-10-10','{}','[]','ES','mrw');
+ INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,shipping_address,items,destination_country_code,carrier_code)
+ VALUES(md5('selection-duplicate')::uuid,'00000000-0000-4000-8000-000000000001','selection-duplicate','SELECT-1','shopify','unfulfilled','2026-09-01','{}','[]','ES','mrw');`);
+ await db.exec(migration);
+ await db.exec(`SET ROLE authenticated;SET test.owner='00000000-0000-4000-8000-000000000001';`);
+ const filters="p_from=>'2026-10-01',p_to=>'2026-10-19',p_state=>'all',p_channel=>'shopify',p_query=>'SELECT-',p_tracking=>'none',p_country=>'ES',p_carrier=>'mrw'";
+ const call=async(args='')=>(await db.query<any>(`select public.orders_dashboard_page_v1(${args}) data`)).rows[0].data;
+ const select=async(extra='')=>(await db.query<any>(`select public.orders_dashboard_selection_v1(${filters}${extra}) data`)).rows[0].data;
+ const page=await call(filters);expect(page.rows).toHaveLength(25);expect(page.total).toBe(66);expect(page.selectableTotal).toBe(63);
+ const selection=await select();expect(selection).toEqual({ids:[...selection.ids].sort(),total:63,limit:2000,exceeded:false});expect(selection.ids).toHaveLength(63);
+ const expected=(await db.query<any>(`SELECT id FROM fulfillment_orders WHERE order_number ~ '^SELECT-[0-9]+$' AND substring(order_number from 8)::int<=63 AND sendcloud_id<>'selection-duplicate' ORDER BY id`)).rows.map(x=>x.id);expect(selection.ids).toEqual(expected);
+ expect(await select(',p_limit=>62')).toEqual({ids:[],total:63,limit:62,exceeded:true});expect((await select(',p_limit=>99999')).limit).toBe(2000);expect((await select(',p_limit=>0')).limit).toBe(1);
+ expect((await call("p_selected_ids=>ARRAY[]::uuid[]")).total).toBe(0);
+ const ids=`ARRAY[${selection.ids.map((id:string)=>`'${id}'::uuid`).join(',')}]`;
+ const pages=await Promise.all([0,1,2].map(n=>call(`p_selected_ids=>${ids},p_page=>${n}`)));expect(pages.map(p=>p.rows.length)).toEqual([25,25,13]);expect(pages.map(p=>p.total)).toEqual([63,63,63]);expect(pages.flatMap(p=>p.rows.map((r:any)=>r.id)).sort()).toEqual(selection.ids);
+ await db.exec(`RESET ROLE;UPDATE fulfillment_orders SET label_created_at=now() WHERE id='${selection.ids[0]}';UPDATE fulfillment_orders SET pii_purged_at=now() WHERE id='${selection.ids[1]}';SET ROLE authenticated;`);
+ const live=await call(`p_state=>'all',p_selected_ids=>${ids},p_page_size=>100`);expect(live.total).toBe(61);expect(live.rows.some((r:any)=>selection.ids.slice(0,2).includes(r.id))).toBe(false);
+ await expect(call(`p_selected_ids=>array_fill('${selection.ids[0]}'::uuid,ARRAY[2001])`)).rejects.toThrow();
+ await db.exec(`SET test.owner='00000000-0000-4000-8000-000000000002';`);expect((await select()).ids).toEqual([(await db.query<any>(`SELECT md5('foreign-selection')::uuid id`)).rows[0].id]);expect((await call(`p_selected_ids=>${ids}`)).rows).toEqual([]);
+ await db.exec('RESET ROLE');const flags=await db.query<any>(`SELECT proname,prosecdef,has_function_privilege('anon',oid,'EXECUTE') anon,has_function_privilege('authenticated',oid,'EXECUTE') admitted,has_function_privilege('service_role',oid,'EXECUTE') service FROM pg_proc WHERE proname IN ('orders_dashboard_page_v1','orders_dashboard_selection_v1')`);expect(flags.rows).toHaveLength(2);for(const flag of flags.rows)expect(flag).toMatchObject({prosecdef:false,anon:false,admitted:true,service:true});
  }finally{await db.close()}
 },20000);

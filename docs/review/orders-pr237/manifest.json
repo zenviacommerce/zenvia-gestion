@@ -11,8 +11,14 @@
         "FR:21",
         "MRW:31"
       ],
-      "quotes": 25,
-      "selectionClearedOnPage": true,
+      "pageSelected": 25,
+      "allResultsSelected": 63,
+      "quotes": 63,
+      "uniqueQuoteOrders": 63,
+      "selectedFetchCount": 1,
+      "selectedFetchIds": 63,
+      "globalSelectionPreservedOnPage": true,
+      "globalSelectionClearedOnFilter": true,
       "errors": []
     },
     {
@@ -25,8 +31,14 @@
         "FR:21",
         "MRW:31"
       ],
-      "quotes": 25,
-      "selectionClearedOnPage": true,
+      "pageSelected": 25,
+      "allResultsSelected": 63,
+      "quotes": 63,
+      "uniqueQuoteOrders": 63,
+      "selectedFetchCount": 1,
+      "selectedFetchIds": 63,
+      "globalSelectionPreservedOnPage": true,
+      "globalSelectionClearedOnFilter": true,
       "errors": []
     }
   ]

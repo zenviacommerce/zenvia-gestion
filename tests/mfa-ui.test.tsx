@@ -87,3 +87,46 @@ it('retains mounted authorized UI during TOKEN_REFRESHED and visibilitychange un
 it('shows correct protected state after two devices',async()=>{sdk.rpc.mockResolvedValue({data:{state:'ready',factor_ids:['first','second']},error:null});render(<MfaProvider><MfaDevices/></MfaProvider>);expect(await screen.findByText(/Protegida con 2 dispositivos/)).toBeTruthy();});
 
 it('requires a readable device label before requesting TOTP enrollment',async()=>{sdk.rpc.mockResolvedValue({data:{state:'enrollment_required',factor_ids:[]},error:null});render(<MfaProvider><Probe/></MfaProvider>);await screen.findByLabelText('Nombre del dispositivo');fireEvent.click(screen.getByRole('button',{name:'Configurar autenticador'}));expect(sdk.enroll).not.toHaveBeenCalled();expect(await screen.findByRole('alert')).toBeTruthy();});
+
+it('enabled pilot retries 503 at bounded backoff, then stops; manual retry recovers without logout',async()=>{
+ vi.stubEnv('VITE_MFA_ENFORCEMENT_ENABLED','true');vi.useFakeTimers();sdk.rpc.mockResolvedValue({data:null,error:{message:'503',status:503}});
+ try{render(<MfaProvider><Probe/></MfaProvider>);await act(async()=>{await Promise.resolve()});expect(sdk.rpc).toHaveBeenCalledTimes(1);expect(screen.getByText('Seguridad temporalmente no disponible')).toBeTruthy();
+ await act(async()=>{await vi.advanceTimersByTimeAsync(499)});expect(sdk.rpc).toHaveBeenCalledTimes(1);
+ await act(async()=>{await vi.advanceTimersByTimeAsync(1)});expect(sdk.rpc).toHaveBeenCalledTimes(2);
+ await act(async()=>{await vi.advanceTimersByTimeAsync(1500)});expect(sdk.rpc).toHaveBeenCalledTimes(3);
+ await act(async()=>{for(let i=0;i<20;i++)window.dispatchEvent(new Event('focus'));await vi.advanceTimersByTimeAsync(60000)});expect(sdk.rpc).toHaveBeenCalledTimes(3);expect(sdk.signOut).not.toHaveBeenCalled();expect(screen.queryByText('Recuperación protegida')).toBeNull();
+ sdk.rpc.mockResolvedValue({data:{state:'challenge_required',factor_ids:['first','second']},error:null});fireEvent.click(screen.getByText('Reintentar'));await act(async()=>{await Promise.resolve()});expect(screen.getByLabelText('Código de seis dígitos')).toBeTruthy();expect(sdk.rpc).toHaveBeenCalledTimes(4);expect(sdk.signOut).not.toHaveBeenCalled();
+ }finally{vi.useRealTimers()}
+});
+it('enabled pilot bounds hung reads and focus storms, preserves session and allows explicit retry',async()=>{
+ vi.stubEnv('VITE_MFA_ENFORCEMENT_ENABLED','true');vi.useFakeTimers();sdk.rpc.mockImplementation(()=>new Promise(()=>{}));
+ try{render(<MfaProvider><Probe/></MfaProvider>);await act(async()=>{await Promise.resolve()});await act(async()=>{await vi.advanceTimersByTimeAsync(6001)});expect(screen.getByText('Seguridad temporalmente no disponible')).toBeTruthy();
+ await act(async()=>{await vi.advanceTimersByTimeAsync(20000)});expect(sdk.rpc).toHaveBeenCalledTimes(3);
+ await act(async()=>{for(let i=0;i<20;i++){window.dispatchEvent(new Event('focus'));sdk.callback?.('TOKEN_REFRESHED',session)}await vi.advanceTimersByTimeAsync(60000)});expect(sdk.rpc).toHaveBeenCalledTimes(3);expect(sdk.signOut).not.toHaveBeenCalled();
+ sdk.rpc.mockResolvedValue({data:{state:'ready',factor_ids:['first','second']},error:null});fireEvent.click(screen.getByText('Reintentar'));await act(async()=>{await Promise.resolve()});expect(screen.getByText('Protected content')).toBeTruthy();expect(sdk.rpc).toHaveBeenCalledTimes(4);
+ }finally{cleanup();vi.useRealTimers()}
+});
+it('token events during active hung reads cannot reset the three-read budget or backoff',async()=>{
+ vi.stubEnv('VITE_MFA_ENFORCEMENT_ENABLED','true');vi.useFakeTimers();sdk.rpc.mockImplementation(()=>new Promise(()=>{}));
+ try{render(<MfaProvider><Probe/></MfaProvider>);await act(async()=>{await Promise.resolve()});
+ for(let i=0;i<12;i++){await act(async()=>{sdk.callback?.('TOKEN_REFRESHED',session);await vi.advanceTimersByTimeAsync(1600)})}
+ expect(sdk.rpc.mock.calls.length).toBeLessThanOrEqual(3);await act(async()=>{await vi.advanceTimersByTimeAsync(30000)});expect(sdk.rpc).toHaveBeenCalledTimes(3);expect(screen.getByText('Seguridad temporalmente no disponible')).toBeTruthy();expect(sdk.signOut).not.toHaveBeenCalled();
+ }finally{cleanup();vi.useRealTimers()}
+});
+it('disabled startup remains fail-open even when token events exhaust superseded reads',async()=>{
+ vi.stubEnv('VITE_MFA_ENFORCEMENT_ENABLED','false');vi.useFakeTimers();sdk.rpc.mockImplementation(()=>new Promise(()=>{}));
+ try{render(<MfaProvider><Probe/></MfaProvider>);await act(async()=>{await Promise.resolve()});for(let i=0;i<6;i++)await act(async()=>{sdk.callback?.('TOKEN_REFRESHED',session);await vi.advanceTimersByTimeAsync(1600)});expect(screen.getByText('Protected content')).toBeTruthy();expect(sdk.signOut).not.toHaveBeenCalled();
+ }finally{cleanup();vi.useRealTimers()}
+});
+it('sign-out during backoff clears authorization immediately and cancels queued reads',async()=>{
+ vi.stubEnv('VITE_MFA_ENFORCEMENT_ENABLED','true');vi.useFakeTimers();sdk.rpc.mockResolvedValue({data:null,error:{message:'503'}});
+ try{render(<MfaProvider><Probe/></MfaProvider>);await act(async()=>{await Promise.resolve()});sdk.getSession.mockResolvedValue({data:{session:null},error:null});await act(async()=>{sdk.callback?.('SIGNED_OUT',null);await Promise.resolve()});await act(async()=>{await vi.advanceTimersByTimeAsync(30000)});expect(sdk.rpc).toHaveBeenCalledTimes(1);expect(screen.queryByText('Protected content')).toBeNull();expect(sdk.signOut).not.toHaveBeenCalled();
+ }finally{cleanup();vi.useRealTimers()}
+});
+it('a genuine user change restarts exhausted reads and cannot retain the old ready user',async()=>{
+ vi.stubEnv('VITE_MFA_ENFORCEMENT_ENABLED','false');vi.useFakeTimers();sdk.rpc.mockImplementation(()=>new Promise(()=>{}));
+ function IdentityProbe(){const m=useMfaAccess();return <><span data-testid="identity">{m.userId||'none'}</span><span>{m.ready?'authorized':'restricted'}</span></>}
+ try{render(<MfaProvider><IdentityProbe/></MfaProvider>);await act(async()=>{await Promise.resolve()});for(let i=0;i<4;i++)await act(async()=>{sdk.callback?.('TOKEN_REFRESHED',session);await vi.advanceTimersByTimeAsync(1600)});expect(screen.getByTestId('identity').textContent).toBe('user');
+ const next={...session,user:{id:'other-user'}};sdk.getSession.mockResolvedValue({data:{session:next},error:null});sdk.rpc.mockResolvedValue({data:{state:'ready',factor_ids:[]},error:null});await act(async()=>{sdk.callback?.('SIGNED_IN',next);await Promise.resolve()});expect(screen.getByTestId('identity').textContent).toBe('other-user');expect(sdk.rpc).toHaveBeenCalledTimes(4);
+ }finally{cleanup();vi.useRealTimers()}
+});

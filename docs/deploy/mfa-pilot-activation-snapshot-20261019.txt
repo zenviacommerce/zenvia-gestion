@@ -1,0 +1,12 @@
+MFA pilot activation snapshot — 2026-10-19, before write.
+Production Supabase project sjkxxbedkkmgmqnvaqjh.
+Singleton config: enabled=false; cohort_user_ids=NULL.
+Pilot email info@zenviacommerce.com / user id 7461b2b7-f383-460d-b1c7-6ccbb52e42b2.
+Verified TOTP: 2.
+Emergency stop (standalone transaction):
+BEGIN;
+UPDATE private.mfa_configuration SET enabled=false WHERE singleton=true;
+DO $$ BEGIN IF NOT EXISTS (SELECT 1 FROM private.mfa_configuration WHERE singleton=true AND enabled=false) THEN RAISE EXCEPTION 'Emergency MFA disable failed'; END IF; END $$;
+COMMIT;
+Emergency stop leaves factors and cohort unchanged; no factor removal.
+Pre-existing active pg_cron: amazon-fx-daily, amazon-product-images-refresh, amazon-orchestrator-hourly, amazon-recipient-fallback-refresh, amazon-sync-worker, amazon-orders-five-minutes, amazon-worker-maintenance, amazon-pii-purge-daily.

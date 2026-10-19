@@ -1,0 +1,5 @@
+import test from 'node:test';import assert from 'node:assert/strict';import {readFileSync} from 'node:fs';
+const sql=readFileSync(new URL('../supabase/migrations/20261019123800_amazon_sync_job_retention.sql',import.meta.url),'utf8');
+test('retention disabled by default with kill switch and bounded batches',()=>{assert.match(sql,/enabled boolean NOT NULL DEFAULT false/);assert.match(sql,/CHECK\(batch_size BETWEEN 1 AND 1000\)/);assert.match(sql,/IF NOT cfg.enabled THEN/);assert.match(sql,/LIMIT cfg.batch_size FOR UPDATE SKIP LOCKED/);});
+test('retains active and failed tasks, and reports deletions',()=>{assert.match(sql,/status IN \('success','superseded'\)/);assert.match(sql,/finished_at IS NOT NULL/);assert.match(sql,/retention_receipts/);assert.match(sql,/deleted_count/);});
+test('private-only cleanup function and off-peak schedule',()=>{assert.match(sql,/REVOKE ALL ON FUNCTION private.amazon_sync_job_retention_once\(\) FROM PUBLIC,anon,authenticated/);assert.match(sql,/25 3 \* \* \*/);});

@@ -17,11 +17,11 @@ import { PeriodFilterPanel } from '../components/PeriodFilterPanel';
 import { defaultDateFilter, periodLabel } from '../services/filters';
 import {
   createManualOrder, createOrderLabel, confirmOrderTracking, fetchOrderLabel,
-  completeAmazonRecipients, getEnviaStatus, getSendcloudStatus, getShippingOptions, getOrderTrackingLink, labelBlob, listFulfillmentOrders, listLocalPrinters, markOrderLabelPrinted,
+  completeAmazonRecipients, getEnviaStatus, getSendcloudStatus, getShippingOptions, getOrderTrackingLink, labelBlob, fetchOrdersDashboardPage, listMatchingPendingOrdersForBulk, listLocalPrinters, markOrderLabelPrinted,
   markEnviaHistorySyncDone, openLabelForPrint, printLabelWithClient,
   shouldRunEnviaHistorySync, syncEnviaShipments, syncShopifyOrders, reconcileAmazonOrders, retryAmazonTrackingConfirmations, updateFulfillmentOrder,
   type FulfillmentOrder, type LocalPrinter, type ManualOrderItem, type OrderChannel, type OrderUpdateInput,
-  type SendcloudStatus, type ShippingOption,
+  type SendcloudStatus, type ShippingOption, type OrdersDashboardFilters, type OrdersDashboardKpis,
 } from '../services/orders';
 import { bulkLabelZipFilename, labelPdfFilename, uniqueLabelPdfFilename } from '../services/orderLabelFiles';
 import { firstMatchingShippingRule, selectShippingOptionWithDefault } from '../services/shippingRuleCore';
@@ -385,6 +385,9 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   }>(preferences,'orders.filters',{query:'',state:'pending',trackingFilter:'all',countryFilter:'all',carrierFilter:'all',dateFilter:defaultDateFilter(preferences.defaultPeriod)});
   const [orders,setOrders]=useState<FulfillmentOrder[]>([]),[status,setStatus]=useState<SendcloudStatus|null>(null),[enviaStatus,setEnviaStatus]=useState<{configured:boolean;accounts:Array<{id:string;displayName:string;environment:string;isDefault:boolean}>}|null>(null);
   const [loading,setLoading]=useState(true),[syncing,setSyncing]=useState(false),[error,setError]=useState('');
+  const [page,setPage]=useState(0),[matchingTotal,setMatchingTotal]=useState(0);
+  const [dashboardKpis,setDashboardKpis]=useState<OrdersDashboardKpis|null>(null);
+  const [dashboardFacets,setDashboardFacets]=useState<{countries:string[];carriers:string[]}|null>(null);
   const syncingRef=useRef(false);
   const [query,setQuery]=useState(pendingOnly?'':remembered.query),[channel,setChannel]=useState<'all'|OrderChannel>('all'),[state,setState]=useState<OrderFilter>(pendingOnly?'pending':remembered.state),[trackingFilter,setTrackingFilter]=useState<TrackingFilter>(pendingOnly?'all':remembered.trackingFilter),[countryFilter,setCountryFilter]=useState(pendingOnly?'all':remembered.countryFilter),[carrierFilter,setCarrierFilter]=useState(pendingOnly?'all':remembered.carrierFilter);
   const [selected,setSelected]=useState<FulfillmentOrder|null>(null),[labelOrder,setLabelOrder]=useState<FulfillmentOrder|null>(null),[options,setOptions]=useState<ShippingOption[]>([]),[optionsMessage,setOptionsMessage]=useState(''),[optionsLoading,setOptionsLoading]=useState(false),[preparingOrder,setPreparingOrder]=useState<string|null>(null),[busyOrder,setBusyOrder]=useState<string|null>(null);
@@ -417,15 +420,49 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   },[query,state,trackingFilter,countryFilter,carrierFilter,dateFilter,preferences.rememberFilters]);
   const [shippingRules,setShippingRules]=useState<ShippingRule[]>(()=>defaultShippingRules());
 
-  const refreshRequest=useRef<Promise<void>|null>(null);
+  // A stable refresher prevents filter edits / realtime events from restarting
+  // the Amazon/Shopify synchronization effect. Ignore out-of-order page results.
+  const pageParamsRef=useRef<OrdersDashboardFilters>({
+    from:dateFilter.from,to:dateFilter.to,state,channel,query,tracking:trackingFilter,
+    country:countryFilter,carrier:carrierFilter,page,pageSize:preferences.pageSize,
+    overdueHours:settings.orders.overdueHours,sortKey:'orderDate',sortDirection:'desc',
+  });
+  const refreshRequest=useRef<{key:string;request:Promise<FulfillmentOrder[]>}|null>(null);
+  const refreshRevision=useRef(0);
   const refresh=useCallback(()=>{
-    if(refreshRequest.current)return refreshRequest.current;
-    const request=(async()=>{try{setOrders(await listFulfillmentOrders());setError('')}catch(e){setError(errorMessage(e,'No se pudieron cargar los pedidos.'))}})();
-    refreshRequest.current=request;
-    void request.finally(()=>{if(refreshRequest.current===request)refreshRequest.current=null});
+    const params={...pageParamsRef.current};
+    const key=JSON.stringify(params);
+    if(refreshRequest.current?.key===key)return refreshRequest.current.request;
+    const revision=++refreshRevision.current;
+    const request=(async()=>{
+      try{
+        const result=await fetchOrdersDashboardPage(params);
+        if(revision===refreshRevision.current){
+          setOrders(result.orders);
+          setMatchingTotal(result.total);
+          setDashboardKpis(result.kpis);
+          setDashboardFacets(result.facets);
+          setError('');
+        }
+        return result.orders;
+      }catch(e){
+        if(revision===refreshRevision.current)setError(errorMessage(e,'No se pudieron cargar los pedidos.'));
+        return [] as FulfillmentOrder[];
+      }
+    })();
+    refreshRequest.current={key,request};
+    void request.finally(()=>{if(refreshRequest.current?.request===request)refreshRequest.current=null}).catch(()=>{});
     return request;
   },[]);
-  useEffect(()=>watchFulfillmentOrders(()=>void refresh()),[refresh]);
+  useEffect(()=>{
+    let timer:number|undefined;
+    const unsubscribe=watchFulfillmentOrders(()=>{
+      // Coalesce a burst of order row updates into one page + KPI refresh.
+      if(timer!=null)return;
+      timer=window.setTimeout(()=>{timer=undefined;void refresh()},1200);
+    });
+    return()=>{if(timer!=null)window.clearTimeout(timer);unsubscribe()};
+  },[refresh]);
   const refreshStatus=useCallback(async()=>{try{setStatus(await getSendcloudStatus())}catch(e){setStatus({configured:false,integrations:[],message:errorMessage(e,'No se pudo comprobar Sendcloud.')})}},[]);
   const refreshEnviaStatus=useCallback(async()=>{try{const result=await getEnviaStatus();setEnviaStatus({configured:result.configured,accounts:result.accounts||[]})}catch{setEnviaStatus({configured:false,accounts:[]})}},[]);
   const refreshTariffs=useCallback(async()=>{try{setTariffs(await listTransportTariffs())}catch{/* El precio real seleccionado seguirá disponible aunque no haya tarifa estimada. */}},[]);
@@ -434,7 +471,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     window.addEventListener('zenvia:orders-refresh',onAgentRefresh);
     return()=>window.removeEventListener('zenvia:orders-refresh',onAgentRefresh);
   },[refresh,refreshStatus,refreshEnviaStatus,refreshTariffs]);
-  useEffect(()=>{(async()=>{setLoading(true);void Promise.all([refreshStatus(),refreshEnviaStatus(),refreshTariffs()]);try{await refresh()}finally{setLoading(false)}})()},[refresh,refreshStatus,refreshEnviaStatus,refreshTariffs]);
+  useEffect(()=>{void Promise.all([refreshStatus(),refreshEnviaStatus(),refreshTariffs()])},[refreshStatus,refreshEnviaStatus,refreshTariffs]);
   useEffect(()=>{let active=true;loadShippingRules({ensureDefaults:false}).then(rows=>{if(active)setShippingRules(rows.length?rows:defaultShippingRules())}).catch(()=>{if(active)setShippingRules(defaultShippingRules())});return()=>{active=false}},[]);
   useEffect(()=>{
     const asins=Array.from(new Set(orders
@@ -493,9 +530,9 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     const tick=()=>enabled
       ?sync(true,false,true)
       :Promise.all([refresh(),settings.orders.retryTrackingConfirmation?retryAmazonTrackingConfirmations():Promise.resolve()]);
-    if(enabled)void sync(true,false,true,shouldRunEnviaHistorySync());
-    else void tick();
-    const timer=window.setInterval(()=>void tick(),Math.max(30,settings.orders.refreshSeconds)*1000);
+    // Initial mount only reads one server page. Cron already performs automatic
+    // Amazon work; invoking every connector at the same instant causes a pool storm.
+    const timer=window.setInterval(()=>{if(document.visibilityState==='visible')void tick()},Math.max(30,settings.orders.refreshSeconds)*1000);
     return()=>window.clearInterval(timer);
   },[status?.configured,enviaStatus?.configured,sync,refresh,settings.orders.refreshSeconds,settings.orders.retryTrackingConfirmation,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled]);
 

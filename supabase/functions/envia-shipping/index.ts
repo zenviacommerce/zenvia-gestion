@@ -1,5 +1,6 @@
+import {loadDirectCarrierIds,filterAggregatorOptions} from '../_shared/carrierPolicy.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
-import {withAmazonBuyerRead} from '../_shared/amazonPiiRead.ts';
+import {withAmazonBuyerRead,withOrderQuote,withOrderLabelCreation} from '../_shared/amazonPiiRead.ts';
 import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
@@ -359,7 +360,7 @@ async function listCarriers(c:any,originCountry:string,destinationCountry:string
   carrierCache.set(cacheKey,{expires:Date.now()+10*60*1000,items:unique});
   return unique;
 }
-async function quoteAccount(admin:any,account:any,order:any,config:any){
+async function quoteAccount(admin:any,account:any,order:any,config:any,direct:Set<string>){
   const c=await credentials(admin,account);
   let origin=sender(config),dest=destination(order);const pkg=packageFor(order,config.shipping);
   validatePayload(origin,dest);
@@ -371,7 +372,7 @@ async function quoteAccount(admin:any,account:any,order:any,config:any){
   // The rate API requires shipment.carrier. Discover and quote each carrier directly.
   let carriers=await listCarriers(c,origin.country||'ES',dest.country||origin.country||'ES');
   if(enabled.length)carriers=carriers.filter((carrier:string)=>enabled.some((wanted:string)=>carrier.toLowerCase().includes(wanted)||wanted.includes(carrier.toLowerCase())));
-  carriers=carriers.slice(0,30);
+  carriers=filterAggregatorOptions(carriers.map((carrierCode:string)=>({carrierCode})),direct,'envia').map(item=>item.carrierCode).slice(0,30);
   const settled=await Promise.all(carriers.map(async(carrier:string)=>{
     try{
       const data=await withTimeout(enviaJson(`${c.shipBase}/ship/rate/`,c.token,{
@@ -628,7 +629,7 @@ Deno.serve(async(req:Request)=>{
     const {data:order,error:orderError}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();
     if(orderError)throw orderError;if(!order)return fail('Pedido no encontrado.',404);
     if(order.pii_purged_at)return fail('Los datos personales de este pedido se han eliminado por retención.',410);
-    return await withAmazonBuyerRead(admin,order,async()=>{
+    return await (action==='rates'?withOrderQuote:action==='create_label'?withOrderLabelCreation:withAmazonBuyerRead)(admin,order,async()=>{
     orderReference=clean(order.order_number||order.order_id||order.id);
     if(action==='rates'||action==='create_label')assertAmazonOrderShippable(order);
 
@@ -636,20 +637,23 @@ Deno.serve(async(req:Request)=>{
       const accounts=await enviaAccounts(admin,caller.data_owner_id,clean(body?.integrationAccountId));
       if(!accounts.length)return response({ok:true,configured:false,options:[],message:'Envia.com no está conectado.',diagnostics:[]});
       const config=await workspaceConfig(admin,caller.data_owner_id);
-      const results=await Promise.allSettled(accounts.map((account:any)=>quoteAccount(admin,account,order,config)));
-      const options=results.flatMap((result:any)=>result.status==='fulfilled'?result.value.options:[]).sort((a:any,b:any)=>(a.price??Number.MAX_VALUE)-(b.price??Number.MAX_VALUE));
+      const direct=await loadDirectCarrierIds(admin,caller.data_owner_id);
+      const results=await Promise.allSettled(accounts.map((account:any)=>quoteAccount(admin,account,order,config,direct)));
+      const options=filterAggregatorOptions(results.flatMap((result:any)=>result.status==='fulfilled'?result.value.options:[]),direct,'envia').sort((a:any,b:any)=>(a.price??Number.MAX_VALUE)-(b.price??Number.MAX_VALUE));
       const diagnostics=results.flatMap((result:any,index:number)=>{
         if(result.status==='rejected')return [{account:String(accounts[index]?.display_name||'Envia.com'),carrier:null,message:result.reason instanceof Error?result.reason.message:String(result.reason)}];
         return result.value.errors.map((item:any)=>({account:String(accounts[index]?.display_name||'Envia.com'),...item}));
       });
       const firstDiagnostic=diagnostics[0]?.message?String(diagnostics[0].message).replace(/^Envia\.com \(\d+\):\s*/,''):'';
       const message=options.length
-        ?(diagnostics.length?`${options.length} opciones disponibles; ${diagnostics.length} cotizaciones de transportista no aplican a esta ruta.`:null)
+        ?(diagnostics.length?`${options.length} opciones disponibles; ${diagnostics.length} cotizaciones de transportista han fallado.`:null)
         :(firstDiagnostic?`Envia.com no devolvió tarifas. ${firstDiagnostic}`:'Envia.com no devolvió tarifas para este envío.');
       return response({ok:true,configured:true,options,message,diagnostics});
     }
 
     if(action==='create_label'){
+      const direct=await loadDirectCarrierIds(admin,caller.data_owner_id);
+      if(!filterAggregatorOptions([body?.shippingOption||{}],direct,'envia').length)return fail('Este transportista tiene una integración directa activa. Utiliza su contrato directo.',409);
       if(order.sendcloud_parcel_id||order.shipping_remote_id||order.label_created_at)return fail('Este pedido ya tiene una etiqueta.',409);
       const option=body?.shippingOption||{};
       const accountId=clean(option?.integrationAccountId);

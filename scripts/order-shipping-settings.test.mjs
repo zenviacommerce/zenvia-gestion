@@ -78,7 +78,7 @@ test('orders runtime consumes refresh tracking label and shipping settings',asyn
   assert.match(page,/settings\.orders\.bulkZipFilenameTemplate/);
   assert.match(page,/settings\.orders\.pushTrackingToMarketplace/);
   assert.match(page,/setLabelOrder\(order\)/);
-  assert.match(page,/openBulkPreview\(configuredBulkTargets/);
+  assert.match(page,/openBulkPreview\(targets\.filter\(canPrepareOrder\)/);
   assert.doesNotMatch(page,/if\(settings\.orders\.generateLabelAutomatically\)/);
   assert.match(page,/settings\.shipping\.fallbackWeightKg/);
   assert.match(page,/settings\.shipping\.enabledCarriers/);

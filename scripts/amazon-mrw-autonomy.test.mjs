@@ -17,8 +17,8 @@ test('native Amazon orders can be edited locally without a Sendcloud remote orde
 
 test('MRW remains available when Sendcloud and Envia rate lookups fail',async()=>{
   const service=await read('src/services/orders.ts');
-  assert.match(service,/noProviderOptions=!sendcloud&&!envia&&!mrw/);
-  assert.match(service,/mrwOptions/);
+  assert.match(service,/collectProviderQuotes/);
+  assert.match(service,/onlyProviders:QuoteProvider\[\]=\['sendcloud','envia','mrw'\]/);
   assert.match(service,/option\?\.provider==='mrw'/);
 });
 

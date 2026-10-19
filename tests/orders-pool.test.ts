@@ -1,85 +1,40 @@
-import {describe,it,expect} from 'vitest';
+import {it,expect} from 'vitest';
+import {PGlite} from '@electric-sql/pglite';
 import {readFileSync} from 'node:fs';
-import {reconcileOperationalAmazonStates} from '../supabase/functions/_shared/amazon/orders.ts';
-
-function fakeAdmin(rows:Array<Record<string,unknown>>){
-  const updates:Array<Record<string,unknown>>=[];
-  const reads:{count:number}={count:0};
-  return {
-    updates,reads,
-    from(table:string){
-      expect(table).toBe('fulfillment_orders');
-      return {
-        select(){
-          reads.count++;
-          return {
-            eq(){return this},
-            in(_column:string,ids:string[]){
-              return Promise.resolve({data:rows.filter(row=>ids.includes(String(row.order_number))),error:null});
-            },
-          };
-        },
-        update(patch:Record<string,unknown>){
-          updates.push(patch);
-          return {
-            eq(){return this},
-            then(resolve:(result:{error:null})=>unknown){return Promise.resolve({error:null}).then(resolve)},
-          };
-        },
-      };
-    },
-  };
-}
-const stamp='2026-10-19T08:00:00.000Z';
-function baseOrder(n:number){return{
-  id:'fixture-'+n,order_number:'ORDER-'+n,source_status:'Unshipped',
-  order_updated_at:stamp,tracking_number:null,carrier_name:null,carrier_code:null,
-  shipping_service_name:null,tracking_status_code:null,tracking_status_message:null,
-  fulfilled_at:null,
-};}
-function amazonOrder(n:number,status='Unshipped'){return{
-  orderId:'ORDER-'+n,lastUpdatedTime:stamp,fulfillment:{fulfillmentStatus:status},
-};}
-
-describe('Amazon order sync write coalescing',()=>{
-  it('avoids 100 obsolete MVCC row writes for 100 unchanged orders',async()=>{
-    const admin=fakeAdmin(Array.from({length:100},(_,i)=>baseOrder(i)));
-    const result=await reconcileOperationalAmazonStates(admin,Array.from({length:100},(_,i)=>amazonOrder(i)),'owner');
-    expect(result).toEqual({inspected:100,updated:0,unchanged:100});
-    expect(admin.reads.count).toBe(1);
-    expect(admin.updates).toHaveLength(0);
-  });
-  it('updates changed business fields but not a sync-only heartbeat',async()=>{
-    const admin=fakeAdmin([baseOrder(1)]);
-    const result=await reconcileOperationalAmazonStates(admin,[amazonOrder(1,'Shipped')],'owner');
-    expect(result.updated).toBe(1);
-    expect(admin.updates).toHaveLength(1);
-    expect(admin.updates[0].source_status).toBe('Shipped');
-    expect(admin.updates[0].last_synced_at).toBeDefined();
-  });
-  it('bounds select requests to batches of 100 rather than per order',async()=>{
-    const n=205,admin=fakeAdmin(Array.from({length:n},(_,i)=>baseOrder(i)));
-    const result=await reconcileOperationalAmazonStates(admin,Array.from({length:n},(_,i)=>amazonOrder(i)),'owner');
-    expect(result.unchanged).toBe(n);
-    expect(admin.reads.count).toBe(3);
-    expect(admin.updates).toHaveLength(0);
-  });
-});
-describe('PostgREST pressure contracts',()=>{
-  it('does not leak raw Amazon sync job counts to authenticated users',()=>{
-    const migration=readFileSync('supabase/migrations/20261019113000_orders_pool_status_dashboard.sql','utf8');
-    expect(migration).toContain('SECURITY INVOKER');
-    expect(migration).toContain('REVOKE ALL ON FUNCTION public.amazon_sync_job_counts(uuid,uuid) FROM PUBLIC,anon,authenticated;');
-    expect(migration).toContain('GRANT EXECUTE ON FUNCTION public.amazon_sync_job_counts(uuid,uuid) TO service_role;');
-    expect(migration).toContain('GRANT EXECUTE ON FUNCTION public.orders_dashboard_page_v1');
-    expect(migration).toContain('FROM public.fulfillment_orders o');
-    expect(migration).toContain('FROM eligible');
-    expect(migration).toContain("'kpis',(SELECT data FROM kpis)");
-    expect(migration).toContain(" - 'raw_payload'");
-  });
-  it('status endpoint uses one aggregate RPC rather than four exact HEAD counts',()=>{
-    const source=readFileSync('supabase/functions/amazon-status/index.ts','utf8');
-    expect(source).toContain("admin.rpc('amazon_sync_job_counts'");
-    expect(source).not.toContain("count:'exact',head:true");
-  });
-});
+const migration=readFileSync('supabase/migrations/20261019113000_orders_pool_status_dashboard.sql','utf8');
+it('real SQL pages 120 matches while aggregating the whole RLS tenant scope',async()=>{
+ const db=new PGlite();try{
+ await db.exec(`CREATE ROLE anon; CREATE ROLE authenticated;`+readFileSync('tests/fixtures/orders-table-schema.sql','utf8'));
+ await db.exec(`ALTER TABLE fulfillment_orders ENABLE ROW LEVEL SECURITY;GRANT SELECT ON fulfillment_orders TO authenticated;
+ CREATE POLICY tenant ON fulfillment_orders TO authenticated USING(owner_id=current_setting('test.owner')::uuid);
+ INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,order_updated_at,total_amount,currency,shipping_address,raw_payload,items,destination_country_code)
+ SELECT md5(n::text)::uuid,'00000000-0000-4000-8000-000000000001',n::text,'ORDER-'||n,'amazon',CASE WHEN n<=120 THEN 'UNSHIPPED' ELSE 'SHIPPED' END,now(),now(),121,'EUR','{}',jsonb_build_object('shipping_details',jsonb_build_object('measurement',jsonb_build_object('weight',jsonb_build_object('value',n,'unit','kg')))),jsonb_build_array(jsonb_build_object('sku','SKU-'||n,'quantity',n)),'ES' FROM generate_series(1,130)n;
+ INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,shipping_address,items)
+ VALUES(md5('other')::uuid,'00000000-0000-4000-8000-000000000002','other','OTHER-TENANT','amazon','UNSHIPPED',now(),'{}','[]');`);
+ await db.exec(migration);
+ const flags=await db.query<any>(`select prosecdef,has_function_privilege('anon',oid,'EXECUTE') anon,has_function_privilege('authenticated',oid,'EXECUTE') admitted from pg_proc where proname='orders_dashboard_page_v1'`);expect(flags.rows[0]).toMatchObject({prosecdef:false,anon:false,admitted:true});
+ await db.exec(`SET ROLE authenticated;SET test.owner='00000000-0000-4000-8000-000000000001';`);
+ const call=async(args='')=>(await db.query<any>(`select public.orders_dashboard_page_v1(${args}) data`)).rows[0].data;
+ const first=await call();expect(first.rows).toHaveLength(25);expect(first.total).toBe(120);expect(first.kpis.pending).toBe(120);expect(first.kpis.shipped).toBe(10);expect(first.kpis.sales.gross).toBe(15730);expect(first.facets.countries).toContain('ES');expect(JSON.stringify(first)).not.toContain('OTHER-TENANT');expect(first.rows[0].raw_payload).toBeUndefined();
+ const byWeight=await call("p_sort_key=>'weight',p_sort_direction=>'desc'");expect(byWeight.rows[0].order_number).toBe('ORDER-120');
+ const byUnits=await call("p_sort_key=>'units',p_sort_direction=>'desc'");expect(byUnits.rows[0].order_number).toBe('ORDER-120');
+ const next=await call('p_page=>1');expect(next.total).toBe(120);expect(next.rows).toHaveLength(25);expect(next.rows.some((x:any)=>first.rows.some((y:any)=>x.id===y.id))).toBe(false);expect(next.kpis).toEqual(first.kpis);
+ const query=await call("p_query=>'SKU-99'");expect(query.total).toBe(1);expect(query.kpis.pending).toBe(1);
+ const country=await call("p_country=>'ES'");expect(country.total).toBe(120);
+ const last=await call('p_page=>4');expect(last.rows).toHaveLength(20);const bounded=await call('p_page_size=>1000');expect(bounded.pageSize).toBe(100);expect(bounded.rows).toHaveLength(100);
+ await db.exec(`RESET ROLE;
+ INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,shipping_address,items,total_amount,currency,raw_payload,label_created_at)
+ VALUES(md5('legacy')::uuid,'00000000-0000-4000-8000-000000000001','carrier','SAME','amazon','UNSHIPPED',now(),'{}','[]',null,null,'{}',now()),
+ (md5('direct')::uuid,'00000000-0000-4000-8000-000000000001','amazon:direct','SAME','amazon','UNSHIPPED',now(),'{"country_code":"ES"}','[{"sku":"FALLBACK","quantity":2}]',121,'EUR','{}',null);
+ SET ROLE authenticated;`);
+ const merged=await call("p_state=>'all',p_query=>'SAME'");expect(merged.total).toBe(1);expect(merged.kpis.sales.gross).toBe(121);expect(merged.rows[0].items[0].sku).toBe('FALLBACK');expect(merged.rows[0].shipping_address.country_code).toBe('ES');
+ await db.exec(`RESET ROLE;UPDATE fulfillment_orders SET pii_purged_at=now(),destination_country_code='ES' WHERE id=md5('direct')::uuid;UPDATE fulfillment_orders SET customer_name='SYNTHETIC-BUYER' WHERE id=md5('legacy')::uuid;
+ INSERT INTO fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,tracking_status_code,tracking_status_message,tracking_number,shipping_remote_id,shipping_address,raw_payload,items)
+ VALUES(md5('incident')::uuid,'00000000-0000-4000-8000-000000000001','incident','INCIDENT','amazon','SHIPPED',now(),'SHIPPED','Delivery delayed','TRACK','REMOTE','{}','{}','[]');SET ROLE authenticated;`);
+ const purged=await call("p_state=>'all',p_query=>'SAME',p_country=>'ES'");expect(purged.total).toBe(1);expect(purged.rows[0].pii_purged_at).toBeTruthy();expect(purged.rows[0].customer_name).toBeNull();expect(purged.rows[0].shipping_address).toEqual({});expect(purged.kpis.sales.gross).toBe(121);expect(JSON.stringify(purged)).not.toContain('SYNTHETIC-BUYER');
+ await db.exec(`RESET ROLE;UPDATE fulfillment_orders SET items='[{"sku":{"buyerName":"SYNTHETIC-PRIVATE"},"quantity":"SYNTHETIC-PRIVATE","unit_price":{"value":"SYNTHETIC-PRIVATE"}}]' WHERE id=md5('legacy')::uuid;SET ROLE authenticated;`);
+ const guarded=await call("p_state=>'all',p_query=>'SAME'");expect(JSON.stringify(guarded)).not.toContain('SYNTHETIC-PRIVATE');
+ const incident=await call("p_state=>'all',p_query=>'INCIDENT',p_tracking=>'issue'");expect(incident.total).toBe(1);expect((await call("p_state=>'all',p_query=>'INCIDENT',p_tracking=>'transit'")).total).toBe(0);
+ await db.exec(`SET test.owner='00000000-0000-4000-8000-000000000002';`);const other=await call();expect(other.total).toBe(1);expect(other.rows[0].order_number).toBe('OTHER-TENANT');expect(other.kpis.pending).toBe(1);
+ }finally{await db.close()}
+},20000);

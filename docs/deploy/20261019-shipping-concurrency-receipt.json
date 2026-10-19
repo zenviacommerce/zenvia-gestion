@@ -1,0 +1,44 @@
+{
+  "at": "2026-10-19T12:04:38.488Z",
+  "quotes": [
+    {
+      "status": 200,
+      "body": {
+        "status": 200,
+        "options": [
+          "inert-option"
+        ],
+        "carrierCalls": 0
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "status": 200,
+        "options": [
+          "inert-option"
+        ],
+        "carrierCalls": 0
+      }
+    }
+  ],
+  "creations": [
+    {
+      "status": 409,
+      "body": {
+        "status": 409,
+        "message": "Hay otra operación de envío o cancelación en curso."
+      }
+    },
+    {
+      "status": 200,
+      "body": {
+        "status": 200,
+        "options": [
+          "inert-option"
+        ],
+        "carrierCalls": 0
+      }
+    }
+  ]
+}

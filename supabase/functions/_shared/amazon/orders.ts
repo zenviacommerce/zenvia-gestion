@@ -112,70 +112,25 @@ async function fallbackWeightKg(admin:any,ownerId:string){
   const value=Number(data?.config?.shipping?.fallbackWeightKg);
   return Number.isFinite(value)&&value>0?value:1;
 }
-// Compare business fields, not the volatile last_synced_at heartbeat. A sync
-// should not create a new MVCC row when Amazon has not changed the order.
-function canonicalSyncValue(value:unknown):string{
-  if(value===undefined||value===null)return 'null';
-  if(Array.isArray(value))return '['+value.map(canonicalSyncValue).join(',')+']';
-  if(typeof value==='object')return '{'+Object.entries(value as Record<string,unknown>)
-    .sort(([a],[b])=>a.localeCompare(b))
-    .map(([k,v])=>JSON.stringify(k)+':'+canonicalSyncValue(v)).join(',')+'}';
-  return JSON.stringify(value);
-}
-function sameOperationalField(key:string,oldValue:unknown,newValue:unknown):boolean{
-  if(oldValue==null&&newValue==null)return true;
-  if(['order_updated_at','order_created_at','fulfilled_at','tracking_updated_at'].includes(key)){
-    const a=Date.parse(String(oldValue||'')),b=Date.parse(String(newValue||''));
-    if(Number.isFinite(a)&&Number.isFinite(b))return a===b;
-  }
-  if(key==='total_amount'&&oldValue!=null&&newValue!=null)
-    return Number(oldValue)===Number(newValue);
-  return canonicalSyncValue(oldValue)===canonicalSyncValue(newValue);
-}
 export async function reconcileOperationalAmazonStates(admin:any,orders:any[],ownerId:string){
-  const candidates=orders.filter(order=>order?.orderId&&clean(order?.fulfillment?.fulfillmentStatus));
-  if(!candidates.length)return {inspected:0,updated:0,unchanged:0};
-  const currentByOrder=new Map<string,any>();
-  // One bounded SELECT per batch replaces one blind UPDATE per incoming order.
-  for(let i=0;i<candidates.length;i+=100){
-    const ids=[...new Set(candidates.slice(i,i+100).map(order=>String(order.orderId)))];
-    const {data,error}=await admin.from('fulfillment_orders')
-      .select('id,order_number,source_status,order_updated_at,tracking_number,carrier_name,carrier_code,shipping_service_name,tracking_status_code,tracking_status_message,fulfilled_at')
-      .eq('owner_id',ownerId).eq('source_channel','amazon').in('order_number',ids);
-    if(error)throw error;
-    for(const row of data||[])currentByOrder.set(String(row.order_number),row);
-  }
-  let updated=0,unchanged=0;
-  for(const order of candidates){
-    const current=currentByOrder.get(String(order.orderId));
-    if(!current)continue; // New operational orders are inserted by the upsert phase.
-    const status=clean(order.fulfillment.fulfillmentStatus);
+  for(const order of orders){
+    const status=clean(order?.fulfillment?.fulfillmentStatus);
+    if(!order?.orderId||!status)continue;
     const shipment=(Array.isArray(order.packages)?order.packages:[]).find((p:any)=>clean(p?.trackingNumber));
-    const patch:Record<string,unknown>={
-      source_status:status,
-      order_updated_at:order.lastUpdatedTime||current.order_updated_at||new Date().toISOString(),
-    };
+    const patch:any={source_status:status,order_updated_at:order.lastUpdatedTime||new Date().toISOString(),last_synced_at:new Date().toISOString()};
     if(shipment){
       patch.tracking_number=clean(shipment.trackingNumber);
       const carrier=typeof shipment.carrier==='string'?shipment.carrier:shipment.carrier?.name||shipment.carrier?.carrierCode;
-      if(carrier){patch.carrier_name=clean(carrier);patch.carrier_code=clean(carrier).toLowerCase();}
+      if(carrier){patch.carrier_name=clean(carrier);patch.carrier_code=clean(carrier).toLowerCase()}
       if(shipment.shippingService)patch.shipping_service_name=typeof shipment.shippingService==='string'?shipment.shippingService:shipment.shippingService.name||null;
+      patch.tracking_updated_at=new Date().toISOString();
       patch.tracking_status_code=clean(shipment.packageStatus?.status)||status;
       patch.tracking_status_message=clean(shipment.packageStatus?.detailedStatus)||status;
     }
-    if(status.toUpperCase()==='SHIPPED')
-      patch.fulfilled_at=shipment?.shipTime||order.lastUpdatedTime||current.fulfilled_at||new Date().toISOString();
-    const changed=Object.entries(patch).some(([key,value])=>!sameOperationalField(key,current[key],value));
-    if(!changed){unchanged++;continue;}
-    if(shipment)patch.tracking_updated_at=new Date().toISOString();
-    patch.last_synced_at=new Date().toISOString();
-    const {error}=await admin.from('fulfillment_orders').update(patch)
-      .eq('id',current.id).eq('owner_id',ownerId);
+    if(status.toUpperCase()==='SHIPPED')patch.fulfilled_at=shipment?.shipTime||order.lastUpdatedTime||new Date().toISOString();
+    const {error}=await admin.from('fulfillment_orders').update(patch).eq('owner_id',ownerId).eq('source_channel','amazon').eq('order_number',String(order.orderId));
     if(error)throw error;
-    updated++;
-    Object.assign(current,patch);
   }
-  return {inspected:candidates.length,updated,unchanged};
 }
 async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
   await reconcileOperationalAmazonStates(admin,orders,job.owner_id);
@@ -227,9 +182,6 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
       raw_payload:rawPayload,last_synced_at:new Date().toISOString(),
     };
     if(current?.id){
-      // last_synced_at is not a reason to rewrite a row (MVCC, WAL, realtime).
-      const changed=Object.entries(patch).some(([key,value])=>key!=='last_synced_at'&&!sameOperationalField(key,current[key],value));
-      if(!changed){synced+=1;continue;}
       const {error:updateError}=await admin.from('fulfillment_orders').update(patch).eq('id',current.id).eq('owner_id',job.owner_id);
       if(updateError)throw updateError;
     }else{

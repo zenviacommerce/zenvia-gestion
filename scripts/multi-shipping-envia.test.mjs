@@ -37,7 +37,7 @@ test('Orders compares providers and routes label creation to the selected provid
     read('src/services/orders.ts'),
     read('src/pages/Orders.tsx'),
   ]);
-  assert.match(orders,/Promise\.allSettled/);
+  assert.match(orders,/collectProviderQuotes/);
   assert.match(orders,/invokeEnvia/);
   assert.match(orders,/option\?\.provider==='envia'/);
   assert.match(page,/Compara los servicios disponibles de tus proveedores logísticos/);
@@ -70,7 +70,13 @@ test('current logistics model adds MRW as a direct first-class provider',async()
   assert.match(migration,/shipping_provider is null or shipping_provider in \('sendcloud','envia','mrw'\)/);
   assert.match(orders,/provider:'sendcloud'\|'envia'\|'mrw'/);
   assert.match(orders,/invokeMrw/);
-  assert.match(orders,/directMrwAvailable/);
+  // Direct-contract exclusion is enforced by a workspace policy in each
+  // aggregator, independent of the direct provider's quote result.
+  for(const endpoint of ['sendcloud-orders','sendcloud-order-tools','envia-shipping']){
+    const source=await read(`supabase/functions/${endpoint}/index.ts`);
+    assert.match(source,/loadDirectCarrierIds\(admin,caller.data_owner_id\)/);
+    assert.match(source,/filterAggregatorOptions/);
+  }
   assert.match(orders,/option\?\.provider==='mrw'/);
   assert.match(mrw,/TransmEnvio/);
   assert.match(mrw,/GetEtiquetaEnvio/);

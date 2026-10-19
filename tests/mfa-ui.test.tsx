@@ -9,7 +9,29 @@ import {sensitiveRPC} from '../src/services/mfa';
 const session={user:{id:'user'},access_token:'token'};
 function Probe(){const m=useMfaAccess();return m.ready?<div>Protected content</div>:<MfaScreen/>}
 beforeEach(()=>{vi.clearAllMocks();sdk.getSession.mockResolvedValue({data:{session},error:null});sdk.onAuthStateChange.mockImplementation((cb:any)=>{sdk.callback=cb;return {data:{subscription:{unsubscribe:vi.fn()}}}});sdk.rpc.mockResolvedValue({data:{state:'ready',factor_ids:['factor']},error:null});sdk.challenge.mockResolvedValue({data:{id:'challenge'},error:null});sdk.verify.mockResolvedValue({data:{},error:null});sdk.unenroll.mockResolvedValue({data:{},error:null});sdk.listFactors.mockResolvedValue({data:{totp:[]},error:null});sdk.refreshSession.mockResolvedValue({data:{session},error:null});});
-afterEach(cleanup);
+afterEach(()=>{cleanup();vi.unstubAllEnvs()});
+it('disabled MFA starts immediately when the status RPC fails',async()=>{
+ vi.stubEnv('VITE_MFA_ENFORCEMENT_ENABLED','false');sdk.rpc.mockResolvedValue({data:null,error:{message:'503'}});
+ render(<MfaProvider><Probe/></MfaProvider>);expect(await screen.findByText('Protected content')).toBeTruthy();expect(sdk.signOut).not.toHaveBeenCalled();
+});
+it('disabled MFA starts while its status RPC never settles',async()=>{
+ vi.stubEnv('VITE_MFA_ENFORCEMENT_ENABLED','false');sdk.rpc.mockImplementation(()=>new Promise(()=>{}));
+ render(<MfaProvider><Probe/></MfaProvider>);expect(await screen.findByText('Protected content')).toBeTruthy();
+});
+it.each(['challenge_required','enrollment_required','recovery_locked'])('disabled startup cannot erase an explicit %s across repeated failures',async state=>{
+ vi.stubEnv('VITE_MFA_ENFORCEMENT_ENABLED','false');
+ sdk.rpc.mockResolvedValueOnce({data:{state,factor_ids:[]},error:null});
+ function RecheckProbe(){const m=useMfaAccess();return <><span>{m.state}</span><button onClick={m.recheck}>Check again</button></>}
+ render(<MfaProvider><RecheckProbe/></MfaProvider>);expect(await screen.findByText(state)).toBeTruthy();
+ sdk.rpc.mockResolvedValue({data:null,error:{message:'503'}});
+ fireEvent.click(screen.getByText('Check again'));expect(await screen.findByText('temporarily_unavailable')).toBeTruthy();
+ fireEvent.click(screen.getByText('Check again'));await waitFor(()=>expect(sdk.rpc).toHaveBeenCalledTimes(3));
+ expect(screen.getByText('temporarily_unavailable')).toBeTruthy();expect(screen.queryByText('ready')).toBeNull();
+});
+it('disabled MFA cannot start without a session',async()=>{
+ vi.stubEnv('VITE_MFA_ENFORCEMENT_ENABLED','false');sdk.getSession.mockResolvedValue({data:{session:null},error:null});
+ render(<MfaProvider><Probe/></MfaProvider>);await waitFor(()=>expect(sdk.getSession).toHaveBeenCalled());expect(screen.queryByText('Protected content')).toBeNull();expect(sdk.rpc).not.toHaveBeenCalled();
+});
 it('does not mount protected content before backend authority resolves',async()=>{let resolve:any;sdk.rpc.mockImplementation(()=>new Promise(r=>{resolve=r}));render(<MfaProvider><Probe/></MfaProvider>);expect(screen.queryByText('Protected content')).toBeNull();await waitFor(()=>expect(resolve).toBeTypeOf('function'));await act(async()=>resolve({data:{state:'ready',factor_ids:[]},error:null}));expect(await screen.findByText('Protected content')).toBeTruthy();});
 it('fails closed on unavailable RPC and allows deliberate retry',async()=>{sdk.rpc.mockResolvedValueOnce({data:null,error:{message:'503'}});render(<MfaProvider><Probe/></MfaProvider>);expect(await screen.findByText('Seguridad temporalmente no disponible')).toBeTruthy();expect(screen.queryByText('Protected content')).toBeNull();fireEvent.click(screen.getByText('Reintentar'));expect(await screen.findByText('Protected content')).toBeTruthy();});
 it('verifies admitted factor using a new challenge and preserves leading zeros',async()=>{sdk.rpc.mockResolvedValue({data:{state:'challenge_required',factor_ids:['approved']},error:null});render(<MfaProvider><Probe/></MfaProvider>);fireEvent.change(await screen.findByLabelText('Código de seis dígitos'),{target:{value:'001234'}});fireEvent.click(screen.getByRole('button',{name:'Verificar'}));await waitFor(()=>expect(sdk.verify).toHaveBeenCalledWith({factorId:'approved',challengeId:'challenge',code:'001234'}));});

@@ -1,0 +1,27 @@
+{
+  "pr": 76,
+  "head": "8105c860f7557ca43b82858a2d2339593f08333b",
+  "merge": "c9a10ea3831ac05247af3349be819269be6bee85",
+  "workflow": {
+    "id": 39315978787,
+    "name": "Build ZENVIA Platform",
+    "conclusion": "success"
+  },
+  "deployment": {
+    "id": "dpl_8K29gsU9v1XSDFgHCw5FYyEhF7pc",
+    "url": "zenvia-platform-jzh4kpstn-sergiorojasdiaz-7097.vercel.app",
+    "state": "READY"
+  },
+  "alias": "admin.zenviacommerce.com",
+  "asset": "index-C8G9Ghgi.js",
+  "htmlStatus": 200,
+  "assetStatus": 200,
+  "localScopeOccurrences": 2,
+  "recoveryPhasePresent": true,
+  "rollback": {
+    "id": "dpl_4hptdBNNaGyNLBo4fhLgGFuqSCa9",
+    "url": "zenvia-platform-bdfamc6bq-sergiorojasdiaz-7097.vercel.app"
+  },
+  "localTests": 248,
+  "localBuild": true
+}

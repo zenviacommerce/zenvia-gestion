@@ -5,16 +5,16 @@ import vm from 'node:vm';
 import ts from 'typescript';
 const source=fs.readFileSync('supabase/functions/_shared/amazon/orders.ts','utf8');
 function fixture(){
- const rows=[],writes=[];const job={owner_id:'owner',amazon_account_id:'account',marketplace_id:'market',window_from:'2026-10-18T00:00:00Z',window_to:'2026-10-18T01:00:00Z'};
+ const rows=[],writes=[],cancellations=[];const job={owner_id:'owner',amazon_account_id:'account',marketplace_id:'market',window_from:'2026-10-18T00:00:00Z',window_to:'2026-10-18T01:00:00Z'};
  let orders=[{orderId:'ORDER',createdTime:'2026-10-17T00:00:00Z',lastUpdatedTime:'2026-10-18T00:00:00Z',fulfillment:{fulfilledBy:'MERCHANT',fulfillmentStatus:'UNSHIPPED'},recipient:{deliveryAddress:{name:'Synthetic',city:'City',countryCode:'ES'}},orderItems:[]}];
  const admin={from(table){let action='select',patch,filters=[];const q={select(){return q},eq(k,v){filters.push(r=>r[k]===v);return q},neq(){return q},in(k,v){filters.push(r=>v.includes(r[k]));return q},update(p){action='update';patch=p;return q},insert(p){action='insert';patch=p;return q},upsert(){return q},maybeSingle(){return Promise.resolve({data:table==='integration_accounts'?{id:'integration',display_name:'Amazon',config:{operationalOrdersDirect:{status:'ready'}}}:table==='app_settings'?{config:{}}:null,error:null})},then(resolve,reject){return Promise.resolve().then(()=>{
- if(table!=='fulfillment_orders')return {data:[],error:null};
+ if(table!=='fulfillment_orders')return {data:table==='order_cancellation_operations'?structuredClone(cancellations):[],error:null};
  const selected=rows.filter(r=>filters.every(f=>f(r)));
  if(action==='insert'){rows.push({id:'row',...structuredClone(patch)});writes.push(action)}
  if(action==='update')for(const row of selected){Object.assign(row,structuredClone(patch));writes.push(action)}
  return {data:structuredClone(selected),error:null};}).then(resolve,reject)}};return q}};
  const exp={};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:exp,require:n=>n.includes('sp-api')?{spApiRequest:async()=>({orders})}:{loadAmazonSpApiCredentials:async()=>({})},console,Date,Map,Set,JSON});
- return {rows,writes,job,get orders(){return orders},sync:()=>exp.syncOrdersJob(admin,job),reconcile:()=>exp.reconcileOperationalAmazonStates(admin,orders,'owner')};
+ return {rows,writes,cancellations,job,get orders(){return orders},sync:()=>exp.syncOrdersJob(admin,job),reconcile:()=>exp.reconcileOperationalAmazonStates(admin,orders,'owner')};
 }
 test('full page sync: unchanged business data performs zero operational UPDATE and keeps last_synced_at',async()=>{
  const f=fixture();await f.sync();const stamp=f.rows[0].last_synced_at;f.writes.length=0;await f.sync();assert.equal(f.writes.length,0);assert.equal(f.rows[0].last_synced_at,stamp);assert.ok(stamp);
@@ -39,4 +39,11 @@ test('stale Amazon state cannot rewrite an already fulfilled order or its observ
 });
 test('full sync updates status on every legacy copy, with no second write of its canonical row',async()=>{
  const f=fixture();await f.sync();f.rows.push({...structuredClone(f.rows[0]),id:'legacy-copy'});f.writes.length=0;f.orders[0].fulfillment.fulfillmentStatus='SHIPPED';await f.sync();assert.ok(f.rows.every(row=>row.source_status==='SHIPPED'));assert.equal(f.writes.length,2);f.writes.length=0;await f.sync();assert.equal(f.writes.length,0);
+});
+
+test('nonempty items do not receive optional-null writes on unchanged replay',async()=>{
+ const f=fixture();f.orders[0].orderItems=[{orderItemId:'ITEM',quantityOrdered:1,product:{sellerSku:'SKU'}}];await f.sync();f.writes.length=0;await f.sync();assert.equal(f.writes.length,0);
+});
+test('confirmed local cancellation is preserved before comparison while Amazon remains unshipped',async()=>{
+ const f=fixture();await f.sync();f.rows[0].source_status='cancelled';f.cancellations.push({order_id:'row',kind:'order',status:'confirmed'});f.writes.length=0;await f.sync();assert.equal(f.writes.length,0);assert.equal(f.rows[0].source_status,'cancelled');
 });

@@ -124,6 +124,10 @@ function sameField(key:string,a:any,b:any){
   if((key.endsWith('_at')||key==='order_created_at'||key==='order_updated_at')&&a&&b){
     const left=Date.parse(a),right=Date.parse(b);if(Number.isFinite(left)&&Number.isFinite(right))return left===right;
   }
+  if(key==='items'){
+    const normalized=(items:any)=>Array.isArray(items)?items.map(item=>Object.fromEntries(Object.entries(item).filter(([k,v])=>!(['image_url','measurement'].includes(k)&&v==null)))):items;
+    return canonical(normalized(a))===canonical(normalized(b));
+  }
   return canonical(a)===canonical(b);
 }
 function preservePersistedFields(current:any,patch:any){
@@ -134,6 +138,7 @@ function preservePersistedFields(current:any,patch:any){
     patch.source_status=current.source_status;patch.order_updated_at=current.order_updated_at;
     if('fulfilled_at' in patch)patch.fulfilled_at=current.fulfilled_at;
   }
+  if(current?._amazonConfirmedCancellation)patch.source_status=current.source_status;
   if(!current?.pii_purged_at)return;
   // Match the SQL retention guard before comparing, so redacted rows do not
   // receive the same doomed-to-be-redacted PII on every page.
@@ -160,11 +165,19 @@ function operationalStatePatch(order:any,current:any={}){
   if(status.toUpperCase()==='SHIPPED')patch.fulfilled_at=shipment?.shipTime||order.lastUpdatedTime||current.fulfilled_at||new Date().toISOString();
   return patch;
 }
+async function attachConfirmedCancellations(admin:any,rows:any[],ownerId:string){
+  if(!rows.length)return;
+  const {data,error}=await admin.from('order_cancellation_operations').select('order_id').eq('owner_id',ownerId).eq('kind','order').eq('status','confirmed').in('order_id',rows.map(row=>row.id));
+  if(error)throw error;
+  const cancelled=new Set((data||[]).map((row:any)=>row.order_id));
+  for(const row of rows)if(cancelled.has(row.id))row._amazonConfirmedCancellation=true;
+}
 export async function reconcileOperationalAmazonStates(admin:any,orders:any[],ownerId:string){
   const valid=orders.filter(order=>order?.orderId&&clean(order?.fulfillment?.fulfillmentStatus));
   if(!valid.length)return;
   const {data:existing,error:readError}=await admin.from('fulfillment_orders').select('*').eq('owner_id',ownerId).eq('source_channel','amazon').in('order_number',valid.map(order=>String(order.orderId)));
   if(readError)throw readError;
+  await attachConfirmedCancellations(admin,existing||[],ownerId);
   for(const order of valid)for(const current of (existing||[]).filter((row:any)=>row.order_number===String(order.orderId))){
     const patch=operationalStatePatch(order,current);
     preservePersistedFields(current,patch);
@@ -188,6 +201,7 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
     .eq('source_channel','amazon')
     .in('order_number',orderIds);
   if(existingError)throw existingError;
+  await attachConfirmedCancellations(admin,existing||[],job.owner_id);
   const existingByOrder=new Map((existing||[]).map((row:any)=>[String(row.order_number||row.order_id||''),row]));
   const fallbackWeight=await fallbackWeightKg(admin,job.owner_id);
   let synced=0;

@@ -381,7 +381,7 @@
     "records": 3,
     "json_equal": true
   },
-  "frontend_not_published": true,
+  "frontend_not_published": false,
   "optimization_migration": "20261019140644",
   "installed_optimized_execution_ms": 700.602,
   "optimized_kpis": {
@@ -682,5 +682,41 @@
       }
     }
   ],
-  "logs_note": "Supabase log service returned Backend error during optional post-migration diagnostic; no zero-error claim derived from that call. Worker/database functional checks passed."
+  "logs_note": "Supabase log service returned Backend error during optional post-migration diagnostic; no zero-error claim derived from that call. Worker/database functional checks passed.",
+  "deployment": {
+    "id": "dpl_A2Hk6yLbRQMxQB4z2LsU5XyQzVUx",
+    "name": "zenvia-gestion",
+    "url": "zenvia-gestion-o4mvo68tj-sergiorojasdiaz-7097.vercel.app",
+    "created": 1792419252242,
+    "state": "READY",
+    "target": "production",
+    "creator": {
+      "uid": "keRvz2tE1X4xxwH9EndG7Krd",
+      "username": "sergiorojasdiaz-7097"
+    },
+    "meta": {
+      "githubCommitRef": "main",
+      "githubCommitSha": "4fa95260592cd1208d27252e975e16de4027b10d",
+      "githubCommitMessage": "Merge pull request #237 from zenviacommerce/fix/orders-pool-pressure-kpis-20261019\n\nperf(orders): server pagination, KPIs and complete filtered bulk selection",
+      "githubRepo": "zenvia-gestion",
+      "githubOrg": "zenviacommerce"
+    },
+    "inspectorUrl": "https://vercel.com/sergiorojasdiaz-7097/zenvia-gestion/A2Hk6yLbRQMxQB4z2LsU5XyQzVUx",
+    "isRollbackCandidate": true,
+    "public": {
+      "html_http": 200,
+      "bundles": [
+        "/assets/index-DB5LBqud.js"
+      ],
+      "bundle_http": 200,
+      "global_selection_copy_present": true,
+      "fixture_banner_present": false
+    }
+  },
+  "final_pool_log_window": {
+    "start": "2026-10-19T14:13:00Z",
+    "end": "2026-10-19T14:15:10Z",
+    "pgrst003_57014": 0
+  },
+  "browser_acceptance": "Pending Sergio real-session check; no label purchased."
 }

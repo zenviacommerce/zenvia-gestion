@@ -1,0 +1,55 @@
+{
+  "head": "e2d2d009faba912e07ab1ee9aaa08f5432baaffa",
+  "workflow_runs": [
+    {
+      "id": 39249361202,
+      "name": "MFA visual review (Playwright)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 66,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39249361202/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39249361202/logs",
+      "workflow_id": 388829843
+    },
+    {
+      "id": 39249361343,
+      "name": "Auth resilience tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 213,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39249361343/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39249361343/logs",
+      "workflow_id": 385998318
+    },
+    {
+      "id": 39249361265,
+      "name": "Build ZENVIA Gestión",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2201,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39249361265/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39249361265/logs",
+      "workflow_id": 354706666
+    },
+    {
+      "id": 39249361304,
+      "name": "Build check",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 543,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39249361304/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39249361304/logs",
+      "workflow_id": 361316263
+    },
+    {
+      "id": 39249361400,
+      "name": "MFA real integration (disposable Supabase)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 252,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39249361400/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39249361400/logs",
+      "workflow_id": 387906946
+    }
+  ]
+}

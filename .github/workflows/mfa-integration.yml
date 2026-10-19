@@ -68,6 +68,9 @@ jobs:
             created_at timestamptz default now(),
             updated_at timestamptz default now()
           );
+          -- The synthetic dependency is only consumed by service-role CI.
+          -- Do not expose it to anon/authenticated without MFA policies.
+          revoke all on public.order_cancellation_operations from public, anon, authenticated;
           alter table public.fulfillment_orders
             add column if not exists order_action_lease uuid,
             add column if not exists order_action_lease_until timestamptz,

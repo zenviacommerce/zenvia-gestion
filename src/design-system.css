@@ -117,3 +117,38 @@
 
 @media(max-width:767px){.dsMobileList .dsRowActions{padding:0 12px 10px}.dsMobileList .dsRowActions button{display:inline-flex;flex-direction:row;align-items:center;justify-content:center;height:auto;line-height:1.2}.dsMobileList .dsRowActions svg{flex-shrink:0}}
 html[data-theme='dark'] .masterDesignPage .bulkSelectionTextButton{color:#d7deea}
+
+/* Phase 3 analytics: shared shell; period rails and calculations keep their owners. */
+.commerceDesignPage .dsCommerceFilters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;min-width:0;margin:0}
+.commerceDesignPage .dsCommerceFilters>.amazonFilterDropdown{min-width:0;max-width:none;width:100%}
+.commerceDesignPage .dsCommerceFilters>.amazonFilterDropdown>summary{height:48px;min-width:0;box-sizing:border-box}
+.commerceDesignPage .dsCommerceFilters summary>span{min-width:0;flex:1}
+.commerceDesignPage .dsCommerceFilters summary strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.commerceDesignPage .dsCommerceFilters summary>svg{flex-shrink:0}
+.commerceDesignPage .commerceTabs{display:flex;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;width:100%;gap:6px;border:0;border-bottom:1px solid var(--border,#e2e8f0);background:transparent;padding:0;margin:0;box-shadow:none}
+.commerceDesignPage .commerceTabs>button{flex:0 0 auto;border:0;border-bottom:2px solid transparent;border-radius:0;box-shadow:none;background:transparent;padding:12px 18px;min-height:44px;color:var(--muted,#64748b)}
+.commerceDesignPage .commerceTabs>button.active{border-bottom-color:var(--accent,#0f766e);color:var(--accent,#0f766e);background:transparent}
+.commerceDesignPage .commerceTabs strong{font-size:12px;white-space:nowrap}
+.commerceTabBadge{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:10px;background:#ccfbf1;color:#0f766e}
+.commerceDesignPage .dsPageHeader .eyebrow{display:flex;align-items:center;gap:6px}
+@media(max-width:767px){
+ .commerceDesignPage .amazonToolbar{gap:8px;margin-bottom:12px}
+ .commerceDesignPage .commerceTabs>button{padding:10px 12px}
+ .commerceDesignPage .amazonCompactStatus{padding:10px;margin-bottom:10px;gap:6px}
+ .commerceDesignPage .amazonCompactMeta{gap:6px;font-size:11px}
+ .commerceDesignPage .amazonTableToolbar{gap:8px}
+ .commerceDesignPage .shopifyNote{margin:8px 0;line-height:1.4}
+ .commerceDesignPage .amazonFilterDropdownPanel{max-width:calc(100vw - 30px)}
+ .commerceDesignPage .dsCommerceFilters>.amazonFilterDropdown:last-child .amazonFilterDropdownPanel{left:auto;right:0}
+}
+
+[data-theme="dark"] .commerceDesignPage .commerceTabs>button.active{color:#5eead4;border-bottom-color:#2dd4bf}
+/* The page gap owns section spacing; avoid adding header/card margins twice. */
+.page.commerceDesignPage .dsPageHeader{margin-bottom:0}
+.commerceDesignPage.amazonPage{gap:12px}
+@media(max-width:767px){
+ .commerceDesignPage.amazonPage{gap:8px}
+ .commerceDesignPage .amazonCompactStatus,.commerceDesignPage .amazonToolbar{margin-bottom:0}
+}
+
+.commerceTabPanel{display:flex;flex-direction:column;gap:inherit;min-width:0;max-width:100%}

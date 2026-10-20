@@ -1,3 +1,4 @@
+import {countLabel} from '../../services/pluralization';
 import { AmazonLoading } from './AmazonLoading';
 import {amazonCalendarDate} from '../../services/amazonCalendar';
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
@@ -127,7 +128,7 @@ export function AmazonPeriodCards({filters,summary,summaryLoading=false,currency
           {show('grossSales')&&<div className="amazonPeriodSales"><span>Ventas</span><strong>{metric(data?.grossSales)}</strong></div>}
           <dl className="amazonPeriodMetrics">
             {(show('orders')||show('units'))&&<div><dt>{show('orders')&&show('units')?'Pedidos / unidades':show('orders')?'Pedidos':'Unidades'}</dt><dd>{data?[...(show('orders')?[data.orders.toLocaleString('es-ES')]:[]),...(show('units')?[data.units.toLocaleString('es-ES')]:[])].join(' / '):'—'}</dd></div>}
-            {show('refunds')&&<div><dt>Reembolsos con IVA</dt><dd data-metric="refunds">{metric(refundGross)}<small className="amazonRefundCount">{refundCount==null?snapshot?.refundCountError?'Número no disponible':'Número pendiente':refundCount.toLocaleString('es-ES')+' '+(refundCount===1?'reembolso':'reembolsos')}</small></dd></div>}
+            {show('refunds')&&<div><dt>Reembolsos con IVA</dt><dd data-metric="refunds">{metric(refundGross)}<small className="amazonRefundCount">{refundCount==null?snapshot?.refundCountError?'Número no disponible':'Número pendiente':countLabel(refundCount,'reembolso','reembolsos')}</small></dd></div>}
             {show('adsCost')&&<div className="amazonPeriodMetricSeparator"><dt>Publicidad diaria</dt><dd>{data&&!data.dailyAdsAvailable?'No disponible':data?.adsExcluded?'No disponible':metric(data?.adsCost==null?null:-data.adsCost)}{data&&!data.dailyAdsAvailable&&<small className="amazonRefundCount">Amazon Ads sin conectar</small>}</dd></div>}
             {show('productCost')&&<div className="amazonPeriodMetricSeparator"><dt>Coste producto</dt><dd data-metric="productCost">{metric(data?.productCost==null?null:-data.productCost)}</dd></div>}
             {show('netProfit')&&<div className="amazonPeriodProfit"><dt>Ganancia neta</dt><dd data-metric="netProfit" className={data?.netProfit!=null&&data.netProfit<0?'isNegative':'isPositive'}>{metric(data?.netProfit)}</dd></div>}

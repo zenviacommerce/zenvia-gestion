@@ -1,3 +1,4 @@
+import {countLabel} from '../services/pluralization';
 import {KpiGrid} from '../components/KpiGrid';
 import {PageHeader} from '../components/PageHeader';
 import {StatCard} from '../components/StatCard';
@@ -318,7 +319,7 @@ function LabelModal({order,options,tariffs,message,loading,providerStates,onRetr
       <>
         {message&&<div className="ordersQuoteMessage"><AlertCircle size={15}/><span>{message}</span></div>}
         {options.length>0&&<section className="ordersComparison">
-          <div className="ordersComparisonHead"><div><strong>Opciones de envío</strong><span>Ordenadas por precio final para que puedas elegir directamente la opción más conveniente.</span></div><small>{priced.length?priced.length+(priced.length===1?' opción con precio':' opciones con precio'):'Sin precios disponibles'}</small></div>
+          <div className="ordersComparisonHead"><div><strong>Opciones de envío</strong><span>Ordenadas por precio final para que puedas elegir directamente la opción más conveniente.</span></div><small>{priced.length?countLabel(priced.length,'opción con precio','opciones con precio'):'Sin precios disponibles'}</small></div>
           {priced.length>0&&<div className="ordersBestOptions">
             <div className="ordersBestOptionsTitle"><strong>Mejores opciones</strong><span>Las {settings.shipping.topOptionsCount} tarifas más económicas disponibles ahora mismo.</span></div>
             <div className="ordersBestOptionsGrid">{priced.slice(0,settings.shipping.topOptionsCount).map((option,index)=>{
@@ -357,7 +358,7 @@ function LabelModal({order,options,tariffs,message,loading,providerStates,onRetr
             return <section className="ordersCarrierCard" key={provider}>
               <div className="ordersCarrierHead"><Truck size={18}/><div><strong>{providerName}</strong><span>{provider==='envia'?'Comparativa multitransportista en tiempo real':provider==='mrw'?'Conexión directa con MRW':'Servicios de tu cuenta Sendcloud'}</span></div></div>
               <div className="ordersCarrierGroups">{carrierGroups.map(group=><section className="ordersCarrierGroup" key={provider+'-'+group.name}>
-                <div className="ordersCarrierGroupHead"><strong>{group.name}</strong><small>{group.options.length} servicio{group.options.length===1?'':'s'}</small></div>
+                <div className="ordersCarrierGroupHead"><strong>{group.name}</strong><small>{countLabel(group.options.length,'servicio','servicios')}</small></div>
                 <div className="ordersOptionList">{group.options.map((option,index)=>{
                   const isSelected=shippingOptionKey(option)===selectedKey;
                   return <button className={isSelected?'selected':''} aria-pressed={isSelected} key={`${provider}-${option.integrationAccountId||''}-${option.carrierCode}-${option.code}-${index}`} onClick={()=>selectOption(option)}>

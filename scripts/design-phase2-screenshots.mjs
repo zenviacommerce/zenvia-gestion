@@ -10,7 +10,7 @@ import {tmpdir} from 'node:os';
 import {chromium} from 'playwright';
 const phase=process.argv[2]||'after',baseline=process.env.DESIGN_BASELINE||'aa8677ddf09a4b64be74a80ff8df26fe762405bc',output=process.env.DESIGN_OUTPUT||'docs/deploy/design-phase2-review-20261020';
 const read=async path=>phase==='before'?execFileSync('git',['show',baseline+':'+path],{encoding:'utf8'}):readFile(path,'utf8');
-const keep=new Set(['filters','uiPreferences','formatting','settingsSchema','autoListPagination','paginationBars','truncatedTextTooltip','entityChanges']);
+const keep=new Set(['pluralization','filters','uiPreferences','formatting','settingsSchema','autoListPagination','paginationBars','truncatedTextTooltip','entityChanges']);
 const entry=`import React from 'react';import {createRoot} from 'react-dom/client';import {SalesInvoices} from './src/pages/SalesInvoices';import {ExpenseInvoicesHub} from './src/pages/ExpenseInvoicesHub';import {Sidebar} from './src/components/Sidebar';import {AutoPagination} from './src/components/AutoPagination';import {UnifiedListExperience} from './src/components/UnifiedListExperience';import {DEFAULT_APP_SETTINGS,DEFAULT_USER_PREFERENCES} from './src/services/settingsSchema';
 const settings=structuredClone(DEFAULT_APP_SETTINGS),preferences={...DEFAULT_USER_PREFERENCES,defaultPeriod:'all',rememberFilters:false,pageSize:25};
 const clients=[{id:'client1',name:'Cliente de prueba',countryCode:'ES',taxId:'DEMO'}];

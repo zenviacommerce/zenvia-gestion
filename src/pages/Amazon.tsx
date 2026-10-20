@@ -1,3 +1,5 @@
+import {PageHeader} from '../components/PageHeader';
+import {PageTabs} from '../components/PageTabs';
 import { AmazonLoading } from '../components/amazon/AmazonLoading';
 import {amazonCalendarDate,amazonCalendarDay,watchAmazonCalendarDay} from '../services/amazonCalendar';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -129,8 +131,8 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
       return valid.length===current.marketplaceIds.length?current:{...current,marketplaceIds:valid};
     });
   },[connected,marketplaces.map(item=>item.id).join(',')]);
-  return <div className="page amazonPage">
-    <header className="pageHead amazonPageHead"><div><div className="eyebrow">AMAZON ANALYTICS</div><h1>Amazon</h1><p>Ventas, costes, rentabilidad e inventario de tus marketplaces europeos.</p></div><div className="actions pageHeadActions amazonExternalLinks">{isAdmin&&!status?.demo&&<button className="primary amazonSyncButton" onClick={()=>void syncNow()} disabled={syncing||loading||!status?.configured}>{syncing?<LoaderCircle size={17} className="spin"/>:<RefreshCw size={17}/>}<span>{syncing?'Solicitando…':'Actualizar datos'}</span></button>}</div></header>
+  return <div className="page amazonPage commerceDesignPage designSystemPage">
+    <PageHeader title="Amazon" eyebrow="AMAZON ANALYTICS" description="Ventas, costes, rentabilidad e inventario de tus marketplaces europeos." actions={<>{isAdmin&&!status?.demo&&<button className="primary amazonSyncButton" onClick={()=>void syncNow()} disabled={syncing||loading||!status?.configured}>{syncing?<LoaderCircle size={17} className="spin"/>:<RefreshCw size={17}/>}<span>{syncing?'Solicitando…':'Actualizar datos'}</span></button>}</>}/>
 
     {loading&&<AmazonLoading>Comprobando conexión con Amazon…</AmazonLoading>}
     {syncFeedback&&<div role="status" aria-live="polite" className="amazonSyncFeedback" style={{marginBottom:12}}>{syncFeedback}</div>}
@@ -141,14 +143,17 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
     {connected?<>
       <div className="amazonToolbar">
       <AmazonFilters calendarDay={calendarDay} filters={filters} marketplaces={marketplaces} initialPreset={defaultPreset} onChange={setFilters}/>
-      <nav className="amazonTabs" aria-label="Secciones de Amazon Analytics">{tabs.map(([key,label])=><button key={key} className={activeTab===key?'isActive':''} aria-pressed={activeTab===key} onClick={()=>setActiveTab(key)}>{label}{key==='unmapped'&&summaryMeta?.unmappedSkuCount? <span>{summaryMeta.unmappedSkuCount}</span>:null}</button>)}</nav>
+      <PageTabs panelId="amazon-tab-panel" className="commerceTabs" label="Secciones de Amazon Analytics" value={activeTab} onChange={setActiveTab} items={tabs.map(([id,label])=>({id,label,badge:id==='unmapped'&&summaryMeta?.unmappedSkuCount?<span className="commerceTabBadge">{summaryMeta.unmappedSkuCount}</span>:undefined}))}/>
+
       </div>
+      <div className="commerceTabPanel" role="tabpanel" id="amazon-tab-panel" aria-labelledby={'amazon-tab-panel-tab-'+activeTab} tabIndex={0}>
       {activeTab==='summary'&&<AmazonSummary calendarDay={calendarDay} filters={filters} onLoaded={handleSummary} refreshToken={analyticsRefresh} visibleKpis={visibleKpis} onPeriodChange={setFilters}/>}
       {activeTab==='products'&&<AmazonProducts filters={filters} refreshToken={analyticsRefresh}/>}
       {activeTab==='marketplaces'&&<AmazonMarketplaces filters={filters} refreshToken={analyticsRefresh}/>}
       {activeTab==='orders'&&<AmazonOrders filters={filters} marketplaces={marketplaces} refreshToken={analyticsRefresh}/>}
       {activeTab==='inventory'&&<AmazonInventory filters={filters} marketplaces={marketplaces} refreshToken={analyticsRefresh}/>}
       {activeTab==='unmapped'&&<AmazonUnmapped onChanged={()=>setSummaryMeta(null)} refreshToken={analyticsRefresh} defaultConsumptionFactor={amazonSettings.defaultConsumptionFactor}/>}
+      </div>
     </>:<section className="card amazonDisconnected"><strong>Amazon Analytics todavía no está disponible.</strong><p>{loading?'Comprobando la conexión segura con Amazon SP-API…':status?.configured?'Las credenciales están configuradas, pero la conexión no está operativa.':isAdmin?'Completa la configuración segura de Amazon SP-API en el backend.':'El administrador debe completar la conexión con Amazon.'}</p></section>}
   </div>;
 }

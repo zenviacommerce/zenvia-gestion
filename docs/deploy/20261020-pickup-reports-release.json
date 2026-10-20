@@ -117,6 +117,66 @@
     "declined": true,
     "reasonProvided": false,
     "noStatementsExecuted": true,
-    "isolatedRehearsalPending": true
+    "isolatedRehearsalPending": false,
+    "isolatedRehearsalPassed": true
+  },
+  "concurrentRehearsal": {
+    "engine": "PostgreSQL 17.6 (Debian 17.6-2.pgdg13+1) on x86_64-pc-linux-gnu, compiled by gcc (Debian 14.2.0-19) 14.2.0, 64-bit",
+    "sourceHead": "4993a2f0d39bafcc43fee4927dc1afa57b564d0b",
+    "productionImplementationHash": "ecfec230cd202a5223a681d68e1a5760",
+    "results": [
+      [
+        {
+          "at": "2026-10-20T08:29:36.710777+00:00",
+          "pid": 120,
+          "txid": 796,
+          "phase": "start"
+        },
+        {
+          "at": "2026-10-20T08:29:36.717618+00:00",
+          "phase": "allocated",
+          "number": "REC-2026-0001"
+        },
+        {
+          "at": "2026-10-20T08:29:38.219364+00:00",
+          "phase": "before_commit"
+        }
+      ],
+      [
+        {
+          "at": "2026-10-20T08:29:36.710783+00:00",
+          "pid": 119,
+          "txid": 797,
+          "phase": "start"
+        },
+        {
+          "at": "2026-10-20T08:29:38.224812+00:00",
+          "phase": "allocated",
+          "number": "REC-2026-0002"
+        },
+        {
+          "at": "2026-10-20T08:29:39.726583+00:00",
+          "phase": "before_commit"
+        }
+      ]
+    ],
+    "numbers": [
+      "REC-2026-0001",
+      "REC-2026-0002"
+    ],
+    "idempotentRetry": "REC-2026-0001",
+    "countsBeforeCleanup": {
+      "counter": 2,
+      "reports": 2
+    },
+    "rollbackRefusedNonempty": true,
+    "emptyRollback": {
+      "table": null,
+      "manifest": 0
+    },
+    "productionConnection": false,
+    "workflowRun": 39393755928,
+    "workflowHead": "096e5dea1de98d34f1c145b8caf64908c9aff076",
+    "status": "success"
   }
 }

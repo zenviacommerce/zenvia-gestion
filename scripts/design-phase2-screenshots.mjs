@@ -1,5 +1,6 @@
 // Real billing/expense/receipt components + production list adapters/CSS; offline synthetic data.
 import {build} from 'esbuild';
+import {assertHeaderActionsPreserved} from './header-actions-contract.mjs';
 import {readFile,writeFile,mkdir,mkdtemp,chmod} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {brotliDecompressSync} from 'node:zlib';
@@ -49,6 +50,7 @@ try{for(const screen of ['billing','expenses','receipts'])for(const width of [39
   const before=JSON.parse(await readFile(output+'/before-manifest.json','utf8')).checks.find(c=>c.screen===screen&&c.width===width);
   const clean=s=>s.replace(/\s+/g,' ').trim();if(JSON.stringify(before.cards.map(c=>clean(c.text)))!==JSON.stringify(proof.cards.map(c=>clean(c.text))))failures.push('KPI information changed');
   if(JSON.stringify(before.tabs)!==JSON.stringify(proof.tabs)||proof.tabRoles!==2)failures.push('Sibling tabs lost labels, descriptions or accessible roles');
+  try{assertHeaderActionsPreserved(before.headerActions,proof.headerActions,screen+' '+width);}catch(error){failures.push(error.message);}
   if(JSON.stringify(before.headerActions)!==JSON.stringify(proof.headerActions))failures.push('Header actions changed or portal missing');
   if(JSON.stringify(before.controls)!==JSON.stringify(proof.controls))failures.push('Filter/header controls or disabled state changed');
  }

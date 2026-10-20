@@ -2,7 +2,7 @@
 
 ## Estado y alcance
 
-Implementación para revisión, NO publicada. El contrato de diseño está aprobado; la publicación de fase 2 requiere revisión explícita del propietario. Rama `feature/design-system-phase2-20261020`, base actual `f287ff5ee90f22d3d8899bdc40b6a990e5141dd3` (hotfix #262 ya publicado). La captura inicial permanece fijada en fase1 `aa8677dd`: los cambios del hotfix no alteran estas tres listas, cifras ni filtros. Se incorporan por herencia el aviso y los previews corregidos, sin reescribirlos.
+Implementación para revisión, NO publicada. El contrato de diseño está aprobado; la publicación de fase 2 requiere revisión explícita del propietario. Rama `feature/design-system-phase2-20261020`, base actual `cfa6d3da52409d98216d696285e5f7862edb8939` (hotfix #264 ya publicado, conserva #262). La captura inicial permanece fijada en fase1 `aa8677dd`: los cambios del hotfix no alteran estas tres listas, cifras ni filtros. Se incorporan por herencia el acceso a Tarifas, el aviso y los previews corregidos, sin reescribirlos.
 
 Sin SQL, Edge, Auth, sincronizaciones ni cambios de cálculo. Se conserva la información y las acciones existentes. Shopify y MFA fuera del alcance.
 
@@ -45,8 +45,12 @@ Capturas: `docs/deploy/design-phase2-review-20261020/` (`before/after` + pantall
 
 ## Rollback y límite de revisión
 
-Producción permanece en `dpl_BmTNRNtFRo6Q6fMyhcHYTkUNusge`, commit `f287ff5ee90f22d3d8899bdc40b6a990e5141dd3`, bundle `index-DURYFMtN.js`. Es el rollback de una eventual fase 2; conserva Shopify, fase 1 y hotfix #262. No hay rollback de datos. DETENER antes de merge/publicación hasta revisión del propietario; un PR/preview de revisión no cambia el dominio de producción.
+Producción permanece en `dpl_5KjeeSo3VSXSqNJjCPaNV4oNCRFP`, commit `cfa6d3da52409d98216d696285e5f7862edb8939`, bundle `index-1XUnT9OV.js`. Es el rollback de una eventual fase 2; conserva Shopify, fase 1 y hotfix #262/#264. No hay rollback de datos. DETENER antes de merge/publicación hasta revisión del propietario; un PR/preview de revisión no cambia el dominio de producción.
 
 ## Cobertura y revisión
 
-El test estático que exigía `stats expenseStats` y el test de tabs basado en texto JSX se sustituyen por geometría/labels/roles sobre las pantallas renderizadas; las comprobaciones de datos existentes se mantienen. Suites locales: 236 tests Vitest/43 ficheros y 1.220 tests Node. Build y guard de contrato pasan. La revisión independiente no encontró problemas bloqueantes; se excluye el icono generado por build. Como evolución del contrato quedan enlaces ARIA tab/panel y una prueba de retención Gmail más completa; se conserva la identidad de RetainedImportPage por inspección, sin afirmar una verificación real de importación.
+El test estático que exigía `stats expenseStats` y el test de tabs basado en texto JSX se sustituyen por geometría/labels/roles sobre las pantallas renderizadas; las comprobaciones de datos existentes se mantienen. Suites locales: 238 tests Vitest/44 ficheros y 1.222 tests Node. Build y guard de contrato pasan. La revisión independiente no encontró problemas bloqueantes; se excluye el icono generado por build. Como evolución del contrato quedan enlaces ARIA tab/panel y una prueba de retención Gmail más completa; se conserva la identidad de RetainedImportPage por inspección, sin afirmar una verificación real de importación.
+
+## Conservación de acciones de cabecera
+
+Se incorpora `assertHeaderActionsPreserved` del hotfix264 a la comprobación de Facturación/Gastos/Recibos. Compara las acciones renderizadas con la referencia anterior y falla con el nombre de la que desaparezca; incluye el portal Importar/Exportar. CI ejecuta además el test de acceso real a Tarifas y el harness Resumen/Pedidos con OrderLabelDefaults histórico/actual. El hotfix se publica por separado y su despliegue verificado es la base y rollback de esta fase; no se incorpora una regresión de Tarifas al publicar diseño.

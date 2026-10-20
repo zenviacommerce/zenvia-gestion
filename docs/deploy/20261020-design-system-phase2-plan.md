@@ -15,3 +15,5 @@
 Review focus: hidden retained imports must not remount; late portal buttons must remain visible/accessibly scrollable; all filters retained; one surface per KPI; long EUR/USD amounts stay within a2-column card; selection and query changes preserve existing behavior rather than changing business rules.
 
 Updated baseline: inherited published hotfix #262 via fast-forward to f287ff5e before preparing review. Production rollback for phase2 is now dpl_BmTNRNtFRo6Q6fMyhcHYTkUNusge, not the pre-hotfix deployment. Exact measurements and verification: 20261020-design-system-phase2.md.
+
+Hotfix264 publicado por separado: nueva base/rollback cfa6d3da / dpl_5KjeeSo3VSXSqNJjCPaNV4oNCRFP / index-1XUnT9OV.js. Guardia compartida de acciones incorporada al harness de las tres pantallas; prueba del acceso a Tarifas heredada del hotfix. PR263 permanece borrador sin fusionar.

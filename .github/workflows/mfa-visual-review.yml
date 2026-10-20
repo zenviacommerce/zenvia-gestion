@@ -13,6 +13,7 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref || github.ref_name }}
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
@@ -24,6 +25,17 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Render actual MFA components with test-only authentication fixtures
         run: node scripts/mfa-visual-screenshots.mjs
+      - name: Verify migrated design layouts and data parity
+        run: |
+          node scripts/design-phase1-screenshots.mjs before
+          node scripts/design-phase1-screenshots.mjs after
+      - name: Upload design review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: design-phase1-review
+          path: docs/deploy/design-phase1-review-20261020/
+          if-no-files-found: error
       - name: Upload eight mobile and desktop screenshots
         if: always()
         uses: actions/upload-artifact@v4

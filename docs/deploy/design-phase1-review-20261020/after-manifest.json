@@ -1,0 +1,1528 @@
+{
+  "synthetic": true,
+  "networkBlocked": true,
+  "locale": "es-ES",
+  "baselineRevision": "58687e42",
+  "checks": [
+    {
+      "screen": "dashboard",
+      "width": 390,
+      "firstKpi": {
+        "x": 15,
+        "y": 515.640625,
+        "width": 176,
+        "height": 81
+      },
+      "firstList": {
+        "x": 15,
+        "y": 1178.03125,
+        "width": 360,
+        "height": 347
+      },
+      "firstListScreens": 1.17803125,
+      "cards": [
+        {
+          "text": "Facturación\n12.345,67 €\nTodo el histórico",
+          "x": 15,
+          "y": 515.640625,
+          "width": 176,
+          "height": 81
+        },
+        {
+          "text": "Gastos\n2345,67 €\nTodo el histórico",
+          "x": 199,
+          "y": 515.640625,
+          "width": 176,
+          "height": 81
+        },
+        {
+          "text": "Resultado\n10.000,00 €\nVentas − gastos",
+          "x": 15,
+          "y": 604.640625,
+          "width": 176,
+          "height": 96
+        },
+        {
+          "text": "IVA neto\n1734,71 €\n2142,64 € repercutido · 407,93 € soportado",
+          "x": 199,
+          "y": 604.640625,
+          "width": 176,
+          "height": 96
+        },
+        {
+          "text": "Pendiente de cobro\n2345,67 €\nFacturas de venta emitidas",
+          "x": 15,
+          "y": 708.640625,
+          "width": 176,
+          "height": 96
+        },
+        {
+          "text": "Gastos por revisar\n1\nTodo el histórico",
+          "x": 199,
+          "y": 708.640625,
+          "width": 176,
+          "height": 96
+        },
+        {
+          "text": "Pedidos\n63\nAmazon 32 · Shopify 31",
+          "x": 15,
+          "y": 892.03125,
+          "width": 176,
+          "height": 96
+        },
+        {
+          "text": "Valor de pedidos\n1568,70 €\nPedidos no cancelados · no fiscal",
+          "x": 199,
+          "y": 892.03125,
+          "width": 176,
+          "height": 96
+        },
+        {
+          "text": "Pendientes\n0\nSin pedidos pendientes",
+          "x": 15,
+          "y": 996.03125,
+          "width": 176,
+          "height": 81
+        },
+        {
+          "text": "Enviados\n0\nTodo el histórico",
+          "x": 199,
+          "y": 996.03125,
+          "width": 176,
+          "height": 81
+        },
+        {
+          "text": "Cancelados\n0\nTodo el histórico",
+          "x": 15,
+          "y": 1085.03125,
+          "width": 176,
+          "height": 81
+        }
+      ],
+      "actions": {
+        "x": 15,
+        "y": 180.375,
+        "width": 360,
+        "height": 54,
+        "overflow": false,
+        "children": [
+          {
+            "text": "+ Factura de gasto",
+            "x": 15,
+            "y": 180.375,
+            "width": 162.8125,
+            "height": 48
+          }
+        ]
+      },
+      "controls": [
+        {
+          "text": "+ Factura de gasto",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        }
+      ],
+      "cardOverflow": false,
+      "overflow": false,
+      "kpiColumns": [
+        "176px 176px",
+        "176px 176px"
+      ],
+      "failures": []
+    },
+    {
+      "screen": "dashboard",
+      "width": 1280,
+      "firstKpi": {
+        "x": 286,
+        "y": 372.328125,
+        "width": 227,
+        "height": 117.1875
+      },
+      "firstList": {
+        "x": 286,
+        "y": 969.671875,
+        "width": 492.4375,
+        "height": 333
+      },
+      "firstListScreens": 0.969671875,
+      "cards": [
+        {
+          "text": "Facturación\n12.345,67 €\nTodo el histórico",
+          "x": 286,
+          "y": 372.328125,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Gastos\n2345,67 €\nTodo el histórico",
+          "x": 529,
+          "y": 372.328125,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Resultado\n10.000,00 €\nVentas − gastos",
+          "x": 772,
+          "y": 372.328125,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "IVA neto\n1734,71 €\n2142,64 € repercutido · 407,93 € soportado",
+          "x": 1015,
+          "y": 372.328125,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Pendiente de cobro\n2345,67 €\nFacturas de venta emitidas",
+          "x": 286,
+          "y": 505.515625,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Gastos por revisar\n1\nTodo el histórico",
+          "x": 529,
+          "y": 505.515625,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Pedidos\n63\nAmazon 32 · Shopify 31",
+          "x": 286,
+          "y": 712.09375,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Valor de pedidos\n1568,70 €\nPedidos no cancelados · no fiscal",
+          "x": 529,
+          "y": 712.09375,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Pendientes\n0\nSin pedidos pendientes",
+          "x": 772,
+          "y": 712.09375,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Enviados\n0\nTodo el histórico",
+          "x": 1015,
+          "y": 712.09375,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Cancelados\n0\nTodo el histórico",
+          "x": 286,
+          "y": 845.28125,
+          "width": 227,
+          "height": 100.390625
+        }
+      ],
+      "actions": {
+        "x": 1043.15625,
+        "y": 34,
+        "width": 198.84375,
+        "height": 39,
+        "overflow": false,
+        "children": [
+          {
+            "text": "+ Factura de gasto",
+            "x": 1043.15625,
+            "y": 34,
+            "width": 198.84375,
+            "height": 39
+          }
+        ]
+      },
+      "controls": [
+        {
+          "text": "+ Factura de gasto",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        }
+      ],
+      "cardOverflow": false,
+      "overflow": false,
+      "kpiColumns": [
+        "227px 227px 227px 227px",
+        "227px 227px 227px 227px"
+      ],
+      "failures": []
+    },
+    {
+      "screen": "dashboard",
+      "width": 1440,
+      "firstKpi": {
+        "x": 286,
+        "y": 372.328125,
+        "width": 267,
+        "height": 117.1875
+      },
+      "firstList": {
+        "x": 286,
+        "y": 952.875,
+        "width": 576.4375,
+        "height": 333
+      },
+      "firstListScreens": 0.952875,
+      "cards": [
+        {
+          "text": "Facturación\n12.345,67 €\nTodo el histórico",
+          "x": 286,
+          "y": 372.328125,
+          "width": 267,
+          "height": 117.1875
+        },
+        {
+          "text": "Gastos\n2345,67 €\nTodo el histórico",
+          "x": 569,
+          "y": 372.328125,
+          "width": 267,
+          "height": 117.1875
+        },
+        {
+          "text": "Resultado\n10.000,00 €\nVentas − gastos",
+          "x": 852,
+          "y": 372.328125,
+          "width": 267,
+          "height": 117.1875
+        },
+        {
+          "text": "IVA neto\n1734,71 €\n2142,64 € repercutido · 407,93 € soportado",
+          "x": 1135,
+          "y": 372.328125,
+          "width": 267,
+          "height": 117.1875
+        },
+        {
+          "text": "Pendiente de cobro\n2345,67 €\nFacturas de venta emitidas",
+          "x": 286,
+          "y": 505.515625,
+          "width": 267,
+          "height": 100.390625
+        },
+        {
+          "text": "Gastos por revisar\n1\nTodo el histórico",
+          "x": 569,
+          "y": 505.515625,
+          "width": 267,
+          "height": 100.390625
+        },
+        {
+          "text": "Pedidos\n63\nAmazon 32 · Shopify 31",
+          "x": 286,
+          "y": 695.296875,
+          "width": 267,
+          "height": 117.1875
+        },
+        {
+          "text": "Valor de pedidos\n1568,70 €\nPedidos no cancelados · no fiscal",
+          "x": 569,
+          "y": 695.296875,
+          "width": 267,
+          "height": 117.1875
+        },
+        {
+          "text": "Pendientes\n0\nSin pedidos pendientes",
+          "x": 852,
+          "y": 695.296875,
+          "width": 267,
+          "height": 117.1875
+        },
+        {
+          "text": "Enviados\n0\nTodo el histórico",
+          "x": 1135,
+          "y": 695.296875,
+          "width": 267,
+          "height": 117.1875
+        },
+        {
+          "text": "Cancelados\n0\nTodo el histórico",
+          "x": 286,
+          "y": 828.484375,
+          "width": 267,
+          "height": 100.390625
+        }
+      ],
+      "actions": {
+        "x": 1203.15625,
+        "y": 34,
+        "width": 198.84375,
+        "height": 39,
+        "overflow": false,
+        "children": [
+          {
+            "text": "+ Factura de gasto",
+            "x": 1203.15625,
+            "y": 34,
+            "width": 198.84375,
+            "height": 39
+          }
+        ]
+      },
+      "controls": [
+        {
+          "text": "+ Factura de gasto",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        }
+      ],
+      "cardOverflow": false,
+      "overflow": false,
+      "kpiColumns": [
+        "267px 267px 267px 267px",
+        "267px 267px 267px 267px"
+      ],
+      "failures": []
+    },
+    {
+      "screen": "orders",
+      "width": 390,
+      "firstKpi": {
+        "x": 15,
+        "y": 519.1875,
+        "width": 176,
+        "height": 96
+      },
+      "firstList": {
+        "x": 15,
+        "y": 1785.1875,
+        "width": 360,
+        "height": 348.359375
+      },
+      "firstListScreens": 1.7851875,
+      "cards": [
+        {
+          "text": "Total vendido\n1568,70 €\n63 pedidos · Todo el histórico",
+          "x": 15,
+          "y": 519.1875,
+          "width": 176,
+          "height": 96
+        },
+        {
+          "text": "IVA estimado\n272,25 €\nTodo el histórico",
+          "x": 199,
+          "y": 519.1875,
+          "width": 176,
+          "height": 96
+        },
+        {
+          "text": "Neto sin IVA\n1296,45 €\nTodo el histórico",
+          "x": 15,
+          "y": 623.1875,
+          "width": 176,
+          "height": 81
+        },
+        {
+          "text": "Ticket medio\n24,90 €\nTodo el histórico",
+          "x": 199,
+          "y": 623.1875,
+          "width": 176,
+          "height": 81
+        },
+        {
+          "text": "Coste transportistas (IVA incl.)\n0,00 €\nMRW 0,00 € · Correos 0,00 €\n0/0 envíos con coste\nCostes registrados y estimaciones por tarifa",
+          "x": 15,
+          "y": 712.1875,
+          "width": 176,
+          "height": 151
+        },
+        {
+          "text": "Pendientes\n63\nTodo el histórico",
+          "x": 199,
+          "y": 712.1875,
+          "width": 176,
+          "height": 151
+        },
+        {
+          "text": "Amazon pendientes\n32\nTodo el histórico",
+          "x": 15,
+          "y": 871.1875,
+          "width": 176,
+          "height": 81
+        },
+        {
+          "text": "Shopify pendientes\n31\nTodo el histórico",
+          "x": 199,
+          "y": 871.1875,
+          "width": 176,
+          "height": 81
+        },
+        {
+          "text": "Manual / API pendientes\n0\nTodo el histórico",
+          "x": 15,
+          "y": 960.1875,
+          "width": 176,
+          "height": 96
+        },
+        {
+          "text": "Etiquetados\n63\nEtiquetas listas · sin limitar por periodo",
+          "x": 199,
+          "y": 960.1875,
+          "width": 176,
+          "height": 96
+        },
+        {
+          "text": "Enviados\n0\nFecha expedición · Todo el histórico",
+          "x": 15,
+          "y": 1064.1875,
+          "width": 176,
+          "height": 96
+        },
+        {
+          "text": "Cancelados\n0\nTodo el histórico",
+          "x": 199,
+          "y": 1064.1875,
+          "width": 176,
+          "height": 96
+        }
+      ],
+      "actions": {
+        "x": 15,
+        "y": 180.375,
+        "width": 360,
+        "height": 54,
+        "overflow": true,
+        "children": [
+          {
+            "text": " Informes de recogida",
+            "x": 15,
+            "y": 180.375,
+            "width": 206.078125,
+            "height": 48
+          },
+          {
+            "text": " Impresión directa",
+            "x": 229.078125,
+            "y": 180.375,
+            "width": 179.515625,
+            "height": 48
+          },
+          {
+            "text": "FormatoA6",
+            "x": 416.59375,
+            "y": 182.375,
+            "width": 183.46875,
+            "height": 44
+          },
+          {
+            "text": " Nuevo pedido",
+            "x": 608.0625,
+            "y": 180.375,
+            "width": 151.015625,
+            "height": 48
+          },
+          {
+            "text": " Generar etiquetas seleccionadas (0)",
+            "x": 767.078125,
+            "y": 180.375,
+            "width": 315.734375,
+            "height": 48
+          },
+          {
+            "text": " Actualizar pedidos",
+            "x": 1090.8125,
+            "y": 180.375,
+            "width": 184.0625,
+            "height": 48
+          }
+        ]
+      },
+      "controls": [
+        {
+          "text": " Informes de recogida",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Impresión directa",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "FormatoA6",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "A6",
+          "label": "Formato rápido de etiqueta",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Nuevo pedido",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Generar etiquetas seleccionadas (0)",
+          "label": null,
+          "type": null,
+          "disabled": true
+        },
+        {
+          "text": " Actualizar pedidos",
+          "label": null,
+          "type": null,
+          "disabled": true
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Pendientes",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Etiquetados",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Enviados",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Cancelados",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Todos",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Todos los canales",
+          "label": "Filtrar por canal",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los países",
+          "label": "Filtrar por país de destino",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los transportistas",
+          "label": "Filtrar por transportista",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos",
+          "label": "Filtrar por informe de recogida",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos",
+          "label": "Filtrar por seguimiento",
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "cardOverflow": false,
+      "overflow": false,
+      "kpiColumns": [
+        "176px 176px"
+      ],
+      "failures": []
+    },
+    {
+      "screen": "orders",
+      "width": 1280,
+      "firstKpi": {
+        "x": 286,
+        "y": 468.9375,
+        "width": 227,
+        "height": 117.1875
+      },
+      "firstList": {
+        "x": 287,
+        "y": 1449.6875,
+        "width": 2944.375,
+        "height": 108.4375
+      },
+      "firstListScreens": 1.4496875,
+      "cards": [
+        {
+          "text": "Total vendido\n1568,70 €\n63 pedidos · Todo el histórico",
+          "x": 286,
+          "y": 468.9375,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "IVA estimado\n272,25 €\nTodo el histórico",
+          "x": 529,
+          "y": 468.9375,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Neto sin IVA\n1296,45 €\nTodo el histórico",
+          "x": 772,
+          "y": 468.9375,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Ticket medio\n24,90 €\nTodo el histórico",
+          "x": 1015,
+          "y": 468.9375,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Coste transportistas (IVA incl.)\n0,00 €\nMRW 0,00 € · Correos 0,00 €\n0/0 envíos con coste\nCostes registrados y estimaciones por tarifa",
+          "x": 286,
+          "y": 602.125,
+          "width": 227,
+          "height": 184.375
+        },
+        {
+          "text": "Pendientes\n63\nTodo el histórico",
+          "x": 529,
+          "y": 602.125,
+          "width": 227,
+          "height": 184.375
+        },
+        {
+          "text": "Amazon pendientes\n32\nTodo el histórico",
+          "x": 772,
+          "y": 602.125,
+          "width": 227,
+          "height": 184.375
+        },
+        {
+          "text": "Shopify pendientes\n31\nTodo el histórico",
+          "x": 1015,
+          "y": 602.125,
+          "width": 227,
+          "height": 184.375
+        },
+        {
+          "text": "Manual / API pendientes\n0\nTodo el histórico",
+          "x": 286,
+          "y": 802.5,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Etiquetados\n63\nEtiquetas listas · sin limitar por periodo",
+          "x": 529,
+          "y": 802.5,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Enviados\n0\nFecha expedición · Todo el histórico",
+          "x": 772,
+          "y": 802.5,
+          "width": 227,
+          "height": 117.1875
+        },
+        {
+          "text": "Cancelados\n0\nTodo el histórico",
+          "x": 1015,
+          "y": 802.5,
+          "width": 227,
+          "height": 117.1875
+        }
+      ],
+      "actions": {
+        "x": 286,
+        "y": 127,
+        "width": 956,
+        "height": 93,
+        "overflow": false,
+        "children": [
+          {
+            "text": " Informes de recogida",
+            "x": 395.734375,
+            "y": 128.5,
+            "width": 246.09375,
+            "height": 41
+          },
+          {
+            "text": " Impresión directa",
+            "x": 649.828125,
+            "y": 128.5,
+            "width": 213.390625,
+            "height": 41
+          },
+          {
+            "text": "FormatoA6",
+            "x": 871.21875,
+            "y": 127,
+            "width": 184.46875,
+            "height": 44
+          },
+          {
+            "text": " Nuevo pedido",
+            "x": 1063.6875,
+            "y": 128.5,
+            "width": 178.3125,
+            "height": 41
+          },
+          {
+            "text": " Generar etiquetas seleccionadas (0)",
+            "x": 633.5,
+            "y": 179,
+            "width": 381.046875,
+            "height": 41
+          },
+          {
+            "text": " Actualizar pedidos",
+            "x": 1022.546875,
+            "y": 180,
+            "width": 219.453125,
+            "height": 39
+          }
+        ]
+      },
+      "controls": [
+        {
+          "text": " Informes de recogida",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Impresión directa",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "FormatoA6",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "A6",
+          "label": "Formato rápido de etiqueta",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Nuevo pedido",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Generar etiquetas seleccionadas (0)",
+          "label": null,
+          "type": null,
+          "disabled": true
+        },
+        {
+          "text": " Actualizar pedidos",
+          "label": null,
+          "type": null,
+          "disabled": true
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Pendientes",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Etiquetados",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Enviados",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Cancelados",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Todos",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Todos los canales",
+          "label": "Filtrar por canal",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los países",
+          "label": "Filtrar por país de destino",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los transportistas",
+          "label": "Filtrar por transportista",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos",
+          "label": "Filtrar por informe de recogida",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos",
+          "label": "Filtrar por seguimiento",
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "cardOverflow": false,
+      "overflow": false,
+      "kpiColumns": [
+        "227px 227px 227px 227px"
+      ],
+      "failures": []
+    },
+    {
+      "screen": "orders",
+      "width": 1440,
+      "firstKpi": {
+        "x": 286,
+        "y": 468.9375,
+        "width": 267,
+        "height": 100.390625
+      },
+      "firstList": {
+        "x": 287,
+        "y": 1358.296875,
+        "width": 2944.375,
+        "height": 108.4375
+      },
+      "firstListScreens": 1.358296875,
+      "cards": [
+        {
+          "text": "Total vendido\n1568,70 €\n63 pedidos · Todo el histórico",
+          "x": 286,
+          "y": 468.9375,
+          "width": 267,
+          "height": 100.390625
+        },
+        {
+          "text": "IVA estimado\n272,25 €\nTodo el histórico",
+          "x": 569,
+          "y": 468.9375,
+          "width": 267,
+          "height": 100.390625
+        },
+        {
+          "text": "Neto sin IVA\n1296,45 €\nTodo el histórico",
+          "x": 852,
+          "y": 468.9375,
+          "width": 267,
+          "height": 100.390625
+        },
+        {
+          "text": "Ticket medio\n24,90 €\nTodo el histórico",
+          "x": 1135,
+          "y": 468.9375,
+          "width": 267,
+          "height": 100.390625
+        },
+        {
+          "text": "Coste transportistas (IVA incl.)\n0,00 €\nMRW 0,00 € · Correos 0,00 €\n0/0 envíos con coste\nCostes registrados y estimaciones por tarifa",
+          "x": 286,
+          "y": 585.328125,
+          "width": 267,
+          "height": 150.78125
+        },
+        {
+          "text": "Pendientes\n63\nTodo el histórico",
+          "x": 569,
+          "y": 585.328125,
+          "width": 267,
+          "height": 150.78125
+        },
+        {
+          "text": "Amazon pendientes\n32\nTodo el histórico",
+          "x": 852,
+          "y": 585.328125,
+          "width": 267,
+          "height": 150.78125
+        },
+        {
+          "text": "Shopify pendientes\n31\nTodo el histórico",
+          "x": 1135,
+          "y": 585.328125,
+          "width": 267,
+          "height": 150.78125
+        },
+        {
+          "text": "Manual / API pendientes\n0\nTodo el histórico",
+          "x": 286,
+          "y": 752.109375,
+          "width": 267,
+          "height": 117.1875
+        },
+        {
+          "text": "Etiquetados\n63\nEtiquetas listas · sin limitar por periodo",
+          "x": 569,
+          "y": 752.109375,
+          "width": 267,
+          "height": 117.1875
+        },
+        {
+          "text": "Enviados\n0\nFecha expedición · Todo el histórico",
+          "x": 852,
+          "y": 752.109375,
+          "width": 267,
+          "height": 117.1875
+        },
+        {
+          "text": "Cancelados\n0\nTodo el histórico",
+          "x": 1135,
+          "y": 752.109375,
+          "width": 267,
+          "height": 117.1875
+        }
+      ],
+      "actions": {
+        "x": 286,
+        "y": 127,
+        "width": 1116,
+        "height": 93,
+        "overflow": false,
+        "children": [
+          {
+            "text": " Informes de recogida",
+            "x": 555.734375,
+            "y": 128.5,
+            "width": 246.09375,
+            "height": 41
+          },
+          {
+            "text": " Impresión directa",
+            "x": 809.828125,
+            "y": 128.5,
+            "width": 213.390625,
+            "height": 41
+          },
+          {
+            "text": "FormatoA6",
+            "x": 1031.21875,
+            "y": 127,
+            "width": 184.46875,
+            "height": 44
+          },
+          {
+            "text": " Nuevo pedido",
+            "x": 1223.6875,
+            "y": 128.5,
+            "width": 178.3125,
+            "height": 41
+          },
+          {
+            "text": " Generar etiquetas seleccionadas (0)",
+            "x": 793.5,
+            "y": 179,
+            "width": 381.046875,
+            "height": 41
+          },
+          {
+            "text": " Actualizar pedidos",
+            "x": 1182.546875,
+            "y": 180,
+            "width": 219.453125,
+            "height": 39
+          }
+        ]
+      },
+      "controls": [
+        {
+          "text": " Informes de recogida",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Impresión directa",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "FormatoA6",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "A6",
+          "label": "Formato rápido de etiqueta",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Nuevo pedido",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Generar etiquetas seleccionadas (0)",
+          "label": null,
+          "type": null,
+          "disabled": true
+        },
+        {
+          "text": " Actualizar pedidos",
+          "label": null,
+          "type": null,
+          "disabled": true
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Pendientes",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Etiquetados",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Enviados",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Cancelados",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Todos",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Todos los canales",
+          "label": "Filtrar por canal",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los países",
+          "label": "Filtrar por país de destino",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los transportistas",
+          "label": "Filtrar por transportista",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos",
+          "label": "Filtrar por informe de recogida",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos",
+          "label": "Filtrar por seguimiento",
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "cardOverflow": false,
+      "overflow": false,
+      "kpiColumns": [
+        "267px 267px 267px 267px"
+      ],
+      "failures": []
+    },
+    {
+      "screen": "multicurrency",
+      "width": 390,
+      "failures": []
+    }
+  ]
+}

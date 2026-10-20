@@ -204,11 +204,11 @@ html[data-theme='dark'] .page .ordersPrinterBar select{
 @media(max-width:390px){
   /* On genuinely narrow devices stack date pairs cleanly instead of squeezing them. */
   .invoiceFilterPanel .filterGrid,
-  .masterPeriodDates{
+  .masterPeriodDates:not(.designSystemPage *){
     grid-template-columns:1fr!important;
   }
   .invoiceFilterPanel .filterGrid>label,
-  .masterPeriodDates>label{
+  .masterPeriodDates:not(.designSystemPage *)>label{
     grid-column:1/-1!important;
   }
 }

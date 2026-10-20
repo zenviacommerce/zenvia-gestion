@@ -142,11 +142,13 @@ Cada fase tendrá PR y capturas antes/después a 390/1280/1440 px; CI en verde; 
 
 ## Punto de parada y orden posterior
 
-Documento y capturas preparados para revisión. **No implementar el sistema de diseño todavía.** Mantener el orden acordado después de este análisis: **1) cerrar la vigilancia de 48 h del piloto MFA y preparar su ampliación; 2) solicitud de desarrollador público SP-API; 3) con ese acceso, validar las cifras de Amazon frente a Seller Central.** Las fases de layout quedan como propuesta hasta su aprobación y encaje en ese orden.
+Orden actualizado por el propietario el 20 de octubre de 2026: terminar Shopify y las fases de diseño de Gestión; después auditar y alinear ZENVIA PLATFORM (admin.zenviacommerce.com); solo entonces cerrar MFA y continuar con la solicitud de desarrollador público SP-API y la validación de cifras frente a Seller Central.
+
+Platform empieza con **auditoría sin cambios**: capturas móvil/escritorio y mediciones de carga/RPC/EXPLAIN; propuesta y **DETENERSE para revisión**. Evaluar reutilización de tokens, PageHeader, KpiGrid/StatCard, FilterBar, DataTable/MobileList, selección persistente/columna fija, modales/estados y responsive. Clientes/workspaces y tickets necesitan paginación/búsqueda/filtros en servidor, KPI agregados, índices medidos, cargas de detalle mínimas, refresco por eventos y respaldo sin recarga, conservación de selección/búsqueda y caché compartida invalidada al crear/editar clientes, tickets y planes. Soporte: filtros por estado, prioridad, cliente y asignado, para cientos o miles de tickets. No migrar Platform antes de aprobar esa propuesta.
 
 ## Ajustes aprobados — 20 de octubre de 2026
 
-Este documento está **aprobado como contrato de diseño**. La fase 1 está autorizada únicamente en rama de revisión; detenerse antes de publicar.
+Este documento está **aprobado como contrato de diseño**. La fase 1 fue revisada y aprobada para publicar por el propietario, en un despliegue posterior y separado de Shopify. Las fases siguientes conservan su revisión visual previa.
 
 - **Acceso móvil a listas operativas:** a 390 × 1000 px, con el estado inicial de referencia, el borde superior del primer elemento real de Pedidos, Facturación y Gastos debe estar antes de 1800 px desde el inicio del documento (dos pantallazos con al menos 200 px de lista visibles al terminar el segundo). Registrar coordenada absoluta y número de alturas de viewport antes/después en cada fase. La posición se mide sobre el primer elemento de datos, no sobre el título o cabecera vacía. En estados sin resultados, medir el comienzo del estado vacío. Registrar filtros/avisos activos; no ocultar información ni cambiar cifras para cumplir el límite. El primer KPI de Pedidos rondaba 1115 px: la fase 1 medirá y reducirá ese coste vertical.
 - **Acciones móviles de cabecera:** una fila horizontal con overflow accesible o menú «Más»; nunca una pila vertical de botones. Cabecera compacta, manteniendo todas las acciones, nombres accesibles y confirmaciones.

@@ -1,3 +1,4 @@
+import {requireInternalSecret} from '../_shared/amazon/supabase.ts';
 import {resolveOrderPackageWeight} from '../_shared/orderPackageWeight.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -124,8 +125,22 @@ Deno.serve(async(req:Request)=>{
   if(!url||!key)return response({error:'Configuración interna no disponible.'},500);
   const admin=createClient(url,key,{auth:{persistSession:false,autoRefreshToken:false}});
   try{
-    const caller=await authenticate(req,admin);
+    const runStartedAt=new Date().toISOString();
     const body=await req.json().catch(()=>({}));
+    const internal=Object.prototype.hasOwnProperty.call(body,'ownerId');
+    let caller:any;
+    if(internal){
+      requireInternalSecret(req);
+      if(!clean(body.ownerId)||!clean(body.integrationAccountId)||!['webhook','cron'].includes(body.syncSource))throw new Error('Llamada interna no autorizada.');
+      const {data:workspace,error}=await admin.from('workspaces').select('status').eq('id',body.ownerId).maybeSingle();
+      if(error)throw error;
+      if(!workspace||!['active','trialing'].includes(workspace.status))throw new Error('El acceso de tu empresa está suspendido.');
+      caller={data_owner_id:clean(body.ownerId)};
+    }else caller=await authenticate(req,admin);
+    const target=internal?clean(body.orderId):'';
+    if(target&&!/^\d+$/.test(target))throw new Error('ID de pedido Shopify inválido.');
+    const source=internal?body.syncSource:'browser';
+    const receivedAt=internal&&body.receivedAt?new Date(body.receivedAt).toISOString():runStartedAt;
     const history=Boolean(body?.history);
     const requestedId=clean(body?.integrationAccountId);
     let query=admin.from('integration_accounts')
@@ -138,14 +153,17 @@ Deno.serve(async(req:Request)=>{
     const {data:accounts,error:accountsError}=await query;
     if(accountsError)throw accountsError;
     const directAccounts=(accounts||[]).filter((account:any)=>account.credential_source!=='derived'&&account.config?.syncOrders!==false);
+    if(internal&&!directAccounts.length)throw new Error('Cuenta Shopify no disponible.');
     if(!directAccounts.length)return response({ok:true,synced:0,accounts:[],configured:false});
 
-    const minDate=new Date();
-    minDate.setUTCDate(minDate.getUTCDate()-(history?365:14));
-    const orderQuery=`updated_at:>=${minDate.toISOString().slice(0,10)}`;
+
     let synced=0;
     const results:any[]=[];
     for(const account of directAccounts){
+      try{
+      const cursor=Date.parse(account.config?.shopify_orders_cursor_at||'');
+      const minDate=new Date(!history&&Number.isFinite(cursor)?cursor-6*3600000:Date.parse(runStartedAt)-(history?365:14)*86400000);
+      const orderQuery=target?`id:${target}`:`updated_at:>=${minDate.toISOString()} updated_at:<=${runStartedAt}`;
       const c=await credentials(admin,account);
       let after:string|null=null,accountSynced=0,pages=0;
       let scopedOrderQuery=ORDER_QUERY;
@@ -154,7 +172,9 @@ Deno.serve(async(req:Request)=>{
         try{data=await gql(c,scopedOrderQuery,{first:100,after,query:orderQuery});}
         catch(error){if(!/access denied.*variant|access.*read_products/i.test(shopifyError(error)))throw error;scopedOrderQuery=scopedOrderQuery.replaceAll('variant{id}','');data=await gql(c,scopedOrderQuery,{first:100,after,query:orderQuery});}
         const connection=data?.orders;
-        const orders=connection?.nodes||[];
+        if(!Array.isArray(connection?.nodes)||typeof connection?.pageInfo?.hasNextPage!=='boolean')throw new Error('Shopify no devolvió una página de pedidos completa.');
+        const orders=connection.nodes;
+        if(target&&orders.some((order:any)=>clean(order.legacyResourceId||clean(order.id).split('/').pop())!==target))throw new Error('Shopify devolvió un pedido distinto al solicitado.');
         // Never rate a truncated basket. Fetch all remaining line-item pages.
         for(const order of orders){
           const lineFields=scopedOrderQuery.match(/lineItems\(first:100\)\{pageInfo\{hasNextPage endCursor\} nodes\{([\s\S]*?)\}\}\n/)?.[1];
@@ -171,7 +191,7 @@ Deno.serve(async(req:Request)=>{
           const bill=shippingAddress(order.billingAddress||{});
           const tracking=latestTracking(order);
           const total=order?.totalPriceSet?.shopMoney;
-          const remoteId=clean(order.legacyResourceId||order.id);
+          const remoteId=clean(order.legacyResourceId||clean(order.id).split('/').pop());
           return {
             owner_id:caller.data_owner_id,
             sendcloud_id:`shopify:${account.id}:${remoteId}`,
@@ -207,23 +227,36 @@ Deno.serve(async(req:Request)=>{
           };
         });
         if(rows.length){
-          const previous=await admin.from('fulfillment_orders').select('sendcloud_id,label_created_at,label_cancelled_at,tracking_number,tracking_url,carrier_name,tracking_status_code,tracking_status_message,tracking_updated_at,fulfilled_at,raw_payload').eq('owner_id',caller.data_owner_id).in('sendcloud_id',rows.map((row:any)=>row.sendcloud_id));
+          const previous=await admin.from('fulfillment_orders').select('sendcloud_id,order_updated_at,label_created_at,label_cancelled_at,tracking_number,tracking_url,carrier_name,tracking_status_code,tracking_status_message,tracking_updated_at,fulfilled_at,raw_payload').eq('owner_id',caller.data_owner_id).in('sendcloud_id',rows.map((row:any)=>row.sendcloud_id));
           if(previous.error)throw previous.error;
-          const merged=preserveShopifyLabelTracking(rows,previous.data||[]);
+          const freshRows=rows.filter((row:any)=>{const old=(previous.data||[]).find((p:any)=>p.sendcloud_id===row.sendcloud_id);return !old?.order_updated_at||Date.parse(old.order_updated_at)<=Date.parse(row.order_updated_at);});
+          const merged=preserveShopifyLabelTracking(freshRows,previous.data||[]);
           const {data:settings,error:settingsError}=await admin.from('app_settings').select('config').eq('owner_id',caller.data_owner_id).maybeSingle();if(settingsError)throw settingsError;
           for(const row of merged){const old=(previous.data||[]).find((p:any)=>p.sendcloud_id===row.sendcloud_id);if(old?.raw_payload?.shipping_details){row.raw_payload={...row.raw_payload,shipping_details:old.raw_payload.shipping_details,_zenvia_weight:old.raw_payload._zenvia_weight};}if(old?.raw_payload?._zenvia_local_shipping_updated_at){row.raw_payload._zenvia_local_shipping_updated_at=old.raw_payload._zenvia_local_shipping_updated_at;}await resolveOrderPackageWeight(admin,{...row,label_created_at:old?.label_created_at},settings?.config?.shipping||{}).then(result=>{if(result){row.raw_payload._zenvia_weight=result;row.raw_payload.shipping_details={...(row.raw_payload.shipping_details||{}),measurement:{...(row.raw_payload.shipping_details?.measurement||{}),weight:{value:result.kg,unit:'kg'}}};}});}
-          const {error}=await admin.from('fulfillment_orders').upsert(merged,{onConflict:'owner_id,sendcloud_id'});
-          if(error)throw error;
+          if(merged.length){const {error}=await admin.from('fulfillment_orders').upsert(merged,{onConflict:'owner_id,sendcloud_id'});if(error)throw error;}
+          for(const row of rows){const traced=await admin.rpc('shopify_record_order_ingestion',{owner:caller.data_owner_id,store:account.id,remote_order_id:clean(row.raw_payload.legacyResourceId||clean(row.raw_payload.id).split('/').pop()),remote_created_at:row.order_created_at,destination:'operational',source,received_at:receivedAt});if(traced.error)throw traced.error;}
         }
         accountSynced+=rows.length;synced+=rows.length;pages+=1;
-        after=connection?.pageInfo?.hasNextPage?clean(connection.pageInfo.endCursor):null;
+        if(!connection?.pageInfo)throw new Error('Shopify no devolvió una página de pedidos completa.');
+        const previousCursor=after;
+        after=connection.pageInfo.hasNextPage?clean(connection.pageInfo.endCursor):null;
+        if(connection.pageInfo.hasNextPage&&(!after||after===previousCursor||pages>=20))throw new Error('Shopify: importación incompleta; no se avanzó el cursor.');
       }while(after&&pages<20);
-      await admin.from('integration_accounts').update({status:'connected',last_success_at:new Date().toISOString(),last_error:null,updated_at:new Date().toISOString()}).eq('id',account.id).eq('owner_id',caller.data_owner_id).eq('enabled',true).neq('status','disabled');
+      if(target&&!accountSynced)throw new Error('Shopify: pedido solicitado no encontrado.');
+      if(!target){
+        const committed=await admin.rpc('shopify_commit_orders_cursor',{owner:caller.data_owner_id,store:account.id,checkpoint_at:runStartedAt});
+        if(committed.error)throw committed.error;
+        if(committed.data!==true)throw new Error('No se pudo guardar el cursor de Shopify; la cuenta ya no está disponible.');
+      }
+      const saved=await admin.from('integration_accounts').update({status:'connected',last_success_at:new Date().toISOString(),last_error:null,updated_at:new Date().toISOString()}).eq('id',account.id).eq('owner_id',caller.data_owner_id).eq('enabled',true).neq('status','disabled').select('id').maybeSingle();
+      if(!saved.data&&!saved.error)throw new Error('Cuenta Shopify no disponible.');
+      if(saved.error)throw saved.error;
       results.push({accountId:account.id,displayName:account.display_name,synced:accountSynced,shopDomain:c.shopDomain});
+      }catch(error){results.push({accountId:account.id,synced:0,error:shopifyError(error)});}
     }
-    return response({ok:true,configured:true,synced,accounts:results,history});
+    return response({ok:results.every(r=>!r.error),configured:true,synced,accounts:results,history});
   }catch(error){
     const message=shopifyError(error,'Error interno.');
-    return response({error:message},/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:500);
+    return response({error:message},/Sesión no válida|no autorizada/.test(message)?401:/permiso|suspendido/.test(message)?403:500);
   }
 });

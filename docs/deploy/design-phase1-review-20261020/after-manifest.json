@@ -1,6 +1,7 @@
 {
   "synthetic": true,
   "networkBlocked": true,
+  "locale": "es-ES",
   "baselineRevision": "58687e42",
   "checks": [
     {

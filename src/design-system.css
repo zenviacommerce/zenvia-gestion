@@ -51,3 +51,7 @@
  .designSystemPage .ordersPrinterBar>*{flex:0 0 auto}
  .designSystemPage .ordersPrinterBar>.secondary{white-space:nowrap}
 }
+
+.dsPageHeaderActionsFrame{position:relative;max-width:100%;min-width:0;flex:0 1 auto}
+.dsActionsScrollHint{display:none}
+@media(max-width:767px){.dsPageHeaderActionsFrame{width:100%;flex:initial}.dsActionsScrollHint{position:absolute;right:0;top:0;bottom:6px;width:36px;display:grid;place-items:center;pointer-events:none;color:var(--accent,#0f766e);font-size:22px;background:linear-gradient(to right,transparent,var(--app-bg,#f6f8fb) 70%)}}

@@ -14,6 +14,7 @@ jobs:
       - run: node --test scripts/support-response-state.test.mjs
       - run: node scripts/check-design-contract.mjs
       - run: node --test scripts/design-contract.test.mjs
+      - run: node --test scripts/shopify-webhook-security.test.mjs scripts/shopify-freshness-importers.test.mjs scripts/shopify-order-events-handler.test.mjs
       - run: npm run build
       - uses: actions/upload-artifact@v4
         with:

@@ -56,7 +56,7 @@ const main=phase==='before'?execFileSync('git',['show',baselineRevision+':src/ma
 const cssFiles=[...new Set([...main.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map(x=>'src/'+x[1].replace('./','')))];
 const css=(await Promise.all([...new Set([...cssFiles,'src/shared-forms.css','src/bulk-selection.css','src/pickup-reports.css','src/action-dialog.css'])].map(p=>phase==='before'?execFileSync('git',['show',baselineRevision+':'+p],{encoding:'utf8'}):readFile(p,'utf8')))).join('\n');
 const output='docs/deploy/design-phase1-review-20261020';await mkdir(output,{recursive:true});
-let launchOptions={headless:true};
+let launchOptions={headless:true,args:['--lang=es-ES','--accept-lang=es-ES,es'],env:{...process.env,LANG:'es_ES.UTF-8',LC_ALL:'es_ES.UTF-8'}};
 if(process.env.SHIPPING_CHROMIUM_PACKAGE==='1'){
  // tar --no-same-owner also works in containers that reject archive ownership.
  const {default:packaged}=await import('@sparticuz/chromium');
@@ -69,15 +69,15 @@ if(process.env.SHIPPING_CHROMIUM_PACKAGE==='1'){
  }
  process.env.FONTCONFIG_PATH='/etc/fonts';
  process.env.LD_LIBRARY_PATH=[root,process.env.LD_LIBRARY_PATH].filter(Boolean).join(':');
- launchOptions={...launchOptions,args:packaged.args.filter(arg=>arg!=='--single-process'),executablePath:resolve(root,'chromium')};
+ launchOptions={...launchOptions,args:[...packaged.args.filter(arg=>arg!=='--single-process'&&!arg.startsWith('--lang=')&&!arg.startsWith('--accept-lang=')),'--lang=es-ES','--accept-lang=es-ES,es'],executablePath:resolve(root,'chromium')};
 }
 const browser=await chromium.launch(launchOptions);
 
 
 const checks=[];
 try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,1440]){
- const page=await browser.newPage({viewport:{width,height:1000}});const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('PAGE',screen,width,e.message)});await page.route('**/*',r=>r.abort());
- await page.setContent('<html lang="es"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
+ const page=await browser.newPage({locale:'es-ES',viewport:{width,height:1000}});const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('PAGE',screen,width,e.message)});await page.route('**/*',r=>r.abort());
+ await page.setContent('<html lang="es-ES"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
  await page.evaluate(s=>globalThis.renderFixture(s),screen);
  await page.locator('.stat').first().waitFor();
  if(screen==='dashboard')await page.getByText('12.345,67 €',{exact:true}).waitFor();
@@ -102,6 +102,13 @@ try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,144
  if(JSON.stringify(before.controls)!==JSON.stringify(proof.controls))failures.push('Filter/header controls or disabled states changed');
  if(JSON.stringify(before.cards.map(c=>c.text))!==JSON.stringify(proof.cards.map(c=>c.text)))failures.push('KPI information changed');
  }
+ if(phase==='after'&&screen==='orders'&&width===390){
+  const hint=page.locator('.dsActionsScrollHint');await hint.waitFor({state:'visible'});
+  await page.locator('.dsPageHeaderActions').evaluate(el=>el.scrollTo({left:el.scrollWidth}));
+  await hint.waitFor({state:'hidden'});
+  await page.locator('.dsPageHeaderActions').evaluate(el=>el.scrollTo({left:0}));
+  await hint.waitFor({state:'visible'});
+ }
  if(phase==='after'&&screen==='orders'){
   const action=page.getByRole('button',{name:'Nuevo pedido',exact:true});await action.focus();
   const reachable=await action.evaluate(el=>{const r=el.getBoundingClientRect(),p=el.closest('.dsPageHeaderActions').getBoundingClientRect();return r.left>=p.left-1&&r.right<=p.right+1;});
@@ -121,12 +128,12 @@ try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,144
  checks.push({screen,width,...proof,failures});await page.close();
 }
  if(phase==='after'){
-  const page=await browser.newPage({viewport:{width:390,height:1000}});await page.route('**/*',r=>r.abort());
-  await page.setContent('<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
+  const page=await browser.newPage({locale:'es-ES',viewport:{width:390,height:1000}});await page.route('**/*',r=>r.abort());
+  await page.setContent('<html lang="es-ES"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
   await page.evaluate(()=>globalThis.renderStress());await page.getByText('123.456,78 USD').waitFor();
   const overflow=await page.locator('.stat').evaluateAll(cards=>cards.some(el=>el.scrollWidth>el.clientWidth+1));
   await page.screenshot({path:output+'/after-multicurrency-390.png'});
   checks.push({screen:'multicurrency',width:390,failures:overflow?['Multi-currency card overflow']:[]});await page.close();
  }
 }finally{await browser.close()}
-await writeFile(output+'/'+phase+'-manifest.json',JSON.stringify({synthetic:true,networkBlocked:true,baselineRevision,checks},null,2));console.log(JSON.stringify(checks.map(({cards,...x})=>x),null,2));if(phase==='after'&&checks.some(x=>x.failures.length))process.exitCode=1;
+await writeFile(output+'/'+phase+'-manifest.json',JSON.stringify({synthetic:true,networkBlocked:true,locale:'es-ES',baselineRevision,checks},null,2));console.log(JSON.stringify(checks.map(({cards,...x})=>x),null,2));if(phase==='after'&&checks.some(x=>x.failures.length))process.exitCode=1;

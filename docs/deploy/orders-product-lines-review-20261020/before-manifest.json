@@ -1,0 +1,70 @@
+{
+  "synthetic": true,
+  "networkBlocked": true,
+  "baselineRevision": "9ce09977",
+  "checks": [
+    {
+      "device": "desktop",
+      "lines": [
+        {
+          "text": "Aceite esencial de lavanda ×3",
+          "fontWeight": "700",
+          "fontSize": "13px",
+          "color": "rgb(71, 85, 105)",
+          "width": 370,
+          "height": 18,
+          "scrollHeight": 18,
+          "clipped": false
+        },
+        {
+          "text": "Jabón de manos cítrico ×4 · Crema facial hidratante · +2 más",
+          "fontWeight": "400",
+          "fontSize": "12px",
+          "color": "rgb(100, 116, 139)",
+          "width": 370,
+          "height": 16,
+          "scrollHeight": 16,
+          "clipped": false
+        }
+      ],
+      "more": "",
+      "tooltip": "",
+      "tooltipData": "",
+      "overflow": false,
+      "failures": [
+        "Expected three separately styled visible product lines",
+        "Visible products differ in weight/size/color",
+        "Missing visible quantity 1",
+        "Missing +2 overflow indicator",
+        "Missing remaining-product tooltip"
+      ]
+    },
+    {
+      "device": "mobile",
+      "lines": [
+        {
+          "text": "Aceite esencial de lavanda · +4 productos",
+          "fontWeight": "700",
+          "fontSize": "12px",
+          "color": "rgb(23, 32, 51)",
+          "width": 284,
+          "height": 14,
+          "scrollHeight": 14,
+          "clipped": false
+        }
+      ],
+      "more": "",
+      "tooltip": "",
+      "tooltipData": "",
+      "overflow": false,
+      "failures": [
+        "Expected three separately styled visible product lines",
+        "Missing visible quantity 3",
+        "Missing visible quantity 4",
+        "Missing visible quantity 1",
+        "Missing +2 overflow indicator",
+        "Missing remaining-product tooltip"
+      ]
+    }
+  ]
+}

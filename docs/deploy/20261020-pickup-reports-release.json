@@ -1,0 +1,78 @@
+{
+  "baseline": {
+    "pilot": {
+      "enabled": true,
+      "singleton": true,
+      "cohort_user_ids": [
+        "7461b2b7-f383-460d-b1c7-6ccbb52e42b2"
+      ]
+    },
+    "checked_at": "2026-10-20T08:21:52.600186+00:00",
+    "new_relations": {
+      "public.pickup_reports": null,
+      "public.pickup_report_items": null,
+      "private.pickup_report_counters": null
+    },
+    "dashboard_hash": "081c0519b77e14fd53598cefba39aeb7",
+    "guard_findings": null,
+    "mfa_manifest_count": 35,
+    "migration_registered": false,
+    "existing_pickup_functions": 0
+  },
+  "rollbackDeployment": "dpl_3Mznkx6P7AMfybJtSLch4xVmp2Vz",
+  "rollbackBundle": "index-CRlr5KXE.js",
+  "productionCommit": "c512720ad2429520c897b2961002cf8948cf53b8",
+  "approvedHead": "4993a2f0d39bafcc43fee4927dc1afa57b564d0b",
+  "ci": [
+    {
+      "id": 39391887376,
+      "name": "Build check",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 582,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39391887376/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39391887376/logs",
+      "workflow_id": 361316263
+    },
+    {
+      "id": 39391887388,
+      "name": "MFA visual review (Playwright)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 104,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39391887388/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39391887388/logs",
+      "workflow_id": 388829843
+    },
+    {
+      "id": 39391887392,
+      "name": "Build ZENVIA Gestión",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2250,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39391887392/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39391887392/logs",
+      "workflow_id": 354706666
+    },
+    {
+      "id": 39391887430,
+      "name": "Auth resilience tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 251,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39391887430/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39391887430/logs",
+      "workflow_id": 385998318
+    },
+    {
+      "id": 39391887330,
+      "name": "MFA real integration (disposable Supabase)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 290,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39391887330/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39391887330/logs",
+      "workflow_id": 387906946
+    }
+  ]
+}

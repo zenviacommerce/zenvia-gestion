@@ -1,0 +1,124 @@
+{
+  "src/pages/Admin.tsx": {
+    "pageHead": 1
+  },
+  "src/pages/Amazon.tsx": {
+    "pageHead": 1
+  },
+  "src/pages/Clients.tsx": {
+    "pageHead": 1,
+    "stats": 1
+  },
+  "src/pages/Dashboard.tsx": {},
+  "src/pages/ExpenseInvoicesHub.tsx": {},
+  "src/pages/Gmail.tsx": {
+    "pageHead": 1,
+    "stats": 1,
+    "stat": 3
+  },
+  "src/pages/Invoices.tsx": {
+    "pageHead": 1,
+    "stats": 1
+  },
+  "src/pages/Orders.tsx": {},
+  "src/pages/Products.tsx": {
+    "pageHead": 1,
+    "stats": 1
+  },
+  "src/pages/SalesInvoices.tsx": {},
+  "src/pages/SalesInvoicesCore.tsx": {
+    "pageHead": 1,
+    "stats": 1
+  },
+  "src/pages/SalesReceipts.tsx": {
+    "pageHead": 1,
+    "stats": 1
+  },
+  "src/pages/Settings.tsx": {
+    "pageHead": 1
+  },
+  "src/pages/Shopify.tsx": {
+    "pageHead": 1
+  },
+  "src/pages/Suppliers.tsx": {
+    "pageHead": 1,
+    "stats": 1,
+    "stat": 3
+  },
+  "src/pages/Support.tsx": {
+    "pageHead": 1
+  },
+  "src/components/ActionDialogHost.tsx": {},
+  "src/components/ActivityCenter.tsx": {},
+  "src/components/AlertCenter.tsx": {},
+  "src/components/AppAgent.tsx": {},
+  "src/components/AppErrorBoundary.tsx": {},
+  "src/components/AuthScreen.tsx": {},
+  "src/components/AutoPagination.tsx": {},
+  "src/components/BulkInvoiceImportModal.tsx": {},
+  "src/components/BulkSelectionToolbar.tsx": {},
+  "src/components/InvitePasswordSetup.tsx": {},
+  "src/components/InviteTokenSetup.tsx": {},
+  "src/components/InvoiceCandidateForm.tsx": {},
+  "src/components/InvoiceDetailModal.tsx": {},
+  "src/components/InvoiceFilters.tsx": {},
+  "src/components/KpiGrid.tsx": {},
+  "src/components/MfaDevices.tsx": {},
+  "src/components/MfaScreen.tsx": {},
+  "src/components/OrderEditModal.tsx": {},
+  "src/components/OrderInvoiceModal.tsx": {},
+  "src/components/OrderLabelDefaults.tsx": {},
+  "src/components/OrderProductLines.tsx": {},
+  "src/components/PageHeader.tsx": {
+    "pageHead": 1
+  },
+  "src/components/Pagination.tsx": {},
+  "src/components/PasskeySetup.tsx": {},
+  "src/components/PendingOrdersKpiHighlight.tsx": {},
+  "src/components/PeriodFilterPanel.tsx": {},
+  "src/components/PickupReports.tsx": {},
+  "src/components/ProductCatalogPicker.tsx": {},
+  "src/components/ProductIdentity.tsx": {},
+  "src/components/ProductMappingAction.tsx": {},
+  "src/components/ProductMappingEditor.tsx": {},
+  "src/components/ProductMappingModal.tsx": {},
+  "src/components/ProductModal.tsx": {},
+  "src/components/RecordDetailDrawer.tsx": {},
+  "src/components/RecoveryTokenSetup.tsx": {},
+  "src/components/RetainedImportPage.tsx": {},
+  "src/components/SalesConfigurationModals.tsx": {},
+  "src/components/SalesInvoiceImportModal.tsx": {},
+  "src/components/SalesInvoiceNumberEditor.tsx": {},
+  "src/components/SendInvoiceModal.tsx": {},
+  "src/components/SessionSecurity.tsx": {},
+  "src/components/ShippingProviderStatus.tsx": {},
+  "src/components/Sidebar.tsx": {},
+  "src/components/SortableTableHeader.tsx": {},
+  "src/components/StatCard.tsx": {},
+  "src/components/SupplierModal.tsx": {},
+  "src/components/ToastHost.tsx": {},
+  "src/components/TransportTariffsPanel.tsx": {},
+  "src/components/UnifiedListExperience.tsx": {},
+  "src/components/UploadInvoiceModal.tsx": {},
+  "src/components/amazon/AmazonCompleteness.tsx": {},
+  "src/components/amazon/AmazonFilters.tsx": {},
+  "src/components/amazon/AmazonInventory.tsx": {},
+  "src/components/amazon/AmazonLoading.tsx": {},
+  "src/components/amazon/AmazonMappingEditor.tsx": {},
+  "src/components/amazon/AmazonMappingModal.tsx": {},
+  "src/components/amazon/AmazonMarketplaces.tsx": {},
+  "src/components/amazon/AmazonOrders.tsx": {},
+  "src/components/amazon/AmazonPeriodCards.tsx": {},
+  "src/components/amazon/AmazonProducts.tsx": {},
+  "src/components/amazon/AmazonSummary.tsx": {},
+  "src/components/amazon/AmazonUnmapped.tsx": {},
+  "src/components/forms/CheckboxOption.tsx": {},
+  "src/components/forms/CountryPicker.tsx": {},
+  "src/components/forms/FormPrimitives.tsx": {},
+  "src/components/forms/PostalAddressFields.tsx": {},
+  "src/components/forms/SearchableSelect.tsx": {},
+  "src/components/forms/SelectField.tsx": {},
+  "src/components/shopify/ShopifyMappingModal.tsx": {},
+  "src/components/shopify/ShopifyPeriodCards.tsx": {},
+  "src/components/shopify/ShopifyProducts.tsx": {}
+}

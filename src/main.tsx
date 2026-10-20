@@ -55,6 +55,7 @@ import './alerts.css';
 import './app-agent.css';
 import './theme-consistency.css';
 import './responsive-hardening.css';
+import './design-system.css';
 
 const favicon=document.querySelector<HTMLLinkElement>("link[rel~='icon']")||document.createElement('link');
 favicon.rel='icon';

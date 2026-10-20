@@ -1,0 +1,53 @@
+/* Phase 1 owners: PageHeader and KpiGrid. Legacy selectors do not own these layouts. */
+:root{--ds-space-2:8px;--ds-space-3:12px;--ds-space-4:16px;--ds-space-6:24px;--ds-card-radius:16px;--ds-control-radius:10px}
+.kpiGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--ds-space-4);margin-bottom:var(--ds-space-6);min-width:0}
+.kpiGrid>.stat{min-width:0;border-radius:var(--ds-card-radius);gap:var(--ds-space-3);padding:var(--ds-space-4);align-items:flex-start}
+.kpiGrid>.stat>.statContent{min-width:0;flex:1;container-type:inline-size}
+.kpiGrid .statIcon{flex:0 0 36px;width:36px;height:36px}
+.kpiGrid .statContent>span,.kpiGrid .statContent>small{line-height:1.4;overflow-wrap:anywhere}
+.kpiGrid .statContent>strong{font-variant-numeric:tabular-nums;font-size:24px;line-height:1.2;overflow-wrap:normal;white-space:normal}
+.kpiGrid .statContent>strong>span{font:inherit;font-size:clamp(14px,10cqi,20px);color:inherit;white-space:nowrap}
+.page .dsPageHeader{gap:var(--ds-space-4);margin-bottom:var(--ds-space-6)}
+.dsPageHeaderIdentity{min-width:0;flex:1 1 260px}
+.dsPageHeaderActions{display:flex;align-items:center;justify-content:flex-end;gap:var(--ds-space-2);flex-wrap:wrap;max-width:100%;min-width:0;flex:0 1 auto}
+.dsPageHeaderActions>*{flex:0 0 auto}
+.dsPageHeaderActions:focus-visible{outline:2px solid var(--accent,#0f766e);outline-offset:3px;border-radius:var(--ds-control-radius)}
+@media(min-width:1920px){.kpiGridDense{grid-template-columns:repeat(6,minmax(0,1fr))}}
+@media(min-width:768px) and (max-width:1023px){.kpiGrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:767px){
+ .kpiGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+ .kpiGrid>.stat{padding:8px;gap:var(--ds-space-2);position:relative}
+ .kpiGrid .statIcon{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:6px}
+ .kpiGrid .statIcon svg{width:14px;height:14px}
+ .kpiGrid .statContent{width:100%}
+ .kpiGrid .statContent>span{padding-right:24px;min-height:20px}
+ .kpiGrid .statContent>strong{font-size:20px}
+ .kpiGrid .statContent>span,.kpiGrid .statContent>small{font-size:12px;line-height:1.25}
+ .page .dsPageHeader{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+ .dsPageHeaderIdentity{flex:initial}
+ .page .dsPageHeader h1{font-size:24px;margin-bottom:4px}
+ .page .dsPageHeader p{font-size:13px;line-height:1.4}
+ .page .dsPageHeaderActions{flex:initial;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overflow-y:hidden;width:100%;padding-bottom:6px;scrollbar-width:thin}
+ .page .dsPageHeader .dsPageHeaderActions>.primary,.page .dsPageHeader .dsPageHeaderActions>.secondary{margin:0;min-height:48px;height:auto;white-space:nowrap;padding:10px 12px;border-radius:var(--ds-control-radius);font-size:13px}
+ .page .dsPageHeaderActions>.ordersQuickLabelFormat{flex-direction:row;align-items:center;gap:6px;width:auto}
+ .page .dsPageHeaderActions .ordersQuickLabelFormat .selectField{width:100px}
+ .designSystemPage .sharedPeriodPanel{padding:12px;margin-bottom:8px;gap:8px}
+ .designSystemPage .masterPeriodTop{gap:8px;flex-direction:row;align-items:center}
+ .designSystemPage .masterPeriodTop>div:first-child{flex:0 0 98px}
+ .designSystemPage .masterPeriodQuick{min-width:0;flex:1;justify-content:flex-start;display:flex;flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:6px}
+ .designSystemPage .masterPeriodQuick>button{flex:0 0 auto;width:auto;min-height:44px}
+ .ordersPage.designSystemPage .ordersToolbar .businessFilterFields{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .designSystemPage .bulkSelectionActions{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding-bottom:6px}
+ .designSystemPage .bulkSelectionActions>button{flex:0 0 auto;white-space:nowrap;min-height:44px}
+ .designSystemPage .ordersSelectionScope{margin-bottom:8px}
+ .designSystemPage .ordersToolbar{margin-bottom:10px}
+ .designSystemPage .ordersConnection{flex-wrap:nowrap;gap:6px}
+ .designSystemPage .ordersConnection small{width:auto;margin-left:auto}
+ .designSystemPage.page{padding-top:16px}
+ .designSystemPage .ordersPrinterBar{padding:6px 8px;font-size:11px}
+ .designSystemPage .ordersSelectionScope p{margin-top:4px;margin-bottom:4px}
+ .designSystemPage .bulkSelectionToolbar{gap:8px;padding:10px;margin-bottom:8px}
+ .designSystemPage .ordersPrinterBar{flex-wrap:nowrap;overflow-x:auto}
+ .designSystemPage .ordersPrinterBar>*{flex:0 0 auto}
+ .designSystemPage .ordersPrinterBar>.secondary{white-space:nowrap}
+}

@@ -1,0 +1,55 @@
+[
+  {
+    "file": "src/components/amazon/AmazonPeriodCards.tsx",
+    "unchanged": true,
+    "sha256": "9633a5fd9efa9ceb4e822c248d86c1867f1afc5232dd703bb3b0e011ab50f8ff"
+  },
+  {
+    "file": "src/components/amazon/AmazonSummary.tsx",
+    "unchanged": true,
+    "sha256": "ea81db49face1df708de8e8333567f463e4715939cdee2ec46d63810a17d3b90"
+  },
+  {
+    "file": "src/components/amazon/AmazonProducts.tsx",
+    "unchanged": true,
+    "sha256": "c13989d7f67c3da0d0b2be0fdba041146e7d733d0d42572160668f6a7d4e0a2c"
+  },
+  {
+    "file": "src/components/shopify/ShopifyPeriodCards.tsx",
+    "unchanged": true,
+    "sha256": "2a1abb3f53b0b8a7c9548718ea6aac54c1f203bf1d6196f2b07e8a45bf81b937"
+  },
+  {
+    "file": "src/components/shopify/ShopifyProducts.tsx",
+    "unchanged": true,
+    "sha256": "41ba28c7b8e21912b1b4f6296cd1116663ecc117f71f9aa620237602415e59c6"
+  },
+  {
+    "file": "src/services/amazon.ts",
+    "unchanged": true,
+    "sha256": "e0158ccffe26ecaa6618495fcaed5c90239d394a48a5c3d2deda829e441481b8"
+  },
+  {
+    "file": "src/services/amazonDashboard.ts",
+    "unchanged": true,
+    "sha256": "edf3ad86fd43bb7bb629d78dbf1741245647a410392b04f506968c4fc822b7ee"
+  },
+  {
+    "file": "src/services/shopifyAnalytics.ts",
+    "unchanged": true,
+    "sha256": "7d179f41957a5cb5e61c033fbd2f277447b9158cb9e868afa9b3ede435d10951"
+  },
+  {
+    "file": "src/services/shopifyLiveUpdates.ts",
+    "unchanged": true,
+    "sha256": "68dfba64b6510347860ef8cbff91db42177e8a677b833d0f4b5b720324831e3d"
+  },
+  {
+    "file": "src/pages/Amazon.tsx",
+    "hooks_and_callbacks_unchanged": true
+  },
+  {
+    "file": "src/pages/Shopify.tsx",
+    "hooks_and_callbacks_unchanged": true
+  }
+]

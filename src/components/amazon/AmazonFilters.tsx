@@ -1,3 +1,4 @@
+import {FilterBar} from '../FilterBar';
 import { CheckboxOption } from '../forms/CheckboxOption';
 import {amazonCalendarDate} from '../../services/amazonCalendar';
 import { useEffect, useRef, useState } from 'react';
@@ -29,7 +30,7 @@ export function AmazonFilters({filters,marketplaces,initialPreset='today',onChan
   const active=marketplaces.filter(item=>item.active);
   const marketplaceLabel=!filters.marketplaceIds.length?'Todos':filters.marketplaceIds.length===1?active.find(item=>item.id===filters.marketplaceIds[0])?.name||filters.marketplaceIds[0]:`${filters.marketplaceIds.length} seleccionados`;
   const periodLabel=presets.find(([key])=>key===preset)?.[1]||'Personalizado';
-  return <section className="amazonDesktopFilters" aria-label="Filtros de Amazon Analytics">
+  return <FilterBar className="amazonDesktopFilters dsCommerceFilters" label="Filtros de Amazon Analytics">
     <details ref={periodRef} className="amazonFilterDropdown">
       <summary><CalendarDays size={15}/><span><small>Periodo</small><strong>{periodLabel}</strong></span><ChevronDown size={14}/></summary>
       <div className="amazonFilterDropdownPanel">
@@ -53,5 +54,5 @@ export function AmazonFilters({filters,marketplaces,initialPreset='today',onChan
         {active.map(item=><CheckboxOption key={item.id} checked={filters.marketplaceIds.includes(item.id)} onChange={()=>toggleMarketplace(item.id)} label={item.name||item.countryCode}/>)}
       </div>
     </details>
-  </section>;
+  </FilterBar>;
 }

@@ -1,0 +1,887 @@
+{
+  "baseline": "002b953d804c5b56cb6d566aa37b96bbeeb0d43c",
+  "synthetic": true,
+  "networkBlocked": true,
+  "locale": "es-ES",
+  "checks": [
+    {
+      "screen": "amazon",
+      "width": 390,
+      "firstList": {
+        "x": 29,
+        "y": 1317.90625,
+        "width": 1500,
+        "height": 73
+      },
+      "documentOverflow": false,
+      "headerActions": [
+        "Actualizar datos"
+      ],
+      "periods": [
+        {
+          "id": "today",
+          "text": "Hoy\n20 de octubre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\n\nGanancia vs. anterior: 0 % · 19/10/2026 – 19/10/2026\n\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Hoy",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Hoy",
+              "text": "20 de octubre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "yesterday",
+          "text": "Ayer\n19 de octubre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Ayer",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Ayer",
+              "text": "19 de octubre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "current_month",
+          "text": "Mes actual\n1 de octubre de 2026 – 20 de octubre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes actual",
+              "text": "1 de octubre de 2026 – 20 de octubre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "forecast",
+          "text": "Mes actual (pronóstico)\n1 de octubre de 2026 – 31 de octubre de 2026\nVentas\n0,00 €\nPedidos / unidades\n0 / 0\nReembolsos con IVA\n0,00 €\n0 reembolsos\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-0,00 €\nGanancia neta\n0,00 €\nMargen neto\n—\nEstimación · Base provisional\n\nMedia de los días completos del mes × días del mes. Al seleccionar se muestran los productos vendidos este mes.\n\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual (pronóstico)",
+              "text": ""
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "previous_month",
+          "text": "Mes anterior\n1 de septiembre de 2026 – 30 de septiembre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes anterior",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes anterior",
+              "text": "1 de septiembre de 2026 – 30 de septiembre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        }
+      ],
+      "rowText": "SKU-PRUEBA\nASIN-PRUEBA\n2 B2B\t\nProducto de prueba\nZENVIA: Producto interno\n\t12\t24\t1234,56 €\t1020,30 €\t240,00 €\t120,00 €\t20,00 €\t580,30 €\nProvisional\n\t56.9 %\t214,26 €\t25,20 €\t\nVincular / crear",
+      "tabs": [
+        "Resumen",
+        "Productos",
+        "Marketplaces",
+        "Pedidos",
+        "Inventario",
+        "Sin vincular3"
+      ],
+      "filters": [
+        {
+          "text": "PeriodoHoy",
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "wrapped": false
+        },
+        {
+          "text": "MarketplaceTodos",
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "wrapped": false
+        }
+      ],
+      "productsTabFirstList": 731.5,
+      "failures": []
+    },
+    {
+      "screen": "amazon",
+      "width": 1280,
+      "firstList": {
+        "x": 304,
+        "y": 1135.609375,
+        "width": 1500,
+        "height": 73
+      },
+      "documentOverflow": false,
+      "headerActions": [
+        "Actualizar datos"
+      ],
+      "periods": [
+        {
+          "id": "today",
+          "text": "Hoy\n20 de octubre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\n\nGanancia vs. anterior: 0 % · 19/10/2026 – 19/10/2026\n\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Hoy",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Hoy",
+              "text": "20 de octubre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "yesterday",
+          "text": "Ayer\n19 de octubre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Ayer",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Ayer",
+              "text": "19 de octubre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "current_month",
+          "text": "Mes actual\n1 de octubre de 2026 – 20 de octubre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes actual",
+              "text": "1 de octubre de 2026 – 20 de octubre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "forecast",
+          "text": "Mes actual (pronóstico)\n1 de octubre de 2026 – 31 de octubre de 2026\nVentas\n0,00 €\nPedidos / unidades\n0 / 0\nReembolsos con IVA\n0,00 €\n0 reembolsos\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-0,00 €\nGanancia neta\n0,00 €\nMargen neto\n—\nEstimación · Base provisional\n\nMedia de los días completos del mes × días del mes. Al seleccionar se muestran los productos vendidos este mes.\n\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual (pronóstico)",
+              "text": ""
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "previous_month",
+          "text": "Mes anterior\n1 de septiembre de 2026 – 30 de septiembre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes anterior",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes anterior",
+              "text": "1 de septiembre de 2026 – 30 de septiembre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        }
+      ],
+      "rowText": "SKU-PRUEBA\nASIN-PRUEBA\n2 B2B\t\nProducto de prueba\nZENVIA: Producto interno\n\t12\t24\t1234,56 €\t1020,30 €\t240,00 €\t120,00 €\t20,00 €\t580,30 €\nProvisional\n\t56.9 %\t214,26 €\t25,20 €\t\nVincular / crear",
+      "tabs": [
+        "Resumen",
+        "Productos",
+        "Marketplaces",
+        "Pedidos",
+        "Inventario",
+        "Sin vincular3"
+      ],
+      "filters": [
+        {
+          "text": "PeriodoHoy",
+          "visible": true,
+          "x": 286,
+          "y": 188,
+          "width": 160,
+          "height": 47,
+          "wrapped": false
+        },
+        {
+          "text": "MarketplaceTodos",
+          "visible": true,
+          "x": 456,
+          "y": 188,
+          "width": 160,
+          "height": 47,
+          "wrapped": false
+        }
+      ],
+      "productsTabFirstList": 499.5,
+      "failures": []
+    },
+    {
+      "screen": "amazon",
+      "width": 1440,
+      "firstList": {
+        "x": 304,
+        "y": 1121.609375,
+        "width": 1500,
+        "height": 73
+      },
+      "documentOverflow": false,
+      "headerActions": [
+        "Actualizar datos"
+      ],
+      "periods": [
+        {
+          "id": "today",
+          "text": "Hoy\n20 de octubre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\n\nGanancia vs. anterior: 0 % · 19/10/2026 – 19/10/2026\n\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Hoy",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Hoy",
+              "text": "20 de octubre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "yesterday",
+          "text": "Ayer\n19 de octubre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Ayer",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Ayer",
+              "text": "19 de octubre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "current_month",
+          "text": "Mes actual\n1 de octubre de 2026 – 20 de octubre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes actual",
+              "text": "1 de octubre de 2026 – 20 de octubre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "forecast",
+          "text": "Mes actual (pronóstico)\n1 de octubre de 2026 – 31 de octubre de 2026\nVentas\n0,00 €\nPedidos / unidades\n0 / 0\nReembolsos con IVA\n0,00 €\n0 reembolsos\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-0,00 €\nGanancia neta\n0,00 €\nMargen neto\n—\nEstimación · Base provisional\n\nMedia de los días completos del mes × días del mes. Al seleccionar se muestran los productos vendidos este mes.\n\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual (pronóstico)",
+              "text": ""
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "previous_month",
+          "text": "Mes anterior\n1 de septiembre de 2026 – 30 de septiembre de 2026\nVentas\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad diaria\nNo disponible\nAmazon Ads sin conectar\nCoste producto\n-240,00 €\nGanancia neta\n580,30 €\nMargen neto\n56,9 %\nProvisional\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes anterior",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes anterior",
+              "text": "1 de septiembre de 2026 – 30 de septiembre de 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        }
+      ],
+      "rowText": "SKU-PRUEBA\nASIN-PRUEBA\n2 B2B\t\nProducto de prueba\nZENVIA: Producto interno\n\t12\t24\t1234,56 €\t1020,30 €\t240,00 €\t120,00 €\t20,00 €\t580,30 €\nProvisional\n\t56.9 %\t214,26 €\t25,20 €\t\nVincular / crear",
+      "tabs": [
+        "Resumen",
+        "Productos",
+        "Marketplaces",
+        "Pedidos",
+        "Inventario",
+        "Sin vincular3"
+      ],
+      "filters": [
+        {
+          "text": "PeriodoHoy",
+          "visible": true,
+          "x": 286,
+          "y": 188,
+          "width": 160,
+          "height": 47,
+          "wrapped": false
+        },
+        {
+          "text": "MarketplaceTodos",
+          "visible": true,
+          "x": 456,
+          "y": 188,
+          "width": 160,
+          "height": 47,
+          "wrapped": false
+        }
+      ],
+      "productsTabFirstList": 485.5,
+      "failures": []
+    },
+    {
+      "screen": "shopify",
+      "width": 390,
+      "firstList": {
+        "x": 29,
+        "y": 1353.46875,
+        "width": 1500,
+        "height": 85
+      },
+      "documentOverflow": false,
+      "headerActions": [
+        "Actualizar datos"
+      ],
+      "periods": [
+        {
+          "id": "Hoy",
+          "text": "Hoy\n20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Hoy",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Hoy",
+              "text": "20 oct 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Ayer",
+          "text": "Ayer\n19 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Ayer",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Ayer",
+              "text": "19 oct 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Mes actual",
+          "text": "Mes actual\n1 oct 2026 – 20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes actual",
+              "text": "1 oct 2026 – 20 oct 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Mes actual (pronóstico)",
+          "text": "Mes actual (pronóstico)\n1 oct 2026 – 31 oct 2026\nVentas con IVA\n0,00 €\nPedidos / unidades\n0 / 0\nReembolsos con IVA\n0,00 €\n0 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n0,00 €\nResultado conocido\n0,00 €\nMargen conocido*\nSin ventas\nProvisional · costes pendientes\n\nMedia de días completos × días del mes. Seleccionar muestra los productos reales de este mes.\n\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual (pronóstico)",
+              "text": ""
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Mes anterior",
+          "text": "Mes anterior\n1 sept 2026 – 30 sept 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes anterior",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes anterior",
+              "text": "1 sept 2026 – 30 sept 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        }
+      ],
+      "rowText": "Producto de prueba\nSKU-PRUEBA\nTienda de prueba con nombre largo\n\t24\t12\t1234,56 €\t1020,30 €\t20,00 €\t240,00 €\tNo disponible\t580,30 €\nAntes de costes pendientes\n\t56,9 %\nProvisional\n\tSin vincular\nVincula un producto para calcular costes\nProvisional\t\nVincular / crear",
+      "tabs": [
+        "Resumen",
+        "Productos",
+        "Inventario"
+      ],
+      "filters": [
+        {
+          "text": "PeriodoHoy",
+          "visible": false,
+          "x": 0,
+          "y": 0,
+          "width": 0,
+          "height": 0,
+          "wrapped": false
+        },
+        {
+          "text": "TiendasTodas las tiendas",
+          "visible": true,
+          "x": 15,
+          "y": 262,
+          "width": 360,
+          "height": 47,
+          "wrapped": false
+        }
+      ],
+      "productsTabFirstList": 708.453125,
+      "failures": []
+    },
+    {
+      "screen": "shopify",
+      "width": 1280,
+      "firstList": {
+        "x": 304,
+        "y": 1125.09375,
+        "width": 1500,
+        "height": 85
+      },
+      "documentOverflow": false,
+      "headerActions": [
+        "Actualizar datos"
+      ],
+      "periods": [
+        {
+          "id": "Hoy",
+          "text": "Hoy\n20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Hoy",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Hoy",
+              "text": "20 oct 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Ayer",
+          "text": "Ayer\n19 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Ayer",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Ayer",
+              "text": "19 oct 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Mes actual",
+          "text": "Mes actual\n1 oct 2026 – 20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes actual",
+              "text": "1 oct 2026 – 20 oct 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Mes actual (pronóstico)",
+          "text": "Mes actual (pronóstico)\n1 oct 2026 – 31 oct 2026\nVentas con IVA\n0,00 €\nPedidos / unidades\n0 / 0\nReembolsos con IVA\n0,00 €\n0 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n0,00 €\nResultado conocido\n0,00 €\nMargen conocido*\nSin ventas\nProvisional · costes pendientes\n\nMedia de días completos × días del mes. Seleccionar muestra los productos reales de este mes.\n\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual (pronóstico)",
+              "text": ""
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Mes anterior",
+          "text": "Mes anterior\n1 sept 2026 – 30 sept 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes anterior",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes anterior",
+              "text": "1 sept 2026 – 30 sept 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        }
+      ],
+      "rowText": "Producto de prueba\nSKU-PRUEBA\nTienda de prueba con nombre largo\n\t24\t12\t1234,56 €\t1020,30 €\t20,00 €\t240,00 €\tNo disponible\t580,30 €\nAntes de costes pendientes\n\t56,9 %\nProvisional\n\tSin vincular\nVincula un producto para calcular costes\nProvisional\t\nVincular / crear",
+      "tabs": [
+        "Resumen",
+        "Productos",
+        "Inventario"
+      ],
+      "filters": [
+        {
+          "text": "PeriodoHoy",
+          "visible": true,
+          "x": 286,
+          "y": 126,
+          "width": 160,
+          "height": 47,
+          "wrapped": false
+        },
+        {
+          "text": "TiendasTodas las tiendas",
+          "visible": true,
+          "x": 456,
+          "y": 126,
+          "width": 187.75,
+          "height": 47,
+          "wrapped": false
+        }
+      ],
+      "productsTabFirstList": 471.28125,
+      "failures": []
+    },
+    {
+      "screen": "shopify",
+      "width": 1440,
+      "firstList": {
+        "x": 304,
+        "y": 1125.09375,
+        "width": 1500,
+        "height": 85
+      },
+      "documentOverflow": false,
+      "headerActions": [
+        "Actualizar datos"
+      ],
+      "periods": [
+        {
+          "id": "Hoy",
+          "text": "Hoy\n20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Hoy",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Hoy",
+              "text": "20 oct 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Ayer",
+          "text": "Ayer\n19 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Ayer",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Ayer",
+              "text": "19 oct 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Mes actual",
+          "text": "Mes actual\n1 oct 2026 – 20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes actual",
+              "text": "1 oct 2026 – 20 oct 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Mes actual (pronóstico)",
+          "text": "Mes actual (pronóstico)\n1 oct 2026 – 31 oct 2026\nVentas con IVA\n0,00 €\nPedidos / unidades\n0 / 0\nReembolsos con IVA\n0,00 €\n0 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n0,00 €\nResultado conocido\n0,00 €\nMargen conocido*\nSin ventas\nProvisional · costes pendientes\n\nMedia de días completos × días del mes. Seleccionar muestra los productos reales de este mes.\n\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes actual (pronóstico)",
+              "text": ""
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        },
+        {
+          "id": "Mes anterior",
+          "text": "Mes anterior\n1 sept 2026 – 30 sept 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "variants": [
+            "isPositive"
+          ],
+          "actions": [
+            {
+              "label": "Mostrar productos de Mes anterior",
+              "text": ""
+            },
+            {
+              "label": "Cambiar fechas de Mes anterior",
+              "text": "1 sept 2026 – 30 sept 2026"
+            },
+            {
+              "label": null,
+              "text": "Más"
+            }
+          ]
+        }
+      ],
+      "rowText": "Producto de prueba\nSKU-PRUEBA\nTienda de prueba con nombre largo\n\t24\t12\t1234,56 €\t1020,30 €\t20,00 €\t240,00 €\tNo disponible\t580,30 €\nAntes de costes pendientes\n\t56,9 %\nProvisional\n\tSin vincular\nVincula un producto para calcular costes\nProvisional\t\nVincular / crear",
+      "tabs": [
+        "Resumen",
+        "Productos",
+        "Inventario"
+      ],
+      "filters": [
+        {
+          "text": "PeriodoHoy",
+          "visible": true,
+          "x": 286,
+          "y": 126,
+          "width": 160,
+          "height": 47,
+          "wrapped": false
+        },
+        {
+          "text": "TiendasTodas las tiendas",
+          "visible": true,
+          "x": 456,
+          "y": 126,
+          "width": 187.75,
+          "height": 47,
+          "wrapped": false
+        }
+      ],
+      "productsTabFirstList": 471.28125,
+      "failures": []
+    }
+  ]
+}

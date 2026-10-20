@@ -192,3 +192,7 @@ DataTable y MobileList comparten la misma selección por ID, fuente de datos y p
 ### Lote 1 aprobado: cierre de fila móvil
 
 Por decisión del propietario, KpiGrid conserva dos columnas en móvil y su última StatCard, cuando el número de KPI es impar, ocupa ambas columnas. La regla es global y solo móvil; no se extiende una familia completa a ancho completo ni cambia información o variantes. El harness comprueba el ancho de esa última tarjeta.
+
+### Fase 3 · lote 2 en revisión
+
+Amazon/Shopify adoptan PageHeader, FilterBar y PageTabs (incluido contador de tabs). Los carruseles analíticos de cinco periodos son componentes especializados: se conservan cifras, previsiones, notas, acciones Más/fechas, selección de periodo, refresco automático y Actualizar datos; no se convierten en StatCard ni se ocultan métricas. Filtros en fila con igual anchura y elipsis. Capturas y alturas de Resumen y Productos en docs/deploy/design-phase3-commerce-20261020/. Publicación pendiente de aprobación del lote.

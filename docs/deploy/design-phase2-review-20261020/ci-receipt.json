@@ -1,0 +1,45 @@
+{
+  "head": "cc5562aee5bd3cc870e7f696ad74a75d05ab35a4",
+  "main": "cfa6d3da52409d98216d696285e5f7862edb8939",
+  "checks": [
+    {
+      "id": 118743191020,
+      "name": "Vercel Preview Comments",
+      "conclusion": "success",
+      "completed": "2026-10-20T16:17:11Z"
+    },
+    {
+      "id": 118742840814,
+      "name": "auth-tests",
+      "conclusion": "success",
+      "completed": "2026-10-20T16:18:20Z"
+    },
+    {
+      "id": 118742840592,
+      "name": "build",
+      "conclusion": "success",
+      "completed": "2026-10-20T16:17:53Z"
+    },
+    {
+      "id": 118742839863,
+      "name": "build",
+      "conclusion": "success",
+      "completed": "2026-10-20T16:17:19Z"
+    },
+    {
+      "id": 118742839509,
+      "name": "real-auth-vault",
+      "conclusion": "success",
+      "completed": "2026-10-20T16:20:23Z"
+    },
+    {
+      "id": 118742839359,
+      "name": "screenshots",
+      "conclusion": "success",
+      "completed": "2026-10-20T16:18:35Z"
+    }
+  ],
+  "vercel": "success",
+  "draft": true,
+  "merged": false
+}

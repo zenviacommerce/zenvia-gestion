@@ -66,3 +66,9 @@ All 891 previously labelled/shipped owner rows retain identical weight/provenanc
 #258 merged with expected head fa55c8b7d54b9ea85797fcd4de357d765d052549 → merge1deada1ed533b77c8d8d7db2ae1a0cbf1ce3e2ee. Then #257 merged with expected head1db690eabce870c4f3dc16b80c8a354c2993d30c → merge58687e42f63f0cc4a0c62fdc0582926668ed6c89. All five visual-head checks success: runs39416859725/39416859925/39416859720/39416859853/39416859879.
 
 Vercel building weight deployment dpl_ZnLq12dV9Pim1sGxKuUTgZ1J26wy and final combined deployment dpl_BoN1LhgBjj2yaWn1koZzbYgs9xnB. Waiting for READY and production bundle verification. Rollback recorded before merges: dpl_5rvsytgNKm5hqR3hh8TUiwcxHdab.
+
+### A completed — production verified
+
+Final Vercel deployment dpl_BoN1LhgBjj2yaWn1koZzbYgs9xnB is READY for main58687e42f63f0cc4a0c62fdc0582926668ed6c89. Public production HTML returned HTTP200 and serves /assets/index-Duin0MgL.js. Owner browser reload retained the session and reached Resumen; DOM script URL confirms the same bundle. Pedidos now renders both real order product lines with the same strong/name/quantity structure. No label/report generated. All three requested corrections are published.
+
+B begins read-only layout inventory and screenshots; no UI implementation or deployment is authorized in that phase. C order remains MFA watch/expansion → public SP-API developer application → Seller Central metric reconciliation.

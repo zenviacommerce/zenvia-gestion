@@ -30,3 +30,11 @@ Not applied yet. Record migration, Edge versions, two real worker cycles and sub
 - Worker deployed v42 → v43; Orders v24 → v25. Only shared first-import instrumentation changed; existing verify_jwt=false retained with existing own authentication.
 - PR #256 merged with expected head 1dd3283b38f138af9e01b68cdb7089a36045bced, merge 55eb828e8bcc4e321a563ff6fd42a3c56706f088.
 - Two-cycle observation and next-real-order latency verification pending; no test order/label generated.
+
+### Import post-deployment verification — 11:50 UTC
+
+- Minute invocations at 11:47 and 11:48 UTC both succeeded and returned worker HTTP 202 accepted, no HTTP error; lease table and queued/running/failed counts all zero after completion; guard 0.
+- First subsequently produced grouped Orders job 11:50:03.494 started 11:50:04.154 (0.660 seconds queue), finished 11:50:10.785, 219 rows processed, success on first attempt. Nine marketplace cursors all 11:48:04.174, last success 11:50:10.785.
+- New real FBM 171-8517620-7502702 purchased 11:40:46.975, first operational import 11:45:08.370 (4m21s), before this deployment; do not present it as post-change evidence. It arrived automatically. No new post-deployment FBM first insert observed yet.
+- New pending order changes weight-audit population: 4 units, stored 1 kg, no manual marker, one recalculation candidate (fallback would be 4 kg estimated unless verified catalog supplies another mass). Owner-adjusted 402-8935535-6572312 remains manual 7 kg. Shipped rows excluded.
+- Vercel deployed merge #256 as dpl_5rvsytgNKm5hqR3hh8TUiwcxHdab, no frontend source changes. This is the latest pre-visible-change rollback candidate; original dpl_ESrx67iYsYex7Z72asky3bMcSpyz remains available.

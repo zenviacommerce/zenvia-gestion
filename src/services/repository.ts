@@ -1,3 +1,4 @@
+import {notifyEntityChanged} from './entityChanges';
 import { matchImportedSupplierProduct, normalizeImportedProductName, type ImportedSupplierProduct } from './importProductIdentity';
 import { isPriceOnlyProductName } from './invoiceProductLine';
 import { supabase, INVOICE_BUCKET } from './supabase';
@@ -661,6 +662,7 @@ export async function createInvoice(input: NewInvoiceInput) {
     if (supplierResult.created) await cleanupCreatedSupplier(supplierId);
     throw lineError;
   }
+  notifyEntityChanged('products');notifyEntityChanged('suppliers');
   return invoice.id as string;
 }
 
@@ -707,7 +709,7 @@ export async function addProduct(input: { name: string; sku?: string; category?:
     base_unit: sanitizeDatabaseSingleLine(input.unit) || 'ud',
   });
   if (error) throw error;
-}
+notifyEntityChanged('products');}
 
 export async function updateProduct(productId: string, input: { name: string; sku?: string; category?: string; unit: string }) {
   const { error } = await supabase.from('products').update({
@@ -717,12 +719,12 @@ export async function updateProduct(productId: string, input: { name: string; sk
     base_unit: input.unit.trim() || 'ud',
   }).eq('id', productId);
   if (error) throw error;
-}
+notifyEntityChanged('products');}
 
 export async function deleteProduct(productId: string) {
   const { error } = await supabase.from('products').delete().eq('id', productId);
   if (error) throw error;
-}
+notifyEntityChanged('products');}
 
 type SupplierInput = { name: string; taxId?: string; email?: string; phone?: string; address?: string; website?: string; supplierType: 'unclassified' | 'goods' | 'service' | 'both' };
 
@@ -737,7 +739,7 @@ export async function addSupplier(input: SupplierInput) {
     supplier_type: input.supplierType,
   });
   if (error) throw error;
-}
+notifyEntityChanged('suppliers');}
 
 export async function updateSupplier(supplierId: string, input: SupplierInput) {
   const { error } = await supabase.from('suppliers').update({
@@ -750,12 +752,12 @@ export async function updateSupplier(supplierId: string, input: SupplierInput) {
     supplier_type: input.supplierType,
   }).eq('id', supplierId);
   if (error) throw error;
-}
+notifyEntityChanged('suppliers');}
 
 export async function deleteSupplier(supplierId: string) {
   const { error } = await supabase.from('suppliers').delete().eq('id', supplierId);
   if (error) throw error;
-}
+notifyEntityChanged('suppliers');}
 
 export async function downloadInvoiceFile(path: string) {
   const { data, error } = await supabase.storage.from(INVOICE_BUCKET).download(path);

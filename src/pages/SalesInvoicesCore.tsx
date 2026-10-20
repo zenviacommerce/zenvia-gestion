@@ -1,3 +1,5 @@
+import {useClientOptions} from '../hooks/useClientOptions';
+import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BadgeEuro, Banknote, Calculator, CalendarDays, CheckCircle2, Download, Eye, FileCheck2, FilePenLine,
@@ -57,8 +59,10 @@ const clientDefaultPaymentMethod=(client:Client|undefined|null,sales:SalesSettin
 };
 const calcLine=(line:SalesInvoiceLine)=>{const gross=line.quantity*line.unitPrice;const net=gross*(1-(line.discountPercent||0)/100);const tax=net*(line.taxRate||0)/100;return {gross,net,tax,total:net+tax};};
 
-function InvoiceModal({open,invoice,clients,products,onClose,onSaved}:{open:boolean;invoice:SalesInvoice|null;clients:Client[];products:BillableProduct[];onClose:()=>void;onSaved:()=>Promise<void>}){
+export function InvoiceModal({open,invoice,clients:initialClients,products,onClose,onSaved}:{open:boolean;invoice:SalesInvoice|null;clients:Client[];products:BillableProduct[];onClose:()=>void;onSaved:()=>Promise<void>}){
   const {settings}=useSettings();
+  const clientSource=useClientOptions(initialClients,open);
+  const clients=clientSource.clients;
   const [clientId,setClientId]=useState('');
   const [seriesId,setSeriesId]=useState('');
   const [invoiceNumber,setInvoiceNumber]=useState('');
@@ -80,7 +84,6 @@ function InvoiceModal({open,invoice,clients,products,onClose,onSaved}:{open:bool
     searchText:[client.name,client.taxId,client.email,client.phone,client.city].filter(Boolean).join(' '),
   })),[clients]);
   const paymentMethodOptions=useMemo(()=>settings.sales.paymentMethods.filter(item=>item.active).map(item=>({value:item.label,label:item.label})),[settings.sales.paymentMethods]);
-  const defaultPaymentMethod=useMemo(()=>clientDefaultPaymentMethod(clients.find(client=>client.id===clientId),settings.sales),[clients,clientId,settings.sales]);
 
   useEffect(()=>{
     if(!open)return;
@@ -96,7 +99,7 @@ function InvoiceModal({open,invoice,clients,products,onClose,onSaved}:{open:bool
     }
     setError('');
     loadTaxRegistrations().then(rows=>{const active=rows.filter(item=>item.active);setTaxRegistrations(active);setTaxRegistrationId(current=>active.some(item=>item.id===current)?current:(active.find(item=>item.id===settings.sales.defaultTaxRegistrationId)?.id||active.find(item=>item.isDefault)?.id||active[0]?.id||''));}).catch(e=>setError(errorMessage(e,'No se pudieron cargar los registros IVA.')));
-  },[open,invoice,clients,settings.sales.defaultDueDays,settings.sales.defaultVatRate,settings.sales.defaultSeriesId,settings.sales.defaultTaxRegistrationId,settings.sales.defaultNotes,defaultPaymentMethod]);
+  },[open,invoice]);
 
   useEffect(()=>{
     if(!open||!issueDate)return;
@@ -177,7 +180,7 @@ function InvoiceModal({open,invoice,clients,products,onClose,onSaved}:{open:bool
     <section className="salesFormSection">
       <div className="salesSectionTitle"><UserRound size={18}/><div><strong>Cliente, serie, número e IVA emisor</strong><span>Quién recibe la factura, cómo se numera y desde qué registro IVA se emite</span></div></div>
       <div className="salesInvoiceMeta salesInvoiceMetaDates">
-        <label>Cliente *<SearchableSelect value={clientId} options={clientOptions} onChange={chooseClient} placeholder="Selecciona cliente" searchPlaceholder="Buscar cliente, CIF, email…" ariaLabel="Cliente de la factura"/></label>
+        <label>Cliente *<SearchableSelect onOpen={clientSource.onOpen} onSearch={clientSource.onSearch} value={clientId} options={clientOptions} onChange={chooseClient} placeholder="Selecciona cliente" searchPlaceholder="Buscar cliente, CIF, email…" ariaLabel="Cliente de la factura"/></label>
         <label>Serie<SearchableSelect value={seriesId} options={seriesOptions} onChange={setSeriesId} placeholder="Selecciona serie" searchPlaceholder="Buscar serie…" ariaLabel="Serie de facturación"/></label>
         <label>Número de factura *<input value={invoiceNumber} onChange={e=>setInvoiceNumber(e.target.value)} placeholder={selectedSeries?`${selectedSeries.prefix}${String(selectedSeries.nextNumber).padStart(selectedSeries.padding,'0')}`:'Número de factura'}/><small>{selectedSeries?`Propuesto según la serie ${selectedSeries.name}. Puedes modificarlo.`:'Selecciona una serie para obtener el siguiente número.'}</small></label>
         <label>Registro IVA<SearchableSelect value={taxRegistrationId} options={taxRegistrationOptions} onChange={setTaxRegistrationId} allowEmpty emptyLabel={taxRegistrations.length?'Selecciona registro IVA':'Sin registros IVA'} searchPlaceholder="Buscar registro IVA…" ariaLabel="Registro IVA del emisor"/></label>
@@ -186,6 +189,7 @@ function InvoiceModal({open,invoice,clients,products,onClose,onSaved}:{open:bool
     <section className="salesFormSection"><div className="salesSectionTitle"><CalendarDays size={18}/><div><strong>Fechas y cobro</strong><span>Operación, vencimiento y forma de pago</span></div></div><div className="salesInvoiceMeta salesInvoiceMetaDates"><label>Fecha factura<input type="date" value={issueDate} onChange={e=>changeIssueDate(e.target.value)}/></label><label>Fecha operación<input type="date" value={operationDate} onChange={e=>setOperationDate(e.target.value)}/></label><label>Vencimiento<input type="date" min={issueDate||undefined} value={dueDate} onChange={e=>setDueDate(e.target.value)}/><small>{clients.find(client=>client.id===clientId)?.paymentTermsDays?`Según condiciones del cliente: ${clients.find(client=>client.id===clientId)?.paymentTermsDays} días`:`${settings.sales.defaultDueDays} días por defecto`}</small></label><label>Forma de pago<SelectField value={paymentMethod} onChange={setPaymentMethod} ariaLabel="Forma de pago" options={paymentMethodOptions}/></label></div></section>
     <section className="salesFormSection salesProductsSection"><div className="salesSectionTitle"><PackageSearch size={18}/><div><strong>Productos y conceptos</strong><span>Busca en tu catálogo o añade una línea libre</span></div></div><ProductCatalogPicker products={products} onAdd={addProduct}/><div className="salesLinesEditor"><div className="salesLinesHead"><div><strong>Líneas de factura</strong><span>{lines.length} línea{lines.length===1?'':'s'}</span></div><button className="secondary" type="button" onClick={addFreeLine}><Plus size={15}/> Concepto libre</button></div>{lines.map((line,index)=>{const total=calcLine(line).total;const product=products.find(item=>item.id===line.productId);return <div className="salesLine salesLineCard" key={`${line.id||'new'}-${index}`}><div className="salesLineIdentity"><div className="salesLineIndex">{index+1}</div><div><strong>{product?.name||'Concepto libre'}</strong><small>{product?.sku?`SKU ${product.sku}`:product?'Producto vinculado':'Sin producto vinculado'}</small></div></div><label className="salesLineDescription">Descripción<input value={line.description} onChange={e=>updateLine(index,{description:e.target.value})} placeholder="Producto o servicio facturado"/></label><label>Cantidad<input type="number" min="0.001" step="0.001" value={line.quantity} onChange={e=>updateLine(index,{quantity:Number(e.target.value)})}/></label><label>Unidad<input value={line.unit} onChange={e=>updateLine(index,{unit:e.target.value})}/></label><label>Precio unit.<input type="number" step="0.01" value={line.unitPrice} onChange={e=>updateLine(index,{unitPrice:Number(e.target.value)})}/></label><label>Dto. %<input type="number" min="0" max="100" step="0.01" value={line.discountPercent} onChange={e=>updateLine(index,{discountPercent:Number(e.target.value)})}/></label><label>IVA %<SelectField value={String(line.taxRate)} onChange={value=>updateLine(index,{taxRate:Number(value)})} ariaLabel="IVA de la línea" options={[{value:'21',label:'21 %'},{value:'10',label:'10 %'},{value:'4',label:'4 %'},{value:'0',label:'0 %'}]}/></label><div className="salesLineTotal"><small>Total</small><strong>{money(total)}</strong></div><button className="iconAction danger" title="Eliminar línea" type="button" onClick={()=>removeLine(index)}><Trash2 size={16}/></button></div>})}</div></section>
     <section className="salesInvoiceBottom salesFormSection salesInvoiceSummary"><label>Notas<textarea rows={4} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Observaciones visibles en la factura"/></label><div className="salesTotals"><span>Importe bruto <strong>{money(totals.gross)}</strong></span>{Math.abs(totals.gross-totals.net)>0.005&&<span>Descuento <strong>{money(totals.net-totals.gross)}</strong></span>}<span>Base imponible <strong>{money(totals.net)}</strong></span><span>IVA <strong>{money(totals.tax)}</strong></span><span className="salesGrandTotal">Total <strong>{money(totals.total)}</strong></span></div></section>
+    {clientSource.error&&<div role="alert" className="errorBox">{clientSource.error}<button type="button" onClick={clientSource.onOpen}>Reintentar</button></div>}
     {error&&<div className="errorBox">{error}</div>}<div className="modalActions salesStickyActions"><button className="secondary" onClick={onClose} disabled={busy}>Cancelar</button><button className="primary" onClick={save} disabled={busy}>{busy?'Guardando…':'Guardar borrador'}</button></div>
   </div></div>;
 }
@@ -277,6 +281,7 @@ export function SalesInvoices({
   const [query,setQuery]=useState(remembered.query);const [status,setStatus]=useState(remembered.status);const [clientId,setClientId]=useState(remembered.clientId);const [countryFilter,setCountryFilter]=useState(remembered.countryFilter);const [collectionFilter,setCollectionFilter]=useState<CollectionFilter>(remembered.collectionFilter);const [dateFilter,setDateFilter]=useState(remembered.dateFilter);const [loading,setLoading]=useState(true);const [error,setError]=useState('');
   const [modal,setModal]=useState(false);const [editing,setEditing]=useState<SalesInvoice|null>(null);const [detail,setDetail]=useState<SalesInvoice|null>(null);const [businessModal,setBusinessModal]=useState(false);const [seriesModal,setSeriesModal]=useState(false);const [paymentInvoice,setPaymentInvoice]=useState<SalesInvoice|null>(null);const [bulkPaymentInvoices,setBulkPaymentInvoices]=useState<SalesInvoice[]>([]);const [sendInvoice,setSendInvoice]=useState<SalesInvoice|null>(null);const [busyId,setBusyId]=useState<string|null>(null);const [bulkDeleting,setBulkDeleting]=useState(false);const [bulkIssuing,setBulkIssuing]=useState(false);
   const refresh=async()=>{setLoading(true);try{await ensureSalesSeries(new Date().getFullYear());const [nextInvoices,nextClients,nextSettings,nextProducts,nextBranding]=await Promise.all([loadSalesInvoices(),loadClients(),loadBusinessSettings(),loadBillableProducts(),loadCompanyBranding()]);setInvoices(nextInvoices);setClients(nextClients);setSettings(nextSettings);setProducts(nextProducts);setBranding(nextBranding);setDetail(current=>current?nextInvoices.find(item=>item.id===current.id)||null:null);setError('');}catch(e){setError(errorMessage(e,'No se pudo cargar la facturación.'));}finally{setLoading(false);}};
+  useEntityRefresh(['clients','products'],async()=>{try{const [c,p]=await Promise.all([loadClients(),loadBillableProducts()]);setClients(c);setProducts(p)}catch(e){showError(errorMessage(e,'No se pudieron actualizar los catálogos.'))}});
   useEffect(()=>{void refresh();},[]);
   const clientById=useMemo(()=>new Map(clients.map(client=>[client.id,client])),[clients]);
   const countryOptions=useMemo(()=>[...new Set(clients.map(client=>(client.countryCode||'XX').toUpperCase()))].sort((a,b)=>countryName(a).localeCompare(countryName(b),'es')).map(code=>({value:code,label:code==='XX'?'País pendiente':`${countryName(code)} · ${code}`})),[clients]);

@@ -1,3 +1,5 @@
+import {useClientOptions} from '../hooks/useClientOptions';
+import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Banknote, CheckCircle2, Download, Eye, FileCheck2, PackageSearch, Pencil, Plus, Printer,
@@ -40,8 +42,10 @@ const pendingAmount=(receipt:SalesReceipt)=>Math.max(0,receipt.totalAmount-recei
 const collectionStatus=(receipt:SalesReceipt):'pending'|'partial'|'paid'=>receipt.totalAmount>0&&pendingAmount(receipt)<=0.005?'paid':receipt.paidAmount>0.005?'partial':'pending';
 const collectionLabel=(receipt:SalesReceipt)=>({pending:'Pendiente',partial:'Cobro parcial',paid:'Cobrado'}[collectionStatus(receipt)]);
 
-function ReceiptModal({receipt,clients,products,onClose,onSaved}:{receipt:SalesReceipt|null;clients:Client[];products:BillableProduct[];onClose:()=>void;onSaved:()=>Promise<void>}){
+export function ReceiptModal({receipt,clients:initialClients,products,onClose,onSaved}:{receipt:SalesReceipt|null;clients:Client[];products:BillableProduct[];onClose:()=>void;onSaved:()=>Promise<void>}){
   const {settings}=useSettings();
+  const clientSource=useClientOptions(initialClients);
+  const clients=clientSource.clients;
   const [clientId,setClientId]=useState(receipt?.clientId||clients[0]?.id||'');
   const [receiptDate,setReceiptDate]=useState(receipt?.receiptDate||today());
   const [notes,setNotes]=useState(receipt?.notes||'');
@@ -76,7 +80,7 @@ function ReceiptModal({receipt,clients,products,onClose,onSaved}:{receipt:SalesR
   return <div className="modalBackdrop"><div className="modal salesInvoiceModal polishedModal">
     <div className="modalHead salesModalHead"><div><div className="eyebrow">RECIBO DE TIENDA</div><h3>{receipt?'Editar recibo':'Nuevo recibo'}</h3><p>Control de mercancía entregada y deuda del cliente. El cobro y la facturación son procesos independientes.</p></div><button onClick={onClose} aria-label="Cerrar"><X/></button></div>
     <section className="salesFormSection"><div className="salesSectionTitle"><UserRound/><div><strong>Cliente y fecha</strong><span>El recibo seguirá existiendo aunque después lo cobres o prepares una factura.</span></div></div>
-      <div className="salesFormGrid"><label>Cliente *<SearchableSelect value={clientId} options={clientOptions} onChange={setClientId} placeholder="Selecciona cliente" searchPlaceholder="Buscar cliente…" ariaLabel="Cliente del recibo"/></label><label>Fecha<input type="date" value={receiptDate} onChange={e=>setReceiptDate(e.target.value)}/></label></div>
+      <div className="salesFormGrid"><label>Cliente *<SearchableSelect onOpen={clientSource.onOpen} onSearch={clientSource.onSearch} value={clientId} options={clientOptions} onChange={setClientId} placeholder="Selecciona cliente" searchPlaceholder="Buscar cliente…" ariaLabel="Cliente del recibo"/></label><label>Fecha<input type="date" value={receiptDate} onChange={e=>setReceiptDate(e.target.value)}/></label></div>
     </section>
     <section className="salesFormSection"><div className="salesSectionTitle"><PackageSearch/><div><strong>Productos y conceptos</strong><span>Los importes del recibo son sin IVA; guardamos el tipo únicamente para una futura factura.</span></div></div>
       <ProductCatalogPicker products={products} onAdd={addProduct}/>
@@ -96,6 +100,7 @@ function ReceiptModal({receipt,clients,products,onClose,onSaved}:{receipt:SalesR
     <section className="salesFormSection"><div className="salesInvoiceBottom"><label>Notas<textarea rows={4} value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Observaciones internas o para el cliente…"/></label><div className="salesTotals"><span><span>Subtotal</span><strong>{money(total)}</strong></span><span><span>IVA en recibo</span><strong>0,00 €</strong></span><span className="salesGrandTotal"><span>Total recibo</span><strong>{money(total)}</strong></span>{receipt&&receipt.paidAmount>0&&<><span><span>Ya cobrado</span><strong>{money(receipt.paidAmount)}</strong></span><span><span>Pendiente</span><strong>{money(Math.max(0,total-receipt.paidAmount))}</strong></span></>}</div></div>
       <div className="salesReceiptNotice">El recibo no queda vinculado a ninguna factura. Más adelante puedes seleccionar varios recibos para preparar una factura conjunta.</div>
     </section>
+    {clientSource.error&&<div role="alert" className="errorBox">{clientSource.error}<button type="button" onClick={clientSource.onOpen}>Reintentar</button></div>}
     {error&&<div className="errorBox salesReceiptModalError">{error}</div>}
     <div className="modalActions salesStickyActions"><button className="secondary" type="button" onClick={onClose} disabled={busy}>Cancelar</button><button className="primary" type="button" onClick={()=>void save()} disabled={busy}>{busy?'Guardando…':'Guardar recibo'}</button></div>
   </div></div>;
@@ -247,6 +252,7 @@ export function SalesReceipts(){
     }catch(e){showError(errorMessage(e,'No se pudieron cargar los recibos.'))}
     finally{setLoading(false)}
   },[]);
+  useEntityRefresh(['clients','products'],async()=>{try{const [c,p]=await Promise.all([loadClients(),loadBillableProducts()]);setClients(c);setProducts(p)}catch(e){showError(errorMessage(e,'No se pudieron actualizar los catálogos.'))}});
   useEffect(()=>{void refresh()},[refresh]);
 
   const clientById=useMemo(()=>new Map(clients.map(client=>[client.id,client])),[clients]);

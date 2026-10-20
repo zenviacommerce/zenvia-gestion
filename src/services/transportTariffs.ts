@@ -1,3 +1,4 @@
+import {notifyEntityChanged} from './entityChanges';
 import JSZip from 'jszip';
 import * as pdfjsLib from 'pdfjs-dist';
 import pdfWorker from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
@@ -542,7 +543,7 @@ export async function saveTransportTariffReview(document:TransportTariffDocument
   const {error}=await supabase.from('transport_tariff_documents').update({shipping_provider:document.shippingProvider,carrier_code:document.carrierCode,carrier_name:document.carrierName,effective_from:document.effectiveFrom,effective_to:document.effectiveTo,currency_code:document.currencyCode,prices_include_vat:document.pricesIncludeVat,fuel_surcharge_pct:document.fuelSurchargePct,fuel_surcharge_included:document.fuelSurchargeIncluded,parser_provider:document.parserProvider,parser_model:document.parserModel,parser_confidence:document.parserConfidence,parser_notes:{notes:document.parserNotes},updated_at:new Date().toISOString()}).eq('id',document.id);if(error)throw error;
   const {error:deleteError}=await supabase.from('transport_tariff_services').delete().eq('document_id',document.id);if(deleteError)throw deleteError;
   await insertServices(document.id,ownerRow.owner_id,document.carrierCode,document.services);
-}
+notifyEntityChanged('tariffs');}
 
 function tariffSnapshot(document:TransportTariffDocument):TransportTariffProposal{
   return {
@@ -559,13 +560,13 @@ export async function saveActiveTransportTariff(document:TransportTariffDocument
   if(!applyFrom)throw new Error('Indica desde qué fecha se aplican los cambios.');
   const {data,error}=await supabase.rpc('transport_tariff_save_active',{document_id:document.id,apply_from:applyFrom,snapshot:tariffSnapshot(document)});if(error)throw error;
   const {error:repriceError}=await supabase.rpc('transport_tariff_reprice_estimates',{document_id:document.id});if(repriceError)throw repriceError;
-  return data;
+  notifyEntityChanged('tariffs');return data;
 }
 
-export async function markTransportTariffReviewed(documentId:string){const {data,error}=await supabase.rpc('transport_tariff_mark_reviewed',{document_id:documentId});if(error)throw error;return data}
-export async function activateTransportTariff(documentId:string){const {data,error}=await supabase.rpc('transport_tariff_activate',{document_id:documentId});if(error)throw error;return data}
+export async function markTransportTariffReviewed(documentId:string){const {data,error}=await supabase.rpc('transport_tariff_mark_reviewed',{document_id:documentId});if(error)throw error;notifyEntityChanged('tariffs');return data}
+export async function activateTransportTariff(documentId:string){const {data,error}=await supabase.rpc('transport_tariff_activate',{document_id:documentId});if(error)throw error;notifyEntityChanged('tariffs');return data}
 export async function deleteTransportTariff(document:TransportTariffDocument){
   const {error}=await supabase.from('transport_tariff_documents').delete().eq('id',document.id);
   if(error)throw error;
   if(document.sourceFilePath)await supabase.storage.from(BUCKET).remove([document.sourceFilePath]).catch(()=>undefined);
-}
+notifyEntityChanged('tariffs');}

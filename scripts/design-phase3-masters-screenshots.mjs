@@ -52,7 +52,7 @@ try{for(const screen of ['products','clients','suppliers'])for(const width of (p
  await page.evaluate(()=>scrollTo(0,0));
  proof.filterOptions=filterOptions;
  const failures=[...errors];if(phase==='after'){
- if(width===390){const bad=await page.locator('.dsMobileList .dsRowActions button').evaluateAll(els=>els.some(el=>el.scrollHeight>el.clientHeight+1||el.scrollWidth>el.clientWidth+1||el.getBoundingClientRect().height<44));if(bad)failures.push('Mobile row action clipped or undersized');}
+ if(width===390){const orphan=await page.locator('.kpiGrid').evaluateAll(grids=>grids.some(grid=>{const cards=[...grid.children].filter(el=>el.matches('.stat'));return cards.length%2===1&&Math.abs(cards.at(-1).getBoundingClientRect().width-grid.getBoundingClientRect().width)>1}));if(orphan)failures.push('Odd final KPI does not span both mobile columns');const bad=await page.locator('.dsMobileList .dsRowActions button').evaluateAll(els=>els.some(el=>el.scrollHeight>el.clientHeight+1||el.scrollWidth>el.clientWidth+1||el.getBoundingClientRect().height<44));if(bad)failures.push('Mobile row action clipped or undersized');}
 
  const before=JSON.parse(await readFile(output+'/before-manifest.json','utf8')).checks.find(c=>c.screen===screen&&c.width===width),clean=s=>s.replace(/\s+/g,' ').trim();
  try{assertHeaderActionsPreserved(before.headerActions,proof.headerActions,screen+' '+width);}catch(e){failures.push(e.message)}

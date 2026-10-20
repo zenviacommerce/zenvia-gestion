@@ -45,3 +45,7 @@ Revisión read-only de 168e6f6e: sin problemas críticos/importantes; valores/op
 ## Correspondencia entre captura y medición
 
 Se mide la geometría inmediatamente antes de la captura principal, antes de abrir filtros o recorrer interacciones. La repetición de los nueve escenarios confirma exactamente ambos manifiestos guardados: primera lista móvil Productos 1855,1 → 1148,5 px, Clientes 1590,2 → 1057,7 px y Proveedores 1475,2 → 1044,7 px. No hay cambios de aplicación en este ajuste del harness. Las cifras redondeadas antiguas de la descripción de la PR se sustituyen por estas mediciones.
+
+## Aprobación y preparación de publicación
+
+El propietario aprueba #265 y autoriza publicar lote 1. Retoque previo: última StatCard impar ocupa las dos columnas en móvil mediante regla global, sin cambiar escritorio. El test de navegador falla sin la regla y se repite con ella. Rollback preparado antes de publicar: ed63ce7a / dpl_9RMFEKn4AhoTo738mzvfBbdqCURS / index-DlLrR06h.js. El recibo posterior registrará el commit y deployment efectivos; el lote 2 no se publica con este cambio.

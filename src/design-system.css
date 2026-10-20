@@ -16,6 +16,7 @@
 @media(min-width:768px) and (max-width:1023px){.kpiGrid{grid-template-columns:repeat(var(--kpi-columns-tablet,3),minmax(0,1fr))}}
 @media(max-width:767px){
  .kpiGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+ .kpiGrid>.stat:last-child:nth-child(odd){grid-column:1/-1}
  .kpiGrid>.stat{padding:8px;gap:var(--ds-space-2);position:relative}
  .kpiGrid .statIcon{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:6px}
  .kpiGrid .statIcon svg{width:14px;height:14px}

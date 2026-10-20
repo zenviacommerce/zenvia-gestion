@@ -1,6 +1,6 @@
 import {Children,type CSSProperties,type ReactNode} from 'react';
 
-/** Keep rows balanced; mobile always retains the two-column contract. */
+/** Keep rows balanced; mobile uses two columns with an odd final card spanning both. */
 function columns(count:number,limit:number){
  if(count<=limit)return Math.max(1,count);
  const balanced=Math.ceil(count/Math.ceil(count/limit));

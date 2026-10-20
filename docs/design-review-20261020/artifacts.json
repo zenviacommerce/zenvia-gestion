@@ -1,0 +1,433 @@
+{
+  "production_bundle": "index-Duin0MgL.js",
+  "screenshots": 61,
+  "files": [
+    {
+      "file": "administracion-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 102121,
+      "sha256": "20b14df88f3b931eaad4f3bc953fd76d5462cfcac3ce1c46c2d554648084274a"
+    },
+    {
+      "file": "administracion-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "bytes": 120417,
+      "sha256": "3fa4c4e64b0390070067344a10c6dc7a30eab1e8e5a49dca9c5f882f3714a012"
+    },
+    {
+      "file": "administracion-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 37954,
+      "sha256": "c64ff391712e7524b7ac822eb618ca93b9e9ae78fc8f3b2666e2cf0a11be9a94"
+    },
+    {
+      "file": "amazon-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 106146,
+      "sha256": "5bb9d423839673fa20efbec55efaa1b3de8b32085560c8006ef7faf8d8e5408f"
+    },
+    {
+      "file": "amazon-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 116837,
+      "sha256": "4828b75b3df6e1d952a6ced4936248a08fdbc0d7f7fa86d2cd0c92908ba6749b"
+    },
+    {
+      "file": "amazon-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 40969,
+      "sha256": "245b755b8657be392c1db7f8cb06203d78b9acaf1f575fa56a5545b7ab761775"
+    },
+    {
+      "file": "clientes-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 85987,
+      "sha256": "72f17b219aee16a6680fa946e49fbd6681cf45c91a24d09fb5e14a01c6fb9873"
+    },
+    {
+      "file": "clientes-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 99024,
+      "sha256": "77672a2cfa7553179332ab74a26a8d4400594fa016ad84383333c67582d6517d"
+    },
+    {
+      "file": "clientes-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 32397,
+      "sha256": "35243c5c437c38d889f0f44819dfb55bd7aa92543361974ead9f30fccc40f80e"
+    },
+    {
+      "file": "configuracion-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 102960,
+      "sha256": "84b8ae8b7abc60398855b3559fb138f61a27d8a455dd9339e0da41019ba668e2"
+    },
+    {
+      "file": "configuracion-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 108221,
+      "sha256": "cd8fc7ab7b060564e0236356a848d475ccecce9fbfff5dfab1de6f52e84d5262"
+    },
+    {
+      "file": "configuracion-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 40148,
+      "sha256": "212e89995f74fee8000ab2d811819b6ba78a35ad22f629287a4df54bc4fc89f1"
+    },
+    {
+      "file": "facturacion-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 92035,
+      "sha256": "b9d7c1354d698c30f8f4fb1140c8c05f04366257ff639b551de2f6f6c534d40f"
+    },
+    {
+      "file": "facturacion-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 94130,
+      "sha256": "793c80114fa6b7d9324001574795e5e23252a340c5356b2f9e668738c096a123"
+    },
+    {
+      "file": "facturacion-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 34336,
+      "sha256": "9c26011333e77ffdd3244dc1d7047351b2f7a3d626e2e7181a2be648039ccf77"
+    },
+    {
+      "file": "gastos-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 91901,
+      "sha256": "4b18290a1026b5641e5cf32dbccc34e9c86312fffa7b47bf079aabce0b000f13"
+    },
+    {
+      "file": "gastos-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 106330,
+      "sha256": "53a34036fd0ebf9470eace94bbcaaa658ceb9c48cdb90775bd74d7e59a0ba2a8"
+    },
+    {
+      "file": "gastos-390-kpis.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 38740,
+      "sha256": "323d00a17a7d2ffee54f9b850ad79f1c2294997b875701466e9db8af2cbca1c2"
+    },
+    {
+      "file": "gastos-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 34665,
+      "sha256": "0802ff8997d9e21809b5db131908ef5499d86ead61212af750c1a7efb652d8ec"
+    },
+    {
+      "file": "modal-administracion-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "bytes": 120619,
+      "sha256": "89a515fb9d6f1af801a596f78d96e03d00b772cf4eed742457731d9cb78641ec"
+    },
+    {
+      "file": "modal-administracion-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 44878,
+      "sha256": "a8e1e42cda6c7bcd3318773d7509ad0ba1465e5cd394d3648d7a28c0756be85c"
+    },
+    {
+      "file": "modal-cliente-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 86618,
+      "sha256": "8c6e03be9538c1cacad48ad48704fad2453a707716f1cd84a1a8758d10135a86"
+    },
+    {
+      "file": "modal-cliente-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 36404,
+      "sha256": "e56649c3bf21001b9b715039d9db42ee2978ffe8468f4399b14bc5addbe9ed04"
+    },
+    {
+      "file": "modal-factura-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 105974,
+      "sha256": "9b66f1074484257fa969e3c6aaf5f7b960fe49573642eb4f6ed09908925ef309"
+    },
+    {
+      "file": "modal-factura-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 42596,
+      "sha256": "9b6e06ca86a5cf6229444139ed93d9ff3fad9469da2f198578b712e78da88afb"
+    },
+    {
+      "file": "modal-pedido-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 74410,
+      "sha256": "6821b544b6818fa40d164a340507a1eda632c0af14b9ed31b96a89cb740ffcc4"
+    },
+    {
+      "file": "modal-pedido-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 31094,
+      "sha256": "f3f10d79ab7049e48661b4c4162745464120a96552ae1881471c77d5f29a6c05"
+    },
+    {
+      "file": "modal-producto-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 97487,
+      "sha256": "f228cc4199a853b052d6d911a6aae7d36db99755abe09b11e3368047f2b3c608"
+    },
+    {
+      "file": "modal-producto-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 35330,
+      "sha256": "1e9c8b9c91ea63c17339c40f3eb0ba34792701a60e1cabb2c955b318fe72b527"
+    },
+    {
+      "file": "modal-proveedor-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 77073,
+      "sha256": "158c2ecceca9d26314779270232ff10c46f30dc0d33b4b401a38a030d71f89cf"
+    },
+    {
+      "file": "modal-proveedor-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 31447,
+      "sha256": "73e8801d963f83af250617a60823d0d21815ecc0b80bf333d1a551ca5ac8c76a"
+    },
+    {
+      "file": "modal-recibo-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 116096,
+      "sha256": "8c68a56bd8abafe0ed8d9d567a066f13b3fa20517b65e5561160f5363fecc611"
+    },
+    {
+      "file": "modal-recibo-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 45466,
+      "sha256": "61b3bbaaad086812c5d08628fba3bf5a19383701866a49b865edd03626b8aa33"
+    },
+    {
+      "file": "modal-soporte-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "bytes": 73909,
+      "sha256": "f5230c36372302b7961a55491dc2eaeb9e3cc4a89eeaea9161a75c252a73a8e1"
+    },
+    {
+      "file": "modal-soporte-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 35943,
+      "sha256": "574e941d996e99b967f2c64f1385596b74d6a17da0d48b00110457675b3f94f5"
+    },
+    {
+      "file": "pedidos-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 95480,
+      "sha256": "74517da344d3033d3c3ee417efbb815dddf186bc15a35e00b8160f3284d62b2b"
+    },
+    {
+      "file": "pedidos-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 102797,
+      "sha256": "5e58b13c27a512496f97ababe5dad74889b205497ec95093cfc9fa3fa159e805"
+    },
+    {
+      "file": "pedidos-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 36764,
+      "sha256": "482118dd509425b0262ea42515036f892111731ce6d22621c0f397597f499986"
+    },
+    {
+      "file": "pedidos-detalle-390-kpis.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 34183,
+      "sha256": "59ce6535109d9f6ea331326934200b019c02d7ca66921556ca97ea4d15e93087"
+    },
+    {
+      "file": "pedidos-detalle-390-lista.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 40633,
+      "sha256": "b67c92de144d7de71875fa21550eee6759cb789fe7f7db36891e8037c0dc7271"
+    },
+    {
+      "file": "productos-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 92409,
+      "sha256": "59fcd5a50adf59fe7be762e5897ef57c55a511359ef034debc39ffbf56469881"
+    },
+    {
+      "file": "productos-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 99772,
+      "sha256": "f53b67cd086344a8066d2693e5ad370ab2e186774dde5d5eae3f57cf360b8b8a"
+    },
+    {
+      "file": "productos-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 35051,
+      "sha256": "c919d94ce5cabf04a189d91d607e782d297c83e276ac2c469247f616b4b7f8c5"
+    },
+    {
+      "file": "proveedores-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 90580,
+      "sha256": "8cde221fdab115fae73a31cd402e76ae933de5f3ef5024129dfdc740a9a07e45"
+    },
+    {
+      "file": "proveedores-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 100468,
+      "sha256": "9cd622c079c1473886a91b03ade33e8548aef42a26850d7ea4919197c07fe53f"
+    },
+    {
+      "file": "proveedores-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 32997,
+      "sha256": "651df168ce5b95279ccc0310969cf9fb52c9d5f3e384df250f0cbcbdefb20b89"
+    },
+    {
+      "file": "recibos-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 101502,
+      "sha256": "18c33ce4a35e9d83056c789293e55714aaca282360c4c0a31d69e780d74e74d9"
+    },
+    {
+      "file": "recibos-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 107258,
+      "sha256": "8c88fb764666ee9bb524477401dae71507db1646bd83490e2e7c70fb6bb6f609"
+    },
+    {
+      "file": "recibos-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 36750,
+      "sha256": "54575f011e4ac797864dd493c72ae0304b39b6cce942eae349a1f45300626365"
+    },
+    {
+      "file": "resumen-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 92394,
+      "sha256": "aaf058c3fda82787b91b12efc849876cd7e38feddde11fe2d2e04ac2eae486c5"
+    },
+    {
+      "file": "resumen-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 94976,
+      "sha256": "11463c660d6673ccc8c9006a7c971e5f724b0f082988c6ea6d7fce499cdfd3c2"
+    },
+    {
+      "file": "resumen-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 38286,
+      "sha256": "e6324d023f16094043ef50d72bd3fde41cb07b54ec4f82d5588be66c2e2188f1"
+    },
+    {
+      "file": "shopify-1280.png",
+      "width": 1265,
+      "height": 988,
+      "bytes": 99365,
+      "sha256": "f49dc16cfc0d28a9a883311b184191dcde8a1e3785e748e822e92f2e17168103"
+    },
+    {
+      "file": "shopify-1440.png",
+      "width": 1425,
+      "height": 990,
+      "bytes": 109665,
+      "sha256": "2f6fd135c3d58345d50a200a618d57618267cb90951ed736f3a1160ff0a3d175"
+    },
+    {
+      "file": "shopify-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 37268,
+      "sha256": "d9c137ce3709c0b9ee7182f25d7c953517b830a44a2d6d55203676ad5508f9d1"
+    },
+    {
+      "file": "shopify-vacio-1280.png",
+      "width": 1280,
+      "height": 1000,
+      "bytes": 93245,
+      "sha256": "fd06cd072ad4f0bf89409839fda7bf15c4ed30dfbd26f2eac6db92145732df1f"
+    },
+    {
+      "file": "shopify-vacio-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "bytes": 96979,
+      "sha256": "2a07dc50421afe90fae07ebdc433c7ce33c38b30386d61443aa13677adbe2d50"
+    },
+    {
+      "file": "shopify-vacio-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 41315,
+      "sha256": "d0205bb46d2ad2e421a4047f39a6f3a9d96acc870b92879b9201d94c7d9d16ba"
+    },
+    {
+      "file": "soporte-1280.png",
+      "width": 1280,
+      "height": 1000,
+      "bytes": 71693,
+      "sha256": "3a8b265a4221d26397a9b5ec05b4e9d60b8bff3611128ef23db1d7c47c65fbb5"
+    },
+    {
+      "file": "soporte-1440.png",
+      "width": 1440,
+      "height": 1000,
+      "bytes": 74296,
+      "sha256": "d78ecabe5379a188876ea6faee8013ab87b3ec21218e67b86b11d8f85ffea11c"
+    },
+    {
+      "file": "soporte-390.png",
+      "width": 375,
+      "height": 962,
+      "bytes": 33616,
+      "sha256": "821d2f4c46dd23530a18d1dfe54a4977d19b68a9dc663fb24d243254ad02e073"
+    }
+  ]
+}

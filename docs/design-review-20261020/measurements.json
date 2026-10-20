@@ -1,0 +1,1278 @@
+{
+  "productionBundle": "index-Duin0MgL.js",
+  "commit": "58687e42f63f0cc4a0c62fdc0582926668ed6c89",
+  "theme": "light",
+  "viewportHeight": 1000,
+  "source": "Authenticated production UI; no forms submitted",
+  "groups": [
+    {
+      "slug": "resumen",
+      "files": [
+        "resumen-1440.png",
+        "resumen-1280.png",
+        "resumen-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Resumen",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1425,
+            "grids": [
+              {
+                "class": "stats filteredStats",
+                "columns": "264px 264px 264px 264px",
+                "gap": "15px",
+                "top": 457
+              },
+              {
+                "class": "stats dashboardOrderStats",
+                "columns": "208.188px 208.203px 208.203px 208.203px 208.188px",
+                "gap": "15px",
+                "top": 784
+              }
+            ],
+            "h1": "Resumen",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 1561,
+            "scrollWidth": 1425
+          }
+        },
+        {
+          "page": "Resumen",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [
+              {
+                "class": "stats filteredStats",
+                "columns": "224px 224px 224px 224px",
+                "gap": "15px",
+                "top": 457
+              },
+              {
+                "class": "stats dashboardOrderStats",
+                "columns": "176.188px 176.203px 176.203px 176.203px 176.188px",
+                "gap": "15px",
+                "top": 800
+              }
+            ],
+            "h1": "Resumen",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 1610,
+            "scrollWidth": 1265
+          }
+        },
+        {
+          "page": "Resumen",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [
+              {
+                "class": "stats filteredStats",
+                "columns": "168.625px 166.375px",
+                "gap": "10px",
+                "top": 812
+              },
+              {
+                "class": "stats dashboardOrderStats",
+                "columns": "345px",
+                "gap": "10px",
+                "top": 1262
+              }
+            ],
+            "h1": "Resumen",
+            "h1Top": 102,
+            "height": 1000,
+            "scrollHeight": 3050,
+            "scrollWidth": 375
+          }
+        }
+      ]
+    },
+    {
+      "slug": "pedidos",
+      "files": [
+        "pedidos-1440.png",
+        "pedidos-1280.png",
+        "pedidos-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Pedidos",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1425,
+            "grids": [
+              {
+                "class": "stats ordersSalesStats",
+                "columns": "264px 264px 264px 264px",
+                "gap": "15px",
+                "top": 551
+              },
+              {
+                "class": "stats ordersStats",
+                "columns": "171px 171px 171px 171px 171px 171px",
+                "gap": "15px",
+                "top": 834
+              }
+            ],
+            "h1": "Pedidos",
+            "height": 1000,
+            "scrollHeight": 1803
+          }
+        },
+        {
+          "page": "Pedidos",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [
+              {
+                "class": "stats ordersSalesStats",
+                "columns": "224px 224px 224px 224px",
+                "gap": "15px",
+                "top": 551
+              },
+              {
+                "class": "stats ordersStats",
+                "columns": "144.328px 144.328px 144.328px 144.344px 144.328px 144.328px",
+                "gap": "15px",
+                "top": 866
+              }
+            ],
+            "h1": "Pedidos",
+            "height": 1000,
+            "scrollHeight": 1851
+          }
+        },
+        {
+          "page": "Pedidos",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [
+              {
+                "class": "stats ordersSalesStats",
+                "columns": "345px",
+                "gap": "10px",
+                "top": 1115
+              },
+              {
+                "class": "stats ordersStats",
+                "columns": "345px",
+                "gap": "10px",
+                "top": 1633
+              }
+            ],
+            "h1": "Pedidos",
+            "height": 1000,
+            "scrollHeight": 3639
+          }
+        }
+      ]
+    },
+    {
+      "slug": "facturacion",
+      "files": [
+        "facturacion-1440.png",
+        "facturacion-1280.png",
+        "facturacion-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Facturación",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1425,
+            "grids": [
+              {
+                "class": "stats salesStats normalizedKpiStats",
+                "columns": "208.188px 208.203px 208.203px 208.203px 208.188px",
+                "gap": "15px",
+                "top": 501
+              }
+            ],
+            "h1": "Facturación",
+            "h1Top": 196,
+            "height": 1000,
+            "scrollHeight": 1570
+          }
+        },
+        {
+          "page": "Facturación",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [
+              {
+                "class": "stats salesStats normalizedKpiStats",
+                "columns": "224px 224px 224px 224px",
+                "gap": "15px",
+                "top": 501
+              }
+            ],
+            "h1": "Facturación",
+            "h1Top": 196,
+            "height": 1000,
+            "scrollHeight": 1565
+          }
+        },
+        {
+          "page": "Facturación",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [
+              {
+                "class": "stats salesStats normalizedKpiStats",
+                "columns": "345px",
+                "gap": "10px",
+                "top": 1014
+              }
+            ],
+            "h1": "Facturación",
+            "h1Top": 271,
+            "height": 1000,
+            "scrollHeight": 3521
+          }
+        }
+      ]
+    },
+    {
+      "slug": "recibos",
+      "files": [
+        "recibos-1440.png",
+        "recibos-1280.png",
+        "recibos-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Recibos",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1425,
+            "grids": [
+              {
+                "class": "stats salesStats normalizedKpiStats",
+                "columns": "264px 264px 264px 264px 0px",
+                "gap": "15px",
+                "top": 285
+              }
+            ],
+            "h1": "Recibos",
+            "h1Top": 196,
+            "height": 1000,
+            "scrollHeight": 1029
+          }
+        },
+        {
+          "page": "Recibos",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [
+              {
+                "class": "stats salesStats normalizedKpiStats",
+                "columns": "224px 224px 224px 224px",
+                "gap": "15px",
+                "top": 347
+              }
+            ],
+            "h1": "Recibos",
+            "h1Top": 196,
+            "height": 1000,
+            "scrollHeight": 1144
+          }
+        },
+        {
+          "page": "Recibos",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [
+              {
+                "class": "stats salesStats normalizedKpiStats",
+                "columns": "345px",
+                "gap": "10px",
+                "top": 477
+              }
+            ],
+            "h1": "Recibos",
+            "h1Top": 271,
+            "height": 1000,
+            "scrollHeight": 2178
+          }
+        }
+      ]
+    },
+    {
+      "slug": "gastos",
+      "files": [
+        "gastos-1440.png",
+        "gastos-1280.png",
+        "gastos-390.png",
+        "gastos-390-kpis.png"
+      ],
+      "measurements": [
+        {
+          "page": "Gastos",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1425,
+            "grids": [
+              {
+                "class": "stats expenseStats",
+                "columns": "315.312px 303.234px 218.719px 218.734px",
+                "gap": "15px",
+                "top": 606
+              }
+            ],
+            "h1": "Facturas de gasto",
+            "h1Top": 212,
+            "height": 1000,
+            "scrollHeight": 1527,
+            "scrollWidth": 1425
+          }
+        },
+        {
+          "page": "Gastos",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [
+              {
+                "class": "stats expenseStats",
+                "columns": "315.312px 303.234px 159.859px 151.828px",
+                "gap": "15px",
+                "top": 692
+              }
+            ],
+            "h1": "Facturas de gasto",
+            "h1Top": 212,
+            "height": 1000,
+            "scrollHeight": 1710,
+            "scrollWidth": 1265
+          }
+        },
+        {
+          "page": "Gastos",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [
+              {
+                "class": "stats expenseStats",
+                "columns": "263.156px 253.391px",
+                "gap": "10px",
+                "top": 1449
+              }
+            ],
+            "h1": "Facturas de gasto",
+            "h1Top": 256,
+            "height": 1000,
+            "scrollHeight": 3818,
+            "scrollWidth": 375
+          }
+        },
+        {
+          "page": "Gastos KPI móvil",
+          "metrics": {
+            "grids": [
+              {
+                "columns": "263.156px 253.391px",
+                "scrollWidth": 527,
+                "width": 345
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "productos",
+      "files": [
+        "productos-1440.png",
+        "productos-1280.png",
+        "productos-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Productos",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1425,
+            "grids": [
+              {
+                "class": "stats masterStats productStats",
+                "columns": "208.188px 208.203px 208.203px 208.203px 208.188px",
+                "gap": "15px",
+                "top": 386
+              }
+            ],
+            "h1": "Productos",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 1591,
+            "scrollWidth": 1425
+          }
+        },
+        {
+          "page": "Productos",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [
+              {
+                "class": "stats masterStats productStats",
+                "columns": "224px 224px 224px 224px",
+                "gap": "15px",
+                "top": 386
+              }
+            ],
+            "h1": "Productos",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 1620,
+            "scrollWidth": 1265
+          }
+        },
+        {
+          "page": "Productos",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [
+              {
+                "class": "stats masterStats productStats",
+                "columns": "345px",
+                "gap": "10px",
+                "top": 741
+              }
+            ],
+            "h1": "Productos",
+            "h1Top": 102,
+            "height": 1000,
+            "scrollHeight": 2968,
+            "scrollWidth": 375
+          }
+        }
+      ]
+    },
+    {
+      "slug": "clientes",
+      "files": [
+        "clientes-1440.png",
+        "clientes-1280.png",
+        "clientes-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Clientes",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1425,
+            "grids": [
+              {
+                "class": "stats masterStats normalizedKpiStats",
+                "columns": "208.188px 208.203px 208.203px 208.203px 208.188px",
+                "gap": "15px",
+                "top": 358
+              }
+            ],
+            "h1": "Clientes",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 2379,
+            "scrollWidth": 1425
+          }
+        },
+        {
+          "page": "Clientes",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [
+              {
+                "class": "stats masterStats normalizedKpiStats",
+                "columns": "224px 224px 224px 224px",
+                "gap": "15px",
+                "top": 358
+              }
+            ],
+            "h1": "Clientes",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 2928,
+            "scrollWidth": 1265
+          }
+        },
+        {
+          "page": "Clientes",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [
+              {
+                "class": "stats masterStats normalizedKpiStats",
+                "columns": "345px",
+                "gap": "10px",
+                "top": 697
+              }
+            ],
+            "h1": "Clientes",
+            "h1Top": 102,
+            "height": 1000,
+            "scrollHeight": 4236,
+            "scrollWidth": 375
+          }
+        }
+      ]
+    },
+    {
+      "slug": "proveedores",
+      "files": [
+        "proveedores-1440.png",
+        "proveedores-1280.png",
+        "proveedores-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Proveedores",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1425,
+            "grids": [
+              {
+                "class": "stats masterStats",
+                "columns": "264px 264px 264px 264px",
+                "gap": "15px",
+                "top": 358
+              }
+            ],
+            "h1": "Proveedores",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 2570,
+            "scrollWidth": 1425
+          }
+        },
+        {
+          "page": "Proveedores",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [
+              {
+                "class": "stats masterStats",
+                "columns": "224px 224px 224px 224px",
+                "gap": "15px",
+                "top": 358
+              }
+            ],
+            "h1": "Proveedores",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 2615,
+            "scrollWidth": 1265
+          }
+        },
+        {
+          "page": "Proveedores",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [
+              {
+                "class": "stats masterStats",
+                "columns": "345px",
+                "gap": "10px",
+                "top": 697
+              }
+            ],
+            "h1": "Proveedores",
+            "h1Top": 102,
+            "height": 1000,
+            "scrollHeight": 3839,
+            "scrollWidth": 375
+          }
+        }
+      ]
+    },
+    {
+      "slug": "amazon",
+      "files": [
+        "amazon-1440.png",
+        "amazon-1280.png",
+        "amazon-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Amazon",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1425,
+            "grids": [],
+            "h1": "Amazon",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 3291,
+            "scrollWidth": 1425
+          }
+        },
+        {
+          "page": "Amazon",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [],
+            "h1": "Amazon",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 3307,
+            "scrollWidth": 1265
+          }
+        },
+        {
+          "page": "Amazon",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [],
+            "h1": "Amazon",
+            "h1Top": 102,
+            "height": 1000,
+            "scrollHeight": 3483,
+            "scrollWidth": 375
+          }
+        }
+      ]
+    },
+    {
+      "slug": "shopify",
+      "files": [
+        "shopify-1440.png",
+        "shopify-1280.png",
+        "shopify-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Shopify",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1425,
+            "grids": [],
+            "h1": "Shopify",
+            "h1Top": 98,
+            "height": 1000,
+            "scrollHeight": 1600,
+            "scrollWidth": 1425
+          }
+        },
+        {
+          "page": "Shopify",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [],
+            "h1": "Shopify",
+            "h1Top": 98,
+            "height": 1000,
+            "scrollHeight": 1600,
+            "scrollWidth": 1265
+          }
+        },
+        {
+          "page": "Shopify",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [],
+            "h1": "Shopify",
+            "h1Top": 80,
+            "height": 1000,
+            "scrollHeight": 1811,
+            "scrollWidth": 375
+          }
+        }
+      ]
+    },
+    {
+      "slug": "shopify-vacio",
+      "files": [
+        "shopify-vacio-1440.png",
+        "shopify-vacio-1280.png",
+        "shopify-vacio-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Shopify productos vacío",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1440,
+            "grids": [],
+            "h1": "Shopify",
+            "h1Top": 98,
+            "height": 1000,
+            "scrollHeight": 1000,
+            "scrollWidth": 1440
+          }
+        },
+        {
+          "page": "Shopify productos vacío",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1280,
+            "grids": [],
+            "h1": "Shopify",
+            "h1Top": 98,
+            "height": 1000,
+            "scrollHeight": 1000,
+            "scrollWidth": 1280
+          }
+        },
+        {
+          "page": "Shopify productos vacío",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [],
+            "h1": "Shopify",
+            "h1Top": 80,
+            "height": 1000,
+            "scrollHeight": 1154,
+            "scrollWidth": 375
+          }
+        }
+      ]
+    },
+    {
+      "slug": "soporte",
+      "files": [
+        "soporte-1440.png",
+        "soporte-1280.png",
+        "soporte-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Soporte",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1440,
+            "grids": [
+              {
+                "class": "supportStats",
+                "columns": "364px 364px 364px",
+                "gap": "12px",
+                "top": 279
+              }
+            ],
+            "h1": "Soporte",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 1000,
+            "scrollWidth": 1440
+          }
+        },
+        {
+          "page": "Soporte",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1280,
+            "grids": [
+              {
+                "class": "supportStats",
+                "columns": "310.656px 310.672px 310.656px",
+                "gap": "12px",
+                "top": 279
+              }
+            ],
+            "h1": "Soporte",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 1000,
+            "scrollWidth": 1280
+          }
+        },
+        {
+          "page": "Soporte",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [
+              {
+                "class": "supportStats",
+                "columns": "345px",
+                "gap": "12px",
+                "top": 405
+              }
+            ],
+            "h1": "Soporte",
+            "h1Top": 102,
+            "height": 1000,
+            "scrollHeight": 1150,
+            "scrollWidth": 375
+          }
+        }
+      ]
+    },
+    {
+      "slug": "configuracion",
+      "files": [
+        "configuracion-1440.png",
+        "configuracion-1280.png",
+        "configuracion-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Configuración",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1425,
+            "grids": [],
+            "h1": "Configuración",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 1677,
+            "scrollWidth": 1425
+          }
+        },
+        {
+          "page": "Configuración",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [],
+            "h1": "Configuración",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 1677,
+            "scrollWidth": 1265
+          }
+        },
+        {
+          "page": "Configuración",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [],
+            "h1": "Configuración",
+            "h1Top": 102,
+            "height": 1000,
+            "scrollHeight": 2671,
+            "scrollWidth": 375
+          }
+        }
+      ]
+    },
+    {
+      "slug": "administracion",
+      "files": [
+        "administracion-1440.png",
+        "administracion-1280.png",
+        "administracion-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Administración",
+          "width": 1440,
+          "metrics": {
+            "clientWidth": 1440,
+            "grids": [
+              {
+                "class": "adminStats",
+                "columns": "362.656px 362.672px 362.656px",
+                "gap": "14px",
+                "top": 267
+              }
+            ],
+            "h1": "Administración",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 1000,
+            "scrollWidth": 1440
+          }
+        },
+        {
+          "page": "Administración",
+          "width": 1280,
+          "metrics": {
+            "clientWidth": 1265,
+            "grids": [
+              {
+                "class": "adminStats",
+                "columns": "304.328px 304.328px 304.344px",
+                "gap": "14px",
+                "top": 267
+              }
+            ],
+            "h1": "Administración",
+            "h1Top": 120,
+            "height": 1000,
+            "scrollHeight": 1116,
+            "scrollWidth": 1265
+          }
+        },
+        {
+          "page": "Administración",
+          "width": 390,
+          "metrics": {
+            "clientWidth": 375,
+            "grids": [
+              {
+                "class": "adminStats",
+                "columns": "165.5px 165.5px",
+                "gap": "14px",
+                "top": 348
+              }
+            ],
+            "h1": "Administración",
+            "h1Top": 102,
+            "height": 1000,
+            "scrollHeight": 2126,
+            "scrollWidth": 375
+          }
+        }
+      ]
+    },
+    {
+      "slug": "modal-producto",
+      "files": [
+        "modal-producto-1440.png",
+        "modal-producto-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Modal producto",
+          "width": 1440,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal formModal polishedModal",
+                "height": 952,
+                "overflow": "auto",
+                "radius": "18px",
+                "top": 24,
+                "width": 720
+              }
+            ]
+          }
+        },
+        {
+          "page": "Modal producto",
+          "width": 390,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal formModal polishedModal",
+                "height": 990,
+                "overflow": "auto",
+                "radius": "20px 20px 0px 0px",
+                "top": 10,
+                "width": 375
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "modal-cliente",
+      "files": [
+        "modal-cliente-1440.png",
+        "modal-cliente-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Modal cliente",
+          "width": 1440,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal formModal polishedModal salesClientModal",
+                "height": 940,
+                "overflow": "auto",
+                "radius": "18px",
+                "top": 30,
+                "width": 780
+              }
+            ]
+          }
+        },
+        {
+          "page": "Modal cliente",
+          "width": 390,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal formModal polishedModal salesClientModal",
+                "height": 940,
+                "overflow": "auto",
+                "radius": "20px 20px 0px 0px",
+                "top": 60,
+                "width": 362
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "modal-proveedor",
+      "files": [
+        "modal-proveedor-1440.png",
+        "modal-proveedor-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Modal proveedor",
+          "width": 1440,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal smallModal",
+                "height": 789,
+                "overflow": "auto",
+                "radius": "18px",
+                "top": 106,
+                "width": 720
+              }
+            ]
+          }
+        },
+        {
+          "page": "Modal proveedor",
+          "width": 390,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal smallModal",
+                "height": 817,
+                "overflow": "auto",
+                "radius": "20px 20px 0px 0px",
+                "top": 183,
+                "width": 375
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "modal-soporte",
+      "files": [
+        "modal-soporte-1440.png",
+        "modal-soporte-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Modal soporte",
+          "width": 1440,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal supportCreateModal",
+                "height": 557,
+                "overflow": "auto",
+                "radius": "18px",
+                "top": 221,
+                "width": 720
+              }
+            ]
+          }
+        },
+        {
+          "page": "Modal soporte",
+          "width": 390,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal supportCreateModal",
+                "height": 732,
+                "overflow": "auto",
+                "radius": "20px 20px 0px 0px",
+                "top": 268,
+                "width": 375
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "modal-administracion",
+      "files": [
+        "modal-administracion-1440.png",
+        "modal-administracion-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Modal administración",
+          "width": 1440,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal adminUserModal",
+                "height": 952,
+                "overflow": "auto",
+                "radius": "18px",
+                "top": 24,
+                "width": 720
+              }
+            ]
+          }
+        },
+        {
+          "page": "Modal administración",
+          "width": 390,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal adminUserModal",
+                "height": 990,
+                "overflow": "auto",
+                "radius": "20px 20px 0px 0px",
+                "top": 10,
+                "width": 375
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "modal-factura",
+      "files": [
+        "modal-factura-1440.png",
+        "modal-factura-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Modal factura",
+          "width": 1440,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal salesInvoiceModal polishedModal",
+                "height": 950,
+                "overflow": "auto",
+                "radius": "18px",
+                "top": 25,
+                "width": 1260
+              }
+            ]
+          }
+        },
+        {
+          "page": "Modal factura",
+          "width": 390,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal salesInvoiceModal polishedModal",
+                "height": 960,
+                "overflow": "auto",
+                "radius": "20px 20px 0px 0px",
+                "top": 40,
+                "width": 370
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "modal-recibo",
+      "files": [
+        "modal-recibo-1440.png",
+        "modal-recibo-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Modal recibo",
+          "width": 1440,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal salesInvoiceModal polishedModal",
+                "height": 950,
+                "overflow": "auto",
+                "radius": "18px",
+                "top": 25,
+                "width": 1260
+              }
+            ]
+          }
+        },
+        {
+          "page": "Modal recibo",
+          "width": 390,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal salesInvoiceModal polishedModal",
+                "height": 960,
+                "overflow": "auto",
+                "radius": "20px 20px 0px 0px",
+                "top": 40,
+                "width": 370
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "modal-pedido",
+      "files": [
+        "modal-pedido-1440.png",
+        "modal-pedido-390.png"
+      ],
+      "measurements": [
+        {
+          "page": "Modal pedido",
+          "width": 1440,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal ordersManualModal",
+                "height": 810,
+                "overflow": "auto",
+                "radius": "18px",
+                "top": 95,
+                "width": 900
+              }
+            ]
+          }
+        },
+        {
+          "page": "Modal pedido",
+          "width": 390,
+          "metrics": {
+            "modals": [
+              {
+                "class": "modal ordersManualModal",
+                "height": 920,
+                "overflow": "auto",
+                "radius": "20px 20px 0px 0px",
+                "top": 80,
+                "width": 372
+              }
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "slug": "pedidos-detalle",
+      "files": [
+        "pedidos-detalle-390-kpis.png",
+        "pedidos-detalle-390-lista.png"
+      ],
+      "measurements": []
+    }
+  ]
+}

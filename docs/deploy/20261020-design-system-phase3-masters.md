@@ -41,3 +41,7 @@ Validación final local: suite completa 249/249 (46 ficheros) al repetir sin Chr
 ## Revisión independiente
 
 Revisión read-only de 168e6f6e: sin problemas críticos/importantes; valores/opciones/variantes y callbacks confirmados por diff. Se refuerza el harness con sus observaciones menores: inventario completo de etiquetas de opciones (no solo trigger cerrado), captura de errores emitidos al final de las interacciones y comprobación del registro destinatario de Eliminar en las tres pantallas; Editar comprueba el callback por registro en Productos/Proveedores. El editor interno de Clientes conserva su implementación y se revisa por diff, sin guardar datos. La nueva pasada de nueve escenarios pasa sin fallos.
+
+## Correspondencia entre captura y medición
+
+Se mide la geometría inmediatamente antes de la captura principal, antes de abrir filtros o recorrer interacciones. La repetición de los nueve escenarios confirma exactamente ambos manifiestos guardados: primera lista móvil Productos 1855,1 → 1148,5 px, Clientes 1590,2 → 1057,7 px y Proveedores 1475,2 → 1044,7 px. No hay cambios de aplicación en este ajuste del harness. Las cifras redondeadas antiguas de la descripción de la PR se sustituyen por estas mediciones.

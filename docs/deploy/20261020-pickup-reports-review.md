@@ -21,7 +21,7 @@ Pickup selection clones the exact deployed-repo dashboard SQL body at migration 
 - PGlite SQL tests exercise all5 RPC permission/MFA/tenant denials, overlapping/replayed request outcomes, counter rollback/no gaps, duplicate selection, exact snapshot reprint, different Shopify accounts, cancelled stale sibling and newer replacement.
 - PGlite is single session: actual simultaneous PostgreSQL lock scheduling has NOT been claimed. Advisory/row lock SQL and serial overlap outcomes are tested. Production preflight must include a reversible multi-connection concurrency rehearsal before enabling this feature.
 - Playwright runs actual Orders/dialogs/PDF with synthetic service boundary, all network blocked. Desktop/mobile63 selected,2carriers, history/reprint, missing tracking, repeat warning/acknowledgement. Actual PDF pages rendered for desktop/mobile review. No fixtures enter app bundle.
-- Existing build chunk-size warning retained. Exact-head CI evidence added in PR/final review receipt.
+- Existing build chunk-size warning retained. Exact-head CI evidence added in PR/final review receipt. First CI head 3fb7730 exposed missing registration of the five new MFA-gated RPCs in the existing integrity manifest (real integration guard correctly failed). Corrected using the existing public-wrapper/private-implementation contract, direct MFA assertion, private EXECUTE revocation and exact definition hashes. SQL regression verifies all five registrations; the guard itself is unchanged. Empty rollback removes only these registrations/implementations.
 - Optional tracking QR/barcode is deferred; no unvalidated scan symbol or extra dependency introduced. Human-readable full tracking, including long wrapping, is present on every row.
 
 ## Review assets

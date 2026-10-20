@@ -9,6 +9,7 @@ const id=(n:number)=>`10000000-0000-4000-8000-${String(n).padStart(12,'0')}`;
 it('executes immutable receipt SQL with tenant/MFA isolation, real labels, counts, retries, duplicate decisions and rollback',async()=>{
  const db=new PGlite();try{
  await db.exec(`CREATE ROLE anon;CREATE ROLE authenticated;CREATE ROLE service_role;CREATE SCHEMA auth;CREATE SCHEMA private;
+ CREATE TABLE private.mfa_function_manifest(signature text primary key,function_oid oid not null,implementation regprocedure not null,original_definition text not null,wrapper_hash text not null);
  CREATE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$SELECT nullif(current_setting('test.uid',true),'')::uuid$$;
  CREATE FUNCTION private.app_has_permission(text) RETURNS boolean LANGUAGE sql STABLE AS $$SELECT current_setting('test.orders',true)='yes'$$;
  CREATE FUNCTION private.app_workspace_owner_id() RETURNS uuid LANGUAGE sql STABLE AS $$SELECT nullif(current_setting('test.owner',true),'')::uuid$$;
@@ -31,6 +32,9 @@ it('executes immutable receipt SQL with tenant/MFA isolation, real labels, count
  await db.exec(dashboard);
  const original=(await db.query<any>(`select pg_get_functiondef('public.orders_dashboard_page_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[])'::regprocedure) def`)).rows[0].def;
  await db.exec(migration);
+ const manifest=await db.query<any>(`SELECT p.proname, m.wrapper_hash=md5(pg_get_functiondef(p.oid)) valid, pg_get_functiondef(p.oid) wrapper, n.nspname impl_schema, has_function_privilege('authenticated',impl.oid,'EXECUTE') impl_grant FROM private.mfa_function_manifest m JOIN pg_proc p ON p.oid=m.function_oid JOIN pg_proc impl ON impl.oid=m.implementation::oid JOIN pg_namespace n ON n.oid=impl.pronamespace`);
+ expect(manifest.rows).toHaveLength(5);
+ for(const fn of manifest.rows){expect(fn.valid).toBe(true);expect(fn.wrapper).toContain('PERFORM public.security_mfa_assert(false)');expect(fn.impl_schema).toBe('private');expect(fn.impl_grant).toBe(false);}
  const definitions=await db.query<any>(`select proname,prosecdef,proconfig,has_function_privilege('anon',oid,'EXECUTE') anon,has_function_privilege('authenticated',oid,'EXECUTE') authenticated from pg_proc where proname like 'pickup_report_%'`);
  for(const fn of definitions.rows){expect(fn.anon).toBe(false);expect(fn.proconfig).toContain('search_path=""');if(['pickup_report_selection','pickup_report_preview','pickup_report_create','pickup_report_get','pickup_report_list'].includes(fn.proname)){expect(fn.authenticated).toBe(true);expect(fn.prosecdef).toBe(true);}else expect(fn.authenticated).toBe(false);}
  const clone=(await db.query<any>(`select pg_get_functiondef('private.pickup_report_dashboard_scope(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[])'::regprocedure) def`)).rows[0].def;
@@ -145,7 +149,7 @@ it('executes immutable receipt SQL with tenant/MFA isolation, real labels, count
  await db.exec('RESET ROLE');
  await expect(db.query(`UPDATE pickup_reports SET number='TAMPER' WHERE id=$1`,[receipt.id])).rejects.toThrow('PICKUP_REPORT_IMMUTABLE');
  await expect(db.query(`DELETE FROM pickup_report_items WHERE report_id=$1`,[receipt.id])).rejects.toThrow('PICKUP_REPORT_IMMUTABLE');
- const source=(await db.query<any>(`select prosrc from pg_proc where oid='public.pickup_report_create(uuid[],uuid,boolean,jsonb)'::regprocedure`)).rows[0].prosrc;
+ const source=(await db.query<any>(`select prosrc from pg_proc where oid='private.mfa_impl_pickup_report_create(uuid[],uuid,boolean,jsonb)'::regprocedure`)).rows[0].prosrc;
  expect(source).toContain('pg_advisory_xact_lock');expect(source).toContain('ORDER BY o.id FOR UPDATE OF o');expect(source).toContain('trim(o.order_number)=trim(requested.order_number)');expect(source).toContain('o.source_integration_account_id IS NOT DISTINCT FROM requested.source_integration_account_id');expect(source).toContain('ON CONFLICT(owner_id,report_year) DO UPDATE');
  await expect(db.exec(rollback)).rejects.toThrow('PICKUP_ROLLBACK_REFUSED_RECEIPTS_EXIST');
  await db.exec('ROLLBACK');

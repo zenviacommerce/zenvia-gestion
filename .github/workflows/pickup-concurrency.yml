@@ -1,0 +1,31 @@
+name: Pickup real PostgreSQL concurrency rehearsal
+on:
+  push:
+    branches: [verify/pickup-concurrency-20261020]
+permissions:
+  contents: read
+jobs:
+  concurrent-receipts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Start isolated PostgreSQL 17.6 (no production credentials)
+        run: |
+          docker run -d --name pickup-postgres -e POSTGRES_HOST_AUTH_METHOD=trust postgres:17.6
+          for i in $(seq 1 60); do
+            if docker exec pickup-postgres pg_isready -U postgres; then exit 0; fi
+            sleep 1
+          done
+          exit 1
+      - name: Two simultaneous full RPCs, exact production function hash and rollback
+        run: node scripts/pickup-concurrency-real.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: pickup-concurrency-evidence
+          path: pickup-concurrency-results.json
+          if-no-files-found: error

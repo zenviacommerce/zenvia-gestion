@@ -31,3 +31,7 @@ Restaurar producción de Gestión al deployment `dpl_FXFkLqauYMkr7aiJBiRRpP4HhXM
 ## Publicación
 
 Pendiente de CI remoto, merge autorizado y verificación de deployment. Registrar recibo posterior en rama solo docs para evitar otro despliegue por documentación.
+
+## Ajuste de cobertura detectado por CI
+
+El primer CI falló en `invoice-number-edit-pending-kpi.test.mjs`: exigía por texto montar el observador DOM, sin comprobar que su selector encontrara la tarjeta. Se sustituye esa aserción obsoleta por renderizado real de StatCard (aviso en tarjeta/botón y neutro predeterminado); el harness comprueba la condición de las dos pantallas. Capturas e imágenes del primer CI ya pasaron. Se ejecuta también la suite completa de scripts Node, además de Vitest. No se omite ni desactiva ningún check.

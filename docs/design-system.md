@@ -168,3 +168,8 @@ Las vistas previas de imágenes muestran siempre el contenido completo: `object-
 Las acciones de cabecera existentes (botones, enlaces, selectores y accesos añadidos por efectos o portales) forman parte del contrato de PageHeader. Inventariar y comparar la versión anterior con la migrada, incluyendo sus condiciones/disabled y su destino; no basta con comparar solo el JSX local de la página. Los harness deben montar los propietarios globales de producción, como OrderLabelDefaults, y los portales tardíos.
 
 La comprobación `assertHeaderActionsPreserved` compara etiquetas de acciones renderizadas con la referencia inmutable y falla si falta alguna, incluidas repeticiones. Los controles/disabled se comparan además en los manifiestos. Se aplica a Resumen/Pedidos y a Facturación/Gastos/Recibos en fase2. En móvil, una acción que queda fuera de la fila debe seguir accesible con scroll señalado o menú Más; no eliminarla para ajustar el layout.
+
+
+### FilterBar: contrato de escritorio
+
+En las listas operativas, búsqueda en su propia fila; filtros de igual ancho en una sola fila mediante grid y minmax(0,1fr), etiquetas alineadas, controles de 42 px y acción de limpiar/restablecer alineada al borde inferior. Texto seleccionado y etiquetas en una línea con elipsis, sin ensanchar el documento; el menú conserva la opción completa. El harness de fase 2 debe fallar si un texto de filtro salta a dos líneas, las columnas cambian de ancho o una acción desaparece. Verificación a 1280/1440 y continuidad móvil a 390 px.

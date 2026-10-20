@@ -27,7 +27,7 @@ const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader
  b.onLoad({filter:/[/]src[/]services[/].*[.]ts$/},async args=>{const name=args.path.split('/').pop().replace('.ts','');if(keep.has(name))return;const source=await readFile(args.path,'utf8');const names=[...(name==='sales'?['defaultSalesDueDate','resolveSalesDueDays']:[]),...[...source.matchAll(/export\s+(?:async\s+)?(?:function|const|class)\s+(\w+)/g)].map(m=>m[1])];return {contents:[...new Set(names)].map(n=>'export const '+n+'=(...a)=>globalThis.fixtureServices.'+n+'(...a);').join('\n'),loader:'ts'};});
  }}]});
 const main=await read('src/main.tsx'),cssPaths=[...new Set([...main.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map(m=>'src/'+m[1].replace('./','')))];
-const css=(await Promise.all([...new Set([...cssPaths,'src/sales.css','src/sales-transfer.css','src/shared-forms.css','src/bulk-selection.css'])].map(read))).join('\n');
+const css=(await Promise.all([...new Set([...cssPaths,'src/sales.css','src/sales-transfer.css','src/shared-forms.css','src/bulk-selection.css'])].map(p=>process.env.FILTER_CAPTURE_LABEL==='before'&&p==='src/design-system.css'?execFileSync('git',['show','cc5562aee5bd3cc870e7f696ad74a75d05ab35a4:'+p],{encoding:'utf8'}):read(p)))).join('\n');
 let options={headless:true,args:['--lang=es-ES','--accept-lang=es-ES,es'],env:{...process.env,LANG:'es_ES.UTF-8',LC_ALL:'es_ES.UTF-8'}};
 if(process.env.SHIPPING_CHROMIUM_PACKAGE==='1'){const {default:pack}=await import('@sparticuz/chromium');const dir=await mkdtemp(resolve(tmpdir(),'finance-chromium-'));const bin=resolve(dirname(fileURLToPath(import.meta.resolve('@sparticuz/chromium'))),'../bin');for(const f of ['chromium.br','swiftshader.tar.br']){const data=brotliDecompressSync(await readFile(resolve(bin,f)));if(f.includes('.tar'))execFileSync('tar',['--no-same-owner','-x','-C',dir],{input:data});else{await writeFile(resolve(dir,'chromium'),data);await chmod(resolve(dir,'chromium'),0o755);}}options={...options,executablePath:resolve(dir,'chromium'),args:[...pack.args.filter(a=>a!=='--single-process'),...options.args],env:{...options.env,LD_LIBRARY_PATH:[dir,process.env.LD_LIBRARY_PATH].filter(Boolean).join(':')}};}
 await mkdir(output,{recursive:true});const browser=await chromium.launch(options),checks=[];
@@ -36,15 +36,33 @@ try{for(const screen of ['billing','expenses','receipts'])for(const width of [39
  await page.setContent('<html lang="es-ES"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');await page.evaluate(s=>globalThis.renderFixture(s),screen);
  if(screen==='receipts')await page.getByRole(phase==='before'?'button':'tab',{name:/^Recibos/}).click();
  await page.locator('.stat').first().waitFor();await page.locator('tbody tr').first().waitFor({state:'attached'});await page.waitForTimeout(300);
- await page.screenshot({path:output+'/'+phase+'-'+screen+'-'+width+'.png'});if(width===390){await page.evaluate(()=>scrollTo(0,1000));await page.screenshot({path:output+'/'+phase+'-'+screen+'-390-second.png'});await page.evaluate(()=>scrollTo(0,0));}
+ await page.screenshot({path:output+'/'+phase+'-'+screen+'-'+width+'.png'});
+ if(width>=1280&&process.env.FILTER_CAPTURE_LABEL){const dir='docs/deploy/design-phase2-filters-20261020';await mkdir(dir,{recursive:true});await page.locator('.dsFilterBar').first().screenshot({path:dir+'/'+process.env.FILTER_CAPTURE_LABEL+'-'+screen+'-'+width+'.png'});}
+if(width===390){await page.evaluate(()=>scrollTo(0,1000));await page.screenshot({path:output+'/'+phase+'-'+screen+'-390-second.png'});await page.evaluate(()=>scrollTo(0,0));}
  const proof=await page.evaluate(()=>{
   const visible=el=>el.getClientRects().length&&getComputedStyle(el).display!=='none',rect=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y+scrollY,width:r.width,height:r.height}};
   const rows=[...document.querySelectorAll('.salesInvoiceMobileCard,.zenviaUnifiedMobileList>*,tbody tr')].filter(visible);const cards=[...document.querySelectorAll('.stat')];
-  return {tabOverflow:[...document.querySelectorAll('.expenseHubNav')].some(el=>el.scrollWidth>el.clientWidth+1),tabs:[...document.querySelectorAll('.expenseHubNav button')].map(el=>el.textContent),tabRoles:document.querySelectorAll('.expenseHubNav [role="tab"]').length,firstList:rows[0]?rect(rows[0]):null,firstListScreens:rows[0]?(rows[0].getBoundingClientRect().top+scrollY)/innerHeight:null,cards:cards.map(el=>({text:el.textContent,...rect(el),overflow:el.scrollWidth>el.clientWidth+1})),columns:[...document.querySelectorAll('.kpiGrid,.stats')].map(el=>getComputedStyle(el).gridTemplateColumns),documentOverflow:document.documentElement.scrollWidth>innerWidth,controls:[...document.querySelectorAll('.pageHead button,.pageHead label,.sharedPeriodPanel input,.sharedPeriodPanel button,.businessFilterBar button,.businessFilterBar input,.invoiceFilterPanel button')].map(el=>({text:el.textContent,label:el.getAttribute('aria-label'),type:el.getAttribute('type'),disabled:el.disabled??false})),headerActions:[...document.querySelectorAll('.pageHead button')].map(b=>b.textContent)};
+  const filterBars=[...document.querySelectorAll('.dsFilterBar')];
+  const filterGeometry=filterBars.map(bar=>{
+   const fields=[...bar.querySelectorAll('.businessFilterFields>label,.filterGrid>label')].filter(visible);
+   const triggers=fields.map(el=>el.querySelector('.searchableSelectTrigger'));
+   const textNodes=[...bar.querySelectorAll('label,.searchableSelectTrigger>span')].flatMap(el=>[...el.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE&&n.textContent.trim()).map(n=>{const r=document.createRange();r.selectNodeContents(n);return {text:n.textContent,lines:new Set([...r.getClientRects()].map(b=>Math.round(b.y))).size};}));
+   const reset=bar.querySelector('.filterReset,.filterResetCompact'),search=bar.querySelector('.search');
+   return {fields:fields.map(rect),triggers:triggers.filter(Boolean).map(rect),textNodes,reset:reset?rect(reset):null,search:search?rect(search):null};
+  });
+  return {filterGeometry,tabOverflow:[...document.querySelectorAll('.expenseHubNav')].some(el=>el.scrollWidth>el.clientWidth+1),tabs:[...document.querySelectorAll('.expenseHubNav button')].map(el=>el.textContent),tabRoles:document.querySelectorAll('.expenseHubNav [role="tab"]').length,firstList:rows[0]?rect(rows[0]):null,firstListScreens:rows[0]?(rows[0].getBoundingClientRect().top+scrollY)/innerHeight:null,cards:cards.map(el=>({text:el.textContent,...rect(el),overflow:el.scrollWidth>el.clientWidth+1})),columns:[...document.querySelectorAll('.kpiGrid,.stats')].map(el=>getComputedStyle(el).gridTemplateColumns),documentOverflow:document.documentElement.scrollWidth>innerWidth,controls:[...document.querySelectorAll('.pageHead button,.pageHead label,.sharedPeriodPanel input,.sharedPeriodPanel button,.businessFilterBar button,.businessFilterBar input,.invoiceFilterPanel button')].map(el=>({text:el.textContent,label:el.getAttribute('aria-label'),type:el.getAttribute('type'),disabled:el.disabled??false})),headerActions:[...document.querySelectorAll('.pageHead button')].map(b=>b.textContent)};
  });
  const failures=[...errors];if(phase==='after'){
   if(width===390&&(!proof.firstList||proof.firstList.y>=1800))failures.push('First data item must start before1800px');
   if(width===390&&proof.columns.some(c=>c.split(' ').length!==2))failures.push('Every mobile KPI family must have2 columns');
+  if(width>=1280)for(const g of proof.filterGeometry){
+   if(g.textNodes.some(t=>t.lines>1))failures.push('Filter text wraps onto multiple lines');
+   if(new Set(g.fields.map(f=>Math.round(f.y))).size>1)failures.push('Desktop filters must share one row');
+   if(g.fields.length&&Math.max(...g.fields.map(f=>f.width))-Math.min(...g.fields.map(f=>f.width))>1)failures.push('Desktop filter widths must be equal');
+   if(new Set(g.triggers.map(f=>Math.round(f.y))).size>1||g.triggers.some(f=>Math.abs(f.height-42)>1))failures.push('Filter trigger heights and labels must align');
+   if(g.search&&g.fields.length&&g.search.y+g.search.height>g.fields[0].y)failures.push('Search must occupy its own row');
+   if(g.reset&&g.triggers.length&&Math.abs(g.reset.y+g.reset.height-g.triggers[0].y-g.triggers[0].height)>1)failures.push('Reset must align with filter controls');
+  }
   if(proof.tabOverflow)failures.push('Shared tabs overflow their mobile container');
   if(proof.cards.some(c=>c.overflow))failures.push('KPI content overflow');if(proof.documentOverflow)failures.push('Document overflow');
   const before=JSON.parse(await readFile(output+'/before-manifest.json','utf8')).checks.find(c=>c.screen===screen&&c.width===width);

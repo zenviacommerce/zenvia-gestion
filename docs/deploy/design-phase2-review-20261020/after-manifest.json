@@ -7,6 +7,92 @@
     {
       "screen": "billing",
       "width": 390,
+      "filterGeometry": [
+        {
+          "fields": [
+            {
+              "x": 26,
+              "y": 932.375,
+              "width": 165,
+              "height": 58
+            },
+            {
+              "x": 199,
+              "y": 932.375,
+              "width": 165,
+              "height": 58
+            },
+            {
+              "x": 26,
+              "y": 998.375,
+              "width": 165,
+              "height": 58
+            },
+            {
+              "x": 199,
+              "y": 998.375,
+              "width": 165,
+              "height": 58
+            }
+          ],
+          "triggers": [
+            {
+              "x": 26,
+              "y": 948.375,
+              "width": 165,
+              "height": 42
+            },
+            {
+              "x": 199,
+              "y": 948.375,
+              "width": 165,
+              "height": 42
+            },
+            {
+              "x": 26,
+              "y": 1014.375,
+              "width": 165,
+              "height": 42
+            },
+            {
+              "x": 199,
+              "y": 1014.375,
+              "width": 165,
+              "height": 42
+            }
+          ],
+          "textNodes": [
+            {
+              "text": "Selecciona…",
+              "lines": 1
+            },
+            {
+              "text": "Todos los países",
+              "lines": 1
+            },
+            {
+              "text": "Todos los estados",
+              "lines": 1
+            },
+            {
+              "text": "Todas",
+              "lines": 1
+            }
+          ],
+          "reset": {
+            "x": 26,
+            "y": 1064.375,
+            "width": 338,
+            "height": 40
+          },
+          "search": {
+            "x": 26,
+            "y": 882.375,
+            "width": 338,
+            "height": 42
+          }
+        }
+      ],
       "tabOverflow": false,
       "tabs": [
         "FacturasEmitidas, cobros y rectificativas",
@@ -15,11 +101,11 @@
       "tabRoles": 2,
       "firstList": {
         "x": 15,
-        "y": 1348.671875,
+        "y": 1336.671875,
         "width": 360,
         "height": 216
       },
-      "firstListScreens": 1.348671875,
+      "firstListScreens": 1.336671875,
       "cards": [
         {
           "text": "Facturado3872,00 €Todo el histórico",
@@ -220,6 +306,92 @@
     {
       "screen": "billing",
       "width": 1280,
+      "filterGeometry": [
+        {
+          "fields": [
+            {
+              "x": 301,
+              "y": 738.578125,
+              "width": 187.578125,
+              "height": 58
+            },
+            {
+              "x": 498.578125,
+              "y": 738.578125,
+              "width": 187.59375,
+              "height": 58
+            },
+            {
+              "x": 696.171875,
+              "y": 738.578125,
+              "width": 187.578125,
+              "height": 58
+            },
+            {
+              "x": 893.75,
+              "y": 738.578125,
+              "width": 187.59375,
+              "height": 58
+            }
+          ],
+          "triggers": [
+            {
+              "x": 301,
+              "y": 754.578125,
+              "width": 187.578125,
+              "height": 42
+            },
+            {
+              "x": 498.578125,
+              "y": 754.578125,
+              "width": 187.59375,
+              "height": 42
+            },
+            {
+              "x": 696.171875,
+              "y": 754.578125,
+              "width": 187.578125,
+              "height": 42
+            },
+            {
+              "x": 893.75,
+              "y": 754.578125,
+              "width": 187.59375,
+              "height": 42
+            }
+          ],
+          "textNodes": [
+            {
+              "text": "Selecciona…",
+              "lines": 1
+            },
+            {
+              "text": "Todos los países",
+              "lines": 1
+            },
+            {
+              "text": "Todos los estados",
+              "lines": 1
+            },
+            {
+              "text": "Todas",
+              "lines": 1
+            }
+          ],
+          "reset": {
+            "x": 1093.34375,
+            "y": 754.578125,
+            "width": 133.65625,
+            "height": 42
+          },
+          "search": {
+            "x": 301,
+            "y": 684.578125,
+            "width": 926,
+            "height": 42
+          }
+        }
+      ],
       "tabOverflow": false,
       "tabs": [
         "FacturasEmitidas, cobros y rectificativas",
@@ -228,11 +400,11 @@
       "tabRoles": 2,
       "firstList": {
         "x": 287,
-        "y": 1133.078125,
+        "y": 1076.078125,
         "width": 1383.796875,
         "height": 87.78125
       },
-      "firstListScreens": 1.133078125,
+      "firstListScreens": 1.076078125,
       "cards": [
         {
           "text": "Facturado3872,00 €Todo el histórico",
@@ -429,6 +601,92 @@
     {
       "screen": "billing",
       "width": 1440,
+      "filterGeometry": [
+        {
+          "fields": [
+            {
+              "x": 301,
+              "y": 721.78125,
+              "width": 227.578125,
+              "height": 58
+            },
+            {
+              "x": 538.578125,
+              "y": 721.78125,
+              "width": 227.59375,
+              "height": 58
+            },
+            {
+              "x": 776.171875,
+              "y": 721.78125,
+              "width": 227.578125,
+              "height": 58
+            },
+            {
+              "x": 1013.75,
+              "y": 721.78125,
+              "width": 227.59375,
+              "height": 58
+            }
+          ],
+          "triggers": [
+            {
+              "x": 301,
+              "y": 737.78125,
+              "width": 227.578125,
+              "height": 42
+            },
+            {
+              "x": 538.578125,
+              "y": 737.78125,
+              "width": 227.59375,
+              "height": 42
+            },
+            {
+              "x": 776.171875,
+              "y": 737.78125,
+              "width": 227.578125,
+              "height": 42
+            },
+            {
+              "x": 1013.75,
+              "y": 737.78125,
+              "width": 227.59375,
+              "height": 42
+            }
+          ],
+          "textNodes": [
+            {
+              "text": "Selecciona…",
+              "lines": 1
+            },
+            {
+              "text": "Todos los países",
+              "lines": 1
+            },
+            {
+              "text": "Todos los estados",
+              "lines": 1
+            },
+            {
+              "text": "Todas",
+              "lines": 1
+            }
+          ],
+          "reset": {
+            "x": 1253.34375,
+            "y": 737.78125,
+            "width": 133.65625,
+            "height": 42
+          },
+          "search": {
+            "x": 301,
+            "y": 667.78125,
+            "width": 1086,
+            "height": 42
+          }
+        }
+      ],
       "tabOverflow": false,
       "tabs": [
         "FacturasEmitidas, cobros y rectificativas",
@@ -437,11 +695,11 @@
       "tabRoles": 2,
       "firstList": {
         "x": 287,
-        "y": 1087.28125,
+        "y": 1057.28125,
         "width": 1383.796875,
         "height": 87.78125
       },
-      "firstListScreens": 1.08728125,
+      "firstListScreens": 1.05728125,
       "cards": [
         {
           "text": "Facturado3872,00 €Todo el histórico",
@@ -638,6 +896,155 @@
     {
       "screen": "expenses",
       "width": 390,
+      "filterGeometry": [
+        {
+          "fields": [
+            {
+              "x": 26,
+              "y": 534.375,
+              "width": 165,
+              "height": 61
+            },
+            {
+              "x": 199,
+              "y": 534.375,
+              "width": 165,
+              "height": 61
+            },
+            {
+              "x": 26,
+              "y": 603.375,
+              "width": 165,
+              "height": 61
+            },
+            {
+              "x": 199,
+              "y": 603.375,
+              "width": 165,
+              "height": 61
+            },
+            {
+              "x": 26,
+              "y": 672.375,
+              "width": 165,
+              "height": 61
+            },
+            {
+              "x": 199,
+              "y": 672.375,
+              "width": 165,
+              "height": 61
+            }
+          ],
+          "triggers": [
+            {
+              "x": 26,
+              "y": 553.375,
+              "width": 165,
+              "height": 42
+            },
+            {
+              "x": 199,
+              "y": 553.375,
+              "width": 165,
+              "height": 42
+            },
+            {
+              "x": 26,
+              "y": 622.375,
+              "width": 165,
+              "height": 42
+            },
+            {
+              "x": 199,
+              "y": 622.375,
+              "width": 165,
+              "height": 42
+            },
+            {
+              "x": 26,
+              "y": 691.375,
+              "width": 165,
+              "height": 42
+            },
+            {
+              "x": 199,
+              "y": 691.375,
+              "width": 165,
+              "height": 42
+            }
+          ],
+          "textNodes": [
+            {
+              "text": "Periodo",
+              "lines": 1
+            },
+            {
+              "text": "Todo el histórico",
+              "lines": 1
+            },
+            {
+              "text": "Proveedor",
+              "lines": 1
+            },
+            {
+              "text": "Selecciona…",
+              "lines": 1
+            },
+            {
+              "text": "Categoría",
+              "lines": 1
+            },
+            {
+              "text": "Todas las categorías",
+              "lines": 1
+            },
+            {
+              "text": "Estado",
+              "lines": 1
+            },
+            {
+              "text": "Todos los estados",
+              "lines": 1
+            },
+            {
+              "text": "Pago",
+              "lines": 1
+            },
+            {
+              "text": "Todos los pagos",
+              "lines": 1
+            },
+            {
+              "text": "Origen",
+              "lines": 1
+            },
+            {
+              "text": "Todos los orígenes",
+              "lines": 1
+            }
+          ],
+          "reset": {
+            "x": 26,
+            "y": 741.375,
+            "width": 338,
+            "height": 40
+          },
+          "search": null
+        },
+        {
+          "fields": [],
+          "triggers": [],
+          "textNodes": [],
+          "reset": null,
+          "search": {
+            "x": 25,
+            "y": 1185,
+            "width": 256,
+            "height": 42
+          }
+        }
+      ],
       "tabOverflow": false,
       "tabs": [
         "Facturas de gastoHistórico, filtros y exportación",
@@ -646,16 +1053,16 @@
       "tabRoles": 2,
       "firstList": {
         "x": 15,
-        "y": 1557.296875,
+        "y": 1545.296875,
         "width": 360,
         "height": 303.5
       },
-      "firstListScreens": 1.557296875,
+      "firstListScreens": 1.545296875,
       "cards": [
         {
           "text": "Gasto total19.753.086,24 € + 15.802.469,12 US$Todo el histórico",
           "x": 15,
-          "y": 814.375,
+          "y": 802.375,
           "width": 176,
           "height": 87.3125,
           "overflow": false
@@ -663,7 +1070,7 @@
         {
           "text": "IVA soportado3.428.221,60 € + 2.742.577,28 US$Todo el histórico",
           "x": 199,
-          "y": 814.375,
+          "y": 802.375,
           "width": 176,
           "height": 87.3125,
           "overflow": false
@@ -671,7 +1078,7 @@
         {
           "text": "Nº de facturas32Todo el histórico",
           "x": 15,
-          "y": 909.6875,
+          "y": 897.6875,
           "width": 176,
           "height": 81,
           "overflow": false
@@ -679,7 +1086,7 @@
         {
           "text": "Pendientes de revisar3232 pendientes",
           "x": 199,
-          "y": 909.6875,
+          "y": 897.6875,
           "width": 176,
           "height": 81,
           "overflow": false
@@ -687,7 +1094,7 @@
         {
           "text": "Pendiente de pago19.753.086,24 € + 15.802.469,12 US$32 facturas por pagar",
           "x": 15,
-          "y": 998.6875,
+          "y": 986.6875,
           "width": 176,
           "height": 87.3125,
           "overflow": false
@@ -695,7 +1102,7 @@
         {
           "text": "Ticket medio—Varias monedas",
           "x": 199,
-          "y": 998.6875,
+          "y": 986.6875,
           "width": 176,
           "height": 87.3125,
           "overflow": false
@@ -703,7 +1110,7 @@
         {
           "text": "Proveedores distintos1Todo el histórico",
           "x": 15,
-          "y": 1094,
+          "y": 1082,
           "width": 176,
           "height": 81,
           "overflow": false
@@ -843,6 +1250,155 @@
     {
       "screen": "expenses",
       "width": 1280,
+      "filterGeometry": [
+        {
+          "fields": [
+            {
+              "x": 303,
+              "y": 443,
+              "width": 123.140625,
+              "height": 61
+            },
+            {
+              "x": 436.140625,
+              "y": 443,
+              "width": 123.140625,
+              "height": 61
+            },
+            {
+              "x": 569.28125,
+              "y": 443,
+              "width": 123.140625,
+              "height": 61
+            },
+            {
+              "x": 702.421875,
+              "y": 443,
+              "width": 123.140625,
+              "height": 61
+            },
+            {
+              "x": 835.5625,
+              "y": 443,
+              "width": 123.140625,
+              "height": 61
+            },
+            {
+              "x": 968.703125,
+              "y": 443,
+              "width": 123.140625,
+              "height": 61
+            }
+          ],
+          "triggers": [
+            {
+              "x": 303,
+              "y": 462,
+              "width": 123.140625,
+              "height": 42
+            },
+            {
+              "x": 436.140625,
+              "y": 462,
+              "width": 123.140625,
+              "height": 42
+            },
+            {
+              "x": 569.28125,
+              "y": 462,
+              "width": 123.140625,
+              "height": 42
+            },
+            {
+              "x": 702.421875,
+              "y": 462,
+              "width": 123.140625,
+              "height": 42
+            },
+            {
+              "x": 835.5625,
+              "y": 462,
+              "width": 123.140625,
+              "height": 42
+            },
+            {
+              "x": 968.703125,
+              "y": 462,
+              "width": 123.140625,
+              "height": 42
+            }
+          ],
+          "textNodes": [
+            {
+              "text": "Periodo",
+              "lines": 1
+            },
+            {
+              "text": "Todo el histórico",
+              "lines": 1
+            },
+            {
+              "text": "Proveedor",
+              "lines": 1
+            },
+            {
+              "text": "Selecciona…",
+              "lines": 1
+            },
+            {
+              "text": "Categoría",
+              "lines": 1
+            },
+            {
+              "text": "Todas las categorías",
+              "lines": 1
+            },
+            {
+              "text": "Estado",
+              "lines": 1
+            },
+            {
+              "text": "Todos los estados",
+              "lines": 1
+            },
+            {
+              "text": "Pago",
+              "lines": 1
+            },
+            {
+              "text": "Todos los pagos",
+              "lines": 1
+            },
+            {
+              "text": "Origen",
+              "lines": 1
+            },
+            {
+              "text": "Todos los orígenes",
+              "lines": 1
+            }
+          ],
+          "reset": {
+            "x": 1101.84375,
+            "y": 462,
+            "width": 123.15625,
+            "height": 42
+          },
+          "search": null
+        },
+        {
+          "fields": [],
+          "triggers": [],
+          "textNodes": [],
+          "reset": null,
+          "search": {
+            "x": 286,
+            "y": 775.78125,
+            "width": 787.09375,
+            "height": 42
+          }
+        }
+      ],
       "tabOverflow": false,
       "tabs": [
         "Facturas de gastoHistórico, filtros y exportación",
@@ -851,16 +1407,16 @@
       "tabRoles": 2,
       "firstList": {
         "x": 287,
-        "y": 1130.28125,
+        "y": 1053.28125,
         "width": 1289.90625,
         "height": 68.1875
       },
-      "firstListScreens": 1.13028125,
+      "firstListScreens": 1.05328125,
       "cards": [
         {
           "text": "Gasto total19.753.086,24 € + 15.802.469,12 US$Todo el histórico",
           "x": 286,
-          "y": 612,
+          "y": 535,
           "width": 227,
           "height": 100.390625,
           "overflow": false
@@ -868,7 +1424,7 @@
         {
           "text": "IVA soportado3.428.221,60 € + 2.742.577,28 US$Todo el histórico",
           "x": 529,
-          "y": 612,
+          "y": 535,
           "width": 227,
           "height": 100.390625,
           "overflow": false
@@ -876,7 +1432,7 @@
         {
           "text": "Nº de facturas32Todo el histórico",
           "x": 772,
-          "y": 612,
+          "y": 535,
           "width": 227,
           "height": 100.390625,
           "overflow": false
@@ -884,7 +1440,7 @@
         {
           "text": "Pendientes de revisar3232 pendientes",
           "x": 1015,
-          "y": 612,
+          "y": 535,
           "width": 227,
           "height": 100.390625,
           "overflow": false
@@ -892,7 +1448,7 @@
         {
           "text": "Pendiente de pago19.753.086,24 € + 15.802.469,12 US$32 facturas por pagar",
           "x": 286,
-          "y": 728.390625,
+          "y": 651.390625,
           "width": 227,
           "height": 100.390625,
           "overflow": false
@@ -900,7 +1456,7 @@
         {
           "text": "Ticket medio—Varias monedas",
           "x": 529,
-          "y": 728.390625,
+          "y": 651.390625,
           "width": 227,
           "height": 100.390625,
           "overflow": false
@@ -908,7 +1464,7 @@
         {
           "text": "Proveedores distintos1Todo el histórico",
           "x": 772,
-          "y": 728.390625,
+          "y": 651.390625,
           "width": 227,
           "height": 100.390625,
           "overflow": false
@@ -1044,6 +1600,155 @@
     {
       "screen": "expenses",
       "width": 1440,
+      "filterGeometry": [
+        {
+          "fields": [
+            {
+              "x": 303,
+              "y": 402,
+              "width": 146,
+              "height": 61
+            },
+            {
+              "x": 459,
+              "y": 402,
+              "width": 146,
+              "height": 61
+            },
+            {
+              "x": 615,
+              "y": 402,
+              "width": 146,
+              "height": 61
+            },
+            {
+              "x": 771,
+              "y": 402,
+              "width": 146,
+              "height": 61
+            },
+            {
+              "x": 927,
+              "y": 402,
+              "width": 146,
+              "height": 61
+            },
+            {
+              "x": 1083,
+              "y": 402,
+              "width": 146,
+              "height": 61
+            }
+          ],
+          "triggers": [
+            {
+              "x": 303,
+              "y": 421,
+              "width": 146,
+              "height": 42
+            },
+            {
+              "x": 459,
+              "y": 421,
+              "width": 146,
+              "height": 42
+            },
+            {
+              "x": 615,
+              "y": 421,
+              "width": 146,
+              "height": 42
+            },
+            {
+              "x": 771,
+              "y": 421,
+              "width": 146,
+              "height": 42
+            },
+            {
+              "x": 927,
+              "y": 421,
+              "width": 146,
+              "height": 42
+            },
+            {
+              "x": 1083,
+              "y": 421,
+              "width": 146,
+              "height": 42
+            }
+          ],
+          "textNodes": [
+            {
+              "text": "Periodo",
+              "lines": 1
+            },
+            {
+              "text": "Todo el histórico",
+              "lines": 1
+            },
+            {
+              "text": "Proveedor",
+              "lines": 1
+            },
+            {
+              "text": "Selecciona…",
+              "lines": 1
+            },
+            {
+              "text": "Categoría",
+              "lines": 1
+            },
+            {
+              "text": "Todas las categorías",
+              "lines": 1
+            },
+            {
+              "text": "Estado",
+              "lines": 1
+            },
+            {
+              "text": "Todos los estados",
+              "lines": 1
+            },
+            {
+              "text": "Pago",
+              "lines": 1
+            },
+            {
+              "text": "Todos los pagos",
+              "lines": 1
+            },
+            {
+              "text": "Origen",
+              "lines": 1
+            },
+            {
+              "text": "Todos los orígenes",
+              "lines": 1
+            }
+          ],
+          "reset": {
+            "x": 1239,
+            "y": 421,
+            "width": 146,
+            "height": 42
+          },
+          "search": null
+        },
+        {
+          "fields": [],
+          "triggers": [],
+          "textNodes": [],
+          "reset": null,
+          "search": {
+            "x": 286,
+            "y": 748.1875,
+            "width": 942.75,
+            "height": 42
+          }
+        }
+      ],
       "tabOverflow": false,
       "tabs": [
         "Facturas de gastoHistórico, filtros y exportación",
@@ -1052,16 +1757,16 @@
       "tabRoles": 2,
       "firstList": {
         "x": 287,
-        "y": 1096.6875,
+        "y": 1025.6875,
         "width": 1289.90625,
         "height": 68.1875
       },
-      "firstListScreens": 1.0966875,
+      "firstListScreens": 1.0256875,
       "cards": [
         {
           "text": "Gasto total19.753.086,24 € + 15.802.469,12 US$Todo el histórico",
           "x": 286,
-          "y": 565,
+          "y": 494,
           "width": 267,
           "height": 107.09375,
           "overflow": false
@@ -1069,7 +1774,7 @@
         {
           "text": "IVA soportado3.428.221,60 € + 2.742.577,28 US$Todo el histórico",
           "x": 569,
-          "y": 565,
+          "y": 494,
           "width": 267,
           "height": 107.09375,
           "overflow": false
@@ -1077,7 +1782,7 @@
         {
           "text": "Nº de facturas32Todo el histórico",
           "x": 852,
-          "y": 565,
+          "y": 494,
           "width": 267,
           "height": 107.09375,
           "overflow": false
@@ -1085,7 +1790,7 @@
         {
           "text": "Pendientes de revisar3232 pendientes",
           "x": 1135,
-          "y": 565,
+          "y": 494,
           "width": 267,
           "height": 107.09375,
           "overflow": false
@@ -1093,7 +1798,7 @@
         {
           "text": "Pendiente de pago19.753.086,24 € + 15.802.469,12 US$32 facturas por pagar",
           "x": 286,
-          "y": 688.09375,
+          "y": 617.09375,
           "width": 267,
           "height": 107.09375,
           "overflow": false
@@ -1101,7 +1806,7 @@
         {
           "text": "Ticket medio—Varias monedas",
           "x": 569,
-          "y": 688.09375,
+          "y": 617.09375,
           "width": 267,
           "height": 107.09375,
           "overflow": false
@@ -1109,7 +1814,7 @@
         {
           "text": "Proveedores distintos1Todo el histórico",
           "x": 852,
-          "y": 688.09375,
+          "y": 617.09375,
           "width": 267,
           "height": 107.09375,
           "overflow": false
@@ -1245,6 +1950,71 @@
     {
       "screen": "receipts",
       "width": 390,
+      "filterGeometry": [
+        {
+          "fields": [
+            {
+              "x": 26,
+              "y": 853.75,
+              "width": 165,
+              "height": 58
+            },
+            {
+              "x": 199,
+              "y": 853.75,
+              "width": 165,
+              "height": 58
+            },
+            {
+              "x": 26,
+              "y": 919.75,
+              "width": 165,
+              "height": 58
+            }
+          ],
+          "triggers": [
+            {
+              "x": 26,
+              "y": 869.75,
+              "width": 165,
+              "height": 42
+            },
+            {
+              "x": 199,
+              "y": 869.75,
+              "width": 165,
+              "height": 42
+            },
+            {
+              "x": 26,
+              "y": 935.75,
+              "width": 165,
+              "height": 42
+            }
+          ],
+          "textNodes": [
+            {
+              "text": "Selecciona…",
+              "lines": 1
+            },
+            {
+              "text": "Todos los países",
+              "lines": 1
+            },
+            {
+              "text": "Pendientes de cobro",
+              "lines": 1
+            }
+          ],
+          "reset": null,
+          "search": {
+            "x": 26,
+            "y": 822.75,
+            "width": 338,
+            "height": 23
+          }
+        }
+      ],
       "tabOverflow": false,
       "tabs": [
         "FacturasEmitidas, cobros y rectificativas",
@@ -1253,11 +2023,11 @@
       "tabRoles": 2,
       "firstList": {
         "x": 15,
-        "y": 1203.75,
+        "y": 1187.75,
         "width": 360,
         "height": 199.5
       },
-      "firstListScreens": 1.20375,
+      "firstListScreens": 1.18775,
       "cards": [
         {
           "text": "Pendiente de cobro3200,00 €4T 2026",
@@ -1401,6 +2171,71 @@
     {
       "screen": "receipts",
       "width": 1280,
+      "filterGeometry": [
+        {
+          "fields": [
+            {
+              "x": 301,
+              "y": 659.1875,
+              "width": 302,
+              "height": 58
+            },
+            {
+              "x": 613,
+              "y": 659.1875,
+              "width": 302,
+              "height": 58
+            },
+            {
+              "x": 925,
+              "y": 659.1875,
+              "width": 302,
+              "height": 58
+            }
+          ],
+          "triggers": [
+            {
+              "x": 301,
+              "y": 675.1875,
+              "width": 302,
+              "height": 42
+            },
+            {
+              "x": 613,
+              "y": 675.1875,
+              "width": 302,
+              "height": 42
+            },
+            {
+              "x": 925,
+              "y": 675.1875,
+              "width": 302,
+              "height": 42
+            }
+          ],
+          "textNodes": [
+            {
+              "text": "Selecciona…",
+              "lines": 1
+            },
+            {
+              "text": "Todos los países",
+              "lines": 1
+            },
+            {
+              "text": "Pendientes de cobro",
+              "lines": 1
+            }
+          ],
+          "reset": null,
+          "search": {
+            "x": 301,
+            "y": 605.1875,
+            "width": 926,
+            "height": 42
+          }
+        }
+      ],
       "tabOverflow": false,
       "tabs": [
         "FacturasEmitidas, cobros y rectificativas",
@@ -1409,11 +2244,11 @@
       "tabRoles": 2,
       "firstList": {
         "x": 287,
-        "y": 878.6875,
+        "y": 932.6875,
         "width": 1068.921875,
         "height": 87.78125
       },
-      "firstListScreens": 0.8786875,
+      "firstListScreens": 0.9326875,
       "cards": [
         {
           "text": "Pendiente de cobro3200,00 €4T 2026",
@@ -1553,6 +2388,71 @@
     {
       "screen": "receipts",
       "width": 1440,
+      "filterGeometry": [
+        {
+          "fields": [
+            {
+              "x": 301,
+              "y": 642.390625,
+              "width": 355.328125,
+              "height": 58
+            },
+            {
+              "x": 666.328125,
+              "y": 642.390625,
+              "width": 355.328125,
+              "height": 58
+            },
+            {
+              "x": 1031.65625,
+              "y": 642.390625,
+              "width": 355.34375,
+              "height": 58
+            }
+          ],
+          "triggers": [
+            {
+              "x": 301,
+              "y": 658.390625,
+              "width": 355.328125,
+              "height": 42
+            },
+            {
+              "x": 666.328125,
+              "y": 658.390625,
+              "width": 355.328125,
+              "height": 42
+            },
+            {
+              "x": 1031.65625,
+              "y": 658.390625,
+              "width": 355.34375,
+              "height": 42
+            }
+          ],
+          "textNodes": [
+            {
+              "text": "Selecciona…",
+              "lines": 1
+            },
+            {
+              "text": "Todos los países",
+              "lines": 1
+            },
+            {
+              "text": "Pendientes de cobro",
+              "lines": 1
+            }
+          ],
+          "reset": null,
+          "search": {
+            "x": 301,
+            "y": 588.390625,
+            "width": 1086,
+            "height": 42
+          }
+        }
+      ],
       "tabOverflow": false,
       "tabs": [
         "FacturasEmitidas, cobros y rectificativas",
@@ -1561,11 +2461,11 @@
       "tabRoles": 2,
       "firstList": {
         "x": 287,
-        "y": 861.890625,
+        "y": 915.890625,
         "width": 1114,
         "height": 68.1875
       },
-      "firstListScreens": 0.861890625,
+      "firstListScreens": 0.915890625,
       "cards": [
         {
           "text": "Pendiente de cobro3200,00 €4T 2026",

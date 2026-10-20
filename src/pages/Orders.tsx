@@ -422,12 +422,16 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const [invoiceSelectionOpen,setInvoiceSelectionOpen]=useState(false);
   const [invoiceSelection,setInvoiceSelection]=useState<Set<string>>(()=>new Set());
   const [checkedIds,setCheckedIds]=useState<Set<string>>(()=>new Set());
+  const checkedIdsRef=useRef(checkedIds);checkedIdsRef.current=checkedIds;
+  const selectionCache=useRef(new Map<string,FulfillmentOrder>());
+  const [selectionOpen,setSelectionOpen]=useState(false),[selectionRows,setSelectionRows]=useState<FulfillmentOrder[]>([]);
+  useEffect(()=>{for(const id of selectionCache.current.keys())if(!checkedIds.has(id))selectionCache.current.delete(id)},[checkedIds]);
   const [pickupIds,setPickupIds]=useState<string[]|null>(null);
   const [pickupHistory,setPickupHistory]=useState<string|null>(null);
   useEffect(()=>{const open=(e:Event)=>setPickupHistory((e as CustomEvent<string>).detail);window.addEventListener('zenvia:pickup-history',open);return()=>window.removeEventListener('zenvia:pickup-history',open)},[]);
   const [selectionScope,setSelectionScope]=useState<'page'|'all'>('page');
   const [selectionBusy,setSelectionBusy]=useState(false),[selectionError,setSelectionError]=useState('');
-  const selectionRevision=useRef(0),selectionKeyRef=useRef('');
+  const selectionRevision=useRef(0);
   const [tariffs,setTariffs]=useState<TransportTariffDocument[]>([]);
   const [editValidationCarrier,setEditValidationCarrier]=useState('');
   const [amazonImages,setAmazonImages]=useState<Record<string,string>>({});
@@ -645,30 +649,37 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const sortedOrders=filtered; // Preserve the global order returned by the server page.
   const selectableOrders=state==='pending'?filtered.filter(canPrepareOrder):filtered;
   const selectionTotal=state==='pending'?selectableTotal:matchingTotal;
-  const labelSelectionAllowed=[...checkedIds].every(id=>{const item=orders.find(o=>o.id===id);return item?canPrepareOrder(item):state==='pending'});
+  for(const item of orders)if(checkedIds.has(item.id))selectionCache.current.set(item.id,item);
+  const labelSelectionAllowed=[...checkedIds].every(id=>{const item=orders.find(o=>o.id===id)||selectionCache.current.get(id);return !item||canPrepareOrder(item)});
   const selectedCount=checkedIds.size;
   const selectionFilterKey=JSON.stringify([dateFrom,dateTo,state,channel,query,trackingFilter,countryFilter,carrierFilter]);
   const currentSelectionFilterKey=useRef(selectionFilterKey);currentSelectionFilterKey.current=selectionFilterKey;
   const allSelectableSelected=selectableOrders.length>0&&selectableOrders.every(order=>checkedIds.has(order.id));
-  const toggleOrder=(id:string,checked:boolean)=>{selectionKeyRef.current=selectionFilterKey;setCheckedIds(current=>{const next=new Set(current);if(checked)next.add(id);else next.delete(id);return next;});};
-  const toggleAllOrders=(checked:boolean)=>{selectionKeyRef.current=selectionFilterKey;setSelectionScope('page');setCheckedIds(checked?new Set(selectableOrders.map(order=>order.id)):new Set());};
-  const toggleVisiblePage=(checked:boolean)=>{
-    if(selectionScope==='page'){toggleAllOrders(checked);return;}
-    setCheckedIds(current=>{const next=new Set(current);for(const order of selectableOrders){if(checked)next.add(order.id);else next.delete(order.id);}return next;});
+  const toggleOrder=(id:string,checked:boolean)=>{if(checked&&!checkedIds.has(id)&&checkedIds.size>=2000){setSelectionError('La selección completa supera 2.000 pedidos.');return}setCheckedIds(current=>{const next=new Set(current);if(checked)next.add(id);else next.delete(id);return next;});};
+  const visibleSelectedCount=selectableOrders.filter(o=>checkedIds.has(o.id)).length;
+  const toggleAllOrders=(checked:boolean)=>{setCheckedIds(current=>{const next=new Set(current);for(const order of selectableOrders){if(checked)next.add(order.id);else next.delete(order.id)}if(next.size>2000){setSelectionError('La selección completa supera 2.000 pedidos. Quita pedidos antes de añadir más.');return current}return next});};
+  const toggleVisiblePage=toggleAllOrders;
+  const clearSelection=()=>{selectionRevision.current++;bulkQuoteRevision.current++;setCheckedIds(new Set());selectionCache.current.clear();setSelectionScope('page');setSelectionBusy(false);setSelectionError('');setBulkPreview(null);setSelectionOpen(false);setSelectionRows([])};
+  const confirmSelectionScope=async(ids:string[],action:string)=>{
+    const hidden=ids.filter(id=>!filtered.some(o=>o.id===id)).length;
+    return !hidden||await confirmAction({title:'Incluir pedidos fuera de esta vista',message:`${ids.length} pedidos seleccionados: ${hidden} no están en la página o filtros actuales. Se usará la selección completa para ${action}.`,confirmLabel:`Continuar con los ${ids.length}`,tone:'warning'});
   };
+  const openPickupSelection=async()=>{const ids=[...checkedIds],revision=selectionRevision.current;if(!ids.length||!await confirmSelectionScope(ids,'el informe de recogida')||revision!==selectionRevision.current)return;setPickupIds(ids)};
+  const viewSelection=async()=>{setSelectionOpen(true);setSelectionBusy(true);setSelectionError('');const revision=++selectionRevision.current;try{const rows=await listSelectedOrdersForBulk(pageParamsRef.current,[...checkedIds]);if(revision===selectionRevision.current)setSelectionRows(rows)}catch(e){if(revision===selectionRevision.current)setSelectionError(errorMessage(e,'No se pudo releer la selección. Quita cualquier pedido que ya no esté disponible.'))}finally{if(revision===selectionRevision.current)setSelectionBusy(false)}};
   const selectAllMatching=async()=>{
     const revision=++selectionRevision.current,key=selectionFilterKey;
     setSelectionBusy(true);setSelectionError('');
     try{
       const ids=await (state==='pending'?fetchMatchingOrderIds({...pageParamsRef.current}):selectPickupOrderIds({...pageParamsRef.current}));
       if(revision!==selectionRevision.current||key!==currentSelectionFilterKey.current)return;
-      selectionKeyRef.current=key;setCheckedIds(new Set(ids));setSelectionScope('all');
+      const combined=new Set([...checkedIdsRef.current,...ids]);if(combined.size>2000)throw new Error('La selección completa supera 2.000 pedidos. Quita pedidos antes de añadir más.');
+      setCheckedIds(combined);setSelectionScope('all');
     }catch(e){if(revision===selectionRevision.current&&key===currentSelectionFilterKey.current)setSelectionError(errorMessage(e,'No se pudieron seleccionar todos los pedidos.'));}
     finally{if(revision===selectionRevision.current)setSelectionBusy(false);}
   };
-  useEffect(()=>{selectionRevision.current++;bulkQuoteRevision.current++;setCheckedIds(new Set());setSelectionScope('page');setSelectionBusy(false);setSelectionError('');setBulkPreview(null);},[selectionFilterKey]);
-  useEffect(()=>{if(selectionScope==='page')setCheckedIds(new Set());},[page,preferences.pageSize,sorting.sort.key,sorting.sort.direction]);
-  useEffect(()=>{const reset=()=>{selectionRevision.current++;bulkQuoteRevision.current++;selectionKeyRef.current='';setPickupIds(null);setPickupHistory(null);setCheckedIds(new Set());setSelectionScope('page');setSelectionBusy(false);setSelectionError('');setBulkPreview(null);};window.addEventListener('zenvia:tenant-changed',reset);return()=>window.removeEventListener('zenvia:tenant-changed',reset);},[]);
+  useEffect(()=>{selectionRevision.current++;bulkQuoteRevision.current++;setSelectionScope('page');setSelectionBusy(false);setSelectionError('');setBulkPreview(null);},[selectionFilterKey]);
+
+  useEffect(()=>{const reset=()=>{selectionRevision.current++;bulkQuoteRevision.current++;selectionCache.current.clear();setSelectionOpen(false);setSelectionRows([]);setInvoiceSelectionOpen(false);setInvoiceCandidates([]);setInvoiceSelection(new Set());setInvoiceQueue([]);setInvoiceOrder(null);setPickupIds(null);setPickupHistory(null);setCheckedIds(new Set());setSelectionScope('page');setSelectionBusy(false);setSelectionError('');setBulkPreview(null);};window.addEventListener('zenvia:tenant-changed',reset);return()=>window.removeEventListener('zenvia:tenant-changed',reset);},[]);
 
   const labelFilenameOptions={strategy:settings.orders.labelFilenameStrategy,template:settings.orders.customLabelFilenameTemplate};
   const enabledShippingOptions=(available:ShippingOption[])=>{
@@ -780,7 +791,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       showAfterMs:150,
     });
     setBulkGenerating(true);setBulkProgress(`0/${targets.length}`);setError('');
-    const zip=new JSZip(),usedNames=new Set<string>(),failed:string[]=[];
+    const zip=new JSZip(),usedNames=new Set<string>(),failed:string[]=[],generatedIds=new Set<string>();
     let processed=0,generated=0;
     try{
       for(const order of targets){
@@ -806,7 +817,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
           if(result.confirmationError)showInfo(`Pedido ${order.orderNumber||order.id}: etiqueta creada; confirmación pendiente: ${result.confirmationError}`);
           const prepared=await prepareLabelPdf(labelBlob(result),settings.shipping);
           zip.file(uniqueLabelPdfFilename(order,usedNames,labelFilenameOptions),prepared);
-          generated+=1;
+          generated+=1;generatedIds.add(order.id);
         }catch(e){failed.push(`${order.orderNumber||order.orderId||order.id}: ${errorMessage(e,'Error al generar etiqueta')}`)}
         finally{
           processed+=1;
@@ -825,7 +836,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
         });
         downloadBlob(blob,bulkLabelZipFilename(settings.orders.bulkZipFilenameTemplate,scope,iso(new Date())));
       }
-      const freshOrders=await refresh();setCheckedIds(new Set());setSelected(current=>current?freshOrders.find(item=>item.id===current.id)||null:null);
+      const freshOrders=await refresh();setCheckedIds(current=>new Set([...current].filter(id=>!generatedIds.has(id))));setSelected(current=>current?freshOrders.find(item=>item.id===current.id)||null:null);
       if(failed.length){const detail=failed.slice(0,3).join(' · ');showError(`${generated} etiquetas generadas. ${failed.length} no se pudieron generar${detail?`: ${detail}`:''}`)}
       else showSuccess(`${generated} etiquetas generadas y descargadas en un ZIP.`);
     }catch(e){showError(errorMessage(e,'Las etiquetas se generaron, pero no se pudo preparar el ZIP.'))}
@@ -927,10 +938,10 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   };
   const generateSelectedLabels=async()=>{
     if(selectionBusy||bulkGenerating||bulkPreview?.loading||!checkedIds.size)return;
-    if(selectionKeyRef.current!==selectionFilterKey){setSelectionError('Los filtros han cambiado. Vuelve a seleccionar los pedidos.');return;}
-    const revision=++selectionRevision.current,key=selectionFilterKey,ids=[...checkedIds];
+        const revision=++selectionRevision.current,key=selectionFilterKey,ids=[...checkedIds];
     setSelectionBusy(true);setSelectionError('');
     try{
+      if(!await confirmSelectionScope(ids,'generar etiquetas')||revision!==selectionRevision.current)return;
       const targets=await listSelectedOrdersForBulk({...pageParamsRef.current},ids);
       if(revision!==selectionRevision.current||key!==currentSelectionFilterKey.current)return;
       if(targets.some(order=>!canPrepareOrder(order)))throw new Error('El conjunto de pedidos ha cambiado. Actualiza y vuelve a seleccionar.');
@@ -942,9 +953,13 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     try{
       // Invoicing is explicitly requested: fetch the complete filtered Shopify
       // scope on demand instead of silently using only the visible page.
-      const candidates=await listMatchingOrdersForAction({...pageParamsRef.current,channel:'shopify'});
+      const ids=[...checkedIds],revision=selectionRevision.current;
+      if(ids.length&&!await confirmSelectionScope(ids,'facturar pedidos'))return;
+      const candidates=ids.length?await listSelectedOrdersForBulk(pageParamsRef.current,ids):await listMatchingOrdersForAction({...pageParamsRef.current,channel:'shopify'});
+      if(revision!==selectionRevision.current)return;
+      if(ids.length&&candidates.some(o=>o.sourceChannel!=='shopify'||isCancelledOrder(o)))throw new Error('La facturación admite pedidos Shopify no cancelados. Revisa la selección completa; no se omitirá ningún pedido.');
       setInvoiceCandidates(candidates.filter(order=>!isCancelledOrder(order)));
-      setInvoiceSelection(new Set());
+      setInvoiceSelection(new Set(ids));
       setInvoiceSelectionOpen(true);
     }catch(e){showError(errorMessage(e,'No se pudieron recuperar los pedidos Shopify para facturar.'))}
   };
@@ -980,21 +995,24 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
         <label className="filterField"><span>Seguimiento</span><SelectField value={trackingFilter} onChange={value=>setTrackingFilter(value as TrackingFilter)} ariaLabel="Filtrar por seguimiento" options={[{value:'all',label:'Todos'},{value:'none',label:'Sin etiqueta / pendiente'},{value:'ready',label:'Preparado'},{value:'transit',label:'En tránsito'},{value:'route',label:'En reparto'},{value:'pickup',label:'Punto de recogida'},{value:'delivered',label:'Entregado'},{value:'issue',label:'Incidencia'},{value:'cancelled',label:'Cancelado'}]}/></label>
       </div>
     </div>
-    {selectableOrders.length>0&&<BulkSelectionToolbar disabled={selectionBusy||bulkGenerating} selectedCount={selectedCount} totalCount={selectionScope==='all'?selectionTotal:selectableOrders.length} allSelected={selectionScope==='all'?selectedCount===selectionTotal:allSelectableSelected} onToggleAll={checked=>selectionScope==='all'&&checked?void selectAllMatching():toggleAllOrders(checked)} label={selectionScope==='all'?'pedidos de todos los resultados':state==='pending'?'pedidos con etiqueta pendiente de esta página':'pedidos de esta página'} scopeLabel={selectionScope==='all'?'este filtro':'esta página'}>
-      <button className="primary" type="button" disabled={!selectedCount||!labelSelectionAllowed||bulkGenerating||selectionBusy} onClick={()=>void generateSelectedLabels()}><Download size={15}/> {selectionBusy?'Recuperando selección…':bulkGenerating&&selectedCount?`Generando ${bulkProgress}`:`Generar etiquetas seleccionadas (${selectedCount})`}</button>
-      <button className="secondary" type="button" disabled={!selectedCount||bulkGenerating||selectionBusy} onClick={()=>setPickupIds([...checkedIds])}><FileText size={15}/> Generar informe de recogida</button>
-    </BulkSelectionToolbar>}
-    {selectableOrders.length>0&&<div className="ordersSelectionScope" role="note">
-      <p className="muted">{selectionScope==='all'?`Seleccionados ${selectedCount} pedidos en todos los resultados del filtro. La selección se conserva al cambiar de página y se borra al cambiar filtros.`:`La selección incluye esta página (${selectedCount} de ${selectableOrders.length} pedidos seleccionables). Se borra al cambiar de página o filtros.`}</p>
-      {selectionScope==='page'&&allSelectableSelected&&selectionTotal>selectableOrders.length&&<button type="button" className="link" disabled={selectionBusy||bulkGenerating} onClick={()=>void selectAllMatching()}>{selectionBusy?'Seleccionando todos…':`Seleccionar los ${selectionTotal} pedidos que coinciden con los filtros`}</button>}
-      {selectionScope==='all'&&<button type="button" className="link" disabled={selectionBusy||bulkGenerating} onClick={()=>toggleAllOrders(false)}>Borrar selección completa</button>}
+    <BulkSelectionToolbar alwaysVisible disabled={selectionBusy||bulkGenerating||loading||!selectableOrders.length} selectedCount={selectedCount} totalCount={selectableOrders.length} allSelected={allSelectableSelected} indeterminate={visibleSelectedCount>0&&!allSelectableSelected} onToggleAll={toggleAllOrders} scopeLabel="esta página" countLabel={`${selectedCount} seleccionados · ${visibleSelectedCount} de ${selectableOrders.length} en esta página`}>
+      <button type="button" className="link" disabled={!selectedCount||selectionBusy||bulkGenerating} onClick={()=>void viewSelection()}>Ver selección</button>
+      <button type="button" className="link" disabled={!selectedCount||bulkGenerating} onClick={clearSelection}>Quitar selección</button>
+      <button className="primary" type="button" disabled={!selectedCount||!labelSelectionAllowed||bulkGenerating||selectionBusy||loading} onClick={()=>void generateSelectedLabels()}><Download size={15}/> {selectionBusy?'Recuperando selección…':bulkGenerating&&selectedCount?`Generando ${bulkProgress}`:`Generar etiquetas seleccionadas (${selectedCount})`}</button>
+      <button className="secondary" type="button" disabled={!selectedCount||bulkGenerating||selectionBusy||loading} onClick={()=>void openPickupSelection()}><FileText size={15}/> Generar informe de recogida ({selectedCount})</button>
+    </BulkSelectionToolbar>
+    <div className="ordersSelectionScope" role="note">
+      <p className="muted">{selectionScope==='all'?`Seleccionados ${selectedCount} pedidos, incluyendo todos los resultados del último filtro.`:`Seleccionados ${selectedCount} pedidos. La selección se conserva al buscar, filtrar, cambiar de página o de pestaña.`}</p>
+      {allSelectableSelected&&selectionTotal>selectableOrders.length&&<button type="button" className="link" disabled={selectionBusy||bulkGenerating||loading} onClick={()=>void selectAllMatching()}>{selectionBusy?'Seleccionando todos…':`Seleccionar los ${selectionTotal} pedidos que coinciden con los filtros`}</button>}
+      {selectionScope==='all'&&<button type="button" className="link" disabled={selectionBusy||bulkGenerating} onClick={clearSelection}>Borrar selección completa</button>}
+      {!labelSelectionAllowed&&<p className="muted">La selección contiene pedidos que ya no admiten una nueva etiqueta. Revisa «Ver selección» antes de generar etiquetas.</p>}
       {selectionError&&<p className="errorText" role="alert">{selectionError}</p>}
-    </div>}
+    </div>
     {printer&&<div className="ordersPrinterBar"><Printer size={15}/><span>Impresora directa:</span>{printers.length?<SearchableSelect value={printer} options={printers.map(item=>({value:item.id,label:`${item.name}${item.default?' · predeterminada':''}`,searchText:item.name}))} onChange={value=>{setPrinter(value);void patchPreferences({labelPrinterId:value})}} searchPlaceholder="Buscar impresora…" ariaLabel="Impresora directa"/>:<strong>{printer}</strong>}<button className="link" onClick={()=>{setPrinter('');void patchPreferences({labelPrinterId:null})}}>Usar PDF</button></div>}
 
-    {filtered.some(order=>order.sourceChannel==='shopify')&&<div className="ordersPrinterBar"><FileText size={16}/><span>Facturación manual de Shopify</span><button className="secondary" onClick={()=>void openShopifyInvoiceSelection()}>Seleccionar pedidos para facturar</button></div>}
+    {(selectedCount>0||filtered.some(order=>order.sourceChannel==='shopify'))&&<div className="ordersPrinterBar"><FileText size={16}/><span>Facturación manual de Shopify</span><button className="secondary" onClick={()=>void openShopifyInvoiceSelection()}>Seleccionar pedidos para facturar</button></div>}
     {pager}
-    <section className="card tableCard ordersTableCard">{loading?<div className="emptyState large"><LoaderCircle className="spin"/> Cargando pedidos…</div>:filtered.length?<table className="ordersTable"><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allSelectableSelected} disabled={selectionBusy||bulkGenerating||!selectableOrders.length} onChange={toggleVisiblePage} label={allSelectableSelected?(state==='pending'?'Deseleccionar pedidos pendientes de esta página':'Deseleccionar pedidos de esta página'):(state==='pending'?'Seleccionar pedidos pendientes de esta página':'Seleccionar pedidos de esta página')}/></th>
+    <section className="card tableCard ordersTableCard">{loading?<div className="emptyState large"><LoaderCircle className="spin"/> Cargando pedidos…</div>:filtered.length?<table className="ordersTable"><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allSelectableSelected} indeterminate={visibleSelectedCount>0&&!allSelectableSelected} disabled={selectionBusy||bulkGenerating||!selectableOrders.length} onChange={toggleVisiblePage} label={allSelectableSelected?(state==='pending'?'Deseleccionar pedidos pendientes de esta página':'Deseleccionar pedidos de esta página'):(state==='pending'?'Seleccionar pedidos pendientes de esta página':'Seleccionar pedidos de esta página')}/></th>
       <SortableTableHeader label="Canal" sortKey="channel" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Pedido" sortKey="order" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Cliente" sortKey="customer" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
@@ -1038,7 +1056,8 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     {invoiceSelectionOpen&&<div className="modalBackdrop"><div className="modal polishedModal"><div className="modalHead"><div><h3>Facturar pedidos Shopify</h3><p>Selecciona los pedidos. Revisarás cada factura antes de emitirla o enviarla.</p></div><button onClick={()=>setInvoiceSelectionOpen(false)} aria-label="Cerrar"><X/></button></div><div style={{maxHeight:'50vh',overflowY:'auto'}}>{invoiceCandidates.filter(o=>o.sourceChannel==='shopify'&&!isCancelledOrder(o)).map(o=><label key={o.id} style={{display:'flex',gap:12,padding:12}}><input type="checkbox" checked={invoiceSelection.has(o.id)} onChange={e=>{const checked=e.target.checked;setInvoiceSelection(ids=>{const next=new Set(ids);if(checked)next.add(o.id);else next.delete(o.id);return next})}}/>{o.orderNumber} · {o.customerName} · {money(o.totalAmount,o.currency||'EUR')}</label>)}</div><div className="modalActions"><button className="secondary" onClick={()=>setInvoiceSelectionOpen(false)}>Cancelar</button><button className="primary" disabled={!invoiceSelection.size} onClick={()=>{const targets=invoiceCandidates.filter(o=>invoiceSelection.has(o.id));setInvoiceOrder(targets[0]);setInvoiceQueue(targets.slice(1));setInvoiceSelectionOpen(false)}}>Revisar {invoiceSelection.size} pedidos</button></div></div></div>}
     {invoiceOrder&&<OrderInvoiceModal key={invoiceOrder.id} order={invoiceOrder} hasNext={invoiceQueue.length>0} onClose={()=>{setInvoiceOrder(invoiceQueue[0]||null);setInvoiceQueue(q=>q.slice(1))}} onSaved={()=>void refresh()}/> }
     {selected&&(()=>{const current=orders.find(item=>item.id===selected.id)||selected;const validation=canPrepareOrder(current)?validateOrderForCarrier(current,undefined,settings.shipping):{blocking:false,issues:[] as OrderValidationIssue[]};const shipping=shippingPriceForOrder(current,tariffPreviews[current.id]);return <OrderDrawer order={current} shippingPrice={shipping} validationIssues={validation.issues} productImages={amazonImages} onClose={()=>setSelected(null)} onEdit={()=>{setEditValidationCarrier(validationCarrier(current));setEditOrder(current)}} onPrepare={()=>prepare(current)} onPrint={()=>existingLabel(current,'print')} onDownload={()=>existingLabel(current,'download')} onInvoice={()=>{setSelected(null);setInvoiceOrder(current)}} onConfirmShipment={()=>{setBusyOrder(current.id);void confirmOrderTracking(current.id).then(async()=>{await refresh();showSuccess('Envío confirmado en Shopify.');}).catch(e=>showError(errorMessage(e,'No se pudo confirmar el envío en Shopify.'))).finally(()=>setBusyOrder(null))}} busy={busyOrder===selected.id||preparingOrder===selected.id}/>})()}
-    {pickupIds&&<PickupReportModal ids={pickupIds} onClose={()=>setPickupIds(null)} onCreated={()=>{void refresh()}}/>}
+    {selectionOpen&&<div className="modalBackdrop"><section className="modal pickupModal" role="dialog" aria-modal="true" aria-label="Pedidos seleccionados"><header className="modalHead"><h2>{selectedCount} pedidos seleccionados</h2><button type="button" aria-label="Cerrar selección" onClick={()=>setSelectionOpen(false)}><X/></button></header><div className="pickupBody">{selectionBusy&&<p role="status">Releyendo selección…</p>}{selectionError&&<p className="errorText">{selectionError}</p>}{[...checkedIds].map(id=>{const row=selectionRows.find(o=>o.id===id)||selectionCache.current.get(id);return <div className="pickupRow" key={id}><span>{row?.orderNumber||id} · {row?.sourceChannel==='shopify'?'Shopify':row?.sourceChannel==='amazon'?'Amazon':'Pedido'}</span><button className="secondary" disabled={bulkGenerating} onClick={()=>toggleOrder(id,false)} aria-label={`Quitar pedido ${row?.orderNumber||id}`}>Quitar</button></div>})}</div><footer className="modalActions"><button className="secondary" onClick={()=>setSelectionOpen(false)}>Volver a pedidos</button></footer></section></div>}
+    {pickupIds&&<PickupReportModal ids={pickupIds} onClose={()=>setPickupIds(null)} onCreated={()=>{clearSelection();void refresh()}}/>}
     {pickupHistory&&<PickupReportHistory orderId={pickupHistory==='all'?undefined:pickupHistory} onClose={()=>setPickupHistory(null)}/>}
     {labelOrder&&<LabelModal order={labelOrder} options={options} tariffs={tariffs} message={optionsMessage} loading={optionsLoading} providerStates={providerStates} onRetry={retryProvider} preferredOption={automaticShippingOption(labelOrder,options)} onClose={()=>{quoteGeneration.current++;setPreparingOrder(null);setLabelOrder(null)}} onCreate={createLabel}/>}
     {manualOpen&&<ManualOrderModal saving={manualSaving} defaultCountryCode={settings.orders.originCountryCode} fallbackWeightKg={settings.shipping.fallbackWeightKg} weightUnit={settings.shipping.weightUnit} onClose={()=>setManualOpen(false)} onSave={saveManual}/>}

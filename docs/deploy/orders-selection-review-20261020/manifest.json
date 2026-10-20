@@ -1,0 +1,24 @@
+{
+  "synthetic": true,
+  "networkBlocked": true,
+  "checks": [
+    {
+      "device": "desktop",
+      "selectedBeforeSearch": 3,
+      "selectedAfterSearch": 4,
+      "completePreview": true,
+      "pagePersistence": true,
+      "purchases": 0,
+      "errors": []
+    },
+    {
+      "device": "mobile",
+      "selectedBeforeSearch": 3,
+      "selectedAfterSearch": 4,
+      "completePreview": true,
+      "pagePersistence": true,
+      "purchases": 0,
+      "errors": []
+    }
+  ]
+}

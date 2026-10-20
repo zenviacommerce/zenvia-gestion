@@ -22,7 +22,7 @@ it('retrieves the exact saved global selection across pages and refuses changed 
  const {listSelectedOrdersForBulk}=await import('../src/services/orders');
  const ids=Array.from({length:105},(_,i)=>'id-'+i);respond();
  expect(await listSelectedOrdersForBulk(filters,ids)).toHaveLength(105);
- expect(api.rpc).toHaveBeenCalledWith('orders_dashboard_page_v1',expect.objectContaining({p_selected_ids:ids,p_page:1,p_page_size:100}));
+ expect(api.rpc).toHaveBeenCalledWith('orders_dashboard_page_v1',expect.objectContaining({p_selected_ids:ids,p_page:1,p_page_size:100,p_state:'all',p_channel:'all',p_query:'',p_from:null,p_to:null}));
  api.rpc.mockReturnValue({abortSignal:()=>Promise.resolve({data:{rows:[],total:0,kpis:{},facets:{}},error:null})});
  await expect(listSelectedOrdersForBulk(filters,ids)).rejects.toThrow(/cambiado/);
 });

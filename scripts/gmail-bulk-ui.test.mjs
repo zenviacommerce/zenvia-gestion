@@ -3,14 +3,14 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import ts from 'typescript';
-import React,{act,useEffect,useMemo,useState} from 'react';
+import React,{act,useEffect,useMemo,useRef,useState} from 'react';
 import {Window} from 'happy-dom';
 import {errorMessage} from '../src/services/toast.ts';
 
 function component(path,name,context){
  const source=fs.readFileSync(path,'utf8').replace(/^import[\s\S]*?;\n/gm,'').replaceAll('export ','');
  const code=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext,jsx:ts.JsxEmit.React}}).outputText;
- return vm.runInNewContext(code+'\n'+name,{React,useEffect,useMemo,useState,...context});
+ return vm.runInNewContext(code+'\n'+name,{React,useEffect,useMemo,useRef,useState,...context});
 }
 test('Gmail checkboxes import a selected batch and advance through manual reviews',async()=>{
  const window=new Window();const previous={};

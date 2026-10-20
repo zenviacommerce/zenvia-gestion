@@ -1,0 +1,99 @@
+{
+  "pages": [
+    {
+      "file": "src/pages/Admin.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/Amazon.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/Clients.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/Dashboard.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/ExpenseInvoicesHub.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/Gmail.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/Invoices.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/Orders.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/Products.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/SalesInvoices.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/SalesInvoicesCore.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/SalesReceipts.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/Settings.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/Shopify.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/Suppliers.tsx",
+      "legacyWrappers": {}
+    },
+    {
+      "file": "src/pages/Support.tsx",
+      "legacyWrappers": {}
+    }
+  ],
+  "nonOwnerLegacyComponents": [],
+  "scope": "Active page header and KPI wrapper families; record details contain field/value summaries, analytical period rails remain specialized approved components.",
+  "renderedRoutes": [
+    "Resumen",
+    "Pedidos",
+    "Facturación",
+    "Gastos",
+    "Recibos",
+    "Productos",
+    "Clientes",
+    "Proveedores",
+    "Amazon",
+    "Shopify",
+    "Soporte",
+    "Configuración",
+    "Administración",
+    "Facturas desde Gmail"
+  ],
+  "viewportWidths": [
+    390,
+    1280,
+    1440
+  ],
+  "evidence": [
+    "design-phase1-review-20261020",
+    "design-phase2-review-20261020",
+    "design-phase3-masters-20261020",
+    "design-phase3-commerce-20261020",
+    "design-phase3-final-20261020"
+  ],
+  "result": "zero-active-legacy-header-kpi-wrappers"
+}

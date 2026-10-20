@@ -1,3 +1,8 @@
+import {PageHeader} from '../components/PageHeader';
+import {PageTabs} from '../components/PageTabs';
+import {KpiGrid} from '../components/KpiGrid';
+import {StatCard} from '../components/StatCard';
+import {FilterBar} from '../components/FilterBar';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import { Check, Clock3, History, KeyRound, Pencil, RefreshCw, Search, ShieldCheck, Trash2, UserRoundPlus, Users, X } from 'lucide-react';
 import { createManagedUser, deleteManagedUser, listManagedUsers, permissionOptions, updateManagedUser, type AppRole, type ManagedUser, type MenuPermission } from '../services/access';
@@ -70,23 +75,16 @@ export function AdminPage({ currentUserId, workspaceName }: { currentUserId: str
   };
 
   const activeCount = users.filter(user => user.active).length;
-  return <div className="page adminPage">
-    <div className="pageHead">
-      <div><div className="eyebrow">ADMINISTRACIÓN</div><h1>Administración</h1><p>Gestiona usuarios, permisos y revisa la actividad realizada dentro de ZENVIA Gestión.</p></div>
-      {tab==='users'&&<button className="primary" onClick={() => setEditor({ user: null })}><UserRoundPlus size={17}/> Nuevo usuario</button>}
-    </div>
-
-    <div className="adminTabs" role="tablist">
-      <button className={tab==='users'?'active':''} onClick={()=>setTab('users')}><Users size={16}/> Usuarios y accesos</button>
-      <button className={tab==='audit'?'active':''} onClick={()=>setTab('audit')}><History size={16}/> Auditoría</button>
-    </div>
-
+  return <div className="page adminPage finalDesignPage designSystemPage">
+    <PageHeader title="Administración" eyebrow="ADMINISTRACIÓN" description="Gestiona usuarios, permisos y revisa la actividad realizada dentro de ZENVIA Gestión." actions={tab==='users'?<button className="primary" onClick={() => setEditor({ user: null })}><UserRoundPlus size={17}/> Nuevo usuario</button>:undefined}/>
+    <PageTabs className="finalPageTabs" panelId="admin-tab-panel" label="Secciones de administración" value={tab} onChange={setTab} items={[{id:'users',label:'Usuarios y accesos',icon:<Users size={16}/>},{id:'audit',label:'Auditoría',icon:<History size={16}/>} ]}/>
+    <div role="tabpanel" id="admin-tab-panel" aria-labelledby={'admin-tab-panel-tab-'+tab}>
     {tab==='users'?<>
-      <div className="adminStats">
-        <div className="card adminStat"><Users/><div><span>Usuarios</span><strong>{users.length}</strong></div></div>
-        <div className="card adminStat"><Check/><div><span>Con acceso</span><strong>{activeCount}</strong></div></div>
-        <div className="card adminStat"><ShieldCheck/><div><span>Administradores</span><strong>{users.filter(user => user.role === 'admin').length}</strong></div></div>
-      </div>
+      <KpiGrid label="Usuarios y accesos">
+        <StatCard label="Usuarios" value={users.length} icon={<Users/>}/>
+        <StatCard label="Con acceso" value={activeCount} icon={<Check/>}/>
+        <StatCard label="Administradores" value={users.filter(user => user.role === 'admin').length} icon={<ShieldCheck/>}/>
+      </KpiGrid>
 
       {error && <div className="errorBox adminError">{error}</div>}
       <section className="card adminUsersCard">
@@ -113,6 +111,7 @@ export function AdminPage({ currentUserId, workspaceName }: { currentUserId: str
         {users.length>0&&<Pagination page={page} totalItems={users.length} pageSize={PAGE_SIZE} onPageChange={setPage}/>}
       </section>
     </>:<AuditPanel users={users} currentUserId={currentUserId}/>}
+    </div>
 
     {editor && <UserEditor user={editor.user} currentUserId={currentUserId} onClose={() => setEditor(null)} onSaved={async () => { setEditor(null); await refresh(); }}/>} 
   </div>;
@@ -171,20 +170,21 @@ function AuditPanel({users,currentUserId}:{users:ManagedUser[];currentUserId:str
   useEffect(()=>{setPage(current=>Math.min(current,totalPages))},[totalPages]);
 
   return <>
-    <div className="adminAuditStats">
-      <div className="card adminAuditStat"><History/><div><span>Movimientos cargados</span><strong>{entries.length}</strong></div></div>
-      <div className="card adminAuditStat"><Users/><div><span>Usuarios con actividad</span><strong>{actorOptions.length}</strong></div></div>
-      <div className="card adminAuditStat"><Clock3/><div><span>Mostrando</span><strong>{shown.length}</strong></div></div>
-    </div>
+    <KpiGrid label="Actividad de administración">
+      <StatCard label="Movimientos cargados" value={entries.length} icon={<History/>}/>
+      <StatCard label="Usuarios con actividad" value={actorOptions.length} icon={<Users/>}/>
+      <StatCard label="Mostrando" value={shown.length} icon={<Clock3/>}/>
+    </KpiGrid>
     <section className="card adminAuditCard">
       <div className="adminUsersHead"><div><h3>Registro de actividad</h3><p>Acciones realizadas por los usuarios desde que se activó la auditoría.</p></div><button className="secondary" onClick={refresh} disabled={loading}><RefreshCw size={15} className={loading?'spin':''}/> Actualizar</button></div>
-      <div className="auditFilters">
+      <FilterBar className="businessFilterBar finalFilters" label="Filtros de auditoría">
         <div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar acción, elemento o usuario…"/></div>
-        <SearchableSelect value={actor} options={actorOptions.map(([value,label])=>({value,label}))} onChange={setActor} allowEmpty emptyLabel="Todos los usuarios" searchPlaceholder="Buscar usuario…" ariaLabel="Filtrar auditoría por usuario"/>
-        <SelectField value={module} options={[{value:'',label:'Todos los módulos'},...modules.map(value=>({value,label:moduleLabels[value]||value}))]} onChange={setModule} ariaLabel="Filtrar auditoría por módulo"/>
-        <SelectField value={action} options={[{value:'',label:'Todas las acciones'},...actions.map(value=>({value,label:actionLabels[value]||value}))]} onChange={setAction} ariaLabel="Filtrar auditoría por acción"/>
-        <SelectField value={days} options={[{value:'7',label:'7 días'},{value:'30',label:'30 días'},{value:'90',label:'90 días'},{value:'365',label:'1 año'},{value:'all',label:'Todo'}]} onChange={setDays} ariaLabel="Periodo de auditoría"/>
-      </div>
+        <div className="businessFilterFields"><label>Usuario<SearchableSelect value={actor} options={actorOptions.map(([value,label])=>({value,label}))} onChange={setActor} allowEmpty emptyLabel="Todos los usuarios" searchPlaceholder="Buscar usuario…" ariaLabel="Filtrar auditoría por usuario"/>
+        </label><label>Módulo<SelectField value={module} options={[{value:'',label:'Todos los módulos'},...modules.map(value=>({value,label:moduleLabels[value]||value}))]} onChange={setModule} ariaLabel="Filtrar auditoría por módulo"/>
+        </label><label>Acción<SelectField value={action} options={[{value:'',label:'Todas las acciones'},...actions.map(value=>({value,label:actionLabels[value]||value}))]} onChange={setAction} ariaLabel="Filtrar auditoría por acción"/>
+        </label><label>Periodo<SelectField value={days} options={[{value:'7',label:'7 días'},{value:'30',label:'30 días'},{value:'90',label:'90 días'},{value:'365',label:'1 año'},{value:'all',label:'Todo'}]} onChange={setDays} ariaLabel="Periodo de auditoría"/>
+        </label></div>
+      </FilterBar>
       {error&&<div className="errorBox adminError">{error}</div>}
       <div className="auditList">
         {paged.map(entry=><article className="auditRow" key={entry.id}>

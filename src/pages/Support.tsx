@@ -1,3 +1,8 @@
+import {PageHeader} from '../components/PageHeader';
+import {PageTabs} from '../components/PageTabs';
+import {KpiGrid} from '../components/KpiGrid';
+import {StatCard} from '../components/StatCard';
+import {FilterBar} from '../components/FilterBar';
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Bug, CheckCircle2, Clock3, FilePlus2, Lightbulb, LifeBuoy, MessageCircle, Paperclip, RefreshCw, Search, Send, X } from 'lucide-react';
 import { SelectField } from '../components/forms/SelectField';
@@ -59,33 +64,28 @@ export function SupportPage({isAdmin,currentUserId}:{isAdmin:boolean;currentUser
   const waitingCount=tickets.filter(item=>item.status==='waiting_user').length;
   const resolvedCount=tickets.filter(item=>item.status==='resolved'||item.status==='closed').length;
 
-  return <div className="page supportPage">
-    <header className="pageHead">
-      <div><div className="eyebrow">SOPORTE</div><h1>Soporte</h1><p>Reporta incidencias, solicita mejoras y sigue cada conversación sin salir de ZENVIA Gestión.</p></div>
-      <button className="primary" onClick={()=>setCreating(true)}><FilePlus2 size={17}/> Nuevo ticket</button>
-    </header>
+  return <div className="page supportPage finalDesignPage designSystemPage">
+    <PageHeader title="Soporte" eyebrow="SOPORTE" description="Reporta incidencias, solicita mejoras y sigue cada conversación sin salir de ZENVIA Gestión." actions={<button className="primary" onClick={()=>setCreating(true)}><FilePlus2 size={17}/> Nuevo ticket</button>}/>
 
-    {isAdmin&&<div className="supportScopeTabs">
-      <button className={scope==='all'?'active':''} onClick={()=>setScope('all')}><LifeBuoy size={16}/> Tickets de la empresa</button>
-      <button className={scope==='mine'?'active':''} onClick={()=>setScope('mine')}><MessageCircle size={16}/> Mis tickets</button>
-    </div>}
 
-    <div className="supportStats">
-      <div className="card supportStat"><AlertCircle/><div><span>Abiertos</span><strong>{openCount}</strong></div></div>
-      <div className="card supportStat"><Clock3/><div><span>Esperando usuario</span><strong>{waitingCount}</strong></div></div>
-      <div className="card supportStat"><CheckCircle2/><div><span>Resueltos</span><strong>{resolvedCount}</strong></div></div>
-    </div>
+    {isAdmin&&<PageTabs className="finalPageTabs" panelId="support-list-panel" label="Tickets visibles" value={scope} onChange={setScope} items={[{id:'all',label:'Tickets de la empresa',icon:<LifeBuoy size={16}/>},{id:'mine',label:'Mis tickets',icon:<MessageCircle size={16}/>} ]}/>}
+    <KpiGrid label="Estado de soporte">
+      <StatCard label="Abiertos" value={openCount} icon={<AlertCircle/>}/>
+      <StatCard label="Esperando usuario" value={waitingCount} icon={<Clock3/>}/>
+      <StatCard label="Resueltos" value={resolvedCount} icon={<CheckCircle2/>}/>
+    </KpiGrid>
 
-    <section className="card supportListCard">
+    <section className="card supportListCard" id="support-list-panel" role={isAdmin?'tabpanel':undefined} aria-labelledby={isAdmin?'support-list-panel-tab-'+scope:undefined}>
       <div className="supportListHead">
         <div><strong>{scope==='all'?'Todos los tickets':'Mis tickets'}</strong><span>{shown.length} visibles</span></div>
         <button className="secondary" onClick={()=>void refresh()} disabled={loading}><RefreshCw size={15} className={loading?'spin':''}/> Actualizar</button>
       </div>
-      <div className="supportFilters">
+      <FilterBar className="businessFilterBar finalFilters" label="Filtros de tickets">
         <label className="search supportSearch"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar nº, asunto o usuario…"/></label>
-        <SelectField ariaLabel="Estado del ticket" value={status} onChange={setStatus} options={[{value:'',label:'Todos los estados'},...Object.entries(statusLabels).map(([value,label])=>({value,label}))]}/>
-        <SelectField ariaLabel="Tipo de ticket" value={type} onChange={setType} options={[{value:'',label:'Todos los tipos'},...Object.entries(typeLabels).map(([value,label])=>({value,label}))]}/>
-      </div>
+        <div className="businessFilterFields"><label>Estado<SelectField ariaLabel="Estado del ticket" value={status} onChange={setStatus} options={[{value:'',label:'Todos los estados'},...Object.entries(statusLabels).map(([value,label])=>({value,label}))]}/>
+        </label><label>Tipo<SelectField ariaLabel="Tipo de ticket" value={type} onChange={setType} options={[{value:'',label:'Todos los tipos'},...Object.entries(typeLabels).map(([value,label])=>({value,label}))]}/>
+        </label></div>
+      </FilterBar>
       {error&&<div className="errorBox">{error}</div>}
       <div className="supportTicketList">
         {shown.map(ticket=><button className="supportTicketRow" key={ticket.id} onClick={()=>setSelectedId(ticket.id)}>

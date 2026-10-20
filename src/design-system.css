@@ -62,13 +62,13 @@
 .dsPageTabs{min-width:0;max-width:100%}
 .dsPageTabs>button{min-width:0}
 @media(max-width:767px){
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar{margin-bottom:10px;padding:10px;gap:8px}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterGrid,:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .businessFilterFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar label,:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterField{min-width:0;font-size:12px}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .search{min-width:0;width:100%}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterReset,:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterResetCompact{min-height:40px;justify-content:center}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterResultCount{font-size:11px;line-height:1.3}
- :is(.financeDesignPage,.masterDesignPage) .salesReceiptNotice{margin:8px 0;padding:10px;font-size:12px;line-height:1.4}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar{margin-bottom:10px;padding:10px;gap:8px}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterGrid,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .businessFilterFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar label,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterField{min-width:0;font-size:12px}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .search{min-width:0;width:100%}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterReset,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterResetCompact{min-height:40px;justify-content:center}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterResultCount{font-size:11px;line-height:1.3}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .salesReceiptNotice{margin:8px 0;padding:10px;font-size:12px;line-height:1.4}
  .dsPageTabs .expenseHubTabText small{display:block;font-size:10px;white-space:normal;line-height:1.25}
  .expenseHubNav.dsPageTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;flex:0 1 auto;overflow:visible}
  .dsPageTabs>button{padding:8px;gap:6px;min-height:52px}
@@ -76,23 +76,23 @@
  .dsPageTabs .expenseHubTabText{min-width:0}
 }
 
-@media(max-width:767px){:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterGrid>label{grid-column:auto}:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterGrid>.filterReset{grid-column:1/-1}}
-:is(.financeDesignPage,.masterDesignPage) .kpiGrid .statContent>strong>span{max-width:100%;font-size:clamp(12px,8cqi,18px);white-space:normal;overflow-wrap:anywhere}
+@media(max-width:767px){:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterGrid>label{grid-column:auto}:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterGrid>.filterReset{grid-column:1/-1}}
+:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .kpiGrid .statContent>strong>span{max-width:100%;font-size:clamp(12px,8cqi,18px);white-space:normal;overflow-wrap:anywhere}
 
 /* Finance FilterBar owns desktop layout, as Orders does for its filters. */
-:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .searchableSelect{min-width:0;width:100%}
-:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .searchableSelectTrigger{min-width:0;height:42px;min-height:42px;max-height:42px}
-:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .searchableSelectTrigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}
-:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .searchableSelectTrigger>svg{flex-shrink:0}
+:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .searchableSelect{min-width:0;width:100%}
+:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .searchableSelectTrigger{min-width:0;height:42px;min-height:42px;max-height:42px}
+:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .searchableSelectTrigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}
+:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .searchableSelectTrigger>svg{flex-shrink:0}
 @media(min-width:768px){
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar.businessFilterBar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar>.search{grid-column:1/-1;min-width:0;width:100%;margin:0}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .businessFilterFields,:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterGrid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-columns:none;align-items:end;gap:10px;min-width:0;width:100%}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .businessFilterFields:last-child{grid-column:1/-1}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar label{display:grid;min-width:0;gap:5px;white-space:nowrap}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar label>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterReset,:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterResetCompact{height:42px;min-height:42px;align-self:end;white-space:nowrap;min-width:0;gap:5px;padding:0 8px}
- :is(.financeDesignPage,.masterDesignPage) .dsFilterBar>.filterResultCount{grid-column:1/-1;justify-self:end;margin:0}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar.businessFilterBar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar>.search{grid-column:1/-1;min-width:0;width:100%;margin:0}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .businessFilterFields,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterGrid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-columns:none;align-items:end;gap:10px;min-width:0;width:100%}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .businessFilterFields:last-child{grid-column:1/-1}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar label{display:grid;min-width:0;gap:5px;white-space:nowrap}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar label>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterReset,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterResetCompact{height:42px;min-height:42px;align-self:end;white-space:nowrap;min-width:0;gap:5px;padding:0 8px}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar>.filterResultCount{grid-column:1/-1;justify-self:end;margin:0}
 }
 
 /* React-owned master lists; fixed selection and identity stay within table scroll. */
@@ -152,3 +152,31 @@ html[data-theme='dark'] .masterDesignPage .bulkSelectionTextButton{color:#d7deea
 }
 
 .commerceTabPanel{display:flex;flex-direction:column;gap:inherit;min-width:0;max-width:100%}
+
+/* Final migration: screens retain handlers and own only their content layout. */
+.finalDesignPage .finalPageTabs{margin-bottom:16px;max-width:100%}
+.finalDesignPage .finalFilters{padding:12px 16px;border-bottom:1px solid var(--border,#e2e8f0)}
+.finalDesignPage .finalFilters>.search{margin:0;width:100%;max-width:none}
+.finalDesignPage .settingsNav.dsPageTabs{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px;width:100%;min-width:0;overflow:visible}
+.finalDesignPage .settingsNav.dsPageTabs>button{width:100%;justify-content:flex-start;text-align:left;min-width:0;padding:10px;white-space:normal}
+.finalDesignPage .settingsNav .expenseHubTabText{min-width:0;flex:1}
+.finalDesignPage .settingsNav .expenseHubTabText strong,.finalDesignPage .settingsNav .expenseHubTabText small{white-space:normal;overflow-wrap:anywhere;display:block}
+.finalDesignPage .settingsContent{min-width:0}
+.finalDesignPage .finalGmailFilters{display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,240px) auto;align-items:center;gap:10px;width:100%}
+.finalDesignPage .finalGmailFilters .searchableSelectTrigger>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:767px){
+ .finalDesignPage .finalPageTabs{display:flex;flex-wrap:nowrap;overflow-x:auto;margin-bottom:10px;gap:6px;padding:4px}
+ .finalDesignPage .finalPageTabs>button{flex:0 0 auto;min-height:44px;white-space:nowrap}
+ .finalDesignPage .supportListHead,.finalDesignPage .adminUsersHead{padding:10px;gap:8px}
+ .finalDesignPage .finalFilters{padding:10px}
+ .finalDesignPage .finalGmailFilters{grid-template-columns:minmax(0,1fr) auto}
+ .finalDesignPage .finalGmailFilters>.search{grid-column:1/-1;width:100%}
+ .finalDesignPage .settingsNav.dsPageTabs{flex-direction:row;overflow-x:auto;max-width:100%;padding:6px;gap:6px}
+ .finalDesignPage .settingsNav.dsPageTabs>button{flex:0 0 180px;min-height:64px;padding:8px}
+ .finalDesignPage .settingsLayout{display:block}
+ .finalDesignPage .settingsContent{margin-top:10px}
+}
+@media(min-width:768px){.finalDesignPage .settingsNav.dsPageTabs{max-height:calc(100dvh - 40px);overflow-y:auto;overscroll-behavior:contain}}
+
+.gmailImportedKpi .statIcon{background:#eff6ff;color:#2563eb}
+.gmailAutomaticKpi .statIcon{background:#faf5ff;color:#7e22ce}

@@ -1,3 +1,7 @@
+import {PageHeader} from '../components/PageHeader';
+import {KpiGrid} from '../components/KpiGrid';
+import {StatCard} from '../components/StatCard';
+import {FilterBar} from '../components/FilterBar';
 import {BulkSelectCheckbox,BulkSelectionToolbar} from '../components/BulkSelectionToolbar';
 import {getGmailBackgroundState,subscribeGmailBackground,startGmailBackgroundImport,dismissGmailBackgroundResult} from '../services/gmailBackgroundImport';
 import {useImportActivity} from '../components/useImportActivity';
@@ -319,27 +323,25 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
   const previewIsPdf=Boolean(previewItem&&(previewItem.mimeType==='application/pdf'||previewItem.attachmentName.toLowerCase().endsWith('.pdf')));
   const previewCanImport=Boolean(previewItem&&previewItem.status!=='imported'&&previewItem.status!=='ignored');
 
-  return <div className="page">
-    <div className="pageHead">
-      <div><div className="eyebrow">AUTOMATIZACIÓN</div><h1>Facturas desde Gmail</h1><p>Busca adjuntos de facturas, revísalos e impórtalos directamente en ZENVIA Gestión.</p></div>
-      <div className="actions">{canManageAccounts&&<button className="secondary" disabled={accountBusy} onClick={onManageAccounts}><Link2 size={16}/> Gestionar cuentas</button>}{selectedAccount?<button className="primary" disabled={accountBusy} onClick={scan}>{scanning?<LoaderCircle className="spin" size={16}/>:<RefreshCw size={16}/>} Buscar facturas</button>:canManageAccounts?<button className="primary" disabled={accountBusy||!gmailOAuthConfigured()} onClick={()=>void connect()}>{connecting?<LoaderCircle className="spin" size={16}/>:<Link2 size={16}/>} Conectar Gmail</button>:null}</div>
-    </div>
+  return <div className="page finalDesignPage designSystemPage">
+    <PageHeader title="Facturas desde Gmail" eyebrow="AUTOMATIZACIÓN" description="Busca adjuntos de facturas, revísalos e impórtalos directamente en ZENVIA Gestión." actions={<>{canManageAccounts&&<button className="secondary" disabled={accountBusy} onClick={onManageAccounts}><Link2 size={16}/> Gestionar cuentas</button>}{selectedAccount?<button className="primary" disabled={accountBusy} onClick={scan}>{scanning?<LoaderCircle className="spin" size={16}/>:<RefreshCw size={16}/>} Buscar facturas</button>:canManageAccounts?<button className="primary" disabled={accountBusy||!gmailOAuthConfigured()} onClick={()=>void connect()}>{connecting?<LoaderCircle className="spin" size={16}/>:<Link2 size={16}/>} Conectar Gmail</button>:null}</>}/>
+
 
     {!gmailOAuthConfigured()?<section className="gmailSetup card"><AlertCircle/><div><h3>Conexión con Google no disponible</h3><p>Contacta con el administrador de Zenvia para habilitar la conexión. No necesitas configurar claves ni servicios de Google.</p></div></section>:null}
 
     <section className="gmailHero card"><div className="gmailIcon"><Mail/></div><div className="gmailHeroBody"><h2>{loadingAccounts?'Cargando cuentas de Gmail…':selectedAccount?`${connection?'Conectado a':'Cuenta seleccionada:'} ${selectedAccount.externalAccountId}`:'Conecta el buzón de facturas'}</h2><p>{selectedAccount?'Elige una de las cuentas conectadas en Integraciones para buscar sus facturas. Zenvia busca PDFs e imágenes adjuntas sin eliminar, mover ni modificar correos.':canManageAccounts?'Conecta Gmail aquí o desde Integraciones. Allí puedes añadir cuentas, desconectarlas y elegir la predeterminada.':'Pide al administrador que conecte una cuenta de Gmail en Integraciones.'}</p><div className="gmailControls">{accounts.length>0&&<label>Cuenta de Gmail<SelectField value={selectedAccountId} options={accounts.map(account=>({value:account.id,label:`${account.externalAccountId}${account.isDefault?' · Predeterminada':''}`}))} onChange={selectAccount} disabled={accountBusy} ariaLabel="Cuenta de Gmail activa"/></label>}<label>Periodo<SelectField value={String(months)} options={Array.from(new Set([3,6,12,24,months])).sort((a,b)=>a-b).map(value=>({value:String(value),label:`${value} meses`}))} onChange={value=>setMonths(Number(value))} disabled={accountBusy} ariaLabel="Periodo de Gmail"/></label><span><ShieldCheck size={15}/> Acceso solo lectura</span></div></div></section>
 
-    <div className="stats gmailStats"><div className="stat"><div className="statIcon"><Paperclip/></div><div><span>Pendientes</span><strong>{pendingCount}</strong><small>Adjuntos por revisar</small></div></div><div className="stat"><div className="statIcon"><CheckCircle2/></div><div><span>Importadas</span><strong>{importedCount}</strong><small>Facturas creadas</small></div></div><div className="stat"><div className="statIcon"><Sparkles/></div><div><span>Automático</span><strong>IA/OCR</strong><small>Lectura de importes y líneas</small></div></div></div>
+    <KpiGrid label="Facturas desde Gmail"><StatCard label="Pendientes" value={pendingCount} sub="Adjuntos por revisar" icon={<Paperclip/>}/><StatCard className="gmailImportedKpi" label="Importadas" value={importedCount} sub="Facturas creadas" icon={<CheckCircle2/>}/><StatCard className="gmailAutomaticKpi" label="Automático" value="IA/OCR" sub="Lectura de importes y líneas" icon={<Sparkles/>}/></KpiGrid>
 
     {message&&!error&&<div className="success">{scanning||importingId?<LoaderCircle className="spin" size={17}/>:<CheckCircle2 size={17}/>} {message}</div>}
     {error&&<div className="errorBox"><AlertCircle size={17}/>{error}</div>}
 
     <div className="toolbar gmailToolbar">
-      <div className="gmailFilterBar">
+      <FilterBar className="gmailFilterBar finalGmailFilters" label="Filtros de facturas desde Gmail">
         <div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por proveedor, asunto o archivo…"/></div>
         <SelectField className="gmailStatusFilter" value={statusFilter} onChange={value=>setStatusFilter(value as GmailViewFilter)} ariaLabel="Filtrar por estado" options={[{value:'all',label:'Todos los estados'},{value:'pending',label:'Pendientes'},{value:'imported',label:'Importadas'},{value:'not_imported',label:'No importadas'},{value:'ignored',label:'Ignoradas'},{value:'not_ignored',label:'No ignoradas'},{value:'error',label:'Con error'}]}/>
         <span className="gmailFilterSummary">{shown.length} resultado{shown.length===1?'':'s'}</span>
-      </div>
+      </FilterBar>
       {selectedAccount&&<button className="secondary" disabled={accountBusy} onClick={scan}><RefreshCw size={16}/> Actualizar Gmail</button>}
     </div>
 

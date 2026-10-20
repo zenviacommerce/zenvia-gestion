@@ -19,7 +19,7 @@ export function createPickupReportPdfBlob(report: PickupReport, options: PickupP
   let first = true;
   for (const [carrier, items] of groups) {
     const parcels = items.reduce((sum, item) => sum + item.packages, 0);
-    let y = 0;
+    let y = 0, pageBodyY = 0;
     const newPage = () => {
       if (!first) doc.addPage();
       first = false;
@@ -45,7 +45,7 @@ export function createPickupReportPdfBlob(report: PickupReport, options: PickupP
       y += 8;
       doc.setFillColor(245, 247, 249); doc.rect(14, y - 5, 182, 8, 'F');
       doc.setFontSize(8); doc.text('Pedido / canal', 16, y); doc.text('Seguimiento', 75, y); doc.text('Bultos', 193, y, { align: 'right' });
-      doc.setFont('helvetica', 'normal'); y += 8;
+      doc.setFont('helvetica', 'normal'); y += 8; pageBodyY = y;
     };
     newPage();
     for (const item of items) {
@@ -55,6 +55,8 @@ export function createPickupReportPdfBlob(report: PickupReport, options: PickupP
       const tracking = lines(item.trackingNumber || 'Sin seguimiento', 97);
       let offset = 0;
       const count = Math.max(order.length, tracking.length);
+      const rowHeight = count * 4.2 + 5;
+      if (rowHeight <= 260 - pageBodyY && rowHeight > 260 - y) newPage();
       while (offset < count) {
         const room = Math.floor((260 - y - 5) / 4.2);
         if (room < 1) { newPage(); continue; }

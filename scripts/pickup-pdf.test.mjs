@@ -44,6 +44,9 @@ const styled = await getDocument({data:new Uint8Array(await createPickupReportPd
 let boxes=0,logos=0;const mm=72/25.4;
 for(let n=1;n<=styled.numPages;n++){
  const page=await styled.getPage(n), content=await page.getTextContent(), ops=await page.getOperatorList();
+ const orders=content.items.filter(i=>/^PED-2026-/.test(i.str)).length;
+ const channels=content.items.filter(i=>i.str==='Amazon'||i.str==='Shopify').length;
+ assert.equal(channels,orders,'A normal row must not leave its channel orphaned on another page');
  for(let j=0;j<ops.fnArray.length;j++){
   const fn=ops.fnArray[j],args=ops.argsArray[j];
   if(fn===OPS.setCharSpacing)assert.equal(args[0],0,'No manual character spacing');

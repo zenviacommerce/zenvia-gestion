@@ -1,3 +1,4 @@
+import {loadOrderWeightFixture} from './order-weight-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,7 +14,7 @@ function fixture(){
  if(action==='insert'){rows.push({id:'row',...structuredClone(patch)});writes.push(action)}
  if(action==='update')for(const row of selected){Object.assign(row,structuredClone(patch));writes.push(action)}
  return {data:structuredClone(selected),error:null};}).then(resolve,reject)}};return q}};
- const exp={};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:exp,require:n=>n.includes('sp-api')?{spApiRequest:async()=>({orders})}:{loadAmazonSpApiCredentials:async()=>({})},console,Date,Map,Set,JSON});
+ const exp={};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:exp,require:n=>n.includes('orderPackageWeight')?loadOrderWeightFixture():n.includes('sp-api')?{spApiRequest:async()=>({orders})}:{loadAmazonSpApiCredentials:async()=>({})},console,Date,Map,Set,JSON});
  return {rows,writes,cancellations,job,get orders(){return orders},sync:()=>exp.syncOrdersJob(admin,job),reconcile:()=>exp.reconcileOperationalAmazonStates(admin,orders,'owner')};
 }
 test('full page sync: unchanged business data performs zero operational UPDATE and keeps last_synced_at',async()=>{

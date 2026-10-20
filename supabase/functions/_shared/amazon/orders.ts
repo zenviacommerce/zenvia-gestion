@@ -1,3 +1,4 @@
+import {resolveOrderPackageWeight,weightLookupBudget} from '../orderPackageWeight.ts';
 import { spApiRequest } from './sp-api.ts';
 import { loadAmazonSpApiCredentials } from './config.ts';
 
@@ -107,11 +108,10 @@ async function markOperationalReadiness(admin:any,job:any,status:'ready'|'pii_pe
   const {error}=await admin.from('integration_accounts').update({config:next}).eq('id',account.id).eq('owner_id',job.owner_id);
   if(error)throw error;
 }
-async function fallbackWeightKg(admin:any,ownerId:string){
+async function shippingWeightSettings(admin:any,ownerId:string){
   const {data,error}=await admin.from('app_settings').select('config').eq('owner_id',ownerId).maybeSingle();
   if(error)throw error;
-  const value=Number(data?.config?.shipping?.fallbackWeightKg);
-  return Number.isFinite(value)&&value>0?value:1;
+  return data?.config?.shipping||{};
 }
 // Compare PostgreSQL JSONB values independently of object-key order. Observation
 // timestamps are not business changes; unchanged rows keep their last write time.
@@ -219,13 +219,15 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
   if(existingError)throw existingError;
   await attachConfirmedCancellations(admin,existing||[],job.owner_id);
   const existingByOrder=new Map((existing||[]).map((row:any)=>[String(row.order_number||row.order_id||''),row]));
-  const fallbackWeight=await fallbackWeightKg(admin,job.owner_id);
+  const shippingConfig=await shippingWeightSettings(admin,job.owner_id);
+  const fallbackWeight=Number(shippingConfig.fallbackWeightKg)>0?Number(shippingConfig.fallbackWeightKg):1;
+  const weightBudget=weightLookupBudget(5,4000);
   let synced=0;
   for(const order of candidates){
     const orderId=String(order.orderId),current=existingByOrder.get(orderId)||null;
     const address=mergeOperationalAddress(current,operationalAddress(order)),freshItems=operationalItems(order);
     const grandTotal=order?.proceeds?.grandTotal||null;
-    const rawPayload={
+    const rawPayload:any={
       ...(current?.raw_payload&&typeof current.raw_payload==='object'?current.raw_payload:{}),
       amazon:{
         marketplaceId:clean(order?.salesChannel?.marketplaceId||job.marketplace_id),
@@ -253,6 +255,7 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
       total_amount:grandTotal?money(grandTotal):(current?.total_amount??null),currency:currency(grandTotal)||current?.currency||null,
       raw_payload:rawPayload,...operationalStatePatch(order,current||{}),last_synced_at:new Date().toISOString(),
     };
+    await resolveOrderPackageWeight(admin,{...current,...patch,owner_id:job.owner_id}, shippingConfig,weightBudget).then(result=>{if(result){rawPayload._zenvia_weight=result;rawPayload.shipping_details.measurement.weight={value:result.kg,unit:'kg'};}});
     if(current?.id){
       preservePersistedFields(current,patch);
       if(!changedBusiness(current,patch)){synced+=1;continue;}

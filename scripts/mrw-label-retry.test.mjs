@@ -1,3 +1,4 @@
+import {loadOrderWeightFixture} from './order-weight-fixture.mjs';
 import {assertMfaWithClient} from './mfa-edge-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -25,7 +26,7 @@ test('PDF failure preserves shipment and retry never transmits a second shipment
   assert.match(request.body,/<TipoEtiquetaEnvio>0<\/TipoEtiquetaEnvio>/);
   return new Response('<Result><Estado>1</Estado><Mensaje>Warning</Mensaje><EtiquetaFile>JVBERi0=</EtiquetaFile></Result>');
  };
- vm.runInNewContext(ts.transpile(piiRead+'\n'+eligibility+'\n'+source,{target:ts.ScriptTarget.ES2022}),{assertHumanMfa:(req,recent)=>assertMfaWithClient(req,recent,()=>admin),createClient:()=>admin,Deno:{env:{get:n=>n==='SUPABASE_URL'?'https://db':n==='SUPABASE_SERVICE_ROLE_KEY'?'key':''},serve:fn=>handler=fn},Response,Request,fetch,atob,console,crypto:globalThis.crypto});
+ vm.runInNewContext(ts.transpile(piiRead+'\n'+eligibility+'\n'+source,{target:ts.ScriptTarget.ES2022}),{resolveOrderPackageWeight:loadOrderWeightFixture().resolveOrderPackageWeight,assertQuotedPackageWeight:loadOrderWeightFixture().assertQuotedPackageWeight,assertHumanMfa:(req,recent)=>assertMfaWithClient(req,recent,()=>admin),createClient:()=>admin,Deno:{env:{get:n=>n==='SUPABASE_URL'?'https://db':n==='SUPABASE_SERVICE_ROLE_KEY'?'key':''},serve:fn=>handler=fn},Response,Request,fetch,atob,console,crypto:globalThis.crypto});
  const req=()=>new Request('https://function',{method:'POST',headers:{Authorization:'Bearer user'},body:JSON.stringify({action:'create_label',orderId:'o'})});
  assert.equal((await handler(req())).status,500);
  assert.equal(order.shipping_remote_id,'SHIP');

@@ -94,7 +94,7 @@ function itemImageUrl(item:Record<string,unknown>,fallbackImages:Record<string,s
 }
 function productsText(order:FulfillmentOrder){return order.items.map(item=>`${itemLabel(item)} ${text(item.sku)} x${itemQty(item)}`).join(' · ');}
 function weightValueLabel(weightKg:number|null|undefined,unit:ShippingSettings['weightUnit']){if(weightKg==null)return '—';const value=unit==='g'?weightKg*1000:weightKg;return `${value.toLocaleString('es-ES',{minimumFractionDigits:0,maximumFractionDigits:unit==='g'?0:3})} ${unit}`;}
-function weightLabel(order:FulfillmentOrder,unit:ShippingSettings['weightUnit']){return weightValueLabel(order.weightKg,unit);}
+function weightLabel(order:FulfillmentOrder,unit:ShippingSettings['weightUnit']){return weightValueLabel(order.weightKg,unit)+(order.weightEstimated?' (estimado)':'');}
 function orderAgeHours(order:FulfillmentOrder){if(!order.orderCreatedAt)return 0;const created=new Date(order.orderCreatedAt).getTime();return Number.isFinite(created)?Math.max(0,(Date.now()-created)/3600000):0;}
 function orderStatusCode(order:FulfillmentOrder){return String(order.sourceStatus||'').trim().toLowerCase();}
 function isCancelledOrder(order:FulfillmentOrder){
@@ -319,7 +319,7 @@ function LabelModal({order,options,tariffs,message,loading,providerStates,onRetr
             <div className="ordersBestOptionsTitle"><strong>Mejores opciones</strong><span>Las {settings.shipping.topOptionsCount} tarifas más económicas disponibles ahora mismo.</span></div>
             <div className="ordersBestOptionsGrid">{priced.slice(0,settings.shipping.topOptionsCount).map((option,index)=>{
               const isSelected=shippingOptionKey(option)===selectedKey;
-              const tariff=estimateTransportTariffForOption(order,tariffs,option);
+              const tariff=estimateTransportTariffForOption(option.packageWeightKg?{...order,weightKg:option.packageWeightKg}:order,tariffs,option);
               return <button type="button" className={'ordersBestOption '+(isSelected?'selected':'')} aria-pressed={isSelected} key={'best-'+shippingOptionKey(option)} onClick={()=>selectOption(option)}>
                 <div className="ordersBestRank">{index+1}º</div>
                 <div className="ordersBestIdentity"><span className={'ordersProviderBadge '+option.provider}>{option.providerName}</span><strong>{option.carrierName||option.carrierCode||'Transportista'}</strong><small>{option.name||option.code}</small></div>
@@ -695,7 +695,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const applyTariffPrices=(order:FulfillmentOrder,available:ShippingOption[])=>available.map(option=>{
     if(option.price!=null&&Number.isFinite(Number(option.price))&&Number(option.price)>0)return option;
     if(option.provider!=='mrw')return option;
-    const tariff=estimateTransportTariffForOption(order,tariffs,option);
+    const tariff=estimateTransportTariffForOption(option.packageWeightKg?{...order,weightKg:option.packageWeightKg}:order,tariffs,option);
     if(!tariff?.totalAmount)return option;
     return {
       ...option,
@@ -722,6 +722,8 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       const options=applyTariffPrices(order,enabledShippingOptions(result.options));
       return [provider,{...result,options,...(result.state==='ready'&&!options.length?{state:'not_applicable' as const,message:'Servicios excluidos por Configuración > Envíos.'}:{})}];
     })) as ProviderQuotes<ShippingOption>;
+    const weighted=Object.values(states).flatMap(result=>result.options).find(option=>option.packageWeightKg);
+    if(weighted)setLabelOrder(current=>current?.id===order.id?{...current,weightKg:weighted.packageWeightKg!,weightEstimated:weighted.weightEstimated}:current);
     const next={...quoteStates.current,...filtered};quoteStates.current=next;
     setProviderStates(next);
     setOptions(applyTariffPrices(order,enabledShippingOptions(Object.values(next).flatMap(result=>result.options))));

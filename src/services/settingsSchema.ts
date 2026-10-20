@@ -98,6 +98,7 @@ export type ShippingSettings = {
   senderCity: string;
   senderCountryCode: string;
   fallbackWeightKg: number;
+  skuFallbackWeightsKg?: Record<string,number>;
   packageLengthCm: number;
   packageWidthCm: number;
   packageHeightCm: number;
@@ -320,6 +321,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     senderCity: '',
     senderCountryCode: 'ES',
     fallbackWeightKg: 1,
+    skuFallbackWeightsKg: {},
     packagePresets: [],
     defaultPackagePresetId: null,
     packageLengthCm: 30,
@@ -766,7 +768,7 @@ function normalizeOrders(input:AnyRecord|null,warnings:SettingsWarning[]):Orders
 
 function normalizeShipping(input:AnyRecord|null,warnings:SettingsWarning[]):ShippingSettings{
   const d=DEFAULT_APP_SETTINGS.shipping;if(!input)return clone(d);
-  const keys=['packagePresets','defaultPackagePresetId','senderName','senderAddress','senderPostalCode','senderCity','senderCountryCode','fallbackWeightKg','packageLengthCm','packageWidthCm','packageHeightCm','weightUnit','labelSize','labelOrientation','copies','autoDownload','enabledCarriers','topOptionsCount','noValidMethodBehavior','confirmShipmentAfterLabel','persistShippingCost'];
+  const keys=['packagePresets','defaultPackagePresetId','senderName','senderAddress','senderPostalCode','senderCity','senderCountryCode','fallbackWeightKg','skuFallbackWeightsKg','packageLengthCm','packageWidthCm','packageHeightCm','weightUnit','labelSize','labelOrientation','copies','autoDownload','enabledCarriers','topOptionsCount','noValidMethodBehavior','confirmShipmentAfterLabel','persistShippingCost'];
   unknownKeys(input,keys,'shipping',warnings);
   const packagePresets:PackagePreset[]=Array.isArray(input.packagePresets)?input.packagePresets.slice(0,50).filter((p:any)=>p&&typeof p.id==='string'&&p.id.trim()).map((p:any,i:number)=>({
     id:String(p.id).slice(0,80),name:stringValue(p,'name','Paquete',`shipping.packagePresets.${i}.name`,warnings,{min:1,max:80}),
@@ -783,6 +785,7 @@ function normalizeShipping(input:AnyRecord|null,warnings:SettingsWarning[]):Ship
     senderCity:stringValue(input,'senderCity',d.senderCity,'shipping.senderCity',warnings,{max:120}),
     senderCountryCode:stringValue(input,'senderCountryCode',d.senderCountryCode,'shipping.senderCountryCode',warnings,{min:2,max:2,upper:true,pattern:/^[A-Za-z]{2}$/}),
     fallbackWeightKg:numberValue(input,'fallbackWeightKg',d.fallbackWeightKg,'shipping.fallbackWeightKg',warnings,0.001,1000),
+    skuFallbackWeightsKg:Object.fromEntries(Object.entries(input.skuFallbackWeightsKg&&typeof input.skuFallbackWeightsKg==='object'?input.skuFallbackWeightsKg:{}).slice(0,500).filter(([sku,kg])=>sku.trim()&&Number.isFinite(Number(kg))&&Number(kg)>0&&Number(kg)<=1000).map(([sku,kg])=>[sku.trim(),Number(kg)])),
     packageLengthCm:selected?.lengthCm??numberValue(input,'packageLengthCm',d.packageLengthCm,'shipping.packageLengthCm',warnings,1,300),
     packageWidthCm:selected?.widthCm??numberValue(input,'packageWidthCm',d.packageWidthCm,'shipping.packageWidthCm',warnings,1,300),
     packageHeightCm:selected?.heightCm??numberValue(input,'packageHeightCm',d.packageHeightCm,'shipping.packageHeightCm',warnings,1,300),

@@ -1,3 +1,4 @@
+import {loadOrderWeightFixture} from './order-weight-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -43,7 +44,7 @@ test('real full Amazon page import cannot repopulate operational copies and keep
  const {default:ts}=await import('typescript'),{default:vm}=await import('node:vm');const d=await fixture();try{
  await seed(d,10);await gate(d);await call(d,false);const ref='123-1234567-1000000',canary='SYNTHETIC-PII';
  const base=readFileSync(new URL('supabase/migrations/20260916190000_amazon_analytics_phase_b.sql',root),'utf8');await d.exec(base.slice(base.indexOf('create table if not exists public.amazon_orders'),base.indexOf('create table if not exists public.amazon_finance_transactions')).replaceAll(' references public.amazon_accounts(id) on delete cascade',''));await d.exec('alter table amazon_orders add column programs text[],add column is_business_order boolean');
- const exports={};vm.runInNewContext(ts.transpileModule(readFileSync(new URL('supabase/functions/_shared/amazon/orders.ts',root),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText+'\nexports.pageImport=upsertPage;',{exports,require:()=>({}),Date,Map,Set,console});
+ const exports={};vm.runInNewContext(ts.transpileModule(readFileSync(new URL('supabase/functions/_shared/amazon/orders.ts',root),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText+'\nexports.pageImport=upsertPage;',{exports,require:name=>name.includes('orderPackageWeight')?loadOrderWeightFixture():({}),Date,Map,Set,console});
  const admin={from(table){let patch,upserts;const filters=[];const q={select(){return q},eq(k,v){filters.push([k,v]);return q},neq(){return q},in(k,v){filters.push([k,v]);return q},update(v){patch=v;return q},upsert(v){upserts=v;return q},async maybeSingle(){return {data:table==='integration_accounts'?{id:'33333333-3333-4333-8333-333333333333',display_name:'Synthetic',config:{}}:{config:{shipping:{fallbackWeightKg:1}}},error:null}},then(resolve,reject){return(async()=>{
  if(upserts){for(const v of upserts){const keys=Object.keys(v);await d.query('insert into '+table+'('+keys.map(k=>'"'+k+'"').join(',')+') values('+keys.map((_,i)=>'$'+(i+1)).join(',')+')',Object.values(v))}return {error:null}}
  if(table!=='fulfillment_orders')return {data:[],error:null};let values=[];if(patch)values=Object.values(patch);const where=filters.map(([k,v])=>{values.push(v);return '"'+k+'"'+(Array.isArray(v)?'=any($'+values.length+'::text[])':'=$'+values.length)}).join(' and ');

@@ -1,3 +1,4 @@
+import {resolveOrderPackageWeight} from '../_shared/orderPackageWeight.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { shopifyAccountCredentials, shopifyError, shopifyStoredApplicationCredentials } from '../_shared/shopifyAuth.ts';
@@ -61,7 +62,7 @@ query ZenviaOrders($first:Int!,$after:String,$query:String){
       totalPriceSet{shopMoney{amount currencyCode}}
       shippingAddress{name company address1 address2 city province provinceCode zip countryCodeV2 phone}
       billingAddress{name company address1 address2 city province provinceCode zip countryCodeV2 phone}
-      lineItems(first:100){pageInfo{hasNextPage} nodes{id name sku quantity originalUnitPriceSet{shopMoney{amount currencyCode}} discountAllocations{allocatedAmountSet{shopMoney{amount currencyCode}}} taxLines{rate priceSet{shopMoney{amount currencyCode}}} image{url}}}
+      lineItems(first:100){pageInfo{hasNextPage endCursor} nodes{id name sku variant{id} quantity weight{value unit} originalUnitPriceSet{shopMoney{amount currencyCode}} discountAllocations{allocatedAmountSet{shopMoney{amount currencyCode}}} taxLines{rate priceSet{shopMoney{amount currencyCode}}} image{url}}}
       shippingLines(first:100){pageInfo{hasNextPage} nodes{title discountedPriceSet{shopMoney{amount currencyCode}} taxLines{rate priceSet{shopMoney{amount currencyCode}}}}}
       fulfillments(first:20){id status createdAt updatedAt trackingInfo(first:10){company number url}}
     }
@@ -87,10 +88,12 @@ function mapItems(order:any){
   return (order?.lineItems?.nodes||[]).map((item:any)=>({
     id:clean(item?.id),
     name:clean(item?.name)||'Producto Shopify',
-    sku:clean(item?.sku)||null,
+    sku:clean(item?.sku||item?.variant?.id)||null,
     quantity:Number(item?.quantity)||1,
     unit_price:Number(item?.originalUnitPriceSet?.shopMoney?.amount)||0,
     image_url:clean(item?.image?.url)||null,
+    measurement:item.weight?{weight:item.weight}:null,
+    weight_source:item.weight?'shopify_variant':null,
   }));
 }
 function latestTracking(order:any){
@@ -145,10 +148,23 @@ Deno.serve(async(req:Request)=>{
     for(const account of directAccounts){
       const c=await credentials(admin,account);
       let after:string|null=null,accountSynced=0,pages=0;
+      let scopedOrderQuery=ORDER_QUERY;
       do{
-        const data=await gql(c,ORDER_QUERY,{first:100,after,query:orderQuery});
+        let data:any;
+        try{data=await gql(c,scopedOrderQuery,{first:100,after,query:orderQuery});}
+        catch(error){if(!/access denied.*variant|access.*read_products/i.test(shopifyError(error)))throw error;scopedOrderQuery=scopedOrderQuery.replaceAll('variant{id}','');data=await gql(c,scopedOrderQuery,{first:100,after,query:orderQuery});}
         const connection=data?.orders;
         const orders=connection?.nodes||[];
+        // Never rate a truncated basket. Fetch all remaining line-item pages.
+        for(const order of orders){
+          const lineFields=scopedOrderQuery.match(/lineItems\(first:100\)\{pageInfo\{hasNextPage endCursor\} nodes\{([\s\S]*?)\}\}\n/)?.[1];
+          while(order.lineItems?.pageInfo?.hasNextPage){
+            const cursor=order.lineItems.pageInfo.endCursor;if(!cursor||!lineFields)throw new Error('Shopify: faltan líneas del pedido para calcular el peso.');
+            const next=await gql(c,`query ZenviaOrderRemainingLines($id:ID!,$after:String!){order(id:$id){lineItems(first:100,after:$after){pageInfo{hasNextPage endCursor} nodes{${lineFields}}}}}`,{id:order.id,after:cursor});
+            const page=next?.order?.lineItems;if(!page||page.pageInfo?.endCursor===cursor)throw new Error('Shopify: no se pudieron completar las líneas del pedido.');
+            order.lineItems.nodes.push(...page.nodes);order.lineItems.pageInfo=page.pageInfo;
+          }
+        }
         const now=new Date().toISOString();
         const rows=orders.map((order:any)=>{
           const ship=shippingAddress(order.shippingAddress||{});
@@ -193,7 +209,10 @@ Deno.serve(async(req:Request)=>{
         if(rows.length){
           const previous=await admin.from('fulfillment_orders').select('sendcloud_id,label_created_at,label_cancelled_at,tracking_number,tracking_url,carrier_name,tracking_status_code,tracking_status_message,tracking_updated_at,fulfilled_at,raw_payload').eq('owner_id',caller.data_owner_id).in('sendcloud_id',rows.map((row:any)=>row.sendcloud_id));
           if(previous.error)throw previous.error;
-          const {error}=await admin.from('fulfillment_orders').upsert(preserveShopifyLabelTracking(rows,previous.data||[]),{onConflict:'owner_id,sendcloud_id'});
+          const merged=preserveShopifyLabelTracking(rows,previous.data||[]);
+          const {data:settings,error:settingsError}=await admin.from('app_settings').select('config').eq('owner_id',caller.data_owner_id).maybeSingle();if(settingsError)throw settingsError;
+          for(const row of merged){const old=(previous.data||[]).find((p:any)=>p.sendcloud_id===row.sendcloud_id);if(old?.raw_payload?.shipping_details){row.raw_payload={...row.raw_payload,shipping_details:old.raw_payload.shipping_details,_zenvia_weight:old.raw_payload._zenvia_weight};}if(old?.raw_payload?._zenvia_local_shipping_updated_at){row.raw_payload._zenvia_local_shipping_updated_at=old.raw_payload._zenvia_local_shipping_updated_at;}await resolveOrderPackageWeight(admin,{...row,label_created_at:old?.label_created_at},settings?.config?.shipping||{}).then(result=>{if(result){row.raw_payload._zenvia_weight=result;row.raw_payload.shipping_details={...(row.raw_payload.shipping_details||{}),measurement:{...(row.raw_payload.shipping_details?.measurement||{}),weight:{value:result.kg,unit:'kg'}}};}});}
+          const {error}=await admin.from('fulfillment_orders').upsert(merged,{onConflict:'owner_id,sendcloud_id'});
           if(error)throw error;
         }
         accountSynced+=rows.length;synced+=rows.length;pages+=1;

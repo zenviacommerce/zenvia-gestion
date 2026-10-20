@@ -1,3 +1,4 @@
+import {resolveOrderPackageWeight} from '../_shared/orderPackageWeight.ts';
 import {loadDirectCarrierIds,filterAggregatorOptions} from '../_shared/carrierPolicy.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
 import {withAmazonBuyerRead,withOrderQuote,withOrderLabelCreation} from '../_shared/amazonPiiRead.ts';
@@ -317,6 +318,7 @@ Deno.serve(async(req:Request)=>{
     const {data:order,error}=await admin.from('fulfillment_orders').select('*').eq('id',orderId).eq('owner_id',caller.data_owner_id).maybeSingle();if(error)throw error;if(!order)return fail('Pedido no encontrado.',404);
     if(order.pii_purged_at)return fail('Los datos personales de este pedido se han eliminado por retención.',410);
     return await (action==='shipping_options'?withOrderQuote:action==='create_label'?withOrderLabelCreation:withAmazonBuyerRead)(admin,order,async()=>{
+    if(['shipping_options','create_label'].includes(action))await resolveOrderPackageWeight(admin,order,shippingConfig);
     const orderCredentials=await credentialsForOrder(admin,caller.data_owner_id,order.shipping_integration_account_id||null);
     const sendcloudOrderId=remoteSendcloudId(order);
 
@@ -451,7 +453,7 @@ Deno.serve(async(req:Request)=>{
         ?'Sendcloud devuelve servicios de Correos sin precio incluso tras solicitar la tarifa transaccional con dirección completa y cálculo de cotización.'
         :priced?null:(options.length?'Sendcloud devuelve los servicios disponibles, pero no expone precio para estos métodos.':'No hay servicios disponibles entre los transportistas habilitados.');
       return response({
-        weightKg,options,message:data?.message||quoteMessage,
+        weightKg,weightEstimated:Boolean(order.raw_payload?._zenvia_weight?.estimated),options,message:data?.message||quoteMessage,
         ...(unpricedCorreos?{rateDiagnostics}:{}),
       });
     }
@@ -471,7 +473,7 @@ Deno.serve(async(req:Request)=>{
       const customerDetails={...(raw.customer_details||{}),name,email:email||null,phone_number:phone||null};
       const patch={shipping_address:shippingAddress,shipping_details:shippingDetails,customer_details:customerDetails};
       const {data}=await sendcloudJson(orderCredentials,`/orders/${encodeURIComponent(sendcloudOrderId)}`,{method:'PATCH',body:JSON.stringify(patch)});
-      const remote=data?.data||{},now=new Date().toISOString(),newRaw={...raw,...remote,shipping_address:remote.shipping_address||shippingAddress,shipping_details:remote.shipping_details||shippingDetails,customer_details:remote.customer_details||customerDetails};
+      const remote=data?.data||{},now=new Date().toISOString(),newRaw={...raw,...remote,_zenvia_local_shipping_updated_at:now,_zenvia_weight:{source:'manual',estimated:false},shipping_address:remote.shipping_address||shippingAddress,shipping_details:remote.shipping_details||shippingDetails,customer_details:remote.customer_details||customerDetails};
       const {error:updateError}=await admin.from('fulfillment_orders').update({
         customer_name:name,customer_email:email||null,customer_phone:phone||null,shipping_address:remote.shipping_address||shippingAddress,raw_payload:newRaw,
         package_length_cm:hasDimensions?lengthCm:null,package_width_cm:hasDimensions?widthCm:null,package_height_cm:hasDimensions?heightCm:null,

@@ -1,3 +1,4 @@
+import {resolveOrderPackageWeight,assertQuotedPackageWeight} from '../_shared/orderPackageWeight.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
 import {withAmazonBuyerRead,withOrderQuote,withOrderLabelCreation} from '../_shared/amazonPiiRead.ts';
 import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
@@ -173,13 +174,17 @@ Deno.serve(async(req:Request)=>{
     }
 
     if(action==='options'){
+      const settings=await workspaceSettings(admin,caller.data_owner_id);
+      await resolveOrderPackageWeight(admin,order,settings.shipping);
       const option=mrwOption(account);
-      return response({configured:true,options:option?[option]:[],message:option?null:'Selecciona el servicio MRW predeterminado en Configuración > Integraciones.'});
+      return response({configured:true,weightKg:orderWeight(order,settings.shipping?.fallbackWeightKg||1),weightEstimated:Boolean(order.raw_payload?._zenvia_weight?.estimated),options:option?[option]:[],message:option?null:'Selecciona el servicio MRW predeterminado en Configuración > Integraciones.'});
     }
 
     const base=mrwBase(account.config?.environment);
     if(action==='create_label'){
       const address=order.shipping_address||{},settings=await workspaceSettings(admin,caller.data_owner_id),from=sender(settings,account.config);
+      await resolveOrderPackageWeight(admin,order,settings.shipping);
+      assertQuotedPackageWeight(order,body?.shippingOption);
       const length=positive(order.package_length_cm??settings.shipping?.packageLengthCm),width=positive(order.package_width_cm??settings.shipping?.packageWidthCm),height=positive(order.package_height_cm??settings.shipping?.packageHeightCm),weight=orderWeight(order,settings.shipping?.fallbackWeightKg||1);
       if(!clean(address.name||order.customer_name)||!clean(address.address_line_1)||!clean(address.postal_code)||!clean(address.city))return response({error:'Faltan datos obligatorios del destinatario para MRW.'},409);
       if(!from.address||!from.postalCode||!from.city)return response({error:'Completa la dirección del remitente en Configuración > Envíos antes de usar MRW directo.'},409);
@@ -204,7 +209,7 @@ Deno.serve(async(req:Request)=>{
       const shipment=xmlValue(transmit,'NumeroEnvio');if(!shipment)throw new Error('MRW no devolvió número de envío.');
       const now=new Date().toISOString();
       const {error:updateError}=await admin.from('fulfillment_orders').update({
-        shipping_provider:'mrw',shipping_integration_account_id:account.row.id,shipping_remote_id:shipment,
+        raw_payload:order.raw_payload,shipping_provider:'mrw',shipping_integration_account_id:account.row.id,shipping_remote_id:shipment,
         tracking_number:shipment,tracking_status_code:'READY_TO_SEND',tracking_status_message:'Ready to send',tracking_updated_at:now,
         carrier_code:'mrw',carrier_name:'MRW',shipping_option_code:serviceCode,shipping_service_name:serviceName,
         ...(Number(body?.shippingOption?.price)>0?{
@@ -235,6 +240,6 @@ Deno.serve(async(req:Request)=>{
     },(message,status)=>response({error:message},status));
   }catch(error){
     const message=error instanceof Error?error.message:'Error interno.';
-    return response({error:message},/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:/requiere|Faltan|Completa|no tiene/.test(message)?409:500);
+    return response({error:message},/Sesión no válida/.test(message)?401:/permiso/.test(message)?403:/peso ha cambiado|requiere|Faltan|Completa|no tiene/.test(message)?409:500);
   }
 });

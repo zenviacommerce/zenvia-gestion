@@ -22,3 +22,11 @@ The owner has received the five-order current/calculated/source table. At that o
 ## Production phases
 
 Not applied yet. Record migration, Edge versions, two real worker cycles and subsequent frontend deployments here after each step.
+
+### Import backend applied — 11:46 UTC
+
+- All five #256 head checks success: https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39416798991 (Build check), /39416799138 (MFA visual), /39416799132 (Build Gestión), /39416799035 (Auth), /39416798951 (MFA real integration).
+- Migration amazon_restore_worker_cadence applied as 20261020114605 and history aligned by guarded one-row DML to canonical 20261020113031. Worker schedule now every minute; producer remains every five minutes; both command hashes and active state unchanged.
+- Worker deployed v42 → v43; Orders v24 → v25. Only shared first-import instrumentation changed; existing verify_jwt=false retained with existing own authentication.
+- PR #256 merged with expected head 1dd3283b38f138af9e01b68cdb7089a36045bced, merge 55eb828e8bcc4e321a563ff6fd42a3c56706f088.
+- Two-cycle observation and next-real-order latency verification pending; no test order/label generated.

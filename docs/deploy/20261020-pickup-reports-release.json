@@ -85,5 +85,38 @@
     "manifestCount": 40,
     "mfaFindings": 0,
     "dashboardHash": "081c0519b77e14fd53598cefba39aeb7"
+  },
+  "productionRpc": {
+    "result": "PASS",
+    "checks": [
+      "AAL1 denied",
+      "AAL2 preview/create/get",
+      "0001 then 0002",
+      "same request returns same snapshot"
+    ],
+    "rolledBack": true,
+    "reports": 0,
+    "items": 0,
+    "counters": 0,
+    "mfaFindings": 0
+  },
+  "productionAllocationProbe": {
+    "numbers": [
+      "REC-2026-0001",
+      "REC-2026-0002"
+    ],
+    "pids": [
+      110976,
+      110977
+    ],
+    "overlap": false,
+    "syntheticCounterRemoved": true,
+    "notConcurrencyEvidence": true
+  },
+  "rollbackProductionRehearsal": {
+    "declined": true,
+    "reasonProvided": false,
+    "noStatementsExecuted": true,
+    "isolatedRehearsalPending": true
   }
 }

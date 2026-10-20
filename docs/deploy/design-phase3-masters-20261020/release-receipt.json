@@ -1,0 +1,59 @@
+{
+  "pr": 265,
+  "approved": true,
+  "head": "002b953d804c5b56cb6d566aa37b96bbeeb0d43c",
+  "merge": "0d34847a567b7baf4ffeb54fba1c97ffa4a176d6",
+  "deployment": {
+    "id": "dpl_Aso26hWc9uXcmmcC5ppWpcMJFFys",
+    "sha": "0d34847a567b7baf4ffeb54fba1c97ffa4a176d6",
+    "state": "READY",
+    "target": "production"
+  },
+  "http": 200,
+  "bundle": "index-e22tGZwY.js",
+  "rollback": {
+    "id": "dpl_9RMFEKn4AhoTo738mzvfBbdqCURS",
+    "sha": "ed63ce7aecff7c7a296b5fface372f89ee4b8bf7",
+    "state": "READY",
+    "target": "production"
+  },
+  "checks": [
+    {
+      "name": "Vercel Preview Comments",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/runs/118847481780",
+      "completed_at": "2026-10-20T19:46:28Z"
+    },
+    {
+      "name": "build",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39486238076/job/118847258050",
+      "completed_at": "2026-10-20T19:46:39Z"
+    },
+    {
+      "name": "build",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39486238069/job/118847257730",
+      "completed_at": "2026-10-20T19:47:07Z"
+    },
+    {
+      "name": "real-auth-vault",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39486237622/job/118847256809",
+      "completed_at": "2026-10-20T19:50:18Z"
+    },
+    {
+      "name": "auth-tests",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39486237151/job/118847254576",
+      "completed_at": "2026-10-20T19:47:51Z"
+    },
+    {
+      "name": "screenshots",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39486237149/job/118847254070",
+      "completed_at": "2026-10-20T19:49:13Z"
+    }
+  ],
+  "visual_owner_pending": true
+}

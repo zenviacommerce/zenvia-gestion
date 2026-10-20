@@ -111,7 +111,43 @@
         }
       ],
       "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por categoría",
+          "options": [
+            "Todas las categorías",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar por proveedor",
+          "options": [
+            "Todos los proveedores",
+            "Proveedor de prueba"
+          ]
+        },
+        {
+          "label": "Filtrar por IVA de venta",
+          "options": [
+            "Todos los tipos",
+            "21 %"
+          ]
+        },
+        {
+          "label": "Filtrar productos",
+          "options": [
+            "Todos los productos",
+            "Con precio de venta",
+            "Sin precio de venta",
+            "Sin coste de compra",
+            "Margen bajo (< 0 %)",
+            "Subida coste (≥ 10 %)",
+            "Coste a la baja"
+          ]
+        }
+      ],
       "selectionRetained": true,
+      "nativeActionTarget": "Producto 01",
       "failures": []
     },
     {
@@ -221,7 +257,43 @@
         }
       ],
       "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por categoría",
+          "options": [
+            "Todas las categorías",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar por proveedor",
+          "options": [
+            "Todos los proveedores",
+            "Proveedor de prueba"
+          ]
+        },
+        {
+          "label": "Filtrar por IVA de venta",
+          "options": [
+            "Todos los tipos",
+            "21 %"
+          ]
+        },
+        {
+          "label": "Filtrar productos",
+          "options": [
+            "Todos los productos",
+            "Con precio de venta",
+            "Sin precio de venta",
+            "Sin coste de compra",
+            "Margen bajo (< 0 %)",
+            "Subida coste (≥ 10 %)",
+            "Coste a la baja"
+          ]
+        }
+      ],
       "selectionRetained": true,
+      "nativeActionTarget": "Producto 01",
       "failures": []
     },
     {
@@ -331,7 +403,43 @@
         }
       ],
       "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por categoría",
+          "options": [
+            "Todas las categorías",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar por proveedor",
+          "options": [
+            "Todos los proveedores",
+            "Proveedor de prueba"
+          ]
+        },
+        {
+          "label": "Filtrar por IVA de venta",
+          "options": [
+            "Todos los tipos",
+            "21 %"
+          ]
+        },
+        {
+          "label": "Filtrar productos",
+          "options": [
+            "Todos los productos",
+            "Con precio de venta",
+            "Sin precio de venta",
+            "Sin coste de compra",
+            "Margen bajo (< 0 %)",
+            "Subida coste (≥ 10 %)",
+            "Coste a la baja"
+          ]
+        }
+      ],
       "selectionRetained": true,
+      "nativeActionTarget": "Producto 01",
       "failures": []
     },
     {
@@ -408,7 +516,28 @@
         }
       ],
       "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar clientes por país",
+          "options": [
+            "Todos los países",
+            "España · ES",
+            "Francia · FR"
+          ]
+        },
+        {
+          "label": "Filtrar clientes por situación",
+          "options": [
+            "Todos los clientes",
+            "Con saldo pendiente",
+            "Sin saldo pendiente",
+            "Con actividad en el periodo",
+            "Sin actividad en el periodo"
+          ]
+        }
+      ],
       "selectionRetained": true,
+      "nativeActionTarget": "Cliente 01",
       "failures": []
     },
     {
@@ -485,7 +614,28 @@
         }
       ],
       "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar clientes por país",
+          "options": [
+            "Todos los países",
+            "España · ES",
+            "Francia · FR"
+          ]
+        },
+        {
+          "label": "Filtrar clientes por situación",
+          "options": [
+            "Todos los clientes",
+            "Con saldo pendiente",
+            "Sin saldo pendiente",
+            "Con actividad en el periodo",
+            "Sin actividad en el periodo"
+          ]
+        }
+      ],
       "selectionRetained": true,
+      "nativeActionTarget": "Cliente 01",
       "failures": []
     },
     {
@@ -562,7 +712,28 @@
         }
       ],
       "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar clientes por país",
+          "options": [
+            "Todos los países",
+            "España · ES",
+            "Francia · FR"
+          ]
+        },
+        {
+          "label": "Filtrar clientes por situación",
+          "options": [
+            "Todos los clientes",
+            "Con saldo pendiente",
+            "Sin saldo pendiente",
+            "Con actividad en el periodo",
+            "Sin actividad en el periodo"
+          ]
+        }
+      ],
       "selectionRetained": true,
+      "nativeActionTarget": "Cliente 01",
       "failures": []
     },
     {
@@ -643,7 +814,36 @@
         }
       ],
       "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por tipo de proveedor",
+          "options": [
+            "Todos los tipos",
+            "Mercancía",
+            "Servicios",
+            "Mercancía y servicios",
+            "Sin clasificar"
+          ]
+        },
+        {
+          "label": "Filtrar por categoría habitual",
+          "options": [
+            "Todas las categorías",
+            "Sin categoría habitual",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar proveedores por actividad",
+          "options": [
+            "Todos",
+            "Con facturas en el periodo",
+            "Sin facturas en el periodo"
+          ]
+        }
+      ],
       "selectionRetained": true,
+      "nativeActionTarget": "Proveedor 01",
       "failures": []
     },
     {
@@ -724,7 +924,36 @@
         }
       ],
       "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por tipo de proveedor",
+          "options": [
+            "Todos los tipos",
+            "Mercancía",
+            "Servicios",
+            "Mercancía y servicios",
+            "Sin clasificar"
+          ]
+        },
+        {
+          "label": "Filtrar por categoría habitual",
+          "options": [
+            "Todas las categorías",
+            "Sin categoría habitual",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar proveedores por actividad",
+          "options": [
+            "Todos",
+            "Con facturas en el periodo",
+            "Sin facturas en el periodo"
+          ]
+        }
+      ],
       "selectionRetained": true,
+      "nativeActionTarget": "Proveedor 01",
       "failures": []
     },
     {
@@ -805,7 +1034,36 @@
         }
       ],
       "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por tipo de proveedor",
+          "options": [
+            "Todos los tipos",
+            "Mercancía",
+            "Servicios",
+            "Mercancía y servicios",
+            "Sin clasificar"
+          ]
+        },
+        {
+          "label": "Filtrar por categoría habitual",
+          "options": [
+            "Todas las categorías",
+            "Sin categoría habitual",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar proveedores por actividad",
+          "options": [
+            "Todos",
+            "Con facturas en el periodo",
+            "Sin facturas en el periodo"
+          ]
+        }
+      ],
       "selectionRetained": true,
+      "nativeActionTarget": "Proveedor 01",
       "failures": []
     }
   ]

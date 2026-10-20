@@ -37,3 +37,7 @@ Una ejecución local de la suite completa con capturas de Chromium simultáneas 
 El reflow se verifica a 640 CSS px (ancho disponible equivalente a un escritorio de 1280 al 200 %), sin afirmar una prueba del zoom real del navegador del propietario. El manifiesto registra ausencia de desbordamiento, acciones y selección conservadas. Se comprueba foco del contenedor de tabla, selección al pasar de escritorio a móvil y botones móviles sin recorte, de al menos 44 px.
 
 Validación final local: suite completa 249/249 (46 ficheros) al repetir sin Chromium simultáneo; `pickup-reports-sql.test.ts` pasa en 17,1 s. La nueva prueba del observer también pasa. La comprobación táctil mide el rectángulo completo de 44 px (incluye borde), no clientHeight, para no restar dos píxeles del área real.
+
+## Revisión independiente
+
+Revisión read-only de 168e6f6e: sin problemas críticos/importantes; valores/opciones/variantes y callbacks confirmados por diff. Se refuerza el harness con sus observaciones menores: inventario completo de etiquetas de opciones (no solo trigger cerrado), captura de errores emitidos al final de las interacciones y comprobación del registro destinatario de Eliminar en las tres pantallas; Editar comprueba el callback por registro en Productos/Proveedores. El editor interno de Clientes conserva su implementación y se revisa por diff, sin guardar datos. La nueva pasada de nueve escenarios pasa sin fallos.

@@ -21,7 +21,7 @@ const invoices=suppliers.map((s,i)=>({id:'expense'+i,invoiceNumber:'DEMO-G'+i,in
 const services={loadClients:async()=>clients,loadSalesInvoices:async()=>sales,loadAppData:async()=>({invoices,categories:[{id:'cat',name:'Materiales'}]}),loadProductSalesMap:async()=>new Map(products.map(p=>[p.id,{salePrice:20,salesTaxRate:21,ean:'DEMO'}])),getActiveTenant:()=>null,getActiveSupabase:()=>null,errorMessage:(e,f)=>e?.message||f,showError:e=>{throw Error(e)},showSuccess:()=>{},confirmAction:async options=>{globalThis.lastConfirmation=options;return false}};
 globalThis.fixtureServices=new Proxy(services,{get:(o,k)=>k in o?o[k]:(...a)=>{throw Error('Unmocked service:'+String(k))}});
 globalThis.fixtureSettings=()=>({settings,preferences,patchPreferences:async()=>{},updateSection:async()=>{}});
-globalThis.renderFixture=(screen)=>createRoot(document.getElementById('root')).render(<div className="app"><Sidebar allowedPages={['dashboard','orders','products','clients','suppliers','settings']} page={screen} isAdmin onChange={()=>{}} onLogout={()=>{}} theme="light" onThemeChange={()=>{}} user={{fullName:'Revision',email:'demo@example.test',role:'admin'}}/><main>{screen==='products'?<Products products={products} onAdd={()=>{globalThis.newAction=true}} onEdit={()=>{globalThis.editAction=true}} onDelete={async()=>{throw Error('No writes')}}/>:screen==='clients'?<Clients/>:<Suppliers suppliers={suppliers} onAdd={()=>{globalThis.newAction=true}} onEdit={()=>{globalThis.editAction=true}} onDelete={async()=>{throw Error('No writes')}}/>}<AutoPagination/><UnifiedListExperience/></main></div>);`;
+globalThis.renderFixture=(screen)=>createRoot(document.getElementById('root')).render(<div className="app"><Sidebar allowedPages={['dashboard','orders','products','clients','suppliers','settings']} page={screen} isAdmin onChange={()=>{}} onLogout={()=>{}} theme="light" onThemeChange={()=>{}} user={{fullName:'Revision',email:'demo@example.test',role:'admin'}}/><main>{screen==='products'?<Products products={products} onAdd={()=>{globalThis.newAction=true}} onEdit={entity=>{globalThis.editTarget=entity.name}} onDelete={async()=>{throw Error('No writes')}}/>:screen==='clients'?<Clients/>:<Suppliers suppliers={suppliers} onAdd={()=>{globalThis.newAction=true}} onEdit={entity=>{globalThis.editTarget=entity.name}} onDelete={async()=>{throw Error('No writes')}}/>}<AutoPagination/><UnifiedListExperience/></main></div>);`;
 const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,loader:{'.css':'empty'},define:{'import.meta.env':'{}'},format:'iife',platform:'browser',jsx:'automatic',plugins:[{name:'offline-finance',setup(b){
  b.onLoad({filter:/[/]src[/](pages|components)[/].*[.](tsx|ts)$/},async args=>{const path=args.path.slice(process.cwd().length+1);if(path==='src/context/SettingsContext.tsx')return;return {contents:await read(path),loader:path.endsWith('tsx')?'tsx':'ts',resolveDir:dirname(args.path)};});
  b.onLoad({filter:/[/]src[/]context[/]SettingsContext[.]tsx$/},()=>({contents:'export const useSettings=()=>globalThis.fixtureSettings();',loader:'tsx'}));
@@ -39,11 +39,18 @@ try{for(const screen of ['products','clients','suppliers'])for(const width of (p
  await page.screenshot({path:output+'/'+phase+'-'+screen+'-'+width+'.png'});
  if(width===390){await page.evaluate(()=>scrollTo(0,1000));await page.screenshot({path:output+'/'+phase+'-'+screen+'-390-second.png'});await page.evaluate(()=>scrollTo(0,0));if(phase==='after'){await page.evaluate(()=>document.documentElement.dataset.theme='dark');await page.screenshot({path:output+'/after-'+screen+'-390-dark.png'});await page.evaluate(()=>delete document.documentElement.dataset.theme);}}
 
+ const filterOptions=[];
+ for(const combo of await page.locator('.businessFilterFields [role="combobox"]').all()){
+  const label=await combo.getAttribute('aria-label');await combo.click();
+  const labels=await page.getByRole('option').allTextContents();filterOptions.push({label,options:labels.map(text=>text.replace(/\s+/g,' ').trim())});await page.keyboard.press('Escape');
+ }
+ await page.evaluate(()=>scrollTo(0,0));
  const proof=await page.evaluate(()=>{
  const visible=el=>el.getClientRects().length&&getComputedStyle(el).display!=='none',rect=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y+scrollY,width:r.width,height:r.height}};
  const rows=[...document.querySelectorAll('.masterMobileList>.bulkMobileSelectableRow,tbody tr')].filter(visible),fields=[...document.querySelectorAll('.businessFilterFields>label')];
  return {firstList:rows[0]?rect(rows[0]):null,documentOverflow:document.documentElement.scrollWidth>innerWidth,columns:[...document.querySelectorAll('.kpiGrid,.stats')].map(el=>getComputedStyle(el).gridTemplateColumns),cards:[...document.querySelectorAll('.stat')].map(el=>({text:el.textContent,warning:el.classList.contains('dashboardPendingOrders'),overflow:el.scrollWidth>el.clientWidth+1})),headerActions:[...document.querySelectorAll('.pageHead button')].map(el=>el.textContent),filters:fields.map(el=>({text:el.textContent,...rect(el),trigger:rect(el.querySelector('.searchableSelectTrigger')),lines:[...el.querySelectorAll('.searchableSelectTrigger>span')].some(span=>{const range=document.createRange();range.selectNodeContents(span);return new Set([...range.getClientRects()].map(r=>Math.round(r.y))).size>1})})),rowActions:document.querySelector('tbody tr')?.querySelectorAll('button[aria-label="Editar"],button[aria-label="Eliminar"]').length??0};
  });
+ proof.filterOptions=filterOptions;
  const failures=[...errors];if(phase==='after'){
  if(width===390){const bad=await page.locator('.dsMobileList .dsRowActions button').evaluateAll(els=>els.some(el=>el.scrollHeight>el.clientHeight+1||el.scrollWidth>el.clientWidth+1||el.getBoundingClientRect().height<44));if(bad)failures.push('Mobile row action clipped or undersized');}
 
@@ -51,6 +58,7 @@ try{for(const screen of ['products','clients','suppliers'])for(const width of (p
  try{assertHeaderActionsPreserved(before.headerActions,proof.headerActions,screen+' '+width);}catch(e){failures.push(e.message)}
  if(JSON.stringify(before.cards.map(c=>clean(c.text)))!==JSON.stringify(proof.cards.map(c=>clean(c.text))))failures.push('KPI content changed');
  if(JSON.stringify(before.cards.map(c=>c.warning))!==JSON.stringify(proof.cards.map(c=>c.warning)))failures.push('Semantic variants changed');
+ if(JSON.stringify(before.filterOptions)!==JSON.stringify(proof.filterOptions))failures.push('Full filter option labels changed');
  if(JSON.stringify(before.filters.map(c=>clean(c.text)))!==JSON.stringify(proof.filters.map(c=>clean(c.text))))failures.push('Filter options changed');
  if(width===390&&(proof.firstList?.y>=1800||proof.columns.some(c=>c.split(' ').length!==2)))failures.push('Mobile list height/two-column KPIs');
  if(proof.documentOverflow||proof.cards.some(c=>c.overflow))failures.push('Document/KPI overflow');
@@ -76,7 +84,15 @@ try{for(const screen of ['products','clients','suppliers'])for(const width of (p
  if(width>=1280){const sticky=await page.locator('.dsDataTable').evaluate(el=>{const cells=[el.querySelector('tbody tr td:first-child'),el.querySelector('tbody tr .dsIdentityCell')],before=cells.map(c=>c.getBoundingClientRect().x);el.scrollLeft=180;const after=cells.map(c=>c.getBoundingClientRect().x);el.scrollLeft=0;return before.every((x,i)=>Math.abs(x-after[i])<1)});if(!sticky)failures.push('Selection/identity columns not fixed');}
  if(width>=1280){await page.locator('.dsDataTable').focus();if(!await page.locator('.dsDataTable').evaluate(el=>document.activeElement===el))failures.push('Table keyboard focus unavailable');await page.setViewportSize({width:390,height:1000});if(!await page.getByRole('checkbox',{name:selectedLabel,exact:true}).filter({visible:true}).first().isChecked())failures.push('Responsive switch lost selection');await page.setViewportSize({width,height:1000});}
  const row=page.locator(width<768?'.masterMobileList .masterMobileRow':'tbody tr.clickableRow').first();await row.click();await page.locator('.masterDrawer').waitFor();await page.locator('.masterDrawerHead .iconBtn').click();
+ const ownerRow=page.locator(width<768?'.masterMobileList .bulkMobileSelectableRow':'.masterTable tbody tr.clickableRow').first();
+ const entityName=await ownerRow.locator('.masterEntityCell strong').first().textContent();
+ await ownerRow.getByRole('button',{name:'Eliminar',exact:true}).click();
+ const single=await page.evaluate(()=>globalThis.lastConfirmation);if(!single?.message?.includes(entityName))failures.push('Native delete targeted a different record');
+ if(screen!=='clients'){await ownerRow.getByRole('button',{name:'Editar',exact:true}).click();if(await page.evaluate(()=>globalThis.editTarget)!==entityName)failures.push('Native edit targeted a different record');}
+ proof.nativeActionTarget=entityName;
+
  }
+ failures.push(...errors.filter(error=>!failures.includes(error)));
  checks.push({screen,width,...proof,failures});await page.close();
 }}finally{await browser.close();}
 await writeFile(output+'/'+phase+'-manifest.json',JSON.stringify({baseline,synthetic:true,networkBlocked:true,locale:'es-ES',checks},null,2));console.log(JSON.stringify(checks.map(({cards,...c})=>c),null,2));if(checks.some(c=>c.failures.length))process.exitCode=1;

@@ -1,0 +1,67 @@
+{
+  "pr": 266,
+  "head_sha": "3c109bb45b5c4559ce9b73dd9e5964b08e4f50b4",
+  "tree_sha": "0d55f30c5f1b6f3b5af45af3523d8b3565cffc50",
+  "draft": true,
+  "merged": false,
+  "published": false,
+  "checked_at": "2026-10-20T20:03:38.676Z",
+  "checks": [
+    {
+      "name": "Vercel Preview Comments",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/runs/118853805648",
+      "completed_at": "2026-10-20T19:59:25Z"
+    },
+    {
+      "name": "screenshots",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39488037221/job/118853503777",
+      "completed_at": "2026-10-20T20:02:20Z"
+    },
+    {
+      "name": "build",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39488037508/job/118853503705",
+      "completed_at": "2026-10-20T20:00:21Z"
+    },
+    {
+      "name": "build",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39488037264/job/118853503435",
+      "completed_at": "2026-10-20T19:59:40Z"
+    },
+    {
+      "name": "auth-tests",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39488037074/job/118853503234",
+      "completed_at": "2026-10-20T20:00:33Z"
+    },
+    {
+      "name": "real-auth-vault",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39488037276/job/118853502991",
+      "completed_at": "2026-10-20T20:02:46Z"
+    }
+  ],
+  "status": "success",
+  "local": {
+    "vitest": 250,
+    "files": 47,
+    "node": 1222,
+    "before_browser_scenarios": 6,
+    "after_browser_scenarios": 6
+  },
+  "source_parity": "Nine analytics files identical; page hooks and callbacks identical",
+  "independent_review": "No critical or important findings; minor tab-panel association resolved and re-reviewed",
+  "limits": "Synthetic data, blocked network, callbacks reach fixtures only; not authenticated production visual validation",
+  "production": {
+    "id": "dpl_Aso26hWc9uXcmmcC5ppWpcMJFFys",
+    "sha": "0d34847a567b7baf4ffeb54fba1c97ffa4a176d6",
+    "state": "READY",
+    "target": "production"
+  },
+  "production_bundle": "index-e22tGZwY.js",
+  "production_css": "index-D4g81wg0.css",
+  "production_odd_kpi_rule_confirmed": true
+}

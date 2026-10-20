@@ -1,5 +1,5 @@
 import {getActiveSupabase,getActiveTenant} from './supabase';
-import type {OrdersDashboardFilters} from './orders';
+import {fetchMatchingOrderIds,type OrdersDashboardFilters} from './orders';
 export type PickupReportItem={orderId:string;orderNumber:string;channel:string;carrier:string;trackingNumber:string;packages:number;eligible:boolean;issue?:string|null;previousReports:string[];packageCountEstimated?:boolean;packagesSource?:string};
 export type PickupReport={id:string;number:string;createdAt:string;createdBy:string;sender:{legalName:string;taxId:string;address:string;email:string;phone:string};items:Array<Omit<PickupReportItem,'eligible'|'issue'|'previousReports'>>;totalPackages:number};
 export type PickupReportSummary=Pick<PickupReport,'id'|'number'|'createdAt'|'totalPackages'>&{totalOrders?:number;carriers?:string[]};
@@ -16,8 +16,5 @@ export async function createPickupReport(ids:string[],requestId:string,allowDupl
 export const listPickupReports=(orderId:string|null=null)=>rpc<PickupReportSummary[]>('pickup_report_list',{p_order_id:orderId,p_limit:50});
 export const getPickupReport=(reportId:string)=>rpc<PickupReport>('pickup_report_get',{p_report_id:reportId});
 export async function selectPickupOrderIds(filters:OrdersDashboardFilters){
- const result=await rpc<{ids:string[];total:number;exceeded?:boolean}>('pickup_report_selection',{p_filters:filters,p_limit:2000});
- if(result.exceeded||result.total>2000)throw new Error('Más de 2.000 pedidos coinciden. Reduce los filtros antes de seleccionar todos.');
- if(!Array.isArray(result.ids)||result.ids.length!==result.total||new Set(result.ids).size!==result.ids.length)throw new Error('La selección ha cambiado. Actualiza y vuelve a seleccionar.');
- return result.ids;
+ return fetchMatchingOrderIds(filters,true);
 }

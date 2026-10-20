@@ -14,6 +14,7 @@ export interface FulfillmentOrder {
   integrationId:number; integrationName:string|null; integrationType:string|null; sourceChannel:OrderChannel;
   sourceStatus:string|null; orderCreatedAt:string|null; orderUpdatedAt:string|null;
   customerName:string|null; customerEmail:string|null; customerPhone:string|null;
+  pickupReports?:Array<{id:string;number:string}>;
   piiPurgedAt?:string|null; destinationCountryCode?:string|null;
   shippingAddress:Record<string,unknown>; billingAddress:Record<string,unknown>; items:Array<Record<string,unknown>>;
   totalAmount:number|null; currency:string|null; weightKg:number|null;
@@ -102,6 +103,7 @@ function mapRow(row:any):FulfillmentOrder{
   const shippingAddress=row.shipping_address||{};
   const balearicPending=isBalearicAddress(shippingAddress)&&row.sendcloud_parcel_id==null;
   return enforcePurge({
+    pickupReports:Array.isArray(row.pickup_reports)?row.pickup_reports.filter((r:any)=>typeof r?.id==='string'&&typeof r?.number==='string').map((r:any)=>({id:r.id,number:r.number})):[],
     id:row.id, sendcloudId:String(row.sendcloud_remote_id||row.sendcloud_id), orderId:row.order_id||null, orderNumber:row.order_number||null,
     sourceIntegrationAccountId:row.source_integration_account_id||null, shippingIntegrationAccountId:row.shipping_integration_account_id||null,
     integrationId:Number(row.integration_id), integrationName:row.integration_name||null, integrationType:row.integration_type||null,
@@ -228,7 +230,7 @@ async function readFulfillmentOrders(client:ReturnType<typeof getActiveSupabase>
 export type OrdersDashboardFilters={
   from:string;to:string;state:'pending'|'labelled'|'shipped'|'cancelled'|'all';
   channel:'all'|OrderChannel;query:string;tracking:string;country:string;carrier:string;
-  selectedIds?:string[];page:number;pageSize:number;overdueHours:number;sortKey:string;sortDirection:'asc'|'desc';
+  pickupReport?:'all'|'none'|'in';selectedIds?:string[];page:number;pageSize:number;overdueHours:number;sortKey:string;sortDirection:'asc'|'desc';
 };
 export type OrdersDashboardKpis={
   pending:number;preparablePending:number;amazon:number;shopify:number;manual:number;labelled:number;
@@ -252,10 +254,11 @@ export type OrdersDashboardPage={
  */
 export async function fetchOrdersDashboardPage(filters:OrdersDashboardFilters):Promise<OrdersDashboardPage>{
   const client=getActiveSupabase();
-  const {data,error}=await client.rpc('orders_dashboard_page_v1',{
+  const {data,error}=await client.rpc('orders_dashboard_pickup_v1',{
     p_from:filters.from||null,p_to:filters.to||null,
     p_state:filters.state,p_channel:filters.channel,p_query:filters.query,
     p_tracking:filters.tracking,p_country:filters.country,p_carrier:filters.carrier,
+    p_pickup_report:filters.pickupReport||'all',
     p_page:Math.max(0,filters.page),
     p_page_size:Math.min(100,Math.max(1,filters.pageSize)),
     p_overdue_hours:filters.overdueHours,
@@ -280,11 +283,11 @@ export async function fetchOrdersDashboardPage(filters:OrdersDashboardFilters):P
 }
 
 /** IDs come from the same server-side eligibility/filter scope as the dashboard. */
-export async function fetchMatchingOrderIds(filters:OrdersDashboardFilters):Promise<string[]>{
-  const {data,error}=await getActiveSupabase().rpc('orders_dashboard_selection_v1',{
+export async function fetchMatchingOrderIds(filters:OrdersDashboardFilters,allEligible=false):Promise<string[]>{
+  const {data,error}=await getActiveSupabase().rpc('orders_dashboard_pickup_v1',{
     p_from:filters.from||null,p_to:filters.to||null,p_state:filters.state,
     p_channel:filters.channel,p_query:filters.query,p_tracking:filters.tracking,
-    p_country:filters.country,p_carrier:filters.carrier,p_limit:2000,
+    p_country:filters.country,p_carrier:filters.carrier,p_selection_limit:2000,p_selection_ids_only:true,p_selection_all:allEligible,p_pickup_report:filters.pickupReport||'all',
   }).abortSignal(AbortSignal.timeout(15000));
   if(error)throw error;
   if(data?.exceeded||Number(data?.total)>2000)throw new Error('Hay más de 2.000 pedidos elegibles. Reduce los filtros antes de seleccionar todos.');
@@ -295,7 +298,7 @@ export async function fetchMatchingOrderIds(filters:OrdersDashboardFilters):Prom
 export async function listSelectedOrdersForBulk(filters:OrdersDashboardFilters,ids:string[]):Promise<FulfillmentOrder[]>{
   if(!ids.length)return [];
   if(ids.length>2000||new Set(ids).size!==ids.length)throw new Error('La selección no es válida. Reduce los filtros y vuelve a seleccionar.');
-  const result=await listMatchingOrdersForAction({...filters,from:'',to:'',state:'all',channel:'all',query:'',tracking:'all',country:'all',carrier:'all',selectedIds:ids});
+  const result=await listMatchingOrdersForAction({...filters,from:'',to:'',state:'all',channel:'all',query:'',tracking:'all',country:'all',carrier:'all',pickupReport:'all',selectedIds:ids});
   const actual=new Set(result.map(order=>order.id));
   if(actual.size!==ids.length||ids.some(id=>!actual.has(id)))throw new Error('El conjunto de pedidos ha cambiado. Actualiza y vuelve a seleccionar antes de generar etiquetas.');
   return result;

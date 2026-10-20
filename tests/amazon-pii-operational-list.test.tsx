@@ -153,3 +153,14 @@ it('shows retained selection with no search results, can review/remove it and ca
  const oldCalls=boundary.pickupPreview.mock.calls.length;boundary.confirm.mockResolvedValueOnce(false);fireEvent.click(screen.getByRole('button',{name:'Generar informe de recogida (1)'}));await waitFor(()=>expect(boundary.confirm).toHaveBeenCalled());expect(boundary.pickupPreview.mock.calls.length).toBe(oldCalls);
  fireEvent.click(screen.getByRole('button',{name:'Ver selección'}));fireEvent.click(await screen.findByRole('button',{name:'Quitar pedido RETAINED'}));expect((screen.getByRole('button',{name:'Generar informe de recogida (0)'}) as HTMLButtonElement).disabled).toBe(true);
 });
+
+it('shows clickable report numbers in list and mobile, and sends report filter without losing selection',async()=>{
+ boundary.rows=[{...order,id:'report-order',orderNumber:'REPORT-ORDER',piiPurgedAt:null,pickupReports:[{id:'report-id',number:'REC-2026-0001'}]}];
+ const {container}=render(<Orders/>);await waitFor(()=>expect(container.querySelector('.ordersTable tbody tr')).toBeTruthy());
+ const desktop=container.querySelector('.ordersTable tbody') as HTMLElement;const mobile=container.querySelector('.ordersMobileList') as HTMLElement;
+ expect(within(mobile).getByRole('button',{name:'Abrir informe REC-2026-0001'})).toBeTruthy();
+ fireEvent.click(within(desktop).getByRole('button',{name:'Abrir informe REC-2026-0001'}));expect(await screen.findByRole('dialog',{name:'Informes de recogida'})).toBeTruthy();fireEvent.click(screen.getByRole('button',{name:'Cerrar historial de recogidas'}));
+ fireEvent.click(within(desktop).getByRole('checkbox'));fireEvent.click(screen.getByLabelText('Filtrar por informe de recogida'));fireEvent.click(await screen.findByRole('option',{name:'Sin informe'}));
+ await waitFor(()=>expect(boundary.pageCalls).toHaveBeenLastCalledWith(expect.objectContaining({pickupReport:'none'})));
+ expect(screen.getByRole('button',{name:'Generar informe de recogida (1)'})).toBeTruthy();
+});

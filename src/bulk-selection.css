@@ -82,7 +82,40 @@
   .bulkSelectionActions>button{flex:1}
 }
 
-.bulkSelectionCell{width:38px;min-width:38px;padding-left:10px!important;padding-right:6px!important;text-align:center}
+/* Keep row selection available while a wide list scrolls. Opaque surfaces are
+   required here: ordinary selected rows use a translucent tint. */
+.tableCard table .bulkSelectionCell{
+  position:sticky;
+  left:0;
+  z-index:2;
+  width:38px;
+  min-width:38px;
+  padding-left:10px!important;
+  padding-right:6px!important;
+  text-align:center;
+  background:var(--surface,#fff)!important;
+  box-shadow:3px 0 5px -3px #0f172a40;
+}
+.tableCard table thead .bulkSelectionCell{
+  z-index:4;
+  background:var(--surface-soft,#f8fafc)!important;
+}
+.tableCard table tbody>tr:hover>.bulkSelectionCell{
+  background:var(--surface-soft,#f8fafc)!important;
+}
+.tableCard table .bulkSelectedRow>.bulkSelectionCell{
+  background:color-mix(in srgb,#14b8a6 7%,var(--surface,#fff))!important;
+}
+.tableCard table .bulkSelectedRow:hover>.bulkSelectionCell{
+  background:color-mix(in srgb,#14b8a6 10%,var(--surface,#fff))!important;
+}
+[data-theme='dark'] .tableCard table tbody>tr:hover>.bulkSelectionCell{background:#162032!important}
+[data-theme='dark'] .tableCard table .bulkSelectedRow>.bulkSelectionCell{
+  background:color-mix(in srgb,#14b8a6 11%,var(--surface,#111827))!important;
+}
+[data-theme='dark'] .tableCard table .bulkSelectedRow:hover>.bulkSelectionCell{
+  background:color-mix(in srgb,#14b8a6 15%,var(--surface,#111827))!important;
+}
 .bulkSelectedRow>td{background:color-mix(in srgb,#14b8a6 7%,transparent)}
 .bulkSelectedRow:hover>td{background:color-mix(in srgb,#14b8a6 10%,transparent)}
 [data-theme='dark'] .bulkSelectedRow>td{background:color-mix(in srgb,#14b8a6 11%,transparent)}

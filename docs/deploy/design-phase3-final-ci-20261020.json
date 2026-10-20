@@ -1,0 +1,67 @@
+{
+  "checkedAt": "2026-10-20T21:19:56.423Z",
+  "pr": 267,
+  "head": "61553d95a65c09afaedbcaa210d5bff3558bc348",
+  "draft": true,
+  "merged": false,
+  "published": false,
+  "checks": [
+    {
+      "name": "Vercel Preview Comments",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/runs/118890825049",
+      "completedAt": "2026-10-20T21:15:14Z"
+    },
+    {
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39498767245/job/118890579125",
+      "completedAt": "2026-10-20T21:16:28Z"
+    },
+    {
+      "name": "real-auth-vault",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39498766825/job/118890578965",
+      "completedAt": "2026-10-20T21:18:51Z"
+    },
+    {
+      "name": "auth-tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39498766840/job/118890578653",
+      "completedAt": "2026-10-20T21:16:24Z"
+    },
+    {
+      "name": "screenshots",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39498766852/job/118890578602",
+      "completedAt": "2026-10-20T21:19:08Z"
+    },
+    {
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39498766865/job/118890578217",
+      "completedAt": "2026-10-20T21:15:27Z"
+    }
+  ],
+  "vercelStatus": "success",
+  "local": {
+    "vitest": 257,
+    "nodeOffline": 1224,
+    "beforeScenarios": 15,
+    "afterScenarios": 15,
+    "failures": 0
+  },
+  "production": {
+    "commit": "a03f10ca6e90f8d03765fbc4d90bba18bdee945d",
+    "deployment": "dpl_AvXMo7EGoQY32WAgU2JGhQpb14cX",
+    "bundle": "index-lLeCVOf1.js"
+  },
+  "independentReview": "No pending findings after follow-up fixes",
+  "stop": "Owner review required before merge or publication"
+}

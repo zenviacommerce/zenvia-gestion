@@ -268,6 +268,15 @@ async function upsertOperationalAmazonOrders(admin:any,orders:any[],job:any){
           const {error:updateError}=await admin.from('fulfillment_orders').update(patch).eq('owner_id',job.owner_id).eq('sendcloud_id',syntheticId);
           if(updateError)throw updateError;
         }else throw insertError;
+      }else{
+        // Emit once after a genuine insert, never on replay/update or a unique
+        // conflict. Keep buyer/address data out of import provenance logs.
+        console.info('amazon_operational_order_first_import',JSON.stringify({
+          job_id:job.id||null,enqueued_at:job.created_at||null,mode:job.payload?.mode||'hourly',recovery:Boolean(job.payload?.recovery)||String(job.job_key||'').startsWith('recovery:'),
+          order_id:orderId,marketplace_id:clean(order?.salesChannel?.marketplaceId||job.marketplace_id),
+          source_status:patch.source_status,amazon_created_at:order.createdTime||null,
+          amazon_updated_at:order.lastUpdatedTime||null,imported_at:new Date().toISOString(),
+        }));
       }
     }
     synced+=1;

@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 const ids=['A1RKKUPIHCS9HS','A13V1IB3VIYZZH','A1PA6795UKMFR9','APJ6JRA9NG5V4','A1805IZSGTT6HS','A2NODRKZP88ZB9','A1C3SOZRARQ6R3','AMEN7PMS3EDWL','A1F83G8C2ARO7P'].sort();
 function load(file,require,globals={}){const exports={};vm.runInNewContext(ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require,Date,Map,Set,JSON,console,...globals});return exports;}
-function fixture(pages=[]){const writes=[],requests=[],states=[];let page=0;const admin={from(table){let action='select',value,filters=[];const q={select(){return q},eq(k,v){filters.push([k,v]);return q},neq(){return q},in(){return q},update(v){action='update';value=v;return q},upsert(v){action='upsert';value=v;return q},maybeSingle(){return Promise.resolve({data:table==='integration_accounts'?null:states.find(s=>filters.every(([k,v])=>s[k]===v)),error:null})},then(ok,bad){return Promise.resolve().then(()=>{if(action!=='select')writes.push({table,action,value});return {data:action==='update'?[{id:'job'}]:table==='amazon_sync_state'?states:[],error:null}}).then(ok,bad)}};return q}};const sync=load('supabase/functions/_shared/amazon/sync.ts',()=>({sanitizeAmazonError:String}));const orders=load('supabase/functions/_shared/amazon/orders.ts',n=>n.includes('sp-api')?{spApiRequest:async(_path,{query})=>{requests.push(query);const result=pages[page++];if(result instanceof Error)throw result;return result||{orders:[]}}}:{loadAmazonSpApiCredentials:async()=>({})});const job={id:'job',lease_holder_id:'holder',owner_id:'owner',amazon_account_id:'account',source:'orders',scope_key:'region:EU',marketplace_id:null,window_from:'2026-10-18T00:00:00Z',window_to:'2026-10-18T01:00:00Z',payload:{mode:'hourly',region:'EU',marketplace_ids:ids}};return {admin,writes,requests,states,sync,orders,job};}
+function fixture(pages=[],options={}){const writes=[],requests=[],states=[],logs=[];let page=0;const admin={from(table){let action='select',value,filters=[];const q={select(){return q},eq(k,v){filters.push([k,v]);return q},neq(){return q},in(){return q},insert(v){action='insert';value=v;return q},update(v){action='update';value=v;return q},upsert(v){action='upsert';value=v;return q},maybeSingle(){return Promise.resolve({data:table==='integration_accounts'?(options.integrated?{id:'integration',config:{}}:null):states.find(s=>filters.every(([k,v])=>s[k]===v)),error:null})},then(ok,bad){return Promise.resolve().then(()=>{if(action!=='select')writes.push({table,action,value});return {data:action==='update'?[{id:'job'}]:table==='amazon_sync_state'?states:table==='fulfillment_orders'?(options.existing||[]):[],error:options.conflict&&action==='insert'?{code:'23505'}:null}}).then(ok,bad)}};return q}};const sync=load('supabase/functions/_shared/amazon/sync.ts',()=>({sanitizeAmazonError:String}));const orders=load('supabase/functions/_shared/amazon/orders.ts',n=>n.includes('sp-api')?{spApiRequest:async(_path,{query})=>{requests.push(query);const result=pages[page++];if(result instanceof Error)throw result;return result||{orders:[]}}}:{loadAmazonSpApiCredentials:async()=>({})},{console:{...console,info:(...args)=>logs.push(args)}});const job={id:'job',lease_holder_id:'holder',owner_id:'owner',amazon_account_id:'account',source:'orders',scope_key:'region:EU',marketplace_id:null,window_from:'2026-10-18T00:00:00Z',window_to:'2026-10-18T01:00:00Z',payload:{mode:'hourly',region:'EU',marketplace_ids:ids}};return {admin,writes,requests,states,logs,sync,orders,job};}
 test('nine marketplaces enqueue one deduplicated UTC five-minute Orders job',async()=>{const f=fixture();const account={id:'account',owner_id:'owner'};const markets=ids.concat(ids[0]).map(marketplace_id=>({marketplace_id}));const first=await f.sync.enqueueHourlySync(f.admin,account,markets,'hourly',new Date('2026-10-19T12:03:01+02:00'),['orders']);const second=await f.sync.enqueueHourlySync(f.admin,account,markets,'hourly',new Date('2026-10-19T10:04:59Z'),['orders']);assert.equal(first.length,1);assert.equal(second[0].job_key,first[0].job_key);assert.deepEqual(Array.from(first[0].payload.marketplace_ids),ids);assert.equal(first[0].scope_key,'region:EU');assert.equal(first[0].marketplace_id,null);});
 test('unsupported marketplace fails closed before creating jobs',async()=>{const f=fixture();await assert.rejects(f.sync.enqueueHourlySync(f.admin,{id:'a',owner_id:'o'},[{marketplace_id:'ATVPDKIKX0DER'}],'hourly',new Date(),['orders']),/Unsupported/);assert.equal(f.writes.length,0)});
 test('multiple pages route each order to its actual marketplace and checkpoint every market after completion',async()=>{const f=fixture([{orders:[{orderId:'first',salesChannel:{marketplaceId:ids[0]}}],pagination:{nextToken:'next'}},{orders:[{orderId:'last',salesChannel:{marketplaceId:ids.at(-1)}}]}]);const count=await f.orders.syncOrdersJob(f.admin,f.job);assert.deepEqual(Array.from(f.requests[0].marketplaceIds),ids);assert.equal(f.requests[1].paginationToken,'next');const rows=f.writes.filter(w=>w.table==='amazon_orders').flatMap(w=>w.value);assert.equal(rows[1].marketplace_id,ids.at(-1));assert.equal(f.writes.filter(w=>w.table==='amazon_sync_state').length,0);await f.sync.markJobSuccess(f.admin,f.job,count);const checkpoints=f.writes.filter(w=>w.table==='amazon_sync_state').flatMap(w=>w.value);assert.deepEqual(checkpoints.map(r=>r.scope_key).sort(),ids);});
@@ -67,4 +67,83 @@ test('worker stops claiming when its grouped-page reserve begins, without consum
   assert.equal(completed,1);
   assert.equal(failed,0);
   assert.equal(jobs.length,1);
+});
+
+test('automatic replay includes a late-published order older than the cursor without narrowing the overlap',async()=>{
+  const f=fixture([{orders:[]},{orders:[{orderId:'late-published',createdTime:'2026-10-20T10:35:00Z',lastUpdatedTime:'2026-10-20T10:35:00Z',salesChannel:{marketplaceId:ids[0]}}]}]);
+  const account={id:'account',owner_id:'owner'};
+  for(const scope_key of ids)f.states.push({source:'orders',scope_key,high_water_mark:'2026-10-20T10:40:00Z'});
+  const first=(await f.sync.enqueueHourlySync(f.admin,account,ids.map(marketplace_id=>({marketplace_id})),'hourly',new Date('2026-10-20T10:45:00Z'),['orders']))[0];
+  await f.orders.syncOrdersJob(f.admin,first);
+  const second=(await f.sync.enqueueHourlySync(f.admin,account,ids.map(marketplace_id=>({marketplace_id})),'hourly',new Date('2026-10-20T10:50:00Z'),['orders']))[0];
+  await f.orders.syncOrdersJob(f.admin,second);
+  assert.ok(Date.parse(second.window_from)<=Date.parse('2026-10-20T10:25:00Z'));
+  assert.equal(f.writes.filter(w=>w.table==='amazon_orders').flatMap(w=>w.value).find(row=>row.amazon_order_id==='late-published').marketplace_id,ids[0]);
+  assert.equal(f.requests[1].lastUpdatedAfter,second.window_from);
+});
+
+test('every requested marketplace is imported and the oldest cursor controls the next grouped window',async()=>{
+  const f=fixture([{orders:ids.map((marketplaceId,index)=>({orderId:'order-'+index,salesChannel:{marketplaceId}}))}]);
+  for(const [index,scope_key] of ids.entries())f.states.push({source:'orders',scope_key,high_water_mark:index===8?'2026-10-20T09:00:00Z':'2026-10-20T10:00:00Z'});
+  const job=(await f.sync.enqueueHourlySync(f.admin,{id:'account',owner_id:'owner'},ids.map(marketplace_id=>({marketplace_id})),'hourly',new Date('2026-10-20T10:05:00Z'),['orders']))[0];
+  assert.equal(job.window_from,'2026-10-20T03:00:00.000Z');
+  await f.orders.syncOrdersJob(f.admin,job);
+  assert.deepEqual(f.writes.filter(w=>w.table==='amazon_orders').flatMap(w=>w.value).map(row=>row.marketplace_id).sort(),ids);
+});
+
+for(const mode of ['initial','hourly'])test(mode+' Orders request never reads the newest two minutes',async()=>{
+  const f=fixture();
+  f.job.payload.mode=mode;
+  f.job.window_to=new Date(Date.now()+60_000).toISOString();
+  const started=Date.now();
+  await f.orders.syncOrdersJob(f.admin,f.job);
+  const ended=Date.now();
+  const upper=Date.parse(f.requests[0][mode==='initial'?'createdBefore':'lastUpdatedBefore']);
+  assert.ok(upper>=started-120_000&&upper<=ended-120_000);
+  assert.equal(f.job.orders_completed_before,new Date(upper).toISOString());
+});
+
+for(const {mode,recovery} of [{mode:'hourly',recovery:false},{mode:'manual',recovery:false},{mode:'hourly',recovery:true}])test('first operational insert logs '+mode+(recovery?' manual recovery':'')+' job provenance and initial status without buyer data',async()=>{
+  const f=fixture([{orders:[{orderId:'first-import',createdTime:'2026-10-18T00:05:00Z',lastUpdatedTime:'2026-10-18T00:06:00Z',salesChannel:{marketplaceId:ids[0]},fulfillment:{fulfilledBy:'MERCHANT',fulfillmentStatus:'PENDING'},buyer:{buyerName:'Private name',buyerEmail:'private@example.com'}}]}],{integrated:true});
+  f.job.payload.mode=mode;f.job.payload.recovery=recovery;f.job.created_at='2026-10-18T00:10:00Z';
+  await f.orders.syncOrdersJob(f.admin,f.job);
+  const event=f.logs.find(([name])=>name==='amazon_operational_order_first_import');
+  assert.ok(event);
+  const fields=JSON.parse(event[1]);
+  assert.equal(fields.job_id,'job');assert.equal(fields.mode,mode);assert.equal(fields.recovery,recovery);assert.equal(fields.order_id,'first-import');assert.equal(fields.source_status,'PENDING');
+  assert.equal(fields.amazon_created_at,'2026-10-18T00:05:00Z');assert.equal(fields.enqueued_at,'2026-10-18T00:10:00Z');
+  assert.doesNotMatch(JSON.stringify(event),/Private name|private@example/);
+});
+
+for(const duplicate of ['existing','conflict'])test('operational '+duplicate+' never claims a first import in provenance logs',async()=>{
+  const f=fixture([{orders:[{orderId:'repeat',salesChannel:{marketplaceId:ids[0]},fulfillment:{fulfilledBy:'MERCHANT',fulfillmentStatus:'UNSHIPPED'}}]}],{integrated:true,...(duplicate==='existing'?{existing:[{id:'saved',order_number:'repeat'}]}:{conflict:true})});
+  await f.orders.syncOrdersJob(f.admin,f.job);
+  assert.equal(f.logs.length,0);
+});
+
+for(const partialFailure of [false,true])test('real worker dispatch '+(partialFailure?'retries a partial Orders failure without advancing any market':'imports a new order and advances all nine markets'),async()=>{
+  const f=fixture(partialFailure?[{orders:[],pagination:{nextToken:'next'}},new Error('partial Orders response')]:[{orders:ids.map((marketplaceId,index)=>({orderId:'new-'+index,salesChannel:{marketplaceId}}))}]);
+  let handler,background,claimed=false;
+  f.admin.rpc=async name=>name==='amazon_claim_sync_jobs'?{data:claimed?[]:(claimed=true,[f.job]),error:null}:{data:true,error:null};
+  load('supabase/functions/amazon-sync-worker/index.ts',name=>{
+    if(name.includes('/supabase'))return {createAdminClient:()=>f.admin,requireInternalSecret:()=>{}};
+    if(name.includes('/sync'))return f.sync;
+    if(name.includes('/orders'))return f.orders;
+    if(name.includes('/shipment-confirmation'))return {retryPendingAmazonTracking:async()=>{}};
+    return {};
+  },{Deno:{serve:callback=>{handler=callback}},Response,crypto:{randomUUID:()=> 'holder'},EdgeRuntime:{waitUntil:promise=>{background=promise}},setInterval:()=>1,clearInterval:()=>{},console:{info(){},error(){}}});
+  assert.equal((await handler({method:'POST'})).status,202);
+  await background;
+  const completion=f.writes.find(write=>write.table==='amazon_sync_jobs');
+  assert.equal(completion.value.status,partialFailure?'queued':'success');
+  const checkpoints=f.writes.filter(write=>write.table==='amazon_sync_state').flatMap(write=>write.value);
+  assert.deepEqual(checkpoints.map(row=>row.scope_key).sort(),partialFailure?[]:ids);
+  if(!partialFailure)assert.equal(f.writes.filter(write=>write.table==='amazon_orders').flatMap(write=>write.value).length,9);
+});
+
+test('manual recovery remains identifiable after the payload allowlist removes its recovery flag',async()=>{
+  const f=fixture([{orders:[{orderId:'recovered',salesChannel:{marketplaceId:ids[0]},fulfillment:{fulfilledBy:'MERCHANT',fulfillmentStatus:'UNSHIPPED'}}]}],{integrated:true});
+  f.job.job_key='recovery:v2:orders:'+ids[0]+':2026-10-18';
+  await f.orders.syncOrdersJob(f.admin,f.job);
+  assert.equal(JSON.parse(f.logs.find(([name])=>name==='amazon_operational_order_first_import')[1]).recovery,true);
 });

@@ -30,12 +30,7 @@ test('receipt payments are independent and protected from overpayment',async()=>
   assert.doesNotMatch(service,/linkSalesReceiptsToInvoice/);
 });
 
-test('Facturación exposes Facturas and Recibos as sibling tabs',async()=>{
-  const page=await read('src/pages/SalesInvoices.tsx');
-  assert.match(page,/>Facturas<\/strong>/);
-  assert.match(page,/>Recibos<\/strong>/);
-  assert.match(page,/<SalesReceipts\/>/);
-});
+// Sibling tabs and receipt activation are exercised on real pages by design-phase2-screenshots.mjs.
 
 test('receipt selection uses the application bulk checkbox component',async()=>{
   const page=await read('src/pages/SalesReceipts.tsx');

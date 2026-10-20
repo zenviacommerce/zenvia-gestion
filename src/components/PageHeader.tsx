@@ -6,7 +6,8 @@ export function PageHeader({title,eyebrow,description,actions}:{title:string;eye
   useLayoutEffect(()=>{
     measure();const el=row.current;if(!el)return;
     const observer=typeof ResizeObserver==='undefined'?null:new ResizeObserver(measure);observer?.observe(el);
-    window.addEventListener('resize',measure);return()=>{observer?.disconnect();window.removeEventListener('resize',measure);};
+    const content=new MutationObserver(measure);content.observe(el,{childList:true,subtree:true,characterData:true});
+    window.addEventListener('resize',measure);return()=>{observer?.disconnect();content.disconnect();window.removeEventListener('resize',measure);};
   },[actions]);
   return <header className="pageHead dsPageHeader">
     <div className="dsPageHeaderIdentity">{eyebrow&&<div className="eyebrow">{eyebrow}</div>}<h1>{title}</h1>{description&&<p>{description}</p>}</div>

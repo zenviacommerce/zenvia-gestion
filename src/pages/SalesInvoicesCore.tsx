@@ -1,3 +1,6 @@
+import {PageHeader} from '../components/PageHeader';
+import {KpiGrid} from '../components/KpiGrid';
+import {FilterBar} from '../components/FilterBar';
 import {useClientOptions} from '../hooks/useClientOptions';
 import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -536,9 +539,9 @@ export function SalesInvoices({
     catch(e){showError(errorMessage(e,'No se pudo crear la rectificativa.'));}
     finally{setBusyId(null);}
   };
-  return <div className="page"><div className="pageHead"><div><div className="eyebrow">VENTAS</div><h1>Facturación</h1><p>Borradores, series, registros IVA, emisión, envío por Gmail, cobros y rectificativas desde un único sitio.</p></div><div className="actions"><button className="secondary" onClick={()=>setSeriesModal(true)}><ListOrdered size={17}/> Series</button><button className="secondary" onClick={()=>setBusinessModal(true)}><Settings2 size={17}/> Datos fiscales</button><button className="primary" onClick={openNew}>+ Nueva factura</button></div></div>
+  return <div className="page designSystemPage financeDesignPage"><PageHeader title="Facturación" eyebrow="VENTAS" description="Borradores, series, registros IVA, emisión, envío por Gmail, cobros y rectificativas desde un único sitio." actions={<><button className="secondary" onClick={()=>setSeriesModal(true)}><ListOrdered size={17}/> Series</button><button className="secondary" onClick={()=>setBusinessModal(true)}><Settings2 size={17}/> Datos fiscales</button><button className="primary" onClick={openNew}>+ Nueva factura</button></>}/>
     <PeriodFilterPanel filter={dateFilter} onChange={setDateFilter} title="Periodo de facturación"/>
-    <div className="stats salesStats normalizedKpiStats">
+    <KpiGrid label="Indicadores de facturación" dense>
       <StatCard label="Facturado" value={money(totals.issued)} sub={selectedPeriod} icon={<ReceiptText/>}/>
       <StatCard label="IVA repercutido" value={money(totals.tax)} sub={selectedPeriod} icon={<BadgeEuro/>}/>
       <StatCard label="Cobrado" value={money(totals.collected)} sub={selectedPeriod} icon={<CheckCircle2/>}/>
@@ -546,8 +549,8 @@ export function SalesInvoices({
       <StatCard label="Facturas emitidas" value={String(totals.count)} sub={selectedPeriod} icon={<CalendarDays/>}/>
       <StatCard label="Borradores" value={String(totals.drafts)} sub="Pendientes de emitir" icon={<FilePenLine/>}/>
       <StatCard label="Ticket medio" value={money(totals.average)} sub="Sobre facturas emitidas" icon={<Calculator/>}/>
-    </div>
-    <div className="businessFilterBar salesBusinessFilters">
+    </KpiGrid>
+    <FilterBar label="Filtros de facturación" className="businessFilterBar salesBusinessFilters">
       <div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar cliente, CIF, VAT o nº factura…"/></div>
       <div className="businessFilterFields">
         <label className="filterField"><span>Cliente</span><SearchableSelect value={clientId==='all'?'':clientId} options={clientOptions} onChange={value=>setClientId(value||'all')} allowEmpty emptyLabel="Todos los clientes" searchPlaceholder="Buscar cliente…" ariaLabel="Filtrar por cliente"/></label>
@@ -557,7 +560,7 @@ export function SalesInvoices({
       </div>
       <button className="filterResetCompact" type="button" onClick={()=>{setQuery('');setStatus('all');setClientId('all');setCountryFilter('all');setCollectionFilter('all');setDateFilter(defaultDateFilter(preferences.defaultPeriod))}}><RotateCcw size={15}/> Limpiar filtros</button>
       <span className="filterResultCount">{filtered.length} factura{filtered.length===1?'':'s'} · {selectedPeriod}</span>
-    </div>
+    </FilterBar>
     {filtered.length>0&&<BulkSelectionToolbar selectedCount={selectedVisible.length} totalCount={filtered.length} allSelected={allVisibleSelected} onToggleAll={toggleAllVisible} label="facturas visibles">
       <button className="secondary" type="button" disabled={!issuableSelected.length||bulkIssuing||bulkDeleting} onClick={()=>void issueSelected()}><FileCheck2 size={15}/> {bulkIssuing?'Emitiendo…':`Emitir seleccionadas (${issuableSelected.length})`}</button>
       <button className="secondary collectBulkButton" type="button" disabled={!collectableSelected.length||bulkDeleting||bulkIssuing} onClick={()=>setBulkPaymentInvoices(collectableSelected)}><Banknote size={15}/> Cobrar seleccionadas ({collectableSelected.length})</button>

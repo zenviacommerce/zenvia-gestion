@@ -96,14 +96,14 @@ html[data-theme='dark'] .page .ordersPrinterBar select{
   }
 
   /* Generic two-column filter grids. Date fields always get equal, bounded columns. */
-  .invoiceFilterPanel .filterGrid{
+  .invoiceFilterPanel:not(.dsFilterBar) .filterGrid{
     display:grid!important;
     grid-template-columns:repeat(2,minmax(0,1fr))!important;
     gap:12px!important;
   }
 
-  .invoiceFilterPanel .filterGrid>label,
-  .invoiceFilterPanel .filterGrid>button{
+  .invoiceFilterPanel:not(.dsFilterBar) .filterGrid>label,
+  .invoiceFilterPanel:not(.dsFilterBar) .filterGrid>button{
     min-width:0!important;
     max-width:100%!important;
   }
@@ -112,11 +112,11 @@ html[data-theme='dark'] .page .ordersPrinterBar select{
     grid-column:1/-1!important;
   }
 
-  .invoiceFilterPanel .filterGrid>label:has(>input[type='date']){
+  .invoiceFilterPanel:not(.dsFilterBar) .filterGrid>label:has(>input[type='date']){
     grid-column:auto!important;
   }
 
-  .invoiceFilterPanel .filterGrid>.filterReset{
+  .invoiceFilterPanel:not(.dsFilterBar) .filterGrid>.filterReset{
     grid-column:1/-1!important;
     width:100%!important;
   }
@@ -203,11 +203,11 @@ html[data-theme='dark'] .page .ordersPrinterBar select{
 
 @media(max-width:390px){
   /* On genuinely narrow devices stack date pairs cleanly instead of squeezing them. */
-  .invoiceFilterPanel .filterGrid,
+  .invoiceFilterPanel:not(.dsFilterBar) .filterGrid,
   .masterPeriodDates:not(.designSystemPage *){
     grid-template-columns:1fr!important;
   }
-  .invoiceFilterPanel .filterGrid>label,
+  .invoiceFilterPanel:not(.dsFilterBar) .filterGrid>label,
   .masterPeriodDates:not(.designSystemPage *)>label{
     grid-column:1/-1!important;
   }

@@ -55,3 +55,25 @@
 .dsPageHeaderActionsFrame{position:relative;max-width:100%;min-width:0;flex:0 1 auto}
 .dsActionsScrollHint{display:none}
 @media(max-width:767px){.dsPageHeaderActionsFrame{width:100%;flex:initial}.dsActionsScrollHint{position:absolute;right:0;top:0;bottom:6px;width:36px;display:grid;place-items:center;pointer-events:none;color:var(--accent,#0f766e);font-size:22px;background:linear-gradient(to right,transparent,var(--app-bg,#f6f8fb) 70%)}}
+/* Phase 2: field state and values remain owned by each screen. */
+.dsFilterBar{min-width:0;max-width:100%;gap:12px}
+.dsFilterBar .search,.dsFilterBar .filterField,.dsFilterBar label{min-width:0}
+.dsPageTabs{min-width:0;max-width:100%}
+.dsPageTabs>button{min-width:0}
+@media(max-width:767px){
+ .financeDesignPage .dsFilterBar{margin-bottom:10px;padding:10px;gap:8px}
+ .financeDesignPage .dsFilterBar .filterGrid,.financeDesignPage .dsFilterBar .businessFilterFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
+ .financeDesignPage .dsFilterBar label,.financeDesignPage .dsFilterBar .filterField{min-width:0;font-size:12px}
+ .financeDesignPage .dsFilterBar .search{min-width:0;width:100%}
+ .financeDesignPage .dsFilterBar .filterReset,.financeDesignPage .dsFilterBar .filterResetCompact{min-height:40px;justify-content:center}
+ .financeDesignPage .dsFilterBar .filterResultCount{font-size:11px;line-height:1.3}
+ .financeDesignPage .salesReceiptNotice{margin:8px 0;padding:10px;font-size:12px;line-height:1.4}
+ .dsPageTabs .expenseHubTabText small{display:block;font-size:10px;white-space:normal;line-height:1.25}
+ .expenseHubNav.dsPageTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;flex:0 1 auto;overflow:visible}
+ .dsPageTabs>button{padding:8px;gap:6px;min-height:52px}
+ .dsPageTabs .expenseHubTabIcon{flex:0 0 26px;width:26px;height:26px}
+ .dsPageTabs .expenseHubTabText{min-width:0}
+}
+
+@media(max-width:767px){.financeDesignPage .dsFilterBar .filterGrid>label{grid-column:auto}.financeDesignPage .dsFilterBar .filterGrid>.filterReset{grid-column:1/-1}}
+.financeDesignPage .kpiGrid .statContent>strong>span{max-width:100%;font-size:clamp(12px,8cqi,18px);white-space:normal;overflow-wrap:anywhere}

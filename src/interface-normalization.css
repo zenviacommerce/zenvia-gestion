@@ -189,7 +189,7 @@ html[data-theme='dark'] .salesPaymentQuick span{color:#94a3b8}
 
 
 /* Expense filter grid can grow without squeezing fields or creating accidental implicit columns. */
-.invoiceFilterPanel .filterGrid{
+.invoiceFilterPanel:not(.dsFilterBar) .filterGrid{
   grid-template-columns:repeat(auto-fit,minmax(155px,1fr))!important;
 }
 .invoiceFilterPanel .filterReset{

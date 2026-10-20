@@ -11,6 +11,7 @@ export type ProductInput = {
   salePrice?: number | null;
   salesTaxRate?: number | null;
   invoiceDescription?: string;
+  unitWeightKg?: number | null;
   supplierId?: string | null;
 };
 
@@ -36,6 +37,12 @@ function normalizeTaxRate(value: number | null | undefined) {
   return number;
 }
 
+function normalizeWeight(value:number|null|undefined){
+ if(value==null)return null;
+ if(!Number.isFinite(value)||value<=0)throw new Error('El peso por unidad debe ser mayor que 0 kg.');
+ return value;
+}
+
 function samePrice(a: number | null, b: number | null) {
   if (a == null || b == null) return a == null && b == null;
   return Math.abs(a - b) < 0.000001;
@@ -57,9 +64,9 @@ async function addManualPriceHistory(productId: string, price: number, unit: str
 }
 
 export async function getProductSalesDetails(productId:string){
-  const {data,error}=await supabase.from('products').select('sale_price,sales_tax_rate,invoice_description,ean').eq('id',productId).single();
+  const {data,error}=await supabase.from('products').select('sale_price,sales_tax_rate,invoice_description,ean,unit_weight_kg').eq('id',productId).single();
   if(error)throw error;
-  return {salePrice:data.sale_price==null?null:Number(data.sale_price),salesTaxRate:data.sales_tax_rate==null?21:Number(data.sales_tax_rate),invoiceDescription:data.invoice_description||'',ean:data.ean||''};
+  return {salePrice:data.sale_price==null?null:Number(data.sale_price),salesTaxRate:data.sales_tax_rate==null?21:Number(data.sales_tax_rate),invoiceDescription:data.invoice_description||'',ean:data.ean||'',unitWeightKg:data.unit_weight_kg==null?null:Number(data.unit_weight_kg)};
 }
 
 export async function loadProductSalesMap(productIds:string[]){
@@ -87,6 +94,7 @@ export async function addProduct(input: ProductInput) {
     sale_price:salePrice,
     sales_tax_rate:salesTaxRate,
     invoice_description:input.invoiceDescription?.trim()||null,
+    ...(input.unitWeightKg!==undefined?{unit_weight_kg:normalizeWeight(input.unitWeightKg)}:{}),
   }).select('id').single();
   if (error) throw error;
 
@@ -102,7 +110,7 @@ notifyEntityChanged('products');}
 
 export async function updateProduct(productId: string, input: ProductInput) {
   const { data: existing, error: readError } = await supabase.from('products')
-    .select('name,sku,ean,category,base_unit,last_cost,previous_cost,cost_unit,last_supplier_id,sale_price,sales_tax_rate,invoice_description')
+    .select('name,sku,ean,category,base_unit,last_cost,previous_cost,cost_unit,last_supplier_id,sale_price,sales_tax_rate,invoice_description,unit_weight_kg')
     .eq('id', productId)
     .single();
   if (readError) throw readError;
@@ -125,6 +133,7 @@ export async function updateProduct(productId: string, input: ProductInput) {
     sale_price:salePrice,
     sales_tax_rate:salesTaxRate,
     invoice_description:input.invoiceDescription?.trim()||null,
+    ...(input.unitWeightKg!==undefined?{unit_weight_kg:normalizeWeight(input.unitWeightKg)}:{}),
     ...(priceChanged ? { previous_cost: oldPrice, last_cost: newPrice } : {}),
   };
 
@@ -148,6 +157,7 @@ export async function updateProduct(productId: string, input: ProductInput) {
         sale_price:existing.sale_price,
         sales_tax_rate:existing.sales_tax_rate,
         invoice_description:existing.invoice_description,
+        unit_weight_kg:existing.unit_weight_kg,
       }).eq('id', productId);
       throw historyError;
     }

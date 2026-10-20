@@ -1,3 +1,4 @@
+import {loadOrderWeightFixture} from './order-weight-fixture.mjs';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
@@ -68,7 +69,7 @@ test('a later real Amazon operational import is cleaned by the SQL guard',async(
  await db.query('update fulfillment_orders set pii_purged_at=now() where id=$1',[row.id]);
  const source=readFileSync(new URL('../supabase/functions/_shared/amazon/orders.ts',import.meta.url),'utf8');
  const exports={};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText+'\nexports.operationalImport=upsertOperationalAmazonOrders;',{
- exports,require:()=>({}),Date,Map,Set,console
+ exports,require:name=>name.includes('orderPackageWeight')?loadOrderWeightFixture():({}),Date,Map,Set,console
  });
  const admin={from(table){let patch;const filters=[];const q={
  select(){return q},eq(k,v){filters.push([k,v]);return q},neq(){return q},in(){return q},

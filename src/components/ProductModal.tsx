@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { FileText, Package, ShoppingCart, Store } from 'lucide-react';
 import type { Product, Supplier } from '../types';
 import { getProductSalesDetails, type ProductInput } from '../services/productEditor';
@@ -50,11 +50,15 @@ export function ProductModal({open,product,suppliers,onClose,onSave}:{open:boole
  const [autoSalePrice,setAutoSalePrice]=useState(true);
  const [salesTaxRate,setSalesTaxRate]=useState(String(settings.products.defaultVatRate));
  const [invoiceDescription,setInvoiceDescription]=useState('');
+ const [unitWeightKg,setUnitWeightKg]=useState('');
+ const [unitWeightLoaded,setUnitWeightLoaded]=useState(false);
+ const unitWeightTouched=useRef(false);
  const [busy,setBusy]=useState(false);
  const [error,setError]=useState('');
 
  useEffect(()=>{
    if(!open)return;
+   let active=true;
    const initialCost=product?.lastPrice??null;
    const initialSale=product?.salePrice??null;
    setName(product?.name??'');
@@ -68,17 +72,23 @@ export function ProductModal({open,product,suppliers,onClose,onSave}:{open:boole
    setAutoSalePrice(!product||followsDefault(initialCost,initialSale,settings.products.targetMarginPct,settings.products.priceRounding));
    setSalesTaxRate(product?.salesTaxRate!=null?String(product.salesTaxRate):String(settings.products.defaultVatRate));
    setInvoiceDescription(product?.invoiceDescription??'');
+   setUnitWeightKg('');
+   setUnitWeightLoaded(!product?.id);unitWeightTouched.current=false;
    setError('');
    if(product?.id){
      getProductSalesDetails(product.id).then(details=>{
+       if(!active)return;
        const automatic=followsDefault(product.lastPrice,details.salePrice,settings.products.targetMarginPct,settings.products.priceRounding);
        setSalePrice(details.salePrice!=null?String(details.salePrice):defaultSalePrice(String(product.lastPrice??''),settings.products.targetMarginPct,settings.products.priceRounding));
        setAutoSalePrice(automatic);
        setSalesTaxRate(String(details.salesTaxRate));
        setInvoiceDescription(details.invoiceDescription);
        setEan(details.ean);
+       if(!unitWeightTouched.current)setUnitWeightKg(details.unitWeightKg==null?'':String(details.unitWeightKg));
+       setUnitWeightLoaded(true);
      }).catch(()=>undefined);
    }
+   return()=>{active=false;};
  },[open,product,settings.products.defaultCategoryId,settings.products.defaultSupplierId,settings.products.defaultUnit,settings.products.defaultVatRate,settings.products.targetMarginPct,settings.products.priceRounding]);
 
  const supplierOptions=useMemo(()=>suppliers.map(supplier=>({value:supplier.id,label:supplier.name,searchText:`${supplier.name} ${supplier.taxId||''}`,description:supplier.taxId||undefined})),[suppliers]);
@@ -91,8 +101,10 @@ export function ProductModal({open,product,suppliers,onClose,onSave}:{open:boole
    if(Number.isNaN(parsedPrice)){setError('Indica un coste válido igual o superior a 0.');return;}
    if(Number.isNaN(parsedSalePrice)){setError('Indica un precio de venta válido igual o superior a 0.');return;}
    if(!Number.isFinite(parsedTax)||parsedTax<0||parsedTax>100){setError('El IVA de venta debe estar entre 0 y 100.');return;}
+   const parsedWeight=unitWeightKg.trim()?Number(unitWeightKg.replace(',','.')):null;
+   if(parsedWeight!=null&&(!Number.isFinite(parsedWeight)||parsedWeight<=0)){setError('El peso por unidad debe ser mayor que 0 kg.');return;}
    setBusy(true);setError('');
-   try{await onSave({name,sku,ean,category,unit,price:parsedPrice,salePrice:parsedSalePrice,salesTaxRate:parsedTax,invoiceDescription,supplierId:supplierId||null});showSuccess(product?'Producto modificado correctamente.':'Producto creado correctamente.');onClose();}
+   try{await onSave({name,sku,ean,category,unit,price:parsedPrice,salePrice:parsedSalePrice,salesTaxRate:parsedTax,invoiceDescription,...(unitWeightLoaded||unitWeightTouched.current?{unitWeightKg:parsedWeight}:{}),supplierId:supplierId||null});showSuccess(product?'Producto modificado correctamente.':'Producto creado correctamente.');onClose();}
    catch(e){setError(e instanceof Error?e.message:'Error');}
    finally{setBusy(false)}
  };
@@ -126,7 +138,12 @@ export function ProductModal({open,product,suppliers,onClose,onSave}:{open:boole
      </FormGrid>
    </FormSection>
 
+   <FormSection icon={<Package size={18}/>} title="Envío" subtitle="Peso utilizado para preparar pedidos">
+     <FormGrid><label>Peso por unidad (kg)<input type="number" min="0.001" step="0.001" value={unitWeightKg} onChange={e=>{unitWeightTouched.current=true;setUnitWeightKg(e.target.value)}} placeholder={product?.id&&!unitWeightLoaded?'Dejar sin cambios':'Sin peso registrado'}/><small>Peso de una unidad base. Se aplica el factor de la correspondencia y la cantidad del pedido.</small></label></FormGrid>
+   </FormSection>
+
    <FormSection icon={<FileText size={18}/>} title="Facturación" subtitle="Texto que verá el cliente cuando añadas este producto a una factura">
+
      <FormGrid><label className="formSpan2">Descripción para factura<textarea rows={3} value={invoiceDescription} onChange={e=>setInvoiceDescription(e.target.value)} placeholder="Descripción comercial que verá el cliente"/></label></FormGrid>
    </FormSection>
 

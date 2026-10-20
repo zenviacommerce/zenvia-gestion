@@ -1,3 +1,4 @@
+import {resolveOrderPackageWeight,assertQuotedPackageWeight} from '../_shared/orderPackageWeight.ts';
 import {loadDirectCarrierIds,filterAggregatorOptions} from '../_shared/carrierPolicy.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
 import {withAmazonBuyerRead,withOrderQuote,withOrderLabelCreation} from '../_shared/amazonPiiRead.ts';
@@ -637,6 +638,7 @@ Deno.serve(async(req:Request)=>{
       const accounts=await enviaAccounts(admin,caller.data_owner_id,clean(body?.integrationAccountId));
       if(!accounts.length)return response({ok:true,configured:false,options:[],message:'Envia.com no está conectado.',diagnostics:[]});
       const config=await workspaceConfig(admin,caller.data_owner_id);
+      await resolveOrderPackageWeight(admin,order,config.shipping);
       const direct=await loadDirectCarrierIds(admin,caller.data_owner_id);
       const results=await Promise.allSettled(accounts.map((account:any)=>quoteAccount(admin,account,order,config,direct)));
       const options=filterAggregatorOptions(results.flatMap((result:any)=>result.status==='fulfilled'?result.value.options:[]),direct,'envia').sort((a:any,b:any)=>(a.price??Number.MAX_VALUE)-(b.price??Number.MAX_VALUE));
@@ -648,7 +650,7 @@ Deno.serve(async(req:Request)=>{
       const message=options.length
         ?(diagnostics.length?`${options.length} opciones disponibles; ${diagnostics.length} cotizaciones de transportista han fallado.`:null)
         :(firstDiagnostic?`Envia.com no devolvió tarifas. ${firstDiagnostic}`:'Envia.com no devolvió tarifas para este envío.');
-      return response({ok:true,configured:true,options,message,diagnostics});
+      return response({ok:true,configured:true,weightKg:orderWeightKg(order,config.shipping),weightEstimated:Boolean(order.raw_payload?._zenvia_weight?.estimated),options,message,diagnostics});
     }
 
     if(action==='create_label'){
@@ -661,6 +663,8 @@ Deno.serve(async(req:Request)=>{
       const account=accounts[0];if(!account)return fail('La cuenta de Envia.com seleccionada no está disponible.',409);
       const config=await workspaceConfig(admin,caller.data_owner_id);
       const c=await credentials(admin,account);
+      await resolveOrderPackageWeight(admin,order,config.shipping);
+      assertQuotedPackageWeight(order,body?.shippingOption);
       let origin=sender(config),dest=destination(order);const pkg=packageFor(order,config.shipping);
       validatePayload(origin,dest);
       [origin,dest]=await Promise.all([geocodeAddress(origin),geocodeAddress(dest)]);
@@ -728,7 +732,7 @@ Deno.serve(async(req:Request)=>{
       const quotedPrice=option?.price==null?NaN:number(option.price,NaN);
       const price=Number.isFinite(generatedPrice)?generatedPrice:(Number.isFinite(quotedPrice)?quotedPrice:null);
       const currency=clean(data?.currency||option?.currency)||'EUR';
-      const patch:any={
+      const patch:any={raw_payload:order.raw_payload,
         shipping_provider:'envia',
         shipping_remote_id:tracking,
         shipping_label_url:labelUrl,
@@ -776,7 +780,7 @@ Deno.serve(async(req:Request)=>{
       message='Saldo insuficiente en Envia.com. Recarga saldo o revisa el crédito disponible en tu cuenta antes de generar la etiqueta.';
     }
     console.error('ENVIA_OPERATION_FAILED',JSON.stringify({action:operation,orderReference,error:message}));
-    const status=/Sesión no válida/.test(message)?401:/permiso|desactivado/.test(message)?403:/ya tiene una etiqueta/.test(message)?409:/Saldo insuficiente en Envia\.com/.test(message)?402:500;
+    const status=/Sesión no válida/.test(message)?401:/permiso|desactivado/.test(message)?403:/peso ha cambiado|ya tiene una etiqueta/.test(message)?409:/Saldo insuficiente en Envia\.com/.test(message)?402:500;
     return fail(message,status);
   }
 });

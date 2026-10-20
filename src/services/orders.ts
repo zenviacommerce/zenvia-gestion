@@ -17,7 +17,7 @@ export interface FulfillmentOrder {
   pickupReports?:Array<{id:string;number:string}>;
   piiPurgedAt?:string|null; destinationCountryCode?:string|null;
   shippingAddress:Record<string,unknown>; billingAddress:Record<string,unknown>; items:Array<Record<string,unknown>>;
-  totalAmount:number|null; currency:string|null; weightKg:number|null;
+  totalAmount:number|null; currency:string|null; weightKg:number|null; weightEstimated?:boolean; weightSource?:string;
   packageLengthCm:number|null; packageWidthCm:number|null; packageHeightCm:number|null;
   sendcloudParcelId:number|null; sendcloudShipmentId:string|null;
   shippingProvider:'sendcloud'|'envia'|'mrw'|null; shippingRemoteId:string|null; shippingLabelUrl:string|null;
@@ -52,6 +52,7 @@ export interface ShippingOption {
   integrationAccountId?:string|null;
   integrationAccountName?:string|null;
   code:string; name:string; carrierCode:string; carrierName:string; contractId:number|null;
+  packageWeightKg?:number; weightEstimated?:boolean;
   price:number|null; currency:string|null; billedWeightKg?:number|null; etaDays?:number|null; raw:Record<string,unknown>;
 }
 export interface LabelResult {
@@ -111,7 +112,7 @@ function mapRow(row:any):FulfillmentOrder{
     orderCreatedAt:row.order_created_at||null, orderUpdatedAt:row.order_updated_at||null,
     customerName:row.customer_name||null, customerEmail:row.customer_email||null, customerPhone:row.customer_phone||null, piiPurgedAt:row.pii_purged_at||null, destinationCountryCode:row.destination_country_code||null,
     shippingAddress, billingAddress:row.billing_address||{}, items:Array.isArray(row.items)?row.items:[],
-    totalAmount:row.total_amount==null?null:Number(row.total_amount), currency:row.currency||null, weightKg:toKg(weight?.value,weight?.unit),
+    totalAmount:row.total_amount==null?null:Number(row.total_amount), currency:row.currency||null, weightKg:toKg(weight?.value,weight?.unit), weightEstimated:Boolean(row.raw_payload?._zenvia_weight?.estimated), weightSource:row.raw_payload?._zenvia_weight?.source||null,
     packageLengthCm:row.package_length_cm==null?dimensionCm(dimension?.length):Number(row.package_length_cm),
     packageWidthCm:row.package_width_cm==null?dimensionCm(dimension?.width):Number(row.package_width_cm),
     packageHeightCm:row.package_height_cm==null?dimensionCm(dimension?.height):Number(row.package_height_cm),
@@ -351,8 +352,8 @@ export async function getShippingOptions(orderId:string,onUpdate?:(states:Provid
     requests[provider]=async signal=>{
       const endpoint=provider==='sendcloud'?'sendcloud-order-tools':provider==='envia'?'envia-shipping':'mrw-shipping';
       const action=provider==='sendcloud'?'shipping_options':provider==='envia'?'rates':'options';
-      const result=await invokeFunction<{configured?:boolean;options:ShippingOption[];message?:string|null}>(endpoint,{action,orderId},signal);
-      const options=(result.options||[]).map(option=>({...option,provider,providerName:provider==='envia'?'Envia.com':provider==='mrw'?'MRW directo':'Sendcloud'})).filter(option=>!(Number(option.price)===0&&/unstamped|sin franqueo|unfranked/i.test(option.name||'')));
+      const result=await invokeFunction<{configured?:boolean;options:ShippingOption[];message?:string|null;weightKg?:number;weightEstimated?:boolean}>(endpoint,{action,orderId},signal);
+      const options=(result.options||[]).map(option=>({...option,packageWeightKg:result.weightKg,weightEstimated:result.weightEstimated,provider,providerName:provider==='envia'?'Envia.com':provider==='mrw'?'MRW directo':'Sendcloud'})).filter(option=>!(Number(option.price)===0&&/unstamped|sin franqueo|unfranked/i.test(option.name||'')));
       return {...result,options};
     };
   }
@@ -383,7 +384,7 @@ export async function createOrderLabel(orderId:string,option?:ShippingOption|nul
   const shippingOption=option?{
     provider:option.provider,providerName:option.providerName,integrationAccountId:option.integrationAccountId||null,
     code:option.code,contractId:option.contractId,carrierCode:option.carrierCode,carrierName:option.carrierName,
-    name:option.name,price:option.price,currency:option.currency,
+    name:option.name,price:option.price,currency:option.currency,packageWeightKg:option.packageWeightKg,
   }:null;
   const result=option?.provider==='envia'
     ?await invokeEnvia<LabelResult>({action:'create_label',orderId,shippingOption})

@@ -1,3 +1,4 @@
+import {useEntityRefresh} from './hooks/useEntityRefresh';
 import {useMfaAccess} from './context/MfaContext';
 import {MfaScreen} from './components/MfaScreen';
 import {classifyAuthError, retryTransientAuth} from './services/authResilience';
@@ -169,6 +170,8 @@ export default function App(){
    catch(e){if(generation===dataGeneration.current)setError(e instanceof Error?e.message:'No se pudieron cargar los datos.');}
    finally{if(generation===dataGeneration.current)setLoading(false);}
  },[mfaAccess.ready,userId]);
+
+ useEntityRefresh(['suppliers','products'],refresh);
 
  const refreshWorkspaceBranding=useCallback(async()=>{
    try{

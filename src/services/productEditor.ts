@@ -1,3 +1,4 @@
+import {notifyEntityChanged} from './entityChanges';
 import { supabase } from './supabase';
 
 export type ProductInput = {
@@ -97,7 +98,7 @@ export async function addProduct(input: ProductInput) {
       throw historyError;
     }
   }
-}
+notifyEntityChanged('products');}
 
 export async function updateProduct(productId: string, input: ProductInput) {
   const { data: existing, error: readError } = await supabase.from('products')
@@ -151,4 +152,4 @@ export async function updateProduct(productId: string, input: ProductInput) {
       throw historyError;
     }
   }
-}
+notifyEntityChanged('products');}

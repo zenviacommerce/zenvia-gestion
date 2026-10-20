@@ -1,3 +1,4 @@
+import {notifyEntityChanged} from './entityChanges';
 import {supabase} from './supabase';
 import {loadSalesInvoices,type SalesInvoiceLine,type ClientInput} from './sales';
 import type {FulfillmentOrder} from './orders';
@@ -22,6 +23,7 @@ export async function prepareOrderInvoice(order:FulfillmentOrder){
 export async function saveOrderInvoice(orderId:string,input:{client:ClientInput;taxRegistrationId?:string;seriesId:string;issueDate:string;lines:SalesInvoiceLine[]},issue:boolean){
   const {data,error}=await supabase.rpc('save_shopify_order_invoice',{p_order_id:orderId,p_client:{...input.client,taxRegistrationId:input.taxRegistrationId||null},p_series_id:input.seriesId,p_issue_date:input.issueDate,p_lines:input.lines,p_issue:issue});
   if(error)throw error;
+  notifyEntityChanged('clients');
   const invoice=(await loadSalesInvoices()).find(i=>i.id===data);
   if(!invoice)throw new Error('La factura se ha guardado, pero no se pudo recargar. Abre Facturas de venta.');
   return invoice;

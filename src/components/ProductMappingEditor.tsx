@@ -1,3 +1,5 @@
+import {notifyEntityChanged} from '../services/entityChanges';
+import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import { useEffect, useMemo, useState } from 'react';
 import { Check, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { errorMessage, showError, showSuccess } from '../services/toast';
@@ -15,6 +17,8 @@ export function ProductMappingEditor({sellerSku,productName,defaultFactor=1,cale
   const [creating,setCreating]=useState(false);
   const [draft,setDraft]=useState({name:productName||sellerSku,sku:sellerSku,unit:'ud',cost:'',costFrom:(calendarDay||new Date().toLocaleDateString('sv-SE')),factor:String(defaultFactor||1)});
   const [query,setQuery]=useState('');
+  const [catalogVersion,setCatalogVersion]=useState(0);
+  useEntityRefresh(['products'],()=>setCatalogVersion(v=>v+1));
   const [options,setOptions]=useState<ProductOption[]>([]);
   const [mappings,setMappings]=useState<ProductMapping[]>([]);
   const [productId,setProductId]=useState('');
@@ -35,7 +39,7 @@ export function ProductMappingEditor({sellerSku,productName,defaultFactor=1,cale
     let alive=true;setLoadingOptions(true);
     const timer=window.setTimeout(()=>{void backend.loadOptions(query).then(rows=>{if(alive)setOptions(rows);}).catch(error=>{if(alive){setOptions([]);showError(errorMessage(error,'No se pudieron cargar los productos internos.'));}}).finally(()=>{if(alive)setLoadingOptions(false);});},220);
     return()=>{alive=false;window.clearTimeout(timer);};
-  },[query,backend]);
+  },[query,backend,catalogVersion]);
 
   const selected=useMemo(()=>options.find(option=>option.id===productId)||mappings.find(mapping=>mapping.productId===productId)||null,[options,mappings,productId]);
   const editingMapping=useMemo(()=>mappings.find(mapping=>mapping.productId===productId)||null,[mappings,productId]);
@@ -61,7 +65,7 @@ export function ProductMappingEditor({sellerSku,productName,defaultFactor=1,cale
     setLoading(true);
     try{
       const result=await backend.save({sellerSku,productId,consumptionFactor:numeric});
-      if(result.skuAssigned)window.dispatchEvent(new CustomEvent('zenvia:products-changed'));
+      if(result.skuAssigned){window.dispatchEvent(new CustomEvent('zenvia:products-changed'));notifyEntityChanged('products');}
       showSuccess(editingMapping?'Vínculo actualizado.':result.skuAssigned?'Producto añadido y SKU interno asignado automáticamente.':'Producto vinculado.');
       await refreshMappings();
       setProductId('');setQuery('');setFactor(String(defaultFactor||1));
@@ -79,7 +83,7 @@ export function ProductMappingEditor({sellerSku,productName,defaultFactor=1,cale
     setLoading(true);
     try{
       await backend.create({sellerSku,name:draft.name.trim(),sku:draft.sku.trim(),unit:draft.unit.trim()||'ud',unitCost,costFrom:unitCost==null?null:draft.costFrom||null,consumptionFactor:numeric});
-      window.dispatchEvent(new CustomEvent('zenvia:products-changed'));
+      window.dispatchEvent(new CustomEvent('zenvia:products-changed'));notifyEntityChanged('products');
       showSuccess('Producto creado y vinculado automáticamente.');
       await refreshMappings();setCreating(false);setProductId('');setQuery('');onChanged();
     }catch(error){showError(errorMessage(error,'No se pudo crear y vincular el producto.'));}

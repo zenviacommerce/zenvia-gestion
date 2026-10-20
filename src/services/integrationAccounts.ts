@@ -1,3 +1,4 @@
+import {notifyEntityChanged} from './entityChanges';
 import { supabase } from './supabase';
 import { loadAmazonStatus } from './amazon';
 import { listCachedGmailConnections } from './gmail';
@@ -80,6 +81,7 @@ async function invoke<T>(body:Record<string,unknown>,fallback:string):Promise<T>
   const {data,error}=await supabase.functions.invoke('integration-accounts',{body});
   if(error)throw new Error(await functionErrorMessage(error,fallback));
   if(!data||data.error)throw new Error(message(data,null,fallback));
+  if(['create','update','test','set_default','disconnect','delete','shopify_install_connect','shopify_oauth_exchange','shopify_client_connect'].includes(String(body.action)))notifyEntityChanged('integrations');
   return data as T;
 }
 

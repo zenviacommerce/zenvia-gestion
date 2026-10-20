@@ -1,3 +1,4 @@
+import {notifyEntityChanged} from './entityChanges';
 import { supabase } from './supabase';
 import { sanitizeDatabaseSingleLine, sanitizeDatabaseText } from './textSanitizer';
 import { defaultSalesDueDate } from './salesDefaults';
@@ -137,8 +138,11 @@ export type SalesInvoiceDraftInput = {
 const n=(value:unknown)=>Number(value??0)||0;
 const nullable=(value?:string|null)=>{const cleaned=sanitizeDatabaseText(value).trim();return cleaned||null;};
 const addressFrom=(row:any)=>[row?.address_line1,row?.address_line2,[row?.postal_code,row?.city].filter(Boolean).join(' '),row?.province,row?.country_code].filter(Boolean).join(', ');
-export async function loadClients():Promise<Client[]> {
-  const {data,error}=await supabase.from('clients').select('id,name,tax_id,email,phone,address_line1,address_line2,postal_code,city,province,country_code,payment_terms_days,default_vat_rate,default_payment_method,notes').eq('active',true).order('name');
+export async function loadClients(search=''):Promise<Client[]> {
+  let request=supabase.from('clients').select('id,name,tax_id,email,phone,address_line1,address_line2,postal_code,city,province,country_code,payment_terms_days,default_vat_rate,default_payment_method,notes').eq('active',true).order('name');
+  const needle=search.replace(/[,%_().\\"']/g,' ').trim().slice(0,120);
+  if(needle)request=request.or(['name','tax_id','email','phone','city'].map(column=>`${column}.ilike.%${needle}%`).join(',')).limit(100);
+  const {data,error}=await request;
   if(error)throw error;
   return (data??[]).map((row:any)=>({id:row.id,name:row.name,taxId:row.tax_id,email:row.email,phone:row.phone,addressLine1:row.address_line1,addressLine2:row.address_line2,postalCode:row.postal_code,city:row.city,province:row.province,countryCode:row.country_code||'ES',paymentTermsDays:Number(row.payment_terms_days||0),defaultVatRate:row.default_vat_rate==null?null:Number(row.default_vat_rate),defaultPaymentMethod:row.default_payment_method||null,notes:row.notes}));
 }
@@ -147,10 +151,10 @@ function clientRow(input:ClientInput){
   return {name:sanitizeDatabaseSingleLine(input.name),tax_id:nullable(input.taxId),email:nullable(input.email)?.toLowerCase()||null,phone:nullable(input.phone),address_line1:nullable(input.addressLine1),address_line2:nullable(input.addressLine2),postal_code:nullable(input.postalCode),city:nullable(input.city),province:nullable(input.province),country_code:sanitizeDatabaseSingleLine(input.countryCode||'ES').toUpperCase().slice(0,2),payment_terms_days:Math.max(0,Math.round(input.paymentTermsDays||0)),default_vat_rate:input.defaultVatRate==null?null:Math.min(100,Math.max(0,Number(input.defaultVatRate))),default_payment_method:nullable(input.defaultPaymentMethod),notes:nullable(input.notes)};
 }
 
-export async function addClient(input:ClientInput){const {data,error}=await supabase.from('clients').insert(clientRow(input)).select('id').single();if(error)throw error;return data.id as string;}
-export async function updateClient(id:string,input:ClientInput){const {error}=await supabase.from('clients').update(clientRow(input)).eq('id',id);if(error)throw error;}
-export async function deleteClient(id:string){const {error}=await supabase.from('clients').delete().eq('id',id);if(error){if(error.code==='23503')throw new Error('Este cliente tiene facturas o recibos asociados y no se puede eliminar. Puedes dejarlo registrado y reutilizarlo.');throw error;}}
-export async function deleteClientIfUnused(id:string){const {count,error}=await supabase.from('sales_invoices').select('id',{count:'exact',head:true}).eq('client_id',id);if(error)throw error;if((count||0)>0)return false;const {error:deleteError}=await supabase.from('clients').delete().eq('id',id);if(deleteError){if(deleteError.code==='23503')return false;throw deleteError;}return true;}
+export async function addClient(input:ClientInput){const {data,error}=await supabase.from('clients').insert(clientRow(input)).select('id').single();if(error)throw error;notifyEntityChanged('clients');return data.id as string;}
+export async function updateClient(id:string,input:ClientInput){const {error}=await supabase.from('clients').update(clientRow(input)).eq('id',id);if(error)throw error;notifyEntityChanged('clients');}
+export async function deleteClient(id:string){const {error}=await supabase.from('clients').delete().eq('id',id);if(error){if(error.code==='23503')throw new Error('Este cliente tiene facturas o recibos asociados y no se puede eliminar. Puedes dejarlo registrado y reutilizarlo.');throw error;}notifyEntityChanged('clients');}
+export async function deleteClientIfUnused(id:string){const {count,error}=await supabase.from('sales_invoices').select('id',{count:'exact',head:true}).eq('client_id',id);if(error)throw error;if((count||0)>0)return false;const {error:deleteError}=await supabase.from('clients').delete().eq('id',id);if(deleteError){if(deleteError.code==='23503')return false;throw deleteError;}notifyEntityChanged('clients');return true;}
 
 export async function loadBusinessSettings():Promise<BusinessSettings>{
   const {data,error}=await supabase.from('business_settings').select('*').maybeSingle();if(error)throw error;

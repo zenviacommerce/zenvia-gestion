@@ -1,3 +1,4 @@
+import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import {ShippingProviderStatus} from '../components/ShippingProviderStatus';
 import { isAmazonAwaitingPayment } from '../services/orderStatus';
 import { watchFulfillmentOrders } from '../services/orderLiveUpdates';
@@ -485,6 +486,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     window.addEventListener('zenvia:orders-refresh',onAgentRefresh);
     return()=>window.removeEventListener('zenvia:orders-refresh',onAgentRefresh);
   },[refresh,refreshStatus,refreshEnviaStatus,refreshTariffs]);
+  useEntityRefresh(['integrations','tariffs'],async()=>{quoteGeneration.current++;bulkQuoteRevision.current++;setBulkPreview(null);setLabelOrder(null);setPreparingOrder(null);await Promise.all([refreshStatus(),refreshEnviaStatus(),refreshTariffs()])});
   useEffect(()=>{void Promise.all([refreshStatus(),refreshEnviaStatus(),refreshTariffs()])},[refreshStatus,refreshEnviaStatus,refreshTariffs]);
   useEffect(()=>{let active=true;loadShippingRules({ensureDefaults:false}).then(rows=>{if(active)setShippingRules(rows.length?rows:defaultShippingRules())}).catch(()=>{if(active)setShippingRules(defaultShippingRules())});return()=>{active=false}},[]);
   useEffect(()=>{

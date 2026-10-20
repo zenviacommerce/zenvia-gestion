@@ -1,3 +1,4 @@
+import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Download, FileText, FileUp, LoaderCircle, ReceiptText, X } from 'lucide-react';
@@ -61,6 +62,7 @@ export function SalesInvoices(){
     finally{setLoading(false);activity.finish();}
   },[]);
 
+  useEntityRefresh(['clients'],async()=>{try{setClients(await loadClients())}catch(e){showError(errorMessage(e,'No se pudieron actualizar los clientes.'))}});
   useEffect(()=>{void refreshTools();},[refreshTools]);
   useEffect(()=>{
     const frame=window.requestAnimationFrame(()=>setHeaderActionsHost(document.querySelector<HTMLElement>('.salesInvoicesTransferHost .pageHead .actions')));

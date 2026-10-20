@@ -7,6 +7,8 @@ import '../../shared-forms.css';
 export type SearchableSelectOption={value:string;label:string;searchText?:string;description?:string};
 
 type Props={
+  onOpen?:()=>void;
+  onSearch?:(query:string)=>void;
   value:string;
   options:SearchableSelectOption[];
   onChange:(value:string)=>void;
@@ -20,7 +22,7 @@ type Props={
 
 const normalize=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 
-export function SearchableSelect({value,options,onChange,placeholder='Selecciona…',searchPlaceholder='Buscar…',disabled=false,allowEmpty=false,emptyLabel='Sin seleccionar',ariaLabel}:Props){
+export function SearchableSelect({value,options,onChange,placeholder='Selecciona…',searchPlaceholder='Buscar…',disabled=false,allowEmpty=false,emptyLabel='Sin seleccionar',ariaLabel,onOpen,onSearch}:Props){
   const searchRef=useRef<HTMLInputElement>(null);
   const listId=useId();
   const [open,setOpen]=useState(false);
@@ -49,6 +51,7 @@ export function SearchableSelect({value,options,onChange,placeholder='Selecciona
   useEffect(()=>{
     if(!open)return;
     setQuery('');
+    onOpen?.();
     setActive(Math.max(0,options.findIndex(option=>option.value===value)));
     hideMenu();
     requestAnimationFrame(()=>{
@@ -56,7 +59,9 @@ export function SearchableSelect({value,options,onChange,placeholder='Selecciona
       searchRef.current?.focus();
       requestAnimationFrame(positionMenu);
     });
-  },[open,options,value]);
+  },[open]);
+
+  useEffect(()=>{if(open)positionMenu()},[open,options]);
 
   useEffect(()=>{setActive(current=>Math.min(current,Math.max(0,filtered.length-1)))},[filtered.length]);
 
@@ -71,7 +76,7 @@ export function SearchableSelect({value,options,onChange,placeholder='Selecciona
 
   const menu=open&&typeof document!=='undefined'?createPortal(
     <div ref={menuRef} className="searchableSelectMenu" style={{position:'fixed',top:menuPosition.top,left:menuPosition.left,width:menuPosition.width,visibility:menuPosition.visibility}}>
-      <div className="search"><Search size={15}/><input ref={searchRef} className="searchableSelectSearch" value={query} onChange={e=>{setQuery(e.target.value);setActive(0)}} onKeyDown={onKeyDown} placeholder={searchPlaceholder} aria-label={searchPlaceholder}/></div>
+      <div className="search"><Search size={15}/><input ref={searchRef} className="searchableSelectSearch" value={query} onChange={e=>{setQuery(e.target.value);onSearch?.(e.target.value);setActive(0)}} onKeyDown={onKeyDown} placeholder={searchPlaceholder} aria-label={searchPlaceholder}/></div>
       <div id={listId} role="listbox" className="searchableSelectList">{filtered.length?filtered.map((option,index)=><button id={`${listId}-${index}`} role="option" aria-selected={option.value===value} key={`${option.value}-${index}`} type="button" className={`searchableSelectOption ${index===active?'isActive':''} ${option.value===value?'isSelected':''}`} onMouseEnter={()=>setActive(index)} onClick={()=>choose(option.value)}><span>{option.label}{option.value===value&&<Check size={14}/>}</span>{option.description&&<small>{option.description}</small>}</button>):<div className="searchableSelectEmpty">Sin resultados</div>}</div>
     </div>,
     document.body,

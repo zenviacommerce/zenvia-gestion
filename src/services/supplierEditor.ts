@@ -1,3 +1,4 @@
+import {notifyEntityChanged} from './entityChanges';
 import { supabase } from './supabase';
 
 export type SupplierType = 'unclassified' | 'goods' | 'service' | 'both';
@@ -29,12 +30,12 @@ function supplierRow(input: SupplierInput) {
 export async function addSupplier(input: SupplierInput) {
   const { error } = await supabase.from('suppliers').insert(supplierRow(input));
   if (error) throw error;
-}
+notifyEntityChanged('suppliers');}
 
 export async function updateSupplier(supplierId: string, input: SupplierInput) {
   const { error } = await supabase.from('suppliers').update(supplierRow(input)).eq('id', supplierId);
   if (error) throw error;
-}
+notifyEntityChanged('suppliers');}
 
 
 export type SupplierOption={id:string;name:string;taxId:string|null};

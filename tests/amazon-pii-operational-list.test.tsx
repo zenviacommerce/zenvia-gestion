@@ -76,13 +76,13 @@ it('ignores a late global selection response when the filters have changed',asyn
  expect(boundary.quotes).not.toHaveBeenCalled();
 });
 
-it('stops outstanding bulk quote batches when the workspace changes',async()=>{
+it.each(['tenant','tariffs','integrations'])('stops outstanding bulk quote batches when %s changes',async entity=>{
  boundary.rows=Array.from({length:6},(_,n)=>({...order,id:'tenant-'+n,orderNumber:'TENANT-'+n,piiPurgedAt:null,orderCreatedAt:new Date().toISOString(),shippingAddress:{name:'DEMO',address_line_1:'Calle Ejemplo',house_number:'1',postal_code:'28013',city:'Madrid',country_code:'ES'}}));
  boundary.selectedRows.mockResolvedValue(boundary.rows);
  const resolves:Array<(value:any)=>void>=[];boundary.quotes.mockImplementation(()=>new Promise(resolve=>resolves.push(resolve)));
  const {container}=render(<Orders/>);await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(6));
  fireEvent.click(screen.getByRole('button',{name:'Seleccionar todos de esta página'}));fireEvent.click(within(container.querySelector('.bulkSelectionActions') as HTMLElement).getByRole('button',{name:'Generar etiquetas seleccionadas (6)'}));
  await waitFor(()=>expect(boundary.quotes).toHaveBeenCalledTimes(3));
- await act(async()=>{window.dispatchEvent(new Event('zenvia:tenant-changed'));resolves.forEach(resolve=>resolve({options:[],diagnostics:[]}));});
+ await act(async()=>{window.dispatchEvent(entity==='tenant'?new Event('zenvia:tenant-changed'):new CustomEvent('zenvia:entity-changed',{detail:entity}));await new Promise(r=>setTimeout(r,10));resolves.forEach(resolve=>resolve({options:[],diagnostics:[]}));});
  expect(boundary.quotes).toHaveBeenCalledTimes(3);expect(screen.queryByRole('heading',{name:'Generar etiquetas en bloque'})).toBeNull();
 });

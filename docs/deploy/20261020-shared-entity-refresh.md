@@ -28,3 +28,6 @@ Current production:480cfba0cc055881c328c9cc92add639c05753ba, dpl_DLT8CGvp4zuFH7y
 
 ## Pilot acceptance and surveillance
 Owner confirms logout/login requested TOTP and normal app works; reload in AAL2 does not rechallenge. At06:59:11UTC20Oct: enabledtrue,single-user cohort,integrityguard0,last worker success06:55:07.477UTC,0failedjobs in last hour. Worker ran successfully after activation, not merely before it. Existing surveillance task resumed hourly for48checks from20Oct10:00Europe/Madrid, bounded through22Oct10:00; notices only significant incidents/final summary, emergency disable authorized for actual pilot regressions. No cohort expansion.
+
+## CI correction before publication
+First Build workflow39384740449 failed: legacy Shopify installed-app VM harness returned{} for newly imported entityChanges, so notifyEntityChanged was undefined. Updated harness to execute real entityChanges module (no window/server-safe) rather than skipping test. Local Node1130/1130 pass after correction. Added regressions invalidating outstanding bulk quotes on tariffs/integrations changes as well as tenant changes. Final Vitest183 tests and build evidence recorded by CI at final head. No checks bypassed.

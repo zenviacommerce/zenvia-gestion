@@ -178,5 +178,25 @@
     "workflowRun": 39393755928,
     "workflowHead": "096e5dea1de98d34f1c145b8caf64908c9aff076",
     "status": "success"
+  },
+  "frontend": {
+    "merged": true,
+    "mergeSha": "f9e8cd8223cb1fe964834b469adf7b1321a87bea",
+    "deploymentId": "dpl_9zaNiu7w6X9n4mwzUmSbiEk6R6G5",
+    "deploymentUrl": "https://zenvia-gestion-mb6vmy1aj-sergiorojasdiaz-7097.vercel.app",
+    "domain": "https://gestion.zenviacommerce.com",
+    "state": "READY",
+    "bundle": "index-D4U9zrKC.js"
+  },
+  "final": {
+    "reports": 0,
+    "items": 0,
+    "counters": 0,
+    "mfaFindings": 0,
+    "pilotUnchanged": true,
+    "dashboardHashUnchanged": true,
+    "connections": 30,
+    "cronFailures15m": 0,
+    "ownerBrowserCheck": "pending"
   }
 }

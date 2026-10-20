@@ -1,0 +1,158 @@
+{
+  "approvedPr": 267,
+  "head": "61553d95a65c09afaedbcaa210d5bff3558bc348",
+  "merge": "d688e654b742dbe86ad9463f8a8f8b90a49bce94",
+  "deployment": {
+    "id": "dpl_J9SdQzp3LeFm8kp1nRVmiNEz1DZG",
+    "sha": "d688e654b742dbe86ad9463f8a8f8b90a49bce94",
+    "state": "READY",
+    "url": "zenvia-gestion-oi46hs5bu-sergiorojasdiaz-7097.vercel.app"
+  },
+  "bundle": "index-DHz0kr4n.js",
+  "rollback": {
+    "commit": "a03f10ca6e90f8d03765fbc4d90bba18bdee945d",
+    "deployment": "dpl_AvXMo7EGoQY32WAgU2JGhQpb14cX",
+    "bundle": "index-lLeCVOf1.js"
+  },
+  "productionChecks": {
+    "support": "Shared header, tabs, filters and KPIs, empty state valid",
+    "settings": "Logo and seal fully visible at390px, contain, original aspect ratio, last line visible; desktop sizing also inspected",
+    "administration": "Shared tabs,5users,5active,3admins loaded; no edit actions executed"
+  },
+  "amazon": {
+    "before": "2026-10-20T21:07:57.684Z",
+    "after": "2026-10-20T21:09:40.830Z",
+    "refund": [
+      {
+        "transaction_type": "Refund",
+        "marketplace_id": "A13V1IB3VIYZZH",
+        "posted_date": "2026-10-20 20:35:38+00",
+        "created_at": "2026-10-20 21:08:10.923103+00",
+        "synced_at": "2026-10-20 21:08:10.923103+00"
+      }
+    ],
+    "components": [
+      {
+        "finance_transaction_id": "16a2a16e-8a4f-44e3-b415-32a5d51f3b5f",
+        "marketplace_id": "A13V1IB3VIYZZH",
+        "posted_date": "2026-10-20 20:35:38+00",
+        "component_type": "Refunded Sales",
+        "component_category": "refund",
+        "amount_original": "-13.990000",
+        "tax_amount_original": "-2.330000",
+        "currency_code": "EUR",
+        "created_at": "2026-10-20 21:08:10.923103+00",
+        "updated_at": "2026-10-20 21:08:10.923103+00"
+      },
+      {
+        "finance_transaction_id": "16a2a16e-8a4f-44e3-b415-32a5d51f3b5f",
+        "marketplace_id": "A13V1IB3VIYZZH",
+        "posted_date": "2026-10-20 20:35:38+00",
+        "component_type": "AmazonFees",
+        "component_category": "other_amazon_fee",
+        "amount_original": "2.030000",
+        "tax_amount_original": null,
+        "currency_code": "EUR",
+        "created_at": "2026-10-20 21:08:10.923103+00",
+        "updated_at": "2026-10-20 21:08:10.923103+00"
+      },
+      {
+        "finance_transaction_id": "16a2a16e-8a4f-44e3-b415-32a5d51f3b5f",
+        "marketplace_id": "A13V1IB3VIYZZH",
+        "posted_date": "2026-10-20 20:35:38+00",
+        "component_type": "DigitalServicesFee",
+        "component_category": "digital_services_fee",
+        "amount_original": "0.070000",
+        "tax_amount_original": null,
+        "currency_code": "EUR",
+        "created_at": "2026-10-20 21:08:10.923103+00",
+        "updated_at": "2026-10-20 21:08:10.923103+00"
+      }
+    ],
+    "jobs": [
+      {
+        "id": "a9e96d4e-68cb-4672-803d-e2df4e73f560",
+        "source": "finances",
+        "marketplace_id": "A1805IZSGTT6HS",
+        "status": "success",
+        "started_at": "2026-10-20 21:08:00.609206+00",
+        "finished_at": "2026-10-20 21:08:01.574+00",
+        "rows_processed": 7
+      },
+      {
+        "id": "7388001d-95ac-49af-aad9-4e16d96cb46d",
+        "source": "finances",
+        "marketplace_id": "A28R8C7NBKEWEA",
+        "status": "success",
+        "started_at": "2026-10-20 21:08:01.899235+00",
+        "finished_at": "2026-10-20 21:08:02.22+00",
+        "rows_processed": 0
+      },
+      {
+        "id": "5306e7c8-5894-4936-a049-aaf9ccf89540",
+        "source": "finances",
+        "marketplace_id": "A1C3SOZRARQ6R3",
+        "status": "success",
+        "started_at": "2026-10-20 21:08:02.685857+00",
+        "finished_at": "2026-10-20 21:08:03.002+00",
+        "rows_processed": 0
+      },
+      {
+        "id": "d6c61ea7-7567-47a4-a670-89ab0cae30d4",
+        "source": "finances",
+        "marketplace_id": "A2NODRKZP88ZB9",
+        "status": "success",
+        "started_at": "2026-10-20 21:08:03.483312+00",
+        "finished_at": "2026-10-20 21:08:03.963+00",
+        "rows_processed": 2
+      },
+      {
+        "id": "547bdab0-c282-446d-bd66-0d0a8aed3a39",
+        "source": "finances",
+        "marketplace_id": "A1PA6795UKMFR9",
+        "status": "success",
+        "started_at": "2026-10-20 21:08:04.339581+00",
+        "finished_at": "2026-10-20 21:08:05.217+00",
+        "rows_processed": 30
+      },
+      {
+        "id": "a4d444c5-b21b-4d9b-ba2b-44e2c5cd7a7a",
+        "source": "finances",
+        "marketplace_id": "AMEN7PMS3EDWL",
+        "status": "success",
+        "started_at": "2026-10-20 21:08:05.52214+00",
+        "finished_at": "2026-10-20 21:08:06.13+00",
+        "rows_processed": 15
+      },
+      {
+        "id": "06172f6c-4977-4641-9745-2e118fae6cf0",
+        "source": "finances",
+        "marketplace_id": "A1RKKUPIHCS9HS",
+        "status": "success",
+        "started_at": "2026-10-20 21:08:06.430536+00",
+        "finished_at": "2026-10-20 21:08:07.86+00",
+        "rows_processed": 95
+      },
+      {
+        "id": "1f1ad279-efe4-4bb2-8cd0-edd164a8f041",
+        "source": "finances",
+        "marketplace_id": "APJ6JRA9NG5V4",
+        "status": "success",
+        "started_at": "2026-10-20 21:08:08.123816+00",
+        "finished_at": "2026-10-20 21:08:09.663+00",
+        "rows_processed": 97
+      },
+      {
+        "id": "b547c9af-e9a7-449a-a28d-c9831c5bd7c7",
+        "source": "finances",
+        "marketplace_id": "A13V1IB3VIYZZH",
+        "status": "success",
+        "started_at": "2026-10-20 21:08:09.962237+00",
+        "finished_at": "2026-10-20 21:08:11.139+00",
+        "rows_processed": 68
+      }
+    ],
+    "conclusion": "New finance data arrived between the DOM reads. Refunded Sales13.99 matches observed gross refund delta; no design regression indicated."
+  },
+  "closed": "Owner approved final batch; Gestión design migration closed; Platform phase0 audit only"
+}

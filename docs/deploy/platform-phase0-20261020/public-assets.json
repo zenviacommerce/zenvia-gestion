@@ -1,0 +1,18 @@
+[
+  {
+    "path": "/assets/index-C8G9Ghgi.js",
+    "bytesReceived": 155213,
+    "durationMs": 4283.3,
+    "contentEncoding": "gzip",
+    "contentLength": null,
+    "status": 200
+  },
+  {
+    "path": "/assets/index-C6veZtQ-.css",
+    "bytesReceived": 16852,
+    "durationMs": 4558.0,
+    "contentEncoding": "gzip",
+    "contentLength": null,
+    "status": 200
+  }
+]

@@ -1,0 +1,2602 @@
+{
+  "baseline": {
+    "id": "dpl_8K29gsU9v1XSDFgHCw5FYyEhF7pc",
+    "sha": "c9a10ea3831ac05247af3349be819269be6bee85",
+    "state": "READY",
+    "url": "zenvia-platform-jzh4kpstn-sergiorojasdiaz-7097.vercel.app"
+  },
+  "sourceCommit": "c9a10ea3831ac05247af3349be819269be6bee85",
+  "functionVersions": {
+    "platformAdmin": 36,
+    "platformBridge": 31,
+    "provisioner": 29
+  },
+  "kind": "Authenticated production UI, read-only navigation; no saved edits, ticket creation or load injection",
+  "viewports": [
+    390,
+    1280,
+    1440
+  ],
+  "captures": [
+    {
+      "scene": "summary",
+      "width": 1280,
+      "file": "summary-1280.png",
+      "capturedAt": "2026-10-20T21:31:52.902Z",
+      "filterFields": [],
+      "firstContent": null,
+      "headerActions": [],
+      "kpiColumns": "233px 233px 233px 233px",
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Resumen",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "summary",
+      "width": 1440,
+      "file": "summary-1440.png",
+      "capturedAt": "2026-10-20T21:31:59.795Z",
+      "filterFields": [],
+      "firstContent": null,
+      "headerActions": [],
+      "kpiColumns": "215.594px 215.594px 215.609px 215.594px 215.609px",
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Resumen",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "summary",
+      "width": 390,
+      "file": "summary-390.png",
+      "capturedAt": "2026-10-20T21:32:06.027Z",
+      "filterFields": [],
+      "firstContent": null,
+      "headerActions": [],
+      "kpiColumns": "168.5px 168.5px",
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Resumen",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "clients",
+      "width": 1280,
+      "file": "clients-1280.png",
+      "capturedAt": "2026-10-20T21:32:36.346Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 104,
+        "width": 972,
+        "x": 279,
+        "y": 329
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 2,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "clients",
+      "width": 1440,
+      "file": "clients-1440.png",
+      "capturedAt": "2026-10-20T21:32:41.766Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 104,
+        "width": 1132,
+        "x": 279,
+        "y": 329
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 2,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "clients",
+      "width": 390,
+      "file": "clients-390.png",
+      "capturedAt": "2026-10-20T21:32:47.326Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 288,
+        "width": 347,
+        "x": 14,
+        "y": 392
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 2,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "client-summary",
+      "width": 1280,
+      "file": "client-summary-1280.png",
+      "capturedAt": "2026-10-20T21:33:18.002Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 382,
+        "width": 936,
+        "x": 172,
+        "y": 414
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 632,
+        "width": 980,
+        "x": 150,
+        "y": 184
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Resumen"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "client-summary",
+      "width": 1440,
+      "file": "client-summary-1440.png",
+      "capturedAt": "2026-10-20T21:33:23.355Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 382,
+        "width": 936,
+        "x": 252,
+        "y": 414
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 632,
+        "width": 980,
+        "x": 230,
+        "y": 184
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Resumen"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "client-summary",
+      "width": 390,
+      "file": "client-summary-390.png",
+      "capturedAt": "2026-10-20T21:33:28.898Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 726,
+        "width": 324,
+        "x": 18,
+        "y": 441
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 988,
+        "width": 375,
+        "x": 0,
+        "y": 12
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Resumen"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "client-branding",
+      "width": 1280,
+      "file": "client-branding-1280.png",
+      "capturedAt": "2026-10-20T21:33:47.225Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 310,
+        "width": 936,
+        "x": 172,
+        "y": 450
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 560,
+        "width": 980,
+        "x": 150,
+        "y": 220
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Branding"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "client-branding",
+      "width": 1440,
+      "file": "client-branding-1440.png",
+      "capturedAt": "2026-10-20T21:33:52.911Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 310,
+        "width": 936,
+        "x": 252,
+        "y": 450
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 560,
+        "width": 980,
+        "x": 230,
+        "y": 220
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Branding"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "client-branding",
+      "width": 390,
+      "file": "client-branding-390.png",
+      "capturedAt": "2026-10-20T21:33:58.633Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 362,
+        "width": 339,
+        "x": 18,
+        "y": 622
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 807,
+        "width": 375,
+        "x": 0,
+        "y": 193
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Branding"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "client-users",
+      "width": 1280,
+      "file": "client-users-1280.png",
+      "capturedAt": "2026-10-20T21:34:32.135Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 450,
+        "width": 936,
+        "x": 172,
+        "y": 380
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 700,
+        "width": 980,
+        "x": 150,
+        "y": 150
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 5
+      },
+      "selectedTabs": [
+        "Usuarios"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "client-users",
+      "width": 1440,
+      "file": "client-users-1440.png",
+      "capturedAt": "2026-10-20T21:34:38.063Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 450,
+        "width": 936,
+        "x": 252,
+        "y": 380
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 700,
+        "width": 980,
+        "x": 230,
+        "y": 150
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 5
+      },
+      "selectedTabs": [
+        "Usuarios"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "client-users",
+      "width": 390,
+      "file": "client-users-390.png",
+      "capturedAt": "2026-10-20T21:34:43.627Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 1091,
+        "width": 324,
+        "x": 18,
+        "y": 441
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 988,
+        "width": 375,
+        "x": 0,
+        "y": 12
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 5
+      },
+      "selectedTabs": [
+        "Usuarios"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "client-plan",
+      "width": 1280,
+      "file": "client-plan-1280.png",
+      "capturedAt": "2026-10-20T21:35:06.586Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 461,
+            "x": 172,
+            "y": 631
+          },
+          "label": "Periodo gratuito del cliente",
+          "text": "7 días",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 518,
+        "width": 936,
+        "x": 172,
+        "y": 346
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 768,
+        "width": 980,
+        "x": 150,
+        "y": 116
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Plan"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "client-plan",
+      "width": 1440,
+      "file": "client-plan-1440.png",
+      "capturedAt": "2026-10-20T21:35:12.905Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 461,
+            "x": 252,
+            "y": 631
+          },
+          "label": "Periodo gratuito del cliente",
+          "text": "7 días",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 518,
+        "width": 936,
+        "x": 252,
+        "y": 346
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 768,
+        "width": 980,
+        "x": 230,
+        "y": 116
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Plan"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "client-plan",
+      "width": 390,
+      "file": "client-plan-390.png",
+      "capturedAt": "2026-10-20T21:35:18.676Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 324,
+            "x": 18,
+            "y": 919
+          },
+          "label": "Periodo gratuito del cliente",
+          "text": "7 días",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 886,
+        "width": 324,
+        "x": 18,
+        "y": 441
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 988,
+        "width": 375,
+        "x": 0,
+        "y": 12
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Plan"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "client-integrations",
+      "width": 1280,
+      "file": "client-integrations-1280.png",
+      "capturedAt": "2026-10-20T21:36:13.893Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 720,
+        "width": 921,
+        "x": 172,
+        "y": 270
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 920,
+        "width": 980,
+        "x": 150,
+        "y": 40
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Integraciones"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "client-integrations",
+      "width": 1440,
+      "file": "client-integrations-1440.png",
+      "capturedAt": "2026-10-20T21:36:19.220Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 720,
+        "width": 936,
+        "x": 252,
+        "y": 270
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 920,
+        "width": 980,
+        "x": 230,
+        "y": 40
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Integraciones"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "client-integrations",
+      "width": 390,
+      "file": "client-integrations-390.png",
+      "capturedAt": "2026-10-20T21:36:25.424Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 1692,
+        "width": 324,
+        "x": 18,
+        "y": 441
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 988,
+        "width": 375,
+        "x": 0,
+        "y": 12
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Integraciones"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "client-infrastructure",
+      "width": 1280,
+      "file": "client-infrastructure-1280.png",
+      "capturedAt": "2026-10-20T21:36:55.824Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 373,
+        "width": 936,
+        "x": 172,
+        "y": 411
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 637,
+        "width": 980,
+        "x": 150,
+        "y": 181
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Infraestructura"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "client-infrastructure",
+      "width": 1440,
+      "file": "client-infrastructure-1440.png",
+      "capturedAt": "2026-10-20T21:37:02.366Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 373,
+        "width": 936,
+        "x": 252,
+        "y": 411
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 637,
+        "width": 980,
+        "x": 230,
+        "y": 181
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Infraestructura"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "client-infrastructure",
+      "width": 390,
+      "file": "client-infrastructure-390.png",
+      "capturedAt": "2026-10-20T21:37:08.438Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 840,
+        "width": 324,
+        "x": 18,
+        "y": 441
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 988,
+        "width": 375,
+        "x": 0,
+        "y": 12
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Infraestructura"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "configuration-infrastructure",
+      "width": 1280,
+      "file": "configuration-infrastructure-1280.png",
+      "capturedAt": "2026-10-20T21:37:28.532Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 437,
+            "x": 189,
+            "y": 776
+          },
+          "label": "Región Supabase",
+          "text": "Europa · Irlanda (eu-west-1)",
+          "wrap": false
+        },
+        {
+          "box": {
+            "height": 42,
+            "width": 437,
+            "x": 189,
+            "y": 854
+          },
+          "label": "Infraestructura por defecto",
+          "text": "Compartida",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 1085,
+        "width": 921,
+        "x": 172,
+        "y": 270
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 920,
+        "width": 980,
+        "x": 150,
+        "y": 40
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Infraestructura"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "configuration-infrastructure",
+      "width": 1440,
+      "file": "configuration-infrastructure-1440.png",
+      "capturedAt": "2026-10-20T21:37:34.865Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 444,
+            "x": 269,
+            "y": 776
+          },
+          "label": "Región Supabase",
+          "text": "Europa · Irlanda (eu-west-1)",
+          "wrap": false
+        },
+        {
+          "box": {
+            "height": 42,
+            "width": 444,
+            "x": 269,
+            "y": 854
+          },
+          "label": "Infraestructura por defecto",
+          "text": "Compartida",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 1085,
+        "width": 936,
+        "x": 252,
+        "y": 270
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 920,
+        "width": 980,
+        "x": 230,
+        "y": 40
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Infraestructura"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "configuration-infrastructure",
+      "width": 390,
+      "file": "configuration-infrastructure-390.png",
+      "capturedAt": "2026-10-20T21:37:40.861Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 290,
+            "x": 35,
+            "y": 1492
+          },
+          "label": "Región Supabase",
+          "text": "Europa · Irlanda (eu-west-1)",
+          "wrap": false
+        },
+        {
+          "box": {
+            "height": 42,
+            "width": 290,
+            "x": 35,
+            "y": 1648
+          },
+          "label": "Infraestructura por defecto",
+          "text": "Compartida",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 1873,
+        "width": 324,
+        "x": 18,
+        "y": 441
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 988,
+        "width": 375,
+        "x": 0,
+        "y": 12
+      },
+      "modalTitle": "ZENVIA",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Infraestructura"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "plans",
+      "width": 1280,
+      "file": "plans-1280.png",
+      "capturedAt": "2026-10-20T21:38:22.352Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 360,
+        "width": 473,
+        "x": 278,
+        "y": 200
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Planes",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "plans",
+      "width": 1440,
+      "file": "plans-1440.png",
+      "capturedAt": "2026-10-20T21:38:27.961Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 376,
+        "width": 273,
+        "x": 278,
+        "y": 200
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Planes",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "plans",
+      "width": 390,
+      "file": "plans-390.png",
+      "capturedAt": "2026-10-20T21:38:33.639Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 360,
+        "width": 347,
+        "x": 14,
+        "y": 266
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Planes",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "plan-editor",
+      "width": 1280,
+      "file": "plan-editor-1280.png",
+      "capturedAt": "2026-10-20T21:39:15.365Z",
+      "filterFields": [],
+      "firstContent": null,
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 920,
+        "width": 980,
+        "x": 143,
+        "y": 58
+      },
+      "modalTitle": "Configurar Pro",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Planes",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "plan-editor",
+      "width": 1440,
+      "file": "plan-editor-1440.png",
+      "capturedAt": "2026-10-20T21:39:21.214Z",
+      "filterFields": [],
+      "firstContent": null,
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 920,
+        "width": 980,
+        "x": 230,
+        "y": 40
+      },
+      "modalTitle": "Configurar Pro",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Planes",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "plan-editor",
+      "width": 390,
+      "file": "plan-editor-390.png",
+      "capturedAt": "2026-10-20T21:39:27.166Z",
+      "filterFields": [],
+      "firstContent": null,
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 988,
+        "width": 375,
+        "x": 0,
+        "y": 12
+      },
+      "modalTitle": "Configurar Pro",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Planes",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "billing",
+      "width": 1280,
+      "file": "billing-1280.png",
+      "capturedAt": "2026-10-20T21:40:00.786Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 65,
+        "width": 957,
+        "x": 279,
+        "y": 1212
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": "229.25px 229.25px 229.25px 229.25px",
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Facturación",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "billing",
+      "width": 1440,
+      "file": "billing-1440.png",
+      "capturedAt": "2026-10-20T21:40:06.951Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 65,
+        "width": 1117,
+        "x": 279,
+        "y": 1089
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": "212.594px 212.594px 212.609px 212.594px 212.609px",
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Facturación",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "billing",
+      "width": 390,
+      "file": "billing-390.png",
+      "capturedAt": "2026-10-20T21:40:14.197Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 236,
+        "width": 347,
+        "x": 14,
+        "y": 1948
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": "168.5px 168.5px",
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Facturación",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "configuration-fiscal",
+      "width": 1280,
+      "file": "configuration-fiscal-1280.png",
+      "capturedAt": "2026-10-20T21:40:36.228Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 452,
+            "x": 299,
+            "y": 1350
+          },
+          "label": "Tratamiento fiscal del precio",
+          "text": "Precio + IVA",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 65,
+        "width": 957,
+        "x": 279,
+        "y": 1891
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": "229.25px 229.25px 229.25px 229.25px",
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Facturación",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "configuration-fiscal",
+      "width": 1440,
+      "file": "configuration-fiscal-1440.png",
+      "capturedAt": "2026-10-20T21:40:43.038Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 532,
+            "x": 299,
+            "y": 1227
+          },
+          "label": "Tratamiento fiscal del precio",
+          "text": "Precio + IVA",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 65,
+        "width": 1117,
+        "x": 279,
+        "y": 1768
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": "212.594px 212.594px 212.609px 212.594px 212.609px",
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Facturación",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "configuration-fiscal",
+      "width": 390,
+      "file": "configuration-fiscal-390.png",
+      "capturedAt": "2026-10-20T21:40:49.947Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 305,
+            "x": 35,
+            "y": 2362
+          },
+          "label": "Tratamiento fiscal del precio",
+          "text": "Precio + IVA",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 236,
+        "width": 347,
+        "x": 14,
+        "y": 2905
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": "168.5px 168.5px",
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Facturación",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "tickets",
+      "width": 1280,
+      "file": "tickets-1280.png",
+      "capturedAt": "2026-10-20T21:41:28.067Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 175,
+            "x": 608,
+            "y": 201
+          },
+          "label": "Filtrar por estado",
+          "text": "Todos los estados",
+          "wrap": false
+        },
+        {
+          "box": {
+            "height": 42,
+            "width": 155,
+            "x": 793,
+            "y": 201
+          },
+          "label": "Filtrar por tipo",
+          "text": "Todos los tipos",
+          "wrap": false
+        },
+        {
+          "box": {
+            "height": 42,
+            "width": 166,
+            "x": 958,
+            "y": 201
+          },
+          "label": "Filtrar por turno",
+          "text": "Todos los turnos",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 89,
+        "width": 972,
+        "x": 279,
+        "y": 292
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Tickets",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "tickets",
+      "width": 1440,
+      "file": "tickets-1440.png",
+      "capturedAt": "2026-10-20T21:41:34.060Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 175,
+            "x": 608,
+            "y": 201
+          },
+          "label": "Filtrar por estado",
+          "text": "Todos los estados",
+          "wrap": false
+        },
+        {
+          "box": {
+            "height": 42,
+            "width": 155,
+            "x": 793,
+            "y": 201
+          },
+          "label": "Filtrar por tipo",
+          "text": "Todos los tipos",
+          "wrap": false
+        },
+        {
+          "box": {
+            "height": 42,
+            "width": 166,
+            "x": 958,
+            "y": 201
+          },
+          "label": "Filtrar por turno",
+          "text": "Todos los turnos",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 89,
+        "width": 1132,
+        "x": 279,
+        "y": 292
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Tickets",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "tickets",
+      "width": 390,
+      "file": "tickets-390.png",
+      "capturedAt": "2026-10-20T21:41:40.615Z",
+      "filterFields": [
+        {
+          "box": {
+            "height": 42,
+            "width": 175,
+            "x": 14,
+            "y": 298
+          },
+          "label": "Filtrar por estado",
+          "text": "Todos los estados",
+          "wrap": false
+        },
+        {
+          "box": {
+            "height": 42,
+            "width": 155,
+            "x": 199,
+            "y": 298
+          },
+          "label": "Filtrar por tipo",
+          "text": "Todos los tipos",
+          "wrap": false
+        },
+        {
+          "box": {
+            "height": 42,
+            "width": 166,
+            "x": 14,
+            "y": 350
+          },
+          "label": "Filtrar por turno",
+          "text": "Todos los turnos",
+          "wrap": false
+        }
+      ],
+      "firstContent": {
+        "height": 89,
+        "width": 362,
+        "x": 14,
+        "y": 404
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Tickets",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "users",
+      "width": 1280,
+      "file": "users-1280.png",
+      "capturedAt": "2026-10-20T21:42:03.542Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 63,
+        "width": 972,
+        "x": 279,
+        "y": 245
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo usuario"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 1
+      },
+      "selectedTabs": [],
+      "title": "Usuarios de Platform",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "users",
+      "width": 1440,
+      "file": "users-1440.png",
+      "capturedAt": "2026-10-20T21:42:09.161Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 63,
+        "width": 1132,
+        "x": 279,
+        "y": 245
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo usuario"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 1
+      },
+      "selectedTabs": [],
+      "title": "Usuarios de Platform",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "users",
+      "width": 390,
+      "file": "users-390.png",
+      "capturedAt": "2026-10-20T21:42:15.220Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 175,
+        "width": 362,
+        "x": 14,
+        "y": 311
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo usuario"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 1
+      },
+      "selectedTabs": [],
+      "title": "Usuarios de Platform",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "audit",
+      "width": 1280,
+      "file": "audit-1280.png",
+      "capturedAt": "2026-10-20T21:42:39.266Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 88,
+        "width": 957,
+        "x": 279,
+        "y": 315
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 25,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Auditoría de plataforma",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "audit",
+      "width": 1440,
+      "file": "audit-1440.png",
+      "capturedAt": "2026-10-20T21:42:45.797Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 88,
+        "width": 1117,
+        "x": 279,
+        "y": 315
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 25,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Auditoría de plataforma",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "audit",
+      "width": 390,
+      "file": "audit-390.png",
+      "capturedAt": "2026-10-20T21:42:51.967Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 88,
+        "width": 345,
+        "x": 15,
+        "y": 435
+      },
+      "headerActions": [
+        "Actualizar"
+      ],
+      "kpiColumns": null,
+      "modal": null,
+      "overflow": false,
+      "rowCounts": {
+        "audit": 25,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [],
+      "title": "Auditoría de plataforma",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    },
+    {
+      "scene": "client-demo",
+      "width": 1280,
+      "file": "client-demo-1280.png",
+      "capturedAt": "2026-10-20T21:43:28.430Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 393,
+        "width": 936,
+        "x": 172,
+        "y": 418
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 623,
+        "width": 980,
+        "x": 150,
+        "y": 188
+      },
+      "modalTitle": "DEMO",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Demo"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1280
+      }
+    },
+    {
+      "scene": "client-demo",
+      "width": 1440,
+      "file": "client-demo-1440.png",
+      "capturedAt": "2026-10-20T21:43:34.308Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 393,
+        "width": 936,
+        "x": 252,
+        "y": 418
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 623,
+        "width": 980,
+        "x": 230,
+        "y": 188
+      },
+      "modalTitle": "DEMO",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Demo"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 1440
+      }
+    },
+    {
+      "scene": "client-demo",
+      "width": 390,
+      "file": "client-demo-390.png",
+      "capturedAt": "2026-10-20T21:43:40.132Z",
+      "filterFields": [],
+      "firstContent": {
+        "height": 585,
+        "width": 324,
+        "x": 18,
+        "y": 483
+      },
+      "headerActions": [
+        "Actualizar",
+        "Nuevo cliente"
+      ],
+      "kpiColumns": null,
+      "modal": {
+        "height": 988,
+        "width": 375,
+        "x": 0,
+        "y": 12
+      },
+      "modalTitle": "DEMO",
+      "overflow": false,
+      "rowCounts": {
+        "audit": 0,
+        "clients": 0,
+        "tickets": 0,
+        "users": 0
+      },
+      "selectedTabs": [
+        "Demo"
+      ],
+      "title": "Workspaces",
+      "viewport": {
+        "height": 1000,
+        "width": 390
+      }
+    }
+  ],
+  "timings": [
+    {
+      "scene": "summary-reload",
+      "start": "2026-10-20T21:43:47.356Z",
+      "end": "2026-10-20T21:43:49.951Z",
+      "clickToReadyMs": 2595
+    },
+    {
+      "scene": "clients",
+      "start": "2026-10-20T21:32:10.962Z",
+      "end": "2026-10-20T21:32:12.978Z",
+      "clickToReadyMs": 2016
+    },
+    {
+      "scene": "client-detail",
+      "start": "2026-10-20T21:32:53.044Z",
+      "end": "2026-10-20T21:32:56.176Z",
+      "clickToReadyMs": 3132
+    },
+    {
+      "scene": "client-infrastructure",
+      "start": "2026-10-20T21:36:30.380Z",
+      "end": "2026-10-20T21:36:31.822Z",
+      "clickToHeadingMs": 1442
+    },
+    {
+      "scene": "plans",
+      "start": "2026-10-20T21:37:48.104Z",
+      "end": "2026-10-20T21:37:49.987Z",
+      "clickToReadyMs": 1883
+    },
+    {
+      "scene": "billing",
+      "start": "2026-10-20T21:39:33.657Z",
+      "end": "2026-10-20T21:39:35.979Z",
+      "clickToReadyMs": 2322
+    },
+    {
+      "scene": "tickets",
+      "start": "2026-10-20T21:40:57.459Z",
+      "end": "2026-10-20T21:40:59.972Z",
+      "clickToReadyMs": 2513
+    },
+    {
+      "scene": "users",
+      "start": "2026-10-20T21:41:46.646Z",
+      "end": "2026-10-20T21:41:47.816Z",
+      "clickToReadyMs": 1170
+    },
+    {
+      "scene": "audit",
+      "start": "2026-10-20T21:42:21.976Z",
+      "end": "2026-10-20T21:42:23.952Z",
+      "clickToReadyMs": 1976
+    }
+  ],
+  "counts": [
+    {
+      "entity": "customer_instances",
+      "n": 2,
+      "json_text_bytes": 1951
+    },
+    {
+      "entity": "subscriptions",
+      "n": 2,
+      "json_text_bytes": 921
+    },
+    {
+      "entity": "plans",
+      "n": 4,
+      "json_text_bytes": 2369
+    },
+    {
+      "entity": "invoices",
+      "n": 0,
+      "json_text_bytes": 0
+    },
+    {
+      "entity": "users",
+      "n": 1,
+      "json_text_bytes": 274
+    },
+    {
+      "entity": "audit",
+      "n": 56,
+      "json_text_bytes": 21250
+    }
+  ],
+  "tickets": [
+    {
+      "tickets": 0,
+      "workspaces": 0,
+      "json_text_bytes": 0
+    }
+  ],
+  "requestLogs": {
+    "result": [
+      {
+        "content_length": "",
+        "execution_ms": "160",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:31:43.973000"
+      },
+      {
+        "content_length": "414",
+        "execution_ms": "2111",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:31:46.118000"
+      },
+      {
+        "content_length": "53",
+        "execution_ms": "699",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/customer-provisioner",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:32:00.738000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "153",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:32:12.186000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "208",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:32:12.242000"
+      },
+      {
+        "content_length": "3300",
+        "execution_ms": "622",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:32:12.835000"
+      },
+      {
+        "content_length": "698",
+        "execution_ms": "692",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:32:12.966000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "170",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:32:43.976000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "152",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:32:54.286000"
+      },
+      {
+        "content_length": "3313",
+        "execution_ms": "1866",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:32:56.179000"
+      },
+      {
+        "content_length": "53",
+        "execution_ms": "387",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/customer-provisioner",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:33:00.419000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "179",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:33:43.991000"
+      },
+      {
+        "content_length": "414",
+        "execution_ms": "2932",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:33:46.950000"
+      },
+      {
+        "content_length": "53",
+        "execution_ms": "602",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/customer-provisioner",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:34:00.743000"
+      },
+      {
+        "content_length": "414",
+        "execution_ms": "1881",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:34:46.034000"
+      },
+      {
+        "content_length": "53",
+        "execution_ms": "442",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/customer-provisioner",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:35:00.490000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "153",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:35:43.961000"
+      },
+      {
+        "content_length": "53",
+        "execution_ms": "957",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/customer-provisioner",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:36:01.519000"
+      },
+      {
+        "content_length": "1656",
+        "execution_ms": "741",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/customer-provisioner",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:36:32.557000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "167",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:36:43.977000"
+      },
+      {
+        "content_length": "414",
+        "execution_ms": "1569",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:36:45.570000"
+      },
+      {
+        "content_length": "414",
+        "execution_ms": "1734",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:37:45.752000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "142",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:37:49.293000"
+      },
+      {
+        "content_length": "3300",
+        "execution_ms": "574",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:37:49.896000"
+      },
+      {
+        "content_length": "53",
+        "execution_ms": "1353",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/customer-provisioner",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:38:01.405000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "278",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:38:44.091000"
+      },
+      {
+        "content_length": "1564",
+        "execution_ms": "890",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:39:35.897000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "195",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:39:44.013000"
+      },
+      {
+        "content_length": "414",
+        "execution_ms": "1515",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:39:45.555000"
+      },
+      {
+        "content_length": "53",
+        "execution_ms": "502",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/customer-provisioner",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:40:00.573000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "222",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:40:44.031000"
+      },
+      {
+        "content_length": "414",
+        "execution_ms": "1984",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:40:46.046000"
+      },
+      {
+        "content_length": "44",
+        "execution_ms": "1208",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:40:59.959000"
+      },
+      {
+        "content_length": "53",
+        "execution_ms": "589",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/customer-provisioner",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:41:00.690000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "153",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:41:43.964000"
+      },
+      {
+        "content_length": "414",
+        "execution_ms": "2410",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:41:46.401000"
+      },
+      {
+        "content_length": "53",
+        "execution_ms": "719",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/customer-provisioner",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:42:00.888000"
+      },
+      {
+        "content_length": "5961",
+        "execution_ms": "495",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:42:23.927000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "145",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:42:43.960000"
+      },
+      {
+        "content_length": "414",
+        "execution_ms": "1613",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:42:45.604000"
+      },
+      {
+        "content_length": "",
+        "execution_ms": "220",
+        "gateway_path": "",
+        "method": "OPTIONS",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:42:59.035000"
+      },
+      {
+        "content_length": "698",
+        "execution_ms": "645",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:42:59.705000"
+      },
+      {
+        "content_length": "1495",
+        "execution_ms": "1560",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/platform-admin",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:43:02.450000"
+      },
+      {
+        "content_length": "53",
+        "execution_ms": "777",
+        "gateway_path": "",
+        "method": "POST",
+        "path": "/functions/v1/customer-provisioner",
+        "source": "function_edge_logs",
+        "status": "200",
+        "timestamp": "2026-10-20T21:44:00.957000"
+      }
+    ]
+  },
+  "limitations": [
+    "Browser resource timing unavailable through selected read-only surface; no token extraction or browser network instrumentation used",
+    "Network entries are safe selected server-log fields; source call counts kept separate from observed logs; coverage may be incomplete",
+    "UI timings include browser automation overhead; one observation per scene, not p95",
+    "No real tickets or invoices available; no records created; no 500-client load applied to production",
+    "Configuration is distributed across fiscal, infrastructure and plans; no global Settings route exists"
+  ],
+  "limitsOfNetworkMeasurement": "Safe logs are not a complete HAR: users and final summary reload POSTs are absent despite loaded UI. Do not interpret missing logs as zero requests. Per-view API counts derive from deployed source; observed counts/OPTIONS/durations/Content-Length are tabulated separately.",
+  "productionUnchangedAfterAudit": {
+    "id": "dpl_8K29gsU9v1XSDFgHCw5FYyEhF7pc",
+    "sha": "c9a10ea3831ac05247af3349be819269be6bee85",
+    "state": "READY"
+  }
+}

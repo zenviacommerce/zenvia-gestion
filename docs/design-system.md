@@ -205,3 +205,8 @@ Soporte, Configuración, Administración y la subpantalla Gmail adoptan los comp
 El guard `scripts/design-final-contract.test.mjs` recorre todas las pantallas/componentes TSX y prohíbe wrappers heredados de cabecera/KPI salvo sus propietarios PageHeader y StatCard; no hay excepciones por pantalla. Los carruseles analíticos especializados aprobados mantienen su contrato propio. Esto certifica los patrones migrados, no elimina cada selector histórico ni convierte los grids de campos de formularios en KPI.
 
 Evidencia final: [galería y alturas](deploy/design-phase3-final-20261020/README.md), 390/1280/1440 px, antes/después, escenarios de acciones/variantes/filtros y navegación cancelada. Este lote requiere revisión del propietario antes de fusionar/publicar.
+
+
+## Cierre de Gestión y auditoría de Platform ·20oct2026
+
+El propietario aprueba #267; Gestión queda publicada y su migración visual cerrada. [Diario, producción, comprobaciones y rollback](deploy/20261020-design-system-gestion-closed.md). La siguiente etapa Platform está en fase0, exclusivamente auditoría/propuesta: [informe](deploy/20261020-platform-phase0-audit.md) y [51capturas](deploy/platform-phase0-20261020/README.md). No se implementa ni publica Platform antes de revisar esa propuesta.

@@ -5,14 +5,14 @@ import JSZip from 'jszip';
 import {jsPDF} from 'jspdf';
 import {Orders} from '../src/pages/Orders';
 import type {FulfillmentOrder} from '../src/services/orders';
-const boundary=vi.hoisted(()=>({rows:[] as FulfillmentOrder[],pageCalls:vi.fn(),selection:vi.fn(),selectedRows:vi.fn(),quotes:vi.fn(async()=>({options:[] as any[],weightKg:null,message:null,diagnostics:[]})),createLabel:vi.fn(),pickupSelection:vi.fn(),pickupPreview:vi.fn()}));
+const boundary=vi.hoisted(()=>({rows:[] as FulfillmentOrder[],pageCalls:vi.fn(),selection:vi.fn(),selectedRows:vi.fn(),quotes:vi.fn(async()=>({options:[] as any[],weightKg:null,message:null,diagnostics:[]})),createLabel:vi.fn(),pickupSelection:vi.fn(),pickupPreview:vi.fn(),confirm:vi.fn(async()=>true)}));
 vi.mock('../src/context/SettingsContext',()=>({useSettings:()=>({settings:{...DEFAULT_APP_SETTINGS,integrations:{...DEFAULT_APP_SETTINGS.integrations,amazonEnabled:false,shopifyEnabled:false,enviaEnabled:false},shipping:{...DEFAULT_APP_SETTINGS.shipping,labelSize:'AUTO',copies:1,enabledCarriers:[]},orders:{...DEFAULT_APP_SETTINGS.orders,bulkScope:'pending',retryTrackingConfirmation:false}},preferences:DEFAULT_USER_PREFERENCES,patchPreferences:async()=>{},updateSection:async()=>{}})}));
 vi.mock('../src/services/orders',async original=>({...await original<typeof import('../src/services/orders')>(),listFulfillmentOrders:async()=>boundary.rows,
  fetchOrdersDashboardPage:async(filters:any)=>{boundary.pageCalls(filters);const gross=boundary.rows.reduce((n,o)=>n+(o.totalAmount||0),0),net=boundary.rows.reduce((n,o)=>n+(o.totalAmount||0)/((o.shippingAddress.country_code||o.destinationCountryCode)==='ES'?1.21:1),0);return {orders:boundary.rows.slice(filters.page*filters.pageSize,(filters.page+1)*filters.pageSize),total:boundary.rows.length,selectableTotal:boundary.rows.filter(o=>!o.piiPurgedAt).length,page:filters.page,pageSize:filters.pageSize,kpis:{pending:boundary.rows.length,preparablePending:boundary.rows.filter(o=>!o.piiPurgedAt).length,amazon:boundary.rows.length,shopify:0,manual:0,labelled:0,shipped:0,cancelled:0,overduePending:0,sales:{gross,net,vat:gross-net,count:boundary.rows.length,average:gross/boundary.rows.length},transport:{total:0,net:0,tax:0,mrw:0,correos:0,other:0,shipments:0,valued:0,missing:0,basis:'recorded_only'}},facets:{countries:[],carriers:[]}}},
  fetchMatchingOrderIds:(filters:any)=>boundary.selection(filters),listSelectedOrdersForBulk:(filters:any,ids:string[])=>boundary.selectedRows(filters,ids),
  listMatchingOrdersForAction:async()=>boundary.rows,listMatchingPendingOrdersForBulk:async()=>boundary.rows,getSendcloudStatus:async()=>({configured:false,integrations:[]}),getEnviaStatus:async()=>({configured:false,accounts:[]}),getShippingOptions:boundary.quotes,createOrderLabel:boundary.createLabel}));
 vi.mock('../src/services/pickupReports',()=>({selectPickupOrderIds:(f:any)=>boundary.pickupSelection(f),previewPickupReport:(ids:string[])=>boundary.pickupPreview(ids),listPickupReports:async()=>[],createPickupReport:vi.fn(),getPickupReport:vi.fn()}));
-vi.mock('../src/services/actionDialog',()=>({confirmAction:async()=>true}));
+vi.mock('../src/services/actionDialog',()=>({confirmAction:boundary.confirm}));
 vi.mock('../src/services/orderLiveUpdates',()=>({watchFulfillmentOrders:()=>()=>{}}));
 vi.mock('../src/services/transportTariffs',async original=>({...await original<typeof import('../src/services/transportTariffs')>(),listTransportTariffs:async()=>[]}));
 vi.mock('../src/services/shippingRules',async original=>({...await original<typeof import('../src/services/shippingRules')>(),loadShippingRules:async()=>[]}));
@@ -97,8 +97,59 @@ it('selects all 63 labelled orders for pickup across pages without buying labels
  fireEvent.click(screen.getByRole('button',{name:'Seleccionar todos de esta página'}));fireEvent.click(screen.getByRole('button',{name:'Seleccionar los 63 pedidos que coinciden con los filtros'}));
  await waitFor(()=>expect(screen.getByText(/Seleccionados.*63.*todos los resultados/)).toBeTruthy());
  expect((within(container.querySelector('.bulkSelectionActions') as HTMLElement).getByRole('button',{name:'Generar etiquetas seleccionadas (63)'}) as HTMLButtonElement).disabled).toBe(true);
- fireEvent.click(screen.getByRole('button',{name:'Generar informe de recogida'}));
+ fireEvent.click(screen.getByRole('button',{name:/Generar informe de recogida/ }));
  expect(await screen.findByRole('dialog',{name:'Informe de recogida'})).toBeTruthy();
  await waitFor(()=>expect(boundary.pickupPreview).toHaveBeenCalledWith(boundary.rows.map(o=>o.id)));
  expect(boundary.pickupSelection.mock.calls.at(-1)[0].state).toBe('labelled');expect(boundary.createLabel).not.toHaveBeenCalled();
+});
+
+it('keeps three selected IDs while searching, adds a fourth and previews the full report selection',async()=>{
+ const all=Array.from({length:4},(_,n)=>({...order,id:'keep-'+n,orderNumber:'KEEP-'+n,piiPurgedAt:null}));boundary.rows=all.slice(0,3);
+ boundary.pickupPreview.mockImplementation(async(ids:string[])=>({items:ids.map(id=>({orderId:id,orderNumber:id,channel:'amazon',carrier:'MRW',trackingNumber:'TRACK-'+id,packages:1,eligible:true,previousReports:[]})),canCreate:true,totalPackages:ids.length}));
+ const {container}=render(<Orders/>);await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(3));
+ fireEvent.click(screen.getByRole('button',{name:'Seleccionar todos de esta página'}));
+ expect(screen.getByRole('button',{name:'Generar informe de recogida (3)'})).toBeTruthy();
+ boundary.rows=[all[3]];fireEvent.change(screen.getByPlaceholderText('Buscar pedido, cliente, producto, tracking o transportista…'),{target:{value:'KEEP-3'}});
+ await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(1));
+ expect(screen.getByRole('button',{name:'Generar informe de recogida (3)'})).toBeTruthy();
+ fireEvent.click(within(container.querySelector('.ordersTable tbody') as HTMLElement).getByRole('checkbox'));
+ fireEvent.click(screen.getByRole('button',{name:'Generar informe de recogida (4)'}));
+ await waitFor(()=>expect(boundary.pickupPreview).toHaveBeenCalledWith(all.map(o=>o.id)));
+ expect(boundary.confirm).toHaveBeenCalledWith(expect.objectContaining({message:expect.stringContaining('3 no están')}));
+});
+it('page and filter-wide selection add IDs, survive tab/page changes and support an indeterminate header',async()=>{
+ boundary.rows=Array.from({length:30},(_,n)=>({...order,id:'union-'+n,orderNumber:'UNION-'+n,piiPurgedAt:null}));boundary.selection.mockResolvedValue(boundary.rows.map(o=>o.id));
+ const {container}=render(<Orders/>);await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(25));
+ fireEvent.click(within(container.querySelector('.ordersTable tbody') as HTMLElement).getAllByRole('checkbox')[0]);
+ expect((container.querySelector('.ordersTable thead input') as HTMLInputElement).indeterminate).toBe(true);
+ fireEvent.click(screen.getAllByRole('button',{name:'Siguiente'})[0]);await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(5));
+ fireEvent.click(screen.getByRole('button',{name:'Seleccionar todos de esta página'}));expect(screen.getByRole('button',{name:'Generar informe de recogida (6)'})).toBeTruthy();
+ fireEvent.click(screen.getByRole('button',{name:'Seleccionar los 30 pedidos que coinciden con los filtros'}));await waitFor(()=>expect(screen.getByRole('button',{name:'Generar informe de recogida (30)'})).toBeTruthy());
+ fireEvent.click(screen.getByRole('button',{name:'Etiquetados',exact:true}));await waitFor(()=>expect(screen.getByRole('button',{name:'Generar informe de recogida (30)'})).toBeTruthy());
+ fireEvent.click(screen.getByRole('button',{name:'Quitar selección'}));expect((screen.getByRole('button',{name:'Generar informe de recogida (0)'}) as HTMLButtonElement).disabled).toBe(true);
+});
+it.each(['labels','invoices'])('uses all four persisted IDs for %s even when only the fourth is visible',async action=>{
+ const all=Array.from({length:4},(_,n)=>({...order,id:'action-'+n,orderNumber:'ACTION-'+n,sourceChannel:'shopify',piiPurgedAt:null,shippingAddress:{name:'DEMO',address_line_1:'Calle Ejemplo',house_number:'1',postal_code:'28013',city:'Madrid',country_code:'ES'}} as FulfillmentOrder));boundary.rows=all.slice(0,3);boundary.selectedRows.mockResolvedValue(all);boundary.quotes.mockResolvedValue({options:[],weightKg:null,message:null,diagnostics:[]});
+ const {container}=render(<Orders/>);await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(3));fireEvent.click(screen.getByRole('button',{name:'Seleccionar todos de esta página'}));
+ boundary.rows=[all[3]];fireEvent.change(screen.getByPlaceholderText('Buscar pedido, cliente, producto, tracking o transportista…'),{target:{value:'ACTION-3'}});await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(1));fireEvent.click(within(container.querySelector('.ordersTable tbody') as HTMLElement).getByRole('checkbox'));
+ fireEvent.click(action==='labels'?within(container.querySelector('.bulkSelectionActions') as HTMLElement).getByRole('button',{name:'Generar etiquetas seleccionadas (4)'}):screen.getByRole('button',{name:'Seleccionar pedidos para facturar'}));
+ await waitFor(()=>expect(boundary.selectedRows).toHaveBeenCalledWith(expect.anything(),all.map(o=>o.id)));
+ if(action==='labels'){await waitFor(()=>expect(boundary.quotes).toHaveBeenCalledTimes(4));expect(boundary.createLabel).not.toHaveBeenCalled()}else{expect(await screen.findByRole('button',{name:'Revisar 4 pedidos'})).toBeTruthy()}
+});
+
+it('all matching IDs add to orders retained from a different search',async()=>{
+ const previous=Array.from({length:3},(_,n)=>({...order,id:'previous-'+n,orderNumber:'PREVIOUS-'+n,piiPurgedAt:null}));boundary.rows=previous;
+ const {container}=render(<Orders/>);await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(3));fireEvent.click(screen.getByRole('button',{name:'Seleccionar todos de esta página'}));
+ boundary.rows=Array.from({length:30},(_,n)=>({...order,id:'new-'+n,orderNumber:'NEW-'+n,piiPurgedAt:null}));boundary.selection.mockResolvedValue(boundary.rows.map(o=>o.id));
+ fireEvent.change(screen.getByPlaceholderText('Buscar pedido, cliente, producto, tracking o transportista…'),{target:{value:'NEW'}});await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(25));fireEvent.click(screen.getByRole('button',{name:'Seleccionar todos de esta página'}));
+ expect(screen.getByRole('button',{name:'Generar informe de recogida (28)'})).toBeTruthy();fireEvent.click(screen.getByRole('button',{name:'Seleccionar los 30 pedidos que coinciden con los filtros'}));await waitFor(()=>expect(screen.getByRole('button',{name:'Generar informe de recogida (33)'})).toBeTruthy());
+});
+it('shows retained selection with no search results, can review/remove it and cancels hidden-scope generation',async()=>{
+ const original={...order,id:'retained',orderNumber:'RETAINED',piiPurgedAt:null};boundary.rows=[original];boundary.selectedRows.mockResolvedValue([original]);
+ const {container}=render(<Orders/>);await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(1));fireEvent.click(screen.getByRole('button',{name:'Seleccionar todos de esta página'}));
+ boundary.rows=[];fireEvent.change(screen.getByPlaceholderText('Buscar pedido, cliente, producto, tracking o transportista…'),{target:{value:'NOT-FOUND'}});await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(0));
+ fireEvent.click(screen.getByRole('button',{name:'Ver selección'}));const dialog=await screen.findByRole('dialog',{name:'Pedidos seleccionados'});expect(await within(dialog).findByText('RETAINED · Amazon')).toBeTruthy();fireEvent.click(screen.getByRole('button',{name:'Cerrar selección'}));
+ await waitFor(()=>expect((screen.getByRole('button',{name:'Generar informe de recogida (1)'}) as HTMLButtonElement).disabled).toBe(false));
+ const oldCalls=boundary.pickupPreview.mock.calls.length;boundary.confirm.mockResolvedValueOnce(false);fireEvent.click(screen.getByRole('button',{name:'Generar informe de recogida (1)'}));await waitFor(()=>expect(boundary.confirm).toHaveBeenCalled());expect(boundary.pickupPreview.mock.calls.length).toBe(oldCalls);
+ fireEvent.click(screen.getByRole('button',{name:'Ver selección'}));fireEvent.click(await screen.findByRole('button',{name:'Quitar pedido RETAINED'}));expect((screen.getByRole('button',{name:'Generar informe de recogida (0)'}) as HTMLButtonElement).disabled).toBe(true);
 });

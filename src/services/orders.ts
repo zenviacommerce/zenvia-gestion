@@ -295,7 +295,7 @@ export async function fetchMatchingOrderIds(filters:OrdersDashboardFilters):Prom
 export async function listSelectedOrdersForBulk(filters:OrdersDashboardFilters,ids:string[]):Promise<FulfillmentOrder[]>{
   if(!ids.length)return [];
   if(ids.length>2000||new Set(ids).size!==ids.length)throw new Error('La selección no es válida. Reduce los filtros y vuelve a seleccionar.');
-  const result=await listMatchingOrdersForAction({...filters,selectedIds:ids});
+  const result=await listMatchingOrdersForAction({...filters,from:'',to:'',state:'all',channel:'all',query:'',tracking:'all',country:'all',carrier:'all',selectedIds:ids});
   const actual=new Set(result.map(order=>order.id));
   if(actual.size!==ids.length||ids.some(id=>!actual.has(id)))throw new Error('El conjunto de pedidos ha cambiado. Actualiza y vuelve a seleccionar antes de generar etiquetas.');
   return result;

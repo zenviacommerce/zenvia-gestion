@@ -150,3 +150,6 @@
 @media(max-width:700px){
   .bulkMobileSelectableRow{grid-template-columns:44px minmax(0,1fr)}
 }
+
+.bulkSelectCheckbox input:indeterminate+span{border-color:#0f766e;background:#0f766e}
+.bulkSelectCheckbox input:indeterminate+span::after{content:'';display:block;width:8px;height:2px;margin:6px auto;background:#fff}

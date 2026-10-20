@@ -164,3 +164,10 @@ it('shows clickable report numbers in list and mobile, and sends report filter w
  await waitFor(()=>expect(boundary.pageCalls).toHaveBeenLastCalledWith(expect.objectContaining({pickupReport:'none'})));
  expect(screen.getByRole('button',{name:'Generar informe de recogida (1)'})).toBeTruthy();
 });
+
+it('report header uses shared sortable control and requests global ASC/DESC pages',async()=>{
+ boundary.rows=[{...order,id:'report-order',orderNumber:'SORT-REPORT',piiPurgedAt:null,pickupReports:[{id:'report',number:'REC-2026-0001'}]}];
+ render(<Orders/>);const header=await screen.findByRole('columnheader',{name:'Informe de recogida'});const button=within(header).getByRole('button',{name:'Informe de recogida'});
+ fireEvent.click(button);await waitFor(()=>expect(boundary.pageCalls).toHaveBeenLastCalledWith(expect.objectContaining({sortKey:'pickupReport',sortDirection:'asc',page:0})));
+ await waitFor(()=>expect(screen.getByRole('columnheader',{name:'Informe de recogida'}).getAttribute('aria-sort')).toBe('ascending'));fireEvent.click(screen.getByRole('button',{name:'Informe de recogida',exact:true}));await waitFor(()=>expect(boundary.pageCalls).toHaveBeenLastCalledWith(expect.objectContaining({sortKey:'pickupReport',sortDirection:'desc',page:0})));await waitFor(()=>expect(screen.getByRole('columnheader',{name:'Informe de recogida'}).getAttribute('aria-sort')).toBe('descending'));
+});

@@ -1,0 +1,10 @@
+-- Add numeric REC sorting before pagination; public MFA wrapper is unchanged.
+DO $migration$
+DECLARE src text;
+BEGIN
+ src:=pg_get_functiondef('private.mfa_impl_orders_dashboard_pickup_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[],text,boolean)'::regprocedure);
+ IF position($needle$ SELECT e.*,row_number() OVER (ORDER BY$needle$ IN src)=0 OR position($sortkey$p_sort_key='pickupReport'$sortkey$ IN src)>0 THEN RAISE EXCEPTION 'PICKUP_SORT_SOURCE_CHANGED';END IF;
+ EXECUTE replace(src,$needle$ SELECT e.*,row_number() OVER (ORDER BY$needle$,$replacement$ SELECT e.*,row_number() OVER (ORDER BY
+  CASE WHEN p_sort_key='pickupReport' AND p_sort_direction='asc' THEN (SELECT max(split_part(pr.number,'-',2)::numeric*1000000000000+split_part(pr.number,'-',3)::numeric) FROM public.pickup_report_items pi JOIN public.pickup_reports pr ON pr.id=pi.report_id AND pr.owner_id=pi.owner_id WHERE pi.owner_id=e.owner_id AND (pi.order_id=e.id OR pi.order_key=CASE WHEN e.source_channel IN ('amazon','shopify') AND nullif(trim(e.order_number),'') IS NOT NULL THEN e.source_channel||':'||coalesce(e.source_integration_account_id::text,'legacy')||':'||trim(e.order_number) ELSE e.id::text END)) END ASC NULLS LAST,
+  CASE WHEN p_sort_key='pickupReport' AND p_sort_direction='desc' THEN (SELECT max(split_part(pr.number,'-',2)::numeric*1000000000000+split_part(pr.number,'-',3)::numeric) FROM public.pickup_report_items pi JOIN public.pickup_reports pr ON pr.id=pi.report_id AND pr.owner_id=pi.owner_id WHERE pi.owner_id=e.owner_id AND (pi.order_id=e.id OR pi.order_key=CASE WHEN e.source_channel IN ('amazon','shopify') AND nullif(trim(e.order_number),'') IS NOT NULL THEN e.source_channel||':'||coalesce(e.source_integration_account_id::text,'legacy')||':'||trim(e.order_number) ELSE e.id::text END)) END DESC NULLS LAST,$replacement$);
+END $migration$;

@@ -1,0 +1,195 @@
+{
+  "synthetic": true,
+  "networkBlocked": true,
+  "checks": [
+    {
+      "device": "1280",
+      "fields": [
+        {
+          "label": "Canal",
+          "labelY": 557.9375,
+          "controlY": 573.9375,
+          "width": 217.1875,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 167,
+          "textScrollWidth": 167
+        },
+        {
+          "label": "Destino",
+          "labelY": 557.9375,
+          "controlY": 573.9375,
+          "width": 217.203125,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 167,
+          "textScrollWidth": 167
+        },
+        {
+          "label": "Transportista",
+          "labelY": 557.9375,
+          "controlY": 573.9375,
+          "width": 217.203125,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 167,
+          "textScrollWidth": 189
+        },
+        {
+          "label": "Informe de recogida",
+          "labelY": 557.9375,
+          "controlY": 573.9375,
+          "width": 217.203125,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 167,
+          "textScrollWidth": 167
+        },
+        {
+          "label": "Seguimiento",
+          "labelY": 557.9375,
+          "controlY": 573.9375,
+          "width": 217.1875,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 167,
+          "textScrollWidth": 167
+        }
+      ],
+      "overflow": false,
+      "barWidth": 1154,
+      "failures": []
+    },
+    {
+      "device": "1440",
+      "fields": [
+        {
+          "label": "Canal",
+          "labelY": 976.9375,
+          "controlY": 992.9375,
+          "width": 249.1875,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 199,
+          "textScrollWidth": 199
+        },
+        {
+          "label": "Destino",
+          "labelY": 976.9375,
+          "controlY": 992.9375,
+          "width": 249.203125,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 199,
+          "textScrollWidth": 199
+        },
+        {
+          "label": "Transportista",
+          "labelY": 976.9375,
+          "controlY": 992.9375,
+          "width": 249.203125,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 199,
+          "textScrollWidth": 199
+        },
+        {
+          "label": "Informe de recogida",
+          "labelY": 976.9375,
+          "controlY": 992.9375,
+          "width": 249.203125,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 199,
+          "textScrollWidth": 199
+        },
+        {
+          "label": "Seguimiento",
+          "labelY": 976.9375,
+          "controlY": 992.9375,
+          "width": 249.1875,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 199,
+          "textScrollWidth": 199
+        }
+      ],
+      "overflow": false,
+      "barWidth": 1314,
+      "failures": []
+    },
+    {
+      "device": "mobile",
+      "fields": [
+        {
+          "label": "Canal",
+          "labelY": 530.75,
+          "controlY": 546.75,
+          "width": 286,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 236,
+          "textScrollWidth": 236
+        },
+        {
+          "label": "Destino",
+          "labelY": 597.75,
+          "controlY": 613.75,
+          "width": 286,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 236,
+          "textScrollWidth": 236
+        },
+        {
+          "label": "Transportista",
+          "labelY": 664.75,
+          "controlY": 680.75,
+          "width": 286,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 236,
+          "textScrollWidth": 236
+        },
+        {
+          "label": "Informe de recogida",
+          "labelY": 731.75,
+          "controlY": 747.75,
+          "width": 286,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 236,
+          "textScrollWidth": 236
+        },
+        {
+          "label": "Seguimiento",
+          "labelY": 798.75,
+          "controlY": 814.75,
+          "width": 286,
+          "height": 42,
+          "nowrap": true,
+          "ellipsis": true,
+          "textWidth": 236,
+          "textScrollWidth": 236
+        }
+      ],
+      "overflow": false,
+      "barWidth": 310,
+      "failures": []
+    }
+  ]
+}

@@ -1,0 +1,62 @@
+{
+  "pr": 250,
+  "head": "dda382ea16491f13d00cc4ac6b6fbb495412d9bb",
+  "merge": "c512720ad2429520c897b2961002cf8948cf53b8",
+  "ci": [
+    {
+      "id": 39385074506,
+      "name": "Auth resilience tests",
+      "conclusion": "success"
+    },
+    {
+      "id": 39385074480,
+      "name": "Build ZENVIA Gestión",
+      "conclusion": "success"
+    },
+    {
+      "id": 39385074498,
+      "name": "MFA real integration (disposable Supabase)",
+      "conclusion": "success"
+    },
+    {
+      "id": 39385074459,
+      "name": "Build check",
+      "conclusion": "success"
+    },
+    {
+      "id": 39385074501,
+      "name": "MFA visual review (Playwright)",
+      "conclusion": "success"
+    }
+  ],
+  "deployment": {
+    "id": "dpl_3Mznkx6P7AMfybJtSLch4xVmp2Vz",
+    "url": "zenvia-gestion-4tlw6svf8-sergiorojasdiaz-7097.vercel.app"
+  },
+  "bundle": "index-CRlr5KXE.js",
+  "http": {
+    "html": 200,
+    "asset": 200,
+    "entity_event_present": true,
+    "fixture_banner_present": false
+  },
+  "tests": {
+    "vitest": 183,
+    "node": 1130
+  },
+  "rollback": {
+    "id": "dpl_DLT8CGvp4zuFH7yQurn734LUYaS4",
+    "url": "zenvia-gestion-kfj5n0igd-sergiorojasdiaz-7097.vercel.app"
+  },
+  "pilot": {
+    "enabled": true,
+    "pilot_only": true,
+    "guard": 0,
+    "last_worker_success": "2026-10-20T07:20:09.806Z",
+    "running": 0,
+    "live_leases": 0,
+    "failed_jobs_last_hour": 0,
+    "failed_cron_last_hour": 0
+  },
+  "checked_at": "2026-10-20T07:20:37.834891Z"
+}

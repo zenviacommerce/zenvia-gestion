@@ -50,6 +50,14 @@ it('filters pickup membership before pagination and IDs with tenant/MFA isolatio
  await db.exec(`SET test.mfa='no';`);await expect(page('all')).rejects.toThrow('MFA_REQUIRED');
  await db.exec(`SET test.mfa='yes';SET test.owner='${other}';`);expect((await page('in')).total).toBe(0);
  await db.exec(`RESET ROLE;`);
+ const beforeSort=(await db.query<any>(`SELECT md5(pg_get_functiondef('private.mfa_impl_orders_dashboard_pickup_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[],text,boolean)'::regprocedure)) hash`)).rows[0].hash;
+ await db.exec(readFileSync('supabase/migrations/20261020102813_pickup_report_sort.sql','utf8'));
+ await db.exec(`INSERT INTO public.pickup_reports(id,owner_id,request_id,request_fingerprint,number,created_by,snapshot) VALUES('${id(910)}','${owner}','${id(911)}','{}','REC-2026-10000','${owner}','{}'),('${id(920)}','${owner}','${id(921)}','{}','REC-2026-9999','${owner}','{}');
+ INSERT INTO public.pickup_report_items(report_id,owner_id,order_id,order_key) VALUES('${id(910)}','${owner}','${id(8)}','shopify:legacy:ORDER-8'),('${id(920)}','${owner}','${id(9)}','shopify:legacy:ORDER-9');SET test.owner='${owner}';SET ROLE authenticated;`);
+ const sorted=async(direction:string,page=0)=>(await db.query<any>(`SELECT public.orders_dashboard_pickup_v1(p_state=>'labelled',p_sort_key=>'pickupReport',p_sort_direction=>$1,p_page=>$2,p_page_size=>1) data`,[direction,page])).rows[0].data;
+ expect((await sorted('asc')).rows[0].id).toBe(id(1));expect((await sorted('asc',1)).rows[0].id).toBe(id(9));expect((await sorted('desc')).rows[0].id).toBe(id(8));expect((await sorted('desc',1)).rows[0].id).toBe(id(9));expect((await sorted('asc',3)).rows[0].pickup_reports).toEqual([]);
+ await db.exec(`RESET ROLE;`);await db.exec(readFileSync('supabase/rollback/20261020_pickup_report_sort.sql','utf8'));
+ expect((await db.query<any>(`SELECT md5(pg_get_functiondef('private.mfa_impl_orders_dashboard_pickup_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[],text,boolean)'::regprocedure)) hash`)).rows[0].hash).toBe(beforeSort);
  const guard=await db.query<any>(`SELECT wrapper_hash=md5(pg_get_functiondef(function_oid)) ok FROM private.mfa_function_manifest WHERE signature LIKE '%orders_dashboard_pickup_v1%'`);expect(guard.rows).toEqual([{ok:true}]);
  await db.exec(readFileSync('supabase/rollback/20261020_pickup_dashboard_membership.sql','utf8'));
  expect((await db.query<any>(`SELECT to_regprocedure('public.orders_dashboard_pickup_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[],text,boolean)') gone`)).rows[0].gone).toBeNull();

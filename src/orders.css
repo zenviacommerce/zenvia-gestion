@@ -213,3 +213,15 @@ html[data-theme='dark'] .ordersFieldError{color:#fca5a5}
 /* Pickup membership stays separate from the clickable order row/card. */
 .ordersPickupLink{display:block;white-space:nowrap;font-weight:700;margin:3px 0}
 .ordersMobilePickup{grid-column:2;padding:0 12px 10px;font-size:11px;min-width:0}
+
+/* Keep Orders' five business filters aligned as their contents change. */
+.ordersPage .ordersToolbar .businessFilterFields{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));align-items:start;flex:1 1 100%;min-width:0;width:100%}
+.ordersPage .ordersToolbar .filterField{min-width:0;gap:5px}
+.ordersPage .ordersToolbar .filterField>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ordersPage .ordersToolbar .searchableSelect{min-width:0}
+.ordersPage .ordersToolbar .searchableSelectTrigger{min-width:0;height:42px;min-height:42px;max-height:42px}
+.ordersPage .ordersToolbar .searchableSelectTrigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}
+.ordersPage .ordersToolbar .searchableSelectTrigger>svg{flex-shrink:0}
+@media(max-width:1050px){.ordersPage .ordersToolbar .businessFilterFields{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.ordersPage .ordersToolbar .businessFilterFields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:480px){.ordersPage .ordersToolbar .businessFilterFields{grid-template-columns:minmax(0,1fr)}}

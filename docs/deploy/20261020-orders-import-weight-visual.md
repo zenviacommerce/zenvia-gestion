@@ -72,3 +72,20 @@ Vercel building weight deployment dpl_ZnLq12dV9Pim1sGxKuUTgZ1J26wy and final com
 Final Vercel deployment dpl_BoN1LhgBjj2yaWn1koZzbYgs9xnB is READY for main58687e42f63f0cc4a0c62fdc0582926668ed6c89. Public production HTML returned HTTP200 and serves /assets/index-Duin0MgL.js. Owner browser reload retained the session and reached Resumen; DOM script URL confirms the same bundle. Pedidos now renders both real order product lines with the same strong/name/quantity structure. No label/report generated. All three requested corrections are published.
 
 B begins read-only layout inventory and screenshots; no UI implementation or deployment is authorized in that phase. C order remains MFA watch/expansion → public SP-API developer application → Seller Central metric reconciliation.
+
+### Two subsequent real FBM imports verified — 20 October, 16:28 UTC
+
+Read-only production verification; all times below UTC. Both rows are MERCHANT/FBM and are the first two operational inserts after 11:46 UTC. Order 171-8517620-7502702 is excluded.
+
+| Order | Amazon purchase (createdTime/purchase_date) | Enqueued | Worker start → finish | Operational INSERT / event | Initial status | Purchase → import |
+| --- | --- | --- | --- | --- | --- | --- |
+| 406-4906479-0086736 | 13:31:49.878 | 13:40:05.004728 | 13:41:00.520721 → 13:41:05.431 | 13:41:04.815473 / 13:41:04.841 | PENDING | 9m14.963s (event) |
+| 408-4441638-4921961 | 15:06:03.131 | 15:10:08.419615 | 15:11:00.462715 → 15:11:06.870 | 15:11:05.994617 / 15:11:06.008 | PENDING | 5m02.877s (event) |
+
+Attribution: amazon_operational_order_first_import events link respectively to job 3930590c-5127-4ed6-926c-6ae03398755c and d6087f83-3ff7-406e-82f6-f512a07f3df2. Both recovery=false, mode=hourly, with actual job keys incremental:orders:region:EU:2026-10-20T13:40:00.000Z and incremental:orders:region:EU:2026-10-20T15:10:00.000Z, status success and no last_error. This proves automatic grouped producer/worker imports rather than manual recovery; mode alone was not used as proof. Both are now UNSHIPPED.
+
+The <5 minute purchase-to-import target is NOT met in this sample. Queue waits were 55.516s and 52.043s; worker-to-first-import approximately 4.320s and 5.545s. Initial Amazon last-update values in the events were 13:38:34.026 and 15:08:17.446. The preceding first-order cycle at 13:36 succeeded but its now-minus-two-minute cutoff predates that observed update. The second order was placed after the preceding 15:05 cycle. This is consistent with producer cadence, required cutoff and later Amazon updates; Amazon publication time was not observed and no portion is attributed to it as a measured fact. Automatic import works, but this cadence is not a strict <5 minute SLA.
+
+Health at 16:28:22 UTC: nine Orders cursors all 16:24:00.409, last success 16:26:06.315; queued/running/failed=0, lease rows=0, guard findings=0. Jobs 16:20 and 16:25 success. No jobs with failure/last_error since 14:13 UTC, no PGRST003/57014 messages returned by the single scoped log query 11:46–16:28:30 UTC. Manual 402-8935535-6572312 remains 7kg; excluded 171-8517620-7502702 remains 4kg. This observation made no production writes, did not recalculate shipped orders, deploy, buy labels or change MFA.
+
+Conditional two-order verification completed; its watch is stopped. Existing MFA 48-hour watch is unchanged.

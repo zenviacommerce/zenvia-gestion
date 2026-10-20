@@ -334,3 +334,11 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - PR MFA #232, #233, #234 fusionadas; PR #235 mantiene pendiente la fusión de código hasta que la nueva CI de la migración alineada esté verde. Producción frontend Vercel READY deployment dpl_GUjcgsVFJDXYWcLNmSYwiUvEhzLb, commit f74ab6f8ca0048ea79e556f0f3b27465fa4e48bd (PR #234). El merge posterior de #235 solo alinea repo/docs/migración ya aplicada; debe verificarse deployment y no alterar cohort.
 - Seguimiento condicional automatizado de 48 comprobaciones horarias desde 2026-10-19 11:08 Europe/Madrid: errores MFA inesperados, Auth 5xx, denegaciones fuera cohort, cambios de guard/cohort y salud de workers/cron y system:plan-sync. Avisar solo incidencias.
 - Plan futuro no ejecutable sin aprobación: docs/deploy/mfa-expansion-plan-draft-20261019.md. Primera fase otros administradores; segunda acceso efectivo a datos Amazon, gracia y bloqueo de intentos; revisión anual de LWA. Ningún cambio de cohort fuera del piloto.
+
+
+### Vigilancia piloto MFA — 2026-10-20 10:12 CEST
+- Configuración verificada en producción: `enabled=true` y cohort exacto de un único usuario autorizado (`7461b2b7-f383-460d-b1c7-6ccbb52e42b2`). `private.mfa_activation_findings()`: 0 hallazgos. No se modificó configuración ni se ejecutó apagado de emergencia.
+- Ventana revisada 09:10–10:12 CEST: 0 `PGRST003`, 0 `57014`, 0 `MFA_REQUIRED`/AAL1 inesperados, 0 denegaciones fuera del cohort y 0 errores atribuibles a sondas/tests. Auth registró 303 respuestas HTTP 200 y 0 respuestas 5xx.
+- Worker Amazon: 16 runs `success`; 50 jobs actualizados en `success`, 0 `failed`; cola sin estados pendientes/en proceso/fallidos (histórico: 38.366 `success`, 2 `superseded`). Sin lease retenido tras finalizar los ciclos.
+- Cron en la ventana: `amazon-sync-worker` 14/14, `amazon-orders-five-minutes` 14/14, `amazon-product-images-refresh` 7/7, `amazon-recipient-fallback-refresh` 5/5, `amazon-worker-maintenance` 4/4 y `amazon-orchestrator-hourly` 2/2, todos `succeeded`.
+- Resultado: piloto estable; sin incidencia significativa y sin acciones correctivas.

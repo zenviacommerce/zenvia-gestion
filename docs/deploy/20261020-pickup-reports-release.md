@@ -10,3 +10,6 @@ Preview reads only. Save/download registers an immutable definitive report and c
 Concurrency rehearsal: real production counter allocation with two separate SQL connections and a synthetic owner counter, removed afterwards; actual report RPC sequential generations/retry in a transaction ending ROLLBACK. No carrier call or label purchase. Verify findings, grants, pilot, original dashboard hash and zero permanent reports before frontend.
 
 Backend migration and verification pending. Do not merge until successful.
+
+## Phase 1: backend applied — 08:22 UTC
+Migration pickup_reports applied successfully, with an in-transaction MFA integrity assertion. Connector assigned registry20261020082248; guarded metadata-only history alignment restored approved repository version20261020072636 (no SQL reapplication). Tables empty, counters0, manifest40(+5registered wrappers), integrity0, original dashboard hash unchanged. Frontend remains previous deployment. Verification/rollback rehearsal next.

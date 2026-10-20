@@ -74,5 +74,16 @@
       "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39391887330/logs",
       "workflow_id": 387906946
     }
-  ]
+  ],
+  "backend": {
+    "applied": true,
+    "version": "20261020072636",
+    "toolAssignedVersion": "20261020082248",
+    "historyAligned": true,
+    "reports": 0,
+    "counterRows": 0,
+    "manifestCount": 40,
+    "mfaFindings": 0,
+    "dashboardHash": "081c0519b77e14fd53598cefba39aeb7"
+  }
 }

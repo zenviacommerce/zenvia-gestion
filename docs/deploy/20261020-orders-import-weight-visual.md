@@ -46,3 +46,13 @@ Head fa55c8b7d54b9ea85797fcd4de357d765d052549, based on #256. Final local verifi
 SQL snapshot captures current product columns/constraints and exact Shopify preservation guard; rollback file matches its original body and deliberately retains the additive product-weight column and entered values. No production order rows will be written by the migration.
 
 Preexisting production-vs-main shared dependency differences (MFA bridge helper signature, Amazon auth helper, Shopify install helper, logistics PII helper) were detected. Preserve each deployed bundle's original unmodified dependencies; replace only reviewed task entrypoints/shared Orders and add resolver/config/SP-API/http dependencies required by the resolver. Do not change authentication during this rollout.
+
+### Weight backend applied — 11:57–11:58 UTC
+
+All five #258 checks passed for fa55c8b7d54b9ea85797fcd4de357d765d052549: runs 39418158693 (Build check), 39418158101 (MFA visual), 39418158084 (Build Gestión), 39418158259 (Auth), 39418158364 (MFA real). Isolated rollback rehearsal restored the original Shopify guard body exactly and retained a saved 0.89 kg product weight.
+
+Migration order_unit_weights applied as 20261020115740 and history aligned by guarded one-row DML to canonical 20261020113006. Product column numeric/nullable with positive constraint; guard findings 0, connections 30 after deployment.
+
+Edge batches deployed and source verified against prepared per-function bundle (including all unchanged dependencies): worker 43→44, Orders 25→26, Shopify Orders 12→13, logistics 16→17, Envia 43→44, MRW 23→24, Sendcloud tools 35→36, Sendcloud Orders 33→34. verify_jwt retained per function. No label purchased or report generated.
+
+Awaiting next automatic Orders cycle to prove pending recalculation before merging visible frontend. Pre-change owner terminal set: 891 rows, weight/provenance hash a1deda4566b30edb7068550e43fb2bc0. Pending candidate 171-8517620-7502702 and manual7kg captured in snapshot.

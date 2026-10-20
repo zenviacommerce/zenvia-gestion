@@ -1,0 +1,93 @@
+{
+  "checked_at": "2026-10-20T19:40:39.903Z",
+  "pull_request": 265,
+  "head_sha": "5291d2a12bb42fba53adc2705abb4a0afc912557",
+  "tree_sha": "fa91af65fed90159d85db70c5175f951c43fe1d9",
+  "draft": true,
+  "merged": false,
+  "published": false,
+  "checks": [
+    {
+      "name": "Vercel Preview Comments",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/runs/118842629613",
+      "completed_at": "2026-10-20T19:36:26Z"
+    },
+    {
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39484799679/job/118842307918",
+      "completed_at": "2026-10-20T19:36:41Z"
+    },
+    {
+      "name": "screenshots",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39484799480/job/118842307528",
+      "completed_at": "2026-10-20T19:39:06Z"
+    },
+    {
+      "name": "auth-tests",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39484799074/job/118842306889",
+      "completed_at": "2026-10-20T19:37:36Z"
+    },
+    {
+      "name": "real-auth-vault",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39484799118/job/118842306393",
+      "completed_at": "2026-10-20T19:39:44Z"
+    },
+    {
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39484799130/job/118842306366",
+      "completed_at": "2026-10-20T19:37:42Z"
+    }
+  ],
+  "commit_status": "success",
+  "production": {
+    "id": "dpl_9RMFEKn4AhoTo738mzvfBbdqCURS",
+    "state": "READY",
+    "target": "production",
+    "sha": "ed63ce7aecff7c7a296b5fface372f89ee4b8bf7",
+    "alias": [
+      "gestionzenvia.vercel.app",
+      "gestion.zenviacommerce.com",
+      "zenvia-gestion-sergiorojasdiaz-7097.vercel.app",
+      "zenvia-gestion-git-main-sergiorojasdiaz-7097.vercel.app"
+    ]
+  },
+  "local": {
+    "vitest": 249,
+    "node": 1222,
+    "master_scenarios": 9,
+    "reflow_scenarios": 3,
+    "kpi_scenarios": 6
+  },
+  "mobile_first_list_px": {
+    "products": {
+      "before": 1855.0625,
+      "after": 1148.546875
+    },
+    "clients": {
+      "before": 1590.1875,
+      "after": 1057.671875
+    },
+    "suppliers": {
+      "before": 1475.1875,
+      "after": 1044.671875
+    }
+  },
+  "limits": [
+    "Synthetic fixtures and blocked network; no live owner visual validation",
+    "Client editor retained by source review, not saved in test",
+    "Client-side pagination unchanged"
+  ],
+  "rollback": "ed63ce7aecff7c7a296b5fface372f89ee4b8bf7 / dpl_9RMFEKn4AhoTo738mzvfBbdqCURS / index-DlLrR06h.js"
+}

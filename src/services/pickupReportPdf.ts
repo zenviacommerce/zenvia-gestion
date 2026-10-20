@@ -2,7 +2,7 @@ import { jsPDF } from 'jspdf';
 import type { PickupReport } from './pickupReports';
 
 /** Deliberately renders an allowlist: recipient and buyer data never enter this document. */
-export type PickupPdfOptions = {logoDataUrl?: string | null; generatedAt?: Date};
+export type PickupPdfOptions = {logoDataUrl?: string | null; stampDataUrl?: string | null; generatedAt?: Date};
 
 export function createPickupReportPdfBlob(report: PickupReport, options: PickupPdfOptions = {}): Blob {
   const doc = new jsPDF({ unit: 'mm', format: 'a4', compress: true, putOnlyUsedFonts: true });
@@ -85,6 +85,14 @@ export function createPickupReportPdfBlob(report: PickupReport, options: PickupP
     doc.text('Firma del conductor/a', 14, y); doc.text('Firma / sello del remitente', 110, y);
     y += 3; doc.setDrawColor(100); doc.setLineWidth(0.3);
     doc.rect(14, y, 82, 30); doc.rect(110, y, 86, 30);
+    if(options.stampDataUrl){
+      try{
+        const image=doc.getImageProperties(options.stampDataUrl);
+        const scale=Math.min(80/image.width,24/image.height);
+        const width=image.width*scale,height=image.height*scale;
+        doc.addImage(options.stampDataUrl,undefined as any,110+(86-width)/2,y+(30-height)/2,width,height);
+      }catch{/* An optional stamp must never block a printable report. */}
+    }
   }
   const total = doc.getNumberOfPages();
   for (let page = 1; page <= total; page++) {
@@ -102,10 +110,10 @@ export function pickupReportPdfFilename(report: PickupReport): string {
 export async function downloadPickupReportPdf(report: PickupReport): Promise<void> {
   const {getActiveSupabase, getActiveTenant} = await import('./supabase');
   const client = getActiveSupabase(), workspace = getActiveTenant()?.workspace_id;
-  let logoDataUrl: string | null | undefined;
-  try { logoDataUrl = (await (await import('./companyBranding')).loadCompanyBranding()).logoDataUrl; } catch { /* Optional branding: preserve a printable text header. */ }
+  let logoDataUrl: string | null | undefined, stampDataUrl: string | null | undefined;
+  try { const branding=await (await import('./companyBranding')).loadCompanyBranding();logoDataUrl=branding.logoDataUrl;stampDataUrl=branding.stampDataUrl; } catch { /* Optional branding: preserve a printable text header. */ }
   if (client !== getActiveSupabase() || workspace !== getActiveTenant()?.workspace_id) throw new Error('La empresa o sesión ha cambiado. Vuelve a abrir el informe.');
-  const url = URL.createObjectURL(createPickupReportPdfBlob(report, {logoDataUrl}));
+  const url = URL.createObjectURL(createPickupReportPdfBlob(report, {logoDataUrl,stampDataUrl}));
   const link = document.createElement('a'); link.href = url; link.download = pickupReportPdfFilename(report);
   document.body.appendChild(link); link.click(); link.remove();
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);

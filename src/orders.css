@@ -209,3 +209,7 @@ html[data-theme='dark'] .ordersFieldError{color:#fca5a5}
 .ordersPagerActions button{min-width:92px}
 @media(max-width:600px){.ordersPager{align-items:stretch;flex-direction:column}
   .ordersPagerActions{width:100%}.ordersPagerActions button{flex:1}}
+
+/* Pickup membership stays separate from the clickable order row/card. */
+.ordersPickupLink{display:block;white-space:nowrap;font-weight:700;margin:3px 0}
+.ordersMobilePickup{grid-column:2;padding:0 12px 10px;font-size:11px;min-width:0}

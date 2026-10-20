@@ -9,7 +9,7 @@ test('orders always open on all channels and do not persist the channel filter',
   assert.match(orders,/setChannel\]=useState<'all'\|OrderChannel>\('all'\)/);
   assert.doesNotMatch(orders,/const\s+initialChannel\s*=/);
   assert.doesNotMatch(orders,/const value=\{query,channel,state/);
-  assert.match(orders,/const value=\{query,state,trackingFilter,countryFilter,carrierFilter,dateFilter\}/);
+  assert.match(orders,/const value=\{query,state,trackingFilter,countryFilter,carrierFilter,pickupReportFilter,dateFilter\}/);
   assert.match(orders,/value:'all',label:'Todos los canales'/);
 });
 

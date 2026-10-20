@@ -1,0 +1,22 @@
+{
+  "synthetic": true,
+  "networkBlocked": true,
+  "checks": [
+    {
+      "device": "desktop",
+      "reportMembership": true,
+      "serverFilter": true,
+      "sticky": true,
+      "purchases": 0,
+      "errors": []
+    },
+    {
+      "device": "mobile",
+      "reportMembership": true,
+      "serverFilter": true,
+      "sticky": false,
+      "purchases": 0,
+      "errors": []
+    }
+  ]
+}

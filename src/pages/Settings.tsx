@@ -30,7 +30,7 @@ import { showError, showInfo, showSuccess } from '../services/toast';
 import { confirmAction } from '../services/actionDialog';
 import { DEFAULT_APP_SETTINGS, type AmazonSettings, type ClientsSettings, type ExpensesSettings, type IntegrationsSettings, type MaintenanceSettings, type NotificationsSettings, type NotificationSetting, type OrdersSettings, type ProductsSettings, type SalesSettings, type ShippingSettings, type SuppliersSettings, type UserPreferences } from '../services/settingsSchema';
 import { loadBusinessSettings, saveBusinessSettings, type BusinessSettings } from '../services/sales';
-import { loadCompanyBranding, removeCompanyLogo, uploadCompanyLogo, type CompanyBranding } from '../services/companyBranding';
+import { loadCompanyBranding, removeCompanyStamp, uploadCompanyStamp, removeCompanyLogo, uploadCompanyLogo, type CompanyBranding } from '../services/companyBranding';
 import { loadManagedSalesSeries, loadTaxRegistrations, type ManagedSalesSeries, type TaxRegistration } from '../services/salesConfig';
 import { loadExpenseCategories } from '../services/expenseCategories';
 import type { ExpenseCategory } from '../types';
@@ -256,6 +256,20 @@ function GeneralSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
     }
   };
 
+  const changeStamp=async(file:File|null)=>{
+    if(!file)return;
+    setSaving(true);
+    try{setBranding(await uploadCompanyStamp(file,branding?.stampPath));showSuccess('Sello actualizado.');}
+    catch(e){showError(e instanceof Error?e.message:'No se pudo actualizar el sello.');}
+    finally{setSaving(false);}
+  };
+  const removeStamp=async()=>{
+    setSaving(true);
+    try{setBranding(await removeCompanyStamp(branding?.stampPath));showSuccess('Sello eliminado.');}
+    catch(e){showError(e instanceof Error?e.message:'No se pudo eliminar el sello.');}
+    finally{setSaving(false);}
+  };
+
   return <section className="settingsSectionCard">
     <div className="settingsSectionHero">
       <div className="settingsSectionIcon"><Building2 size={22}/></div>
@@ -297,6 +311,18 @@ function GeneralSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
           <div className="settingsLogoActions">
             <label className="secondary settingsFileButton">Cambiar logotipo<input type="file" accept="image/png,image/jpeg,image/webp" onChange={e=>void changeLogo(e.target.files?.[0]||null)}/></label>
             {branding?.logoPath&&<button type="button" className="secondary" disabled={saving} onClick={()=>void removeLogo()}>Eliminar logotipo</button>}
+          </div>
+        </div>
+      </div>
+
+      <div className="settingsSubsection">
+        <h3>Sello de empresa</h3>
+        <p>Se incluye en la firma del remitente del justificante de recogida. PNG o JPG, máximo 5 MB. Se eliminan el papel blanco y los bordes grises del escaneo.</p>
+        <div className="settingsLogoRow">
+          <div className="settingsLogoPreview">{branding?.stampDataUrl?<img src={branding.stampDataUrl} alt="Sello de empresa"/>:<span>Sin sello</span>}</div>
+          <div className="settingsLogoActions">
+            <label className="secondary settingsFileButton">Cambiar sello<input type="file" aria-label="Sello de empresa" disabled={saving} accept="image/png,image/jpeg" onChange={e=>{void changeStamp(e.target.files?.[0]||null);e.target.value='';}}/></label>
+            {branding?.stampPath&&<button type="button" className="secondary" disabled={saving} onClick={()=>void removeStamp()}>Eliminar sello</button>}
           </div>
         </div>
       </div>

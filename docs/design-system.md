@@ -162,3 +162,9 @@ Las variantes semánticas de `StatCard` forman parte del contrato: al migrar una
 `StatCard variant="warning"` reutiliza el aviso dorado existente. Resumen y Pedidos lo activan cuando su número de pendientes es mayor que cero, incluidos pendientes recientes sin retraso. Cero usa la variante predeterminada. El render declarativo es propietario de este estado, sin depender de selectores de una rejilla antigua. El test de componente y el harness de las pantallas reales (pendientes positivos, retrasados cero) deben detectar su pérdida.
 
 Las vistas previas de imágenes muestran siempre el contenido completo: `object-fit:contain`, centrado y ancho máximo del 100 %. Logo/sello y editor de logotipo usan altura automática y máximo de 240 px para la imagen, sin caja de altura fija que la recorte. Las miniaturas de productos conservan su caja compacta y `contain`; no se estiran ni recortan para llenarla. Las pruebas usan imágenes sintéticas altas/anchas con todos los bordes y última línea visibles.
+
+### Conservación de acciones durante cada migración
+
+Las acciones de cabecera existentes (botones, enlaces, selectores y accesos añadidos por efectos o portales) forman parte del contrato de PageHeader. Inventariar y comparar la versión anterior con la migrada, incluyendo sus condiciones/disabled y su destino; no basta con comparar solo el JSX local de la página. Los harness deben montar los propietarios globales de producción, como OrderLabelDefaults, y los portales tardíos.
+
+La comprobación `assertHeaderActionsPreserved` compara etiquetas de acciones renderizadas con la referencia inmutable y falla si falta alguna, incluidas repeticiones. Los controles/disabled se comparan además en los manifiestos. Se aplica a Resumen/Pedidos y a Facturación/Gastos/Recibos en fase2. En móvil, una acción que queda fuera de la fila debe seguir accesible con scroll señalado o menú Más; no eliminarla para ajustar el layout.

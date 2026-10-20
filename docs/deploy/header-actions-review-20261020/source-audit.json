@@ -1,0 +1,957 @@
+{
+  "baseline": "f214974c2ef044fef8c84fd64d114406869dc3e1",
+  "current": "working tree after f287ff5e, one-line selector fix",
+  "scope": "Static audit of all JSX buttons/links/click handlers; rendered header actions are checked separately including OrderLabelDefaults",
+  "pages": [
+    {
+      "page": "Dashboard",
+      "beforeCount": 3,
+      "afterCount": 3,
+      "missing": [],
+      "additionalSignatures": [],
+      "before": [
+        {
+          "tag": "button",
+          "onClick": "{onUpload}",
+          "href": "",
+          "disabled": "",
+          "label": "+ Factura de gasto",
+          "line": 117
+        },
+        {
+          "tag": "StatCard",
+          "onClick": "{onOrders}",
+          "href": "",
+          "disabled": "",
+          "label": "0?'dashboardPendingOrders':''} label=\"Pendientes\" value={String(pendingOrders)} sub={pendingOrders>0?'Pendientes reales · sin limitar por periodo':'Sin pedidos ",
+          "line": 132
+        },
+        {
+          "tag": "button",
+          "onClick": "{onProducts}",
+          "href": "",
+          "disabled": "",
+          "label": "Ver productos",
+          "line": 143
+        }
+      ],
+      "after": [
+        {
+          "tag": "button",
+          "onClick": "{onUpload}",
+          "href": "",
+          "disabled": "",
+          "label": "+ Factura de gasto",
+          "line": 119
+        },
+        {
+          "tag": "StatCard",
+          "onClick": "{onOrders}",
+          "href": "",
+          "disabled": "",
+          "label": "0?'warning':'default'} label=\"Pendientes\" value={String(pendingOrders)} sub={pendingOrders>0?'Pendientes reales · sin limitar por periodo':'Sin pedidos pendient",
+          "line": 134
+        },
+        {
+          "tag": "button",
+          "onClick": "{onProducts}",
+          "href": "",
+          "disabled": "",
+          "label": "Ver productos",
+          "line": 145
+        }
+      ]
+    },
+    {
+      "page": "Orders",
+      "beforeCount": 55,
+      "afterCount": 55,
+      "missing": [],
+      "additionalSignatures": [],
+      "before": [
+        {
+          "tag": "button",
+          "onClick": "{onClose}",
+          "href": "",
+          "disabled": "",
+          "label": "",
+          "line": 268
+        },
+        {
+          "tag": "a",
+          "onClick": "",
+          "href": "{trackingLink}",
+          "disabled": "",
+          "label": "Abrir seguimiento",
+          "line": 275
+        },
+        {
+          "tag": "button",
+          "onClick": "{onConfirmShipment}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "Confirmar envío en Shopify",
+          "line": 276
+        },
+        {
+          "tag": "button",
+          "onClick": "{onInvoice}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "Generar / ver factura",
+          "line": 277
+        },
+        {
+          "tag": "button",
+          "onClick": "{onDownload}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "Descargar",
+          "line": 278
+        },
+        {
+          "tag": "button",
+          "onClick": "{onPrint}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "Imprimir",
+          "line": 278
+        },
+        {
+          "tag": "button",
+          "onClick": "{onEdit}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "Editar pedido",
+          "line": 278
+        },
+        {
+          "tag": "button",
+          "onClick": "{onPrepare}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "{busy?<> Preparando… :<> Preparar etiqueta }",
+          "line": 278
+        },
+        {
+          "tag": "button",
+          "onClick": "{onClose}",
+          "href": "",
+          "disabled": "",
+          "label": "",
+          "line": 310
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>selectOption(option)}",
+          "href": "",
+          "disabled": "",
+          "label": "selectOption(option)}> {index+1}º {option.providerName} {option.carrierName||option.carrierCode||'Transportista'} {option.name||option.code} {money(option.price",
+          "line": 324
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>selectOption(option)}",
+          "href": "",
+          "disabled": "",
+          "label": "selectOption(option)}> {option.providerName} {option.carrierName||option.carrierCode||'Transportista'} {option.name||option.code}{shippingOptionKey(option)===pr",
+          "line": 339
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>selectOption(option)}",
+          "href": "",
+          "disabled": "",
+          "label": "selectOption(option)}> {option.name||option.code} {option.integrationAccountName?`${option.integrationAccountName} · `:''}{option.billedWeightKg?`Peso facturabl",
+          "line": 360
+        },
+        {
+          "tag": "button",
+          "onClick": "{onClose}",
+          "href": "",
+          "disabled": "",
+          "label": "Cancelar",
+          "line": 371
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>selected&&onCreate(selected)}",
+          "href": "",
+          "disabled": "{!selected}",
+          "label": "selected&&onCreate(selected)}>{selected?'Crear etiqueta':'Selecciona un servicio'}",
+          "line": 371
+        },
+        {
+          "tag": "button",
+          "onClick": "{onClose}",
+          "href": "",
+          "disabled": "",
+          "label": "",
+          "line": 381
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setItems(prev=>[...prev,{name:'',sku:'',quantity:1,unitPrice:0}])}",
+          "href": "",
+          "disabled": "",
+          "label": "setItems(prev=>[...prev,{name:'',sku:'',quantity:1,unitPrice:0}])}> Añadir línea",
+          "line": 384
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setItems(prev=>prev.filter((_,i)=>i!==index))}",
+          "href": "",
+          "disabled": "{items.length===1}",
+          "label": "setItems(prev=>prev.filter((_,i)=>i!==index))}>",
+          "line": 384
+        },
+        {
+          "tag": "button",
+          "onClick": "{onClose}",
+          "href": "",
+          "disabled": "",
+          "label": "Cancelar",
+          "line": 386
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>onSave({orderNumber,customerName,companyName,email,phone,address,houseNumber,postalCode,city,countryCode,weightKg:weightUnit==='g'?weightValue/1000:weightValue,items})}",
+          "href": "",
+          "disabled": "{saving}",
+          "label": "onSave({orderNumber,customerName,companyName,email,phone,address,houseNumber,postalCode,city,countryCode,weightKg:weightUnit==='g'?weightValue/1000:weightValue,",
+          "line": 386
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setPage(current=>Math.max(0,current-1))}",
+          "href": "",
+          "disabled": "{loading||selectionBusy||bulkGenerating||page===0}",
+          "label": "setPage(current=>Math.max(0,current-1))}>Anterior",
+          "line": 648
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setPage(current=>current+1)}",
+          "href": "",
+          "disabled": "{loading||selectionBusy||bulkGenerating||page+1>=totalPages}",
+          "label": "=totalPages} onClick={()=>setPage(current=>current+1)}>Siguiente",
+          "line": 649
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setPickupHistory('all')}",
+          "href": "",
+          "disabled": "",
+          "label": "setPickupHistory('all')}> Informes de recogida",
+          "line": 984
+        },
+        {
+          "tag": "button",
+          "onClick": "{detectPrinters}",
+          "href": "",
+          "disabled": "{printerChecking}",
+          "label": "{printerChecking? : } Impresión directa",
+          "line": 984
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setManualOpen(true)}",
+          "href": "",
+          "disabled": "",
+          "label": "setManualOpen(true)}> Nuevo pedido",
+          "line": 984
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void generateConfiguredLabels()}",
+          "href": "",
+          "disabled": "{bulkGenerating||selectionBusy||bulkPreview?.loading||(settings.orders.bulkScope==='selected'?selectedCount===0||!labelSelectionAllowed||selectionBusy:(dashboardKpis?.preparablePending??pendingOrders.filter(canPrepareOrder).length)===0)}",
+          "label": "void generateConfiguredLabels()} disabled={bulkGenerating||selectionBusy||bulkPreview?.loading||(settings.orders.bulkScope==='selected'?selectedCount===0||!labe",
+          "line": 984
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>sync(false,false)}",
+          "href": "",
+          "disabled": "{syncing||bulkGenerating||!(settings.integrations.amazonEnabled||settings.integrations.shopifyEnabled||enviaStatus?.configured)}",
+          "label": "sync(false,false)} disabled={syncing||bulkGenerating||!(settings.integrations.amazonEnabled||settings.integrations.shopifyEnabled||enviaStatus?.configured)}>{sy",
+          "line": 984
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setState('pending')}",
+          "href": "",
+          "disabled": "",
+          "label": "setState('pending')}>Pendientes",
+          "line": 995
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setState('labelled')}",
+          "href": "",
+          "disabled": "",
+          "label": "setState('labelled')}>Etiquetados",
+          "line": 995
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setState('shipped')}",
+          "href": "",
+          "disabled": "",
+          "label": "setState('shipped')}>Enviados",
+          "line": 995
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setState('cancelled')}",
+          "href": "",
+          "disabled": "",
+          "label": "setState('cancelled')}>Cancelados",
+          "line": 995
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setState('all')}",
+          "href": "",
+          "disabled": "",
+          "label": "setState('all')}>Todos",
+          "line": 995
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void viewSelection()}",
+          "href": "",
+          "disabled": "{!selectedCount||selectionBusy||bulkGenerating}",
+          "label": "void viewSelection()}>Ver selección",
+          "line": 1005
+        },
+        {
+          "tag": "button",
+          "onClick": "{clearSelection}",
+          "href": "",
+          "disabled": "{!selectedCount||bulkGenerating}",
+          "label": "Quitar selección",
+          "line": 1006
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void generateSelectedLabels()}",
+          "href": "",
+          "disabled": "{!selectedCount||!labelSelectionAllowed||bulkGenerating||selectionBusy||loading}",
+          "label": "void generateSelectedLabels()}> {selectionBusy?'Recuperando selección…':bulkGenerating&&selectedCount?`Generando ${bulkProgress}`:`Generar etiquetas seleccionad",
+          "line": 1007
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void openPickupSelection()}",
+          "href": "",
+          "disabled": "{!selectedCount||bulkGenerating||selectionBusy||loading}",
+          "label": "void openPickupSelection()}> Generar informe de recogida ({selectedCount})",
+          "line": 1008
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void selectAllMatching()}",
+          "href": "",
+          "disabled": "{selectionBusy||bulkGenerating||loading}",
+          "label": "void selectAllMatching()}>{selectionBusy?'Seleccionando todos…':`Seleccionar los ${selectionTotal} pedidos que coinciden con los filtros`}",
+          "line": 1012
+        },
+        {
+          "tag": "button",
+          "onClick": "{clearSelection}",
+          "href": "",
+          "disabled": "{selectionBusy||bulkGenerating}",
+          "label": "Borrar selección completa",
+          "line": 1013
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>{setPrinter('');void patchPreferences({labelPrinterId:null})}}",
+          "href": "",
+          "disabled": "",
+          "label": "{setPrinter('');void patchPreferences({labelPrinterId:null})}}>Usar PDF",
+          "line": 1017
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void openShopifyInvoiceSelection()}",
+          "href": "",
+          "disabled": "",
+          "label": "void openShopifyInvoiceSelection()}>Seleccionar pedidos para facturar",
+          "line": 1019
+        },
+        {
+          "tag": "tr",
+          "onClick": "{()=>setSelected(order)}",
+          "href": "",
+          "disabled": "",
+          "label": "setSelected(order)}> e.stopPropagation()}> toggleOrder(order.id,checked)} label={state!=='pending'||canPrepareOrder(order)?`Seleccionar pedido ${order.orderNumb",
+          "line": 1037
+        },
+        {
+          "tag": "td",
+          "onClick": "{e=>e.stopPropagation()}",
+          "href": "",
+          "disabled": "",
+          "label": "e.stopPropagation()}> toggleOrder(order.id,checked)} label={state!=='pending'||canPrepareOrder(order)?`Seleccionar pedido ${order.orderNumber||order.orderId}`:'",
+          "line": 1037
+        },
+        {
+          "tag": "td",
+          "onClick": "{e=>e.stopPropagation()}",
+          "href": "",
+          "disabled": "",
+          "label": "e.stopPropagation()}>{order.pickupReports?.length?order.pickupReports.map(r=> setPickupHistory(order.id)}>{r.number} ): Sin informe }",
+          "line": 1037
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setPickupHistory(order.id)}",
+          "href": "",
+          "disabled": "",
+          "label": "setPickupHistory(order.id)}>{r.number}",
+          "line": 1037
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setSelected(order)}",
+          "href": "",
+          "disabled": "",
+          "label": "setSelected(order)}> {channelLabel(order)} {order.orderNumber||order.orderId} {order.customerName||'Cliente'} · {weightLabel(order,settings.shipping.weightUnit)",
+          "line": 1038
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setPickupHistory(order.id)}",
+          "href": "",
+          "disabled": "",
+          "label": "setPickupHistory(order.id)}>{r.number}",
+          "line": 1038
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setBulkPreview(null)}",
+          "href": "",
+          "disabled": "{bulkPreview.loading||bulkGenerating}",
+          "label": "setBulkPreview(null)}>",
+          "line": 1042
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setBulkPreview(current=>current?{...current,selectedKey:row.key}:current)}",
+          "href": "",
+          "disabled": "{!complete}",
+          "label": "setBulkPreview(current=>current?{...current,selectedKey:row.key}:current)}> {row.providerName} {row.carrierName} {row.covered}/{bulkPreview.targets.length} pedi",
+          "line": 1050
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setBulkPreview(null)}",
+          "href": "",
+          "disabled": "{bulkPreview.loading||bulkGenerating}",
+          "label": "setBulkPreview(null)}>Cancelar",
+          "line": 1060
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void confirmBulkPreview()}",
+          "href": "",
+          "disabled": "{bulkPreview.loading||bulkGenerating||!bulkPreview.selectedKey||bulkPreview.summaries.find(row=>row.key===bulkPreview.selectedKey)?.covered!==bulkPreview.targets.length}",
+          "label": "row.key===bulkPreview.selectedKey)?.covered!==bulkPreview.targets.length} onClick={()=>void confirmBulkPreview()}>{bulkGenerating? : } Generar todas",
+          "line": 1060
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setInvoiceSelectionOpen(false)}",
+          "href": "",
+          "disabled": "",
+          "label": "setInvoiceSelectionOpen(false)} aria-label=\"Cerrar\">",
+          "line": 1062
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setInvoiceSelectionOpen(false)}",
+          "href": "",
+          "disabled": "",
+          "label": "setInvoiceSelectionOpen(false)}>Cancelar",
+          "line": 1062
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>{const targets=invoiceCandidates.filter(o=>invoiceSelection.has(o.id));setInvoiceOrder(targets[0]);setInvoiceQueue(targets.slice(1));setInvoiceSelectionOpen(false)}}",
+          "href": "",
+          "disabled": "{!invoiceSelection.size}",
+          "label": "{const targets=invoiceCandidates.filter(o=>invoiceSelection.has(o.id));setInvoiceOrder(targets[0]);setInvoiceQueue(targets.slice(1));setInvoiceSelectionOpen(fal",
+          "line": 1062
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setSelectionOpen(false)}",
+          "href": "",
+          "disabled": "",
+          "label": "setSelectionOpen(false)}>",
+          "line": 1065
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>toggleOrder(id,false)}",
+          "href": "",
+          "disabled": "{bulkGenerating}",
+          "label": "toggleOrder(id,false)} aria-label={`Quitar pedido ${row?.orderNumber||id}`}>Quitar",
+          "line": 1065
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setSelectionOpen(false)}",
+          "href": "",
+          "disabled": "",
+          "label": "setSelectionOpen(false)}>Volver a pedidos",
+          "line": 1065
+        }
+      ],
+      "after": [
+        {
+          "tag": "button",
+          "onClick": "{onClose}",
+          "href": "",
+          "disabled": "",
+          "label": "",
+          "line": 271
+        },
+        {
+          "tag": "a",
+          "onClick": "",
+          "href": "{trackingLink}",
+          "disabled": "",
+          "label": "Abrir seguimiento",
+          "line": 278
+        },
+        {
+          "tag": "button",
+          "onClick": "{onConfirmShipment}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "Confirmar envío en Shopify",
+          "line": 279
+        },
+        {
+          "tag": "button",
+          "onClick": "{onInvoice}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "Generar / ver factura",
+          "line": 280
+        },
+        {
+          "tag": "button",
+          "onClick": "{onDownload}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "Descargar",
+          "line": 281
+        },
+        {
+          "tag": "button",
+          "onClick": "{onPrint}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "Imprimir",
+          "line": 281
+        },
+        {
+          "tag": "button",
+          "onClick": "{onEdit}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "Editar pedido",
+          "line": 281
+        },
+        {
+          "tag": "button",
+          "onClick": "{onPrepare}",
+          "href": "",
+          "disabled": "{busy}",
+          "label": "{busy?<> Preparando… :<> Preparar etiqueta }",
+          "line": 281
+        },
+        {
+          "tag": "button",
+          "onClick": "{onClose}",
+          "href": "",
+          "disabled": "",
+          "label": "",
+          "line": 313
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>selectOption(option)}",
+          "href": "",
+          "disabled": "",
+          "label": "selectOption(option)}> {index+1}º {option.providerName} {option.carrierName||option.carrierCode||'Transportista'} {option.name||option.code} {money(option.price",
+          "line": 327
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>selectOption(option)}",
+          "href": "",
+          "disabled": "",
+          "label": "selectOption(option)}> {option.providerName} {option.carrierName||option.carrierCode||'Transportista'} {option.name||option.code}{shippingOptionKey(option)===pr",
+          "line": 342
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>selectOption(option)}",
+          "href": "",
+          "disabled": "",
+          "label": "selectOption(option)}> {option.name||option.code} {option.integrationAccountName?`${option.integrationAccountName} · `:''}{option.billedWeightKg?`Peso facturabl",
+          "line": 363
+        },
+        {
+          "tag": "button",
+          "onClick": "{onClose}",
+          "href": "",
+          "disabled": "",
+          "label": "Cancelar",
+          "line": 374
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>selected&&onCreate(selected)}",
+          "href": "",
+          "disabled": "{!selected}",
+          "label": "selected&&onCreate(selected)}>{selected?'Crear etiqueta':'Selecciona un servicio'}",
+          "line": 374
+        },
+        {
+          "tag": "button",
+          "onClick": "{onClose}",
+          "href": "",
+          "disabled": "",
+          "label": "",
+          "line": 384
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setItems(prev=>[...prev,{name:'',sku:'',quantity:1,unitPrice:0}])}",
+          "href": "",
+          "disabled": "",
+          "label": "setItems(prev=>[...prev,{name:'',sku:'',quantity:1,unitPrice:0}])}> Añadir línea",
+          "line": 387
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setItems(prev=>prev.filter((_,i)=>i!==index))}",
+          "href": "",
+          "disabled": "{items.length===1}",
+          "label": "setItems(prev=>prev.filter((_,i)=>i!==index))}>",
+          "line": 387
+        },
+        {
+          "tag": "button",
+          "onClick": "{onClose}",
+          "href": "",
+          "disabled": "",
+          "label": "Cancelar",
+          "line": 389
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>onSave({orderNumber,customerName,companyName,email,phone,address,houseNumber,postalCode,city,countryCode,weightKg:weightUnit==='g'?weightValue/1000:weightValue,items})}",
+          "href": "",
+          "disabled": "{saving}",
+          "label": "onSave({orderNumber,customerName,companyName,email,phone,address,houseNumber,postalCode,city,countryCode,weightKg:weightUnit==='g'?weightValue/1000:weightValue,",
+          "line": 389
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setPage(current=>Math.max(0,current-1))}",
+          "href": "",
+          "disabled": "{loading||selectionBusy||bulkGenerating||page===0}",
+          "label": "setPage(current=>Math.max(0,current-1))}>Anterior",
+          "line": 651
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setPage(current=>current+1)}",
+          "href": "",
+          "disabled": "{loading||selectionBusy||bulkGenerating||page+1>=totalPages}",
+          "label": "=totalPages} onClick={()=>setPage(current=>current+1)}>Siguiente",
+          "line": 652
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setPickupHistory('all')}",
+          "href": "",
+          "disabled": "",
+          "label": "setPickupHistory('all')}> Informes de recogida",
+          "line": 987
+        },
+        {
+          "tag": "button",
+          "onClick": "{detectPrinters}",
+          "href": "",
+          "disabled": "{printerChecking}",
+          "label": "{printerChecking? : } Impresión directa",
+          "line": 987
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setManualOpen(true)}",
+          "href": "",
+          "disabled": "",
+          "label": "setManualOpen(true)}> Nuevo pedido",
+          "line": 987
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void generateConfiguredLabels()}",
+          "href": "",
+          "disabled": "{bulkGenerating||selectionBusy||bulkPreview?.loading||(settings.orders.bulkScope==='selected'?selectedCount===0||!labelSelectionAllowed||selectionBusy:(dashboardKpis?.preparablePending??pendingOrders.filter(canPrepareOrder).length)===0)}",
+          "label": "void generateConfiguredLabels()} disabled={bulkGenerating||selectionBusy||bulkPreview?.loading||(settings.orders.bulkScope==='selected'?selectedCount===0||!labe",
+          "line": 987
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>sync(false,false)}",
+          "href": "",
+          "disabled": "{syncing||bulkGenerating||!(settings.integrations.amazonEnabled||settings.integrations.shopifyEnabled||enviaStatus?.configured)}",
+          "label": "sync(false,false)} disabled={syncing||bulkGenerating||!(settings.integrations.amazonEnabled||settings.integrations.shopifyEnabled||enviaStatus?.configured)}>{sy",
+          "line": 987
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setState('pending')}",
+          "href": "",
+          "disabled": "",
+          "label": "setState('pending')}>Pendientes",
+          "line": 1011
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setState('labelled')}",
+          "href": "",
+          "disabled": "",
+          "label": "setState('labelled')}>Etiquetados",
+          "line": 1011
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setState('shipped')}",
+          "href": "",
+          "disabled": "",
+          "label": "setState('shipped')}>Enviados",
+          "line": 1011
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setState('cancelled')}",
+          "href": "",
+          "disabled": "",
+          "label": "setState('cancelled')}>Cancelados",
+          "line": 1011
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setState('all')}",
+          "href": "",
+          "disabled": "",
+          "label": "setState('all')}>Todos",
+          "line": 1011
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void viewSelection()}",
+          "href": "",
+          "disabled": "{!selectedCount||selectionBusy||bulkGenerating}",
+          "label": "void viewSelection()}>Ver selección",
+          "line": 1021
+        },
+        {
+          "tag": "button",
+          "onClick": "{clearSelection}",
+          "href": "",
+          "disabled": "{!selectedCount||bulkGenerating}",
+          "label": "Quitar selección",
+          "line": 1022
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void generateSelectedLabels()}",
+          "href": "",
+          "disabled": "{!selectedCount||!labelSelectionAllowed||bulkGenerating||selectionBusy||loading}",
+          "label": "void generateSelectedLabels()}> {selectionBusy?'Recuperando selección…':bulkGenerating&&selectedCount?`Generando ${bulkProgress}`:`Generar etiquetas seleccionad",
+          "line": 1023
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void openPickupSelection()}",
+          "href": "",
+          "disabled": "{!selectedCount||bulkGenerating||selectionBusy||loading}",
+          "label": "void openPickupSelection()}> Generar informe de recogida ({selectedCount})",
+          "line": 1024
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void selectAllMatching()}",
+          "href": "",
+          "disabled": "{selectionBusy||bulkGenerating||loading}",
+          "label": "void selectAllMatching()}>{selectionBusy?'Seleccionando todos…':`Seleccionar los ${selectionTotal} pedidos que coinciden con los filtros`}",
+          "line": 1028
+        },
+        {
+          "tag": "button",
+          "onClick": "{clearSelection}",
+          "href": "",
+          "disabled": "{selectionBusy||bulkGenerating}",
+          "label": "Borrar selección completa",
+          "line": 1029
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>{setPrinter('');void patchPreferences({labelPrinterId:null})}}",
+          "href": "",
+          "disabled": "",
+          "label": "{setPrinter('');void patchPreferences({labelPrinterId:null})}}>Usar PDF",
+          "line": 1033
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void openShopifyInvoiceSelection()}",
+          "href": "",
+          "disabled": "",
+          "label": "void openShopifyInvoiceSelection()}>Seleccionar pedidos para facturar",
+          "line": 1035
+        },
+        {
+          "tag": "tr",
+          "onClick": "{()=>setSelected(order)}",
+          "href": "",
+          "disabled": "",
+          "label": "setSelected(order)}> e.stopPropagation()}> toggleOrder(order.id,checked)} label={state!=='pending'||canPrepareOrder(order)?`Seleccionar pedido ${order.orderNumb",
+          "line": 1053
+        },
+        {
+          "tag": "td",
+          "onClick": "{e=>e.stopPropagation()}",
+          "href": "",
+          "disabled": "",
+          "label": "e.stopPropagation()}> toggleOrder(order.id,checked)} label={state!=='pending'||canPrepareOrder(order)?`Seleccionar pedido ${order.orderNumber||order.orderId}`:'",
+          "line": 1053
+        },
+        {
+          "tag": "td",
+          "onClick": "{e=>e.stopPropagation()}",
+          "href": "",
+          "disabled": "",
+          "label": "e.stopPropagation()}>{order.pickupReports?.length?order.pickupReports.map(r=> setPickupHistory(order.id)}>{r.number} ): Sin informe }",
+          "line": 1053
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setPickupHistory(order.id)}",
+          "href": "",
+          "disabled": "",
+          "label": "setPickupHistory(order.id)}>{r.number}",
+          "line": 1053
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setSelected(order)}",
+          "href": "",
+          "disabled": "",
+          "label": "setSelected(order)}> {channelLabel(order)} {order.orderNumber||order.orderId} {order.customerName||'Cliente'} · {weightLabel(order,settings.shipping.weightUnit)",
+          "line": 1054
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setPickupHistory(order.id)}",
+          "href": "",
+          "disabled": "",
+          "label": "setPickupHistory(order.id)}>{r.number}",
+          "line": 1054
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setBulkPreview(null)}",
+          "href": "",
+          "disabled": "{bulkPreview.loading||bulkGenerating}",
+          "label": "setBulkPreview(null)}>",
+          "line": 1058
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setBulkPreview(current=>current?{...current,selectedKey:row.key}:current)}",
+          "href": "",
+          "disabled": "{!complete}",
+          "label": "setBulkPreview(current=>current?{...current,selectedKey:row.key}:current)}> {row.providerName} {row.carrierName} {row.covered}/{bulkPreview.targets.length} pedi",
+          "line": 1066
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setBulkPreview(null)}",
+          "href": "",
+          "disabled": "{bulkPreview.loading||bulkGenerating}",
+          "label": "setBulkPreview(null)}>Cancelar",
+          "line": 1076
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>void confirmBulkPreview()}",
+          "href": "",
+          "disabled": "{bulkPreview.loading||bulkGenerating||!bulkPreview.selectedKey||bulkPreview.summaries.find(row=>row.key===bulkPreview.selectedKey)?.covered!==bulkPreview.targets.length}",
+          "label": "row.key===bulkPreview.selectedKey)?.covered!==bulkPreview.targets.length} onClick={()=>void confirmBulkPreview()}>{bulkGenerating? : } Generar todas",
+          "line": 1076
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setInvoiceSelectionOpen(false)}",
+          "href": "",
+          "disabled": "",
+          "label": "setInvoiceSelectionOpen(false)} aria-label=\"Cerrar\">",
+          "line": 1078
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setInvoiceSelectionOpen(false)}",
+          "href": "",
+          "disabled": "",
+          "label": "setInvoiceSelectionOpen(false)}>Cancelar",
+          "line": 1078
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>{const targets=invoiceCandidates.filter(o=>invoiceSelection.has(o.id));setInvoiceOrder(targets[0]);setInvoiceQueue(targets.slice(1));setInvoiceSelectionOpen(false)}}",
+          "href": "",
+          "disabled": "{!invoiceSelection.size}",
+          "label": "{const targets=invoiceCandidates.filter(o=>invoiceSelection.has(o.id));setInvoiceOrder(targets[0]);setInvoiceQueue(targets.slice(1));setInvoiceSelectionOpen(fal",
+          "line": 1078
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setSelectionOpen(false)}",
+          "href": "",
+          "disabled": "",
+          "label": "setSelectionOpen(false)}>",
+          "line": 1081
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>toggleOrder(id,false)}",
+          "href": "",
+          "disabled": "{bulkGenerating}",
+          "label": "toggleOrder(id,false)} aria-label={`Quitar pedido ${row?.orderNumber||id}`}>Quitar",
+          "line": 1081
+        },
+        {
+          "tag": "button",
+          "onClick": "{()=>setSelectionOpen(false)}",
+          "href": "",
+          "disabled": "",
+          "label": "setSelectionOpen(false)}>Volver a pedidos",
+          "line": 1081
+        }
+      ]
+    }
+  ]
+}

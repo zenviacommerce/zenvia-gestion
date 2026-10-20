@@ -5,6 +5,7 @@
 // Restricted download fallback: npm install --no-save --package-lock=false playwright@1.58.2 @sparticuz/chromium@153.0.0
 // SHIPPING_CHROMIUM_PACKAGE=1 node scripts/orders-product-lines-screenshots.mjs after
 import {build} from 'esbuild';
+import {assertHeaderActionsPreserved} from './header-actions-contract.mjs';
 import {pickupLogoFixture} from './pickup-pdf-fixture.mjs';
 import {readFile,mkdir,writeFile,mkdtemp,chmod} from 'node:fs/promises';
 import {brotliDecompressSync} from 'node:zlib';
@@ -17,8 +18,10 @@ const phase=process.argv[2]||'after';
 const baselineRevision=process.env.DESIGN_BASELINE||'58687e42';
 const source=phase==='before'?execFileSync('git',['show',baselineRevision+':src/pages/Orders.tsx'],{encoding:'utf8'}):await readFile('src/pages/Orders.tsx','utf8');
 const dashboard=phase==='before'?execFileSync('git',['show',baselineRevision+':src/pages/Dashboard.tsx'],{encoding:'utf8'}):await readFile('src/pages/Dashboard.tsx','utf8');
+const tariffsPanel=phase==='before'?execFileSync('git',['show',baselineRevision+':src/components/TransportTariffsPanel.tsx'],{encoding:'utf8'}):await readFile('src/components/TransportTariffsPanel.tsx','utf8');
+const tariffAccess=phase==='before'?execFileSync('git',['show',baselineRevision+':src/components/OrderLabelDefaults.tsx'],{encoding:'utf8'}):await readFile('src/components/OrderLabelDefaults.tsx','utf8');
 const mocks=new Map();
-for(const match of (source+dashboard).matchAll(/import\s+([\s\S]*?)\s+from\s+['"]([^'"]+)['"]/g)){
+for(const match of (source+dashboard+tariffsPanel).matchAll(/import\s+([\s\S]*?)\s+from\s+['"]([^'"]+)['"]/g)){
  const [,clause,path]=match;
  if(!path.startsWith('../services/')&&!path.endsWith('SettingsContext'))continue;
  if(['orderStatus','filters','orderShipping','orderLabelFiles','shippingRuleCore','uiPreferences','formatting'].some(x=>path.endsWith('/'+x)))continue;
@@ -26,7 +29,7 @@ for(const match of (source+dashboard).matchAll(/import\s+([\s\S]*?)\s+from\s+['"
  const exports=named.split(',').map(x=>x.trim()).filter(x=>x&&!x.startsWith('type ')).map(x=>x.split(/\s+as\s+/).pop());
  mocks.set(path,(mocks.get(path)||'')+'\n'+exports.filter(x=>!(mocks.get(path)||'').includes('export const '+x+'=')).map(x=>`export const ${x}=(...args)=>globalThis.fixtureServices.${x}?.(...args);`).join('\n'));
 }
-const entry=`import React from 'react';import {createRoot} from 'react-dom/client';import {Orders} from './src/pages/Orders';import {KpiGrid} from './src/components/KpiGrid';import {StatCard} from './src/components/StatCard';import {Dashboard} from './src/pages/Dashboard';import {Sidebar} from './src/components/Sidebar';import {ActionDialogHost} from './src/components/ActionDialogHost';import {DEFAULT_APP_SETTINGS,DEFAULT_USER_PREFERENCES} from './src/services/settingsSchema';
+const entry=`import React from 'react';import {createRoot} from 'react-dom/client';import {Orders} from './src/pages/Orders';import {OrderLabelDefaults} from './src/components/OrderLabelDefaults';import {KpiGrid} from './src/components/KpiGrid';import {StatCard} from './src/components/StatCard';import {Dashboard} from './src/pages/Dashboard';import {Sidebar} from './src/components/Sidebar';import {ActionDialogHost} from './src/components/ActionDialogHost';import {DEFAULT_APP_SETTINGS,DEFAULT_USER_PREFERENCES} from './src/services/settingsSchema';
 if(!crypto.randomUUID)Object.defineProperty(crypto,'randomUUID',{value:()=> '00000000-0000-4000-8000-000000000042'});\nconst settings=structuredClone(DEFAULT_APP_SETTINGS);settings.orders.bulkScope='selected';settings.orders.refreshSeconds=600;settings.integrations.amazonEnabled=false;settings.integrations.shopifyEnabled=false;
 const preferences={...DEFAULT_USER_PREFERENCES,pageSize:25,defaultPeriod:'all',rememberFilters:false};
 const orders=Array.from({length:63},(_,i)=>({id:'demo-'+i,orderId:'DEMO-'+String(i+1).padStart(3,'0'),orderNumber:'DEMO-'+String(i+1).padStart(3,'0'),sourceChannel:i%2?'shopify':'amazon',sourceStatus:'unshipped',pickupReports:i%3===0?[{id:'report-42',number:'REC-2026-0042'}]:[],customerName:'Cliente demostración '+(i+1),integrationName:i%2?'Tienda demo':'Amazon demo',orderStatus:'pending',status:'pending',statusName:'pending',shippingAddress:{name:'Cliente demostración',address_line_1:'Calle Ejemplo',house_number:'10',postal_code:i%3?'28013':'75001',city:i%3?'Madrid':'París',country_code:i%3?'ES':'FR',phone:'+34600000000'},destinationCountryCode:i%3?'ES':'FR',carrierName:i%2?'MRW':'Correos Express',carrier:i%2?'MRW':'Correos Express',items:[{name:'Aceite esencial de lavanda',sku:'DEMO-A',quantity:3},{name:'Jabón de manos cítrico',sku:'DEMO-B',quantity:4},{name:'Crema facial hidratante',sku:'DEMO-C',quantity:1},{name:'Champú nutritivo',sku:'DEMO-D',quantity:2},{name:'Bálsamo labial',sku:'DEMO-E',quantity:5}],orderCreatedAt:'2026-10-19T09:00:00Z',orderUpdatedAt:'2026-10-19T09:00:00Z',weightKg:1,totalAmount:24.9,currency:'EUR',trackingNumber:'TRACK-'+String(i+1).padStart(10,'0'),shippingLabelUrl:'fixture-label-'+i,shippingProvider:i%2?'mrw':'envia',labelCreatedAt:'2026-10-20T07:00:00Z',raw:{}}));
@@ -43,7 +46,7 @@ let saved=null;globalThis.pickupFixture={
 globalThis.fixtureServices.selectPickupOrderIds=async p=>matches(p).map(o=>o.id);
 
 globalThis.renderStress=()=>createRoot(document.getElementById('root')).render(<div className="page designSystemPage"><KpiGrid label="Divisas de prueba"><StatCard label="Ventas multimoneda" value={<><span>1.234,56 EUR</span><span>123.456,78 USD</span></>} sub="Importes sin sumar divisas" icon={<span/>}/><StatCard label="Otro indicador" value="7" icon={<span/>}/></KpiGrid></div>);
-globalThis.renderFixture=(screen)=>createRoot(document.getElementById('root')).render(<div className="app"><Sidebar allowedPages={["dashboard","orders","invoices","products","sales","clients","suppliers","amazon","shopify","settings","support","admin"]} isAdmin={true} page={screen} onChange={()=>{}} onLogout={()=>{}} theme="light" onThemeChange={()=>{}} user={{fullName:"Usuario de revisión",email:"demo@example.test",role:"admin"}}/><main>{screen==='orders'?<Orders/>:<Dashboard invoices={[{id:'expense-1',supplierName:'Proveedor sintético',invoiceDate:'2026-10-19',invoiceNumber:'DEMO-G001',category:'Suministros',total:2345.67,vat:407.93,status:'pending'}]} products={[]} suppliers={[]} onUpload={()=>globalThis.fixtureUpload=true} onOrders={()=>globalThis.fixtureOrders=true}/>}<ActionDialogHost/></main></div>);;`;
+globalThis.renderFixture=(screen)=>createRoot(document.getElementById('root')).render(<div className="app"><Sidebar allowedPages={["dashboard","orders","invoices","products","sales","clients","suppliers","amazon","shopify","settings","support","admin"]} isAdmin={true} page={screen} onChange={()=>{}} onLogout={()=>{}} theme="light" onThemeChange={()=>{}} user={{fullName:"Usuario de revisión",email:"demo@example.test",role:"admin"}}/><main>{screen==='orders'?<Orders/>:<Dashboard invoices={[{id:'expense-1',supplierName:'Proveedor sintético',invoiceDate:'2026-10-19',invoiceNumber:'DEMO-G001',category:'Suministros',total:2345.67,vat:407.93,status:'pending'}]} products={[]} suppliers={[]} onUpload={()=>globalThis.fixtureUpload=true} onOrders={()=>globalThis.fixtureOrders=true}/>}<ActionDialogHost/><OrderLabelDefaults/></main></div>);;`;
 
 mocks.set('../services/pickupReports',(mocks.get('../services/pickupReports')||'')+
  'export const previewPickupReport=(...a)=>globalThis.pickupFixture.preview(...a);export const createPickupReport=(...a)=>globalThis.pickupFixture.create(...a);export const listPickupReports=(...a)=>globalThis.pickupFixture.list(...a);export const getPickupReport=(...a)=>globalThis.pickupFixture.get(...a);');
@@ -51,10 +54,10 @@ mocks.set('./companyBranding', 'export const loadCompanyBranding=async()=>({logo
 mocks.set('./supabase', 'export const supabase={};export const getActiveSupabase=()=>null;export const getActiveTenant=()=>null;');
 mocks.delete('../services/actionDialog');
 mocks.set('../services/sales',mocks.get('../services/sales')+'\nexport const ensureSalesSeries=async()=>[];export const loadBusinessSettings=async()=>({});export const loadClients=async()=>[];export const markSalesInvoiceSent=async()=>{};');
-const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,loader:{'.css':'empty'},define:{'import.meta.env':'{}'},format:'iife',platform:'browser',jsx:'automatic',plugins:[{name:'offline-orders-fixture',setup(b){if(phase==='before')b.onLoad({filter:/[/]src[/](pages[/](Orders|Dashboard)|components[/]StatCard)[.]tsx$/},args=>({contents:execFileSync('git',['show',baselineRevision+':'+args.path.slice(process.cwd().length+1)],{encoding:'utf8'}),loader:'tsx',resolveDir:dirname(args.path)}));b.onResolve({filter:/.*/},args=>mocks.has(args.path)?{path:args.path,namespace:'fixture'}:null);b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:mocks.get(args.path),loader:'tsx'}));}}]});
+const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,loader:{'.css':'empty'},define:{'import.meta.env':'{}'},format:'iife',platform:'browser',jsx:'automatic',plugins:[{name:'offline-orders-fixture',setup(b){b.onLoad({filter:/[/]src[/]components[/]OrderLabelDefaults[.]tsx$/},()=>({contents:tariffAccess,loader:'tsx'}));if(phase==='before')b.onLoad({filter:/[/]src[/](pages[/](Orders|Dashboard)|components[/]StatCard)[.]tsx$/},args=>({contents:execFileSync('git',['show',baselineRevision+':'+args.path.slice(process.cwd().length+1)],{encoding:'utf8'}),loader:'tsx',resolveDir:dirname(args.path)}));b.onResolve({filter:/.*/},args=>mocks.has(args.path)?{path:args.path,namespace:'fixture'}:null);b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:mocks.get(args.path),loader:'tsx'}));}}]});
 const main=phase==='before'?execFileSync('git',['show',baselineRevision+':src/main.tsx'],{encoding:'utf8'}):await readFile('src/main.tsx','utf8');
 const cssFiles=[...new Set([...main.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map(x=>'src/'+x[1].replace('./','')))];
-const css=(await Promise.all([...new Set([...cssFiles,'src/shared-forms.css','src/bulk-selection.css','src/pickup-reports.css','src/action-dialog.css'])].map(p=>phase==='before'?execFileSync('git',['show',baselineRevision+':'+p],{encoding:'utf8'}):readFile(p,'utf8')))).join('\n');
+const css=(await Promise.all([...new Set([...cssFiles,'src/shared-forms.css','src/bulk-selection.css','src/pickup-reports.css','src/action-dialog.css','src/components/transport-tariffs.css'])].map(p=>phase==='before'?execFileSync('git',['show',baselineRevision+':'+p],{encoding:'utf8'}):readFile(p,'utf8')))).join('\n');
 const output=process.env.DESIGN_REVIEW_OUTPUT||'docs/deploy/design-phase1-review-20261020';await mkdir(output,{recursive:true});
 let launchOptions={headless:true,args:['--lang=es-ES','--accept-lang=es-ES,es'],env:{...process.env,LANG:'es_ES.UTF-8',LC_ALL:'es_ES.UTF-8'}};
 if(process.env.SHIPPING_CHROMIUM_PACKAGE==='1'){
@@ -81,7 +84,7 @@ try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,144
  await page.evaluate(s=>globalThis.renderFixture(s),screen);
  await page.locator('.stat').first().waitFor();
  if(screen==='dashboard')await page.getByText('12.345,67 €',{exact:true}).waitFor();
- if(screen==='orders'){await page.getByRole('button',{name:'Etiquetados',exact:true}).click();await page.getByText('63 pedidos · Página 1 de 3',{exact:true}).first().waitFor();}
+ if(screen==='orders'){await page.getByRole('button',{name:'Abrir tarifas de transporte'}).waitFor();await page.getByRole('button',{name:'Etiquetados',exact:true}).click();await page.getByText('63 pedidos · Página 1 de 3',{exact:true}).first().waitFor();}
  await page.evaluate(()=>scrollTo(0,0));
  await page.screenshot({path:output+'/'+phase+'-'+screen+'-'+width+'.png'});
  if(width===390){await page.evaluate(()=>scrollTo(0,1000));await page.screenshot({path:output+'/'+phase+'-'+screen+'-'+width+'-second.png'});await page.evaluate(()=>scrollTo(0,0));}
@@ -91,7 +94,7 @@ try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,144
  const pending=cards.find(el=>el.querySelector('.statContent>span,div:last-child>span')?.textContent==='Pendientes');
  const pendingProof=pending?{value:Number(pending.querySelector('strong').textContent),warning:pending.classList.contains('dashboardPendingOrders'),background:getComputedStyle(pending).backgroundImage}:null;
  const actions=document.querySelector('.dsPageHeaderActions,.pageHead .actions');
- return {pending:pendingProof,firstKpi:rect(cards[0]),firstList:first?rect(first):null,firstListScreens:first?(first.getBoundingClientRect().top+scrollY)/innerHeight:null,cards:cards.map(el=>({text:el.innerText,...rect(el)})),actions:actions?{...rect(actions),overflow:actions.scrollWidth>actions.clientWidth,children:[...actions.children].map(el=>({text:el.textContent,...rect(el)}))}:null,controls:[...document.querySelectorAll('.pageHead button,.pageHead label,.sharedPeriodPanel button,.sharedPeriodPanel input,.ordersToolbar input,.ordersToolbar button')].map(el=>({text:el.textContent,label:el.getAttribute('aria-label'),type:el.getAttribute('type'),disabled:el.disabled??false})),cardOverflow:cards.some(el=>el.scrollWidth>el.clientWidth+1),overflow:document.documentElement.scrollWidth>innerWidth,kpiColumns:[...document.querySelectorAll('.kpiGrid,.stats')].map(el=>getComputedStyle(el).gridTemplateColumns)};
+ return {headerActions:[...document.querySelectorAll('.pageHead button,.pageHead a')].map(el=>el.getAttribute('aria-label')||el.textContent),pending:pendingProof,firstKpi:rect(cards[0]),firstList:first?rect(first):null,firstListScreens:first?(first.getBoundingClientRect().top+scrollY)/innerHeight:null,cards:cards.map(el=>({text:el.innerText,...rect(el)})),actions:actions?{...rect(actions),overflow:actions.scrollWidth>actions.clientWidth,children:[...actions.children].map(el=>({text:el.textContent,...rect(el)}))}:null,controls:[...document.querySelectorAll('.pageHead button,.pageHead label,.sharedPeriodPanel button,.sharedPeriodPanel input,.ordersToolbar input,.ordersToolbar button')].map(el=>({text:el.textContent,label:el.getAttribute('aria-label'),type:el.getAttribute('type'),disabled:el.disabled??false})),cardOverflow:cards.some(el=>el.scrollWidth>el.clientWidth+1),overflow:document.documentElement.scrollWidth>innerWidth,kpiColumns:[...document.querySelectorAll('.kpiGrid,.stats')].map(el=>getComputedStyle(el).gridTemplateColumns)};
  },{screen,width});
  const failures=[...errors];
  if(width===390&&screen==='orders'&&(!proof.firstList||proof.firstList.y>=1800))failures.push('First list element must start before1800px');
@@ -103,6 +106,7 @@ try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,144
  if(phase==='after'&&width===390&&proof.actions&&Math.max(...proof.actions.children.map(c=>c.y))>=Math.min(...proof.actions.children.map(c=>c.y+c.height)))failures.push('Header actions must stay in one row');
  if(phase==='after'){
  const before=JSON.parse(await readFile(output+'/before-manifest.json','utf8')).checks.find(x=>x.screen===screen&&x.width===width);
+ try{assertHeaderActionsPreserved(before.headerActions,proof.headerActions,screen+' '+width);}catch(error){failures.push(error.message);}
  if(JSON.stringify(before.controls)!==JSON.stringify(proof.controls))failures.push('Filter/header controls or disabled states changed');
  if(JSON.stringify(before.cards.map(c=>c.text))!==JSON.stringify(proof.cards.map(c=>c.text)))failures.push('KPI information changed');
  }
@@ -114,6 +118,7 @@ try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,144
   await hint.waitFor({state:'visible'});
  }
  if(phase==='after'&&screen==='orders'){
+  await page.getByRole('button',{name:'Abrir tarifas de transporte'}).click();await page.getByRole('heading',{name:'Tarifas de transporte',exact:true}).waitFor();await page.screenshot({path:output+'/after-tariffs-'+width+'.png'});await page.getByRole('button',{name:'Cerrar',exact:true}).click();
   const action=page.getByRole('button',{name:'Nuevo pedido',exact:true});await action.focus();
   const reachable=await action.evaluate(el=>{const r=el.getBoundingClientRect(),p=el.closest('.dsPageHeaderActions').getBoundingClientRect();return r.left>=p.left-1&&r.right<=p.right+1;});
   if(!reachable)failures.push('Offscreen header action cannot receive visible keyboard focus');

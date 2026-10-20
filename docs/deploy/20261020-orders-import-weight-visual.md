@@ -56,3 +56,13 @@ Migration order_unit_weights applied as 20261020115740 and history aligned by gu
 Edge batches deployed and source verified against prepared per-function bundle (including all unchanged dependencies): worker 43→44, Orders 25→26, Shopify Orders 12→13, logistics 16→17, Envia 43→44, MRW 23→24, Sendcloud tools 35→36, Sendcloud Orders 33→34. verify_jwt retained per function. No label purchased or report generated.
 
 Awaiting next automatic Orders cycle to prove pending recalculation before merging visible frontend. Pre-change owner terminal set: 891 rows, weight/provenance hash a1deda4566b30edb7068550e43fb2bc0. Pending candidate 171-8517620-7502702 and manual7kg captured in snapshot.
+
+### Weight live cycle and frontend merges — 12:01 UTC
+
+The automatic 12:00 grouped job started 12:01:00.543 and finished 12:01:04.971, success, 217 rows, no error. Order 171-8517620-7502702 changed 1→4 kg with provenance quantity4 × unit1 global_fallback, estimated=true. Exactly one current real order required recalculation. Manual 402-8935535-6572312 remains 7kg with its original manual marker/time.
+
+All 891 previously labelled/shipped owner rows retain identical weight/provenance hash a1deda4566b30edb7068550e43fb2bc0 after the cycle. Guard findings remain0. No label was purchased.
+
+#258 merged with expected head fa55c8b7d54b9ea85797fcd4de357d765d052549 → merge1deada1ed533b77c8d8d7db2ae1a0cbf1ce3e2ee. Then #257 merged with expected head1db690eabce870c4f3dc16b80c8a354c2993d30c → merge58687e42f63f0cc4a0c62fdc0582926668ed6c89. All five visual-head checks success: runs39416859725/39416859925/39416859720/39416859853/39416859879.
+
+Vercel building weight deployment dpl_ZnLq12dV9Pim1sGxKuUTgZ1J26wy and final combined deployment dpl_BoN1LhgBjj2yaWn1koZzbYgs9xnB. Waiting for READY and production bundle verification. Rollback recorded before merges: dpl_5rvsytgNKm5hqR3hh8TUiwcxHdab.

@@ -342,3 +342,11 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Worker Amazon: 16 runs `success`; 50 jobs actualizados en `success`, 0 `failed`; cola sin estados pendientes/en proceso/fallidos (histórico: 38.366 `success`, 2 `superseded`). Sin lease retenido tras finalizar los ciclos.
 - Cron en la ventana: `amazon-sync-worker` 14/14, `amazon-orders-five-minutes` 14/14, `amazon-product-images-refresh` 7/7, `amazon-recipient-fallback-refresh` 5/5, `amazon-worker-maintenance` 4/4 y `amazon-orchestrator-hourly` 2/2, todos `succeeded`.
 - Resultado: piloto estable; sin incidencia significativa y sin acciones correctivas.
+
+
+### Vigilancia piloto MFA — 2026-10-20 11:11 CEST
+- Configuración exacta en producción: `enabled=true`, cohort único autorizado; `private.mfa_activation_findings()` = 0. Sin cambios ni apagado de emergencia.
+- Ventana 10:10–11:11 CEST: 0 `PGRST003`, 0 `57014`, 0 `MFA_REQUIRED`/AAL1 inesperados, 0 denegaciones fuera del cohort, 0 `context canceled` y 0 `job startup timeout`. Auth: 754 respuestas HTTP 200 y 0 respuestas 5xx.
+- Worker: 16 runs `success`; 50 jobs recientes `success`, 0 `failed`; sin lease retenido. Cola sin pendientes/en proceso/fallidos (histórico: 38.396 `success`, 2 `superseded`).
+- Cron: worker 14/14, pedidos 14/14, imágenes 7/7, destinatarios 5/5, mantenimiento 4/4 y orquestador 2/2; todos `succeeded`.
+- Resultado: estable, sin incidencia significativa ni acción correctiva.

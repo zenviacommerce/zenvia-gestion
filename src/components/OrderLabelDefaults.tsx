@@ -35,7 +35,7 @@ export function OrderLabelDefaults(){
   useEffect(()=>{
     const enhance=()=>{
       translateTrackingBadges();
-      const actions=document.querySelector<HTMLElement>('.ordersPage .pageHead .actions');
+      const actions=document.querySelector<HTMLElement>('.ordersPage .dsPageHeaderActions, .ordersPage .pageHead .actions');
       if(!actions)return;
       let button=actions.querySelector<HTMLButtonElement>('.zenviaTransportTariffsButton');
       if(button)return;

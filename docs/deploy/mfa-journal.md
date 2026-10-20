@@ -425,3 +425,11 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Resto de cron: pedidos 13/13, imágenes 7/7, destinatarios 4/4, mantenimiento 4/4 y orquestador 2/2; todos `succeeded`.
 - Orden operativa sin cambios: no cerrar ni ampliar MFA antes de completar Shopify/Gestión y la posterior revisión de Platform; no ampliar cohort ni prorrogar automáticamente la vigilancia.
 - Resultado: estable, sin incidencia significativa ni acción correctiva.
+
+
+### Vigilancia piloto MFA — 2026-10-20 21:37 CEST
+- Configuración exacta: `enabled=true`, cohort único autorizado; `private.mfa_activation_findings()` = 0. Sin cambios ni apagado de emergencia.
+- Ventana 20:31–21:37 CEST: 0 `PGRST003`, 0 `57014`, 0 `MFA_REQUIRED`/AAL1 inesperados, 0 denegaciones fuera del cohort, 0 `context canceled`, 0 `job startup timeout` y 0 Auth 5xx. Auth: 149 respuestas HTTP 200.
+- Worker: 14 runs `success`, 31 jobs recientes `success`, 0 `failed`; cola sin pendientes/en proceso/fallidos y sin lease retenido. Cron por minuto: 65/65 `succeeded`.
+- Resto de cron: pedidos 13/13, imágenes 6/6, destinatarios 5/5, mantenimiento 4/4 y orquestador 1/1; todos `succeeded`.
+- Resultado: estable, sin incidencia significativa ni acción correctiva.

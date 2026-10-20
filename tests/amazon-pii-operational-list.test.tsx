@@ -5,12 +5,13 @@ import JSZip from 'jszip';
 import {jsPDF} from 'jspdf';
 import {Orders} from '../src/pages/Orders';
 import type {FulfillmentOrder} from '../src/services/orders';
-const boundary=vi.hoisted(()=>({rows:[] as FulfillmentOrder[],pageCalls:vi.fn(),selection:vi.fn(),selectedRows:vi.fn(),quotes:vi.fn(async()=>({options:[] as any[],weightKg:null,message:null,diagnostics:[]})),createLabel:vi.fn()}));
+const boundary=vi.hoisted(()=>({rows:[] as FulfillmentOrder[],pageCalls:vi.fn(),selection:vi.fn(),selectedRows:vi.fn(),quotes:vi.fn(async()=>({options:[] as any[],weightKg:null,message:null,diagnostics:[]})),createLabel:vi.fn(),pickupSelection:vi.fn(),pickupPreview:vi.fn()}));
 vi.mock('../src/context/SettingsContext',()=>({useSettings:()=>({settings:{...DEFAULT_APP_SETTINGS,integrations:{...DEFAULT_APP_SETTINGS.integrations,amazonEnabled:false,shopifyEnabled:false,enviaEnabled:false},shipping:{...DEFAULT_APP_SETTINGS.shipping,labelSize:'AUTO',copies:1,enabledCarriers:[]},orders:{...DEFAULT_APP_SETTINGS.orders,bulkScope:'pending',retryTrackingConfirmation:false}},preferences:DEFAULT_USER_PREFERENCES,patchPreferences:async()=>{},updateSection:async()=>{}})}));
 vi.mock('../src/services/orders',async original=>({...await original<typeof import('../src/services/orders')>(),listFulfillmentOrders:async()=>boundary.rows,
  fetchOrdersDashboardPage:async(filters:any)=>{boundary.pageCalls(filters);const gross=boundary.rows.reduce((n,o)=>n+(o.totalAmount||0),0),net=boundary.rows.reduce((n,o)=>n+(o.totalAmount||0)/((o.shippingAddress.country_code||o.destinationCountryCode)==='ES'?1.21:1),0);return {orders:boundary.rows.slice(filters.page*filters.pageSize,(filters.page+1)*filters.pageSize),total:boundary.rows.length,selectableTotal:boundary.rows.filter(o=>!o.piiPurgedAt).length,page:filters.page,pageSize:filters.pageSize,kpis:{pending:boundary.rows.length,preparablePending:boundary.rows.filter(o=>!o.piiPurgedAt).length,amazon:boundary.rows.length,shopify:0,manual:0,labelled:0,shipped:0,cancelled:0,overduePending:0,sales:{gross,net,vat:gross-net,count:boundary.rows.length,average:gross/boundary.rows.length},transport:{total:0,net:0,tax:0,mrw:0,correos:0,other:0,shipments:0,valued:0,missing:0,basis:'recorded_only'}},facets:{countries:[],carriers:[]}}},
  fetchMatchingOrderIds:(filters:any)=>boundary.selection(filters),listSelectedOrdersForBulk:(filters:any,ids:string[])=>boundary.selectedRows(filters,ids),
  listMatchingOrdersForAction:async()=>boundary.rows,listMatchingPendingOrdersForBulk:async()=>boundary.rows,getSendcloudStatus:async()=>({configured:false,integrations:[]}),getEnviaStatus:async()=>({configured:false,accounts:[]}),getShippingOptions:boundary.quotes,createOrderLabel:boundary.createLabel}));
+vi.mock('../src/services/pickupReports',()=>({selectPickupOrderIds:(f:any)=>boundary.pickupSelection(f),previewPickupReport:(ids:string[])=>boundary.pickupPreview(ids),listPickupReports:async()=>[],createPickupReport:vi.fn(),getPickupReport:vi.fn()}));
 vi.mock('../src/services/actionDialog',()=>({confirmAction:async()=>true}));
 vi.mock('../src/services/orderLiveUpdates',()=>({watchFulfillmentOrders:()=>()=>{}}));
 vi.mock('../src/services/transportTariffs',async original=>({...await original<typeof import('../src/services/transportTariffs')>(),listTransportTariffs:async()=>[]}));
@@ -85,4 +86,19 @@ it.each(['tenant','tariffs','integrations'])('stops outstanding bulk quote batch
  await waitFor(()=>expect(boundary.quotes).toHaveBeenCalledTimes(3));
  await act(async()=>{window.dispatchEvent(entity==='tenant'?new Event('zenvia:tenant-changed'):new CustomEvent('zenvia:entity-changed',{detail:entity}));await new Promise(r=>setTimeout(r,10));resolves.forEach(resolve=>resolve({options:[],diagnostics:[]}));});
  expect(boundary.quotes).toHaveBeenCalledTimes(3);expect(screen.queryByRole('heading',{name:'Generar etiquetas en bloque'})).toBeNull();
+});
+
+it('selects all 63 labelled orders for pickup across pages without buying labels',async()=>{
+ boundary.rows=Array.from({length:63},(_,n)=>({...order,id:'pickup-'+n,orderNumber:'PICKUP-'+n,piiPurgedAt:null,shippingProvider:'mrw',shippingLabelUrl:'https://label.test/'+n,trackingNumber:'MRW'+n,labelCreatedAt:new Date().toISOString()} as FulfillmentOrder));
+ boundary.pickupSelection.mockResolvedValue(boundary.rows.map(o=>o.id));
+ boundary.pickupPreview.mockImplementation(async(ids:string[])=>({items:ids.map(id=>({orderId:id,orderNumber:id,channel:'amazon',carrier:'MRW',trackingNumber:'TRACK-'+id,packages:1,eligible:true,previousReports:[]})),totalPackages:ids.length,canCreate:true}));
+ const {container}=render(<Orders/>);fireEvent.click(screen.getByRole('button',{name:'Etiquetados',exact:true}));
+ await waitFor(()=>expect(container.querySelectorAll('.ordersTable tbody tr')).toHaveLength(25));
+ fireEvent.click(screen.getByRole('button',{name:'Seleccionar todos de esta página'}));fireEvent.click(screen.getByRole('button',{name:'Seleccionar los 63 pedidos que coinciden con los filtros'}));
+ await waitFor(()=>expect(screen.getByText(/Seleccionados.*63.*todos los resultados/)).toBeTruthy());
+ expect((within(container.querySelector('.bulkSelectionActions') as HTMLElement).getByRole('button',{name:'Generar etiquetas seleccionadas (63)'}) as HTMLButtonElement).disabled).toBe(true);
+ fireEvent.click(screen.getByRole('button',{name:'Generar informe de recogida'}));
+ expect(await screen.findByRole('dialog',{name:'Informe de recogida'})).toBeTruthy();
+ await waitFor(()=>expect(boundary.pickupPreview).toHaveBeenCalledWith(boundary.rows.map(o=>o.id)));
+ expect(boundary.pickupSelection.mock.calls.at(-1)[0].state).toBe('labelled');expect(boundary.createLabel).not.toHaveBeenCalled();
 });

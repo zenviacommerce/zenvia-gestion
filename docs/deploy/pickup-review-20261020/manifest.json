@@ -1,0 +1,21 @@
+{
+  "note": "Real Orders, pickup components and PDF with synthetic services. Network blocked, no production reports or labels.",
+  "checks": [
+    {
+      "device": "desktop",
+      "selected": 63,
+      "splitCarriers": 2,
+      "saved": "REC-2026-0042",
+      "purchaseRequests": 0,
+      "errors": []
+    },
+    {
+      "device": "mobile",
+      "selected": 63,
+      "splitCarriers": 2,
+      "saved": "REC-2026-0042",
+      "purchaseRequests": 0,
+      "errors": []
+    }
+  ]
+}

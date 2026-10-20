@@ -1,0 +1,639 @@
+{
+  "checkedAt": "2026-10-20T21:11:24.980Z",
+  "pr": 266,
+  "merge": "a03f10ca6e90f8d03765fbc4d90bba18bdee945d",
+  "deployment": "dpl_AvXMo7EGoQY32WAgU2JGhQpb14cX",
+  "bundle": "index-lLeCVOf1.js",
+  "rollback": {
+    "commit": "0d34847a567b7baf4ffeb54fba1c97ffa4a176d6",
+    "deployment": "dpl_Aso26hWc9uXcmmcC5ppWpcMJFFys",
+    "bundle": "index-e22tGZwY.js"
+  },
+  "amazon": {
+    "before": {
+      "capturedAt": "2026-10-20T21:07:57.684Z",
+      "cards": [
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "145 / 181"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "239,44 €12 reembolsos"
+            },
+            {
+              "label": "Publicidad diaria",
+              "value": "No disponibleAmazon Ads sin conectar"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-437,29 €"
+            },
+            {
+              "label": "Ganancia neta",
+              "value": "1756,32 €"
+            },
+            {
+              "label": "Margen neto",
+              "value": "66,3 %"
+            }
+          ],
+          "period": "Hoy",
+          "sales": "3137,26 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "156 / 188"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "60,89 €5 reembolsos"
+            },
+            {
+              "label": "Publicidad diaria",
+              "value": "No disponibleAmazon Ads sin conectar"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-599,35 €"
+            },
+            {
+              "label": "Ganancia neta",
+              "value": "1339,42 €"
+            },
+            {
+              "label": "Margen neto",
+              "value": "45,7 %"
+            }
+          ],
+          "period": "Ayer",
+          "sales": "3486,62 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "2448 / 2972"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "1791,50 €104 reembolsos"
+            },
+            {
+              "label": "Publicidad diaria",
+              "value": "No disponibleAmazon Ads sin conectar"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-7616,84 €"
+            },
+            {
+              "label": "Ganancia neta",
+              "value": "12.938,10 €"
+            },
+            {
+              "label": "Margen neto",
+              "value": "29,2 %"
+            }
+          ],
+          "period": "Mes actual",
+          "sales": "52.649,48 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "3758 / 4554"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "2532,31 €150 reembolsos"
+            },
+            {
+              "label": "Publicidad diaria",
+              "value": "No disponibleAmazon Ads sin conectar"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-11.714,00 €"
+            },
+            {
+              "label": "Ganancia neta",
+              "value": "18.243,96 €"
+            },
+            {
+              "label": "Margen neto",
+              "value": "26,8 %"
+            }
+          ],
+          "period": "Mes actual (pronóstico)",
+          "sales": "80.783,10 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "3323 / 3989"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "1924,56 €111 reembolsos"
+            },
+            {
+              "label": "Publicidad diaria",
+              "value": "No disponibleAmazon Ads sin conectar"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-9197,29 €"
+            },
+            {
+              "label": "Ganancia neta",
+              "value": "16.197,27 €"
+            },
+            {
+              "label": "Margen neto",
+              "value": "27,4 %"
+            }
+          ],
+          "period": "Mes anterior",
+          "sales": "70.217,33 €"
+        }
+      ]
+    },
+    "after": {
+      "capturedAt": "2026-10-20T21:09:40.830Z",
+      "cards": [
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "145 / 181"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "253,43 €13 reembolsos"
+            },
+            {
+              "label": "Publicidad diaria",
+              "value": "No disponibleAmazon Ads sin conectar"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-437,29 €"
+            },
+            {
+              "label": "Ganancia neta",
+              "value": "1692,61 €"
+            },
+            {
+              "label": "Margen neto",
+              "value": "63,9 %"
+            }
+          ],
+          "period": "Hoy",
+          "sales": "3137,26 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "156 / 188"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "60,89 €5 reembolsos"
+            },
+            {
+              "label": "Publicidad diaria",
+              "value": "No disponibleAmazon Ads sin conectar"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-599,35 €"
+            },
+            {
+              "label": "Ganancia neta",
+              "value": "1321,82 €"
+            },
+            {
+              "label": "Margen neto",
+              "value": "45,1 %"
+            }
+          ],
+          "period": "Ayer",
+          "sales": "3486,62 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "2448 / 2972"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "1805,49 €105 reembolsos"
+            },
+            {
+              "label": "Publicidad diaria",
+              "value": "No disponibleAmazon Ads sin conectar"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-7616,84 €"
+            },
+            {
+              "label": "Ganancia neta",
+              "value": "12.838,57 €"
+            },
+            {
+              "label": "Margen neto",
+              "value": "28,9 %"
+            }
+          ],
+          "period": "Mes actual",
+          "sales": "52.649,48 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "3758 / 4554"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "2532,31 €150 reembolsos"
+            },
+            {
+              "label": "Publicidad diaria",
+              "value": "No disponibleAmazon Ads sin conectar"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-11.714,00 €"
+            },
+            {
+              "label": "Ganancia neta",
+              "value": "18.185,51 €"
+            },
+            {
+              "label": "Margen neto",
+              "value": "26,7 %"
+            }
+          ],
+          "period": "Mes actual (pronóstico)",
+          "sales": "80.783,10 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "3323 / 3989"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "1924,56 €111 reembolsos"
+            },
+            {
+              "label": "Publicidad diaria",
+              "value": "No disponibleAmazon Ads sin conectar"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-9197,29 €"
+            },
+            {
+              "label": "Ganancia neta",
+              "value": "16.197,27 €"
+            },
+            {
+              "label": "Margen neto",
+              "value": "27,4 %"
+            }
+          ],
+          "period": "Mes anterior",
+          "sales": "70.217,33 €"
+        }
+      ]
+    },
+    "exact": false
+  },
+  "shopify": {
+    "before": {
+      "capturedAt": "2026-10-20T21:08:06.521Z",
+      "cards": [
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "1 / 1"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "0,00 €0 reembolsos"
+            },
+            {
+              "label": "Publicidad",
+              "value": "No disponibleFuente no conectada"
+            },
+            {
+              "label": "Coste producto",
+              "value": "No disponible"
+            },
+            {
+              "label": "Resultado conocido",
+              "value": "No disponible"
+            },
+            {
+              "label": "Margen parcial*",
+              "value": "100 %"
+            }
+          ],
+          "period": "Hoy",
+          "sales": "29,70 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "1 / 2"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "0,00 €0 reembolsos"
+            },
+            {
+              "label": "Publicidad",
+              "value": "No disponibleFuente no conectada"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-6,99 €"
+            },
+            {
+              "label": "Resultado conocido",
+              "value": "No disponible"
+            },
+            {
+              "label": "Margen parcial*",
+              "value": "64,7 %"
+            }
+          ],
+          "period": "Ayer",
+          "sales": "23,98 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "12 / 18"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "0,00 €0 reembolsos"
+            },
+            {
+              "label": "Publicidad",
+              "value": "No disponibleFuente no conectada"
+            },
+            {
+              "label": "Coste producto",
+              "value": "No disponible"
+            },
+            {
+              "label": "Resultado conocido",
+              "value": "No disponible"
+            },
+            {
+              "label": "Margen parcial*",
+              "value": "69 %"
+            }
+          ],
+          "period": "Mes actual",
+          "sales": "249,72 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "18 / 28"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "0,00 €0 reembolsos"
+            },
+            {
+              "label": "Publicidad",
+              "value": "No disponibleFuente no conectada"
+            },
+            {
+              "label": "Coste producto",
+              "value": "No disponible"
+            },
+            {
+              "label": "Resultado conocido",
+              "value": "No disponible"
+            },
+            {
+              "label": "Margen parcial*",
+              "value": "100 %"
+            }
+          ],
+          "period": "Mes actual (pronóstico)",
+          "sales": "358,98 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "1 / 2"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "0,00 €0 reembolsos"
+            },
+            {
+              "label": "Publicidad",
+              "value": "No disponibleFuente no conectada"
+            },
+            {
+              "label": "Coste producto",
+              "value": "No disponible"
+            },
+            {
+              "label": "Resultado conocido",
+              "value": "No disponible"
+            },
+            {
+              "label": "Margen parcial*",
+              "value": "100 %"
+            }
+          ],
+          "period": "Mes anterior",
+          "sales": "35,98 €"
+        }
+      ]
+    },
+    "after": {
+      "capturedAt": "2026-10-20T21:10:00.338Z",
+      "cards": [
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "1 / 1"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "0,00 €0 reembolsos"
+            },
+            {
+              "label": "Publicidad",
+              "value": "No disponibleFuente no conectada"
+            },
+            {
+              "label": "Coste producto",
+              "value": "No disponible"
+            },
+            {
+              "label": "Resultado conocido",
+              "value": "No disponible"
+            },
+            {
+              "label": "Margen parcial*",
+              "value": "100 %"
+            }
+          ],
+          "period": "Hoy",
+          "sales": "29,70 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "1 / 2"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "0,00 €0 reembolsos"
+            },
+            {
+              "label": "Publicidad",
+              "value": "No disponibleFuente no conectada"
+            },
+            {
+              "label": "Coste producto",
+              "value": "-6,99 €"
+            },
+            {
+              "label": "Resultado conocido",
+              "value": "No disponible"
+            },
+            {
+              "label": "Margen parcial*",
+              "value": "64,7 %"
+            }
+          ],
+          "period": "Ayer",
+          "sales": "23,98 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "12 / 18"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "0,00 €0 reembolsos"
+            },
+            {
+              "label": "Publicidad",
+              "value": "No disponibleFuente no conectada"
+            },
+            {
+              "label": "Coste producto",
+              "value": "No disponible"
+            },
+            {
+              "label": "Resultado conocido",
+              "value": "No disponible"
+            },
+            {
+              "label": "Margen parcial*",
+              "value": "69 %"
+            }
+          ],
+          "period": "Mes actual",
+          "sales": "249,72 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "18 / 28"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "0,00 €0 reembolsos"
+            },
+            {
+              "label": "Publicidad",
+              "value": "No disponibleFuente no conectada"
+            },
+            {
+              "label": "Coste producto",
+              "value": "No disponible"
+            },
+            {
+              "label": "Resultado conocido",
+              "value": "No disponible"
+            },
+            {
+              "label": "Margen parcial*",
+              "value": "100 %"
+            }
+          ],
+          "period": "Mes actual (pronóstico)",
+          "sales": "358,98 €"
+        },
+        {
+          "metrics": [
+            {
+              "label": "Pedidos / unidades",
+              "value": "1 / 2"
+            },
+            {
+              "label": "Reembolsos con IVA",
+              "value": "0,00 €0 reembolsos"
+            },
+            {
+              "label": "Publicidad",
+              "value": "No disponibleFuente no conectada"
+            },
+            {
+              "label": "Coste producto",
+              "value": "No disponible"
+            },
+            {
+              "label": "Resultado conocido",
+              "value": "No disponible"
+            },
+            {
+              "label": "Margen parcial*",
+              "value": "100 %"
+            }
+          ],
+          "period": "Mes anterior",
+          "sales": "35,98 €"
+        }
+      ]
+    },
+    "exact": true
+  },
+  "limitation": "Actual authenticated DOM reads. Amazon changed between readings, including refunds 12 to 13; no claim of exact live financial equality or proven cause. Same-input fixture equality passes; analytics calculations sources unchanged."
+}

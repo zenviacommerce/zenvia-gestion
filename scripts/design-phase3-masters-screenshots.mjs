@@ -10,7 +10,7 @@ import {tmpdir} from 'node:os';
 import {chromium} from 'playwright';
 const phase=process.argv[2]||'after',baseline='ed63ce7aecff7c7a296b5fface372f89ee4b8bf7',output=process.env.MASTER_OUTPUT||'docs/deploy/design-phase3-masters-20261020';
 const read=async path=>phase==='before'?execFileSync('git',['show',baseline+':'+path],{encoding:'utf8'}):readFile(path,'utf8');
-const keep=new Set(['filters','uiPreferences','formatting','settingsSchema','autoListPagination','paginationBars','truncatedTextTooltip','entityChanges','productMetrics']);
+const keep=new Set(['pluralization','filters','uiPreferences','formatting','settingsSchema','autoListPagination','paginationBars','truncatedTextTooltip','entityChanges','productMetrics']);
 const entry=`import React from 'react';import {createRoot} from 'react-dom/client';import {Products} from './src/pages/Products';import {Clients} from './src/pages/Clients';import {Suppliers} from './src/pages/Suppliers';import {Sidebar} from './src/components/Sidebar';import {AutoPagination} from './src/components/AutoPagination';import {UnifiedListExperience} from './src/components/UnifiedListExperience';import {DEFAULT_APP_SETTINGS,DEFAULT_USER_PREFERENCES} from './src/services/settingsSchema';
 const settings=structuredClone(DEFAULT_APP_SETTINGS),preferences={...DEFAULT_USER_PREFERENCES,defaultPeriod:'all',rememberFilters:false,pageSize:25};
 const clients=Array.from({length:32},(_,i)=>({id:'client'+i,name:'Cliente '+String(i+1).padStart(2,'0'),taxId:'DEMO-'+i,countryCode:i%2?'ES':'FR',email:'demo@example.test',city:'Ciudad de prueba'}));

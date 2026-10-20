@@ -1,8 +1,9 @@
 [
   {
     "file": "src/components/amazon/AmazonPeriodCards.tsx",
-    "unchanged": true,
-    "sha256": "9633a5fd9efa9ceb4e822c248d86c1867f1afc5232dd703bb3b0e011ab50f8ff"
+    "unchanged": false,
+    "sha256": "00514a33b1db1ca9c1ef5f8dc23eda3f1df5860d0d30b0676c46bc7396e8ba40",
+    "approved_exception": "Only import and refund-count label use common pluralization; calculations/hooks remain unchanged."
   },
   {
     "file": "src/components/amazon/AmazonSummary.tsx",
@@ -16,8 +17,9 @@
   },
   {
     "file": "src/components/shopify/ShopifyPeriodCards.tsx",
-    "unchanged": true,
-    "sha256": "2a1abb3f53b0b8a7c9548718ea6aac54c1f203bf1d6196f2b07e8a45bf81b937"
+    "unchanged": false,
+    "sha256": "ab217002bfcfbf43ba65a11846a16dd90a8032c4f10dab2202aa3c326b804bde",
+    "approved_exception": "Only import and refund-count label use common pluralization; calculations/hooks remain unchanged."
   },
   {
     "file": "src/components/shopify/ShopifyProducts.tsx",

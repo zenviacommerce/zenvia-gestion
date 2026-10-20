@@ -1,3 +1,4 @@
+import {countLabel} from './pluralization';
 import {notifyEntityChanged} from './entityChanges';
 import JSZip from 'jszip';
 import * as pdfjsLib from 'pdfjs-dist';
@@ -435,7 +436,7 @@ function fallbackProposal(text:string,fileName:string):TransportTariffProposal{
     effectiveFrom:null,effectiveTo,currencyCode:probableCurrency(text),pricesIncludeVat:vatIncluded,fuelSurchargePct:fuelPct,
     fuelSurchargeIncluded:fuelIncluded,parserProvider:'automatic-rules',parserModel:null,
     parserConfidence:mrwServices.length?0.86:genericServices.length?0.68:0.45,
-    parserNotes:[services.length?`${services.length} servicios detectados automáticamente.`:'No se detectaron tablas de peso automáticamente; revisa y añade los tramos.',...checked.notes,genericServices.length?'Se ha usado el lector genérico multitransportista: confirma transportista, servicio, zona y pesos antes de activar.':null,vatExcluded?'El documento indica precios sin IVA.':'Revisa si los precios incluyen IVA.',fuelExcluded?'El documento indica que el combustible no está incluido.':fuelIncluded?'El documento indica que el combustible está incluido.':'No se ha podido determinar el tratamiento del combustible; revísalo.'].filter(Boolean) as string[],services,
+    parserNotes:[services.length?countLabel(services.length,'servicio detectado automáticamente.','servicios detectados automáticamente.'):'No se detectaron tablas de peso automáticamente; revisa y añade los tramos.',...checked.notes,genericServices.length?'Se ha usado el lector genérico multitransportista: confirma transportista, servicio, zona y pesos antes de activar.':null,vatExcluded?'El documento indica precios sin IVA.':'Revisa si los precios incluyen IVA.',fuelExcluded?'El documento indica que el combustible no está incluido.':fuelIncluded?'El documento indica que el combustible está incluido.':'No se ha podido determinar el tratamiento del combustible; revísalo.'].filter(Boolean) as string[],services,
   };
 }
 

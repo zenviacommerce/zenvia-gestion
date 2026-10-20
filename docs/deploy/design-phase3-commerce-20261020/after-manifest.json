@@ -464,7 +464,7 @@
       "periods": [
         {
           "id": "Hoy",
-          "text": "Hoy\n20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Hoy\n20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],
@@ -485,7 +485,7 @@
         },
         {
           "id": "Ayer",
-          "text": "Ayer\n19 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Ayer\n19 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],
@@ -506,7 +506,7 @@
         },
         {
           "id": "Mes actual",
-          "text": "Mes actual\n1 oct 2026 – 20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Mes actual\n1 oct 2026 – 20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],
@@ -544,7 +544,7 @@
         },
         {
           "id": "Mes anterior",
-          "text": "Mes anterior\n1 sept 2026 – 30 sept 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Mes anterior\n1 sept 2026 – 30 sept 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],
@@ -609,7 +609,7 @@
       "periods": [
         {
           "id": "Hoy",
-          "text": "Hoy\n20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Hoy\n20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],
@@ -630,7 +630,7 @@
         },
         {
           "id": "Ayer",
-          "text": "Ayer\n19 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Ayer\n19 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],
@@ -651,7 +651,7 @@
         },
         {
           "id": "Mes actual",
-          "text": "Mes actual\n1 oct 2026 – 20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Mes actual\n1 oct 2026 – 20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],
@@ -689,7 +689,7 @@
         },
         {
           "id": "Mes anterior",
-          "text": "Mes anterior\n1 sept 2026 – 30 sept 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Mes anterior\n1 sept 2026 – 30 sept 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],
@@ -754,7 +754,7 @@
       "periods": [
         {
           "id": "Hoy",
-          "text": "Hoy\n20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Hoy\n20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],
@@ -775,7 +775,7 @@
         },
         {
           "id": "Ayer",
-          "text": "Ayer\n19 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Ayer\n19 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],
@@ -796,7 +796,7 @@
         },
         {
           "id": "Mes actual",
-          "text": "Mes actual\n1 oct 2026 – 20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Mes actual\n1 oct 2026 – 20 oct 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],
@@ -834,7 +834,7 @@
         },
         {
           "id": "Mes anterior",
-          "text": "Mes anterior\n1 sept 2026 – 30 sept 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolsos\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
+          "text": "Mes anterior\n1 sept 2026 – 30 sept 2026\nVentas con IVA\n1234,56 €\nPedidos / unidades\n12 / 24\nReembolsos con IVA\n24,20 €\n1 reembolso\nPublicidad\nNo disponible\nFuente no conectada\nCoste producto\n-240,00 €\nResultado conocido\n580,30 €\nMargen conocido*\n56,9 %\nProvisional · costes pendientes\nMás",
           "variants": [
             "isPositive"
           ],

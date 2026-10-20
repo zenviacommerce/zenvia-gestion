@@ -196,3 +196,12 @@ Por decisión del propietario, KpiGrid conserva dos columnas en móvil y su últ
 ### Fase 3 · lote 2 en revisión
 
 Amazon/Shopify adoptan PageHeader, FilterBar y PageTabs (incluido contador de tabs). Los carruseles analíticos de cinco periodos son componentes especializados: se conservan cifras, previsiones, notas, acciones Más/fechas, selección de periodo, refresco automático y Actualizar datos; no se convierten en StatCard ni se ocultan métricas. Filtros en fila con igual anchura y elipsis. Capturas y alturas de Resumen y Productos en docs/deploy/design-phase3-commerce-20261020/. Publicación pendiente de aprobación del lote.
+
+
+## Fase 3 · cierre preparado en lote 3
+
+Soporte, Configuración, Administración y la subpantalla Gmail adoptan los componentes comunes. Gmail se incluye para eliminar la última cabecera y familia KPI heredadas detectadas en la auditoría. Se conservan acciones, estados semánticos, formularios y protección de cambios sin guardar; Seguridad/Auth/MFA permanecen sin cambios.
+
+El guard `scripts/design-final-contract.test.mjs` recorre todas las pantallas/componentes TSX y prohíbe wrappers heredados de cabecera/KPI salvo sus propietarios PageHeader y StatCard; no hay excepciones por pantalla. Los carruseles analíticos especializados aprobados mantienen su contrato propio. Esto certifica los patrones migrados, no elimina cada selector histórico ni convierte los grids de campos de formularios en KPI.
+
+Evidencia final: [galería y alturas](deploy/design-phase3-final-20261020/README.md), 390/1280/1440 px, antes/después, escenarios de acciones/variantes/filtros y navegación cancelada. Este lote requiere revisión del propietario antes de fusionar/publicar.

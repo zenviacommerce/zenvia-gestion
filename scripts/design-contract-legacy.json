@@ -1,53 +1,20 @@
 {
-  "src/pages/Admin.tsx": {
-    "pageHead": 1
-  },
-  "src/pages/Amazon.tsx": {
-    "pageHead": 1
-  },
-  "src/pages/Clients.tsx": {
-    "pageHead": 1,
-    "stats": 1
-  },
+  "src/pages/Admin.tsx": {},
+  "src/pages/Amazon.tsx": {},
+  "src/pages/Clients.tsx": {},
   "src/pages/Dashboard.tsx": {},
   "src/pages/ExpenseInvoicesHub.tsx": {},
-  "src/pages/Gmail.tsx": {
-    "pageHead": 1,
-    "stats": 1,
-    "stat": 3
-  },
-  "src/pages/Invoices.tsx": {
-    "pageHead": 1,
-    "stats": 1
-  },
+  "src/pages/Gmail.tsx": {},
+  "src/pages/Invoices.tsx": {},
   "src/pages/Orders.tsx": {},
-  "src/pages/Products.tsx": {
-    "pageHead": 1,
-    "stats": 1
-  },
+  "src/pages/Products.tsx": {},
   "src/pages/SalesInvoices.tsx": {},
-  "src/pages/SalesInvoicesCore.tsx": {
-    "pageHead": 1,
-    "stats": 1
-  },
-  "src/pages/SalesReceipts.tsx": {
-    "pageHead": 1,
-    "stats": 1
-  },
-  "src/pages/Settings.tsx": {
-    "pageHead": 1
-  },
-  "src/pages/Shopify.tsx": {
-    "pageHead": 1
-  },
-  "src/pages/Suppliers.tsx": {
-    "pageHead": 1,
-    "stats": 1,
-    "stat": 3
-  },
-  "src/pages/Support.tsx": {
-    "pageHead": 1
-  },
+  "src/pages/SalesInvoicesCore.tsx": {},
+  "src/pages/SalesReceipts.tsx": {},
+  "src/pages/Settings.tsx": {},
+  "src/pages/Shopify.tsx": {},
+  "src/pages/Suppliers.tsx": {},
+  "src/pages/Support.tsx": {},
   "src/components/ActionDialogHost.tsx": {},
   "src/components/ActivityCenter.tsx": {},
   "src/components/AlertCenter.tsx": {},

@@ -1,3 +1,5 @@
+import {PageHeader} from '../components/PageHeader';
+import {PageTabs} from '../components/PageTabs';
 import {SessionSecurity} from '../components/SessionSecurity';
 import {MfaDevices} from '../components/MfaDevices';
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
@@ -2668,19 +2670,18 @@ export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;ac
   },[dirty]);
 
   const requestSection=async(next:SettingsSectionId)=>{
-    if(next===activeSection)return;
-    if(dirty&&!await confirmAction({title:'Cambios sin guardar',message:'Tienes cambios sin guardar en esta sección.',confirmLabel:'Descartar cambios',tone:'warning',details:['Si continúas, los cambios realizados en esta sección se perderán.']}))return;
+    if(next===activeSection)return true;
+    if(dirty&&!await confirmAction({title:'Cambios sin guardar',message:'Tienes cambios sin guardar en esta sección.',confirmLabel:'Descartar cambios',tone:'warning',details:['Si continúas, los cambios realizados en esta sección se perderán.']}))return false;
     setDirty(false);
     setActiveSection(next);
+    return true;
   };
 
   const active=visibleSections.find(section=>section.id===activeSection)||visibleSections[0];
 
-  return <div className="page settingsPage">
-    <header className="pageHead settingsPageHead">
-      <div><div className="eyebrow">SISTEMA</div><h1>Configuración</h1><p>{isAdmin?'Gestiona el comportamiento global de ZENVIA Gestión y tus preferencias personales.':'Personaliza cómo quieres utilizar ZENVIA Gestión.'}</p></div>
-      {loading&&<div className="settingsLoading"><Settings2 size={15}/> Actualizando configuración…</div>}
-    </header>
+  return <div className="page settingsPage finalDesignPage designSystemPage">
+    <PageHeader title="Configuración" eyebrow="SISTEMA" description={isAdmin?'Gestiona el comportamiento global de ZENVIA Gestión y tus preferencias personales.':'Personaliza cómo quieres utilizar ZENVIA Gestión.'} actions={loading?<div className="settingsLoading"><Settings2 size={15}/> Actualizando configuración…</div>:undefined}/>
+
 
     {(error||warnings.length>0)&&<div className="settingsWarning" role="status">
       <BellRing size={18}/>
@@ -2688,15 +2689,9 @@ export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;ac
     </div>}
 
     <div className="settingsLayout">
-      <nav className="settingsNav" aria-label="Secciones de configuración">
-        {visibleSections.map(section=>{
-          const Icon=section.icon;
-          return <button key={section.id} type="button" className={activeSection===section.id?'active':''} onClick={()=>void requestSection(section.id)}>
-            <Icon size={18}/><span><strong>{section.label}</strong><small>{section.description}</small></span>
-          </button>;
-        })}
-      </nav>
-      <div className="settingsContent" onChangeCapture={active?.id==="security"?undefined:()=>setDirty(true)}>
+      <PageTabs className="settingsNav finalSettingsTabs" label="Secciones de configuración" panelId="settings-section-panel" value={activeSection} onChange={requestSection} verticalAbove={768} items={visibleSections.map(section=>({id:section.id,label:section.label,description:section.description,icon:<section.icon size={18}/>}))}/>
+
+      <div className="settingsContent" role="tabpanel" id="settings-section-panel" aria-labelledby={'settings-section-panel-tab-'+activeSection} onChangeCapture={active?.id==="security"?undefined:()=>setDirty(true)}>
         {active&&active.id==='security'?<><MfaDevices/><SessionSecurity/></>:active.id==='preferences'?<PreferencesSection onDirtyChange={setDirty}/>:active&&active.id==='general'?<GeneralSection onDirtyChange={setDirty}/>:active&&active.id==='billing'?<BillingSection access={access}/>:active&&active.id==='sales'?<SalesSection onDirtyChange={setDirty}/>:active&&active.id==='orders'?<OrdersSection onDirtyChange={setDirty}/>:active&&active.id==='shipping'?<ShippingSection onDirtyChange={setDirty}/>:active&&active.id==='integrations'?<IntegrationsSection onDirtyChange={setDirty}/>:active&&active.id==='automations'?<AlertsSection onDirtyChange={setDirty}/>:active&&active.id==='expenses'?<ExpensesSection onDirtyChange={setDirty}/>:active&&active.id==='products'?<ProductsSection onDirtyChange={setDirty}/>:active&&active.id==='clients'?<ClientsSection onDirtyChange={setDirty}/>:active&&active.id==='suppliers'?<SuppliersSection onDirtyChange={setDirty}/>:active&&active.id==='maintenance'?<MaintenanceSection onDirtyChange={setDirty}/>:active&&<SectionPlaceholder section={active}/>}
       </div>
     </div>

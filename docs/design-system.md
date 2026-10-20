@@ -173,3 +173,22 @@ La comprobación `assertHeaderActionsPreserved` compara etiquetas de acciones re
 ### FilterBar: contrato de escritorio
 
 En las listas operativas, búsqueda en su propia fila; filtros de igual ancho en una sola fila mediante grid y minmax(0,1fr), etiquetas alineadas, controles de 42 px y acción de limpiar/restablecer alineada al borde inferior. Texto seleccionado y etiquetas en una línea con elipsis, sin ensanchar el documento; el menú conserva la opción completa. El harness de fase 2 debe fallar si un texto de filtro salta a dos líneas, las columnas cambian de ancho o una acción desaparece. Verificación a 1280/1440 y continuidad móvil a 390 px.
+
+
+## Estado de implantación — fase 2 cerrada y fase 3 por lotes
+
+El propietario confirmó fase 2 en producción (bundle `index-DlLrR06h.js`): Facturación con Cliente/País/Estado/Cobro de igual ancho y altura en una fila, búsqueda separada y Limpiar filtros alineado. Fase 2 cerrada.
+
+Fase 3 autorizada para preparación y revisión previa por lote: 1) Productos, Clientes y Proveedores; 2) Amazon y Shopify, conservando carruseles/tablas analíticas; 3) Soporte; 4) Configuración y Administración. Cada lote detiene su publicación hasta revisión expresa. Se migran tablas/tarjetas y se adoptan las primitivas compartidas donde todavía falten, conservando acciones, filtros, cifras, validaciones y variantes.
+
+### Equilibrio del KpiGrid
+
+La rejilla común calcula columnas por número de tarjetas y capacidad del breakpoint para equilibrar filas y evitar una última fila de un solo KPI en escritorio cuando exista una distribución posible. Siete KPI: 4 + 3, incluso donde una rejilla densa admitiría seis; seis KPI con capacidad cuatro: 3 + 3; doce KPI densos: 6 + 6. Móvil conserva dos columnas y, según el retoque aprobado del lote 1, la última tarjeta impar ocupa ambas. No ocultar ni combinar métricas para equilibrar. Verificación real a 1568/1920, además de 390/1280/1440.
+
+### Listas nativas de fase 3
+
+DataTable y MobileList comparten la misma selección por ID, fuente de datos y paginación existente. RowActions invoca los callbacks reales y evita que una acción abra también la fila; no depende de clics simulados desde observers. Los adaptadores heredados no inyectan controles dentro de listas nativas. Selección conservada al buscar/ordenar/paginar, alcance de filtros explícito, revisión/quitar/vaciar disponible aunque no haya coincidencias; las confirmaciones masivas identifican todos los registros seleccionados, incluidos los ocultos. El lote de maestros mantiene sus cargas y paginación de cliente; no declara mejoras de escala en servidor sin RPC/mediciones propias.
+
+### Lote 1 aprobado: cierre de fila móvil
+
+Por decisión del propietario, KpiGrid conserva dos columnas en móvil y su última StatCard, cuando el número de KPI es impar, ocupa ambas columnas. La regla es global y solo móvil; no se extiende una familia completa a ancho completo ni cambia información o variantes. El harness comprueba el ancho de esa última tarjeta.

@@ -1,6 +1,6 @@
 /* Phase 1 owners: PageHeader and KpiGrid. Legacy selectors do not own these layouts. */
 :root{--ds-space-2:8px;--ds-space-3:12px;--ds-space-4:16px;--ds-space-6:24px;--ds-card-radius:16px;--ds-control-radius:10px}
-.kpiGrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--ds-space-4);margin-bottom:var(--ds-space-6);min-width:0}
+.kpiGrid{display:grid;grid-template-columns:repeat(var(--kpi-columns,4),minmax(0,1fr));gap:var(--ds-space-4);margin-bottom:var(--ds-space-6);min-width:0}
 .kpiGrid>.stat{min-width:0;border-radius:var(--ds-card-radius);gap:var(--ds-space-3);padding:var(--ds-space-4);align-items:flex-start}
 .kpiGrid>.stat>.statContent{min-width:0;flex:1;container-type:inline-size}
 .kpiGrid .statIcon{flex:0 0 36px;width:36px;height:36px}
@@ -12,10 +12,11 @@
 .dsPageHeaderActions{display:flex;align-items:center;justify-content:flex-end;gap:var(--ds-space-2);flex-wrap:wrap;max-width:100%;min-width:0;flex:0 1 auto}
 .dsPageHeaderActions>*{flex:0 0 auto}
 .dsPageHeaderActions:focus-visible{outline:2px solid var(--accent,#0f766e);outline-offset:3px;border-radius:var(--ds-control-radius)}
-@media(min-width:1920px){.kpiGridDense{grid-template-columns:repeat(6,minmax(0,1fr))}}
-@media(min-width:768px) and (max-width:1023px){.kpiGrid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1920px){.kpiGridDense{grid-template-columns:repeat(var(--kpi-columns-wide,6),minmax(0,1fr))}}
+@media(min-width:768px) and (max-width:1023px){.kpiGrid{grid-template-columns:repeat(var(--kpi-columns-tablet,3),minmax(0,1fr))}}
 @media(max-width:767px){
  .kpiGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+ .kpiGrid>.stat:last-child:nth-child(odd){grid-column:1/-1}
  .kpiGrid>.stat{padding:8px;gap:var(--ds-space-2);position:relative}
  .kpiGrid .statIcon{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:6px}
  .kpiGrid .statIcon svg{width:14px;height:14px}
@@ -61,13 +62,13 @@
 .dsPageTabs{min-width:0;max-width:100%}
 .dsPageTabs>button{min-width:0}
 @media(max-width:767px){
- .financeDesignPage .dsFilterBar{margin-bottom:10px;padding:10px;gap:8px}
- .financeDesignPage .dsFilterBar .filterGrid,.financeDesignPage .dsFilterBar .businessFilterFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
- .financeDesignPage .dsFilterBar label,.financeDesignPage .dsFilterBar .filterField{min-width:0;font-size:12px}
- .financeDesignPage .dsFilterBar .search{min-width:0;width:100%}
- .financeDesignPage .dsFilterBar .filterReset,.financeDesignPage .dsFilterBar .filterResetCompact{min-height:40px;justify-content:center}
- .financeDesignPage .dsFilterBar .filterResultCount{font-size:11px;line-height:1.3}
- .financeDesignPage .salesReceiptNotice{margin:8px 0;padding:10px;font-size:12px;line-height:1.4}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar{margin-bottom:10px;padding:10px;gap:8px}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterGrid,:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .businessFilterFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar label,:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterField{min-width:0;font-size:12px}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .search{min-width:0;width:100%}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterReset,:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterResetCompact{min-height:40px;justify-content:center}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterResultCount{font-size:11px;line-height:1.3}
+ :is(.financeDesignPage,.masterDesignPage) .salesReceiptNotice{margin:8px 0;padding:10px;font-size:12px;line-height:1.4}
  .dsPageTabs .expenseHubTabText small{display:block;font-size:10px;white-space:normal;line-height:1.25}
  .expenseHubNav.dsPageTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;flex:0 1 auto;overflow:visible}
  .dsPageTabs>button{padding:8px;gap:6px;min-height:52px}
@@ -75,21 +76,44 @@
  .dsPageTabs .expenseHubTabText{min-width:0}
 }
 
-@media(max-width:767px){.financeDesignPage .dsFilterBar .filterGrid>label{grid-column:auto}.financeDesignPage .dsFilterBar .filterGrid>.filterReset{grid-column:1/-1}}
-.financeDesignPage .kpiGrid .statContent>strong>span{max-width:100%;font-size:clamp(12px,8cqi,18px);white-space:normal;overflow-wrap:anywhere}
+@media(max-width:767px){:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterGrid>label{grid-column:auto}:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterGrid>.filterReset{grid-column:1/-1}}
+:is(.financeDesignPage,.masterDesignPage) .kpiGrid .statContent>strong>span{max-width:100%;font-size:clamp(12px,8cqi,18px);white-space:normal;overflow-wrap:anywhere}
 
 /* Finance FilterBar owns desktop layout, as Orders does for its filters. */
-.financeDesignPage .dsFilterBar .searchableSelect{min-width:0;width:100%}
-.financeDesignPage .dsFilterBar .searchableSelectTrigger{min-width:0;height:42px;min-height:42px;max-height:42px}
-.financeDesignPage .dsFilterBar .searchableSelectTrigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}
-.financeDesignPage .dsFilterBar .searchableSelectTrigger>svg{flex-shrink:0}
+:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .searchableSelect{min-width:0;width:100%}
+:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .searchableSelectTrigger{min-width:0;height:42px;min-height:42px;max-height:42px}
+:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .searchableSelectTrigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}
+:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .searchableSelectTrigger>svg{flex-shrink:0}
 @media(min-width:768px){
- .financeDesignPage .dsFilterBar.businessFilterBar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end}
- .financeDesignPage .dsFilterBar>.search{grid-column:1/-1;min-width:0;width:100%;margin:0}
- .financeDesignPage .dsFilterBar .businessFilterFields,.financeDesignPage .dsFilterBar .filterGrid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-columns:none;align-items:end;gap:10px;min-width:0;width:100%}
- .financeDesignPage .dsFilterBar .businessFilterFields:last-child{grid-column:1/-1}
- .financeDesignPage .dsFilterBar label{display:grid;min-width:0;gap:5px;white-space:nowrap}
- .financeDesignPage .dsFilterBar label>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
- .financeDesignPage .dsFilterBar .filterReset,.financeDesignPage .dsFilterBar .filterResetCompact{height:42px;min-height:42px;align-self:end;white-space:nowrap;min-width:0;gap:5px;padding:0 8px}
- .financeDesignPage .dsFilterBar>.filterResultCount{grid-column:1/-1;justify-self:end;margin:0}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar.businessFilterBar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar>.search{grid-column:1/-1;min-width:0;width:100%;margin:0}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .businessFilterFields,:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterGrid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-columns:none;align-items:end;gap:10px;min-width:0;width:100%}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .businessFilterFields:last-child{grid-column:1/-1}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar label{display:grid;min-width:0;gap:5px;white-space:nowrap}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar label>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterReset,:is(.financeDesignPage,.masterDesignPage) .dsFilterBar .filterResetCompact{height:42px;min-height:42px;align-self:end;white-space:nowrap;min-width:0;gap:5px;padding:0 8px}
+ :is(.financeDesignPage,.masterDesignPage) .dsFilterBar>.filterResultCount{grid-column:1/-1;justify-self:end;margin:0}
 }
+
+/* React-owned master lists; fixed selection and identity stay within table scroll. */
+.dsDataTable{overflow:auto;max-width:100%;min-width:0}
+.dsDataTable:focus-visible{outline:2px solid var(--accent,#0f766e);outline-offset:3px}
+.dsDataTable .masterTable{min-width:1000px}
+.dsDataTable th:first-child,.dsDataTable td:first-child{position:sticky;left:0;z-index:2;background:var(--surface,#fff);width:44px;min-width:44px;max-width:44px}
+.dsDataTable .dsIdentityCell{position:sticky;left:44px;z-index:1;background:var(--surface,#fff);min-width:200px;box-shadow:2px 0 3px #0f172a0a}
+.dsDataTable tr.bulkSelectedRow td:first-child,.dsDataTable tr.bulkSelectedRow .dsIdentityCell{background:var(--surface-soft,#f0fdfa)}
+.dsRowActions{display:flex;gap:6px;justify-content:flex-end}
+.dsDataTable .dsRowActions span{display:none}
+.dsSelectionReview{padding:10px 12px;margin:0 0 10px;border:1px solid var(--border,#dbe2ea);border-radius:10px;min-width:0}
+.dsSelectionReview p{font-size:12px;margin:0 0 8px}.dsSelectionReview summary{cursor:pointer;font-size:12px;font-weight:700}.dsSelectionReview ul{list-style:none;padding:0;max-height:240px;overflow:auto}.dsSelectionReview li{display:flex;gap:8px;align-items:center;padding:6px 0}.dsSelectionReview li>span{min-width:0;overflow-wrap:anywhere}
+@media(max-width:767px){
+ .dsMobileList .bulkMobileSelectableRow{grid-template-columns:24px minmax(0,1fr)}
+ .dsMobileList .dsRowActions{grid-column:2;justify-content:flex-start}
+ .dsMobileList .dsRowActions button{width:auto;min-height:44px;padding:8px 10px;gap:6px}
+ .dsMobileList .dsRowActions span{font-size:12px}
+ .masterDesignPage .dsFilterBar.businessFilterBar{display:flex;flex-direction:column;align-items:stretch}
+ .masterDesignPage .dsFilterBar>.search{flex:initial}
+}
+
+@media(max-width:767px){.dsMobileList .dsRowActions{padding:0 12px 10px}.dsMobileList .dsRowActions button{display:inline-flex;flex-direction:row;align-items:center;justify-content:center;height:auto;line-height:1.2}.dsMobileList .dsRowActions svg{flex-shrink:0}}
+html[data-theme='dark'] .masterDesignPage .bulkSelectionTextButton{color:#d7deea}

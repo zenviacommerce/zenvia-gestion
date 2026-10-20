@@ -1,0 +1,1061 @@
+{
+  "baseline": "ed63ce7aecff7c7a296b5fface372f89ee4b8bf7",
+  "synthetic": true,
+  "networkBlocked": true,
+  "locale": "es-ES",
+  "checks": [
+    {
+      "screen": "products",
+      "width": 390,
+      "firstList": {
+        "x": 15,
+        "y": 1855.0625,
+        "width": 360,
+        "height": 112.59375
+      },
+      "documentOverflow": false,
+      "columns": [
+        "360px"
+      ],
+      "cards": [
+        {
+          "text": "Productos visibles32Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Con precio de venta32de 32 visibles",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Margen medio100,0 %Sobre coste",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Coste medio10,0000 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Margen bajo0Por debajo de 0 %",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Subidas de coste32Desde +10 %",
+          "warning": false,
+          "overflow": false
+        }
+      ],
+      "headerActions": [
+        "+ Nuevo producto"
+      ],
+      "filters": [
+        {
+          "text": "CategoríaTodas las categorías",
+          "x": 28,
+          "y": 1324.875,
+          "width": 334,
+          "height": 64,
+          "trigger": {
+            "x": 28,
+            "y": 1340.875,
+            "width": 334,
+            "height": 48
+          },
+          "lines": false
+        },
+        {
+          "text": "ProveedorTodos los proveedores",
+          "x": 28,
+          "y": 1397.875,
+          "width": 334,
+          "height": 64,
+          "trigger": {
+            "x": 28,
+            "y": 1413.875,
+            "width": 334,
+            "height": 48
+          },
+          "lines": false
+        },
+        {
+          "text": "IVA ventaTodos los tipos",
+          "x": 28,
+          "y": 1470.875,
+          "width": 334,
+          "height": 64,
+          "trigger": {
+            "x": 28,
+            "y": 1486.875,
+            "width": 334,
+            "height": 48
+          },
+          "lines": false
+        },
+        {
+          "text": "SituaciónTodos los productos",
+          "x": 28,
+          "y": 1543.875,
+          "width": 334,
+          "height": 64,
+          "trigger": {
+            "x": 28,
+            "y": 1559.875,
+            "width": 334,
+            "height": 48
+          },
+          "lines": false
+        }
+      ],
+      "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por categoría",
+          "options": [
+            "Todas las categorías",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar por proveedor",
+          "options": [
+            "Todos los proveedores",
+            "Proveedor de prueba"
+          ]
+        },
+        {
+          "label": "Filtrar por IVA de venta",
+          "options": [
+            "Todos los tipos",
+            "21 %"
+          ]
+        },
+        {
+          "label": "Filtrar productos",
+          "options": [
+            "Todos los productos",
+            "Con precio de venta",
+            "Sin precio de venta",
+            "Sin coste de compra",
+            "Margen bajo (< 0 %)",
+            "Subida coste (≥ 10 %)",
+            "Coste a la baja"
+          ]
+        }
+      ],
+      "selectionRetained": false,
+      "failures": []
+    },
+    {
+      "screen": "products",
+      "width": 1280,
+      "firstList": {
+        "x": 287,
+        "y": 918.4375,
+        "width": 1252.859375,
+        "height": 68.1875
+      },
+      "documentOverflow": false,
+      "columns": [
+        "227.75px 227.75px 227.75px 227.75px"
+      ],
+      "cards": [
+        {
+          "text": "Productos visibles32Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Con precio de venta32de 32 visibles",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Margen medio100,0 %Sobre coste",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Coste medio10,0000 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Margen bajo0Por debajo de 0 %",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Subidas de coste32Desde +10 %",
+          "warning": false,
+          "overflow": false
+        }
+      ],
+      "headerActions": [
+        "+ Nuevo producto"
+      ],
+      "filters": [
+        {
+          "text": "CategoríaTodas las categorías",
+          "x": 644.328125,
+          "y": 543.9375,
+          "width": 187.546875,
+          "height": 74,
+          "trigger": {
+            "x": 644.328125,
+            "y": 559.9375,
+            "width": 187.546875,
+            "height": 58
+          },
+          "lines": true
+        },
+        {
+          "text": "ProveedorTodos los proveedores",
+          "x": 841.875,
+          "y": 543.9375,
+          "width": 187.5625,
+          "height": 74,
+          "trigger": {
+            "x": 841.875,
+            "y": 559.9375,
+            "width": 187.5625,
+            "height": 58
+          },
+          "lines": true
+        },
+        {
+          "text": "IVA ventaTodos los tipos",
+          "x": 1039.4375,
+          "y": 559.9375,
+          "width": 187.5625,
+          "height": 58,
+          "trigger": {
+            "x": 1039.4375,
+            "y": 575.9375,
+            "width": 187.5625,
+            "height": 42
+          },
+          "lines": false
+        },
+        {
+          "text": "SituaciónTodos los productos",
+          "x": 644.328125,
+          "y": 627.9375,
+          "width": 582.671875,
+          "height": 58,
+          "trigger": {
+            "x": 644.328125,
+            "y": 643.9375,
+            "width": 582.671875,
+            "height": 42
+          },
+          "lines": false
+        }
+      ],
+      "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por categoría",
+          "options": [
+            "Todas las categorías",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar por proveedor",
+          "options": [
+            "Todos los proveedores",
+            "Proveedor de prueba"
+          ]
+        },
+        {
+          "label": "Filtrar por IVA de venta",
+          "options": [
+            "Todos los tipos",
+            "21 %"
+          ]
+        },
+        {
+          "label": "Filtrar productos",
+          "options": [
+            "Todos los productos",
+            "Con precio de venta",
+            "Sin precio de venta",
+            "Sin coste de compra",
+            "Margen bajo (< 0 %)",
+            "Subida coste (≥ 10 %)",
+            "Coste a la baja"
+          ]
+        }
+      ],
+      "selectionRetained": false,
+      "failures": []
+    },
+    {
+      "screen": "products",
+      "width": 1440,
+      "firstList": {
+        "x": 287,
+        "y": 932.4375,
+        "width": 1312.859375,
+        "height": 68.1875
+      },
+      "documentOverflow": false,
+      "columns": [
+        "211.188px 211.203px 211.203px 211.203px 211.188px"
+      ],
+      "cards": [
+        {
+          "text": "Productos visibles32Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Con precio de venta32de 32 visibles",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Margen medio100,0 %Sobre coste",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Coste medio10,0000 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Margen bajo0Por debajo de 0 %",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Subidas de coste32Desde +10 %",
+          "warning": false,
+          "overflow": false
+        }
+      ],
+      "headerActions": [
+        "+ Nuevo producto"
+      ],
+      "filters": [
+        {
+          "text": "CategoríaTodas las categorías",
+          "x": 697.671875,
+          "y": 573.9375,
+          "width": 223.109375,
+          "height": 58,
+          "trigger": {
+            "x": 697.671875,
+            "y": 589.9375,
+            "width": 223.109375,
+            "height": 42
+          },
+          "lines": false
+        },
+        {
+          "text": "ProveedorTodos los proveedores",
+          "x": 930.78125,
+          "y": 557.9375,
+          "width": 223.109375,
+          "height": 74,
+          "trigger": {
+            "x": 930.78125,
+            "y": 573.9375,
+            "width": 223.109375,
+            "height": 58
+          },
+          "lines": true
+        },
+        {
+          "text": "IVA ventaTodos los tipos",
+          "x": 1163.890625,
+          "y": 573.9375,
+          "width": 223.109375,
+          "height": 58,
+          "trigger": {
+            "x": 1163.890625,
+            "y": 589.9375,
+            "width": 223.109375,
+            "height": 42
+          },
+          "lines": false
+        },
+        {
+          "text": "SituaciónTodos los productos",
+          "x": 697.671875,
+          "y": 641.9375,
+          "width": 689.328125,
+          "height": 58,
+          "trigger": {
+            "x": 697.671875,
+            "y": 657.9375,
+            "width": 689.328125,
+            "height": 42
+          },
+          "lines": false
+        }
+      ],
+      "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por categoría",
+          "options": [
+            "Todas las categorías",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar por proveedor",
+          "options": [
+            "Todos los proveedores",
+            "Proveedor de prueba"
+          ]
+        },
+        {
+          "label": "Filtrar por IVA de venta",
+          "options": [
+            "Todos los tipos",
+            "21 %"
+          ]
+        },
+        {
+          "label": "Filtrar productos",
+          "options": [
+            "Todos los productos",
+            "Con precio de venta",
+            "Sin precio de venta",
+            "Sin coste de compra",
+            "Margen bajo (< 0 %)",
+            "Subida coste (≥ 10 %)",
+            "Coste a la baja"
+          ]
+        }
+      ],
+      "selectionRetained": false,
+      "failures": []
+    },
+    {
+      "screen": "clients",
+      "width": 390,
+      "firstList": {
+        "x": 15,
+        "y": 1590.1875,
+        "width": 360,
+        "height": 99
+      },
+      "documentOverflow": false,
+      "columns": [
+        "360px"
+      ],
+      "cards": [
+        {
+          "text": "Clientes con actividad32de 32 visibles · Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Facturado3872,00 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Pendiente de cobro3232,00 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Facturas emitidas32Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Ticket medio121,00 €Media por factura emitida",
+          "warning": false,
+          "overflow": false
+        }
+      ],
+      "headerActions": [
+        "+ Cliente"
+      ],
+      "filters": [
+        {
+          "text": "PaísTodos los países",
+          "x": 28,
+          "y": 1206,
+          "width": 334,
+          "height": 64,
+          "trigger": {
+            "x": 28,
+            "y": 1222,
+            "width": 334,
+            "height": 48
+          },
+          "lines": false
+        },
+        {
+          "text": "SituaciónTodos los clientes",
+          "x": 28,
+          "y": 1279,
+          "width": 334,
+          "height": 64,
+          "trigger": {
+            "x": 28,
+            "y": 1295,
+            "width": 334,
+            "height": 48
+          },
+          "lines": false
+        }
+      ],
+      "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar clientes por país",
+          "options": [
+            "Todos los países",
+            "España · ES",
+            "Francia · FR"
+          ]
+        },
+        {
+          "label": "Filtrar clientes por situación",
+          "options": [
+            "Todos los clientes",
+            "Con saldo pendiente",
+            "Sin saldo pendiente",
+            "Con actividad en el periodo",
+            "Sin actividad en el periodo"
+          ]
+        }
+      ],
+      "selectionRetained": false,
+      "failures": []
+    },
+    {
+      "screen": "clients",
+      "width": 1280,
+      "firstList": {
+        "x": 287,
+        "y": 834.5,
+        "width": 980,
+        "height": 118.75
+      },
+      "documentOverflow": false,
+      "columns": [
+        "227.75px 227.75px 227.75px 227.75px"
+      ],
+      "cards": [
+        {
+          "text": "Clientes con actividad32de 32 visibles · Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Facturado3872,00 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Pendiente de cobro3232,00 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Facturas emitidas32Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Ticket medio121,00 €Media por factura emitida",
+          "warning": false,
+          "overflow": false
+        }
+      ],
+      "headerActions": [
+        "+ Cliente"
+      ],
+      "filters": [
+        {
+          "text": "PaísTodos los países",
+          "x": 644.328125,
+          "y": 544,
+          "width": 286.328125,
+          "height": 58,
+          "trigger": {
+            "x": 644.328125,
+            "y": 560,
+            "width": 286.328125,
+            "height": 42
+          },
+          "lines": false
+        },
+        {
+          "text": "SituaciónTodos los clientes",
+          "x": 940.65625,
+          "y": 544,
+          "width": 286.34375,
+          "height": 58,
+          "trigger": {
+            "x": 940.65625,
+            "y": 560,
+            "width": 286.34375,
+            "height": 42
+          },
+          "lines": false
+        }
+      ],
+      "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar clientes por país",
+          "options": [
+            "Todos los países",
+            "España · ES",
+            "Francia · FR"
+          ]
+        },
+        {
+          "label": "Filtrar clientes por situación",
+          "options": [
+            "Todos los clientes",
+            "Con saldo pendiente",
+            "Sin saldo pendiente",
+            "Con actividad en el periodo",
+            "Sin actividad en el periodo"
+          ]
+        }
+      ],
+      "selectionRetained": false,
+      "failures": []
+    },
+    {
+      "screen": "clients",
+      "width": 1440,
+      "firstList": {
+        "x": 287,
+        "y": 725.5,
+        "width": 1114,
+        "height": 66.78125
+      },
+      "documentOverflow": false,
+      "columns": [
+        "211.188px 211.203px 211.203px 211.203px 211.188px"
+      ],
+      "cards": [
+        {
+          "text": "Clientes con actividad32de 32 visibles · Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Facturado3872,00 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Pendiente de cobro3232,00 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Facturas emitidas32Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Ticket medio121,00 €Media por factura emitida",
+          "warning": false,
+          "overflow": false
+        }
+      ],
+      "headerActions": [
+        "+ Cliente"
+      ],
+      "filters": [
+        {
+          "text": "PaísTodos los países",
+          "x": 697.671875,
+          "y": 435,
+          "width": 339.65625,
+          "height": 58,
+          "trigger": {
+            "x": 697.671875,
+            "y": 451,
+            "width": 339.65625,
+            "height": 42
+          },
+          "lines": false
+        },
+        {
+          "text": "SituaciónTodos los clientes",
+          "x": 1047.328125,
+          "y": 435,
+          "width": 339.671875,
+          "height": 58,
+          "trigger": {
+            "x": 1047.328125,
+            "y": 451,
+            "width": 339.671875,
+            "height": 42
+          },
+          "lines": false
+        }
+      ],
+      "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar clientes por país",
+          "options": [
+            "Todos los países",
+            "España · ES",
+            "Francia · FR"
+          ]
+        },
+        {
+          "label": "Filtrar clientes por situación",
+          "options": [
+            "Todos los clientes",
+            "Con saldo pendiente",
+            "Sin saldo pendiente",
+            "Con actividad en el periodo",
+            "Sin actividad en el periodo"
+          ]
+        }
+      ],
+      "selectionRetained": false,
+      "failures": []
+    },
+    {
+      "screen": "suppliers",
+      "width": 390,
+      "firstList": {
+        "x": 15,
+        "y": 1475.1875,
+        "width": 360,
+        "height": 99
+      },
+      "documentOverflow": false,
+      "columns": [
+        "360px"
+      ],
+      "cards": [
+        {
+          "text": "Proveedores con actividad32de 32 visibles · todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Gasto del periodo3872,00 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Facturas recibidas32Todo el histórico",
+          "warning": false,
+          "overflow": false
+        }
+      ],
+      "headerActions": [
+        "+ Proveedor"
+      ],
+      "filters": [
+        {
+          "text": "TipoTodos los tipos",
+          "x": 28,
+          "y": 1018,
+          "width": 334,
+          "height": 64,
+          "trigger": {
+            "x": 28,
+            "y": 1034,
+            "width": 334,
+            "height": 48
+          },
+          "lines": false
+        },
+        {
+          "text": "Categoría habitualTodas las categorías",
+          "x": 28,
+          "y": 1091,
+          "width": 334,
+          "height": 64,
+          "trigger": {
+            "x": 28,
+            "y": 1107,
+            "width": 334,
+            "height": 48
+          },
+          "lines": false
+        },
+        {
+          "text": "ActividadTodos",
+          "x": 28,
+          "y": 1164,
+          "width": 334,
+          "height": 64,
+          "trigger": {
+            "x": 28,
+            "y": 1180,
+            "width": 334,
+            "height": 48
+          },
+          "lines": false
+        }
+      ],
+      "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por tipo de proveedor",
+          "options": [
+            "Todos los tipos",
+            "Mercancía",
+            "Servicios",
+            "Mercancía y servicios",
+            "Sin clasificar"
+          ]
+        },
+        {
+          "label": "Filtrar por categoría habitual",
+          "options": [
+            "Todas las categorías",
+            "Sin categoría habitual",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar proveedores por actividad",
+          "options": [
+            "Todos",
+            "Con facturas en el periodo",
+            "Sin facturas en el periodo"
+          ]
+        }
+      ],
+      "selectionRetained": false,
+      "failures": []
+    },
+    {
+      "screen": "suppliers",
+      "width": 1280,
+      "firstList": {
+        "x": 287,
+        "y": 741.5,
+        "width": 1216,
+        "height": 86.375
+      },
+      "documentOverflow": false,
+      "columns": [
+        "227.75px 227.75px 227.75px 227.75px"
+      ],
+      "cards": [
+        {
+          "text": "Proveedores con actividad32de 32 visibles · todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Gasto del periodo3872,00 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Facturas recibidas32Todo el histórico",
+          "warning": false,
+          "overflow": false
+        }
+      ],
+      "headerActions": [
+        "+ Proveedor"
+      ],
+      "filters": [
+        {
+          "text": "TipoTodos los tipos",
+          "x": 644.328125,
+          "y": 451,
+          "width": 187.546875,
+          "height": 58,
+          "trigger": {
+            "x": 644.328125,
+            "y": 467,
+            "width": 187.546875,
+            "height": 42
+          },
+          "lines": false
+        },
+        {
+          "text": "Categoría habitualTodas las categorías",
+          "x": 841.875,
+          "y": 435,
+          "width": 187.5625,
+          "height": 74,
+          "trigger": {
+            "x": 841.875,
+            "y": 451,
+            "width": 187.5625,
+            "height": 58
+          },
+          "lines": true
+        },
+        {
+          "text": "ActividadTodos",
+          "x": 1039.4375,
+          "y": 451,
+          "width": 187.5625,
+          "height": 58,
+          "trigger": {
+            "x": 1039.4375,
+            "y": 467,
+            "width": 187.5625,
+            "height": 42
+          },
+          "lines": false
+        }
+      ],
+      "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por tipo de proveedor",
+          "options": [
+            "Todos los tipos",
+            "Mercancía",
+            "Servicios",
+            "Mercancía y servicios",
+            "Sin clasificar"
+          ]
+        },
+        {
+          "label": "Filtrar por categoría habitual",
+          "options": [
+            "Todas las categorías",
+            "Sin categoría habitual",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar proveedores por actividad",
+          "options": [
+            "Todos",
+            "Con facturas en el periodo",
+            "Sin facturas en el periodo"
+          ]
+        }
+      ],
+      "selectionRetained": false,
+      "failures": []
+    },
+    {
+      "screen": "suppliers",
+      "width": 1440,
+      "firstList": {
+        "x": 287,
+        "y": 711.5,
+        "width": 1216,
+        "height": 86.375
+      },
+      "documentOverflow": false,
+      "columns": [
+        "267.75px 267.75px 267.75px 267.75px"
+      ],
+      "cards": [
+        {
+          "text": "Proveedores con actividad32de 32 visibles · todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Gasto del periodo3872,00 €Todo el histórico",
+          "warning": false,
+          "overflow": false
+        },
+        {
+          "text": "Facturas recibidas32Todo el histórico",
+          "warning": false,
+          "overflow": false
+        }
+      ],
+      "headerActions": [
+        "+ Proveedor"
+      ],
+      "filters": [
+        {
+          "text": "TipoTodos los tipos",
+          "x": 697.671875,
+          "y": 421,
+          "width": 223.109375,
+          "height": 58,
+          "trigger": {
+            "x": 697.671875,
+            "y": 437,
+            "width": 223.109375,
+            "height": 42
+          },
+          "lines": false
+        },
+        {
+          "text": "Categoría habitualTodas las categorías",
+          "x": 930.78125,
+          "y": 421,
+          "width": 223.109375,
+          "height": 58,
+          "trigger": {
+            "x": 930.78125,
+            "y": 437,
+            "width": 223.109375,
+            "height": 42
+          },
+          "lines": false
+        },
+        {
+          "text": "ActividadTodos",
+          "x": 1163.890625,
+          "y": 421,
+          "width": 223.109375,
+          "height": 58,
+          "trigger": {
+            "x": 1163.890625,
+            "y": 437,
+            "width": 223.109375,
+            "height": 42
+          },
+          "lines": false
+        }
+      ],
+      "rowActions": 2,
+      "filterOptions": [
+        {
+          "label": "Filtrar por tipo de proveedor",
+          "options": [
+            "Todos los tipos",
+            "Mercancía",
+            "Servicios",
+            "Mercancía y servicios",
+            "Sin clasificar"
+          ]
+        },
+        {
+          "label": "Filtrar por categoría habitual",
+          "options": [
+            "Todas las categorías",
+            "Sin categoría habitual",
+            "Materiales"
+          ]
+        },
+        {
+          "label": "Filtrar proveedores por actividad",
+          "options": [
+            "Todos",
+            "Con facturas en el periodo",
+            "Sin facturas en el periodo"
+          ]
+        }
+      ],
+      "selectionRetained": false,
+      "failures": []
+    }
+  ]
+}

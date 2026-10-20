@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { AutoPagination } from './components/AutoPagination';
 import { OrderLabelDefaults } from './components/OrderLabelDefaults';
-import { PendingOrdersKpiHighlight } from './components/PendingOrdersKpiHighlight';
 import { UnifiedListExperience } from './components/UnifiedListExperience';
 import { ActionDialogHost } from './components/ActionDialogHost';
 import { ActivityCenter } from './components/ActivityCenter';
@@ -56,6 +55,7 @@ import './app-agent.css';
 import './theme-consistency.css';
 import './responsive-hardening.css';
 import './design-system.css';
+import './image-previews.css';
 
 const favicon=document.querySelector<HTMLLinkElement>("link[rel~='icon']")||document.createElement('link');
 favicon.rel='icon';
@@ -65,6 +65,6 @@ if(!favicon.parentNode)document.head.appendChild(favicon);
 
 function SecuredApplication(){
  const access=useMfaAccess();
- return <SettingsProvider key={`${access.userId}`} userId={access.ready?access.userId:null}><App/>{access.ready&&<><ActionDialogHost/><ActivityCenter/><AutoPagination/><OrderLabelDefaults/><PendingOrdersKpiHighlight/><UnifiedListExperience/></>}</SettingsProvider>;
+ return <SettingsProvider key={`${access.userId}`} userId={access.ready?access.userId:null}><App/>{access.ready&&<><ActionDialogHost/><ActivityCenter/><AutoPagination/><OrderLabelDefaults/><UnifiedListExperience/></>}</SettingsProvider>;
 }
 ReactDOM.createRoot(document.getElementById('root')!).render(<React.StrictMode><AppErrorBoundary><MfaProvider><SecuredApplication/></MfaProvider></AppErrorBoundary></React.StrictMode>);

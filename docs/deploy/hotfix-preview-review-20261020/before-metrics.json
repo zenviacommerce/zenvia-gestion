@@ -1,0 +1,203 @@
+[
+  {
+    "width": 390,
+    "images": [
+      {
+        "alt": "Logotipo de empresa",
+        "width": 237.921875,
+        "height": 42.828125,
+        "naturalWidth": 1000,
+        "naturalHeight": 180,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Sello de empresa",
+        "width": 238,
+        "height": 357,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Logotipo alto",
+        "width": 245.328125,
+        "height": 368,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "",
+        "width": 46,
+        "height": 46,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": false
+      }
+    ],
+    "failures": [
+      {
+        "alt": "Sello de empresa",
+        "width": 238,
+        "height": 357,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Logotipo alto",
+        "width": 245.328125,
+        "height": 368,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      }
+    ]
+  },
+  {
+    "width": 1280,
+    "images": [
+      {
+        "alt": "Logotipo de empresa",
+        "width": 177.9375,
+        "height": 32.03125,
+        "naturalWidth": 1000,
+        "naturalHeight": 180,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Sello de empresa",
+        "width": 178,
+        "height": 267,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Logotipo alto",
+        "width": 150.078125,
+        "height": 225.125,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "",
+        "width": 46,
+        "height": 46,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": false
+      }
+    ],
+    "failures": [
+      {
+        "alt": "Sello de empresa",
+        "width": 178,
+        "height": 267,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Logotipo alto",
+        "width": 150.078125,
+        "height": 225.125,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      }
+    ]
+  },
+  {
+    "width": 1440,
+    "images": [
+      {
+        "alt": "Logotipo de empresa",
+        "width": 177.9375,
+        "height": 32.03125,
+        "naturalWidth": 1000,
+        "naturalHeight": 180,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Sello de empresa",
+        "width": 178,
+        "height": 267,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Logotipo alto",
+        "width": 150.078125,
+        "height": 225.125,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "",
+        "width": 46,
+        "height": 46,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": false
+      }
+    ],
+    "failures": [
+      {
+        "alt": "Sello de empresa",
+        "width": 178,
+        "height": 267,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Logotipo alto",
+        "width": 150.078125,
+        "height": 225.125,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": false,
+        "ratioPreserved": true
+      }
+    ]
+  }
+]

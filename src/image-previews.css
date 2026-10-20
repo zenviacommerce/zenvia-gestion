@@ -1,0 +1,12 @@
+/* Content previews preserve the entire uploaded image. Fixed thumbnail boxes use contain. */
+.settingsLogoPreview,.companyLogoPreview{
+ height:auto;min-height:80px;min-width:0;max-width:100%;padding:10px;overflow:visible;
+}
+.settingsLogoPreview img,.companyLogoPreview img{
+ display:block;width:auto;height:auto;max-width:100%;max-height:240px;
+ object-fit:contain;object-position:center;margin-inline:auto;
+}
+.amazonProductThumb,.amazonMappingModalThumb,.shopifyProductIdentity img,
+.ordersProductThumb,.ordersDrawerProductThumb,.gmailImagePreview{
+ max-width:100%;object-fit:contain;object-position:center;
+}

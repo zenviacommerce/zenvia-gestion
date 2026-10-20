@@ -33,3 +33,12 @@ Migration: supabase/migrations/20261020072636_pickup_reports.sql. Apply backend 
 Operational rollback: frontend Instant Rollback preserves all immutable receipts. Database removal rollback supabase/rollback/20261020_pickup_reports.sql refuses if any receipt exists; do not delete evidence after use. Restrict create RPC temporarily if necessary while retaining saved get/list access for reprints. Empty-install rollback is tested and leaves orders/dashboard untouched.
 
 STOP: owner browser/PDF review required before production.
+
+
+## PDF finish review requested by owner (20 October; still NOT published)
+- Existing PDF uses standard Helvetica without manual charSpace. MuPDF/text extraction showed normal letter metrics; previous Poppler PNG substitution produced the broken typography. New captured renders use MuPDF, and PDF output emits only used Helvetica normal/bold fonts.
+- Explicit 4.2mm text baselines, separator 3mm below the last baseline and next row 5mm below the separator. Narrowed wrapping widths account for Base14 metric rounding. PDF geometry regression rejects a rule crossing text or a tracking extending beyond its column; extreme wrapping remains covered.
+- Two visible signature rectangles per carrier, 82/86 by30mm. Separate blank pickup date/time; printed creation/generation times remain in the header. Footer reads Page X of Y (Spanish) with report number on every page; channels normalized Amazon/Shopify.
+- Optional current General company logo on each page; load failure still allows printing saved sender text. Download checks workspace/client after the asynchronous branding load, and UI awaits/catches download errors without another create. New tests cover branding failure and workspace change.
+- Fixture creation09:30 precedes fixed generation09:45 Madrid. Regenerated 48-order5-page sample and both desktop/mobile63-order6-page flow PDFs and captures. Logo is synthetic in the offline fixture; no production business data was queried.
+- Focused verification: PDF geometry/font/image/content tests,8 UI/download tests, build; CI exact-head results linked in the PR. No SQL/Auth/Edge change for this finish revision. STOP for owner review.

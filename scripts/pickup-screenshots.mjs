@@ -4,6 +4,7 @@
 // Restricted download fallback: npm install --no-save --package-lock=false playwright@1.58.2 @sparticuz/chromium@153.0.0
 // SHIPPING_CHROMIUM_PACKAGE=1 node scripts/orders-visual-screenshots.mjs
 import {build} from 'esbuild';
+import {pickupLogoFixture} from './pickup-pdf-fixture.mjs';
 import {readFile,mkdir,writeFile,mkdtemp,chmod} from 'node:fs/promises';
 import {brotliDecompressSync} from 'node:zlib';
 import {execFileSync} from 'node:child_process';
@@ -40,6 +41,8 @@ createRoot(document.getElementById('root')).render(<main className="main"><div s
 
 mocks.set('../services/pickupReports',(mocks.get('../services/pickupReports')||'')+
  'export const previewPickupReport=(...a)=>globalThis.pickupFixture.preview(...a);export const createPickupReport=(...a)=>globalThis.pickupFixture.create(...a);export const listPickupReports=(...a)=>globalThis.pickupFixture.list(...a);export const getPickupReport=(...a)=>globalThis.pickupFixture.get(...a);');
+mocks.set('./companyBranding', 'export const loadCompanyBranding=async()=>({logoDataUrl:'+JSON.stringify(pickupLogoFixture)+'});');
+mocks.set('./supabase', 'export const supabase={};export const getActiveSupabase=()=>null;export const getActiveTenant=()=>null;');
 const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,loader:{'.css':'empty'},define:{'import.meta.env':'{}'},format:'iife',platform:'browser',jsx:'automatic',plugins:[{name:'offline-orders-fixture',setup(b){b.onResolve({filter:/.*/},args=>mocks.has(args.path)?{path:args.path,namespace:'fixture'}:null);b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:mocks.get(args.path),loader:'tsx'}));}}]});
 const main=await readFile('src/main.tsx','utf8');
 const cssFiles=[...new Set([...main.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map(x=>'src/'+x[1].replace('./','')))];
@@ -66,6 +69,7 @@ const browser=await chromium.launch(launchOptions);
 const checks=[];
 try{for(const device of [{name:'desktop',width:1440,height:1050},{name:'mobile',width:390,height:844}]){
  const page=await browser.newPage({viewport:{width:device.width,height:device.height},acceptDownloads:true});const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error(e.message)});await page.route('**/*',r=>r.abort());
+ await page.clock.setFixedTime(new Date('2026-10-20T07:45:00Z'));
  await page.setContent('<html><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
  await page.getByRole('button',{name:'Etiquetados',exact:true}).click();
  await page.getByText('63 pedidos · Página 1 de 3',{exact:true}).first().waitFor();

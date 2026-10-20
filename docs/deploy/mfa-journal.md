@@ -358,3 +358,11 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Worker: 14 runs `success`, 0 `failed`; cron observado sin fallos. Un job `queued` detectado a las 11:49 CEST fue consumido correctamente por el ciclo de las 11:50 (run `success`, 1 fila); cola final sin pendientes/en proceso/fallidos y sin lease retenido.
 - Cron previo: worker 13/13, pedidos 13/13, imágenes 6/6, destinatarios 5/5, mantenimiento 4/4 y orquestador 1/1, todos `succeeded`.
 - Resultado: estable, sin incidencia significativa ni acción correctiva.
+
+
+### Vigilancia piloto MFA — 2026-10-20 12:52 CEST
+- Configuración exacta: `enabled=true`, cohort único autorizado; `private.mfa_activation_findings()` = 0. Sin cambios ni apagado de emergencia.
+- Ventana 11:50–12:52 CEST: 0 `PGRST003`, 0 `57014`, 0 Auth 5xx, 0 `context canceled` y 0 `job startup timeout`. Auth: 353 respuestas HTTP 200.
+- Una entrada PostgreSQL `MFA_REQUIRED` a las 12:19:50 CEST fue clasificada como **prueba controlada**, no fallo real: consulta transaccional `BEGIN ... ROLLBACK` originada por `POST /mcp`, que invocó deliberadamente `security_mfa_assert(false)` desde una comprobación de la RPC de Pedidos. No fue una denegación fuera del cohort ni una regresión de login.
+- Worker: 14 runs `success`, 0 `failed`; 31 jobs recientes `success` y 1 `queued` recién creado para el siguiente ciclo; sin lease retenido. Cron: worker 13/13, pedidos 13/13, imágenes 7/7, destinatarios 5/5, mantenimiento 4/4 y orquestador 1/1, todos `succeeded`.
+- Resultado: estable, sin incidencia significativa ni acción correctiva.

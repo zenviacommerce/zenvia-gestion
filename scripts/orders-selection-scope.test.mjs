@@ -9,4 +9,4 @@ assert.match(orders,/Quitar selección/);
 assert.match(toolbar,/Seleccionar todos.*scopeLabel/s);
 console.log('Orders selection scope is explicit.');
 
-assert.match(orders,/priced.length===1\?' opción con precio':' opciones con precio'/);
+assert.match(orders,/countLabel\(priced.length,'opción con precio','opciones con precio'\)/);

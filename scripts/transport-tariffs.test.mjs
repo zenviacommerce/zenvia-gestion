@@ -119,7 +119,8 @@ async function loadLocalTariffService(invoke){
   let code=await source('src/services/transportTariffs.ts');
   code=code.replace(/^import .*;\n/gm,'').replace(/pdfjsLib\.GlobalWorkerOptions\.workerSrc=pdfWorker;/,'');
   code+='\nexport {fallbackProposal};';
-  const output=ts.transpileModule(code,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
+  const helper=(await source('src/services/pluralization.ts')).replace('export function','function');
+  const output=ts.transpileModule(helper+'\n'+code,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
   const key='__tariffTestInvoke'+Math.random().toString(36).slice(2);
   globalThis[key]=invoke;
   const prefix=`const supabase={functions:{invoke:globalThis[${JSON.stringify(key)}]}};\n`;

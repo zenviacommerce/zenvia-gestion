@@ -1,0 +1,18 @@
+{
+  "source": "General company logo, authenticated Storage download already rendered by production application",
+  "bucket": "company-assets",
+  "object": "<workspace>/branding/logo-1789456734007.webp",
+  "originalMime": "image/webp",
+  "originalBytes": 5418,
+  "originalEtag": "a2333c32aa3ce1014722d06cd9894ca8",
+  "capturedMime": "image/png",
+  "capturedWidth": 150,
+  "capturedHeight": 100,
+  "capturedSha256": "4fe753a196dd9cf8fae0db3b6a2f002db01c0bd38d90637e990189aba0f59e64",
+  "normalization": "Captured exact General img data URL after existing companyBranding canvas conversion; not original WebP bytes",
+  "authenticatedLiveRead": true,
+  "offlineTransportMocked": true,
+  "offlineImagesActuallyDecoded": true,
+  "productionReportsCreated": 0,
+  "frontendSourceChanges": false
+}

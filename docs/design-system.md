@@ -143,3 +143,12 @@ Cada fase tendrá PR y capturas antes/después a 390/1280/1440 px; CI en verde; 
 ## Punto de parada y orden posterior
 
 Documento y capturas preparados para revisión. **No implementar el sistema de diseño todavía.** Mantener el orden acordado después de este análisis: **1) cerrar la vigilancia de 48 h del piloto MFA y preparar su ampliación; 2) solicitud de desarrollador público SP-API; 3) con ese acceso, validar las cifras de Amazon frente a Seller Central.** Las fases de layout quedan como propuesta hasta su aprobación y encaje en ese orden.
+
+## Ajustes aprobados — 20 de octubre de 2026
+
+Este documento está **aprobado como contrato de diseño**. La fase 1 está autorizada únicamente en rama de revisión; detenerse antes de publicar.
+
+- **Acceso móvil a listas operativas:** a 390 × 1000 px, con el estado inicial de referencia, el borde superior del primer elemento real de Pedidos, Facturación y Gastos debe estar antes de 1800 px desde el inicio del documento (dos pantallazos con al menos 200 px de lista visibles al terminar el segundo). Registrar coordenada absoluta y número de alturas de viewport antes/después en cada fase. La posición se mide sobre el primer elemento de datos, no sobre el título o cabecera vacía. En estados sin resultados, medir el comienzo del estado vacío. Registrar filtros/avisos activos; no ocultar información ni cambiar cifras para cumplir el límite. El primer KPI de Pedidos rondaba 1115 px: la fase 1 medirá y reducirá ese coste vertical.
+- **Acciones móviles de cabecera:** una fila horizontal con overflow accesible o menú «Más»; nunca una pila vertical de botones. Cabecera compacta, manteniendo todas las acciones, nombres accesibles y confirmaciones.
+- **Adopción obligatoria:** toda pantalla y componente nuevos usan los componentes del contrato disponibles (PageHeader, KpiGrid sobre StatCard y los restantes a medida que se incorporan). No crear rejillas o superficies de KPI paralelas. Una excepción requiere motivo explícito en la PR. Añadir una comprobación ligera en CI y pruebas de layout para las pantallas migradas; las pantallas heredadas se migran por fases, sin forzar cambios globales.
+- **Contención:** KpiGrid usa dos columnas móviles con `minmax(0,1fr)` y los hijos/contenido multimoneda `min-width:0`. Una sola superficie visual de tarjeta. Nunca una familia completa de KPI a ancho móvil completo.

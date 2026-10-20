@@ -38,3 +38,11 @@ Not applied yet. Record migration, Edge versions, two real worker cycles and sub
 - New real FBM 171-8517620-7502702 purchased 11:40:46.975, first operational import 11:45:08.370 (4m21s), before this deployment; do not present it as post-change evidence. It arrived automatically. No new post-deployment FBM first insert observed yet.
 - New pending order changes weight-audit population: 4 units, stored 1 kg, no manual marker, one recalculation candidate (fallback would be 4 kg estimated unless verified catalog supplies another mass). Owner-adjusted 402-8935535-6572312 remains manual 7 kg. Shipped rows excluded.
 - Vercel deployed merge #256 as dpl_5rvsytgNKm5hqR3hh8TUiwcxHdab, no frontend source changes. This is the latest pre-visible-change rollback candidate; original dpl_ESrx67iYsYex7Z72asky3bMcSpyz remains available.
+
+### Weight pre-deployment gate — PR #258
+
+Head fa55c8b7d54b9ea85797fcd4de357d765d052549, based on #256. Final local verification: 1166 Node / 221 Vitest tests, build and shared Deno check passed. Four desktop/mobile screenshots and eight Edge rollback bundles committed in PR. Full remote Edge typecheck could not resolve npm registry; deployment bundling and live verification are mandatory.
+
+SQL snapshot captures current product columns/constraints and exact Shopify preservation guard; rollback file matches its original body and deliberately retains the additive product-weight column and entered values. No production order rows will be written by the migration.
+
+Preexisting production-vs-main shared dependency differences (MFA bridge helper signature, Amazon auth helper, Shopify install helper, logistics PII helper) were detected. Preserve each deployed bundle's original unmodified dependencies; replace only reviewed task entrypoints/shared Orders and add resolver/config/SP-API/http dependencies required by the resolver. Do not change authentication during this rollout.

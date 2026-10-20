@@ -83,7 +83,7 @@ export function SearchableSelect({value,options,onChange,placeholder='Selecciona
   ):null;
 
   return <div className="searchableSelect" ref={rootRef}>
-    <button type="button" role="combobox" aria-label={ariaLabel} aria-expanded={open} aria-controls={listId} aria-activedescendant={open&&filtered[active]?`${listId}-${active}`:undefined} disabled={disabled} className={`searchableSelectTrigger ${selected||value?'':'isPlaceholder'}`} onClick={()=>setOpen(current=>!current)} onKeyDown={onKeyDown}>
+    <button type="button" role="combobox" title={selected?.label||(value?value:placeholder)} aria-label={ariaLabel} aria-expanded={open} aria-controls={listId} aria-activedescendant={open&&filtered[active]?`${listId}-${active}`:undefined} disabled={disabled} className={`searchableSelectTrigger ${selected||value?'':'isPlaceholder'}`} onClick={()=>setOpen(current=>!current)} onKeyDown={onKeyDown}>
       <span>{selected?.label||(value?value:placeholder)}</span><ChevronDown size={16}/>
     </button>
     {menu}

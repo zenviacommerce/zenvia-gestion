@@ -1,3 +1,9 @@
+import {PageHeader} from '../components/PageHeader';
+import {KpiGrid} from '../components/KpiGrid';
+import {FilterBar} from '../components/FilterBar';
+import {DataTable,MobileList} from '../components/DataTable';
+import {RowActions} from '../components/RowActions';
+import {useListSelection,toggleListScope,SelectionReview} from '../components/ListSelection';
 import { useEffect, useMemo, useState } from 'react';
 import { Barcode, Building2, Calculator, ChevronRight, Euro, Package, Percent, Search, Tag, Trash2, TrendingDown, TrendingUp, X, Pencil } from 'lucide-react';
 import type { Product } from '../types';
@@ -74,7 +80,7 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
  const [error,setError]=useState('');
  const [page,setPage]=useState(1);
  const [selected,setSelected]=useState<Product|null>(null);
- const [checkedIds,setCheckedIds]=useState<Set<string>>(()=>new Set());
+ const [checkedIds,setCheckedIds]=useListSelection(products);
  const [bulkBusy,setBulkBusy]=useState(false);
  const [salesMap,setSalesMap]=useState<Map<string,ProductSalesInfo>>(new Map());
  useEffect(()=>{loadProductSalesMap(products.map(p=>p.id)).then(setSalesMap).catch(()=>setSalesMap(new Map()))},[products]);
@@ -121,10 +127,10 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
      return true;
    });
  },[periodProducts,query,salesMap,categoryFilter,supplierFilter,taxFilter,scope,marginAlertThreshold,costIncreaseThreshold]);
- const selectedProducts=shown.filter(product=>checkedIds.has(product.id));
+ const selectedProducts=products.filter(product=>checkedIds.has(product.id));
  const allShownSelected=shown.length>0&&shown.every(product=>checkedIds.has(product.id));
  const toggleProduct=(id:string,checked:boolean)=>setCheckedIds(current=>{const next=new Set(current);if(checked)next.add(id);else next.delete(id);return next;});
- const toggleAllProducts=(checked:boolean)=>setCheckedIds(checked?new Set(shown.map(product=>product.id)):new Set());
+ const toggleAllProducts=(checked:boolean)=>setCheckedIds(current=>toggleListScope(current,shown,checked));
  const sorting=useSortableTable('products',shown,{
    product:p=>p.name,
    sku:p=>p.sku||salesMap.get(p.id)?.ean||'',
@@ -138,7 +144,7 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
  const sorted=sorting.rows;
  const totalPages=Math.max(1,Math.ceil(sorted.length/pageSize));
  const paged=useMemo(()=>sorted.slice((page-1)*pageSize,page*pageSize),[sorted,page,pageSize]);
- useEffect(()=>{setPage(1);setCheckedIds(new Set())},[query,dateFilter,categoryFilter,supplierFilter,taxFilter,scope]);
+ useEffect(()=>{setPage(1)},[query,dateFilter,categoryFilter,supplierFilter,taxFilter,scope]);
  useEffect(()=>{const timer=window.setTimeout(()=>{void persistRememberedFilter(preferences,patchPreferences,'products.filters',{query,dateFilter,categoryFilter,supplierFilter,scope,taxFilter})},350);return()=>window.clearTimeout(timer)},[query,dateFilter,categoryFilter,supplierFilter,scope,taxFilter,preferences.rememberFilters]);
  useEffect(()=>{setPage(current=>Math.min(current,totalPages))},[totalPages]);
  useEffect(()=>{if(selected&&!products.some(product=>product.id===selected.id))setSelected(null)},[products,selected]);
@@ -167,7 +173,7 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
  };
  const removeSelected=async()=>{
    if(!selectedProducts.length)return;
-   const confirmed=await confirmAction({title:`Eliminar ${selectedProducts.length} producto${selectedProducts.length===1?'':'s'}`,message:'Se eliminarán los productos seleccionados.',confirmLabel:'Eliminar seleccionados',tone:'danger',details:['Las líneas históricas de factura no se borrarán.']});
+   const confirmed=await confirmAction({title:`Eliminar ${selectedProducts.length} producto${selectedProducts.length===1?'':'s'}`,message:'Se eliminarán los productos seleccionados.',confirmLabel:'Eliminar seleccionados',tone:'danger',details:[...selectedProducts.map(item=>item.name),'Las líneas históricas de factura no se borrarán.']});
    if(!confirmed)return;
    setBulkBusy(true);setError('');
    const process=openActionProcess({title:'Eliminando productos',description:'El resultado permanecerá visible al terminar.',items:selectedProducts.map(product=>({id:product.id,label:product.name}))});
@@ -187,11 +193,11 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
    const labels:Record<string,string>={product:'Producto',sku:'SKU / EAN',supplier:'Proveedor',lastPurchase:'Última compra',cost:'Coste',salePrice:'P. venta',margin:'Margen',costChange:'Var. coste'};
    const label=labels[key];if(!label)return null;
    const right=['cost','salePrice','margin','costChange'].includes(key);
-   return <SortableTableHeader key={key} label={label} sortKey={key} activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className={right?'right':''}/>;
+   return <SortableTableHeader key={key} label={label} sortKey={key} activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className={[key==='product'?'dsIdentityCell':'',(right?'right':'')].filter(Boolean).join(' ')}/>;
  };
  const columnCell=(key:string,p:Product,extra:ProductSalesInfo|undefined)=>{
    const metric=productMetrics(p,extra);
-   if(key==='product')return <td key={key}><div className="masterEntityCell"><div className="masterAvatar"><Package size={17}/></div><div><strong>{p.name}</strong><small>{p.category||'Sin categoría'} · por {p.unit}</small></div></div></td>;
+   if(key==='product')return <td key={key} className="dsIdentityCell"><div className="masterEntityCell"><div className="masterAvatar"><Package size={17}/></div><div><strong>{p.name}</strong><small>{p.category||'Sin categoría'} · por {p.unit}</small></div></div></td>;
    if(key==='sku')return <td key={key}><span className="mono">{p.sku||'—'}</span>{extra?.ean&&<div className="muted mono">{extra.ean}</div>}</td>;
    if(key==='supplier')return <td key={key}>{p.supplier&&p.supplier!=='—'?p.supplier:<span className="muted">Sin proveedor</span>}</td>;
    if(key==='lastPurchase')return <td key={key}>{dateLabel(p.lastPurchaseDate)}</td>;
@@ -202,16 +208,8 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
    return null;
  };
  return (
-    <div className="page masterPage">
-      <div className="pageHead">
-        <div>
-          <div className="eyebrow">CATÁLOGO · COMPRAS Y VENTAS</div>
-          <h1>Productos</h1>
-          <p>Coste de compra, precio de venta, margen y datos reutilizables en las facturas.</p>
-        </div>
-        <div className="actions pageHeadActions"><button className="primary" onClick={onAdd}>+ Nuevo producto</button></div>
-      </div>
-
+    <div className="page masterPage designSystemPage masterDesignPage">
+      <PageHeader title="Productos" eyebrow="CATÁLOGO · COMPRAS Y VENTAS" description="Coste de compra, precio de venta, margen y datos reutilizables en las facturas." actions={<button className="primary" onClick={onAdd}>+ Nuevo producto</button>}/>
       <PeriodFilterPanel
         filter={dateFilter}
         onChange={setDateFilter}
@@ -219,18 +217,18 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
         note="En Productos, el periodo se aplica a la fecha de la última compra o actualización de coste registrada."
       />
 
-      <div className="stats masterStats productStats">
+      <KpiGrid label="Indicadores de productos">
         <StatCard label="Productos visibles" value={String(totals.count)} sub={selectedPeriod} icon={<Package/>}/>
         <StatCard label="Con precio de venta" value={String(totals.withSale)} sub={`de ${totals.count} visibles`} icon={<Euro/>}/>
         <StatCard label="Margen medio" value={totals.avgMargin==null?'—':`${totals.avgMargin.toLocaleString('es-ES',{minimumFractionDigits:1,maximumFractionDigits:1})} %`} sub="Sobre coste" icon={<Percent/>}/>
         <StatCard label="Coste medio" value={costMoney(totals.avgCost)} sub={selectedPeriod} icon={<Calculator/>}/>
         <StatCard label="Margen bajo" value={String(totals.lowMargin)} sub={`Por debajo de ${marginAlertThreshold.toLocaleString('es-ES')} %`} icon={<Percent/>}/>
         <StatCard label="Subidas de coste" value={String(totals.costUp)} sub={`Desde +${costIncreaseThreshold.toLocaleString('es-ES')} %`} icon={<TrendingUp/>}/>
-      </div>
+      </KpiGrid>
 
       {error&&<div className="errorBox supplierPageError">{error}</div>}
 
-      <div className="businessFilterBar productFilterToolbar">
+      <FilterBar label="Filtros de productos" className="businessFilterBar productFilterToolbar">
         <div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar producto, SKU, EAN o proveedor…"/></div>
         <div className="businessFilterFields">
           <label className="filterField"><span>Categoría</span><SelectField value={categoryFilter} onChange={setCategoryFilter} ariaLabel="Filtrar por categoría" options={[{value:'all',label:'Todas las categorías'},...categoryOptions]}/></label>
@@ -239,40 +237,41 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
           <label className="filterField"><span>Situación</span><SelectField value={scope} onChange={value=>setScope(value as ProductScope)} ariaLabel="Filtrar productos" options={[{value:'all',label:'Todos los productos'},{value:'with_sale',label:'Con precio de venta'},{value:'without_sale',label:'Sin precio de venta'},{value:'missing_cost',label:'Sin coste de compra'},{value:'negative_margin',label:`Margen bajo (< ${marginAlertThreshold.toLocaleString('es-ES')} %)`},{value:'cost_up',label:`Subida coste (≥ ${costIncreaseThreshold.toLocaleString('es-ES')} %)`},{value:'cost_down',label:'Coste a la baja'}]}/></label>
         </div>
         <span className="filterResultCount">{shown.length} producto{shown.length===1?'':'s'} · {selectedPeriod}</span>
-      </div>
+      </FilterBar>
+<SelectionReview selected={selectedProducts} visibleIds={new Set(shown.map(item=>item.id))} onRemove={id=>toggleProduct(id,false)} onClear={()=>setCheckedIds(new Set())}/>
 
-      {shown.length>0&&(
-        <BulkSelectionToolbar selectedCount={selectedProducts.length} totalCount={shown.length} allSelected={allShownSelected} onToggleAll={toggleAllProducts} label="productos">
+      {(shown.length>0||selectedProducts.length>0)&&(
+        <BulkSelectionToolbar indeterminate={shown.some(item=>checkedIds.has(item.id))&&!allShownSelected} scopeLabel="los filtros" countLabel={`${selectedProducts.length} seleccionados · ${shown.length} en los filtros`} alwaysVisible={selectedProducts.length>0} selectedCount={selectedProducts.length} totalCount={shown.length} allSelected={allShownSelected} onToggleAll={toggleAllProducts} label="productos">
           <button className="secondary dangerText" type="button" disabled={!selectedProducts.length||bulkBusy} onClick={()=>void removeSelected()}>
             <Trash2 size={15}/> {bulkBusy?'Eliminando…':`Eliminar seleccionados (${selectedProducts.length})`}
           </button>
         </BulkSelectionToolbar>
       )}
 
-      <section className="card tableCard masterTableCard">
+      <DataTable label="Lista de productos">
         {shown.length?(
           <table className="masterTable" data-preference-table="products">
-            <thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allShownSelected} onChange={toggleAllProducts} label={allShownSelected?'Deseleccionar productos visibles':'Seleccionar productos visibles'}/></th>{columns.map(columnHeader)}<th></th></tr></thead>
+            <thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allShownSelected} indeterminate={shown.some(item=>checkedIds.has(item.id))&&!allShownSelected} onChange={toggleAllProducts} label={allShownSelected?'Deseleccionar productos visibles':'Seleccionar productos visibles'}/></th>{columns.map(columnHeader)}<th></th></tr></thead>
             <tbody>{paged.map(p=>{const extra=salesMap.get(p.id);return <tr key={p.id} className={`clickableRow ${checkedIds.has(p.id)?'bulkSelectedRow':''}`} onClick={()=>setSelected(p)}>
                 <td className="bulkSelectionCell" onClick={e=>e.stopPropagation()}><BulkSelectCheckbox checked={checkedIds.has(p.id)} onChange={checked=>toggleProduct(p.id,checked)} label={`Seleccionar ${p.name}`}/></td>
                 {columns.map(key=>columnCell(key,p,extra))}
-                <td className="right"><ChevronRight size={17}/></td>
+                <td className="right"><RowActions onEdit={()=>edit(p)} onDelete={()=>void remove(p)} disabled={busyId===p.id}/></td>
               </tr>})}</tbody>
           </table>
         ):<div className="emptyState large">No hay productos para los filtros seleccionados.</div>}
-      </section>
+      </DataTable>
 
       {shown.length>0&&(
-        <div className="masterMobileList">
-          {paged.map(p=>{const extra=salesMap.get(p.id);const metric=productMetrics(p,extra);return <div className={`bulkMobileSelectableRow ${checkedIds.has(p.id)?'selected':''}`} key={p.id}>
+        <MobileList label="Lista móvil de productos">
+          {paged.map(p=>{const extra=salesMap.get(p.id);const metric=productMetrics(p,extra);return <div role="listitem" className={`bulkMobileSelectableRow ${checkedIds.has(p.id)?'selected':''}`} key={p.id}>
               <BulkSelectCheckbox checked={checkedIds.has(p.id)} onChange={checked=>toggleProduct(p.id,checked)} label={`Seleccionar ${p.name}`}/>
               <button className="card masterMobileRow" onClick={()=>setSelected(p)}>
                 <div className="masterEntityCell"><div className="masterAvatar"><Package size={17}/></div><div><strong>{p.name}</strong><small>{p.sku||extra?.ean||'Sin SKU / EAN'} · {p.category||'Sin categoría'} · Última compra {dateLabel(p.lastPurchaseDate)}</small></div></div>
                 <div className="masterMobileAmounts"><span>Coste <strong>{money(metric.cost,metric.cost!=null&&metric.cost<1?3:2)}</strong></span><span>P. venta <strong>{money(metric.sale)}</strong></span><span>Margen <strong>{metric.marginPct==null?'—':`${metric.marginPct.toFixed(1)} %`}</strong></span></div>
                 <ChevronRight size={18}/>
-              </button>
+              </button><RowActions onEdit={()=>edit(p)} onDelete={()=>void remove(p)} disabled={busyId===p.id}/>
             </div>})}
-        </div>
+        </MobileList>
       )}
 
       {shown.length>0&&<Pagination page={page} totalItems={shown.length} pageSize={pageSize} onPageChange={setPage}/>}

@@ -105,6 +105,7 @@ function enhanceExpenseDesktopEdit(){
 
 function enhanceMasterDesktopActions(){
   document.querySelectorAll<HTMLTableElement>('.masterTableCard table.masterTable').forEach(table=>{
+    if(table.closest('[data-native-list]'))return;
     const rows=Array.from(table.querySelectorAll<HTMLTableRowElement>('tbody > tr.clickableRow'));
     rows.forEach(row=>{
       const lastCell=row.lastElementChild instanceof HTMLTableCellElement?row.lastElementChild:null;
@@ -124,7 +125,7 @@ function enhanceMasterDesktopActions(){
 function enhanceMasterMobileActions(){
   document.querySelectorAll<HTMLElement>('.masterPage').forEach(page=>{
     const rows=Array.from(page.querySelectorAll<HTMLTableRowElement>('.masterTableCard table.masterTable tbody > tr.clickableRow'));
-    const cards=Array.from(page.querySelectorAll<HTMLElement>('.masterMobileList > .masterMobileRow'));
+    const cards=Array.from(page.querySelectorAll<HTMLElement>('.masterMobileList:not([data-native-list]) > .masterMobileRow'));
     cards.forEach((card,index)=>{
       if(card.nextElementSibling?.classList.contains(MASTER_MOBILE_ACTIONS))return;
       const row=rows[index];
@@ -148,6 +149,7 @@ function enhanceMasterMobileActions(){
 }
 
 function shouldSkipTable(table:HTMLTableElement){
+  if(table.closest('[data-native-list]'))return true;
   if(table.closest('.masterTableCard'))return true;
   if(table.classList.contains('ordersTable')||table.closest('.ordersPage'))return true;
   if(table.classList.contains('detailLines')||table.closest('.detailLinesWrap'))return true;

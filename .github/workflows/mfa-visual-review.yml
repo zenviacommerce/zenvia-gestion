@@ -44,6 +44,21 @@ jobs:
         run: |
           node scripts/design-phase2-screenshots.mjs before
           node scripts/design-phase2-screenshots.mjs after
+      - name: Verify native master lists and retained selection
+        run: |
+          node scripts/design-phase3-masters-screenshots.mjs before
+          node scripts/design-phase3-masters-screenshots.mjs after
+          DESIGN_BASELINE=ed63ce7aecff7c7a296b5fface372f89ee4b8bf7 DESIGN_OUTPUT=docs/deploy/design-phase3-kpi-review-20261020 DESIGN_WIDTHS=1568,1920 node scripts/design-phase2-screenshots.mjs before
+          DESIGN_BASELINE=ed63ce7aecff7c7a296b5fface372f89ee4b8bf7 DESIGN_OUTPUT=docs/deploy/design-phase3-kpi-review-20261020 DESIGN_WIDTHS=1568,1920 node scripts/design-phase2-screenshots.mjs after
+      - name: Upload native master list review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: design-phase3-masters-review
+          path: |
+            docs/deploy/design-phase3-masters-20261020/
+            docs/deploy/design-phase3-kpi-review-20261020/
+          if-no-files-found: error
       - name: Upload finance phase 2 review
         if: always()
         uses: actions/upload-artifact@v4

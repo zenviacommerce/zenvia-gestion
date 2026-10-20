@@ -1,3 +1,9 @@
+import {PageHeader} from '../components/PageHeader';
+import {KpiGrid} from '../components/KpiGrid';
+import {FilterBar} from '../components/FilterBar';
+import {DataTable,MobileList} from '../components/DataTable';
+import {RowActions} from '../components/RowActions';
+import {useListSelection,toggleListScope,SelectionReview} from '../components/ListSelection';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Building2, CalendarDays, Calculator, ChevronRight, CircleDollarSign, FileText, Mail, MapPin, Pencil, Phone, Search, Trash2, UserRound, WalletCards, X } from 'lucide-react';
 import { addClient, deleteClient, loadClients, loadSalesInvoices, updateClient, type Client, type ClientInput, type SalesInvoice } from '../services/sales';
@@ -150,7 +156,7 @@ export function Clients(){
   const [modal,setModal]=useState(false);
   const [error,setError]=useState('');
   const [busyId,setBusyId]=useState<string|null>(null);
-  const [checkedIds,setCheckedIds]=useState<Set<string>>(()=>new Set());
+  const [checkedIds,setCheckedIds]=useListSelection(clients);
   const [bulkBusy,setBulkBusy]=useState(false);
   const [page,setPage]=useState(1);
 
@@ -187,10 +193,10 @@ export function Clients(){
     if(balanceFilter==='inactive'&&metric.count>0)return false;
     return matchesQuery;
   })},[clients,metrics,query,countryFilter,balanceFilter]);
-  const selectedClients=filtered.filter(client=>checkedIds.has(client.id));
+  const selectedClients=clients.filter(client=>checkedIds.has(client.id));
   const allFilteredSelected=filtered.length>0&&filtered.every(client=>checkedIds.has(client.id));
   const toggleClient=(id:string,checked:boolean)=>setCheckedIds(current=>{const next=new Set(current);if(checked)next.add(id);else next.delete(id);return next;});
-  const toggleAllClients=(checked:boolean)=>setCheckedIds(checked?new Set(filtered.map(client=>client.id)):new Set());
+  const toggleAllClients=(checked:boolean)=>setCheckedIds(current=>toggleListScope(current,filtered,checked));
   const sorting=useSortableTable('clients',filtered,{
     client:client=>client.name,
     taxId:client=>client.taxId||'',
@@ -203,7 +209,7 @@ export function Clients(){
   const sorted=sorting.rows;
   const totalPages=Math.max(1,Math.ceil(sorted.length/pageSize));
   const paged=useMemo(()=>sorted.slice((page-1)*pageSize,page*pageSize),[sorted,page,pageSize]);
-  useEffect(()=>{setPage(1);setCheckedIds(new Set())},[query,balanceFilter,countryFilter,dateFilter]);
+  useEffect(()=>{setPage(1)},[query,balanceFilter,countryFilter,dateFilter]);
   useEffect(()=>{const timer=window.setTimeout(()=>{void persistRememberedFilter(preferences,patchPreferences,'clients.filters',{query,dateFilter,balanceFilter,countryFilter})},350);return()=>window.clearTimeout(timer)},[query,dateFilter,balanceFilter,countryFilter,preferences.rememberFilters]);
   useEffect(()=>{setPage(current=>Math.min(current,totalPages))},[totalPages]);
 
@@ -226,7 +232,7 @@ export function Clients(){
   };
   const removeSelected=async()=>{
     if(!selectedClients.length)return;
-    const confirmed=await confirmAction({title:`Eliminar ${selectedClients.length} cliente${selectedClients.length===1?'':'s'}`,message:'Se intentarán eliminar los clientes seleccionados.',confirmLabel:'Eliminar seleccionados',tone:'danger',details:['Los clientes con facturas asociadas se conservarán y se indicará el motivo.']});
+    const confirmed=await confirmAction({title:`Eliminar ${selectedClients.length} cliente${selectedClients.length===1?'':'s'}`,message:'Se intentarán eliminar los clientes seleccionados.',confirmLabel:'Eliminar seleccionados',tone:'danger',details:[...selectedClients.map(item=>item.name),'Los clientes con facturas asociadas se conservarán y se indicará el motivo.']});
     if(!confirmed)return;
     setBulkBusy(true);setError('');
     const process=openActionProcess({title:'Eliminando clientes',description:'El resultado permanecerá visible al terminar.',items:selectedClients.map(client=>({id:client.id,label:client.name}))});
@@ -244,10 +250,10 @@ export function Clients(){
   const columnHeader=(key:string)=>{
     const labels:Record<string,string>={client:'Cliente',taxId:'CIF/NIF',country:'País',contact:'Contacto',invoiced:'Facturado',pending:'Pendiente',lastInvoice:'Última factura'};
     const label=labels[key];if(!label)return null;
-    return <SortableTableHeader key={key} label={label} sortKey={key} activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className={key==='invoiced'||key==='pending'?'right':''}/>;
+    return <SortableTableHeader key={key} label={label} sortKey={key} activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className={[key==='client'?'dsIdentityCell':'',(key==='invoiced'||key==='pending'?'right':'')].filter(Boolean).join(' ')}/>;
   };
   const columnCell=(key:string,client:Client,metric:ClientMetric)=>{
-    if(key==='client')return <td key={key}><div className="masterEntityCell"><div className="masterAvatar"><UserRound size={17}/></div><div><strong>{client.name}</strong><small>{client.city||'Sin ciudad'}</small></div></div></td>;
+    if(key==='client')return <td key={key} className="dsIdentityCell"><div className="masterEntityCell"><div className="masterAvatar"><UserRound size={17}/></div><div><strong>{client.name}</strong><small>{client.city||'Sin ciudad'}</small></div></div></td>;
     if(key==='taxId')return <td key={key}>{client.taxId||<span className="muted">Pendiente</span>}</td>;
     if(key==='country')return <td key={key}><span className="masterCountry">{client.countryCode&&client.countryCode!=='XX'?client.countryCode:'Pendiente'}</span></td>;
     if(key==='contact')return <td key={key}><div className="masterContactCell"><span>{client.email||'—'}</span><small>{client.phone||''}</small></div></td>;
@@ -257,30 +263,31 @@ export function Clients(){
     return null;
   };
 
-  return <div className="page masterPage">
-    <div className="pageHead"><div><div className="eyebrow">VENTAS · {selectedPeriod}</div><h1>Clientes</h1><p>Directorio comercial, facturación y situación de cobro por periodo.</p></div><button className="primary" onClick={openNew}>+ Cliente</button></div>
-    <PeriodFilterPanel filter={dateFilter} onChange={setDateFilter} title="Periodo comercial"/>
-    <div className="stats masterStats normalizedKpiStats">
+  return <div className="page masterPage designSystemPage masterDesignPage">
+    <PageHeader title="Clientes" eyebrow={<>VENTAS · {selectedPeriod}</>} description="Directorio comercial, facturación y situación de cobro por periodo." actions={<button className="primary" onClick={openNew}>+ Cliente</button>}/>
+      <PeriodFilterPanel filter={dateFilter} onChange={setDateFilter} title="Periodo comercial"/>
+    <KpiGrid label="Indicadores de clientes">
       <StatCard label="Clientes con actividad" value={String(totals.active)} sub={`de ${filtered.length} visibles · ${selectedPeriod}`} icon={<UserRound/>}/>
       <StatCard label="Facturado" value={money(totals.invoiced)} sub={selectedPeriod} icon={<CircleDollarSign/>}/>
       <StatCard label="Pendiente de cobro" value={money(totals.pending)} sub={selectedPeriod} icon={<WalletCards/>}/>
       <StatCard label="Facturas emitidas" value={String(totals.invoiceCount)} sub={selectedPeriod} icon={<FileText/>}/>
       <StatCard label="Ticket medio" value={money(totals.average)} sub="Media por factura emitida" icon={<Calculator/>}/>
-    </div>
-    <div className="businessFilterBar">
+    </KpiGrid>
+    <FilterBar label="Filtros de clientes" className="businessFilterBar">
       <div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar cliente, CIF, email, teléfono o ciudad…"/></div>
       <div className="businessFilterFields">
         <label className="filterField"><span>País</span><SelectField value={countryFilter} onChange={setCountryFilter} ariaLabel="Filtrar clientes por país" options={[{value:'all',label:'Todos los países'},...countryOptions]}/></label>
         <label className="filterField"><span>Situación</span><SelectField value={balanceFilter} onChange={value=>setBalanceFilter(value as ClientBalanceFilter)} ariaLabel="Filtrar clientes por situación" options={[{value:'all',label:'Todos los clientes'},{value:'pending',label:'Con saldo pendiente'},{value:'settled',label:'Sin saldo pendiente'},{value:'active',label:'Con actividad en el periodo'},{value:'inactive',label:'Sin actividad en el periodo'}]}/></label>
       </div>
       <span className="filterResultCount">{filtered.length} cliente{filtered.length===1?'':'s'} · {selectedPeriod}</span>
-    </div>
-    {filtered.length>0&&<BulkSelectionToolbar selectedCount={selectedClients.length} totalCount={filtered.length} allSelected={allFilteredSelected} onToggleAll={toggleAllClients} label="clientes">
+    </FilterBar>
+<SelectionReview selected={selectedClients} visibleIds={new Set(filtered.map(item=>item.id))} onRemove={id=>toggleClient(id,false)} onClear={()=>setCheckedIds(new Set())}/>
+    {(filtered.length>0||selectedClients.length>0)&&<BulkSelectionToolbar indeterminate={filtered.some(item=>checkedIds.has(item.id))&&!allFilteredSelected} scopeLabel="los filtros" countLabel={`${selectedClients.length} seleccionados · ${filtered.length} en los filtros`} alwaysVisible={selectedClients.length>0} selectedCount={selectedClients.length} totalCount={filtered.length} allSelected={allFilteredSelected} onToggleAll={toggleAllClients} label="clientes">
       <button className="secondary dangerText" type="button" disabled={!selectedClients.length||bulkBusy} onClick={()=>void removeSelected()}><Trash2 size={15}/> {bulkBusy?'Eliminando…':`Eliminar seleccionados (${selectedClients.length})`}</button>
     </BulkSelectionToolbar>}
     {error&&<div className="errorBox">{error}</div>}
-    <section className="card tableCard masterTableCard">{loading?<div className="emptyState large">Cargando clientes…</div>:filtered.length?<table className="masterTable" data-preference-table="clients"><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allFilteredSelected} onChange={toggleAllClients} label={allFilteredSelected?'Deseleccionar clientes visibles':'Seleccionar clientes visibles'}/></th>{columns.map(columnHeader)}<th></th></tr></thead><tbody>{paged.map(client=>{const metric=metrics.get(client.id)!;return <tr key={client.id} className={`clickableRow ${checkedIds.has(client.id)?'bulkSelectedRow':''}`} onClick={()=>setSelected(client)}><td className="bulkSelectionCell" onClick={e=>e.stopPropagation()}><BulkSelectCheckbox checked={checkedIds.has(client.id)} onChange={checked=>toggleClient(client.id,checked)} label={`Seleccionar ${client.name}`}/></td>{columns.map(key=>columnCell(key,client,metric))}<td className="right"><ChevronRight size={17}/></td></tr>})}</tbody></table>:<div className="emptyState large">No hay clientes para los filtros seleccionados.</div>}</section>
-    {!loading&&filtered.length>0&&<div className="masterMobileList">{paged.map(client=>{const metric=metrics.get(client.id)!;return <div className={`bulkMobileSelectableRow ${checkedIds.has(client.id)?'selected':''}`} key={client.id}><BulkSelectCheckbox checked={checkedIds.has(client.id)} onChange={checked=>toggleClient(client.id,checked)} label={`Seleccionar ${client.name}`}/><button className="card masterMobileRow" onClick={()=>setSelected(client)}><div className="masterEntityCell"><div className="masterAvatar"><UserRound size={17}/></div><div><strong>{client.name}</strong><small>{client.taxId||'CIF/NIF pendiente'} · {client.countryCode&&client.countryCode!=='XX'?client.countryCode:'Pendiente'}</small></div></div><div className="masterMobileAmounts"><span>Facturado <strong>{money(metric.invoiced)}</strong></span><span>Pendiente <strong className={metric.pending>0.005?'masterPending':''}>{money(metric.pending)}</strong></span></div><ChevronRight size={18}/></button></div>})}</div>}
+    <DataTable label="Lista de clientes">{loading?<div className="emptyState large">Cargando clientes…</div>:filtered.length?<table className="masterTable" data-preference-table="clients"><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allFilteredSelected} indeterminate={filtered.some(item=>checkedIds.has(item.id))&&!allFilteredSelected} onChange={toggleAllClients} label={allFilteredSelected?'Deseleccionar clientes visibles':'Seleccionar clientes visibles'}/></th>{columns.map(columnHeader)}<th></th></tr></thead><tbody>{paged.map(client=>{const metric=metrics.get(client.id)!;return <tr key={client.id} className={`clickableRow ${checkedIds.has(client.id)?'bulkSelectedRow':''}`} onClick={()=>setSelected(client)}><td className="bulkSelectionCell" onClick={e=>e.stopPropagation()}><BulkSelectCheckbox checked={checkedIds.has(client.id)} onChange={checked=>toggleClient(client.id,checked)} label={`Seleccionar ${client.name}`}/></td>{columns.map(key=>columnCell(key,client,metric))}<td className="right"><RowActions onEdit={()=>openEdit(client)} onDelete={()=>void remove(client)} disabled={busyId===client.id}/></td></tr>})}</tbody></table>:<div className="emptyState large">No hay clientes para los filtros seleccionados.</div>}</DataTable>
+    {!loading&&filtered.length>0&&<MobileList label="Lista móvil de clientes">{paged.map(client=>{const metric=metrics.get(client.id)!;return <div role="listitem" className={`bulkMobileSelectableRow ${checkedIds.has(client.id)?'selected':''}`} key={client.id}><BulkSelectCheckbox checked={checkedIds.has(client.id)} onChange={checked=>toggleClient(client.id,checked)} label={`Seleccionar ${client.name}`}/><button className="card masterMobileRow" onClick={()=>setSelected(client)}><div className="masterEntityCell"><div className="masterAvatar"><UserRound size={17}/></div><div><strong>{client.name}</strong><small>{client.taxId||'CIF/NIF pendiente'} · {client.countryCode&&client.countryCode!=='XX'?client.countryCode:'Pendiente'}</small></div></div><div className="masterMobileAmounts"><span>Facturado <strong>{money(metric.invoiced)}</strong></span><span>Pendiente <strong className={metric.pending>0.005?'masterPending':''}>{money(metric.pending)}</strong></span></div><ChevronRight size={18}/></button><RowActions onEdit={()=>openEdit(client)} onDelete={()=>void remove(client)} disabled={busyId===client.id}/></div>})}</MobileList>}
     {!loading&&filtered.length>0&&<Pagination page={page} totalItems={filtered.length} pageSize={pageSize} onPageChange={setPage}/>}
     <ClientModal open={modal} client={editing} onClose={()=>{setModal(false);setEditing(null)}} onSaved={refresh}/>
     {selected&&<ClientDrawer client={selected} metric={metrics.get(selected.id)||{invoiced:0,pending:0,count:0,lastDate:null,recent:[]}} period={selectedPeriod} onClose={()=>setSelected(null)} onEdit={()=>openEdit(selected)} onDelete={()=>remove(selected)} busy={busyId===selected.id}/>} 

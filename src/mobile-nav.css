@@ -205,8 +205,10 @@
 
   main{min-width:0!important}
 
-  .page{
+  .page:not(.financeDesignPage){
     padding-top:calc(80px + env(safe-area-inset-top))!important;
+  }
+  .page{
     padding-bottom:max(42px,env(safe-area-inset-bottom))!important;
   }
 

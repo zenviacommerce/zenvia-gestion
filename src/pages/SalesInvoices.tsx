@@ -1,3 +1,4 @@
+import {PageTabs} from '../components/PageTabs';
 import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -65,7 +66,7 @@ export function SalesInvoices(){
   useEntityRefresh(['clients'],async()=>{try{setClients(await loadClients())}catch(e){showError(errorMessage(e,'No se pudieron actualizar los clientes.'))}});
   useEffect(()=>{void refreshTools();},[refreshTools]);
   useEffect(()=>{
-    const frame=window.requestAnimationFrame(()=>setHeaderActionsHost(document.querySelector<HTMLElement>('.salesInvoicesTransferHost .pageHead .actions')));
+    const frame=window.requestAnimationFrame(()=>setHeaderActionsHost(document.querySelector<HTMLElement>('.salesInvoicesTransferHost .dsPageHeaderActions, .salesInvoicesTransferHost .pageHead .actions')));
     return()=>window.cancelAnimationFrame(frame);
   },[epoch,section]);
 
@@ -155,10 +156,7 @@ export function SalesInvoices(){
   const exportLabel=selectedInvoiceIds.length?`Exportar seleccionadas (${selectedInvoiceIds.length})`:`Exportar (${listFilteredCount})`;
 
   return <div className="salesBillingHub">
-    <div className="expenseHubNavShell"><div className="expenseHubNav" role="tablist" aria-label="Facturación">
-      <button type="button" className={section==='invoices'?'active':''} onClick={()=>setSection('invoices')}><span className="expenseHubTabIcon"><FileText size={18}/></span><span className="expenseHubTabText"><strong>Facturas</strong><small>Emitidas, cobros y rectificativas</small></span></button>
-      <button type="button" className={section==='receipts'?'active':''} onClick={()=>setSection('receipts')}><span className="expenseHubTabIcon"><ReceiptText size={18}/></span><span className="expenseHubTabText"><strong>Recibos</strong><small>Pendiente de facturar</small></span></button>
-    </div></div>
+    <div className="expenseHubNavShell"><PageTabs label="Facturación" value={section} onChange={setSection} items={[{id:'invoices',label:'Facturas',description:'Emitidas, cobros y rectificativas',icon:<FileText size={18}/>},{id:'receipts',label:'Recibos',description:'Pendiente de facturar',icon:<ReceiptText size={18}/>}]} /></div>
     {section==='receipts'?<SalesReceipts/>:<>
     <div className="salesInvoicesTransferHost"><SalesInvoicesCore key={epoch} selectedIds={selectedInvoiceIds} onSelectedIdsChange={setSelectedInvoiceIds} onExportSelected={ids=>void openSelectedExport(ids)} onFiltersChange={setListFilters}/></div>
     {headerActionsHost&&createPortal(<>

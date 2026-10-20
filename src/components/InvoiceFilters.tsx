@@ -1,3 +1,4 @@
+import {FilterBar} from './FilterBar';
 import { RotateCcw } from 'lucide-react';
 import type { ExpenseCategory, Invoice, Supplier } from '../types';
 import { dateFilterForPreset, filterForPreset, quarterOptions, type InvoiceFilter, type PeriodPreset } from '../services/filters';
@@ -49,7 +50,7 @@ export function InvoiceFilters({
 
   return <>
     <PeriodFilterPanel filter={filter} onChange={next=>onChange({...filter,...next,supplierId:showSupplier?filter.supplierId:''})} title="Periodo de gastos"/>
-    <section className={`invoiceFilterPanel card${showSupplier?'':' noSupplier'}`}>
+    <FilterBar label="Filtros de gastos" className={`invoiceFilterPanel card${showSupplier?'':' noSupplier'}`}>
     <div className="filterGrid">
       <label>Periodo
         <SelectField value={filter.preset} options={periodOptions} onChange={value=>selectPreset(value as PeriodPreset)} ariaLabel="Periodo de facturas"/>
@@ -81,5 +82,5 @@ export function InvoiceFilters({
         <RotateCcw size={15}/> Restablecer
       </button>
     </div>
-  </section></>;
+  </FilterBar></>;
 }

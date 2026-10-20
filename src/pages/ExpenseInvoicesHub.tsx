@@ -1,3 +1,4 @@
+import {PageTabs} from '../components/PageTabs';
 import {RetainedImportPage} from '../components/RetainedImportPage';
 import { useState } from 'react';
 import { FileText, Mail } from 'lucide-react';
@@ -9,16 +10,7 @@ export function ExpenseInvoicesHub({invoices,suppliers,categories,onUpload,onBul
  const [tab,setTab]=useState<'invoices'|'gmail'>('invoices');
  return <div className="expenseInvoicesHub">
    <div className="expenseHubNavShell">
-     <div className="expenseHubNav" role="tablist" aria-label="Facturas de gasto">
-       <button role="tab" aria-selected={tab==='invoices'} className={tab==='invoices'?'active':''} onClick={()=>setTab('invoices')}>
-         <span className="expenseHubTabIcon"><FileText size={18}/></span>
-         <span className="expenseHubTabText"><strong>Facturas de gasto</strong><small>Histórico, filtros y exportación</small></span>
-       </button>
-       <button role="tab" aria-selected={tab==='gmail'} className={tab==='gmail'?'active':''} onClick={()=>setTab('gmail')}>
-         <span className="expenseHubTabIcon"><Mail size={18}/></span>
-         <span className="expenseHubTabText"><strong>Importar desde Gmail</strong><small>Buscar y añadir facturas recibidas</small></span>
-       </button>
-     </div>
+     <PageTabs label="Facturas de gasto" value={tab} onChange={setTab} items={[{id:'invoices',label:'Facturas de gasto',description:'Histórico, filtros y exportación',icon:<FileText size={18}/>},{id:'gmail',label:'Importar desde Gmail',description:'Buscar y añadir facturas recibidas',icon:<Mail size={18}/>}]} />
    </div>
    <RetainedImportPage active={tab==='invoices'}><Invoices invoices={invoices} suppliers={suppliers} categories={categories} onUpload={onUpload} onBulkUpload={onBulkUpload} onStatusChange={onStatusChange} onPaymentStatusChange={onPaymentStatusChange} onBulkPaymentStatusChange={onBulkPaymentStatusChange} onOpenFile={onOpenFile} onDelete={onDelete} onSupplierChange={onSupplierChange} onCategoryChange={onCategoryChange}/></RetainedImportPage><RetainedImportPage active={tab==='gmail'}><GmailPage categories={categories} onImported={onImported} onManageAccounts={onManageAccounts} canManageAccounts={canManageAccounts}/></RetainedImportPage>
  </div>

@@ -384,7 +384,7 @@ html[data-theme='dark'] .aiNote.done{
   .expenseHubNavShell{
     padding:calc(92px + env(safe-area-inset-top)) 15px 0!important;
   }
-  .expenseHubNav{
+  .expenseHubNav:not(.dsPageTabs){
     display:flex!important;
     width:100%;
     max-width:100%;
@@ -392,7 +392,7 @@ html[data-theme='dark'] .aiNote.done{
     -webkit-overflow-scrolling:touch;
     overscroll-behavior-x:contain;
   }
-  .expenseHubNav button{
+  .expenseHubNav:not(.dsPageTabs) button{
     flex:1 0 220px;
   }
   .expenseInvoicesHub>.page{

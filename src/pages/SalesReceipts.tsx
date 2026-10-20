@@ -1,3 +1,6 @@
+import {PageHeader} from '../components/PageHeader';
+import {KpiGrid} from '../components/KpiGrid';
+import {FilterBar} from '../components/FilterBar';
 import {useClientOptions} from '../hooks/useClientOptions';
 import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import { useCallback, useEffect, useMemo, useState } from 'react';
@@ -335,24 +338,24 @@ export function SalesReceipts(){
     finally{setBusy(false)}
   };
 
-  return <div className="page salesReceiptsPage">
-    <div className="pageHead"><div><div className="eyebrow">VENTAS · RECIBOS</div><h1>Recibos</h1><p>Controla lo que se lleva cada cliente, registra sus cobros y prepara después facturas a partir de uno o varios recibos.</p></div><div className="actions pageHeadActions"><button className="secondary" disabled={!selectedRows.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={17}/> Facturar seleccionados{selectedRows.length?` (${selectedRows.length})`:''}</button><button className="primary" onClick={openNew}><Plus size={17}/> Nuevo recibo</button></div></div>
-    <div className="stats salesStats normalizedKpiStats">
+  return <div className="page salesReceiptsPage designSystemPage financeDesignPage">
+    <PageHeader title="Recibos" eyebrow="VENTAS · RECIBOS" description="Controla lo que se lleva cada cliente, registra sus cobros y prepara después facturas a partir de uno o varios recibos." actions={<><button className="secondary" disabled={!selectedRows.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={17}/> Facturar seleccionados{selectedRows.length?` (${selectedRows.length})`:''}</button><button className="primary" onClick={openNew}><Plus size={17}/> Nuevo recibo</button></>}/>
+    <KpiGrid label="Indicadores de recibos" dense>
       <StatCard label="Pendiente de cobro" value={money(pendingTotal)} sub={periodLabel(dateFilter)} icon={<ReceiptText/>}/>
       <StatCard label="Cobrado" value={money(collectedTotal)} sub={periodLabel(dateFilter)} icon={<Banknote/>}/>
       <StatCard label="Recibos pendientes" value={String(openReceipts.length)} sub="Con saldo por cobrar" icon={<ReceiptText/>}/>
       <StatCard label="Recibos cobrados" value={String(shown.filter(receipt=>collectionStatus(receipt)==='paid').length)} sub="Saldo completamente cobrado" icon={<CheckCircle2/>}/>
-    </div>
+    </KpiGrid>
     <div className="salesReceiptNotice"><strong>Recibos y facturas son independientes:</strong> cobrar un recibo no lo factura y generar una factura desde varios recibos no los vincula ni altera su estado. El IVA solo se aplica en la factura.</div>
     <PeriodFilterPanel filter={dateFilter} onChange={setDateFilter} title="Periodo de recibos"/>
-    <div className="toolbar salesToolbar businessFilterBar">
+    <FilterBar label="Filtros de recibos" className="toolbar salesToolbar businessFilterBar">
       <div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar recibo o cliente…"/></div>
       <div className="businessFilterFields">
         <label className="filterField"><span>Cliente</span><SearchableSelect value={clientId==='all'?'':clientId} options={clientOptions} onChange={value=>setClientId(value||'all')} allowEmpty emptyLabel="Todos los clientes" searchPlaceholder="Buscar cliente…" ariaLabel="Filtrar recibos por cliente"/></label>
         <label className="filterField"><span>País</span><SelectField value={country} onChange={setCountry} ariaLabel="Filtrar recibos por país" options={[{value:'all',label:'Todos los países'},...countryOptions]}/></label>
         <label className="filterField"><span>Cobro</span><SelectField value={status} onChange={value=>setStatus(value as typeof status)} ariaLabel="Estado de cobro de recibos" options={[{value:'open',label:'Pendientes de cobro'},{value:'partial',label:'Cobro parcial'},{value:'paid',label:'Cobrados'},{value:'all',label:'Todos'}]}/></label>
       </div>
-    </div>
+    </FilterBar>
     {shown.length>0&&<BulkSelectionToolbar selectedCount={selectedRows.length} totalCount={shown.length} allSelected={allVisibleSelected} onToggleAll={toggleAllVisible} label="recibos visibles">
       <button className="secondary" type="button" disabled={!collectableSelected.length||busy} onClick={()=>setBulkPaymentReceipts(collectableSelected)}><Banknote size={15}/> Cobrar seleccionados ({collectableSelected.length})</button>
       <button className="primary" type="button" disabled={!selectedRows.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={15}/> Facturar seleccionados ({selectedRows.length})</button>

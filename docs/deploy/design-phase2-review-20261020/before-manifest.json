@@ -1,0 +1,1706 @@
+{
+  "baseline": "aa8677ddf09a4b64be74a80ff8df26fe762405bc",
+  "synthetic": true,
+  "networkBlocked": true,
+  "locale": "es-ES",
+  "checks": [
+    {
+      "screen": "billing",
+      "width": 390,
+      "tabOverflow": true,
+      "tabs": [
+        "FacturasEmitidas, cobros y rectificativas",
+        "RecibosPendiente de facturar"
+      ],
+      "tabRoles": 0,
+      "firstList": {
+        "x": 15,
+        "y": 2448.1875,
+        "width": 360,
+        "height": 216
+      },
+      "firstListScreens": 2.4481875,
+      "cards": [
+        {
+          "text": "Facturado3872,00 €Todo el histórico",
+          "x": 15,
+          "y": 981,
+          "width": 360,
+          "height": 85,
+          "overflow": false
+        },
+        {
+          "text": "IVA repercutido672,00 €Todo el histórico",
+          "x": 15,
+          "y": 1076,
+          "width": 360,
+          "height": 85,
+          "overflow": false
+        },
+        {
+          "text": "Cobrado640,00 €Todo el histórico",
+          "x": 15,
+          "y": 1171,
+          "width": 360,
+          "height": 85,
+          "overflow": false
+        },
+        {
+          "text": "Pendiente de cobro3232,00 €Facturas ordinarias vivas",
+          "x": 15,
+          "y": 1266,
+          "width": 360,
+          "height": 85,
+          "overflow": false
+        },
+        {
+          "text": "Facturas emitidas32Todo el histórico",
+          "x": 15,
+          "y": 1361,
+          "width": 360,
+          "height": 85,
+          "overflow": false
+        },
+        {
+          "text": "Borradores0Pendientes de emitir",
+          "x": 15,
+          "y": 1456,
+          "width": 360,
+          "height": 85,
+          "overflow": false
+        },
+        {
+          "text": "Ticket medio121,00 €Sobre facturas emitidas",
+          "x": 15,
+          "y": 1551,
+          "width": 360,
+          "height": 85,
+          "overflow": false
+        }
+      ],
+      "columns": [
+        "360px"
+      ],
+      "documentOverflow": false,
+      "controls": [
+        {
+          "text": " Series",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Datos fiscales",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "+ Nueva factura",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Exportar (32)",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Importar facturas",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Selecciona…",
+          "label": "Filtrar por cliente",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los países",
+          "label": "Filtrar facturas por país",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los estados",
+          "label": "Estado de factura",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todas",
+          "label": "Filtrar por situación de cobro",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Limpiar filtros",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "headerActions": [
+        " Series",
+        " Datos fiscales",
+        "+ Nueva factura",
+        " Exportar (32)",
+        " Importar facturas"
+      ],
+      "selectionAfterFilter": {
+        "label": "Seleccionar DEMO-F001",
+        "checked": false
+      },
+      "failures": []
+    },
+    {
+      "screen": "billing",
+      "width": 1280,
+      "tabOverflow": false,
+      "tabs": [
+        "FacturasEmitidas, cobros y rectificativas",
+        "RecibosPendiente de facturar"
+      ],
+      "tabRoles": 0,
+      "firstList": {
+        "x": 287,
+        "y": 1135.5,
+        "width": 1383.796875,
+        "height": 87.78125
+      },
+      "firstListScreens": 1.1355,
+      "cards": [
+        {
+          "text": "Facturado3872,00 €Todo el histórico",
+          "x": 286,
+          "y": 421,
+          "width": 227.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "IVA repercutido672,00 €Todo el histórico",
+          "x": 528.75,
+          "y": 421,
+          "width": 227.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Cobrado640,00 €Todo el histórico",
+          "x": 771.5,
+          "y": 421,
+          "width": 227.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Pendiente de cobro3232,00 €Facturas ordinarias vivas",
+          "x": 1014.25,
+          "y": 421,
+          "width": 227.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Facturas emitidas32Todo el histórico",
+          "x": 286,
+          "y": 545,
+          "width": 227.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Borradores0Pendientes de emitir",
+          "x": 528.75,
+          "y": 545,
+          "width": 227.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Ticket medio121,00 €Sobre facturas emitidas",
+          "x": 771.5,
+          "y": 545,
+          "width": 227.75,
+          "height": 109,
+          "overflow": false
+        }
+      ],
+      "columns": [
+        "227.75px 227.75px 227.75px 227.75px"
+      ],
+      "documentOverflow": false,
+      "controls": [
+        {
+          "text": " Series",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Datos fiscales",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "+ Nueva factura",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Exportar (32)",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Importar facturas",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Selecciona…",
+          "label": "Filtrar por cliente",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los países",
+          "label": "Filtrar facturas por país",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los estados",
+          "label": "Estado de factura",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todas",
+          "label": "Filtrar por situación de cobro",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Limpiar filtros",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "headerActions": [
+        " Series",
+        " Datos fiscales",
+        "+ Nueva factura",
+        " Exportar (32)",
+        " Importar facturas"
+      ],
+      "failures": []
+    },
+    {
+      "screen": "billing",
+      "width": 1440,
+      "tabOverflow": false,
+      "tabs": [
+        "FacturasEmitidas, cobros y rectificativas",
+        "RecibosPendiente de facturar"
+      ],
+      "tabRoles": 0,
+      "firstList": {
+        "x": 287,
+        "y": 1106.5,
+        "width": 1383.796875,
+        "height": 87.78125
+      },
+      "firstListScreens": 1.1065,
+      "cards": [
+        {
+          "text": "Facturado3872,00 €Todo el histórico",
+          "x": 286,
+          "y": 421,
+          "width": 211.1875,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "IVA repercutido672,00 €Todo el histórico",
+          "x": 512.1875,
+          "y": 421,
+          "width": 211.203125,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Cobrado640,00 €Todo el histórico",
+          "x": 738.390625,
+          "y": 421,
+          "width": 211.203125,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Pendiente de cobro3232,00 €Facturas ordinarias vivas",
+          "x": 964.59375,
+          "y": 421,
+          "width": 211.203125,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Facturas emitidas32Todo el histórico",
+          "x": 1190.796875,
+          "y": 421,
+          "width": 211.1875,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Borradores0Pendientes de emitir",
+          "x": 286,
+          "y": 545,
+          "width": 211.1875,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Ticket medio121,00 €Sobre facturas emitidas",
+          "x": 512.1875,
+          "y": 545,
+          "width": 211.203125,
+          "height": 109,
+          "overflow": false
+        }
+      ],
+      "columns": [
+        "211.188px 211.203px 211.203px 211.203px 211.188px"
+      ],
+      "documentOverflow": false,
+      "controls": [
+        {
+          "text": " Series",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Datos fiscales",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "+ Nueva factura",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Exportar (32)",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Importar facturas",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Selecciona…",
+          "label": "Filtrar por cliente",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los países",
+          "label": "Filtrar facturas por país",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los estados",
+          "label": "Estado de factura",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todas",
+          "label": "Filtrar por situación de cobro",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Limpiar filtros",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "headerActions": [
+        " Series",
+        " Datos fiscales",
+        "+ Nueva factura",
+        " Exportar (32)",
+        " Importar facturas"
+      ],
+      "failures": []
+    },
+    {
+      "screen": "expenses",
+      "width": 390,
+      "tabOverflow": false,
+      "tabs": [
+        "Facturas de gastoHistórico, filtros y exportación",
+        "Importar desde GmailBuscar y añadir facturas recibidas"
+      ],
+      "tabRoles": 2,
+      "firstList": {
+        "x": 15,
+        "y": 2293.1875,
+        "width": 360,
+        "height": 303.5
+      },
+      "firstListScreens": 2.2931875,
+      "cards": [
+        {
+          "text": "Gasto total19.753.086,24 € + 15.802.469,12 US$Todo el histórico",
+          "x": 15,
+          "y": 1483,
+          "width": 446.953125,
+          "height": 80,
+          "overflow": false
+        },
+        {
+          "text": "IVA soportado3.428.221,60 € + 2.742.577,28 US$Todo el histórico",
+          "x": 471.953125,
+          "y": 1483,
+          "width": 423.296875,
+          "height": 80,
+          "overflow": false
+        },
+        {
+          "text": "Nº de facturas32Todo el histórico",
+          "x": 15,
+          "y": 1573,
+          "width": 446.953125,
+          "height": 80,
+          "overflow": false
+        },
+        {
+          "text": "Pendientes de revisar3232 pendientes",
+          "x": 471.953125,
+          "y": 1573,
+          "width": 423.296875,
+          "height": 80,
+          "overflow": false
+        },
+        {
+          "text": "Pendiente de pago19.753.086,24 € + 15.802.469,12 US$32 facturas por pagar",
+          "x": 15,
+          "y": 1663,
+          "width": 446.953125,
+          "height": 80,
+          "overflow": false
+        },
+        {
+          "text": "Ticket medio—Varias monedas",
+          "x": 471.953125,
+          "y": 1663,
+          "width": 423.296875,
+          "height": 80,
+          "overflow": false
+        },
+        {
+          "text": "Proveedores distintos1Todo el histórico",
+          "x": 15,
+          "y": 1753,
+          "width": 446.953125,
+          "height": 80,
+          "overflow": false
+        }
+      ],
+      "columns": [
+        "446.953px 423.297px"
+      ],
+      "documentOverflow": false,
+      "controls": [
+        {
+          "text": " Exportar (32)",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Importar facturas de gasto",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "+ Añadir factura de gasto",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "Todo el histórico",
+          "label": "Periodo de facturas",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Selecciona…",
+          "label": "Filtrar por proveedor",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todas las categorías",
+          "label": "Filtrar por categoría",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los estados",
+          "label": "Filtrar por estado",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los pagos",
+          "label": "Filtrar por estado de pago",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los orígenes",
+          "label": "Filtrar por origen",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Restablecer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "headerActions": [
+        " Exportar (32)",
+        " Importar facturas de gasto",
+        "+ Añadir factura de gasto"
+      ],
+      "selectionAfterFilter": {
+        "label": "Seleccionar gasto DEMO-G001",
+        "checked": false
+      },
+      "failures": []
+    },
+    {
+      "screen": "expenses",
+      "width": 1280,
+      "tabOverflow": false,
+      "tabs": [
+        "Facturas de gastoHistórico, filtros y exportación",
+        "Importar desde GmailBuscar y añadir facturas recibidas"
+      ],
+      "tabRoles": 2,
+      "firstList": {
+        "x": 287,
+        "y": 1172.5,
+        "width": 1289.90625,
+        "height": 68.1875
+      },
+      "firstListScreens": 1.1725,
+      "cards": [
+        {
+          "text": "Gasto total19.753.086,24 € + 15.802.469,12 US$Todo el histórico",
+          "x": 286,
+          "y": 618,
+          "width": 542.34375,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "IVA soportado3.428.221,60 € + 2.742.577,28 US$Todo el histórico",
+          "x": 843.34375,
+          "y": 618,
+          "width": 513.125,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "Nº de facturas32Todo el histórico",
+          "x": 1371.46875,
+          "y": 618,
+          "width": 168.171875,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "Pendientes de revisar3232 pendientes",
+          "x": 1554.640625,
+          "y": 618,
+          "width": 160.875,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "Pendiente de pago19.753.086,24 € + 15.802.469,12 US$32 facturas por pagar",
+          "x": 286,
+          "y": 755,
+          "width": 542.34375,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "Ticket medio—Varias monedas",
+          "x": 843.34375,
+          "y": 755,
+          "width": 513.125,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "Proveedores distintos1Todo el histórico",
+          "x": 1371.46875,
+          "y": 755,
+          "width": 168.171875,
+          "height": 122,
+          "overflow": false
+        }
+      ],
+      "columns": [
+        "542.344px 513.125px 168.172px 160.875px"
+      ],
+      "documentOverflow": false,
+      "controls": [
+        {
+          "text": " Exportar (32)",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Importar facturas de gasto",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "+ Añadir factura de gasto",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "Todo el histórico",
+          "label": "Periodo de facturas",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Selecciona…",
+          "label": "Filtrar por proveedor",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todas las categorías",
+          "label": "Filtrar por categoría",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los estados",
+          "label": "Filtrar por estado",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los pagos",
+          "label": "Filtrar por estado de pago",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los orígenes",
+          "label": "Filtrar por origen",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Restablecer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "headerActions": [
+        " Exportar (32)",
+        " Importar facturas de gasto",
+        "+ Añadir factura de gasto"
+      ],
+      "failures": []
+    },
+    {
+      "screen": "expenses",
+      "width": 1440,
+      "tabOverflow": false,
+      "tabs": [
+        "Facturas de gastoHistórico, filtros y exportación",
+        "Importar desde GmailBuscar y añadir facturas recibidas"
+      ],
+      "tabRoles": 2,
+      "firstList": {
+        "x": 287,
+        "y": 1087.5,
+        "width": 1289.90625,
+        "height": 68.1875
+      },
+      "firstListScreens": 1.0875,
+      "cards": [
+        {
+          "text": "Gasto total19.753.086,24 € + 15.802.469,12 US$Todo el histórico",
+          "x": 286,
+          "y": 533,
+          "width": 542.34375,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "IVA soportado3.428.221,60 € + 2.742.577,28 US$Todo el histórico",
+          "x": 843.34375,
+          "y": 533,
+          "width": 513.125,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "Nº de facturas32Todo el histórico",
+          "x": 1371.46875,
+          "y": 533,
+          "width": 168.171875,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "Pendientes de revisar3232 pendientes",
+          "x": 1554.640625,
+          "y": 533,
+          "width": 160.875,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "Pendiente de pago19.753.086,24 € + 15.802.469,12 US$32 facturas por pagar",
+          "x": 286,
+          "y": 670,
+          "width": 542.34375,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "Ticket medio—Varias monedas",
+          "x": 843.34375,
+          "y": 670,
+          "width": 513.125,
+          "height": 122,
+          "overflow": false
+        },
+        {
+          "text": "Proveedores distintos1Todo el histórico",
+          "x": 1371.46875,
+          "y": 670,
+          "width": 168.171875,
+          "height": 122,
+          "overflow": false
+        }
+      ],
+      "columns": [
+        "542.344px 513.125px 168.172px 160.875px"
+      ],
+      "documentOverflow": false,
+      "controls": [
+        {
+          "text": " Exportar (32)",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": " Importar facturas de gasto",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "+ Añadir factura de gasto",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "Todo el histórico",
+          "label": "Periodo de facturas",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Selecciona…",
+          "label": "Filtrar por proveedor",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todas las categorías",
+          "label": "Filtrar por categoría",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los estados",
+          "label": "Filtrar por estado",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los pagos",
+          "label": "Filtrar por estado de pago",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los orígenes",
+          "label": "Filtrar por origen",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": " Restablecer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "headerActions": [
+        " Exportar (32)",
+        " Importar facturas de gasto",
+        "+ Añadir factura de gasto"
+      ],
+      "failures": []
+    },
+    {
+      "screen": "receipts",
+      "width": 390,
+      "tabOverflow": true,
+      "tabs": [
+        "FacturasEmitidas, cobros y rectificativas",
+        "RecibosPendiente de facturar"
+      ],
+      "tabRoles": 0,
+      "firstList": {
+        "x": 15,
+        "y": 1857,
+        "width": 360,
+        "height": 199.5
+      },
+      "firstListScreens": 1.857,
+      "cards": [
+        {
+          "text": "Pendiente de cobro3200,00 €4T 2026",
+          "x": 15,
+          "y": 447,
+          "width": 360,
+          "height": 85,
+          "overflow": false
+        },
+        {
+          "text": "Cobrado640,00 €4T 2026",
+          "x": 15,
+          "y": 542,
+          "width": 360,
+          "height": 85,
+          "overflow": false
+        },
+        {
+          "text": "Recibos pendientes32Con saldo por cobrar",
+          "x": 15,
+          "y": 637,
+          "width": 360,
+          "height": 85,
+          "overflow": false
+        },
+        {
+          "text": "Recibos cobrados0Saldo completamente cobrado",
+          "x": 15,
+          "y": 732,
+          "width": 360,
+          "height": 85,
+          "overflow": false
+        }
+      ],
+      "columns": [
+        "360px"
+      ],
+      "documentOverflow": false,
+      "controls": [
+        {
+          "text": " Facturar seleccionados",
+          "label": null,
+          "type": null,
+          "disabled": true
+        },
+        {
+          "text": " Nuevo recibo",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Selecciona…",
+          "label": "Filtrar recibos por cliente",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los países",
+          "label": "Filtrar recibos por país",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Pendientes de cobro",
+          "label": "Estado de cobro de recibos",
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "headerActions": [
+        " Facturar seleccionados",
+        " Nuevo recibo"
+      ],
+      "selectionAfterFilter": {
+        "label": "Seleccionar DEMO-R001",
+        "checked": true
+      },
+      "failures": []
+    },
+    {
+      "screen": "receipts",
+      "width": 1280,
+      "tabOverflow": false,
+      "tabs": [
+        "FacturasEmitidas, cobros y rectificativas",
+        "RecibosPendiente de facturar"
+      ],
+      "tabRoles": 0,
+      "firstList": {
+        "x": 287,
+        "y": 911.5,
+        "width": 1068.921875,
+        "height": 87.78125
+      },
+      "firstListScreens": 0.9115,
+      "cards": [
+        {
+          "text": "Pendiente de cobro3200,00 €4T 2026",
+          "x": 286,
+          "y": 274,
+          "width": 227.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Cobrado640,00 €4T 2026",
+          "x": 528.75,
+          "y": 274,
+          "width": 227.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Recibos pendientes32Con saldo por cobrar",
+          "x": 771.5,
+          "y": 274,
+          "width": 227.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Recibos cobrados0Saldo completamente cobrado",
+          "x": 1014.25,
+          "y": 274,
+          "width": 227.75,
+          "height": 109,
+          "overflow": false
+        }
+      ],
+      "columns": [
+        "227.75px 227.75px 227.75px 227.75px"
+      ],
+      "documentOverflow": false,
+      "controls": [
+        {
+          "text": " Facturar seleccionados",
+          "label": null,
+          "type": null,
+          "disabled": true
+        },
+        {
+          "text": " Nuevo recibo",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Selecciona…",
+          "label": "Filtrar recibos por cliente",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los países",
+          "label": "Filtrar recibos por país",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Pendientes de cobro",
+          "label": "Estado de cobro de recibos",
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "headerActions": [
+        " Facturar seleccionados",
+        " Nuevo recibo"
+      ],
+      "failures": []
+    },
+    {
+      "screen": "receipts",
+      "width": 1440,
+      "tabOverflow": false,
+      "tabs": [
+        "FacturasEmitidas, cobros y rectificativas",
+        "RecibosPendiente de facturar"
+      ],
+      "tabRoles": 0,
+      "firstList": {
+        "x": 287,
+        "y": 911.5,
+        "width": 1114,
+        "height": 68.1875
+      },
+      "firstListScreens": 0.9115,
+      "cards": [
+        {
+          "text": "Pendiente de cobro3200,00 €4T 2026",
+          "x": 286,
+          "y": 274,
+          "width": 267.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Cobrado640,00 €4T 2026",
+          "x": 568.75,
+          "y": 274,
+          "width": 267.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Recibos pendientes32Con saldo por cobrar",
+          "x": 851.5,
+          "y": 274,
+          "width": 267.75,
+          "height": 109,
+          "overflow": false
+        },
+        {
+          "text": "Recibos cobrados0Saldo completamente cobrado",
+          "x": 1134.25,
+          "y": 274,
+          "width": 267.75,
+          "height": 109,
+          "overflow": false
+        }
+      ],
+      "columns": [
+        "267.75px 267.75px 267.75px 267.75px 0px"
+      ],
+      "documentOverflow": false,
+      "controls": [
+        {
+          "text": " Facturar seleccionados",
+          "label": null,
+          "type": null,
+          "disabled": true
+        },
+        {
+          "text": " Nuevo recibo",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Hoy",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Ayer",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Mes anterior",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Trimestre actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Año actual",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todo",
+          "label": null,
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": "date",
+          "disabled": false
+        },
+        {
+          "text": "",
+          "label": null,
+          "type": null,
+          "disabled": false
+        },
+        {
+          "text": "Selecciona…",
+          "label": "Filtrar recibos por cliente",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Todos los países",
+          "label": "Filtrar recibos por país",
+          "type": "button",
+          "disabled": false
+        },
+        {
+          "text": "Pendientes de cobro",
+          "label": "Estado de cobro de recibos",
+          "type": "button",
+          "disabled": false
+        }
+      ],
+      "headerActions": [
+        " Facturar seleccionados",
+        " Nuevo recibo"
+      ],
+      "failures": []
+    }
+  ]
+}

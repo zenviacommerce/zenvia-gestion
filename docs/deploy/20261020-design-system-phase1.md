@@ -32,3 +32,7 @@ Merged current main into #260, resolving only the Build check workflow conflict 
 Local checks after integrating Shopify:232 Vitest,1221 offline Node, build,7 visual cases and contract guard passed. Visual mobile first-order top remains1785.1875px. Owner approval permits publication after final remote CI green, in a separate Vercel deployment. Rollback: promote dpl_CN9CrWWkQLjXz1YFsm7AVZT7gkqv or revert only design PR #260; no SQL/Edge/cron rollback and no changes to MFA.
 
 Updated work order in docs/design-system.md: complete Gestión's Shopify/design phases → audit Platform with screenshots and measured server pagination/KPI/RPC/EXPLAIN/cache/support/client scale, propose and STOP for owner review → MFA closure → public SP-API application → Seller Central reconciliation. No Platform implementation is authorized by recording this roadmap.
+
+## Cierre validado por el propietario
+
+HECHO. El propietario comprobó en producción el bundle `index-DqEFHKNh.js`: Pedidos a 6 columnas y 12 KPI en dos filas, lista en el primer pantallazo, sesión y datos correctos. Main `aa8677ddf09a4b64be74a80ff8df26fe762405bc`, deployment `dpl_FXFkLqauYMkr7aiJBiRRpP4HhXMA`. Rollback de fase 1: deployment `dpl_CN9CrWWkQLjXz1YFsm7AVZT7gkqv`, commit `f214974c2ef044fef8c84fd64d114406869dc3e1`, conserva Shopify. La regresión posterior de aviso/recorte se corrige en hotfix separado, sin publicar fase 2.

@@ -131,7 +131,7 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
     <KpiGrid label="Pedidos y logística" dense>
       {showKpi('orders')&&<StatCard label="Pedidos" value={String(orderCount)} sub={`Amazon ${amazonOrders} · Shopify ${shopifyOrders}`} icon={<ShoppingBag/>}/>}
       {showKpi('orderValue')&&<StatCard label="Valor de pedidos" value={money(orderValue)} sub="Pedidos no cancelados · no fiscal" icon={<BadgeEuro/>}/>}
-      {showKpi('pendingOrders')&&<StatCard className={pendingOrders>0?'dashboardPendingOrders':''} label="Pendientes" value={String(pendingOrders)} sub={pendingOrders>0?'Pendientes reales · sin limitar por periodo':'Sin pedidos pendientes'} icon={<PackageCheck/>} onClick={onOrders}/>} 
+      {showKpi('pendingOrders')&&<StatCard variant={pendingOrders>0?'warning':'default'} label="Pendientes" value={String(pendingOrders)} sub={pendingOrders>0?'Pendientes reales · sin limitar por periodo':'Sin pedidos pendientes'} icon={<PackageCheck/>} onClick={onOrders}/>}
       {showKpi('shippedOrders')&&<StatCard label="Enviados" value={String(shippedOrders)} sub={selectedPeriod} icon={<Truck/>}/>}
       {showKpi('cancelledOrders')&&<StatCard label="Cancelados" value={String(cancelledOrders)} sub={selectedPeriod} icon={<XCircle/>}/>}
     </KpiGrid></>}

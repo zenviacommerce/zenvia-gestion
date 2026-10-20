@@ -1,0 +1,140 @@
+[
+  {
+    "width": 390,
+    "images": [
+      {
+        "alt": "Logotipo de empresa",
+        "width": 287.921875,
+        "height": 51.828125,
+        "naturalWidth": 1000,
+        "naturalHeight": 180,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Sello de empresa",
+        "width": 160,
+        "height": 240,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Logotipo alto",
+        "width": 160,
+        "height": 240,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "",
+        "width": 46,
+        "height": 46,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": false
+      }
+    ],
+    "failures": []
+  },
+  {
+    "width": 1280,
+    "images": [
+      {
+        "alt": "Logotipo de empresa",
+        "width": 157.984375,
+        "height": 28.4375,
+        "naturalWidth": 1000,
+        "naturalHeight": 180,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Sello de empresa",
+        "width": 158,
+        "height": 237,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Logotipo alto",
+        "width": 160,
+        "height": 240,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "",
+        "width": 46,
+        "height": 46,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": false
+      }
+    ],
+    "failures": []
+  },
+  {
+    "width": 1440,
+    "images": [
+      {
+        "alt": "Logotipo de empresa",
+        "width": 157.984375,
+        "height": 28.4375,
+        "naturalWidth": 1000,
+        "naturalHeight": 180,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Sello de empresa",
+        "width": 158,
+        "height": 237,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "Logotipo alto",
+        "width": 160,
+        "height": 240,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": true
+      },
+      {
+        "alt": "",
+        "width": 46,
+        "height": 46,
+        "naturalWidth": 600,
+        "naturalHeight": 900,
+        "fit": "contain",
+        "withinParent": true,
+        "ratioPreserved": false
+      }
+    ],
+    "failures": []
+  }
+]

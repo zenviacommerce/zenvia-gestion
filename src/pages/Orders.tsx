@@ -997,7 +997,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       <StatCard label="Ticket medio" value={money(salesKpis.average)} sub={selectedPeriod} icon={<ShoppingBag/>}/>
       <StatCard label="Coste transportistas (IVA incl.)" value={money(transportKpis.total)} sub={<>{`MRW ${money(transportKpis.mrw)} · Correos ${money(transportKpis.correos)}`}<br/>{`${transportKpis.valued}/${transportKpis.shipments} envíos con coste${transportKpis.missing?` · ${transportKpis.missing} sin valorar`:``}`}<br/>Costes registrados y estimaciones por tarifa</>} icon={<Truck/>}/>
 
-      <StatCard className={overduePending>0?'dashboardPendingOrders':''} label="Pendientes" value={String(pending)} sub={overduePending>0?`${overduePending} con más de ${settings.orders.overdueHours} h`:selectedPeriod} icon={<ShoppingBag/>}/>
+      <StatCard variant={pending>0?'warning':'default'} label="Pendientes" value={String(pending)} sub={overduePending>0?`${overduePending} con más de ${settings.orders.overdueHours} h`:selectedPeriod} icon={<ShoppingBag/>}/>
       <StatCard label="Amazon pendientes" value={String(amazon)} sub={selectedPeriod} icon={<Store/>}/>
       <StatCard label="Shopify pendientes" value={String(shopify)} sub={selectedPeriod} icon={<ShoppingBag/>}/>
       <StatCard label="Manual / API pendientes" value={String(manual)} sub={selectedPeriod} icon={<ShoppingBag/>}/>

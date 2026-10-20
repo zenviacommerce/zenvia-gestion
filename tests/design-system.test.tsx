@@ -5,6 +5,14 @@ import {PageHeader} from '../src/components/PageHeader';
 import {StatCard} from '../src/components/StatCard';
 afterEach(cleanup);
 describe('shared design primitives',()=>{
+ it('preserves the warning variant when rendering a KPI as a card or action',()=>{
+  const {rerender}=render(<StatCard label="Pendientes" value="2" icon={<span/>} variant="warning"/>);
+  expect(screen.getByText('Pendientes').closest('.stat')?.classList.contains('dashboardPendingOrders')).toBe(true);
+  rerender(<StatCard label="Pendientes" value="2" icon={<span/>} variant="warning" onClick={()=>{}}/>);
+  expect(screen.getByRole('button').classList.contains('dashboardPendingOrders')).toBe(true);
+  rerender(<StatCard label="Pendientes" value="0" icon={<span/>}/>);
+  expect(screen.getByText('Pendientes').closest('.stat')?.classList.contains('dashboardPendingOrders')).toBe(false);
+ });
  it('keeps KPI information and click actions without nesting card surfaces',()=>{
   const click=vi.fn();render(<KpiGrid label="Operativa"><StatCard label="Pendientes" value="7" sub="Sin limitar por periodo" icon={<span/>} onClick={click}/></KpiGrid>);
   fireEvent.click(screen.getByRole('button',{name:/Pendientes/}));expect(click).toHaveBeenCalledTimes(1);

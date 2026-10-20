@@ -29,6 +29,17 @@ jobs:
         run: |
           node scripts/design-phase1-screenshots.mjs before
           node scripts/design-phase1-screenshots.mjs after
+      - name: Verify image previews preserve complete images
+        run: |
+          node scripts/image-preview-screenshots.mjs before
+          node scripts/image-preview-screenshots.mjs after
+      - name: Upload image preview review
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: image-preview-review
+          path: docs/deploy/hotfix-preview-review-20261020/
+          if-no-files-found: error
       - name: Upload design review
         if: always()
         uses: actions/upload-artifact@v4

@@ -1,5 +1,6 @@
 import {build} from 'esbuild';
-import {readFile,mkdir} from 'node:fs/promises';
+import {mkdir} from 'node:fs/promises';
+import {readReviewFile as readFile} from './review-file-loader.mjs';
 import {dirname,resolve} from 'node:path';
 import {chromium} from 'playwright';
 const stub=(code)=>({contents:code,loader:'tsx'});

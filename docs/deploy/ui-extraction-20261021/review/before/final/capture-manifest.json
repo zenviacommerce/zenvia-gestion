@@ -1,0 +1,2669 @@
+{
+  "baseline": "45441a470dd2ff30fc4d78020a0cc1309290bf6d",
+  "synthetic": true,
+  "networkBlocked": true,
+  "locale": "es-ES",
+  "checks": [
+    {
+      "screen": "support",
+      "width": 390,
+      "firstList": {
+        "x": 16,
+        "y": 701.375,
+        "width": 358,
+        "height": 75
+      },
+      "firstListText": "Ticket de prueba 01\nT-001 · Incidencia · Usuario de prueba\nResuelto",
+      "documentOverflow": false,
+      "headerActions": [
+        " Nuevo ticket"
+      ],
+      "kpis": [
+        {
+          "text": "Abiertos 21",
+          "warning": false
+        },
+        {
+          "text": "Esperando usuario 0",
+          "warning": false
+        },
+        {
+          "text": "Resueltos 11",
+          "warning": false
+        }
+      ],
+      "filters": [
+        {
+          "label": "Estado del ticket",
+          "text": "Todos los estados",
+          "x": 27,
+          "y": 638.375,
+          "width": 164,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Tipo de ticket",
+          "text": "Todos los tipos",
+          "x": 199,
+          "y": 638.375,
+          "width": 164,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [
+        "Tickets de la empresa",
+        "Mis tickets"
+      ],
+      "columns": [
+        "176px 176px"
+      ],
+      "semanticRows": [
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "screen": "support",
+      "width": 1280,
+      "firstList": {
+        "x": 287,
+        "y": 593.59375,
+        "width": 954,
+        "height": 62
+      },
+      "firstListText": "Ticket de prueba 01\nT-001 · Incidencia · Usuario de prueba\nResuelto\nAlta\n20/10/26, 14:00",
+      "documentOverflow": false,
+      "headerActions": [
+        " Nuevo ticket"
+      ],
+      "kpis": [
+        {
+          "text": "Abiertos 21",
+          "warning": false
+        },
+        {
+          "text": "Esperando usuario 0",
+          "warning": false
+        },
+        {
+          "text": "Resueltos 11",
+          "warning": false
+        }
+      ],
+      "filters": [
+        {
+          "label": "Estado del ticket",
+          "text": "Todos los estados",
+          "x": 304,
+          "y": 522.59375,
+          "width": 455,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Tipo de ticket",
+          "text": "Todos los tipos",
+          "x": 769,
+          "y": 522.59375,
+          "width": 455,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [
+        "Tickets de la empresa",
+        "Mis tickets"
+      ],
+      "columns": [
+        "308px 308px 308px"
+      ],
+      "semanticRows": [
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "screen": "support",
+      "width": 1440,
+      "firstList": {
+        "x": 287,
+        "y": 593.59375,
+        "width": 1114,
+        "height": 62
+      },
+      "firstListText": "Ticket de prueba 01\nT-001 · Incidencia · Usuario de prueba\nResuelto\nAlta\n20/10/26, 14:00",
+      "documentOverflow": false,
+      "headerActions": [
+        " Nuevo ticket"
+      ],
+      "kpis": [
+        {
+          "text": "Abiertos 21",
+          "warning": false
+        },
+        {
+          "text": "Esperando usuario 0",
+          "warning": false
+        },
+        {
+          "text": "Resueltos 11",
+          "warning": false
+        }
+      ],
+      "filters": [
+        {
+          "label": "Estado del ticket",
+          "text": "Todos los estados",
+          "x": 304,
+          "y": 522.59375,
+          "width": 535,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Tipo de ticket",
+          "text": "Todos los tipos",
+          "x": 849,
+          "y": 522.59375,
+          "width": 535,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [
+        "Tickets de la empresa",
+        "Mis tickets"
+      ],
+      "columns": [
+        "361.328px 361.328px 361.344px"
+      ],
+      "semanticRows": [
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        },
+        {
+          "text": "Resuelto",
+          "class": "supportStatus status-resolved"
+        },
+        {
+          "text": "Alta",
+          "class": "supportPriority priority-high"
+        },
+        {
+          "text": "Abierto",
+          "class": "supportStatus status-open"
+        },
+        {
+          "text": "Normal",
+          "class": "supportPriority priority-normal"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "screen": "admin",
+      "width": 390,
+      "firstList": {
+        "x": 16,
+        "y": 523.375,
+        "width": 358,
+        "height": 194
+      },
+      "firstListText": "US\nUsuario 01\nusuario0@example.test\nÚltimo acceso: 20/10/26, 14:00\nAdministrador\nSin acceso\nResumen\nPedidos\nAdministración",
+      "documentOverflow": false,
+      "headerActions": [
+        " Nuevo usuario"
+      ],
+      "kpis": [
+        {
+          "text": "Usuarios 32",
+          "warning": false
+        },
+        {
+          "text": "Con acceso 21",
+          "warning": false
+        },
+        {
+          "text": "Administradores 1",
+          "warning": false
+        }
+      ],
+      "filters": [],
+      "tabs": [
+        "Usuarios y accesos",
+        "Auditoría"
+      ],
+      "columns": [
+        "176px 176px"
+      ],
+      "semanticRows": [
+        {
+          "text": "Administrador",
+          "class": "adminRolePill admin"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "screen": "admin",
+      "width": 1280,
+      "firstList": {
+        "x": 287,
+        "y": 385.59375,
+        "width": 954,
+        "height": 80
+      },
+      "firstListText": "US\nUsuario 01\nusuario0@example.test\nÚltimo acceso: 20/10/26, 14:00\nAdministrador\nSin acceso\nResumen\nPedidos\nAdministración",
+      "documentOverflow": false,
+      "headerActions": [
+        " Nuevo usuario"
+      ],
+      "kpis": [
+        {
+          "text": "Usuarios 32",
+          "warning": false
+        },
+        {
+          "text": "Con acceso 21",
+          "warning": false
+        },
+        {
+          "text": "Administradores 1",
+          "warning": false
+        }
+      ],
+      "filters": [],
+      "tabs": [
+        "Usuarios y accesos",
+        "Auditoría"
+      ],
+      "columns": [
+        "308px 308px 308px"
+      ],
+      "semanticRows": [
+        {
+          "text": "Administrador",
+          "class": "adminRolePill admin"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "screen": "admin",
+      "width": 1440,
+      "firstList": {
+        "x": 287,
+        "y": 385.59375,
+        "width": 1114,
+        "height": 80
+      },
+      "firstListText": "US\nUsuario 01\nusuario0@example.test\nÚltimo acceso: 20/10/26, 14:00\nAdministrador\nSin acceso\nResumen\nPedidos\nAdministración",
+      "documentOverflow": false,
+      "headerActions": [
+        " Nuevo usuario"
+      ],
+      "kpis": [
+        {
+          "text": "Usuarios 32",
+          "warning": false
+        },
+        {
+          "text": "Con acceso 21",
+          "warning": false
+        },
+        {
+          "text": "Administradores 1",
+          "warning": false
+        }
+      ],
+      "filters": [],
+      "tabs": [
+        "Usuarios y accesos",
+        "Auditoría"
+      ],
+      "columns": [
+        "361.328px 361.328px 361.344px"
+      ],
+      "semanticRows": [
+        {
+          "text": "Administrador",
+          "class": "adminRolePill admin"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Sin acceso",
+          "class": "adminStatus"
+        },
+        {
+          "text": "Usuario",
+          "class": "adminRolePill"
+        },
+        {
+          "text": "Activo",
+          "class": "adminStatus active"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "screen": "admin-audit",
+      "width": 390,
+      "firstList": {
+        "x": 16,
+        "y": 683.375,
+        "width": 358,
+        "height": 95
+      },
+      "firstListText": "Acción de prueba 01\nUsuario 02 · 20/10/26, 14:00\nProductos\nCreación",
+      "documentOverflow": false,
+      "headerActions": [],
+      "kpis": [
+        {
+          "text": "Movimientos cargados 32",
+          "warning": false
+        },
+        {
+          "text": "Usuarios con actividad 1",
+          "warning": false
+        },
+        {
+          "text": "Mostrando 32",
+          "warning": false
+        }
+      ],
+      "filters": [
+        {
+          "label": "Filtrar auditoría por usuario",
+          "text": "Selecciona…",
+          "x": 27,
+          "y": 556.375,
+          "width": 164,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Filtrar auditoría por módulo",
+          "text": "Todos los módulos",
+          "x": 199,
+          "y": 556.375,
+          "width": 164,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Filtrar auditoría por acción",
+          "text": "Todas las acciones",
+          "x": 27,
+          "y": 620.375,
+          "width": 164,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Periodo de auditoría",
+          "text": "30 días",
+          "x": 199,
+          "y": 620.375,
+          "width": 164,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [
+        "Usuarios y accesos",
+        "Auditoría"
+      ],
+      "columns": [
+        "176px 176px"
+      ],
+      "semanticRows": [
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "screen": "admin-audit",
+      "width": 1280,
+      "firstList": {
+        "x": 287,
+        "y": 553.59375,
+        "width": 954,
+        "height": 75
+      },
+      "firstListText": "Acción de prueba 01\nUsuario 02 · 20/10/26, 14:00\nProductos\nCreación",
+      "documentOverflow": false,
+      "headerActions": [],
+      "kpis": [
+        {
+          "text": "Movimientos cargados 32",
+          "warning": false
+        },
+        {
+          "text": "Usuarios con actividad 1",
+          "warning": false
+        },
+        {
+          "text": "Mostrando 32",
+          "warning": false
+        }
+      ],
+      "filters": [
+        {
+          "label": "Filtrar auditoría por usuario",
+          "text": "Selecciona…",
+          "x": 304,
+          "y": 482.59375,
+          "width": 222.5,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Filtrar auditoría por módulo",
+          "text": "Todos los módulos",
+          "x": 536.5,
+          "y": 482.59375,
+          "width": 222.5,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Filtrar auditoría por acción",
+          "text": "Todas las acciones",
+          "x": 769,
+          "y": 482.59375,
+          "width": 222.5,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Periodo de auditoría",
+          "text": "30 días",
+          "x": 1001.5,
+          "y": 482.59375,
+          "width": 222.5,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [
+        "Usuarios y accesos",
+        "Auditoría"
+      ],
+      "columns": [
+        "308px 308px 308px"
+      ],
+      "semanticRows": [
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "screen": "admin-audit",
+      "width": 1440,
+      "firstList": {
+        "x": 287,
+        "y": 553.59375,
+        "width": 1114,
+        "height": 75
+      },
+      "firstListText": "Acción de prueba 01\nUsuario 02 · 20/10/26, 14:00\nProductos\nCreación",
+      "documentOverflow": false,
+      "headerActions": [],
+      "kpis": [
+        {
+          "text": "Movimientos cargados 32",
+          "warning": false
+        },
+        {
+          "text": "Usuarios con actividad 1",
+          "warning": false
+        },
+        {
+          "text": "Mostrando 32",
+          "warning": false
+        }
+      ],
+      "filters": [
+        {
+          "label": "Filtrar auditoría por usuario",
+          "text": "Selecciona…",
+          "x": 304,
+          "y": 482.59375,
+          "width": 262.5,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Filtrar auditoría por módulo",
+          "text": "Todos los módulos",
+          "x": 576.5,
+          "y": 482.59375,
+          "width": 262.5,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Filtrar auditoría por acción",
+          "text": "Todas las acciones",
+          "x": 849,
+          "y": 482.59375,
+          "width": 262.5,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Periodo de auditoría",
+          "text": "30 días",
+          "x": 1121.5,
+          "y": 482.59375,
+          "width": 262.5,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [
+        "Usuarios y accesos",
+        "Auditoría"
+      ],
+      "columns": [
+        "361.328px 361.328px 361.344px"
+      ],
+      "semanticRows": [
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        },
+        {
+          "text": "",
+          "class": "auditIcon create"
+        },
+        {
+          "text": "",
+          "class": "auditIcon update"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "screen": "settings",
+      "width": 390,
+      "firstList": {
+        "x": 16,
+        "y": 306.875,
+        "width": 358,
+        "height": 127
+      },
+      "firstListText": "Configuración general\n\nGeneral de empresa, identidad fiscal y preferencias documentales globales.",
+      "documentOverflow": false,
+      "headerActions": [],
+      "kpis": [],
+      "filters": [
+        {
+          "label": "Moneda",
+          "text": "EUR · Euro",
+          "x": 32,
+          "y": 1651.546875,
+          "width": 326,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Formato de fecha",
+          "text": "DD/MM/YYYY",
+          "x": 32,
+          "y": 1807.546875,
+          "width": 326,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Idioma",
+          "text": "Español",
+          "x": 32,
+          "y": 1885.546875,
+          "width": 326,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Página inicial predeterminada de empresa",
+          "text": "Resumen",
+          "x": 32,
+          "y": 1963.546875,
+          "width": 326,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [
+        "GeneralIdentidad, moneda y comportamiento general de la empresa.",
+        "Plan y facturaciónPlan contratado, consumo, límites y cambios de suscripción.",
+        "FacturaciónValores predeterminados, cobros y documentos de venta.",
+        "Gastos e importaciónImportación, duplicados y reglas de facturas recibidas.",
+        "PedidosComportamiento general de pedidos, etiquetas y tracking.",
+        "EnvíosTransportistas, servicios y preferencias logísticas.",
+        "ProductosIVA, costes, márgenes y creación automática.",
+        "ClientesDefaults, identidad y enriquecimiento de clientes.",
+        "ProveedoresDefaults, alias, identidad y categorización.",
+        "SeguridadAutenticadores y verificación de acceso.",
+        "IntegracionesEstado y comportamiento de servicios conectados.",
+        "Alertas y automatizacionesAlertas de negocio y acciones automáticas controladas.",
+        "Mis preferenciasPreferencias de interfaz exclusivas de tu usuario.",
+        "MantenimientoDiagnóstico, duplicados, reconstrucciones y exportación."
+      ],
+      "columns": [],
+      "semanticRows": [],
+      "failures": []
+    },
+    {
+      "screen": "settings",
+      "width": 1280,
+      "firstList": {
+        "x": 527,
+        "y": 136,
+        "width": 714,
+        "height": 91
+      },
+      "firstListText": "Configuración general\n\nGeneral de empresa, identidad fiscal y preferencias documentales globales.",
+      "documentOverflow": false,
+      "headerActions": [],
+      "kpis": [],
+      "filters": [
+        {
+          "label": "Moneda",
+          "text": "EUR · Euro",
+          "x": 549,
+          "y": 830.671875,
+          "width": 327.5,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Formato de fecha",
+          "text": "DD/MM/YYYY",
+          "x": 549,
+          "y": 908.671875,
+          "width": 327.5,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Idioma",
+          "text": "Español",
+          "x": 891.5,
+          "y": 908.671875,
+          "width": 327.5,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Página inicial predeterminada de empresa",
+          "text": "Resumen",
+          "x": 549,
+          "y": 986.671875,
+          "width": 327.5,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [
+        "GeneralIdentidad, moneda y comportamiento general de la empresa.",
+        "Plan y facturaciónPlan contratado, consumo, límites y cambios de suscripción.",
+        "FacturaciónValores predeterminados, cobros y documentos de venta.",
+        "Gastos e importaciónImportación, duplicados y reglas de facturas recibidas.",
+        "PedidosComportamiento general de pedidos, etiquetas y tracking.",
+        "EnvíosTransportistas, servicios y preferencias logísticas.",
+        "ProductosIVA, costes, márgenes y creación automática.",
+        "ClientesDefaults, identidad y enriquecimiento de clientes.",
+        "ProveedoresDefaults, alias, identidad y categorización.",
+        "SeguridadAutenticadores y verificación de acceso.",
+        "IntegracionesEstado y comportamiento de servicios conectados.",
+        "Alertas y automatizacionesAlertas de negocio y acciones automáticas controladas.",
+        "Mis preferenciasPreferencias de interfaz exclusivas de tu usuario.",
+        "MantenimientoDiagnóstico, duplicados, reconstrucciones y exportación."
+      ],
+      "columns": [],
+      "semanticRows": [],
+      "failures": []
+    },
+    {
+      "screen": "settings",
+      "width": 1440,
+      "firstList": {
+        "x": 592,
+        "y": 136,
+        "width": 809,
+        "height": 91
+      },
+      "firstListText": "Configuración general\n\nGeneral de empresa, identidad fiscal y preferencias documentales globales.",
+      "documentOverflow": false,
+      "headerActions": [],
+      "kpis": [],
+      "filters": [
+        {
+          "label": "Moneda",
+          "text": "EUR · Euro",
+          "x": 614,
+          "y": 830.671875,
+          "width": 375,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Formato de fecha",
+          "text": "DD/MM/YYYY",
+          "x": 614,
+          "y": 908.671875,
+          "width": 375,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Idioma",
+          "text": "Español",
+          "x": 1004,
+          "y": 908.671875,
+          "width": 375,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Página inicial predeterminada de empresa",
+          "text": "Resumen",
+          "x": 614,
+          "y": 986.671875,
+          "width": 375,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [
+        "GeneralIdentidad, moneda y comportamiento general de la empresa.",
+        "Plan y facturaciónPlan contratado, consumo, límites y cambios de suscripción.",
+        "FacturaciónValores predeterminados, cobros y documentos de venta.",
+        "Gastos e importaciónImportación, duplicados y reglas de facturas recibidas.",
+        "PedidosComportamiento general de pedidos, etiquetas y tracking.",
+        "EnvíosTransportistas, servicios y preferencias logísticas.",
+        "ProductosIVA, costes, márgenes y creación automática.",
+        "ClientesDefaults, identidad y enriquecimiento de clientes.",
+        "ProveedoresDefaults, alias, identidad y categorización.",
+        "SeguridadAutenticadores y verificación de acceso.",
+        "IntegracionesEstado y comportamiento de servicios conectados.",
+        "Alertas y automatizacionesAlertas de negocio y acciones automáticas controladas.",
+        "Mis preferenciasPreferencias de interfaz exclusivas de tu usuario.",
+        "MantenimientoDiagnóstico, duplicados, reconstrucciones y exportación."
+      ],
+      "columns": [],
+      "semanticRows": [],
+      "failures": []
+    },
+    {
+      "screen": "gmail",
+      "width": 390,
+      "firstList": {
+        "x": 16,
+        "y": 1200.375,
+        "width": 358,
+        "height": 229.875
+      },
+      "firstListText": "Factura-01.pdf\nImportada\nFactura sintética\nProveedor de prueba · 20/10/2026\nVer factura\nVer correo",
+      "documentOverflow": false,
+      "headerActions": [
+        " Gestionar cuentas",
+        " Buscar facturas"
+      ],
+      "kpis": [
+        {
+          "text": "Pendientes 21 Adjuntos por revisar",
+          "warning": false
+        },
+        {
+          "text": "Importadas 11 Facturas creadas",
+          "warning": false
+        },
+        {
+          "text": "Automático IA/OCR Lectura de importes y líneas",
+          "warning": false
+        }
+      ],
+      "filters": [
+        {
+          "label": "Cuenta de Gmail activa",
+          "text": "demo@example.test · Predeterminada",
+          "x": 42,
+          "y": 531.375,
+          "width": 306,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Periodo de Gmail",
+          "text": "12 meses",
+          "x": 42,
+          "y": 595.375,
+          "width": 306,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Filtrar por estado",
+          "text": "Todos los estados",
+          "x": 25,
+          "y": 953.375,
+          "width": 168.46875,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [],
+      "columns": [
+        "176px 176px"
+      ],
+      "semanticRows": [
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "screen": "gmail",
+      "width": 1280,
+      "firstList": {
+        "x": 287,
+        "y": 662.390625,
+        "width": 954,
+        "height": 82
+      },
+      "firstListText": "Factura-01.pdf\nImportada\nFactura sintética\nProveedor de prueba · 20/10/2026\nVer factura\nVer correo",
+      "documentOverflow": false,
+      "headerActions": [
+        " Gestionar cuentas",
+        " Buscar facturas"
+      ],
+      "kpis": [
+        {
+          "text": "Pendientes 21 Adjuntos por revisar",
+          "warning": false
+        },
+        {
+          "text": "Importadas 11 Facturas creadas",
+          "warning": false
+        },
+        {
+          "text": "Automático IA/OCR Lectura de importes y líneas",
+          "warning": false
+        }
+      ],
+      "filters": [
+        {
+          "label": "Cuenta de Gmail activa",
+          "text": "demo@example.test · Predeterminada",
+          "x": 398,
+          "y": 278,
+          "width": 288.65625,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Periodo de Gmail",
+          "text": "12 meses",
+          "x": 704.65625,
+          "y": 278,
+          "width": 108.625,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Filtrar por estado",
+          "text": "Todos los estados",
+          "x": 286,
+          "y": 541.390625,
+          "width": 507.28125,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [],
+      "columns": [
+        "308px 308px 308px"
+      ],
+      "semanticRows": [
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        }
+      ],
+      "failures": []
+    },
+    {
+      "screen": "gmail",
+      "width": 1440,
+      "firstList": {
+        "x": 287,
+        "y": 646.390625,
+        "width": 1114,
+        "height": 82
+      },
+      "firstListText": "Factura-01.pdf\nImportada\nFactura sintética\nProveedor de prueba · 20/10/2026\nVer factura\nVer correo",
+      "documentOverflow": false,
+      "headerActions": [
+        " Gestionar cuentas",
+        " Buscar facturas"
+      ],
+      "kpis": [
+        {
+          "text": "Pendientes 21 Adjuntos por revisar",
+          "warning": false
+        },
+        {
+          "text": "Importadas 11 Facturas creadas",
+          "warning": false
+        },
+        {
+          "text": "Automático IA/OCR Lectura de importes y líneas",
+          "warning": false
+        }
+      ],
+      "filters": [
+        {
+          "label": "Cuenta de Gmail activa",
+          "text": "demo@example.test · Predeterminada",
+          "x": 398,
+          "y": 262,
+          "width": 288.65625,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Periodo de Gmail",
+          "text": "12 meses",
+          "x": 704.65625,
+          "y": 262,
+          "width": 108.625,
+          "height": 42,
+          "wrap": false
+        },
+        {
+          "label": "Filtrar por estado",
+          "text": "Todos los estados",
+          "x": 286,
+          "y": 525.390625,
+          "width": 667.28125,
+          "height": 42,
+          "wrap": false
+        }
+      ],
+      "tabs": [],
+      "columns": [
+        "361.328px 361.328px 361.344px"
+      ],
+      "semanticRows": [
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        },
+        {
+          "text": "Importada",
+          "class": "gmailStatus imported"
+        },
+        {
+          "text": "Pendiente",
+          "class": "gmailStatus found"
+        }
+      ],
+      "failures": []
+    }
+  ]
+}

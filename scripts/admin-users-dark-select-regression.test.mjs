@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+
+import {readReviewFile as readFile} from './review-file-loader.mjs';
 import test from 'node:test';
 
 async function source(path) {

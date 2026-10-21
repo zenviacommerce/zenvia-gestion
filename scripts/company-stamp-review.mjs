@@ -3,7 +3,8 @@
 // SHIPPING_CHROMIUM_PACKAGE=1 node scripts/company-stamp-review.mjs
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
-import {readFile,mkdir,writeFile,mkdtemp,chmod} from 'node:fs/promises';
+import {mkdir,writeFile,mkdtemp,chmod} from 'node:fs/promises';
+import {readReviewFile as readFile} from './review-file-loader.mjs';
 import {brotliDecompressSync} from 'node:zlib';
 import {execFileSync} from 'node:child_process';
 import {dirname,resolve} from 'node:path';

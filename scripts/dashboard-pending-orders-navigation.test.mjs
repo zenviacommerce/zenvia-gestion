@@ -8,7 +8,7 @@ test('pending orders KPI navigates to Orders through the app navigation callback
   const [app,dashboard,stat,orders]=await Promise.all([
     read('src/App.tsx'),
     read('src/pages/Dashboard.tsx'),
-    read('src/components/StatCard.tsx'),
+    read('packages/ui/src/StatCard.tsx'),
     read('src/pages/Orders.tsx'),
   ]);
   assert.match(app,/onOrders=\{can\('orders'\)\?\(\)=>void navigate\('orders',\{pendingOrders:true\}\):undefined\}/);

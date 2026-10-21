@@ -1,5 +1,6 @@
 // Offline visual review: production Shopify components and CSS, synthetic data, no network.
-import {build} from 'esbuild';import {readFile,mkdir,writeFile,mkdtemp,chmod} from 'node:fs/promises';import {brotliDecompressSync} from 'node:zlib';import {execFileSync} from 'node:child_process';import {dirname,resolve} from 'node:path';import {fileURLToPath} from 'node:url';import {tmpdir} from 'node:os';import {chromium} from 'playwright';
+import {build} from 'esbuild';import {mkdir,writeFile,mkdtemp,chmod} from 'node:fs/promises';
+import {readReviewFile as readFile} from './review-file-loader.mjs';import {brotliDecompressSync} from 'node:zlib';import {execFileSync} from 'node:child_process';import {dirname,resolve} from 'node:path';import {fileURLToPath} from 'node:url';import {tmpdir} from 'node:os';import {chromium} from 'playwright';
 const captured=JSON.parse(await readFile('tests/fixtures/shopify-period-production-20261019.json','utf8'));
 const summaries=Object.fromEntries(captured.periods.map(p=>[p.id,p.data]));
 const fixture=`export const loadShopifyStatus=async()=>({connected:true,stores:[{id:'shop',name:'Tienda de prueba',lastSyncedAt:'2026-10-19T16:00Z',availableFrom:'2026-06-01',inventoryAvailable:true,catalogAvailable:true}]});

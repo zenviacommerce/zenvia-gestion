@@ -1,6 +1,7 @@
 // Real modal and fiscal calculator, sanitized #1023 fiscal shape; no live writes or buyer data.
 import {build} from 'esbuild';
-import {readFile,writeFile,mkdir} from 'node:fs/promises';
+import {writeFile,mkdir} from 'node:fs/promises';
+import {readReviewFile as readFile} from './review-file-loader.mjs';
 import {execFileSync} from 'node:child_process';
 import {dirname} from 'node:path';
 import {chromium} from 'playwright';

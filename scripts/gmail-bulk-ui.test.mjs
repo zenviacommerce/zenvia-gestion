@@ -25,7 +25,7 @@ test('Gmail checkboxes import a selected batch and advance through manual review
  const icon=()=>React.createElement('span');
  const icons=Object.fromEntries('AlertCircle CheckCircle2 ChevronLeft ChevronRight ExternalLink Eye FileText Link2 LoaderCircle Mail Paperclip RefreshCw Search ShieldCheck Sparkles X'.split(' ').map(name=>[name,icon]));
  const SelectField=({value,onChange,options,disabled})=>React.createElement('select',{value,disabled,onChange:e=>onChange(e.target.value)},options.map(o=>React.createElement('option',{key:o.value,value:o.value},o.label)));
- const shared=Object.fromEntries(['PageHeader','KpiGrid','StatCard','FilterBar'].map(name=>[name,component('src/components/'+name+'.tsx',name,{})]));
+ const shared=Object.fromEntries(['PageHeader','KpiGrid','StatCard','FilterBar'].map(name=>[name,component('packages/ui/src/'+name+'.tsx',name,{})]));
  const Page=component('src/pages/Gmail.tsx','GmailPage',{...shared,...icons,...background,errorMessage,SelectField,BulkSelectCheckbox:checkbox,BulkSelectionToolbar:toolbar,runGmailImportBatch:batch,useImportActivity(){},isDecorativeGmailImage:()=>false,
   loadRecoverableGmailImports:async()=>rows,loadRegisteredGmailAccounts:async()=>[{id:'mail',externalAccountId:'mail@example.com',config:{}}],selectDefaultGmailAccount:accounts=>accounts[0],getCachedGmailConnection:()=>({email:'mail@example.com',accessToken:'token'}),gmailOAuthConfigured:()=>true,gmailMessageUrl:()=>'',
   ensureRegisteredGmailConnection:async()=>({email:'mail@example.com',accessToken:'token'}),InvoiceCandidateForm:({candidate})=>React.createElement('div',null,'Review '+candidate.invoiceNumber),

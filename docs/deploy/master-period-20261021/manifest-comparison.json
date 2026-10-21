@@ -1,0 +1,57 @@
+{
+  "baseline": "95891f9816313bfe11b7b910593689e267e200c5",
+  "fixtureSha256": "6944eef7eb3d92d81fd4e5c695cfef42f5ddfb802d272c96e19a0e85dfd11981",
+  "harnessSha256": "3327e97b928e16128e3f7deb347df63120b36d8e60c50ea8113560e418e3df03",
+  "screenshots": 48,
+  "baselineSources": 282,
+  "afterSources": 282,
+  "cssUnchanged": true,
+  "cssImportCount": 58,
+  "changedSourceFiles": [
+    "src/pages/Products.tsx"
+  ],
+  "checks": [
+    {
+      "width": 390,
+      "beforeCurrentResult": "32 productos \u00b7 Octubre de 2026",
+      "beforePreviousResult": "32 productos \u00b7 Septiembre de 2026",
+      "afterCurrentResult": "72 productos",
+      "afterPreviousResult": "72 productos",
+      "periodIdentitiesPreserved": true,
+      "page2PeriodIdentitiesAndPaginationPreserved": true,
+      "undatedProductsSearchCount": 8,
+      "withoutSaleOwnFilterCount": 24,
+      "headerAndRowActionsPreserved": true,
+      "documentOverflow": false,
+      "screenshotHashesVerified": true
+    },
+    {
+      "width": 1280,
+      "beforeCurrentResult": "32 productos \u00b7 Octubre de 2026",
+      "beforePreviousResult": "32 productos \u00b7 Septiembre de 2026",
+      "afterCurrentResult": "72 productos",
+      "afterPreviousResult": "72 productos",
+      "periodIdentitiesPreserved": true,
+      "page2PeriodIdentitiesAndPaginationPreserved": true,
+      "undatedProductsSearchCount": 8,
+      "withoutSaleOwnFilterCount": 24,
+      "headerAndRowActionsPreserved": true,
+      "documentOverflow": false,
+      "screenshotHashesVerified": true
+    },
+    {
+      "width": 1440,
+      "beforeCurrentResult": "32 productos \u00b7 Octubre de 2026",
+      "beforePreviousResult": "32 productos \u00b7 Septiembre de 2026",
+      "afterCurrentResult": "72 productos",
+      "afterPreviousResult": "72 productos",
+      "periodIdentitiesPreserved": true,
+      "page2PeriodIdentitiesAndPaginationPreserved": true,
+      "undatedProductsSearchCount": 8,
+      "withoutSaleOwnFilterCount": 24,
+      "headerAndRowActionsPreserved": true,
+      "documentOverflow": false,
+      "screenshotHashesVerified": true
+    }
+  ]
+}

@@ -94,17 +94,9 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
    return products.some(product=>!product.supplier?.trim()||product.supplier==='—')?[...values,{value:'__none__',label:'Sin proveedor'}]:values;
  },[products]);
  const taxOptions=useMemo(()=>[...new Set([...salesMap.values()].map(item=>Number(item.salesTaxRate)).filter(value=>Number.isFinite(value)))].sort((a,b)=>a-b).map(value=>({value:String(value),label:`${value.toLocaleString('es-ES')} %`})),[salesMap]);
- const periodProducts=useMemo(()=>products.filter(product=>{
-   if(dateFilter.preset==='all')return true;
-   const date=(product.lastPurchaseDate||'').slice(0,10);
-   if(!date)return false;
-   if(dateFilter.from&&date<dateFilter.from)return false;
-   if(dateFilter.to&&date>dateFilter.to)return false;
-   return true;
- }),[products,dateFilter]);
  const shown=useMemo(()=>{
    const q=query.toLowerCase().trim();
-   return periodProducts.filter(product=>{
+   return products.filter(product=>{
      const extra=salesMap.get(product.id);
      const metric=productMetrics(product,extra);
      if(categoryFilter!=='all'){
@@ -126,7 +118,7 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
      if(q&&![product.name,product.sku??'',extra?.ean??'',product.supplier,product.category??''].some(value=>value.toLowerCase().includes(q)))return false;
      return true;
    });
- },[periodProducts,query,salesMap,categoryFilter,supplierFilter,taxFilter,scope,marginAlertThreshold,costIncreaseThreshold]);
+ },[products,query,salesMap,categoryFilter,supplierFilter,taxFilter,scope,marginAlertThreshold,costIncreaseThreshold]);
  const selectedProducts=products.filter(product=>checkedIds.has(product.id));
  const allShownSelected=shown.length>0&&shown.every(product=>checkedIds.has(product.id));
  const toggleProduct=(id:string,checked:boolean)=>setCheckedIds(current=>{const next=new Set(current);if(checked)next.add(id);else next.delete(id);return next;});
@@ -145,25 +137,35 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
  const sorted=sorting.rows;
  const totalPages=Math.max(1,Math.ceil(sorted.length/pageSize));
  const paged=useMemo(()=>sorted.slice((page-1)*pageSize,page*pageSize),[sorted,page,pageSize]);
- useEffect(()=>{setPage(1)},[query,dateFilter,categoryFilter,supplierFilter,taxFilter,scope]);
+ useEffect(()=>{setPage(1)},[query,categoryFilter,supplierFilter,taxFilter,scope]);
  useEffect(()=>{const timer=window.setTimeout(()=>{void persistRememberedFilter(preferences,patchPreferences,'products.filters',{query,dateFilter,categoryFilter,supplierFilter,scope,taxFilter})},350);return()=>window.clearTimeout(timer)},[query,dateFilter,categoryFilter,supplierFilter,scope,taxFilter,preferences.rememberFilters]);
  useEffect(()=>{setPage(current=>Math.min(current,totalPages))},[totalPages]);
  useEffect(()=>{if(selected&&!products.some(product=>product.id===selected.id))setSelected(null)},[products,selected]);
+ // The catalogue is independent of the analysis period; only KPI membership uses
+ // the existing last-purchase/cost-update date criterion, after the own filters.
+ const periodProducts=useMemo(()=>shown.filter(product=>{
+   if(dateFilter.preset==='all')return true;
+   const date=(product.lastPurchaseDate||'').slice(0,10);
+   if(!date)return false;
+   if(dateFilter.from&&date<dateFilter.from)return false;
+   if(dateFilter.to&&date>dateFilter.to)return false;
+   return true;
+ }),[shown,dateFilter]);
  const totals=useMemo(()=>{
-   const withSale=shown.filter(product=>salesMap.get(product.id)?.salePrice!=null).length;
-   const margins=shown.map(product=>productMetrics(product,salesMap.get(product.id)).marginPct).filter((value):value is number=>value!=null);
-   const costs=shown.map(product=>product.lastPrice).filter((value):value is number=>value!=null);
-   const costUp=shown.filter(product=>{const delta=productMetrics(product,salesMap.get(product.id)).delta;return delta!=null&&delta>=costIncreaseThreshold}).length;
-   const lowMargin=shown.filter(product=>{const margin=productMetrics(product,salesMap.get(product.id)).marginPct;return margin!=null&&margin<marginAlertThreshold}).length;
+   const withSale=periodProducts.filter(product=>salesMap.get(product.id)?.salePrice!=null).length;
+   const margins=periodProducts.map(product=>productMetrics(product,salesMap.get(product.id)).marginPct).filter((value):value is number=>value!=null);
+   const costs=periodProducts.map(product=>product.lastPrice).filter((value):value is number=>value!=null);
+   const costUp=periodProducts.filter(product=>{const delta=productMetrics(product,salesMap.get(product.id)).delta;return delta!=null&&delta>=costIncreaseThreshold}).length;
+   const lowMargin=periodProducts.filter(product=>{const margin=productMetrics(product,salesMap.get(product.id)).marginPct;return margin!=null&&margin<marginAlertThreshold}).length;
    return {
-     count:shown.length,
+     count:periodProducts.length,
      withSale,
      avgMargin:margins.length?margins.reduce((a,b)=>a+b,0)/margins.length:null,
      avgCost:costs.length?costs.reduce((a,b)=>a+b,0)/costs.length:null,
      costUp,
      lowMargin,
    };
- },[shown,salesMap,costIncreaseThreshold,marginAlertThreshold]);
+ },[periodProducts,salesMap,costIncreaseThreshold,marginAlertThreshold]);
  const remove=async(product:Product)=>{
    const confirmed=await confirmAction({title:'Eliminar producto',message:`Se eliminará “${product.name}”.`,confirmLabel:'Eliminar',tone:'danger',details:['Las facturas existentes no se borrarán; sus líneas quedarán sin producto asociado.']});
    if(!confirmed)return;
@@ -215,12 +217,12 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
         filter={dateFilter}
         onChange={setDateFilter}
         title="Periodo de actividad"
-        note="En Productos, el periodo se aplica a la fecha de la última compra o actualización de coste registrada."
+        note="El periodo solo afecta a los indicadores, según la última compra o actualización de coste registrada. La lista conserva todos los productos que cumplen los filtros."
       />
 
       <KpiGrid label="Indicadores de productos">
-        <StatCard label="Productos visibles" value={String(totals.count)} sub={selectedPeriod} icon={<Package/>}/>
-        <StatCard label="Con precio de venta" value={String(totals.withSale)} sub={`de ${totals.count} visibles`} icon={<Euro/>}/>
+        <StatCard label="Productos en periodo" value={String(totals.count)} sub={selectedPeriod} icon={<Package/>}/>
+        <StatCard label="Con precio de venta" value={String(totals.withSale)} sub={`de ${totals.count} en el periodo`} icon={<Euro/>}/>
         <StatCard label="Margen medio" value={totals.avgMargin==null?'—':`${totals.avgMargin.toLocaleString('es-ES',{minimumFractionDigits:1,maximumFractionDigits:1})} %`} sub="Sobre coste" icon={<Percent/>}/>
         <StatCard label="Coste medio" value={costMoney(totals.avgCost)} sub={selectedPeriod} icon={<Calculator/>}/>
         <StatCard label="Margen bajo" value={String(totals.lowMargin)} sub={`Por debajo de ${marginAlertThreshold.toLocaleString('es-ES')} %`} icon={<Percent/>}/>
@@ -237,7 +239,7 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
           <label className="filterField"><span>IVA venta</span><SelectField value={taxFilter} onChange={setTaxFilter} ariaLabel="Filtrar por IVA de venta" options={[{value:'all',label:'Todos los tipos'},...taxOptions]}/></label>
           <label className="filterField"><span>Situación</span><SelectField value={scope} onChange={value=>setScope(value as ProductScope)} ariaLabel="Filtrar productos" options={[{value:'all',label:'Todos los productos'},{value:'with_sale',label:'Con precio de venta'},{value:'without_sale',label:'Sin precio de venta'},{value:'missing_cost',label:'Sin coste de compra'},{value:'negative_margin',label:`Margen bajo (< ${marginAlertThreshold.toLocaleString('es-ES')} %)`},{value:'cost_up',label:`Subida coste (≥ ${costIncreaseThreshold.toLocaleString('es-ES')} %)`},{value:'cost_down',label:'Coste a la baja'}]}/></label>
         </div>
-        <span className="filterResultCount">{shown.length} producto{shown.length===1?'':'s'} · {selectedPeriod}</span>
+        <span className="filterResultCount">{shown.length} producto{shown.length===1?'':'s'}</span>
       </FilterBar>
 <SelectionReview selected={selectedProducts} visibleIds={new Set(shown.map(item=>item.id))} onRemove={id=>toggleProduct(id,false)} onClear={()=>setCheckedIds(new Set())}/>
 

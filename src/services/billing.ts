@@ -4,6 +4,11 @@ import { createInvoice, updateInvoicePaymentStatus } from './repository';
 
 export type BillingCycle='monthly'|'yearly';
 
+// Keep new checkouts paused until the central catalog and PayPal verification
+// replace the legacy local price list. Existing subscriptions are unaffected.
+export const BILLING_CHECKOUT_PAUSED=true;
+export const BILLING_CHECKOUT_PAUSE_MESSAGE='Estamos actualizando los precios; la contratación estará disponible en breve';
+
 export type CustomerPlanEntitlement={
   key:string;
   enabled:boolean;
@@ -164,6 +169,7 @@ export async function startCustomerPayPalCheckout(input:{
   targetPlan:CustomerBillingPlan;
   cycle:BillingCycle;
 }){
+  if(BILLING_CHECKOUT_PAUSED)throw new Error(BILLING_CHECKOUT_PAUSE_MESSAGE);
   if(input.targetPlan.planKey==='internal'||!input.targetPlan.isPublic)throw new Error('El plan seleccionado no está disponible para contratación.');
   const price=input.cycle==='yearly'?input.targetPlan.yearlyPriceCents:input.targetPlan.monthlyPriceCents;
   if(price==null)throw new Error('Este plan no tiene precio configurado para la modalidad seleccionada.');

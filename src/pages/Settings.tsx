@@ -52,7 +52,7 @@ import { DASHBOARD_KPI_DEFAULTS, TABLE_COLUMN_DEFAULTS, type PreferenceTableKey 
 import { MRW_SERVICE_OPTIONS, mrwServiceName as getMrwServiceName } from '../services/mrwCatalog';
 import { formatAppDateTime, formatAppMoney } from '../services/formatting';
 import type { AccessProfile } from '../services/access';
-import { importCustomerSubscriptionInvoiceAsExpense, loadCustomerBillingOverview, loadCustomerSubscriptionInvoices, startCustomerPayPalCheckout, type BillingCycle, type CustomerBillingOverview, type CustomerBillingPlan, type CustomerSubscriptionInvoice } from '../services/billing';
+import { BILLING_CHECKOUT_PAUSED, BILLING_CHECKOUT_PAUSE_MESSAGE, importCustomerSubscriptionInvoiceAsExpense, loadCustomerBillingOverview, loadCustomerSubscriptionInvoices, startCustomerPayPalCheckout, type BillingCycle, type CustomerBillingOverview, type CustomerBillingPlan, type CustomerSubscriptionInvoice } from '../services/billing';
 
 type SettingsSectionId =
   | 'general'
@@ -484,6 +484,7 @@ function BillingSection({access}:{access:AccessProfile}){
           <button type="button" className={cycle==='yearly'?'active':''} onClick={()=>setCycle('yearly')}>Anual</button>
         </div>
       </div>
+      {BILLING_CHECKOUT_PAUSED&&<p id="billing-checkout-pause" className="settingsHelpText" role="status">{BILLING_CHECKOUT_PAUSE_MESSAGE}</p>}
       {publicPlans.length?<div className="billingPlanGrid">{publicPlans.map(plan=>{
         const currentPlan=plan.planKey===access.planKey;
         const price=cycle==='yearly'?plan.yearlyPriceCents:plan.monthlyPriceCents;
@@ -493,7 +494,7 @@ function BillingSection({access}:{access:AccessProfile}){
           <p>{plan.description}</p>
           <div className="billingPlanPrice"><strong>{billingMoney(price)}</strong>{price!=null&&<span>{cycle==='yearly'?'/ año':'/ mes'}</span>}</div>
           {features.length>0&&<ul>{features.map(feature=><li key={feature}><ShieldCheck size={14}/>{feature}</li>)}</ul>}
-          <button type="button" className={currentPlan?'secondary':'primary'} disabled={(currentPlan&&overview.subscription.billingProvider==='paypal'&&overview.subscription.status==='active')||requesting!==null} onClick={()=>void requestChange(plan)}>
+          <button type="button" className={currentPlan?'secondary':'primary'} aria-describedby={BILLING_CHECKOUT_PAUSED?'billing-checkout-pause':undefined} disabled={BILLING_CHECKOUT_PAUSED||(currentPlan&&overview.subscription.billingProvider==='paypal'&&overview.subscription.status==='active')||requesting!==null} onClick={()=>void requestChange(plan)}>
             {requesting===plan.planKey?'Abriendo PayPal…':currentPlan&&overview.subscription.billingProvider==='paypal'&&overview.subscription.status==='active'?'Plan actual':currentPlan?'Activar con PayPal':'Contratar con PayPal'}
           </button>
         </article>;

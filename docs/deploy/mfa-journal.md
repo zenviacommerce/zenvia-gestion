@@ -577,3 +577,12 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Worker: 13 runs `success`, 30 jobs recientes `success`, 0 `failed`; cola en 0 pendientes, 0 en proceso, 0 fallidos y sin lease retenido. Cron por minuto: 60/60 `succeeded`.
 - Resto de cron: pedidos 12/12, imágenes 6/6, destinatarios 4/4, mantenimiento 4/4, orquestador 1/1, frescura Shopify 60/60 y sombra Platform 60/60; todos `succeeded`.
 - Resultado: estable, sin incidencia significativa ni acción correctiva.
+
+
+### Vigilancia piloto MFA — 2026-10-21 17:08 CEST
+- Configuración exacta: `enabled=true`, cohort único autorizado; `private.mfa_activation_findings()` = 0 y sin eventos MFA en la última hora. Sin cambios ni apagado de emergencia.
+- Ventana 16:06–17:08 CEST: 0 `PGRST003`, 0 `MFA_REQUIRED`/AAL1 inesperados, 0 denegaciones fuera del cohort, 0 `context canceled`, 0 `job startup timeout` y 0 Auth/MFA 5xx. Auth: 357 respuestas HTTP 200; tres registros `Login` informativos sin estado HTTP y seis entradas de auditoría, sin error.
+- `57014`: un evento aislado de Realtime en `list_changes`, `canceling statement due to user request`. No fue un timeout de PostgREST ni del pool, no se repitió en las 24 h revisadas y no coincidió con fallo de Auth, MFA, cron o worker; clasificado como cancelación interna de una solicitud/suscripción, sin impacto observado.
+- Worker: durante la muestra había un lote activo (1 en proceso, 9 en cola y 1 lease); cerró a las 17:07:24 CEST con `success` y 18 filas procesadas. Comprobación final: 0 pendientes, 0 en proceso, 0 fallidos y 0 leases activos; siguiente cron a las 17:08 `succeeded`.
+- Última hora de cron: worker 60/60, pedidos 12/12, imágenes 6/6, destinatarios 4/4, mantenimiento 4/4, orquestador 1/1, frescura Shopify 60/60 y sombra Platform 60/60; todos `succeeded`.
+- Resultado: estable; la única cancelación Realtime no constituye regresión del piloto ni requiere acción correctiva.

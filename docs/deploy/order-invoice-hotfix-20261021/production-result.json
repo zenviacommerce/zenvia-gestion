@@ -1,0 +1,72 @@
+{
+  "main": "946d932b7e0f705953f7ea228b7ff374f7cb876a",
+  "pr": 270,
+  "production_deployment": "dpl_22J1RTb1BF39etPX5Kcmkf5MtPQo",
+  "state": "READY",
+  "domain": "gestion.zenviacommerce.com",
+  "public_html_bundle": "index-DMsvERAZ.js",
+  "migration": {
+    "lines": {
+      "count": 45,
+      "totals_hash": "ce2a99321cad46ad35e2b49f20f9edfb"
+    },
+    "invoices": {
+      "count": 27,
+      "totals_hash": "b47ce38eacebf50fa837153554086513"
+    },
+    "migration": {
+      "name": "shopify_invoice_tax_rounding",
+      "version": "20261021115856"
+    },
+    "checked_at": "2026-10-21T11:59:07.794968+00:00",
+    "helper_anon": false,
+    "trigger_hash": "cfc9d89f7cb6b558da857a914f634758",
+    "helper_definer": true,
+    "helper_authenticated": true
+  },
+  "ci": [
+    {
+      "id": 39596302966,
+      "name": "Build check",
+      "conclusion": "success"
+    },
+    {
+      "id": 39596302998,
+      "name": "Auth resilience tests",
+      "conclusion": "success"
+    },
+    {
+      "id": 39596302993,
+      "name": "Build ZENVIA Gestión",
+      "conclusion": "success"
+    },
+    {
+      "id": 39596302906,
+      "name": "MFA real integration (disposable Supabase)",
+      "conclusion": "success"
+    },
+    {
+      "id": 39596302848,
+      "name": "MFA visual review (Playwright)",
+      "conclusion": "success"
+    }
+  ],
+  "main_ci": {
+    "id": 39596975305,
+    "conclusion": "success"
+  },
+  "verification": "SQL + public HTML + deployment metadata + isolated real components/SQL. No authenticated production visual check; no real invoice/receipt created.",
+  "postcheck_at": "2026-10-21T12:08:47.145267Z",
+  "existing_invoices_unchanged": 27,
+  "existing_lines_unchanged": 45,
+  "order1023_invoiced_at_postcheck": false,
+  "rollback": {
+    "frontend": "dpl_J6RLpKEotrEC2ddFMVeySm8YobV2",
+    "sql": "rollback.sql",
+    "isolated_restore_test": "passed"
+  },
+  "limitations": [
+    "Vercel connector build-log/protection-bypass reads returned 403; get_deployment allowed and public HTML HTTP read succeeded.",
+    "Public bundle content download timed out; bundle name comes from public HTML. No visual login/session claim."
+  ]
+}

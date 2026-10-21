@@ -211,3 +211,23 @@ Evidencia final: [galería y alturas](deploy/design-phase3-final-20261020/README
 Las cabeceras ordenables comparten `useTableSort`/`useSortableTable`: primer clic ascendente, segundo descendente, tercero elimina la preferencia y recupera el orden predeterminado de la pantalla. La flecha y `aria-sort` reflejan siempre el orden efectivo, incluido el predeterminado. `TableSortReset`, integrado también en DataTable, muestra «Restablecer orden» cuando el orden efectivo difiere del predeterminado; permanece accesible en móvil. El restablecimiento elimina la preferencia persistida de esa lista, vuelve a la primera página y conserva la selección por ID. Las respuestas de páginas anteriores no deben sobrescribir la página vigente.
 
 Toda tabla nueva o migrada, incluida Platform, debe adoptar este contrato. El control ligero `scripts/table-sort-reset-contract.test.mjs` audita todos los consumidores actuales; las pruebas de React cubren el ciclo, almacenamiento y parámetros de paginación y el harness de Pedidos verifica la selección entre páginas. No atribuir orden global a una API que solo devuelve una página sin aceptar parámetros de orden.
+
+### Configuración: secciones, campos y colecciones
+
+Las secciones usan `settingsSubsection` y `settingsSubsectionHead`, título y descripción sin icono ni contenedor gris adicional. Los campos usan `label.settingsField > span` para la etiqueta; la indicación opcional va dentro de ese mismo span. `settingsFormGrid settingsFormGridWide` conserva tres columnas en escritorio, dos hasta 1100 px y una hasta 760 px. Se reutilizan controles, botones y badges del sistema.
+
+Las colecciones de Configuración presentan en reposo una lista `configList` / `configRow`, su estado vacío y Añadir. Alta y edición abren `FormModal` con Cancelar y Guardar; la eliminación usa la confirmación compartida real. El borrador del modal no modifica la colección hasta Guardar. Cancelar, cerrar o Escape descarta solo ese borrador y devuelve el foco al origen. El modal tiene nombre accesible, foco contenido y protección durante el guardado; los errores conservan los campos para reintentar.
+
+Cada migración conserva el límite de persistencia de la colección: Guardar en un modal puede actualizar el borrador de la sección o persistir de forma independiente según su contrato previo. Nunca debe limpiar cambios pendientes de otra sección. En cuentas bancarias, Guardar persiste independientemente; la lista y el selector común muestran el IBAN agrupado de cuatro en cuatro, sin alterar el valor normalizado ni las instantáneas históricas. Los datos legacy inválidos permanecen literales y visibles para corregirlos.
+
+Excepciones existentes revisadas, pendientes de una migración específica; no se convierten en este ajuste bancario:
+
+| Colección | Límite que debe conservar su futura migración |
+|---|---|
+| Métodos de pago | Borrador de Ventas y Guardar cambios exterior; identificadores únicos y fallback activo. |
+| Reglas de envío | Persistencia independiente inmediata; condiciones y reinicio de cuenta al cambiar proveedor. |
+| Formatos de paquete | Borrador de Configuración; límite de 50, formato por defecto y prioridad del pedido. |
+| Pesos por SKU | Borrador de Configuración; peso positivo y reemplazo por SKU. |
+| Alias de proveedores | Persistencia independiente inmediata; proveedor buscable, prioridad, estado y confirmación. |
+
+Las cuentas de integración ya siguen lista y modal. Los campos escalares, preferencias, herramientas de mantenimiento y líneas de documento no son colecciones independientes y no se convierten mecánicamente a este patrón.

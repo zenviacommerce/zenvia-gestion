@@ -1,0 +1,32 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile,readdir} from 'node:fs/promises';
+import {PGlite} from '@electric-sql/pglite';
+test('Shopify included-tax invoice #1023 totals 40.98; manual, Amazon and receipts keep their previous rules',async()=>{
+ const db=new PGlite();
+ try{
+ await db.exec(`create role anon;create role authenticated;create role service_role;create schema private;create function private.app_workspace_owner_id() returns uuid language sql as $$select '00000000-0000-0000-0000-000000000099'::uuid$$;create function private.app_has_permission(text) returns boolean language sql as $$select true$$;create table fulfillment_orders(id uuid primary key,owner_id uuid,source_channel text,raw_payload jsonb);create table sales_invoices(id uuid primary key,owner_id uuid,invoice_type text,document_kind text,fiscal_treatment text,source_fulfillment_order_id uuid);create table sales_invoice_lines(invoice_id uuid,quantity numeric,unit_price numeric,discount_percent numeric,tax_rate numeric,line_net numeric,tax_amount numeric,line_total numeric);`);
+ for(const name of (await readdir(new URL('../supabase/migrations/',import.meta.url))).sort()){
+ const sql=await readFile(new URL('../supabase/migrations/'+name,import.meta.url),'utf8');
+ const definition=sql.match(/create or replace function private\.sales_invoice_line_calculate\(\)[\s\S]*?\$(?:function)?\$;/i)?.[0];
+ if(name.endsWith('_shopify_invoice_tax_rounding.sql'))await db.exec(sql);else if(definition)await db.exec(definition);
+ }
+ await db.exec(`create trigger calc before insert or update on sales_invoice_lines for each row execute function private.sales_invoice_line_calculate();insert into fulfillment_orders values('00000000-0000-0000-0000-000000000001','00000000-0000-0000-0000-000000000099','shopify','{"taxesIncluded":true}'),('00000000-0000-0000-0000-000000000002','00000000-0000-0000-0000-000000000099','amazon','{"taxesIncluded":true}');`);
+ const insert=async(id,kind='invoice',source=null,rate=21)=>{
+ await db.query('insert into sales_invoices values($1,$2,$3,$4,$5,$6)',[id,'00000000-0000-0000-0000-000000000099','standard',kind,kind==='receipt'?'exempt':'standard',source]);
+ return (await db.query('insert into sales_invoice_lines(invoice_id,quantity,unit_price,discount_percent,tax_rate) values($1,1,23.1322,0,$2),($1,1,10.7355,0,$2) returning line_net,tax_amount,line_total',[id,rate])).rows;
+ };
+ const shopify=await insert('10000000-0000-0000-0000-000000000001','invoice','00000000-0000-0000-0000-000000000001');
+ assert.deepEqual(shopify.map(x=>Number(x.tax_amount)),[4.86,2.25]);
+ assert.equal(Math.round(shopify.reduce((s,x)=>s+Number(x.line_total),0)*100),4098);
+ for(const [id,source] of [['10000000-0000-0000-0000-000000000002',null],['10000000-0000-0000-0000-000000000003','00000000-0000-0000-0000-000000000002']]){
+ const rows=await insert(id,'invoice',source);assert.deepEqual(rows.map(x=>Number(x.tax_amount)),[4.86,2.26]);
+ }
+ await db.exec('grant usage on schema private to authenticated;grant select on sales_invoices to authenticated;grant insert,select on sales_invoice_lines to authenticated;set role authenticated');
+ const restricted=(await db.query("insert into sales_invoice_lines(invoice_id,quantity,unit_price,discount_percent,tax_rate) values('10000000-0000-0000-0000-000000000001',1,10.7355,0,21) returning line_total")).rows;
+ assert.equal(Number(restricted[0].line_total),12.99,'sales-only user cannot read orders but keeps fiscal rounding');
+ await db.exec('reset role');
+ const receipt=await insert('10000000-0000-0000-0000-000000000004','receipt',null,0);assert.deepEqual(receipt.map(x=>Number(x.tax_amount)),[0,0]);
+ await assert.rejects(()=>insert('10000000-0000-0000-0000-000000000005','receipt',null,21),/IVA 0/);
+ }finally{await db.close()}
+});

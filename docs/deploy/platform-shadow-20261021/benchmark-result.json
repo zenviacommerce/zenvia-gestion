@@ -1,0 +1,23 @@
+[
+  {
+    "mode": "active_metric_change",
+    "n": 500,
+    "mean_us": "5486.55",
+    "median_us": "4980.00",
+    "p95_us": "10226.80"
+  },
+  {
+    "mode": "active_no_metric_change",
+    "n": 3000,
+    "mean_us": "371.78",
+    "median_us": "295.00",
+    "p95_us": "853.00"
+  },
+  {
+    "mode": "disabled_no_metric_change",
+    "n": 3000,
+    "mean_us": "258.39",
+    "median_us": "215.00",
+    "p95_us": "546.05"
+  }
+]

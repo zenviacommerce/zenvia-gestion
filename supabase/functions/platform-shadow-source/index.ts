@@ -28,6 +28,7 @@ Deno.serve(async req=>{
   const body=JSON.parse(raw);if(body.action!=='snapshot'||body.source_project_ref!==cfg.source_project_ref||body.generation!==cfg.generation)return json({error:'SOURCE_SCOPE'},403);
   let upper=body.upper?new Date(body.upper):new Date();if(!Number.isFinite(upper.getTime())||upper.getTime()>Date.now()+300000)return json({error:'INVALID_CURSOR'},400);
   if(body.full_repair===true){await rpc('platform_shadow_source_bootstrap');upper=new Date();}
-  const page=await rpc('platform_shadow_source_snapshot',{p_after:body.after||null,p_id:body.id||null,p_upper:upper.toISOString(),p_limit:100,p_metrics_after:body.metrics_after||null});return json({...page,upper:upper.toISOString()});
+  const preciseUpper=body.full_repair===true||!body.upper?upper.toISOString():body.upper;
+  const page=await rpc('platform_shadow_source_snapshot',{p_after:body.after||null,p_id:body.id||null,p_upper:preciseUpper,p_limit:100,p_metrics_after:body.metrics_after||null});return json({...page,upper:preciseUpper});
  }catch(error){const code=error instanceof Error&&error.message==='BODY_TOO_LARGE'?'BODY_TOO_LARGE':'SOURCE_FAILED';console.error(code);return json({error:code},code==='BODY_TOO_LARGE'?413:500);}
 });

@@ -1,0 +1,32 @@
+import {useEffect,useState} from 'react';
+import {Building2} from 'lucide-react';
+import {archiveBusinessBankAccount,loadBusinessBankAccounts,saveBusinessBankAccount,setDefaultBusinessBankAccount,type BusinessBankAccount,type BusinessBankAccountInput} from '../services/businessBankAccounts';
+import {validateBankAccountInput} from '../services/bankAccountValidation';
+import {confirmAction} from '../services/actionDialog';
+import {errorMessage,showSuccess} from '../services/toast';
+import './business-bank-accounts.css';
+
+const emptyAccount=():BusinessBankAccountInput=>({alias:'',iban:'',bic:'',holder:'',isDefault:false});
+export function BusinessBankAccountsPanel({onChanged,onDirtyChange}:{onChanged?:()=>void|Promise<void>;onDirtyChange?:(dirty:boolean)=>void}){
+ const [accounts,setAccounts]=useState<BusinessBankAccount[]>([]),[form,setForm]=useState<BusinessBankAccountInput>(emptyAccount),[loading,setLoading]=useState(true),[busy,setBusy]=useState(false),[error,setError]=useState('');
+ const refresh=async()=>{setLoading(true);try{setAccounts(await loadBusinessBankAccounts());setError('')}catch(e){setError(errorMessage(e,'No se pudieron cargar las cuentas bancarias.'))}finally{setLoading(false)}};
+ useEffect(()=>{void refresh()},[]);
+ const update=<K extends keyof BusinessBankAccountInput>(key:K,value:BusinessBankAccountInput[K])=>{setForm(current=>({...current,[key]:value}));onDirtyChange?.(true)};
+ const reset=()=>{setForm(emptyAccount());onDirtyChange?.(false)};
+ const changed=async()=>{await refresh();window.dispatchEvent(new Event('zenvia:bank-accounts-changed'));await onChanged?.()};
+ const save=async(event:React.FormEvent)=>{
+  event.preventDefault();setError('');
+  try{validateBankAccountInput(form)}catch(e){setError(errorMessage(e,'Revisa los datos de la cuenta.'));return}
+  setBusy(true);try{await saveBusinessBankAccount(form);await changed();reset();showSuccess(form.id?'Cuenta bancaria actualizada.':'Cuenta bancaria añadida.')}catch(e){setError(errorMessage(e,'No se pudo guardar la cuenta bancaria.'))}finally{setBusy(false)}
+ };
+ const makeDefault=async(account:BusinessBankAccount)=>{setBusy(true);setError('');try{await setDefaultBusinessBankAccount(account.id);await changed();setForm(current=>current.id?{...current,isDefault:current.id===account.id}:current);showSuccess('Cuenta predeterminada actualizada.')}catch(e){setError(errorMessage(e,'No se pudo cambiar la cuenta predeterminada.'))}finally{setBusy(false)}};
+ const remove=async(account:BusinessBankAccount)=>{
+  if(!await confirmAction({title:'Eliminar cuenta bancaria',message:`Se retirará ${account.alias} para documentos nuevos.`,confirmLabel:'Eliminar',tone:'danger',details:['Los documentos existentes conservan sus datos bancarios.','Si es la cuenta predeterminada, se elegirá otra cuenta válida disponible.']}))return;
+  setBusy(true);setError('');try{await archiveBusinessBankAccount(account.id);if(form.id===account.id)reset();await changed();showSuccess('Cuenta bancaria retirada.')}catch(e){setError(errorMessage(e,'No se pudo eliminar la cuenta bancaria.'))}finally{setBusy(false)}
+ };
+ return <section className="businessBankAccounts" data-independent-settings="bank-accounts" aria-label="Cuentas bancarias">
+  <h3><Building2 size={18}/> Cuentas bancarias</h3><p>Elige una cuenta predeterminada para documentos nuevos. También puedes elegir una cuenta distinta por factura o serie. Las facturas emitidas y los recibos guardados conservan sus datos bancarios.</p>
+  {loading?<p role="status">Cargando cuentas bancarias…</p>:<div className="bankAccountRows">{accounts.length?accounts.map(account=><article className="bankAccountRow" key={account.id} aria-label={`Cuenta ${account.alias}`}><div className="bankAccountRowMain"><strong>{account.alias}{account.isDefault&&<span className="bankAccountBadge">Predeterminada</span>}</strong><span className="bankAccountNumber">{account.iban}</span>{account.bic&&<small>BIC / SWIFT: {account.bic}</small>}{account.holder&&<small>Titular: {account.holder}</small>}{account.validationStatus==='needs_review'&&<span className="bankAccountWarning">Pendiente de revisión</span>}</div><div className="bankAccountActions">{!account.isDefault&&account.validationStatus==='valid'&&<button type="button" className="secondary" disabled={busy} onClick={()=>void makeDefault(account)}>Usar por defecto</button>}<button type="button" className="secondary" disabled={busy} onClick={()=>{setForm({id:account.id,alias:account.alias,iban:account.iban,bic:account.bic||'',holder:account.holder||'',isDefault:account.isDefault});setError('')}}>Editar</button><button type="button" className="secondary dangerText" disabled={busy} onClick={()=>void remove(account)}>Eliminar</button></div></article>):<p>No hay cuentas bancarias. Añade una para cobrar por transferencia.</p>}</div>}
+  <div className="bankAccountEditor"><h4>{form.id?'Editar cuenta bancaria':'Nueva cuenta bancaria'}</h4><form onSubmit={event=>void save(event)}><label>Alias de la cuenta<input autoComplete="off" maxLength={100} value={form.alias} onChange={event=>update('alias',event.target.value)} disabled={busy} placeholder="Cuenta principal"/></label><label>IBAN de la cuenta<input autoComplete="off" value={form.iban} onChange={event=>update('iban',event.target.value)} disabled={busy} placeholder="ES…"/></label><label>BIC / SWIFT <span className="optionalLabel">opcional</span><input autoComplete="off" value={form.bic||''} onChange={event=>update('bic',event.target.value)} disabled={busy}/></label><label>Titular <span className="optionalLabel">opcional</span><input maxLength={200} value={form.holder||''} onChange={event=>update('holder',event.target.value)} disabled={busy}/></label><label className="bankAccountWide configCheckboxLabel"><input type="checkbox" checked={Boolean(form.isDefault)} onChange={event=>update('isDefault',event.target.checked)} disabled={busy}/>Usar por defecto</label>{error&&<div role="alert" className="errorBox bankAccountWide">{error}</div>}<div className="bankAccountEditorActions"><button type="submit" className="primary" disabled={busy||loading}>{busy?'Guardando…':form.id?'Guardar cuenta':'Añadir cuenta'}</button>{form.id&&<button type="button" className="secondary" disabled={busy} onClick={reset}>Cancelar edición</button>}{error&&<button type="button" className="link" disabled={busy} onClick={()=>void refresh()}>Actualizar cuentas</button>}</div></form></div>
+ </section>;
+}

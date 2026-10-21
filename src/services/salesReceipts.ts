@@ -1,3 +1,4 @@
+import type {BankAccountSnapshot,BankAccountSnapshotSource} from './businessBankAccounts';
 import { supabase } from './supabase';
 import { sanitizeDatabaseSingleLine, sanitizeDatabaseText } from './textSanitizer';
 
@@ -31,6 +32,12 @@ export type SalesReceipt={
   receiptDate:string;
   currency:string;
   notes?:string|null;
+  paymentMethod?:string|null;
+  paymentMethodId?:string|null;
+  bankAccountId?:string|null;
+  bankAccountSnapshot?:BankAccountSnapshot|null;
+  bankSnapshotSource?:BankAccountSnapshotSource|null;
+  bankSnapshotAt?:string|null;
   totalAmount:number;
   lines:SalesReceiptLine[];
   payments:SalesReceiptPayment[];
@@ -42,6 +49,9 @@ export type SalesReceiptInput={
   receiptDate:string;
   currency?:string;
   notes?:string;
+  paymentMethod?:string|null;
+  paymentMethodId?:string|null;
+  bankAccountId?:string|null;
   lines:SalesReceiptLine[];
 };
 
@@ -54,6 +64,9 @@ function receiptRow(input:SalesReceiptInput){
     receipt_date:sanitizeDatabaseSingleLine(input.receiptDate),
     currency:sanitizeDatabaseSingleLine(input.currency||'EUR').toUpperCase().slice(0,3)||'EUR',
     notes:nullable(input.notes),
+    ...(input.paymentMethod!==undefined?{payment_method:nullable(input.paymentMethod)}:{}),
+    ...(input.paymentMethodId!==undefined?{payment_method_id:nullable(input.paymentMethodId)}:{}),
+    ...(input.bankAccountId!==undefined?{bank_account_id:input.bankAccountId||null}:{}),
   };
 }
 
@@ -73,7 +86,7 @@ function lineRows(receiptId:string,lines:SalesReceiptLine[]){
 
 export async function loadSalesReceipts():Promise<SalesReceipt[]>{
   const [receiptResult,lineResult,clientResult,paymentResult]=await Promise.all([
-    supabase.from('sales_receipts').select('id,client_id,receipt_number,receipt_date,currency,notes,total_amount,created_at').order('receipt_date',{ascending:false}).order('created_at',{ascending:false}),
+    supabase.from('sales_receipts').select('id,client_id,receipt_number,receipt_date,currency,notes,total_amount,created_at,payment_method,payment_method_id,bank_account_id,bank_account_snapshot,bank_snapshot_source,bank_snapshot_at').order('receipt_date',{ascending:false}).order('created_at',{ascending:false}),
     supabase.from('sales_receipt_lines').select('id,receipt_id,product_id,position,description,quantity,unit,unit_price,discount_percent,invoice_tax_rate,line_total').order('position'),
     supabase.from('clients').select('id,name'),
     supabase.from('sales_receipt_payments').select('id,receipt_id,payment_date,amount,method,reference,notes,created_at').order('payment_date').order('created_at'),
@@ -101,6 +114,7 @@ export async function loadSalesReceipts():Promise<SalesReceipt[]>{
     return {
       id:row.id,clientId:row.client_id,clientName:clients.get(row.client_id)||'Cliente',receiptNumber:row.receipt_number,
       receiptDate:row.receipt_date,currency:row.currency||'EUR',notes:row.notes,totalAmount:n(row.total_amount),
+      paymentMethod:row.payment_method??null,paymentMethodId:row.payment_method_id??null,bankAccountId:row.bank_account_id??null,bankAccountSnapshot:row.bank_account_snapshot??null,bankSnapshotSource:row.bank_snapshot_source??null,bankSnapshotAt:row.bank_snapshot_at??null,
       lines:lines.get(row.id)??[],payments:receiptPayments,paidAmount:receiptPayments.reduce((sum,payment)=>sum+payment.amount,0),
     };
   });

@@ -85,10 +85,22 @@ export function createSalesInvoicePdfBlob(
   if(invoice.discountAmount!==0){doc.text(`${labels.discounts}:`,150,y,{align:'right'});doc.text(money(-invoice.discountAmount),194,y,{align:'right'});y+=6;}
   doc.text(`${labels.vat}:`,150,y,{align:'right'});doc.text(money(invoice.taxAmount),194,y,{align:'right'});y+=8;doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text(`${labels.total}:`,150,y,{align:'right'});doc.text(money(invoice.totalAmount),194,y,{align:'right'});
 
-  doc.setFont('helvetica','normal');doc.setFontSize(8.5);let footerY=Math.max(y+16,265);
+  const bank=invoice.bankAccountSnapshot;
+  const showBank=Boolean(bank?.iban&&(salesSettings?.showIbanOnPdf??true));
+  const legacyBank=invoice.bankSnapshotSource==='legacy_current_render';
+  doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+  const bankLines=showBank&&!legacyBank?[`IBAN: ${bank!.iban}`,...(bank!.bic?[`BIC/SWIFT: ${bank!.bic}`]:[]),...(bank!.holder?[`Titular: ${bank!.holder}`]:[])].flatMap(value=>doc.splitTextToSize(value,180) as string[]):[];
+  let footerY=Math.max(y+16,265-Math.max(0,bankLines.length-1)*5);
   if(footerY>278){doc.addPage();footerY=24;}
   if(invoice.paymentMethod&&(salesSettings?.showPaymentMethodOnPdf??true)){doc.text(`${labels.paymentMethod}: ${invoice.paymentMethod}`,14,footerY);footerY+=5;}
-  if(settings?.iban&&(salesSettings?.showIbanOnPdf??true)){doc.text(`IBAN: ${settings.iban}`,14,footerY);footerY+=5;}
+  if(bank?.iban&&(salesSettings?.showIbanOnPdf??true)&&invoice.bankSnapshotSource==='legacy_current_render'){
+    doc.text(`IBAN: ${bank.iban}`,14,footerY);footerY+=5;
+  }else if(bank?.iban&&(salesSettings?.showIbanOnPdf??true)){
+    for(const line of bankLines){
+      if(footerY>278){doc.addPage();footerY=24;}
+      doc.text(line,14,footerY);footerY+=5;
+    }
+  }
   if(invoice.notes){doc.text(doc.splitTextToSize(`${labels.notes}: ${invoice.notes}`,180),14,footerY);footerY+=8;}
   if(settings?.invoiceFooter)doc.text(doc.splitTextToSize(settings.invoiceFooter,180),14,footerY);
   return doc.output('blob');

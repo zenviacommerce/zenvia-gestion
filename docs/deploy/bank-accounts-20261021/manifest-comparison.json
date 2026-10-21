@@ -1,0 +1,634 @@
+{
+  "baseline": "95891f9816313bfe11b7b910593689e267e200c5",
+  "widths": [
+    390,
+    1280,
+    1440
+  ],
+  "synthetic": true,
+  "networkBlocked": true,
+  "fixtureIdentical": true,
+  "fixtureSha256": "756f1d88d4274327cd9927836f4c6584c3d75ab120fbdf2cb4a85f02336f0467",
+  "harnessSha256": "75f719c0813b29ef79068aa7e19a1682a036a88d76fc98844cc7bd68fc84e454",
+  "before": {
+    "checks": 21,
+    "validatedRawCaptures": 33,
+    "deliveredCaptures": 21,
+    "sourceFiles": 282,
+    "resolvedCssSources": 60
+  },
+  "after": {
+    "checks": 51,
+    "validatedRawCaptures": 147,
+    "deliveredCaptures": 60,
+    "sourceFiles": 287,
+    "resolvedCssSources": 61
+  },
+  "curation": {
+    "validatedDistinctStates": 180,
+    "deliveredPng": 81,
+    "rawEvidenceHashesVerifiedLocally": true,
+    "deliverableHashesVerified": true,
+    "noOrphanPng": true,
+    "reason": "Retain one focused capture per scenario/width; second only for account editor or series-versus-manual choice. All interaction, overflow and browser checks ran before curation. Full raw receipt retained locally outside repository."
+  },
+  "finalSourceSnapshotMatchesWorkingTree": false,
+  "selectiveRefresh": "General six combinations refreshed after final non-layout maxLength/default-editor-state corrections; all other rendered surfaces unchanged.",
+  "onlySourceDifferenceBetweenAfterBatches": [
+    "src/components/BusinessBankAccountsPanel.tsx"
+  ],
+  "headerAndFooterActionsPreservedForSevenBaselineSurfaces": true,
+  "pageErrors": 0,
+  "horizontalDocumentOverflow": false,
+  "callsAcrossAfter": [
+    "ensureSalesSeries",
+    "loadBusinessBankAccounts",
+    "loadBusinessSettings",
+    "loadClients",
+    "loadCompanyBranding",
+    "loadManagedSalesSeries",
+    "loadTaxRegistrations",
+    "prepareOrderInvoice",
+    "setDefaultBusinessBankAccount",
+    "showSuccess"
+  ],
+  "afterInteractions": [
+    {
+      "screen": "general",
+      "width": 390,
+      "checks": [
+        {
+          "twoAccountsVisible": true,
+          "globalDefaultChangedInMemory": true,
+          "accountEditHydrated": true,
+          "editorDefaultTracksChangedGlobalDefault": true
+        }
+      ]
+    },
+    {
+      "screen": "general",
+      "width": 1280,
+      "checks": [
+        {
+          "twoAccountsVisible": true,
+          "globalDefaultChangedInMemory": true,
+          "accountEditHydrated": true,
+          "editorDefaultTracksChangedGlobalDefault": true
+        }
+      ]
+    },
+    {
+      "screen": "general",
+      "width": 1440,
+      "checks": [
+        {
+          "twoAccountsVisible": true,
+          "globalDefaultChangedInMemory": true,
+          "accountEditHydrated": true,
+          "editorDefaultTracksChangedGlobalDefault": true
+        }
+      ]
+    },
+    {
+      "screen": "general-missing",
+      "width": 390,
+      "checks": [
+        {
+          "emptyAccountManager": true
+        }
+      ]
+    },
+    {
+      "screen": "general-missing",
+      "width": 1280,
+      "checks": [
+        {
+          "emptyAccountManager": true
+        }
+      ]
+    },
+    {
+      "screen": "general-missing",
+      "width": 1440,
+      "checks": [
+        {
+          "emptyAccountManager": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice",
+      "width": 390,
+      "checks": [
+        {
+          "globalDefault": true,
+          "seriesDefault": true,
+          "manualOverridePreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice",
+      "width": 1280,
+      "checks": [
+        {
+          "globalDefault": true,
+          "seriesDefault": true,
+          "manualOverridePreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice",
+      "width": 1440,
+      "checks": [
+        {
+          "globalDefault": true,
+          "seriesDefault": true,
+          "manualOverridePreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit",
+      "width": 390,
+      "checks": [
+        {
+          "persistedDraftAccountPreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit",
+      "width": 1280,
+      "checks": [
+        {
+          "persistedDraftAccountPreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit",
+      "width": 1440,
+      "checks": [
+        {
+          "persistedDraftAccountPreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-missing",
+      "width": 390,
+      "checks": [
+        {
+          "exactMissingWarning": true,
+          "settingsLink": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-missing",
+      "width": 1280,
+      "checks": [
+        {
+          "exactMissingWarning": true,
+          "settingsLink": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-missing",
+      "width": 1440,
+      "checks": [
+        {
+          "exactMissingWarning": true,
+          "settingsLink": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-snapshot",
+      "width": 390,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-snapshot",
+      "width": 1280,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-snapshot",
+      "width": 1440,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-legacy",
+      "width": 390,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": true,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-legacy",
+      "width": 1280,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": true,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-legacy",
+      "width": 1440,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": true,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-legacy-missing",
+      "width": 390,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": false,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-legacy-missing",
+      "width": 1280,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": false,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-legacy-missing",
+      "width": 1440,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": false,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-stale",
+      "width": 390,
+      "checks": [
+        {
+          "archivedSelectionWarning": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-stale",
+      "width": 1280,
+      "checks": [
+        {
+          "archivedSelectionWarning": true
+        }
+      ]
+    },
+    {
+      "screen": "invoice-edit-stale",
+      "width": 1440,
+      "checks": [
+        {
+          "archivedSelectionWarning": true
+        }
+      ]
+    },
+    {
+      "screen": "receipt-new",
+      "width": 390,
+      "checks": [
+        {
+          "globalDefault": true,
+          "manualOverride": true
+        }
+      ]
+    },
+    {
+      "screen": "receipt-new",
+      "width": 1280,
+      "checks": [
+        {
+          "globalDefault": true,
+          "manualOverride": true
+        }
+      ]
+    },
+    {
+      "screen": "receipt-new",
+      "width": 1440,
+      "checks": [
+        {
+          "globalDefault": true,
+          "manualOverride": true
+        }
+      ]
+    },
+    {
+      "screen": "receipt-new-missing",
+      "width": 390,
+      "checks": [
+        {
+          "exactMissingWarning": true,
+          "settingsLink": true
+        }
+      ]
+    },
+    {
+      "screen": "receipt-new-missing",
+      "width": 1280,
+      "checks": [
+        {
+          "exactMissingWarning": true,
+          "settingsLink": true
+        }
+      ]
+    },
+    {
+      "screen": "receipt-new-missing",
+      "width": 1440,
+      "checks": [
+        {
+          "exactMissingWarning": true,
+          "settingsLink": true
+        }
+      ]
+    },
+    {
+      "screen": "receipt-edit",
+      "width": 390,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": false,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "receipt-edit",
+      "width": 1280,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": false,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "receipt-edit",
+      "width": 1440,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": false,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "receipt-edit-snapshot",
+      "width": 390,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "receipt-edit-snapshot",
+      "width": 1280,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "receipt-edit-snapshot",
+      "width": 1440,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "shopify",
+      "width": 390,
+      "checks": [
+        {
+          "globalDefault": true,
+          "seriesDefault": true,
+          "manualOverridePreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "shopify",
+      "width": 1280,
+      "checks": [
+        {
+          "globalDefault": true,
+          "seriesDefault": true,
+          "manualOverridePreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "shopify",
+      "width": 1440,
+      "checks": [
+        {
+          "globalDefault": true,
+          "seriesDefault": true,
+          "manualOverridePreserved": true
+        }
+      ]
+    },
+    {
+      "screen": "shopify-missing",
+      "width": 390,
+      "checks": [
+        {
+          "exactMissingWarning": true,
+          "settingsLink": true
+        }
+      ]
+    },
+    {
+      "screen": "shopify-missing",
+      "width": 1280,
+      "checks": [
+        {
+          "exactMissingWarning": true,
+          "settingsLink": true
+        }
+      ]
+    },
+    {
+      "screen": "shopify-missing",
+      "width": 1440,
+      "checks": [
+        {
+          "exactMissingWarning": true,
+          "settingsLink": true
+        }
+      ]
+    },
+    {
+      "screen": "shopify-snapshot",
+      "width": 390,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "shopify-snapshot",
+      "width": 1280,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "shopify-snapshot",
+      "width": 1440,
+      "checks": [
+        {
+          "snapshotReadOnly": true,
+          "liveAccountChanged": true,
+          "snapshotIbanPreserved": true,
+          "legacyProvenance": false,
+          "legacyMissingPreserved": false
+        }
+      ]
+    },
+    {
+      "screen": "series",
+      "width": 390,
+      "checks": [
+        {
+          "seriesBankDefaultLoaded": true
+        }
+      ]
+    },
+    {
+      "screen": "series",
+      "width": 1280,
+      "checks": [
+        {
+          "seriesBankDefaultLoaded": true
+        }
+      ]
+    },
+    {
+      "screen": "series",
+      "width": 1440,
+      "checks": [
+        {
+          "seriesBankDefaultLoaded": true
+        }
+      ]
+    }
+  ],
+  "captureSourceProvenanceUnchanged": true,
+  "postCaptureSourceReview": {
+    "receipt": "manifest-source-final-vs-capture.json",
+    "expectedChangesOnly": true,
+    "changedSourceFiles": [
+      "src/services/salesInvoicePdf.ts",
+      "src/pages/Products.tsx"
+    ],
+    "unchangedSourceCount": 285,
+    "appSourceUnchanged": true,
+    "bankUiSourcesUnchanged": true,
+    "recaptureRequired": false
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "reviewedAtUtc": "2026-10-21T16:35:47.646268+00:00",
+  "captureManifestsUnmodified": true,
+  "captureSourceHashesPreserved": true,
+  "scope": "Compare all 287 source hashes recorded in the final capture snapshot with current files. Verify only the 81 PNG explicitly listed in capture manifests. PDF artifacts are outside this scope.",
+  "capturedSourceCount": 287,
+  "unchangedSourceCount": 285,
+  "appSourceUnchanged": true,
+  "bankUiSourcesUnchanged": true,
+  "unexpectedSourceChanges": [],
+  "expectedPostCaptureChanges": [
+    {
+      "path": "src/services/salesInvoicePdf.ts",
+      "captureSha256": "7ba9a59f8474e9cba23e23acf3ed607e24b86ef20b00250fb2f3034a3c68cf36",
+      "finalSha256": "679b1a4c81c25682fbb22927425589c8a55436986c382033fc49052f9543cc5f",
+      "effectOnCapturedSurfaces": "none",
+      "reason": "Frontera PDF simulada por el harness. El generador no se ejecuta al capturar formularios; corrección posterior del pie para evitar titular huérfano, probada por separado con PDF corto de una página que conserva IBAN/BIC/titular y preservación exacta de legacy, según coordinación.",
+      "separateValidationReportedBy": "root coordinator"
+    },
+    {
+      "path": "src/pages/Products.tsx",
+      "captureSha256": "b4acdf4daa776e81ae41ff3985d2ce7fdf18befbb7b1726c1b5637395cf165e9",
+      "finalSha256": "2d55af4a6f9d1a2e9b60bb260aac33e9ca4904b36c99601ff9cb02230626e7d0",
+      "effectOnCapturedSurfaces": "none",
+      "reason": "Fuera de las siete superficies bancarias capturadas. El grafo de main/App se recorre para recopilar CSS; Products no se monta en el harness bancario. Corrección del periodo de Productos integrada después de capturar bancos y verificada por separado.",
+      "separateValidationReportedBy": "root coordinator"
+    }
+  ],
+  "deliveredPngCount": 81,
+  "deliveredPngHashesStillMatch": true,
+  "recaptureRequired": false,
+  "recaptureReason": "Products is outside captured banking surfaces; PDF generation is a mocked boundary. No captured bank UI/CSS source changed."
+}

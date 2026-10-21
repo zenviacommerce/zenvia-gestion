@@ -20,8 +20,8 @@ export async function prepareOrderInvoice(order:FulfillmentOrder){
   if(error)throw error;
   return {invoice:null,lines:shopifyInvoiceLines(data.raw_payload)};
 }
-export async function saveOrderInvoice(orderId:string,input:{client:ClientInput;taxRegistrationId?:string;seriesId:string;issueDate:string;lines:SalesInvoiceLine[]},issue:boolean){
-  const {data,error}=await supabase.rpc('save_shopify_order_invoice',{p_order_id:orderId,p_client:{...input.client,taxRegistrationId:input.taxRegistrationId||null},p_series_id:input.seriesId,p_issue_date:input.issueDate,p_lines:input.lines,p_issue:issue});
+export async function saveOrderInvoice(orderId:string,input:{client:ClientInput;taxRegistrationId?:string;seriesId:string;issueDate:string;lines:SalesInvoiceLine[];bankAccountId?:string|null;paymentMethodId?:string|null;paymentMethod?:string|null},issue:boolean){
+  const {data,error}=await supabase.rpc('save_shopify_order_invoice',{p_order_id:orderId,p_client:{...input.client,taxRegistrationId:input.taxRegistrationId||null,...(input.bankAccountId!==undefined?{bankAccountId:input.bankAccountId||null}:{}),paymentMethodId:input.paymentMethodId||null,paymentMethod:input.paymentMethod||null},p_series_id:input.seriesId,p_issue_date:input.issueDate,p_lines:input.lines,p_issue:issue});
   if(error)throw error;
   notifyEntityChanged('clients');
   const invoice=(await loadSalesInvoices()).find(i=>i.id===data);

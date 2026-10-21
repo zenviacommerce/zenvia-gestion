@@ -3,6 +3,10 @@
 Fecha de comprobación: 2026-10-21, 22:32 UTC. Proyecto sjkxxbedkkmgmqnvaqjh.
 Estado: diagnóstico y diseño; ningún pedido, etiqueta ni configuración de transportista modificado.
 
+## Handoff del catálogo comercial
+
+Hotfix #276 publicado en main 3eaa170d1d5175ac598cc7663a5cbfcb378427db; Vercel dpl_BF6FnzEMv44vsSveMHmahzU5QMfU. Corrección completa retenida en Gestión #277 (74fa08575f7f00496ffe070d184c219479327bbc) y Platform #81 (fdfa0092f3869e24d94a5e5d4b4a533aaff59c6c). Consulta de CI el 21/10 a las 22:35 UTC: los seis workflows de Gestión concluyeron success (39686724475, 39686724508, 39686724606, 39686724870, 39686724682, 39686724839); Platform 39686722186 success. Ninguna de estas dos PRs completas se ha fusionado ni desplegado. PayPal y las suscripciones siguen sin cambios.
+
 ## Evidencia
 
 Se recuperaron las funciones desplegadas y se comparó su archivo principal íntegro con main: coincidencia exacta en los tres casos.

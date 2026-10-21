@@ -32,6 +32,7 @@ try{for(const phase of ['before','after']){
  await page.setContent('<html lang="es-ES"><style>'+css+'</style><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
  await page.evaluate(()=>globalThis.renderFixture());await page.getByRole('button',{name:'Generar factura',exact:true}).waitFor();
  await page.screenshot({path:output+'/'+phase+'-1023-'+width+'.png',fullPage:true});
+ if(width===390){await page.locator(phase==='after'?'.ordersItems':'.errorBox').scrollIntoViewIfNeeded();await page.screenshot({path:output+'/'+phase+'-1023-390-fiscal.png',fullPage:true});}
  const proof=await page.evaluate(()=>({total:[...document.querySelectorAll('strong')].find(x=>x.textContent.startsWith('Total:'))?.textContent,lines:document.querySelectorAll('.ordersItems>div').length,issuer:[...document.querySelectorAll('p')].find(x=>x.textContent.startsWith('Emisor:'))?.textContent,error:document.querySelector('.errorBox')?.textContent}));
  if(phase==='after'&&(proof.total!=='Total: 40.98 EUR'||proof.lines!==3||proof.error))throw Error(JSON.stringify(proof));
  checks.push({phase,width,...proof});await page.close();

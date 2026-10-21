@@ -10,3 +10,12 @@ test('tax-exclusive Shopify prices are not divided by VAT',async()=>{const {shop
 test('missing fiscal details require resync instead of assuming Spanish VAT',async()=>{const {shopifyInvoiceLines}=await core();assert.throws(()=>shopifyInvoiceLines({lineItems:{nodes:[]}}),/Actualizar/);});
 test('incomplete lines and refunded orders never produce a partial invoice',async()=>{const {shopifyInvoiceLines}=await core();assert.throws(()=>shopifyInvoiceLines({...order(),lineItems:{...order().lineItems,pageInfo:{hasNextPage:true}}}),/líneas/);assert.throws(()=>shopifyInvoiceLines({...order(),displayFinancialStatus:'PARTIALLY_REFUNDED'}),/reembols/);});
 test('a different invoice total is blocked before consuming a number',async()=>{const {shopifyInvoiceLines}=await core();assert.throws(()=>shopifyInvoiceLines({...order(),totalPriceSet:money(99)}),/cuadra/);});
+test('sanitized real fiscal shapes #1020–#1025 preserve Shopify totals and exact tax cents including discounts',async()=>{
+ const {shopifyInvoiceLines}=await core();
+ const fixtures=JSON.parse(await readFile(new URL('../tests/fixtures/shopify-invoice-fiscal-1020-1025.json',import.meta.url),'utf8'));
+ for(const {orderNumber,payload} of fixtures){
+  const lines=shopifyInvoiceLines(payload),source=[...payload.lineItems.nodes,...payload.shippingLines.nodes];
+  assert.equal(Math.round(lines.reduce((sum,l)=>sum+l.lineTotal,0)*100),Math.round(Number(payload.totalPriceSet.shopMoney.amount)*100),orderNumber);
+  assert.deepEqual(lines.map(l=>Math.round(l.taxAmount*100)),source.map(l=>Math.round(l.taxLines.reduce((sum,t)=>sum+Number(t.priceSet.shopMoney.amount),0)*100)),orderNumber+' preserves actual VAT cents');
+ }
+});

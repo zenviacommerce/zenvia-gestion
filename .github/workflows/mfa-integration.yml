@@ -75,6 +75,11 @@ jobs:
             add column if not exists order_action_lease uuid,
             add column if not exists order_action_lease_until timestamptz,
             add column if not exists shopify_tracking_lease_until timestamptz;
+          -- Existing production invoice metadata is absent from the historical
+          -- repo schema. Match it in this disposable database only.
+          alter table public.sales_invoices
+            add column if not exists document_kind text not null default 'invoice',
+            add column if not exists fiscal_treatment text not null default 'standard';
           SQL
           # Schema-only production columns absent from historical repository SQL.
           # This affects the disposable runner only, never a production migration.

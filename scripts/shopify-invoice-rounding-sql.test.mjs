@@ -23,9 +23,12 @@ test('Shopify included-tax invoice #1023 totals 40.98; manual, Amazon and receip
  const rows=await insert(id,'invoice',source);assert.deepEqual(rows.map(x=>Number(x.tax_amount)),[4.86,2.26]);
  }
  await db.exec('grant usage on schema private to authenticated;grant select on sales_invoices to authenticated;grant insert,select on sales_invoice_lines to authenticated;set role authenticated');
+ await assert.rejects(()=>db.query('select * from fulfillment_orders'),/permission denied/);
  const restricted=(await db.query("insert into sales_invoice_lines(invoice_id,quantity,unit_price,discount_percent,tax_rate) values('10000000-0000-0000-0000-000000000001',1,10.7355,0,21) returning line_total")).rows;
  assert.equal(Number(restricted[0].line_total),12.99,'sales-only user cannot read orders but keeps fiscal rounding');
  await db.exec('reset role');
+ await db.exec("insert into sales_invoices values('10000000-0000-0000-0000-000000000006','00000000-0000-0000-0000-000000000088','standard','invoice','standard','00000000-0000-0000-0000-000000000001')");
+ assert.equal((await db.query("select private.sales_shopify_tax_included('10000000-0000-0000-0000-000000000006') included")).rows[0].included,false,'foreign workspace cannot inspect a fiscal flag');
  const receipt=await insert('10000000-0000-0000-0000-000000000004','receipt',null,0);assert.deepEqual(receipt.map(x=>Number(x.tax_amount)),[0,0]);
  await assert.rejects(()=>insert('10000000-0000-0000-0000-000000000005','receipt',null,21),/IVA 0/);
  }finally{await db.close()}

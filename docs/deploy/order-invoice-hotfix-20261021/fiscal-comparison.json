@@ -1,0 +1,71 @@
+[
+  {
+    "phase": "before",
+    "order": "#1020",
+    "total": 21.98,
+    "lines": 3
+  },
+  {
+    "phase": "before",
+    "order": "#1021",
+    "error": "El total de la factura no cuadra con Shopify. Revisa descuentos, impuestos y otros cargos antes de emitir."
+  },
+  {
+    "phase": "before",
+    "order": "#1022",
+    "total": 32.97,
+    "lines": 2
+  },
+  {
+    "phase": "before",
+    "order": "#1023",
+    "error": "El total de la factura no cuadra con Shopify. Revisa descuentos, impuestos y otros cargos antes de emitir."
+  },
+  {
+    "phase": "before",
+    "order": "#1024",
+    "total": 23.98,
+    "lines": 2
+  },
+  {
+    "phase": "before",
+    "order": "#1025",
+    "error": "El total de la factura no cuadra con Shopify. Revisa descuentos, impuestos y otros cargos antes de emitir."
+  },
+  {
+    "phase": "after",
+    "order": "#1020",
+    "total": 21.98,
+    "lines": 3
+  },
+  {
+    "phase": "after",
+    "order": "#1021",
+    "total": 10.8,
+    "lines": 2
+  },
+  {
+    "phase": "after",
+    "order": "#1022",
+    "total": 32.97,
+    "lines": 2
+  },
+  {
+    "phase": "after",
+    "order": "#1023",
+    "total": 40.98,
+    "lines": 3
+  },
+  {
+    "phase": "after",
+    "order": "#1024",
+    "total": 23.98,
+    "lines": 2
+  },
+  {
+    "phase": "after",
+    "order": "#1025",
+    "total": 29.7,
+    "lines": 2
+  }
+]

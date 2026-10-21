@@ -31,3 +31,14 @@ Snapshot previo SQL: 21/10/2026 13:46:53 Madrid. Función anterior en `rollback.
 3. Verificar hash de función y conteos/importes. Las facturas que el propietario emita después son documentos reales y no se eliminan ni recalculan con un rollback.
 
 CI remota, aplicación y comprobación final se registrarán al completarse. No se publica @zenvia/ui en este hotfix.
+
+
+## Comparación ampliada y desviaciones de verificación
+
+`fiscal-comparison.json` y fixtures fiscales sin datos personales cubren #1020–#1025: los seis totales e impuestos finales coinciden con Shopify (21,98 / 10,80 / 32,97 / 40,98 / 23,98 / 29,70 EUR). Antes fallaban #1021, #1023 y #1025 por el mismo redondeo; se cubren descuentos y transporte. Estas lecturas históricas no son pedidos nuevos ni una validación de ventas cobradas.
+
+Configuración comprobada sin publicar identidad: emisor presente; serie ordinaria 2026 activa y siguiente número 53; cuatro registros IVA activos, uno predeterminado. No se cambia esa configuración ni se consume numeración.
+
+Suite local Node: 1.238 pruebas (antes de añadir el caso agrupado de seis pedidos). Vitest completo: 259. Una primera ejecución simultánea agotó el tiempo de pickup-reports-sql; repetición completa con 2 workers en verde. Build correcto. Revisión independiente sin bloqueantes tras añadir el helper y el test de rol restringido.
+
+Primera CI remota: build, lógica y Auth en verde; integración desechable Auth/Vault falló al aplicar el helper porque el historial antiguo del repositorio carece de document_kind/fiscal_treatment, columnas que producción sí tiene. Se añade esa dependencia únicamente al fixture del runner (igual que las dependencias de Pedidos existentes), sin alterar Auth/Vault/MFA de producción ni omitir pruebas. Se repite la CI completa.

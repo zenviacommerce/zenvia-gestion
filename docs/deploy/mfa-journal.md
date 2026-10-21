@@ -474,3 +474,11 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Worker: 14 runs `success`, 31 jobs recientes `success`, 0 `failed`. Un job recién encolado a las 03:30 fue reclamado y terminó `success` en el ciclo siguiente; cola final sin pendientes/en proceso/fallidos y sin lease retenido. Cron por minuto: 65/65 `succeeded`.
 - Resto de cron: pedidos 13/13, imágenes 7/7, destinatarios 4/4, mantenimiento 5/5, orquestador 1/1 y retención 4/4; todos `succeeded`.
 - Resultado: estable, sin incidencia significativa ni acción correctiva.
+
+
+### Vigilancia piloto MFA — 2026-10-21 04:18 CEST
+- Configuración exacta: `enabled=true`, cohort único autorizado; `private.mfa_activation_findings()` = 0. Sin cambios ni apagado de emergencia.
+- Ventana 03:10–04:17 CEST: 0 `PGRST003`, 0 `57014`, 0 `MFA_REQUIRED`/AAL1 inesperados, 0 denegaciones fuera del cohort, 0 `context canceled`, 0 `job startup timeout` y 0 Auth 5xx. Auth: 176 respuestas HTTP 200.
+- Worker: 14 runs `success`, 31 jobs recientes `success`, 0 `failed`; cola sin pendientes/en proceso/fallidos y sin lease retenido. Cron por minuto: 65/65 `succeeded`.
+- Resto de cron: pedidos 13/13, imágenes 6/6, destinatarios 4/4, mantenimiento 5/5, orquestador 1/1 y retención 6/6; todos `succeeded`.
+- Resultado: estable, sin incidencia significativa ni acción correctiva.

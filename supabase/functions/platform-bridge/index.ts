@@ -1,4 +1,5 @@
 import {assertBridgeMfaAllowed} from '../_shared/mfa.ts';
+import {readWorkspaceUsage} from '../_shared/workspace-usage.ts';
 import { customerIntegrationSummary } from '../_shared/platformIntegrations.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 import { loadWorkspaceEntitlement } from '../_shared/saas/entitlements.ts';
@@ -188,6 +189,12 @@ Deno.serve(async(req:Request)=>{
       },{onConflict:'workspace_id'});
       if(error)throw error;
       return ok({ok:true,appliedVersion:planVersion,billingUpdated:true});
+    }
+
+    if(action==='workspace_usage'){
+      const workspaceId=asText(body?.workspaceId,80);
+      if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(workspaceId))return fail('Cliente no válido.');
+      return ok(await readWorkspaceUsage(admin,workspaceId));
     }
 
     if(action==='bootstrap'){

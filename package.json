@@ -5,12 +5,16 @@
   "type": "module",
   "scripts": {
     "dev": "node scripts/generate-brand-icon.mjs && vite",
-    "build": "node scripts/generate-brand-icon.mjs && tsc -b && vite build && node scripts/verify-ios-touch-icon-build.mjs",
+    "build": "npm run build:ui && node scripts/generate-brand-icon.mjs && tsc -b && vite build && node scripts/verify-ios-touch-icon-build.mjs",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "build:ui": "npm run build --workspace=@zenvia/ui",
+    "pretest": "npm run build:ui",
+    "postinstall": "npm run build:ui"
   },
   "dependencies": {
     "@supabase/supabase-js": "2.105.0",
+    "@zenvia/ui": "0.1.0",
     "jspdf": "2.5.1",
     "jszip": "3.10.1",
     "lucide-react": "0.468.0",
@@ -28,10 +32,14 @@
     "@types/react": "19.0.12",
     "@types/react-dom": "19.0.4",
     "@vitejs/plugin-react": "5.0.0",
+    "esbuild": "0.25.12",
     "happy-dom": "20.0.11",
     "jsdom": "26.1.0",
     "typescript": "5.8.2",
     "vite": "6.2.0",
     "vitest": "3.2.4"
-  }
+  },
+  "workspaces": [
+    "packages/ui"
+  ]
 }

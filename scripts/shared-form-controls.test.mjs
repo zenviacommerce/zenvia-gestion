@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+
+import {readReviewFile as readFile} from './review-file-loader.mjs';
 import test from 'node:test';
 
 const read=(p)=>readFile(new URL(p,import.meta.url),'utf8');
@@ -31,7 +32,7 @@ test('searchable select menu is portalled and viewport-positioned so modals cann
 });
 
 test('shared form primitives expose modal section grid and sticky actions',async()=>{
-  const source=await read('../src/components/forms/FormPrimitives.tsx');
+  const source=await read('../packages/ui/src/forms/FormPrimitives.tsx');
   assert.match(source,/FormModal/);
   assert.match(source,/FormSection/);
   assert.match(source,/FormGrid/);

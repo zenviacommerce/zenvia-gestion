@@ -5,7 +5,8 @@
 // SHIPPING_CHROMIUM_PACKAGE=1 node scripts/orders-product-lines-screenshots.mjs after
 import {build} from 'esbuild';
 import {pickupLogoFixture} from './pickup-pdf-fixture.mjs';
-import {readFile,mkdir,writeFile,mkdtemp,chmod} from 'node:fs/promises';
+import {mkdir,writeFile,mkdtemp,chmod} from 'node:fs/promises';
+import {readReviewFile as readFile} from './review-file-loader.mjs';
 import {brotliDecompressSync} from 'node:zlib';
 import {execFileSync} from 'node:child_process';
 import {dirname,resolve} from 'node:path';

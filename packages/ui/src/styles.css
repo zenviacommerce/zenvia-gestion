@@ -1,0 +1,184 @@
+/* Phase 1 owners: PageHeader and KpiGrid. Legacy selectors do not own these layouts. */
+:root{--ds-space-2:8px;--ds-space-3:12px;--ds-space-4:16px;--ds-space-6:24px;--ds-card-radius:16px;--ds-control-radius:10px}
+.tableSortControls{display:flex;justify-content:flex-end;gap:var(--ds-space-2);margin-block:var(--ds-space-2);min-width:0}
+.tableSortControls>button{display:inline-flex;align-items:center;gap:var(--ds-space-2);max-width:100%}
+.kpiGrid{display:grid;grid-template-columns:repeat(var(--kpi-columns,4),minmax(0,1fr));gap:var(--ds-space-4);margin-bottom:var(--ds-space-6);min-width:0}
+.kpiGrid>.stat{min-width:0;border-radius:var(--ds-card-radius);gap:var(--ds-space-3);padding:var(--ds-space-4);align-items:flex-start}
+.kpiGrid>.stat>.statContent{min-width:0;flex:1;container-type:inline-size}
+.kpiGrid .statIcon{flex:0 0 36px;width:36px;height:36px}
+.kpiGrid .statContent>span,.kpiGrid .statContent>small{line-height:1.4;overflow-wrap:anywhere}
+.kpiGrid .statContent>strong{font-variant-numeric:tabular-nums;font-size:24px;line-height:1.2;overflow-wrap:normal;white-space:normal}
+.kpiGrid .statContent>strong>span{font:inherit;font-size:clamp(14px,10cqi,20px);color:inherit;white-space:nowrap}
+.page .dsPageHeader{gap:var(--ds-space-4);margin-bottom:var(--ds-space-6)}
+.dsPageHeaderIdentity{min-width:0;flex:1 1 260px}
+.dsPageHeaderActions{display:flex;align-items:center;justify-content:flex-end;gap:var(--ds-space-2);flex-wrap:wrap;max-width:100%;min-width:0;flex:0 1 auto}
+.dsPageHeaderActions>*{flex:0 0 auto}
+.dsPageHeaderActions:focus-visible{outline:2px solid var(--accent,#0f766e);outline-offset:3px;border-radius:var(--ds-control-radius)}
+@media(min-width:1920px){.kpiGridDense{grid-template-columns:repeat(var(--kpi-columns-wide,6),minmax(0,1fr))}}
+@media(min-width:768px) and (max-width:1023px){.kpiGrid{grid-template-columns:repeat(var(--kpi-columns-tablet,3),minmax(0,1fr))}}
+@media(max-width:767px){
+ .kpiGrid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+ .kpiGrid>.stat:last-child:nth-child(odd){grid-column:1/-1}
+ .kpiGrid>.stat{padding:8px;gap:var(--ds-space-2);position:relative}
+ .kpiGrid .statIcon{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:6px}
+ .kpiGrid .statIcon svg{width:14px;height:14px}
+ .kpiGrid .statContent{width:100%}
+ .kpiGrid .statContent>span{padding-right:24px;min-height:20px}
+ .kpiGrid .statContent>strong{font-size:20px}
+ .kpiGrid .statContent>span,.kpiGrid .statContent>small{font-size:12px;line-height:1.25}
+ .page .dsPageHeader{display:flex;flex-direction:column;gap:12px;margin-bottom:12px}
+ .dsPageHeaderIdentity{flex:initial}
+ .page .dsPageHeader h1{font-size:24px;margin-bottom:4px}
+ .page .dsPageHeader p{font-size:13px;line-height:1.4}
+ .page .dsPageHeaderActions{flex:initial;flex-wrap:nowrap;justify-content:flex-start;overflow-x:auto;overflow-y:hidden;width:100%;padding-bottom:6px;scrollbar-width:thin}
+ .page .dsPageHeader .dsPageHeaderActions>.primary,.page .dsPageHeader .dsPageHeaderActions>.secondary{margin:0;min-height:48px;height:auto;white-space:nowrap;padding:10px 12px;border-radius:var(--ds-control-radius);font-size:13px}
+ .page .dsPageHeaderActions>.ordersQuickLabelFormat{flex-direction:row;align-items:center;gap:6px;width:auto}
+ .page .dsPageHeaderActions .ordersQuickLabelFormat .selectField{width:100px}
+ .designSystemPage .sharedPeriodPanel{padding:12px;margin-bottom:8px;gap:8px}
+ .designSystemPage .masterPeriodTop{gap:8px;flex-direction:row;align-items:center}
+ .designSystemPage .masterPeriodTop>div:first-child{flex:0 0 98px}
+ .designSystemPage .masterPeriodQuick{min-width:0;flex:1;justify-content:flex-start;display:flex;flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding-bottom:6px}
+ .designSystemPage .masterPeriodQuick>button{flex:0 0 auto;width:auto;min-height:44px}
+ .ordersPage.designSystemPage .ordersToolbar .businessFilterFields{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .designSystemPage .bulkSelectionActions{flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;padding-bottom:6px}
+ .designSystemPage .bulkSelectionActions>button{flex:0 0 auto;white-space:nowrap;min-height:44px}
+ .designSystemPage .ordersSelectionScope{margin-bottom:8px}
+ .designSystemPage .ordersToolbar{margin-bottom:10px}
+ .designSystemPage .ordersConnection{flex-wrap:nowrap;gap:6px}
+ .designSystemPage .ordersConnection small{width:auto;margin-left:auto}
+ .designSystemPage.page{padding-top:16px}
+ .designSystemPage .ordersPrinterBar{padding:6px 8px;font-size:11px}
+ .designSystemPage .ordersSelectionScope p{margin-top:4px;margin-bottom:4px}
+ .designSystemPage .bulkSelectionToolbar{gap:8px;padding:10px;margin-bottom:8px}
+ .designSystemPage .ordersPrinterBar{flex-wrap:nowrap;overflow-x:auto}
+ .designSystemPage .ordersPrinterBar>*{flex:0 0 auto}
+ .designSystemPage .ordersPrinterBar>.secondary{white-space:nowrap}
+}
+
+.dsPageHeaderActionsFrame{position:relative;max-width:100%;min-width:0;flex:0 1 auto}
+.dsActionsScrollHint{display:none}
+@media(max-width:767px){.dsPageHeaderActionsFrame{width:100%;flex:initial}.dsActionsScrollHint{position:absolute;right:0;top:0;bottom:6px;width:36px;display:grid;place-items:center;pointer-events:none;color:var(--accent,#0f766e);font-size:22px;background:linear-gradient(to right,transparent,var(--app-bg,#f6f8fb) 70%)}}
+/* Phase 2: field state and values remain owned by each screen. */
+.dsFilterBar{min-width:0;max-width:100%;gap:12px}
+.dsFilterBar .search,.dsFilterBar .filterField,.dsFilterBar label{min-width:0}
+.dsPageTabs{min-width:0;max-width:100%}
+.dsPageTabs>button{min-width:0}
+@media(max-width:767px){
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar{margin-bottom:10px;padding:10px;gap:8px}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterGrid,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .businessFilterFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar label,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterField{min-width:0;font-size:12px}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .search{min-width:0;width:100%}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterReset,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterResetCompact{min-height:40px;justify-content:center}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterResultCount{font-size:11px;line-height:1.3}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .salesReceiptNotice{margin:8px 0;padding:10px;font-size:12px;line-height:1.4}
+ .dsPageTabs .expenseHubTabText small{display:block;font-size:10px;white-space:normal;line-height:1.25}
+ .expenseHubNav.dsPageTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;flex:0 1 auto;overflow:visible}
+ .dsPageTabs>button{padding:8px;gap:6px;min-height:52px}
+ .dsPageTabs .expenseHubTabIcon{flex:0 0 26px;width:26px;height:26px}
+ .dsPageTabs .expenseHubTabText{min-width:0}
+}
+
+@media(max-width:767px){:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterGrid>label{grid-column:auto}:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterGrid>.filterReset{grid-column:1/-1}}
+:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .kpiGrid .statContent>strong>span{max-width:100%;font-size:clamp(12px,8cqi,18px);white-space:normal;overflow-wrap:anywhere}
+
+/* Finance FilterBar owns desktop layout, as Orders does for its filters. */
+:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .searchableSelect{min-width:0;width:100%}
+:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .searchableSelectTrigger{min-width:0;height:42px;min-height:42px;max-height:42px}
+:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .searchableSelectTrigger>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;overflow-wrap:normal}
+:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .searchableSelectTrigger>svg{flex-shrink:0}
+@media(min-width:768px){
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar.businessFilterBar{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar>.search{grid-column:1/-1;min-width:0;width:100%;margin:0}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .businessFilterFields,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterGrid{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);grid-template-columns:none;align-items:end;gap:10px;min-width:0;width:100%}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .businessFilterFields:last-child{grid-column:1/-1}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar label{display:grid;min-width:0;gap:5px;white-space:nowrap}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar label>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterReset,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterResetCompact{height:42px;min-height:42px;align-self:end;white-space:nowrap;min-width:0;gap:5px;padding:0 8px}
+ :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar>.filterResultCount{grid-column:1/-1;justify-self:end;margin:0}
+}
+
+/* React-owned master lists; fixed selection and identity stay within table scroll. */
+.dsDataTable{overflow:auto;max-width:100%;min-width:0}
+.dsDataTable:focus-visible{outline:2px solid var(--accent,#0f766e);outline-offset:3px}
+.dsDataTable .masterTable{min-width:1000px}
+.dsDataTable th:first-child,.dsDataTable td:first-child{position:sticky;left:0;z-index:2;background:var(--surface,#fff);width:44px;min-width:44px;max-width:44px}
+.dsDataTable .dsIdentityCell{position:sticky;left:44px;z-index:1;background:var(--surface,#fff);min-width:200px;box-shadow:2px 0 3px #0f172a0a}
+.dsDataTable tr.bulkSelectedRow td:first-child,.dsDataTable tr.bulkSelectedRow .dsIdentityCell{background:var(--surface-soft,#f0fdfa)}
+.dsRowActions{display:flex;gap:6px;justify-content:flex-end}
+.dsDataTable .dsRowActions span{display:none}
+.dsSelectionReview{padding:10px 12px;margin:0 0 10px;border:1px solid var(--border,#dbe2ea);border-radius:10px;min-width:0}
+.dsSelectionReview p{font-size:12px;margin:0 0 8px}.dsSelectionReview summary{cursor:pointer;font-size:12px;font-weight:700}.dsSelectionReview ul{list-style:none;padding:0;max-height:240px;overflow:auto}.dsSelectionReview li{display:flex;gap:8px;align-items:center;padding:6px 0}.dsSelectionReview li>span{min-width:0;overflow-wrap:anywhere}
+@media(max-width:767px){
+ .dsMobileList .bulkMobileSelectableRow{grid-template-columns:24px minmax(0,1fr)}
+ .dsMobileList .dsRowActions{grid-column:2;justify-content:flex-start}
+ .dsMobileList .dsRowActions button{width:auto;min-height:44px;padding:8px 10px;gap:6px}
+ .dsMobileList .dsRowActions span{font-size:12px}
+ .masterDesignPage .dsFilterBar.businessFilterBar{display:flex;flex-direction:column;align-items:stretch}
+ .masterDesignPage .dsFilterBar>.search{flex:initial}
+}
+
+@media(max-width:767px){.dsMobileList .dsRowActions{padding:0 12px 10px}.dsMobileList .dsRowActions button{display:inline-flex;flex-direction:row;align-items:center;justify-content:center;height:auto;line-height:1.2}.dsMobileList .dsRowActions svg{flex-shrink:0}}
+html[data-theme='dark'] .masterDesignPage .bulkSelectionTextButton{color:#d7deea}
+
+/* Phase 3 analytics: shared shell; period rails and calculations keep their owners. */
+.commerceDesignPage .dsCommerceFilters{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;width:100%;min-width:0;margin:0}
+.commerceDesignPage .dsCommerceFilters>.amazonFilterDropdown{min-width:0;max-width:none;width:100%}
+.commerceDesignPage .dsCommerceFilters>.amazonFilterDropdown>summary{height:48px;min-width:0;box-sizing:border-box}
+.commerceDesignPage .dsCommerceFilters summary>span{min-width:0;flex:1}
+.commerceDesignPage .dsCommerceFilters summary strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.commerceDesignPage .dsCommerceFilters summary>svg{flex-shrink:0}
+.commerceDesignPage .commerceTabs{display:flex;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;width:100%;gap:6px;border:0;border-bottom:1px solid var(--border,#e2e8f0);background:transparent;padding:0;margin:0;box-shadow:none}
+.commerceDesignPage .commerceTabs>button{flex:0 0 auto;border:0;border-bottom:2px solid transparent;border-radius:0;box-shadow:none;background:transparent;padding:12px 18px;min-height:44px;color:var(--muted,#64748b)}
+.commerceDesignPage .commerceTabs>button.active{border-bottom-color:var(--accent,#0f766e);color:var(--accent,#0f766e);background:transparent}
+.commerceDesignPage .commerceTabs strong{font-size:12px;white-space:nowrap}
+.commerceTabBadge{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:10px;background:#ccfbf1;color:#0f766e}
+.commerceDesignPage .dsPageHeader .eyebrow{display:flex;align-items:center;gap:6px}
+@media(max-width:767px){
+ .commerceDesignPage .amazonToolbar{gap:8px;margin-bottom:12px}
+ .commerceDesignPage .commerceTabs>button{padding:10px 12px}
+ .commerceDesignPage .amazonCompactStatus{padding:10px;margin-bottom:10px;gap:6px}
+ .commerceDesignPage .amazonCompactMeta{gap:6px;font-size:11px}
+ .commerceDesignPage .amazonTableToolbar{gap:8px}
+ .commerceDesignPage .shopifyNote{margin:8px 0;line-height:1.4}
+ .commerceDesignPage .amazonFilterDropdownPanel{max-width:calc(100vw - 30px)}
+ .commerceDesignPage .dsCommerceFilters>.amazonFilterDropdown:last-child .amazonFilterDropdownPanel{left:auto;right:0}
+}
+
+[data-theme="dark"] .commerceDesignPage .commerceTabs>button.active{color:#5eead4;border-bottom-color:#2dd4bf}
+/* The page gap owns section spacing; avoid adding header/card margins twice. */
+.page.commerceDesignPage .dsPageHeader{margin-bottom:0}
+.commerceDesignPage.amazonPage{gap:12px}
+@media(max-width:767px){
+ .commerceDesignPage.amazonPage{gap:8px}
+ .commerceDesignPage .amazonCompactStatus,.commerceDesignPage .amazonToolbar{margin-bottom:0}
+}
+
+.commerceTabPanel{display:flex;flex-direction:column;gap:inherit;min-width:0;max-width:100%}
+
+/* Final migration: screens retain handlers and own only their content layout. */
+.finalDesignPage .finalPageTabs{margin-bottom:16px;max-width:100%}
+.finalDesignPage .finalFilters{padding:12px 16px;border-bottom:1px solid var(--border,#e2e8f0)}
+.finalDesignPage .finalFilters>.search{margin:0;width:100%;max-width:none}
+.finalDesignPage .settingsNav.dsPageTabs{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px;width:100%;min-width:0;overflow:visible}
+.finalDesignPage .settingsNav.dsPageTabs>button{width:100%;justify-content:flex-start;text-align:left;min-width:0;padding:10px;white-space:normal}
+.finalDesignPage .settingsNav .expenseHubTabText{min-width:0;flex:1}
+.finalDesignPage .settingsNav .expenseHubTabText strong,.finalDesignPage .settingsNav .expenseHubTabText small{white-space:normal;overflow-wrap:anywhere;display:block}
+.finalDesignPage .settingsContent{min-width:0}
+.finalDesignPage .finalGmailFilters{display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,240px) auto;align-items:center;gap:10px;width:100%}
+.finalDesignPage .finalGmailFilters .searchableSelectTrigger>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:767px){
+ .finalDesignPage .finalPageTabs{display:flex;flex-wrap:nowrap;overflow-x:auto;margin-bottom:10px;gap:6px;padding:4px}
+ .finalDesignPage .finalPageTabs>button{flex:0 0 auto;min-height:44px;white-space:nowrap}
+ .finalDesignPage .supportListHead,.finalDesignPage .adminUsersHead{padding:10px;gap:8px}
+ .finalDesignPage .finalFilters{padding:10px}
+ .finalDesignPage .finalGmailFilters{grid-template-columns:minmax(0,1fr) auto}
+ .finalDesignPage .finalGmailFilters>.search{grid-column:1/-1;width:100%}
+ .finalDesignPage .settingsNav.dsPageTabs{flex-direction:row;overflow-x:auto;max-width:100%;padding:6px;gap:6px}
+ .finalDesignPage .settingsNav.dsPageTabs>button{flex:0 0 180px;min-height:64px;padding:8px}
+ .finalDesignPage .settingsLayout{display:block}
+ .finalDesignPage .settingsContent{margin-top:10px}
+}
+@media(min-width:768px){.finalDesignPage .settingsNav.dsPageTabs{max-height:calc(100dvh - 40px);overflow-y:auto;overscroll-behavior:contain}}
+
+.gmailImportedKpi .statIcon{background:#eff6ff;color:#2563eb}
+.gmailAutomaticKpi .statIcon{background:#faf5ff;color:#7e22ce}

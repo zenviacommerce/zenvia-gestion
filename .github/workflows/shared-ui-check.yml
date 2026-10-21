@@ -1,0 +1,30 @@
+name: Shared UI package and visual parity
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  package-and-parity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: node --test scripts/shared-ui-package.test.mjs
+      - run: npm install --no-save --package-lock=false playwright@1.58.2
+      - run: npx playwright install --with-deps chromium
+      - run: node scripts/shared-ui-review.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: shared-ui-before-after-and-comparison
+          path: docs/deploy/ui-extraction-20261021/review/
+          if-no-files-found: error

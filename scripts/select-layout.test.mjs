@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {readFile} from 'node:fs/promises';
+
+import {readReviewFile as readFile} from './review-file-loader.mjs';
 import {Window} from 'happy-dom';
 
 test('shared dropdown preserves long selected labels and vertical-only option scrolling',async()=>{

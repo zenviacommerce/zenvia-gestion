@@ -1,15 +1,16 @@
 // Real billing/expense/receipt components + production list adapters/CSS; offline synthetic data.
 import {build} from 'esbuild';
 import {assertHeaderActionsPreserved} from './header-actions-contract.mjs';
-import {readFile,writeFile,mkdir,mkdtemp,chmod} from 'node:fs/promises';
+import {writeFile,mkdir,mkdtemp,chmod} from 'node:fs/promises';
+import {readReviewFile as readFile,captureReviewScreenshot,reviewCaptureStyles} from './review-file-loader.mjs';
 import {execFileSync} from 'node:child_process';
 import {brotliDecompressSync} from 'node:zlib';
 import {dirname,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {tmpdir} from 'node:os';
 import {chromium} from 'playwright';
-const phase=process.argv[2]||'after',baseline='ed63ce7aecff7c7a296b5fface372f89ee4b8bf7',output=process.env.MASTER_OUTPUT||'docs/deploy/design-phase3-masters-20261020';
-const read=async path=>phase==='before'?execFileSync('git',['show',baseline+':'+path],{encoding:'utf8'}):readFile(path,'utf8');
+const phase=process.argv[2]||'after',baseline=process.env.UI_CAPTURE_SOURCE||'ed63ce7aecff7c7a296b5fface372f89ee4b8bf7',output=process.env.UI_EXTRACTION_OUTPUT||process.env.MASTER_OUTPUT||'docs/deploy/design-phase3-masters-20261020';
+const read=async path=>(phase==='before'||process.env.UI_CAPTURE_SOURCE)?execFileSync('git',['show',baseline+':'+path],{encoding:'utf8'}):readFile(path,'utf8');
 const keep=new Set(['pluralization','filters','uiPreferences','formatting','settingsSchema','autoListPagination','paginationBars','truncatedTextTooltip','entityChanges','productMetrics']);
 const entry=`import React from 'react';import {createRoot} from 'react-dom/client';import {Products} from './src/pages/Products';import {Clients} from './src/pages/Clients';import {Suppliers} from './src/pages/Suppliers';import {Sidebar} from './src/components/Sidebar';import {AutoPagination} from './src/components/AutoPagination';import {UnifiedListExperience} from './src/components/UnifiedListExperience';import {DEFAULT_APP_SETTINGS,DEFAULT_USER_PREFERENCES} from './src/services/settingsSchema';
 const settings=structuredClone(DEFAULT_APP_SETTINGS),preferences={...DEFAULT_USER_PREFERENCES,defaultPeriod:'all',rememberFilters:false,pageSize:25};
@@ -31,23 +32,29 @@ const main=await read('src/main.tsx'),cssPaths=[...new Set([...main.matchAll(/im
 const css=(await Promise.all([...new Set([...cssPaths,'src/sales.css','src/shared-forms.css','src/bulk-selection.css','src/supplier-actions.css'])].map(read))).join('\n');
 let options={headless:true,args:['--lang=es-ES','--accept-lang=es-ES,es'],env:{...process.env,LANG:'es_ES.UTF-8',LC_ALL:'es_ES.UTF-8'}};
 if(process.env.SHIPPING_CHROMIUM_PACKAGE==='1'){const {default:pack}=await import('@sparticuz/chromium');const dir=await mkdtemp(resolve(tmpdir(),'finance-chromium-'));const bin=resolve(dirname(fileURLToPath(import.meta.resolve('@sparticuz/chromium'))),'../bin');for(const f of ['chromium.br','swiftshader.tar.br']){const data=brotliDecompressSync(await readFile(resolve(bin,f)));if(f.includes('.tar'))execFileSync('tar',['--no-same-owner','-x','-C',dir],{input:data});else{await writeFile(resolve(dir,'chromium'),data);await chmod(resolve(dir,'chromium'),0o755);}}options={...options,executablePath:resolve(dir,'chromium'),args:[...pack.args.filter(a=>a!=='--single-process'),...options.args],env:{...options.env,LD_LIBRARY_PATH:[dir,process.env.LD_LIBRARY_PATH].filter(Boolean).join(':')}};}
+if(process.env.UI_EXTRACTION_OUTPUT)options.args.push('--disable-skia-runtime-opts','--disable-gpu');
 await mkdir(output,{recursive:true});const browser=await chromium.launch(options),checks=[];
 try{for(const screen of ['products','clients','suppliers'])for(const width of (process.env.MASTER_WIDTHS?process.env.MASTER_WIDTHS.split(',').map(Number):[390,1280,1440])){
- const page=await browser.newPage({locale:'es-ES',viewport:{width,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('**/*',r=>r.abort());
- await page.setContent('<html lang="es-ES"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');await page.evaluate(s=>globalThis.renderFixture(s),screen);
+ const page=await browser.newPage({locale:'es-ES',viewport:{width,height:1000}}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.clock.setFixedTime(new Date('2026-10-20T12:00:00Z'));await page.route('**/*',r=>r.abort());
+ await page.setContent('<html lang="es-ES"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+reviewCaptureStyles+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');await page.evaluate(s=>globalThis.renderFixture(s),screen);
  try{await page.locator('tbody tr').first().waitFor({state:'attached',timeout:10000})}catch(e){console.log({screen,width,errors,body:(await page.locator('body').innerText()).slice(-1000)});throw e;}await page.waitForTimeout(300);
  const proof=await page.evaluate(()=>{
  const visible=el=>el.getClientRects().length&&getComputedStyle(el).display!=='none',rect=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y+scrollY,width:r.width,height:r.height}};
  const rows=[...document.querySelectorAll('.masterMobileList>.bulkMobileSelectableRow,tbody tr')].filter(visible),fields=[...document.querySelectorAll('.businessFilterFields>label')];
  return {firstList:rows[0]?rect(rows[0]):null,documentOverflow:document.documentElement.scrollWidth>innerWidth,columns:[...document.querySelectorAll('.kpiGrid,.stats')].map(el=>getComputedStyle(el).gridTemplateColumns),cards:[...document.querySelectorAll('.stat')].map(el=>({text:el.textContent,warning:el.classList.contains('dashboardPendingOrders'),overflow:el.scrollWidth>el.clientWidth+1})),headerActions:[...document.querySelectorAll('.pageHead button')].map(el=>el.textContent),filters:fields.map(el=>({text:el.textContent,...rect(el),trigger:rect(el.querySelector('.searchableSelectTrigger')),lines:[...el.querySelectorAll('.searchableSelectTrigger>span')].some(span=>{const range=document.createRange();range.selectNodeContents(span);return new Set([...range.getClientRects()].map(r=>Math.round(r.y))).size>1})})),rowActions:document.querySelector('tbody tr')?.querySelectorAll('button[aria-label="Editar"],button[aria-label="Eliminar"]').length??0};
  });
- await page.screenshot({path:output+'/'+phase+'-'+screen+'-'+width+'.png'});
- if(width===390){await page.evaluate(()=>scrollTo(0,1000));await page.screenshot({path:output+'/'+phase+'-'+screen+'-390-second.png'});await page.evaluate(()=>scrollTo(0,0));if(phase==='after'){await page.evaluate(()=>document.documentElement.dataset.theme='dark');await page.screenshot({path:output+'/after-'+screen+'-390-dark.png'});await page.evaluate(()=>delete document.documentElement.dataset.theme);}}
+ await captureReviewScreenshot(page,{...(process.env.UI_EXTRACTION_OUTPUT?{animations:'disabled',caret:'hide'}:{}),path:output+'/'+phase+'-'+screen+'-'+width+'.png'});
+ if(width===390){await page.evaluate(()=>scrollTo(0,1000));await captureReviewScreenshot(page,{...(process.env.UI_EXTRACTION_OUTPUT?{animations:'disabled',caret:'hide'}:{}),path:output+'/'+phase+'-'+screen+'-390-second.png'});await page.evaluate(()=>scrollTo(0,0));if(phase==='after'){await page.evaluate(()=>document.documentElement.dataset.theme='dark');await captureReviewScreenshot(page,{...(process.env.UI_EXTRACTION_OUTPUT?{animations:'disabled',caret:'hide'}:{}),path:output+'/after-'+screen+'-390-dark.png'});await page.evaluate(()=>delete document.documentElement.dataset.theme);}}
 
  const filterOptions=[];
  for(const combo of await page.locator('.businessFilterFields [role="combobox"]').all()){
-  const label=await combo.getAttribute('aria-label');await combo.click();
-  const labels=await page.getByRole('option').allTextContents();filterOptions.push({label,options:labels.map(text=>text.replace(/\s+/g,' ').trim())});await page.keyboard.press('Escape');
+  const label=await combo.getAttribute('aria-label'),listId=await combo.getAttribute('aria-controls');await combo.click();
+  // SearchableSelect reveals its portal on requestAnimationFrame. Role queries
+  // exclude the hidden menu; reading immediately can falsely record no options.
+  const listbox=page.locator('[role="listbox"][id='+JSON.stringify(listId)+']');
+  await listbox.waitFor({state:'visible'});await listbox.getByRole('option').first().waitFor({state:'visible'});
+  const labels=await listbox.getByRole('option').allTextContents();filterOptions.push({label,options:labels.map(text=>text.replace(/\s+/g,' ').trim())});
+  await combo.press('Escape');await listbox.waitFor({state:'detached'});
  }
  await page.evaluate(()=>scrollTo(0,0));
  proof.filterOptions=filterOptions;

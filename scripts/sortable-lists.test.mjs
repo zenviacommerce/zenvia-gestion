@@ -30,7 +30,7 @@ test('every data table uses the shared sortable-column primitive',async()=>{
 });
 
 test('shared table sorting is stable, persisted per list and null-safe',async()=>{
-  const source=await readFile(new URL('../src/components/SortableTableHeader.tsx',import.meta.url),'utf8');
+  const source=await readFile(new URL('../packages/ui/src/SortableTableHeader.tsx',import.meta.url),'utf8');
   assert.match(source,/zenvia:table-sort:/);
   assert.match(source,/Intl\.Collator\('es'/);
   assert.match(source,/left\.index-right\.index/);

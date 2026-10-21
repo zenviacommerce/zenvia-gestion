@@ -8,7 +8,8 @@ import {build} from 'esbuild';
 import {assertHeaderActionsPreserved} from './header-actions-contract.mjs';
 import {verifyOrderSortReset} from './table-sort-review.mjs';
 import {pickupLogoFixture} from './pickup-pdf-fixture.mjs';
-import {readFile,mkdir,writeFile,mkdtemp,chmod} from 'node:fs/promises';
+import {mkdir,writeFile,mkdtemp,chmod} from 'node:fs/promises';
+import {readReviewFile as readFile,captureReviewScreenshot,reviewCaptureStyles} from './review-file-loader.mjs';
 import {brotliDecompressSync} from 'node:zlib';
 import {execFileSync} from 'node:child_process';
 import {dirname,resolve} from 'node:path';
@@ -16,11 +17,11 @@ import {fileURLToPath} from 'node:url';
 import {tmpdir} from 'node:os';
 import {chromium} from 'playwright';
 const phase=process.argv[2]||'after';
-const baselineRevision=process.env.DESIGN_BASELINE||'58687e42';
-const source=phase==='before'?execFileSync('git',['show',baselineRevision+':src/pages/Orders.tsx'],{encoding:'utf8'}):await readFile('src/pages/Orders.tsx','utf8');
-const dashboard=phase==='before'?execFileSync('git',['show',baselineRevision+':src/pages/Dashboard.tsx'],{encoding:'utf8'}):await readFile('src/pages/Dashboard.tsx','utf8');
-const tariffsPanel=phase==='before'?execFileSync('git',['show',baselineRevision+':src/components/TransportTariffsPanel.tsx'],{encoding:'utf8'}):await readFile('src/components/TransportTariffsPanel.tsx','utf8');
-const tariffAccess=phase==='before'?execFileSync('git',['show',baselineRevision+':src/components/OrderLabelDefaults.tsx'],{encoding:'utf8'}):await readFile('src/components/OrderLabelDefaults.tsx','utf8');
+const baselineRevision=process.env.UI_CAPTURE_SOURCE||process.env.DESIGN_BASELINE||'58687e42';
+const source=(phase==='before'||process.env.UI_CAPTURE_SOURCE)?execFileSync('git',['show',baselineRevision+':src/pages/Orders.tsx'],{encoding:'utf8'}):await readFile('src/pages/Orders.tsx','utf8');
+const dashboard=(phase==='before'||process.env.UI_CAPTURE_SOURCE)?execFileSync('git',['show',baselineRevision+':src/pages/Dashboard.tsx'],{encoding:'utf8'}):await readFile('src/pages/Dashboard.tsx','utf8');
+const tariffsPanel=(phase==='before'||process.env.UI_CAPTURE_SOURCE)?execFileSync('git',['show',baselineRevision+':src/components/TransportTariffsPanel.tsx'],{encoding:'utf8'}):await readFile('src/components/TransportTariffsPanel.tsx','utf8');
+const tariffAccess=(phase==='before'||process.env.UI_CAPTURE_SOURCE)?execFileSync('git',['show',baselineRevision+':src/components/OrderLabelDefaults.tsx'],{encoding:'utf8'}):await readFile('src/components/OrderLabelDefaults.tsx','utf8');
 const mocks=new Map();
 for(const match of (source+dashboard+tariffsPanel).matchAll(/import\s+([\s\S]*?)\s+from\s+['"]([^'"]+)['"]/g)){
  const [,clause,path]=match;
@@ -55,11 +56,11 @@ mocks.set('./companyBranding', 'export const loadCompanyBranding=async()=>({logo
 mocks.set('./supabase', 'export const supabase={};export const getActiveSupabase=()=>null;export const getActiveTenant=()=>null;');
 mocks.delete('../services/actionDialog');
 mocks.set('../services/sales',mocks.get('../services/sales')+'\nexport const ensureSalesSeries=async()=>[];export const loadBusinessSettings=async()=>({});export const loadClients=async()=>[];export const markSalesInvoiceSent=async()=>{};');
-const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,loader:{'.css':'empty'},define:{'import.meta.env':'{}'},format:'iife',platform:'browser',jsx:'automatic',plugins:[{name:'offline-orders-fixture',setup(b){b.onLoad({filter:/[/]src[/]components[/]OrderLabelDefaults[.]tsx$/},()=>({contents:tariffAccess,loader:'tsx'}));if(phase==='before')b.onLoad({filter:/[/]src[/](pages[/](Orders|Dashboard)|components[/]StatCard)[.]tsx$/},args=>({contents:execFileSync('git',['show',baselineRevision+':'+args.path.slice(process.cwd().length+1)],{encoding:'utf8'}),loader:'tsx',resolveDir:dirname(args.path)}));b.onResolve({filter:/.*/},args=>mocks.has(args.path)?{path:args.path,namespace:'fixture'}:null);b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:mocks.get(args.path),loader:'tsx'}));}}]});
-const main=phase==='before'?execFileSync('git',['show',baselineRevision+':src/main.tsx'],{encoding:'utf8'}):await readFile('src/main.tsx','utf8');
+const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,loader:{'.css':'empty'},define:{'import.meta.env':'{}'},format:'iife',platform:'browser',jsx:'automatic',plugins:[{name:'offline-orders-fixture',setup(b){b.onLoad({filter:/[/]src[/]components[/]OrderLabelDefaults[.]tsx$/},()=>({contents:tariffAccess,loader:'tsx'}));if(process.env.UI_CAPTURE_SOURCE)b.onLoad({filter:/[/]src[/](pages|components)[/].*[.](tsx|ts)$/},args=>({contents:execFileSync('git',['show',baselineRevision+':'+args.path.slice(process.cwd().length+1)],{encoding:'utf8'}),loader:args.path.endsWith('tsx')?'tsx':'ts',resolveDir:dirname(args.path)}));else if(phase==='before')b.onLoad({filter:/[/]src[/](pages[/](Orders|Dashboard)|components[/]StatCard)[.]tsx$/},args=>({contents:execFileSync('git',['show',baselineRevision+':'+args.path.slice(process.cwd().length+1)],{encoding:'utf8'}),loader:'tsx',resolveDir:dirname(args.path)}));b.onResolve({filter:/.*/},args=>mocks.has(args.path)?{path:args.path,namespace:'fixture'}:null);b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:mocks.get(args.path),loader:'tsx'}));}}]});
+const main=(phase==='before'||process.env.UI_CAPTURE_SOURCE)?execFileSync('git',['show',baselineRevision+':src/main.tsx'],{encoding:'utf8'}):await readFile('src/main.tsx','utf8');
 const cssFiles=[...new Set([...main.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map(x=>'src/'+x[1].replace('./','')))];
-const css=(await Promise.all([...new Set([...cssFiles,'src/shared-forms.css','src/bulk-selection.css','src/pickup-reports.css','src/action-dialog.css','src/components/transport-tariffs.css'])].map(p=>phase==='before'?execFileSync('git',['show',baselineRevision+':'+p],{encoding:'utf8'}):readFile(p,'utf8')))).join('\n');
-const output=process.env.DESIGN_REVIEW_OUTPUT||'docs/deploy/design-phase1-review-20261020';await mkdir(output,{recursive:true});
+const css=(await Promise.all([...new Set([...cssFiles,'src/shared-forms.css','src/bulk-selection.css','src/pickup-reports.css','src/action-dialog.css','src/components/transport-tariffs.css'])].map(p=>(phase==='before'||process.env.UI_CAPTURE_SOURCE)?execFileSync('git',['show',baselineRevision+':'+p],{encoding:'utf8'}):readFile(p,'utf8')))).join('\n');
+const output=process.env.UI_EXTRACTION_OUTPUT||process.env.DESIGN_REVIEW_OUTPUT||'docs/deploy/design-phase1-review-20261020';await mkdir(output,{recursive:true});
 let launchOptions={headless:true,args:['--lang=es-ES','--accept-lang=es-ES,es'],env:{...process.env,LANG:'es_ES.UTF-8',LC_ALL:'es_ES.UTF-8'}};
 if(process.env.SHIPPING_CHROMIUM_PACKAGE==='1'){
  // tar --no-same-owner also works in containers that reject archive ownership.
@@ -75,21 +76,22 @@ if(process.env.SHIPPING_CHROMIUM_PACKAGE==='1'){
  process.env.LD_LIBRARY_PATH=[root,process.env.LD_LIBRARY_PATH].filter(Boolean).join(':');
  launchOptions={...launchOptions,args:[...packaged.args.filter(arg=>arg!=='--single-process'&&!arg.startsWith('--lang=')&&!arg.startsWith('--accept-lang=')),'--lang=es-ES','--accept-lang=es-ES,es'],executablePath:resolve(root,'chromium')};
 }
+if(process.env.UI_EXTRACTION_OUTPUT)launchOptions.args.push('--disable-skia-runtime-opts','--disable-gpu');
 const browser=await chromium.launch(launchOptions);
 
 
 const checks=[];
 try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,1440]){
- const page=await browser.newPage({locale:'es-ES',viewport:{width,height:1000}});const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('PAGE',screen,width,e.message)});await page.route('**/*',r=>r.abort());
+ const page=await browser.newPage({locale:'es-ES',viewport:{width,height:1000}});const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('PAGE',screen,width,e.message)});await page.clock.setFixedTime(new Date('2026-10-20T12:00:00Z'));await page.route('**/*',r=>r.abort());
  if(process.env.SORT_RESET_REVIEW==='1'){await page.route('https://sort-review.zenvia.test/',r=>r.fulfill({status:200,contentType:'text/html',body:'<html lang=es-ES></html>'}));await page.goto('https://sort-review.zenvia.test/');}
- await page.setContent('<html lang="es-ES"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
+ await page.setContent('<html lang="es-ES"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+reviewCaptureStyles+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
  await page.evaluate(s=>globalThis.renderFixture(s),screen);
  await page.locator('.stat').first().waitFor();
  if(screen==='dashboard')await page.getByText('12.345,67 €',{exact:true}).waitFor();
  if(screen==='orders'){await page.getByRole('button',{name:'Abrir tarifas de transporte'}).waitFor();await page.getByRole('button',{name:'Etiquetados',exact:true}).click();await page.getByText('63 pedidos · Página 1 de 3',{exact:true}).first().waitFor();}
  await page.evaluate(()=>scrollTo(0,0));
- await page.screenshot({path:output+'/'+phase+'-'+screen+'-'+width+'.png'});
- if(width===390){await page.evaluate(()=>scrollTo(0,1000));await page.screenshot({path:output+'/'+phase+'-'+screen+'-'+width+'-second.png'});await page.evaluate(()=>scrollTo(0,0));}
+ await captureReviewScreenshot(page,{...(process.env.UI_EXTRACTION_OUTPUT?{animations:'disabled',caret:'hide'}:{}),path:output+'/'+phase+'-'+screen+'-'+width+'.png'});
+ if(width===390){await page.evaluate(()=>scrollTo(0,1000));await captureReviewScreenshot(page,{...(process.env.UI_EXTRACTION_OUTPUT?{animations:'disabled',caret:'hide'}:{}),path:output+'/'+phase+'-'+screen+'-'+width+'-second.png'});await page.evaluate(()=>scrollTo(0,0));}
  const proof=await page.evaluate(({screen,width})=>{
  const rect=el=>{const r=el.getBoundingClientRect();return {x:r.x,y:r.y+scrollY,width:r.width,height:r.height}};
  const cards=[...document.querySelectorAll('.stat')];const first=screen==='orders'?document.querySelector(width===390?'.ordersMobileList .bulkMobileSelectableRow':'.ordersTable tbody tr'):document.querySelector('.grid2 .card');
@@ -120,7 +122,7 @@ try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,144
   await hint.waitFor({state:'visible'});
  }
  if(phase==='after'&&screen==='orders'){
-  await page.getByRole('button',{name:'Abrir tarifas de transporte'}).click();await page.getByRole('heading',{name:'Tarifas de transporte',exact:true}).waitFor();await page.screenshot({path:output+'/after-tariffs-'+width+'.png'});await page.getByRole('button',{name:'Cerrar',exact:true}).click();
+  await page.getByRole('button',{name:'Abrir tarifas de transporte'}).click();await page.getByRole('heading',{name:'Tarifas de transporte',exact:true}).waitFor();await captureReviewScreenshot(page,{...(process.env.UI_EXTRACTION_OUTPUT?{animations:'disabled',caret:'hide'}:{}),path:output+'/after-tariffs-'+width+'.png'});await page.getByRole('button',{name:'Cerrar',exact:true}).click();
   const action=page.getByRole('button',{name:'Nuevo pedido',exact:true});await action.focus();
   const reachable=await action.evaluate(el=>{const r=el.getBoundingClientRect(),p=el.closest('.dsPageHeaderActions').getBoundingClientRect();return r.left>=p.left-1&&r.right<=p.right+1;});
   if(!reachable)failures.push('Offscreen header action cannot receive visible keyboard focus');
@@ -133,7 +135,7 @@ try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,144
  }
  if(phase==='after'&&width===390){
   await page.evaluate(()=>{document.documentElement.dataset.theme='dark';scrollTo(0,0)});
-  await page.screenshot({path:output+'/after-'+screen+'-390-dark.png'});
+  await captureReviewScreenshot(page,{...(process.env.UI_EXTRACTION_OUTPUT?{animations:'disabled',caret:'hide'}:{}),path:output+'/after-'+screen+'-390-dark.png'});
   if(await page.locator('.stat').evaluateAll(cards=>cards.some(el=>el.scrollWidth>el.clientWidth+1)))failures.push('Dark KPI overflow');
  }
  if(process.env.SORT_RESET_REVIEW==='1'&&phase==='after'&&screen==='orders'&&width>=1280){
@@ -143,11 +145,11 @@ try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,144
  checks.push({screen,width,...proof,failures});await page.close();
 }
  if(phase==='after'){
-  const page=await browser.newPage({locale:'es-ES',viewport:{width:390,height:1000}});await page.route('**/*',r=>r.abort());
-  await page.setContent('<html lang="es-ES"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
+  const page=await browser.newPage({locale:'es-ES',viewport:{width:390,height:1000}});await page.clock.setFixedTime(new Date('2026-10-20T12:00:00Z'));await page.route('**/*',r=>r.abort());
+  await page.setContent('<html lang="es-ES"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+reviewCaptureStyles+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
   await page.evaluate(()=>globalThis.renderStress());await page.getByText('123.456,78 USD').waitFor();
   const overflow=await page.locator('.stat').evaluateAll(cards=>cards.some(el=>el.scrollWidth>el.clientWidth+1));
-  await page.screenshot({path:output+'/after-multicurrency-390.png'});
+  await captureReviewScreenshot(page,{...(process.env.UI_EXTRACTION_OUTPUT?{animations:'disabled',caret:'hide'}:{}),path:output+'/after-multicurrency-390.png'});
   checks.push({screen:'multicurrency',width:390,failures:overflow?['Multi-currency card overflow']:[]});await page.close();
  }
 }finally{await browser.close()}

@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-21T15:38:26.836580+02:00",
+  "baseline": "45441a470dd2ff30fc4d78020a0cc1309290bf6d",
+  "package": "@zenvia/ui@0.1.0",
+  "branch": "refactor/shared-ui-0.1.0",
+  "production_changed": false,
+  "package_published": false,
+  "visual": {
+    "views": 17,
+    "widths": [
+      390,
+      1280,
+      1440
+    ],
+    "pairs": 66,
+    "byte_identical": 66,
+    "pixel_differences": 0,
+    "masks": false,
+    "tolerance": 0,
+    "manifest": "review/comparison.json",
+    "motion": "CSS frozen before React mount; fonts ready; Recharts completion awaited; software raster"
+  },
+  "checks": {
+    "build": "pass",
+    "vitest": {
+      "files": 52,
+      "tests": 271,
+      "passed": 271,
+      "command": "npm test -- --maxWorkers=2"
+    },
+    "node_sql": {
+      "tests": 1243,
+      "passed": 1243,
+      "selection": "same as .github/workflows/build.yml; excludes local-only mfa-real-integration.test.mjs"
+    },
+    "package_contract": {
+      "tests": 3,
+      "passed": 3
+    },
+    "final_focused_contracts": {
+      "tests": 15,
+      "passed": 15
+    },
+    "design_contract": "pass",
+    "independent_clean_install": "npm ci --offline; no dist/node_modules before install; pass",
+    "independent_review": "no blockers"
+  },
+  "css_build_sha256": "6992810b25f970a5564de76beb863640afa35602a0133d9ca0c7e7d897110548",
+  "ci": "pending PR; inspect GitHub checks before future publication",
+  "stop": "owner review before merge, tag, release or production deploy; Platform B not started"
+}

@@ -1,0 +1,45 @@
+{
+  "baseline": "45441a470dd2ff30fc4d78020a0cc1309290bf6d",
+  "sources": {
+    "src/PageHeader.tsx": {
+      "original": "src/components/PageHeader.tsx",
+      "sha256": "563cbc0f083b8f2921fab09118c350a468a348cb30f87a67092918cc98e56878"
+    },
+    "src/KpiGrid.tsx": {
+      "original": "src/components/KpiGrid.tsx",
+      "sha256": "2ba3ce41d92ae41e98e0282e5d3227e443adcffd1d3b76502a6d449a47f4b669"
+    },
+    "src/StatCard.tsx": {
+      "original": "src/components/StatCard.tsx",
+      "sha256": "87276696ad896897d58966703d3c548f0acdee2020ca50e2b81b23fbc0e116c1"
+    },
+    "src/FilterBar.tsx": {
+      "original": "src/components/FilterBar.tsx",
+      "sha256": "ee436803091ec0c045c301fc2ae8f0658b322ba0c50eab4e572fc0712f0dfa4b"
+    },
+    "src/PageTabs.tsx": {
+      "original": "src/components/PageTabs.tsx",
+      "sha256": "de972bdbf5956a49682c31ba3c1d3909116e842fb2303a381ebba7ef70ce147f"
+    },
+    "src/DataTable.tsx": {
+      "original": "src/components/DataTable.tsx",
+      "sha256": "1b0003573fa0a2f9267eb98d1512210697899d4198167d5922214dcea2ff618b"
+    },
+    "src/SortableTableHeader.tsx": {
+      "original": "src/components/SortableTableHeader.tsx",
+      "sha256": "9f5fb075d1e34ce1314e3ba50ae4d484d7268d4f7c4ee3297bd340dbb75f2978"
+    },
+    "src/styles.css": {
+      "original": "src/design-system.css",
+      "sha256": "a4c3c9f78273a0a672ad57b51a956a2b34de95d9de9854c1cb289eae97c99422"
+    },
+    "src/forms.css": {
+      "original": "src/shared-forms.css",
+      "sha256": "0b2d91e53804f625fd6798898e7baa8a394208ea7d82d59f555d7d06ae58f069"
+    },
+    "src/forms/FormPrimitives.tsx": {
+      "original": "src/components/forms/FormPrimitives.tsx",
+      "sha256": "4adda998ed091584bd52e998c6f08fb2cc2b1f447fcf6e48c1f376ef279a7527"
+    }
+  }
+}

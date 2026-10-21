@@ -17,7 +17,7 @@ export function legacyWrappers(source){
 export function contractViolations(files,baseline){
  const failures=[];
  for(const [path,source] of Object.entries(files)){
-  if(['src/components/StatCard.tsx','src/components/PageHeader.tsx'].includes(path))continue;
+  if(['src/components/StatCard.tsx','src/components/PageHeader.tsx','packages/ui/src/StatCard.tsx','packages/ui/src/PageHeader.tsx'].includes(path))continue;
   for(const [token,count] of Object.entries(legacyWrappers(source)))if(count>(baseline[path]?.[token]||0))failures.push(`${path}: use shared ${token==='pageHead'?'PageHeader':'KpiGrid / StatCard'} instead of new '${token}' wrappers`);
   const isNewPage=path.startsWith('src/pages/')&&!Object.hasOwn(baseline,path);
   if(isNewPage&&!source.includes('<PageHeader'))failures.push(`${path}: new pages require PageHeader`);
@@ -26,6 +26,6 @@ export function contractViolations(files,baseline){
 }
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){
  const baseline=JSON.parse(readFileSync('scripts/design-contract-legacy.json','utf8'));
- const files={};for(const dir of ['src/pages','src/components'])for(const entry of readdirSync(dir,{recursive:true}))if(entry.endsWith('.tsx')){const path=dir+'/'+entry;files[path]=readFileSync(path,'utf8');}
+ const files={};for(const dir of ['src/pages','src/components','packages/ui/src'])for(const entry of readdirSync(dir,{recursive:true}))if(entry.endsWith('.tsx')){const path=dir+'/'+entry;files[path]=readFileSync(path,'utf8');}
  const failures=contractViolations(files,baseline);if(failures.length){console.error(failures.join('\n'));process.exitCode=1;}else console.log('Design contract: no new legacy KPI/header wrappers; new pages use shared components.');
 }

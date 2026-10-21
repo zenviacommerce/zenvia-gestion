@@ -1,0 +1,164 @@
+[
+  {
+    "phase": "before",
+    "scenario": "monthly",
+    "width": 390,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/before-monthly-390.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "scenario": "monthly",
+    "width": 1280,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/before-monthly-1280.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "scenario": "monthly",
+    "width": 1440,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/before-monthly-1440.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "scenario": "annual",
+    "width": 390,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/before-annual-390.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "scenario": "annual",
+    "width": 1280,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/before-annual-1280.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "scenario": "annual",
+    "width": 1440,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/before-annual-1440.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "monthly",
+    "width": 390,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-monthly-390.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "monthly",
+    "width": 1280,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-monthly-1280.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "monthly",
+    "width": 1440,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-monthly-1440.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "annual",
+    "width": 390,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-annual-390.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "annual",
+    "width": 1280,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-annual-1280.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "annual",
+    "width": 1440,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-annual-1440.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "mismatch",
+    "width": 390,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-mismatch-390.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "mismatch",
+    "width": 1280,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-mismatch-1280.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "mismatch",
+    "width": 1440,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-mismatch-1440.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "offline",
+    "width": 390,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-offline-390.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "offline",
+    "width": 1280,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-offline-1280.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "scenario": "offline",
+    "width": 1440,
+    "path": "/workspace/scratch/c85f3e06d585/zenvia-gestion/docs/deploy/20261021-commercial-catalog-visual/after-offline-1440.png",
+    "synthetic": true,
+    "networkRequests": 0,
+    "errors": []
+  }
+]

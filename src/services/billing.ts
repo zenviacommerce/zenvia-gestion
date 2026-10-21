@@ -4,9 +4,7 @@ import { createInvoice, updateInvoicePaymentStatus } from './repository';
 
 export type BillingCycle='monthly'|'yearly';
 
-// Keep new checkouts paused until the central catalog and PayPal verification
-// replace the legacy local price list. Existing subscriptions are unaffected.
-export const BILLING_CHECKOUT_PAUSED=true;
+// Missing, expired or mismatching central quotes always fail closed.
 export const BILLING_CHECKOUT_PAUSE_MESSAGE='Estamos actualizando los precios; la contratación estará disponible en breve';
 
 export type CustomerPlanEntitlement={
@@ -25,6 +23,10 @@ export type CustomerBillingPlan={
   sortOrder:number;
   isPublic:boolean;
   entitlements:CustomerPlanEntitlement[];
+  commercialVersion?:number;
+  functionalVersion?:number;
+  paypalMode?:'sandbox'|'live';
+  checkout?:Record<BillingCycle,{ok:boolean;paypalPlanId:string|null;checkedAt:string;reason?:string}>;
 };
 
 export type CustomerSubscription={
@@ -47,6 +49,8 @@ export type CustomerBillingOverview={
   subscription:CustomerSubscription;
   usage:CustomerPlanUsage;
   availablePlans:CustomerBillingPlan[];
+  catalogError?:string;
+  paypalMode?:'sandbox'|'live';
 };
 
 type PlanRow={
@@ -107,19 +111,23 @@ type BillingOverviewResponse={
 };
 
 export async function loadCustomerBillingOverview(access:AccessProfile):Promise<CustomerBillingOverview>{
-  const {data,error}=await supabase.functions.invoke('customer-billing',{body:{action:'overview'}});
+  const [local,catalogResult]=await Promise.all([
+    supabase.functions.invoke('customer-billing',{body:{action:'overview'}}),
+    invokePlatformBilling<CommercialCatalog>('catalog',access.workspaceId).then(catalog=>({catalog,error:''})).catch(()=>({catalog:null,error:'No se han podido verificar los precios. Reintenta para consultar los planes vigentes.'})),
+  ]);
+  const {data,error}=local;
   if(error)throw new Error(error.message||'No se pudo cargar el plan y la facturación.');
   if(data?.error)throw new Error(String(data.error));
   const response=data as BillingOverviewResponse;
-  const planRows=Array.isArray(response?.plans)?response.plans:[];
-  const entitlementRows=Array.isArray(response?.entitlements)?response.entitlements:[];
-  const currentRow=planRows.find(plan=>plan.plan_key===access.planKey);
-  const currentPlan=currentRow
-    ?mapPlan(currentRow,entitlementRows)
-    :{
+  const catalog=catalogResult.catalog;
+  const validCatalog=catalog&&Array.isArray(catalog.plans)&&catalog.pricesIncludeTax===false&&['sandbox','live'].includes(catalog.mode);
+  const currentRow=validCatalog?catalog.plans.find(plan=>plan.plan_key===access.planKey):null;
+  // Published prices are offers for new agreements, not evidence of the amount
+  // contractually agreed by an existing subscription. Never infer that amount.
+  const currentPlan={
       planKey:access.planKey,
-      name:access.planName,
-      description:access.planKey==='internal'?'Plan interno de ZENVIA.':'',
+      name:currentRow?.name||access.planName,
+      description:currentRow?.description||(access.planKey==='internal'?'Plan interno de ZENVIA.':''),
       monthlyPriceCents:null,
       yearlyPriceCents:null,
       sortOrder:0,
@@ -143,10 +151,19 @@ export async function loadCustomerBillingOverview(access:AccessProfile):Promise<
       amazonAccounts:{value:Number(response?.usage?.amazonAccounts||0),limit:limitFor(access,'amazon_accounts')},
       monthlyOrders:{value:Number(response?.usage?.monthlyOrders||0),limit:limitFor(access,'monthly_orders')},
     },
-    availablePlans:planRows
-      .filter(plan=>plan.plan_key!=='internal'&&plan.is_public)
-      .map(plan=>mapPlan(plan,entitlementRows)),
+    availablePlans:validCatalog?catalog.plans
+      .filter(plan=>plan.plan_key!=='internal'&&plan.is_public&&plan.active)
+      .map(plan=>({...mapPlan(plan,plan.entitlements||[]),commercialVersion:plan.commercial_version,functionalVersion:plan.current_version,paypalMode:catalog.mode,checkout:plan.checkout})):[],
+    catalogError:catalogResult.error||(!validCatalog?'El catálogo de precios requiere revisión.':undefined),
+    paypalMode:validCatalog?catalog.mode:undefined,
   };
+}
+
+type CommercialCatalog={mode:'sandbox'|'live';pricesIncludeTax:false;plans:Array<PlanRow&{commercial_version:number;current_version:number;entitlements?:EntitlementRow[];checkout:NonNullable<CustomerBillingPlan['checkout']>}>};
+
+export function customerCheckoutAvailable(plan:CustomerBillingPlan,cycle:BillingCycle){
+ const check=plan.checkout?.[cycle],age=Date.now()-Date.parse(check?.checkedAt||'');
+ return check?.ok===true&&Boolean(check.paypalPlanId)&&Number.isSafeInteger(plan.commercialVersion)&&Number(plan.commercialVersion)>0&&['sandbox','live'].includes(plan.paypalMode||'')&&Number.isFinite(age)&&age>=0&&age<=15*60*1000;
 }
 
 const PLATFORM_CONTROL_PLANE_URL=(import.meta.env.VITE_PLATFORM_CONTROL_PLANE_URL||'https://ucokhtztxozxcikrmidv.supabase.co').replace(/\/$/,'');
@@ -169,14 +186,14 @@ export async function startCustomerPayPalCheckout(input:{
   targetPlan:CustomerBillingPlan;
   cycle:BillingCycle;
 }){
-  if(BILLING_CHECKOUT_PAUSED)throw new Error(BILLING_CHECKOUT_PAUSE_MESSAGE);
+  if(!customerCheckoutAvailable(input.targetPlan,input.cycle))throw new Error(BILLING_CHECKOUT_PAUSE_MESSAGE);
   if(input.targetPlan.planKey==='internal'||!input.targetPlan.isPublic)throw new Error('El plan seleccionado no está disponible para contratación.');
   const price=input.cycle==='yearly'?input.targetPlan.yearlyPriceCents:input.targetPlan.monthlyPriceCents;
   if(price==null)throw new Error('Este plan no tiene precio configurado para la modalidad seleccionada.');
   return invokePlatformBilling<{ok:true;subscriptionId:string;approveUrl:string;planKey:string;cycle:BillingCycle;mode:'sandbox'|'live'}>(
     'checkout',
     input.access.workspaceId,
-    {planKey:input.targetPlan.planKey,cycle:input.cycle},
+    {planKey:input.targetPlan.planKey,cycle:input.cycle,quote:{commercialVersion:input.targetPlan.commercialVersion,priceCents:price,paypalPlanId:input.targetPlan.checkout![input.cycle].paypalPlanId,paypalMode:input.targetPlan.paypalMode}},
   );
 }
 

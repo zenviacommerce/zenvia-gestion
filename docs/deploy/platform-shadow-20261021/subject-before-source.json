@@ -1,0 +1,275 @@
+[
+  {
+    "snapshot": {
+      "functions": [
+        {
+          "signature": "private.platform_shadow_capture()",
+          "definition": "CREATE OR REPLACE FUNCTION private.platform_shadow_capture()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\nAS $function$\ndeclare oldrow jsonb;newrow jsonb;oldowner uuid;newowner uuid;code text;\nbegin\n -- AFTER trigger: exceptions roll back only the shadow subtransaction.\n -- No serialization of whole business rows; these are the complete allowlists.\n begin\n  if not exists(select 1 from private.platform_shadow_source_config where enabled) then return null;end if;\n  case TG_TABLE_NAME\n  when 'fulfillment_orders' then\n   if TG_OP<>'INSERT' then oldrow=jsonb_build_object('owner_id',old.owner_id,'order_created_at',old.order_created_at);end if;\n   if TG_OP<>'DELETE' then newrow=jsonb_build_object('owner_id',new.owner_id,'order_created_at',new.order_created_at);end if;\n  when 'app_users' then\n   if TG_OP<>'INSERT' then oldrow=jsonb_build_object('owner_id',old.workspace_id,'active',old.active);end if;\n   if TG_OP<>'DELETE' then newrow=jsonb_build_object('owner_id',new.workspace_id,'active',new.active);end if;\n  when 'amazon_accounts' then\n   if TG_OP<>'INSERT' then oldrow=jsonb_build_object('owner_id',old.owner_id,'status',old.status);end if;\n   if TG_OP<>'DELETE' then newrow=jsonb_build_object('owner_id',new.owner_id,'status',new.status);end if;\n  when 'support_tickets' then\n   if TG_OP<>'INSERT' then oldrow=jsonb_build_object('id',old.id,'owner_id',old.owner_id,'ticket_number',old.ticket_number,'type',old.type,'status',old.status,'priority',old.priority,'assigned_to',old.assigned_to,'last_author_role',old.last_author_role,'created_at',old.created_at,'updated_at',old.updated_at,'last_activity_at',old.last_activity_at);end if;\n   if TG_OP<>'DELETE' then newrow=jsonb_build_object('id',new.id,'owner_id',new.owner_id,'ticket_number',new.ticket_number,'type',new.type,'status',new.status,'priority',new.priority,'assigned_to',new.assigned_to,'last_author_role',new.last_author_role,'created_at',new.created_at,'updated_at',new.updated_at,'last_activity_at',new.last_activity_at);end if;\n  else raise exception 'SHADOW_UNEXPECTED_TABLE';\n  end case;\n  if TG_OP='UPDATE' and oldrow is not distinct from newrow then return null;end if;\n  oldowner=(oldrow->>'owner_id')::uuid;newowner=(newrow->>'owner_id')::uuid;\n  if TG_TABLE_NAME='support_tickets' then\n   if oldowner is not null and (TG_OP='DELETE' or oldowner is distinct from newowner) then perform private.platform_shadow_touch(oldowner,'ticket',(oldrow->>'id')::uuid,true);end if;\n   if newowner is not null then perform private.platform_shadow_touch(newowner,'ticket',(newrow->>'id')::uuid,false);end if;\n  else\n   if oldowner is not null and (newowner is null or oldowner<newowner) then perform private.platform_shadow_touch(oldowner,'metrics',oldowner);end if;\n   if newowner is not null then perform private.platform_shadow_touch(newowner,'metrics',newowner);end if;\n   if oldowner is not null and newowner is not null and oldowner>newowner then perform private.platform_shadow_touch(oldowner,'metrics',oldowner);end if;\n  end if;\n exception when others then\n  code=SQLSTATE;\n  -- Best effort, no SQLERRM/context/row values (may contain buyer data).\n  begin\n   insert into private.platform_shadow_capture_failures(source_table,operation,error_code) values(TG_TABLE_NAME,TG_OP,code);\n  exception when others then\n   raise log 'PLATFORM_SHADOW_CAPTURE_FAILURE table=% op=% sqlstate=% logger_failed=true',TG_TABLE_NAME,TG_OP,code;\n  end;\n end;\n return null;\nend;$function$\n"
+        },
+        {
+          "signature": "private.platform_shadow_ticket_payload(uuid,uuid)",
+          "definition": "CREATE OR REPLACE FUNCTION private.platform_shadow_ticket_payload(p_workspace uuid, p_id uuid)\n RETURNS jsonb\n LANGUAGE sql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\n select jsonb_build_object('ticket_number',t.ticket_number,'type',t.type,'status',t.status,'priority',t.priority,'assigned_to',t.assigned_to,'last_author_role',t.last_author_role,'created_at',t.created_at,'updated_at',t.updated_at,'last_activity_at',t.last_activity_at)\n from public.support_tickets t where t.owner_id=p_workspace and t.id=p_id;\n$function$\n"
+        }
+      ],
+      "checked_at": "2026-10-21T10:38:56.495915+00:00",
+      "mfa_hashes": [
+        {
+          "hash": "2b8fff9e3c6b481eb00a55ac1c7c2557",
+          "signature": "private.mfa_activation_findings()"
+        },
+        {
+          "hash": "3000b2c09e1b6d352c3c1e038a406759",
+          "signature": "private.mfa_allowed()"
+        },
+        {
+          "hash": "6c19bf8847a542a5021b24199696dcb1",
+          "signature": "private.mfa_configuration_guard()"
+        },
+        {
+          "hash": "966727d56b787727f605644db1660504",
+          "signature": "private.mfa_error(boolean,boolean)"
+        },
+        {
+          "hash": "637226e96b9d94233c6e283c07d4d364",
+          "signature": "private.mfa_impl_101073(date,date,text[])"
+        },
+        {
+          "hash": "f74ecd06dfa28030960f79970c51f50d",
+          "signature": "private.mfa_impl_101076(date,date,text[],text)"
+        },
+        {
+          "hash": "832fd77fcbec898401114dcee2dd9cbd",
+          "signature": "private.mfa_impl_101291(uuid)"
+        },
+        {
+          "hash": "d91bc0d7ad0c943e0ebbf9a3fbe8ecbb",
+          "signature": "private.mfa_impl_101292(uuid)"
+        },
+        {
+          "hash": "0506a6c5e16274141e7fe36b1c2be054",
+          "signature": "private.mfa_impl_1068730(text)"
+        },
+        {
+          "hash": "bfa27fb27dce768dda7cdeaa10497a9b",
+          "signature": "private.mfa_impl_1068731(text,uuid)"
+        },
+        {
+          "hash": "1bb4d7b5edfa3577996a84cf1c3ef219",
+          "signature": "private.mfa_impl_1069174(text,uuid,numeric)"
+        },
+        {
+          "hash": "69b5e7a8207f5153d773563a542ac230",
+          "signature": "private.mfa_impl_136301(date,date,text[],text,integer,integer,text,text)"
+        },
+        {
+          "hash": "aac748a530afdb596ec52dafc324caa4",
+          "signature": "private.mfa_impl_140103(uuid)"
+        },
+        {
+          "hash": "95a09d609d587d2b4b4889e3cda02bcd",
+          "signature": "private.mfa_impl_140801(uuid,date,jsonb)"
+        },
+        {
+          "hash": "6829ed4f96bd804a0f84ccd5fd9a74ee",
+          "signature": "private.mfa_impl_201805(date,date,text[])"
+        },
+        {
+          "hash": "e1d4ac8dab40436c29ef690b5c7d635a",
+          "signature": "private.mfa_impl_3790978()"
+        },
+        {
+          "hash": "3fc576907732734456cc8478ffc6416d",
+          "signature": "private.mfa_impl_3790979(date,date,uuid[])"
+        },
+        {
+          "hash": "e84641ca40db8b9eb534018b1da51937",
+          "signature": "private.mfa_impl_3790982(uuid,text)"
+        },
+        {
+          "hash": "de543a37aa7e770e8aa77f4f9e387ef8",
+          "signature": "private.mfa_impl_3790983(text)"
+        },
+        {
+          "hash": "f0296dc4603eb0bd6a44fa41b2ade911",
+          "signature": "private.mfa_impl_3790984(uuid,text,uuid,numeric)"
+        },
+        {
+          "hash": "d495173e68cf89a2553ddaa784972244",
+          "signature": "private.mfa_impl_3793373(date,date,uuid[],text,integer,integer,text,text,boolean)"
+        },
+        {
+          "hash": "e5930cb61e48b7a9ebbdb629f96e104f",
+          "signature": "private.mfa_impl_687056(uuid,uuid)"
+        },
+        {
+          "hash": "b4c5d6512c22436136389c12dd2039c0",
+          "signature": "private.mfa_impl_687058(uuid,uuid)"
+        },
+        {
+          "hash": "4fe37f3ad4b312113649238c1e4e59b7",
+          "signature": "private.mfa_impl_687217(boolean)"
+        },
+        {
+          "hash": "1a87dd36feaad48d17b78d878f50eba9",
+          "signature": "private.mfa_impl_687218(boolean)"
+        },
+        {
+          "hash": "ef8707971c74192c7fc2613385febef2",
+          "signature": "private.mfa_impl_687219(boolean)"
+        },
+        {
+          "hash": "0d135b05406175a05773e3a98f36752d",
+          "signature": "private.mfa_impl_687220(uuid,jsonb)"
+        },
+        {
+          "hash": "a8f757de660b8bc03a7720b454ab3657",
+          "signature": "private.mfa_impl_687222(integer,jsonb)"
+        },
+        {
+          "hash": "7b1e552b6bd979c6cc2996b613ea5e98",
+          "signature": "private.mfa_impl_77077(date,date,text[])"
+        },
+        {
+          "hash": "2421c7ee786b96914e3f57f6167b4f90",
+          "signature": "private.mfa_impl_77079(date,date,text[],text)"
+        },
+        {
+          "hash": "40dbe24de8b9934d8df955b68b8a96be",
+          "signature": "private.mfa_impl_78544(date,date,text[])"
+        },
+        {
+          "hash": "c02039015bef316fab41c0227325f4f1",
+          "signature": "private.mfa_impl_78545(date,date,text[],text,integer,integer)"
+        },
+        {
+          "hash": "cdfb39f8833b785e5bd15f8da83f2267",
+          "signature": "private.mfa_impl_78547(text[],text,integer,integer)"
+        },
+        {
+          "hash": "3d008b5c691ecbe5aa73b84ee583df4b",
+          "signature": "private.mfa_impl_78548(text,integer,integer)"
+        },
+        {
+          "hash": "62fa89642da99e234a3e65f1dec374f3",
+          "signature": "private.mfa_impl_78549(text,uuid,numeric)"
+        },
+        {
+          "hash": "a66339b63f8d297cc6c97f52ec553086",
+          "signature": "private.mfa_impl_78550(text)"
+        },
+        {
+          "hash": "c171701e01f711ba49878f597ea2b309",
+          "signature": "private.mfa_impl_orders_dashboard_pickup_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[],text,boolean)"
+        },
+        {
+          "hash": "7e4b7e1e88ddea3409381fdece02c0f1",
+          "signature": "private.mfa_impl_pickup_report_create(uuid[],uuid,boolean,jsonb)"
+        },
+        {
+          "hash": "d851ff795db2ac1c48807f33d5b7a957",
+          "signature": "private.mfa_impl_pickup_report_get(uuid)"
+        },
+        {
+          "hash": "e4129df20268b77040db8dee744f5043",
+          "signature": "private.mfa_impl_pickup_report_list(uuid,integer)"
+        },
+        {
+          "hash": "0555cbdb593548be89511d43bed985c2",
+          "signature": "private.mfa_impl_pickup_report_preview(uuid[])"
+        },
+        {
+          "hash": "282939ef7e93bc97e347be1274d6b734",
+          "signature": "private.mfa_impl_pickup_report_selection(jsonb,integer)"
+        },
+        {
+          "hash": "072646107901c635020a4eac364cdea6",
+          "signature": "private.mfa_impl_rename_factor(uuid,text)"
+        },
+        {
+          "hash": "fa68f31038c5acf97249eba6cba491a2",
+          "signature": "private.mfa_impl_shopify_summary_batch(jsonb,uuid[])"
+        },
+        {
+          "hash": "8d7060fad156d2adf4f2eb4171731ff6",
+          "signature": "private.mfa_is_admin()"
+        },
+        {
+          "hash": "0536d92c901473340e820ce14e827f16",
+          "signature": "private.mfa_promoted_admin()"
+        },
+        {
+          "hash": "80f04b6ff95fe72800a32f94260e7f23",
+          "signature": "private.mfa_recovery_peer_count(uuid)"
+        },
+        {
+          "hash": "22b3e48b9efd9f4f804659a8bcafbb18",
+          "signature": "private.mfa_required()"
+        },
+        {
+          "hash": "73a31925dc98eabef9545ba0e72bf49e",
+          "signature": "security_mfa_approve_recovery(uuid,text)"
+        },
+        {
+          "hash": "fbee1bb2fcce22ea1e03241fb94516c8",
+          "signature": "security_mfa_assert(boolean)"
+        },
+        {
+          "hash": "98caa9dfa52f362021cc9632ca37d024",
+          "signature": "security_mfa_authorize_enrollment(uuid,text,boolean)"
+        },
+        {
+          "hash": "657fae22579a6afc51cf0c176625ab2b",
+          "signature": "security_mfa_begin_factor_add()"
+        },
+        {
+          "hash": "c4f2253c9a9d141bff9788f4bda5f880",
+          "signature": "security_mfa_begin_self_enrollment()"
+        },
+        {
+          "hash": "4a9ce0a7348f71151b1bda86bd706e27",
+          "signature": "security_mfa_bridge_allowed()"
+        },
+        {
+          "hash": "26842a9e46a4578df4df3f92ad40e0d3",
+          "signature": "security_mfa_bridge_allowed(text,text,text)"
+        },
+        {
+          "hash": "3a5e0f71e2a510591f0d784283a10f52",
+          "signature": "security_mfa_complete_enrollment(uuid)"
+        },
+        {
+          "hash": "ffe20692528068b19290249a90068b0b",
+          "signature": "security_mfa_forget_factor(uuid)"
+        },
+        {
+          "hash": "25e5fe737441aa44fb1f64729a1fbc0c",
+          "signature": "security_mfa_oauth_actor_assert(uuid,uuid,uuid,numeric,uuid)"
+        },
+        {
+          "hash": "592344983cb3559b1f1e3c0d59632cad",
+          "signature": "security_mfa_oauth_start_context()"
+        },
+        {
+          "hash": "747559bf6257747cbcbd9f235cb81153",
+          "signature": "security_mfa_prepare_enrollment(uuid)"
+        },
+        {
+          "hash": "b8ab1cd47127d1def24480ef12c54677",
+          "signature": "security_mfa_release_enrollment(uuid,text,uuid,uuid)"
+        },
+        {
+          "hash": "0d85af5ba6f57316f79b06172cbf27c0",
+          "signature": "security_mfa_release_enrollment(uuid,text,uuid)"
+        },
+        {
+          "hash": "bfeab6c2f8ca1a6768a8c07cf4e1c6b2",
+          "signature": "security_mfa_rename_factor(uuid,text)"
+        },
+        {
+          "hash": "5fffa1a15447fcf1f0380eb3e00c174d",
+          "signature": "security_mfa_status()"
+        }
+      ]
+    }
+  }
+]

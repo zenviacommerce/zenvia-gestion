@@ -1,0 +1,99 @@
+{
+  "date": "2026-10-21",
+  "pr": "https://github.com/zenviacommerce/zenvia-gestion/pull/271",
+  "head": "02a082a10987141aad0a810a90320a45da21d252",
+  "main": "45441a470dd2ff30fc4d78020a0cc1309290bf6d",
+  "tree": "71d2ea61a077b730f4160ed855bddef551ebb0fd",
+  "deployment": "dpl_CB76xZWQJmZppTwhoBE6LY8cYKVe",
+  "state": "READY",
+  "domain": "gestion.zenviacommerce.com",
+  "bundle": "index-DMphM7HP.js",
+  "publicSmoke": {
+    "html": true,
+    "jsBytes": 2853010,
+    "resetLabel": true,
+    "storageKey": true,
+    "invoiceGuardRetained": true,
+    "visualProduction": false
+  },
+  "local": {
+    "react": 271,
+    "nodeSql": 1240,
+    "browserSelectionIds": [
+      "demo-0",
+      "demo-25"
+    ]
+  },
+  "ci": {
+    "workflow_runs": [
+      {
+        "id": 39601168231,
+        "name": "MFA visual review (Playwright)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 149,
+        "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39601168231/jobs",
+        "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39601168231/logs",
+        "workflow_id": 388829843
+      },
+      {
+        "id": 39601167718,
+        "name": "Build check",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 626,
+        "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39601167718/jobs",
+        "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39601167718/logs",
+        "workflow_id": 361316263
+      },
+      {
+        "id": 39601167699,
+        "name": "Build ZENVIA Gestión",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 2314,
+        "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39601167699/jobs",
+        "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39601167699/logs",
+        "workflow_id": 354706666
+      },
+      {
+        "id": 39601167721,
+        "name": "Auth resilience tests",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 295,
+        "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39601167721/jobs",
+        "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39601167721/logs",
+        "workflow_id": 385998318
+      },
+      {
+        "id": 39601167753,
+        "name": "MFA real integration (disposable Supabase)",
+        "status": "completed",
+        "conclusion": "success",
+        "run_number": 334,
+        "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39601167753/jobs",
+        "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39601167753/logs",
+        "workflow_id": 387906946
+      }
+    ]
+  },
+  "mainCI": [
+    {
+      "id": 39601792423,
+      "name": "Build ZENVIA Gestión",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "rollback": {
+    "deployment": "dpl_22J1RTb1BF39etPX5Kcmkf5MtPQo",
+    "main": "946d932b7e0f705953f7ea228b7ff374f7cb876a",
+    "bundle": "index-DMsvERAZ.js",
+    "sqlRequired": false
+  },
+  "limitations": [
+    "Amazon Orders/Inventory/Unmapped retain existing current-page sort scope",
+    "Support has no sortable headers; Platform adopts on migration"
+  ]
+}

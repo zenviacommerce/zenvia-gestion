@@ -21,6 +21,9 @@ create table private.platform_shadow_outbox(
 );
 create index platform_shadow_outbox_pending_idx on private.platform_shadow_outbox(available_at,created_at) where delivered_at is null and failed_at is null;
 
+create index platform_shadow_outbox_version_idx on private.platform_shadow_outbox(version_id);
+create index platform_shadow_outbox_retention_idx on private.platform_shadow_outbox(delivered_at) where delivered_at is not null;
+
 create function private.platform_shadow_ticket_payload(p_workspace uuid,p_id uuid) returns jsonb language sql stable security definer set search_path='' as $$
  select jsonb_build_object('ticket_number',t.ticket_number,'subject',t.subject,'type',t.type,'status',t.status,'priority',t.priority,'assigned_to',t.assigned_to,'last_author_role',t.last_author_role,'created_at',t.created_at,'updated_at',t.updated_at,'last_activity_at',t.last_activity_at)
  from public.support_tickets t where t.owner_id=p_workspace and t.id=p_id;

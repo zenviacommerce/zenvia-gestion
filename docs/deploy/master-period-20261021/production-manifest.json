@@ -1,0 +1,20 @@
+[
+  {
+    "file": "production-before-1440.png",
+    "width": 1440,
+    "height": 1000,
+    "sha256": "f4296fb6f3b22e36fd832cdd26be3ec35cc4edbc44ec5d420e6ad83e2c83a5d1"
+  },
+  {
+    "file": "production-after-1440.png",
+    "width": 1440,
+    "height": 1000,
+    "sha256": "f35f9e4449912bab04aec4a44c3549fc4c070b1462a6e9938f2e824e7c91ff3a"
+  },
+  {
+    "file": "production-after-september-1440.png",
+    "width": 1440,
+    "height": 1000,
+    "sha256": "847db95f3c30d85cd809f4097e1d6955647a713884e6f50b49ca2509baddff33"
+  }
+]

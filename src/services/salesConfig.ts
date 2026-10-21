@@ -24,6 +24,7 @@ export type ManagedSalesSeries = {
   nextNumber: number;
   padding: number;
   active: boolean;
+  defaultBankAccountId?: string|null;
 };
 
 export type SalesSeriesInput = Omit<ManagedSalesSeries,'id'>;
@@ -75,13 +76,13 @@ export async function deleteTaxRegistration(id:string){
 export async function loadManagedSalesSeries():Promise<ManagedSalesSeries[]> {
   const {data,error}=await supabase.from('sales_invoice_series').select('*').order('year',{ascending:false}).order('kind').order('code');
   if(error)throw error;
-  return (data??[]).map((row:any)=>({id:row.id,code:row.code,name:row.name,kind:row.kind,year:row.year,prefix:row.prefix,nextNumber:Number(row.next_number),padding:Number(row.padding),active:Boolean(row.active)}));
+  return (data??[]).map((row:any)=>({id:row.id,code:row.code,name:row.name,kind:row.kind,year:row.year,prefix:row.prefix,nextNumber:Number(row.next_number),padding:Number(row.padding),active:Boolean(row.active),defaultBankAccountId:row.default_bank_account_id??null}));
 }
 
 export async function addSalesSeries(input:SalesSeriesInput){
   const {error}=await supabase.from('sales_invoice_series').insert({
     code:input.code.trim().toUpperCase(),name:input.name.trim(),kind:input.kind,year:input.year,prefix:input.prefix,
-    next_number:Math.max(1,Math.trunc(input.nextNumber)),padding:Math.min(8,Math.max(1,Math.trunc(input.padding))),active:input.active,
+    next_number:Math.max(1,Math.trunc(input.nextNumber)),padding:Math.min(8,Math.max(1,Math.trunc(input.padding))),active:input.active,default_bank_account_id:input.defaultBankAccountId||null,
   });
   if(error)throw error;
 }
@@ -89,7 +90,7 @@ export async function addSalesSeries(input:SalesSeriesInput){
 export async function updateSalesSeries(id:string,input:SalesSeriesInput){
   const {error}=await supabase.from('sales_invoice_series').update({
     code:input.code.trim().toUpperCase(),name:input.name.trim(),kind:input.kind,year:input.year,prefix:input.prefix,
-    next_number:Math.max(1,Math.trunc(input.nextNumber)),padding:Math.min(8,Math.max(1,Math.trunc(input.padding))),active:input.active,updated_at:new Date().toISOString(),
+    next_number:Math.max(1,Math.trunc(input.nextNumber)),padding:Math.min(8,Math.max(1,Math.trunc(input.padding))),active:input.active,default_bank_account_id:input.defaultBankAccountId||null,updated_at:new Date().toISOString(),
   }).eq('id',id);
   if(error)throw error;
 }

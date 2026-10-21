@@ -64,6 +64,18 @@ export function createSalesReceiptPdfBlob(
   doc.setTextColor(90);
   doc.text(doc.splitTextToSize('Documento interno de control de entregas y cobros. No es una factura ni sustituye a la factura correspondiente. El IVA no se desglosa en este documento y solo se aplicará cuando se prepare la factura.',180),14,y);
   y+=16;
+  if(receipt.paymentMethod){
+    if(y>278){doc.addPage();y=24;}
+    doc.text(`Forma de pago: ${receipt.paymentMethod}`,14,y);y+=5;
+  }
+  const bank=receipt.bankAccountSnapshot;
+  if(bank?.iban){
+    const bankLines=[`IBAN: ${bank.iban}`,...(bank.bic?[`BIC/SWIFT: ${bank.bic}`]:[]),...(bank.holder?[`Titular: ${bank.holder}`]:[])];
+    for(const value of bankLines)for(const line of doc.splitTextToSize(value,180)){
+      if(y>278){doc.addPage();y=24;}
+      doc.text(line,14,y);y+=5;
+    }
+  }
   if(receipt.notes){doc.setTextColor(40);doc.text(doc.splitTextToSize(`Notas: ${receipt.notes}`,180),14,y);}
   return doc.output('blob');
 }

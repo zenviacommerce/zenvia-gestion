@@ -1,3 +1,4 @@
+import {BankAccountSelect,BankAccountSnapshotView,MISSING_BANK_ACCOUNT,useBankAccountChoice} from '../components/BankAccountSelect';
 import {PageHeader} from '../components/PageHeader';
 import {KpiGrid} from '../components/KpiGrid';
 import {FilterBar} from '../components/FilterBar';
@@ -52,6 +53,8 @@ export function ReceiptModal({receipt,clients:initialClients,products,onClose,on
   const [clientId,setClientId]=useState(receipt?.clientId||clients[0]?.id||'');
   const [receiptDate,setReceiptDate]=useState(receipt?.receiptDate||today());
   const [notes,setNotes]=useState(receipt?.notes||'');
+  const [paymentMethodId,setPaymentMethodId]=useState(receipt?.paymentMethodId||settings.sales.paymentMethods.find(item=>item.active&&item.id===settings.sales.defaultPaymentMethod)?.id||settings.sales.paymentMethods.find(item=>item.active)?.id||'');
+  const bank=useBankAccountChoice({active:!receipt,documentKey:receipt?.id||'new-receipt'});
   const [lines,setLines]=useState<SalesReceiptLine[]>(receipt?.lines.length?receipt.lines.map((line,index)=>({...line,position:index+1})):[emptyLine(1,settings.sales.defaultVatRate)]);
   const [busy,setBusy]=useState(false);
   const [error,setError]=useState('');
@@ -71,8 +74,10 @@ export function ReceiptModal({receipt,clients:initialClients,products,onClose,on
     if(!clean.length){setError('Añade al menos un producto o concepto.');return;}
     if(clean.some(line=>line.quantity<=0)){setError('Las cantidades deben ser superiores a 0.');return;}
     if(receipt&&receipt.paidAmount>total+0.005){setError('El nuevo importe no puede ser inferior a lo que ya se ha cobrado de este recibo.');return;}
+    if(!receipt&&paymentMethodId==='bank_transfer'&&(bank.loading||bank.error||bank.selectionError)){setError(bank.error||bank.selectionError||'Espera a que se carguen las cuentas bancarias.');return;}
+    if(!receipt&&paymentMethodId==='bank_transfer'&&!bank.value){setError(MISSING_BANK_ACCOUNT);return;}
     setBusy(true);setError('');
-    const input:SalesReceiptInput={clientId,receiptDate,currency:settings.general.currencyCode,notes:notes||undefined,lines:clean};
+    const input:SalesReceiptInput={clientId,receiptDate,currency:settings.general.currencyCode,...(!receipt?{bankAccountId:paymentMethodId==='bank_transfer'?(bank.value||null):null,paymentMethodId:paymentMethodId||null,paymentMethod:settings.sales.paymentMethods.find(item=>item.id===paymentMethodId)?.label||null}:{}),notes:notes||undefined,lines:clean};
     try{
       if(receipt)await updateSalesReceipt(receipt.id,input);
       else await createSalesReceipt(input);
@@ -85,6 +90,7 @@ export function ReceiptModal({receipt,clients:initialClients,products,onClose,on
     <section className="salesFormSection"><div className="salesSectionTitle"><UserRound/><div><strong>Cliente y fecha</strong><span>El recibo seguirá existiendo aunque después lo cobres o prepares una factura.</span></div></div>
       <div className="salesFormGrid"><label>Cliente *<SearchableSelect onOpen={clientSource.onOpen} onSearch={clientSource.onSearch} value={clientId} options={clientOptions} onChange={setClientId} placeholder="Selecciona cliente" searchPlaceholder="Buscar cliente…" ariaLabel="Cliente del recibo"/></label><label>Fecha<input type="date" value={receiptDate} onChange={e=>setReceiptDate(e.target.value)}/></label></div>
     </section>
+    <section className="salesFormSection"><div className="salesSectionTitle"><Banknote size={18}/><div><strong>Fechas y cobro</strong><span>Forma de pago y cuenta bancaria</span></div></div><div className="salesFormGrid">{receipt?<><p>Forma de pago: {receipt.paymentMethod||'Sin método conservado'}</p><BankAccountSnapshotView snapshot={receipt.bankAccountSnapshot} source={receipt.bankSnapshotSource} capturedAt={receipt.bankSnapshotAt}/></>:<><label>Forma de pago<SelectField ariaLabel="Forma de pago del recibo" value={paymentMethodId} onChange={setPaymentMethodId} options={settings.sales.paymentMethods.filter(item=>item.active).map(item=>({value:item.id,label:item.label}))}/></label>{paymentMethodId==='bank_transfer'&&<BankAccountSelect accounts={bank.accounts} value={bank.value} onChange={bank.choose} required={paymentMethodId==='bank_transfer'} loading={bank.loading} error={bank.error} onRetry={()=>void bank.reload()}/>}</>}</div></section>
     <section className="salesFormSection"><div className="salesSectionTitle"><PackageSearch/><div><strong>Productos y conceptos</strong><span>Los importes del recibo son sin IVA; guardamos el tipo únicamente para una futura factura.</span></div></div>
       <ProductCatalogPicker products={products} onAdd={addProduct}/>
       <div className="salesLinesEditor"><div className="salesLinesHead"><div><strong>Líneas del recibo</strong><span>{lines.length} línea{lines.length===1?'':'s'}</span></div><button className="secondary" type="button" onClick={addFree}><Plus size={15}/> Concepto libre</button></div>
@@ -221,6 +227,7 @@ function ReceiptDetailDrawer({
     </div></section>}
     {receipt.notes&&<section className="recordDetailSection"><h3>Notas</h3><div className="salesReceiptNotice">{receipt.notes}</div></section>}
     <section className="recordDetailSection"><h3>Estado</h3><span className={`salesReceiptStatus ${status}`}>{collectionLabel(receipt)}</span></section>
+    <BankAccountSnapshotView snapshot={receipt.bankAccountSnapshot} source={receipt.bankSnapshotSource} capturedAt={receipt.bankSnapshotAt}/>
   </RecordDetailDrawer>;
 }
 
@@ -328,7 +335,7 @@ export function SalesReceipts(){
           const paymentId=client?.defaultPaymentMethod||settings.sales.defaultPaymentMethod;
           const paymentMethod=settings.sales.paymentMethods.find(item=>item.id===paymentId&&item.active)?.label||settings.sales.paymentMethods.find(item=>item.active)?.label||'';
           const invoiceLines:SalesInvoiceLine[]=rows.sort((a,b)=>a.receiptDate.localeCompare(b.receiptDate)).flatMap(receipt=>receipt.lines.map(line=>({productId:line.productId||null,position:0,description:`${receipt.receiptNumber} · ${line.description}`,quantity:line.quantity,unit:line.unit,unitPrice:line.unitPrice,discountPercent:line.discountPercent,taxRate:line.invoiceTaxRate}))).map((line,index)=>({...line,position:index+1}));
-          invoiceId=await createSalesInvoiceDraft({clientId:rows[0].clientId,seriesId:standardSeries.id,taxRegistrationId:settings.sales.defaultTaxRegistrationId,issueDate,operationDate:rows.map(r=>r.receiptDate).sort().at(-1),dueDate:defaultSalesDueDate(issueDate,resolveSalesDueDays(client?.paymentTermsDays,settings.sales.defaultDueDays)),currency:settings.general.currencyCode,paymentMethod,notes:`Preparada a partir de recibos: ${rows.map(r=>r.receiptNumber).join(', ')}.`,lines:invoiceLines},settings.sales.defaultDueDays);
+          invoiceId=await createSalesInvoiceDraft({clientId:rows[0].clientId,seriesId:standardSeries.id,taxRegistrationId:settings.sales.defaultTaxRegistrationId,issueDate,operationDate:rows.map(r=>r.receiptDate).sort().at(-1),dueDate:defaultSalesDueDate(issueDate,resolveSalesDueDays(client?.paymentTermsDays,settings.sales.defaultDueDays)),currency:settings.general.currencyCode,paymentMethod,paymentMethodId:paymentId,notes:`Preparada a partir de recibos: ${rows.map(r=>r.receiptNumber).join(', ')}.`,lines:invoiceLines},settings.sales.defaultDueDays);
           created+=1;process.setItem(key,'success','Borrador creado; los recibos no se han modificado.');
         }catch(e){if(invoiceId)await deleteSalesInvoiceDraftSafe(invoiceId).catch(()=>{});failed+=1;process.setItem(key,'error',errorMessage(e,'No se pudo generar.'))}
       }

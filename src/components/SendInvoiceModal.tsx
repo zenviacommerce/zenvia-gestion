@@ -22,7 +22,9 @@ export function SendInvoiceModal({invoice,settings,branding,onClose,onSent}:{inv
     const company=invoice.issuerName||settings.legalName;
     setTo(invoice.clientEmail||'');
     setSubject(`Factura ${number} - ${company}`);
-    setBody(`Hola,\n\nAdjuntamos la factura ${number} por importe de ${formatAppMoney(invoice.totalAmount,invoice.currency,appSettings.general,{minimumFractionDigits:2,maximumFractionDigits:2})}.\n\nGracias.\n${company}`);
+    const bank=invoice.bankAccountSnapshot;
+    const bankDetails=bank?.iban?`\n\n${[`IBAN: ${bank.iban}`,...(bank.bic?[`BIC/SWIFT: ${bank.bic}`]:[]),...(bank.holder?[`Titular: ${bank.holder}`]:[])].join('\n')}`:'';
+    setBody(`Hola,\n\nAdjuntamos la factura ${number} por importe de ${formatAppMoney(invoice.totalAmount,invoice.currency,appSettings.general,{minimumFractionDigits:2,maximumFractionDigits:2})}.${bankDetails}\n\nGracias.\n${company}`);
     setError('');
   },[invoice,settings.legalName,appSettings.general]);
 

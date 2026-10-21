@@ -94,7 +94,7 @@ export default function App(){
  const [loading,setLoading]=useState(false);
  const [error,setError]=useState('');
  const [page,setPage]=useState<Page>('dashboard');
- const [settingsInitialSection,setSettingsInitialSection]=useState<'integrations'|undefined>();
+ const [settingsInitialSection,setSettingsInitialSection]=useState<'general'|'integrations'|undefined>();
  const [ordersPendingEntry,setOrdersPendingEntry]=useState(false);
  const [upload,setUpload]=useState(false);
  const [bulkUpload,setBulkUpload]=useState(false);
@@ -325,6 +325,17 @@ export default function App(){
      clearShopifyOAuthCallback();
      showError(error instanceof Error?error.message:'No se pudo finalizar la conexión con Shopify.');
    });
+ },[mfaAccess.ready,accessReady,access?.active,allowedPages]);
+
+ useEffect(()=>{
+   const openBankSettings=()=>{
+     if(!mfaAccess.ready||!accessReady||!access?.active||!allowedPages.includes('settings'))return;
+     startPageApplied.current=true;
+     setSettingsInitialSection('general');
+     setPage('settings');
+   };
+   window.addEventListener('zenvia:open-bank-settings',openBankSettings);
+   return()=>window.removeEventListener('zenvia:open-bank-settings',openBankSettings);
  },[mfaAccess.ready,accessReady,access?.active,allowedPages]);
 
  if(!authReady) return <div className="fullLoader"><LoaderCircle className="spin"/> {tenantBootstrapError||'Cargando…'}</div>;

@@ -1,8 +1,9 @@
+import {BusinessBankAccountsPanel} from '../components/BusinessBankAccountsPanel';
 import {PageHeader} from '../components/PageHeader';
 import {PageTabs} from '../components/PageTabs';
 import {SessionSecurity} from '../components/SessionSecurity';
 import {MfaDevices} from '../components/MfaDevices';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   ArrowLeft,
   ArrowRight,
@@ -189,6 +190,8 @@ function GeneralSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
   const [branding,setBranding]=useState<CompanyBranding|null>(null);
   const [loading,setLoading]=useState(true);
   const [saving,setSaving]=useState(false);
+  const generalDirty=useRef(false),bankDirty=useRef(false);
+  const reportDirty=(kind:'general'|'bank',dirty:boolean)=>{if(kind==='general')generalDirty.current=dirty;else bankDirty.current=dirty;onDirtyChange(generalDirty.current||bankDirty.current)};
 
   useEffect(()=>{
     let active=true;
@@ -199,7 +202,7 @@ function GeneralSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
         setBusiness(nextBusiness);
         setBranding(nextBranding);
         setGeneral(settings.general);
-        onDirtyChange(false);
+        reportDirty('general',false);
       })
       .catch(e=>showError(e instanceof Error?e.message:'No se pudo cargar la configuración general.'))
       .finally(()=>{if(active)setLoading(false)});
@@ -210,11 +213,11 @@ function GeneralSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
 
   const updateBusiness=<K extends keyof BusinessSettings>(key:K,value:BusinessSettings[K])=>{
     setBusiness(current=>({...current,[key]:value}));
-    onDirtyChange(true);
+    reportDirty('general',true);
   };
   const updateGeneral=<K extends keyof typeof general>(key:K,value:(typeof general)[K])=>{
     setGeneral(current=>({...current,[key]:value}));
-    onDirtyChange(true);
+    reportDirty('general',true);
   };
 
   const save=async()=>{
@@ -222,7 +225,7 @@ function GeneralSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
     try{
       await saveBusinessSettings(business);
       await updateSection('general',general);
-      onDirtyChange(false);
+      reportDirty('general',false);
       showSuccess('Configuración general guardada.');
     }catch(e){
       showError(e instanceof Error?e.message:'No se pudo guardar la configuración general.');
@@ -291,9 +294,11 @@ function GeneralSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
         <label className="settingsField"><span>Ciudad</span><input value={business.city||''} onChange={e=>updateBusiness('city',e.target.value)}/></label>
         <label className="settingsField"><span>Provincia</span><input value={business.province||''} onChange={e=>updateBusiness('province',e.target.value)}/></label>
         <label className="settingsField"><span>País</span><input maxLength={2} value={business.countryCode} onChange={e=>updateBusiness('countryCode',e.target.value.toUpperCase())}/></label>
-        <label className="settingsField settingsFieldWide"><span>IBAN</span><input value={business.iban||''} onChange={e=>updateBusiness('iban',e.target.value)}/></label>
+
         <label className="settingsField settingsFieldWide"><span>Pie de factura</span><textarea rows={3} value={business.invoiceFooter||''} onChange={e=>updateBusiness('invoiceFooter',e.target.value)}/></label>
       </div>
+
+      <BusinessBankAccountsPanel onDirtyChange={dirty=>reportDirty('bank',dirty)}/>
 
       <div className="settingsSubsection">
         <h3>Documentos y aplicación</h3>
@@ -2644,7 +2649,7 @@ function MaintenanceSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void
   </section>;
 }
 
-export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;access:AccessProfile;initialSection?:'integrations'}){
+export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;access:AccessProfile;initialSection?:'integrations'|'general'}){
   const {warnings,error,loading}=useSettings();
   const visibleSections=useMemo(()=>sections.filter(section=>!section.adminOnly||isAdmin),[isAdmin]);
   const [activeSection,setActiveSection]=useState<SettingsSectionId>(isAdmin?(initialSection||'general'):'preferences');
@@ -2677,6 +2682,8 @@ export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;ac
     return true;
   };
 
+  useEffect(()=>{if(isAdmin&&initialSection)void requestSection(initialSection)},[initialSection,isAdmin]);
+
   const active=visibleSections.find(section=>section.id===activeSection)||visibleSections[0];
 
   return <div className="page settingsPage finalDesignPage designSystemPage">
@@ -2691,7 +2698,7 @@ export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;ac
     <div className="settingsLayout">
       <PageTabs className="settingsNav finalSettingsTabs" label="Secciones de configuración" panelId="settings-section-panel" value={activeSection} onChange={requestSection} verticalAbove={768} items={visibleSections.map(section=>({id:section.id,label:section.label,description:section.description,icon:<section.icon size={18}/>}))}/>
 
-      <div className="settingsContent" role="tabpanel" id="settings-section-panel" aria-labelledby={'settings-section-panel-tab-'+activeSection} onChangeCapture={active?.id==="security"?undefined:()=>setDirty(true)}>
+      <div className="settingsContent" role="tabpanel" id="settings-section-panel" aria-labelledby={'settings-section-panel-tab-'+activeSection} onChangeCapture={active?.id==="security"?undefined:event=>{if(!(event.target as HTMLElement).closest('[data-independent-settings]'))setDirty(true)}}>
         {active&&active.id==='security'?<><MfaDevices/><SessionSecurity/></>:active.id==='preferences'?<PreferencesSection onDirtyChange={setDirty}/>:active&&active.id==='general'?<GeneralSection onDirtyChange={setDirty}/>:active&&active.id==='billing'?<BillingSection access={access}/>:active&&active.id==='sales'?<SalesSection onDirtyChange={setDirty}/>:active&&active.id==='orders'?<OrdersSection onDirtyChange={setDirty}/>:active&&active.id==='shipping'?<ShippingSection onDirtyChange={setDirty}/>:active&&active.id==='integrations'?<IntegrationsSection onDirtyChange={setDirty}/>:active&&active.id==='automations'?<AlertsSection onDirtyChange={setDirty}/>:active&&active.id==='expenses'?<ExpensesSection onDirtyChange={setDirty}/>:active&&active.id==='products'?<ProductsSection onDirtyChange={setDirty}/>:active&&active.id==='clients'?<ClientsSection onDirtyChange={setDirty}/>:active&&active.id==='suppliers'?<SuppliersSection onDirtyChange={setDirty}/>:active&&active.id==='maintenance'?<MaintenanceSection onDirtyChange={setDirty}/>:active&&<SectionPlaceholder section={active}/>}
       </div>
     </div>

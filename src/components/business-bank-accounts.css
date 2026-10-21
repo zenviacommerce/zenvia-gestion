@@ -1,25 +1,22 @@
-.businessBankAccounts{margin-top:24px;padding-top:20px;border-top:1px solid var(--border,#ddd)}
-.businessBankAccounts h3,.bankAccountSnapshot h4{margin:0 0 8px}
-.businessBankAccounts>p,.bankAccountSnapshot>small{color:var(--muted,#777);font-size:13px;line-height:1.5}
-.bankAccountEditor{padding:18px;background:var(--surface-2,var(--panel,#fafafa));border:1px solid var(--border,#ddd);border-radius:12px;margin-top:16px}
-.bankAccountEditor form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.bankAccountEditor label{display:flex;flex-direction:column;gap:7px;font-size:13px}
-.bankAccountEditor input{min-width:0;width:100%}
-.bankAccountEditor .bankAccountWide,.bankAccountEditor .bankAccountEditorActions{grid-column:1/-1}
-.bankAccountEditorActions,.bankAccountActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-.bankAccountRows{display:grid;gap:12px;margin-top:18px}
-.bankAccountRow{border:1px solid var(--border,#ddd);border-radius:12px;padding:16px;display:flex;justify-content:space-between;align-items:center;gap:16px}
-.bankAccountRowMain{min-width:0;display:grid;gap:6px}
+.bankAccountFormGrid.settingsFormGrid{padding:0}
+/* Settings inputs inherit this regular context; their label spans stay bold. */
+.bankAccountModal .settingsField{font-weight:normal}
+/* Preserve the shared FormModal heading instead of its Settings section ancestor. */
+.bankAccountModal .formModalHead h3{font-size:revert;margin:2px 0 4px}
+.bankAccountFormGrid .bankAccountWide{grid-column:1/-1}
+.bankAccountFormGrid .optionalLabel{font:inherit;font-weight:500;text-transform:none;letter-spacing:normal}
+.bankAccountActions{flex-wrap:wrap;align-items:center}
+.bankAccountRows .bankAccountRowMain strong{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.bankAccountRows .bankAccountRowMain strong,.bankAccountRows .bankAccountRowMain span,.bankAccountRows .bankAccountRowMain small{white-space:normal;overflow-wrap:anywhere}
 .bankAccountNumber{font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
-.bankAccountBadge{font-size:11px;padding:3px 7px;border-radius:6px;background:var(--surface-2,#eee);margin-left:8px}
 .bankAccountWarning{padding:12px;border-radius:9px;border:1px solid #b88b29;background:var(--surface-2,#fff9ec);font-size:13px;line-height:1.5;display:flex;gap:8px;flex-wrap:wrap}
 .bankAccountField{min-width:0;margin-top:12px}
-.bankAccountField>label{display:flex;flex-direction:column;gap:7px;font-size:13px}
+.bankAccountField>label{display:grid;gap:7px;font-size:inherit;font-weight:inherit;color:inherit}
 .bankAccountField .bankAccountWarning{margin-top:8px}
 .bankAccountSnapshot{padding:16px;margin:16px 0;border:1px solid var(--border,#ddd);border-radius:10px}
+.bankAccountSnapshot h4{margin:0 0 8px}
+.bankAccountSnapshot>small{color:var(--muted,#777);font-size:13px;line-height:1.5}
 .bankAccountSnapshot dl{display:grid;grid-template-columns:minmax(80px,auto) minmax(0,1fr);gap:8px 16px}
 .bankAccountSnapshot dd{margin:0;overflow-wrap:anywhere}.bankAccountSnapshot dt{color:var(--muted,#777)}
-@media(max-width:640px){.bankAccountEditor form{grid-template-columns:minmax(0,1fr)}.bankAccountRow{align-items:stretch;flex-direction:column}.bankAccountActions>*{flex:1}.bankAccountSnapshot dl{grid-template-columns:minmax(0,1fr);gap:4px}.bankAccountSnapshot dd{margin-bottom:8px}}
-.bankAccountEditor input[type="checkbox"]{width:auto;align-self:flex-start}
-
+@media(max-width:760px){.bankAccountRow{align-items:stretch;flex-direction:column}.bankAccountRow .bankAccountActions{margin-left:0;width:100%}.bankAccountActions>*{flex:1}.bankAccountSnapshot dl{grid-template-columns:minmax(0,1fr);gap:4px}.bankAccountSnapshot dd{margin-bottom:8px}}
 .salesInvoiceMeta .bankAccountField,.salesFormGrid .bankAccountField{margin-top:0}

@@ -1,68 +1,58 @@
-import {cleanup,fireEvent,render,screen,waitFor,within} from '@testing-library/react';
+import {act,cleanup,fireEvent,render,screen,waitFor,within} from '@testing-library/react';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {DEFAULT_APP_SETTINGS,DEFAULT_USER_PREFERENCES} from '../src/services/settingsSchema';
 import {SettingsPage} from '../src/pages/Settings';
-const state=vi.hoisted(()=>({rows:[] as any[],save:vi.fn(),confirm:vi.fn()}));
+import {ActionDialogHost} from '../src/components/ActionDialogHost';
+const state=vi.hoisted(()=>({rows:[] as any[],save:vi.fn(),load:vi.fn(),confirm:vi.fn(),archive:vi.fn()}));
 vi.mock('../src/context/SettingsContext',()=>({useSettings:()=>({settings:DEFAULT_APP_SETTINGS,preferences:DEFAULT_USER_PREFERENCES,warnings:[],error:null,loading:false,updateSection:async()=>{}})}));
 vi.mock('../src/services/sales',async original=>({...await original<any>(),loadBusinessSettings:async()=>({legalName:'Empresa prueba',countryCode:'ES',iban:'LEGADO NO EDITAR'})}));
 vi.mock('../src/services/companyBranding',async original=>({...await original<any>(),loadCompanyBranding:async()=>({logoPath:null,logoDataUrl:null})}));
-vi.mock('../src/services/actionDialog',()=>({confirmAction:(...args:any[])=>state.confirm(...args)}));
+vi.mock('../src/services/actionDialog',async original=>{const real=await original<any>();return {...real,confirmAction:(...args:any[])=>{state.confirm(...args);return real.confirmAction(...args)}}});
 vi.mock('../src/services/businessBankAccounts',async original=>({...await original<any>(),
- loadBusinessBankAccounts:async()=>state.rows,
- saveBusinessBankAccount:async(input:any)=>{state.save(input);const row={...input,id:input.id||`account-${state.rows.length+1}`,isDefault:input.isDefault||!state.rows.length,validationStatus:'valid',archivedAt:null};if(row.isDefault)state.rows=state.rows.map(item=>({...item,isDefault:false}));state.rows=[...state.rows.filter(item=>item.id!==row.id),row];return row},
+ loadBusinessBankAccounts:async()=>{await state.load();return state.rows},
+ saveBusinessBankAccount:async(input:any)=>{await state.save(input);const row={...input,id:input.id||`account-${state.rows.length+1}`,isDefault:input.isDefault||!state.rows.length,validationStatus:'valid',archivedAt:null};if(row.isDefault)state.rows=state.rows.map(item=>({...item,isDefault:false}));state.rows=[...state.rows.filter(item=>item.id!==row.id),row];return row},
  setDefaultBusinessBankAccount:async(id:string)=>{state.rows=state.rows.map(item=>({...item,isDefault:item.id===id}));return state.rows.find(item=>item.id===id)},
- archiveBusinessBankAccount:async(id:string)=>{state.rows=state.rows.filter(item=>item.id!==id);if(state.rows.length&&!state.rows.some(item=>item.isDefault))state.rows[0].isDefault=true},
+ archiveBusinessBankAccount:async(id:string)=>{state.archive(id);state.rows=state.rows.filter(item=>item.id!==id);if(state.rows.length&&!state.rows.some(item=>item.isDefault))state.rows[0].isDefault=true},
 }));
-afterEach(cleanup);beforeEach(()=>{state.rows=[];state.save.mockReset();state.confirm.mockReset().mockResolvedValue(true)});
-function mount(){return render(<SettingsPage isAdmin access={{} as any}/>)}
+afterEach(cleanup);beforeEach(()=>{state.rows=[];state.save.mockReset();state.load.mockReset();state.confirm.mockReset();state.archive.mockReset()});
+function mount(){return render(<><SettingsPage isAdmin access={{} as any}/><ActionDialogHost/></>)}
 function account(alias:string){return screen.getByRole('article',{name:`Cuenta ${alias}`})}
-async function idle(){await waitFor(()=>expect((screen.getByRole('button',{name:/^(Añadir cuenta|Guardar cuenta)$/}) as HTMLButtonElement).disabled).toBe(false))}
-it('manages two bank accounts in General without an independent legacy IBAN editor',async()=>{
- mount();expect(await screen.findByRole('heading',{name:'Cuentas bancarias'})).toBeTruthy();await idle();
- expect(screen.queryByDisplayValue('LEGADO NO EDITAR')).toBeNull();
- fireEvent.change(screen.getByLabelText('Alias de la cuenta'),{target:{value:'Principal'}});fireEvent.change(screen.getByLabelText('IBAN de la cuenta'),{target:{value:'ES9121000418450200051332'}});
- fireEvent.click(screen.getByRole('button',{name:'Añadir cuenta'}));expect(await screen.findByRole('article',{name:'Cuenta Principal'})).toBeTruthy();expect(account('Principal').textContent).toContain('Predeterminada');await idle();
- fireEvent.change(screen.getByLabelText('Alias de la cuenta'),{target:{value:'Ventas'}});fireEvent.change(screen.getByLabelText('IBAN de la cuenta'),{target:{value:'DE89370400440532013000'}});fireEvent.click(screen.getByRole('button',{name:'Añadir cuenta'}));
- expect(await screen.findByRole('article',{name:'Cuenta Ventas'})).toBeTruthy();await idle();fireEvent.click(within(account('Ventas')).getByRole('button',{name:'Usar por defecto'}));
- await waitFor(()=>expect(account('Ventas').textContent).toContain('Predeterminada'));expect(account('Principal').textContent).not.toContain('Predeterminada');await idle();
- fireEvent.click(within(account('Ventas')).getByRole('button',{name:'Editar'}));fireEvent.change(screen.getByLabelText('Alias de la cuenta'),{target:{value:'Canal web'}});fireEvent.click(screen.getByRole('button',{name:'Guardar cuenta'}));expect(await screen.findByRole('article',{name:'Cuenta Canal web'})).toBeTruthy();await idle();
- fireEvent.click(within(account('Principal')).getByRole('button',{name:'Eliminar'}));await waitFor(()=>expect(screen.queryByRole('article',{name:'Cuenta Principal'})).toBeNull());expect(account('Canal web')).toBeTruthy();
+async function idle(){await waitFor(()=>expect((screen.getByRole('button',{name:'Añadir cuenta'}) as HTMLButtonElement).disabled).toBe(false))}
+async function add(){fireEvent.click(screen.getByRole('button',{name:'Añadir cuenta'}));return screen.findByRole('dialog',{name:'Nueva cuenta bancaria'})}
+function fill(dialog:HTMLElement,alias='Principal',iban='ES9121000418450200051332'){fireEvent.change(within(dialog).getByLabelText('Alias de la cuenta'),{target:{value:alias}});fireEvent.change(within(dialog).getByLabelText('IBAN de la cuenta'),{target:{value:iban}})}
+function save(dialog:HTMLElement){fireEvent.click(within(dialog).getByRole('button',{name:'Guardar'}))}
+it('shows only list and Add at rest, saves and edits in a named dialog, and confirms removal',async()=>{
+ mount();await idle();expect(screen.queryByDisplayValue('LEGADO NO EDITAR')).toBeNull();expect(screen.queryByLabelText('Alias de la cuenta')).toBeNull();
+ let dialog=await add();expect(dialog.classList.contains('formModal')).toBe(true);expect(screen.getByRole('region',{name:'Cuentas bancarias'}).classList.contains('settingsSubsection')).toBe(true);expect(dialog.querySelector('.settingsFormGridWide')).toBeTruthy();for(const input of dialog.querySelectorAll('input:not([type=checkbox])'))expect(input.parentElement?.querySelector(':scope > span')).toBeTruthy();fill(dialog);save(dialog);await screen.findByRole('article',{name:'Cuenta Principal'});await idle();expect(screen.queryByRole('dialog')).toBeNull();expect(account('Principal').textContent).toContain('ES91 2100 0418 4502 0005 1332');
+ dialog=await add();fill(dialog,'Ventas','DE89370400440532013000');save(dialog);await screen.findByRole('article',{name:'Cuenta Ventas'});await idle();
+ fireEvent.click(within(account('Ventas')).getByRole('button',{name:'Usar por defecto'}));await waitFor(()=>expect(account('Ventas').textContent).toContain('Predeterminada'));await idle();
+ fireEvent.click(within(account('Ventas')).getByRole('button',{name:'Editar'}));dialog=await screen.findByRole('dialog',{name:'Editar cuenta bancaria'});expect((within(dialog).getByRole('checkbox',{name:'Usar por defecto'}) as HTMLInputElement).checked).toBe(true);fill(dialog,'Canal web','DE89370400440532013000');save(dialog);await screen.findByRole('article',{name:'Cuenta Canal web'});await idle();expect(document.activeElement).toBe(screen.getByRole('button',{name:'Añadir cuenta'}));
+ fireEvent.click(within(account('Principal')).getByRole('button',{name:'Eliminar'}));dialog=await screen.findByRole('dialog',{name:'Eliminar cuenta bancaria'});expect(within(dialog).getByText('Los documentos existentes conservan sus datos bancarios.')).toBeTruthy();expect(state.archive).not.toHaveBeenCalled();fireEvent.click(within(dialog).getByRole('button',{name:'Cancelar'}));expect(account('Principal')).toBeTruthy();
+ fireEvent.click(within(account('Principal')).getByRole('button',{name:'Eliminar'}));dialog=await screen.findByRole('dialog',{name:'Eliminar cuenta bancaria'});fireEvent.click(within(dialog).getByRole('button',{name:'Eliminar'}));await waitFor(()=>expect(screen.queryByRole('article',{name:'Cuenta Principal'})).toBeNull());
 });
-it('keeps invalid legacy bank data visible for correction and rejects an invalid new IBAN',async()=>{
- state.rows=[{id:'legacy',alias:'Cuenta principal',iban:'LEGADO INVÁLIDO',bic:null,holder:null,isDefault:true,archivedAt:null,validationStatus:'needs_review'}];
- mount();expect(await screen.findByText('LEGADO INVÁLIDO')).toBeTruthy();expect(screen.getByText('Pendiente de revisión')).toBeTruthy();await idle();
- fireEvent.change(screen.getByLabelText('Alias de la cuenta'),{target:{value:'No válida'}});fireEvent.change(screen.getByLabelText('IBAN de la cuenta'),{target:{value:'ES000000'}});fireEvent.click(screen.getByRole('button',{name:'Añadir cuenta'}));
- expect(await screen.findByRole('alert')).toBeTruthy();expect(state.save).not.toHaveBeenCalled();expect(account('Cuenta principal')).toBeTruthy();
+it('retains invalid legacy text and invalid draft values for correction',async()=>{
+ state.rows=[{id:'legacy',alias:'Cuenta principal',iban:'LEGADO INVÁLIDO',bic:null,holder:null,isDefault:true,archivedAt:null,validationStatus:'needs_review'}];mount();await idle();expect(screen.getByText('LEGADO INVÁLIDO')).toBeTruthy();expect(screen.getByText('Pendiente de revisión')).toBeTruthy();const dialog=await add();fill(dialog,'No válida','ES000000');save(dialog);expect(await within(dialog).findByRole('alert')).toBeTruthy();expect((within(dialog).getByLabelText('IBAN de la cuenta') as HTMLInputElement).value).toBe('ES000000');expect(state.save).not.toHaveBeenCalled();
 });
-
-it('does not clear unsaved company edits when the independent bank editor saves',async()=>{
- const dirty:boolean[]=[];const listener=(event:Event)=>dirty.push((event as CustomEvent).detail.dirty);window.addEventListener('zenvia:settings-dirty',listener);
- try{
-  mount();await screen.findByRole('heading',{name:'Cuentas bancarias'});await idle();fireEvent.change(screen.getByLabelText('Razón social'),{target:{value:'Cambio pendiente'}});
-  fireEvent.change(screen.getByLabelText('Alias de la cuenta'),{target:{value:'Principal'}});fireEvent.change(screen.getByLabelText('IBAN de la cuenta'),{target:{value:'ES9121000418450200051332'}});fireEvent.click(screen.getByRole('button',{name:'Añadir cuenta'}));
-  await screen.findByRole('article',{name:'Cuenta Principal'});await idle();expect(dirty.at(-1)).toBe(true);expect((screen.getByLabelText('Razón social') as HTMLInputElement).value).toBe('Cambio pendiente');
- }finally{window.removeEventListener('zenvia:settings-dirty',listener)}
+it('preserves fields on service error, blocks close while saving and closes after a normalized retry',async()=>{
+ mount();await idle();let complete!:()=>void;state.save.mockImplementationOnce(()=>new Promise<void>(resolve=>{complete=resolve}));const dialog=await add();fill(dialog,'Principal','es91 2100 0418 4502 0005 1332');save(dialog);await waitFor(()=>expect(state.save).toHaveBeenCalled());fireEvent.keyDown(dialog,{key:'Escape'});fireEvent.click(within(dialog).getByRole('button',{name:'Cerrar'}));expect(screen.getByRole('dialog')).toBeTruthy();await act(async()=>complete());await waitFor(()=>expect(screen.queryByRole('dialog')).toBeNull());expect(state.save.mock.calls[0][0].iban).toBe('ES9121000418450200051332');
+ state.save.mockRejectedValueOnce(new Error('Sin conexión'));const retry=await add();fill(retry,'Ventas','DE89370400440532013000');save(retry);expect(await within(retry).findByText('Sin conexión')).toBeTruthy();expect((within(retry).getByLabelText('Alias de la cuenta') as HTMLInputElement).value).toBe('Ventas');save(retry);await screen.findByRole('article',{name:'Cuenta Ventas'});expect(screen.queryByRole('dialog')).toBeNull();
 });
-
+it('cancels only the bank draft, reopens fresh and preserves dirty company values after cancel and save',async()=>{
+ const dirty:boolean[]=[];const listener=(event:Event)=>dirty.push((event as CustomEvent).detail.dirty);window.addEventListener('zenvia:settings-dirty',listener);try{mount();await idle();fireEvent.change(screen.getByLabelText('Razón social'),{target:{value:'Cambio pendiente'}});let dialog=await add();fill(dialog,'Descartada');fireEvent.click(within(dialog).getByRole('button',{name:'Cancelar'}));expect(state.save).not.toHaveBeenCalled();expect(dirty.at(-1)).toBe(true);dialog=await add();expect((within(dialog).getByLabelText('Alias de la cuenta') as HTMLInputElement).value).toBe('');fill(dialog);save(dialog);await screen.findByRole('article',{name:'Cuenta Principal'});expect(dirty.at(-1)).toBe(true);expect((screen.getByLabelText('Razón social') as HTMLInputElement).value).toBe('Cambio pendiente')}finally{window.removeEventListener('zenvia:settings-dirty',listener)}
+});
+it('traps dialog focus, supports Escape and restores the opening control',async()=>{
+ mount();await idle();const trigger=screen.getByRole('button',{name:'Añadir cuenta'});trigger.focus();const dialog=await add();const first=within(dialog).getByRole('button',{name:'Cerrar'});await waitFor(()=>expect(document.activeElement).toBe(within(dialog).getByLabelText('Alias de la cuenta')));const last=within(dialog).getByRole('button',{name:'Guardar'});last.focus();fireEvent.keyDown(last,{key:'Tab'});expect(document.activeElement).toBe(first);fireEvent.keyDown(first,{key:'Tab',shiftKey:true});expect(document.activeElement).toBe(last);fireEvent.keyDown(dialog,{key:'Escape'});expect(screen.queryByRole('dialog')).toBeNull();expect(document.activeElement).toBe(trigger);
+});
+it('hydrates raw IBAN and current default every time an editor opens without background clicks through an overlay',async()=>{
+ state.rows=[{id:'a',alias:'Principal',iban:'ES9121000418450200051332',bic:null,holder:null,isDefault:true,archivedAt:null,validationStatus:'valid'},{id:'b',alias:'Ventas',iban:'DE89370400440532013000',bic:null,holder:null,isDefault:false,archivedAt:null,validationStatus:'valid'}];mount();await idle();fireEvent.click(within(account('Principal')).getByRole('button',{name:'Editar'}));let dialog=await screen.findByRole('dialog');expect((within(dialog).getByLabelText('IBAN de la cuenta') as HTMLInputElement).value).toBe('ES9121000418450200051332');expect((within(dialog).getByRole('checkbox',{name:'Usar por defecto'}) as HTMLInputElement).checked).toBe(true);fill(dialog,'Descartada');fireEvent.click(within(dialog).getByRole('button',{name:'Cancelar'}));expect(account('Principal')).toBeTruthy();fireEvent.click(within(account('Ventas')).getByRole('button',{name:'Usar por defecto'}));await waitFor(()=>expect(account('Ventas').textContent).toContain('Predeterminada'));await idle();fireEvent.click(within(account('Principal')).getByRole('button',{name:'Editar'}));dialog=await screen.findByRole('dialog');expect((within(dialog).getByRole('checkbox',{name:'Usar por defecto'}) as HTMLInputElement).checked).toBe(false);expect((within(dialog).getByLabelText('Alias de la cuenta') as HTMLInputElement).value).toBe('Principal');save(dialog);await idle();expect(account('Ventas').textContent).toContain('Predeterminada');
+});
 it('opens General when a new initial-section request arrives on an already mounted Settings page',async()=>{
- const view=mount();await screen.findByRole('heading',{name:'Cuentas bancarias'});
- fireEvent.click(screen.getByRole('tab',{name:/Preferencias/}));
- view.rerender(<SettingsPage isAdmin access={{} as any} initialSection="general"/>);
- expect(await screen.findByRole('heading',{name:'Cuentas bancarias'})).toBeTruthy();
+ const view=mount();await screen.findByRole('heading',{name:'Cuentas bancarias'});fireEvent.click(screen.getByRole('tab',{name:/Preferencias/}));view.rerender(<SettingsPage isAdmin access={{} as any} initialSection="general"/>);expect(await screen.findByRole('heading',{name:'Cuentas bancarias'})).toBeTruthy();
 });
 it('honors unsaved-change confirmation before following a new section request',async()=>{
- state.confirm.mockResolvedValue(false);const view=mount();await screen.findByRole('heading',{name:'Cuentas bancarias'});
- fireEvent.change(screen.getByLabelText('Razón social'),{target:{value:'Pendiente'}});
- view.rerender(<SettingsPage isAdmin access={{} as any} initialSection="integrations"/>);
- await waitFor(()=>expect(state.confirm).toHaveBeenCalled());expect(screen.getByRole('heading',{name:'Cuentas bancarias'})).toBeTruthy();
+ const view=mount();await idle();fireEvent.change(screen.getByLabelText('Razón social'),{target:{value:'Pendiente'}});view.rerender(<><SettingsPage isAdmin access={{} as any} initialSection="integrations"/><ActionDialogHost/></>);const dialog=await screen.findByRole('dialog');fireEvent.click(within(dialog).getByRole('button',{name:'Cancelar'}));expect(screen.getByRole('heading',{name:'Cuentas bancarias'})).toBeTruthy();
 });
-it('updates an open account editor after another account becomes the default',async()=>{
- state.rows=[{id:'a',alias:'Principal',iban:'ES9121000418450200051332',bic:null,holder:null,isDefault:true,archivedAt:null,validationStatus:'valid'},{id:'b',alias:'Ventas',iban:'DE89370400440532013000',bic:null,holder:null,isDefault:false,archivedAt:null,validationStatus:'valid'}];
- mount();await screen.findByRole('heading',{name:'Cuentas bancarias'});await idle();
- fireEvent.click(within(account('Principal')).getByRole('button',{name:'Editar'}));
- expect((screen.getByRole('checkbox',{name:'Usar por defecto'}) as HTMLInputElement).checked).toBe(true);
- fireEvent.click(within(account('Ventas')).getByRole('button',{name:'Usar por defecto'}));await waitFor(()=>expect(account('Ventas').textContent).toContain('Predeterminada'));await idle();
- expect((screen.getByRole('checkbox',{name:'Usar por defecto'}) as HTMLInputElement).checked).toBe(false);
- fireEvent.change(screen.getByLabelText('Alias de la cuenta'),{target:{value:'Principal editada'}});fireEvent.click(screen.getByRole('button',{name:'Guardar cuenta'}));
- await screen.findByRole('article',{name:'Cuenta Principal editada'});await idle();expect(account('Ventas').textContent).toContain('Predeterminada');
+
+it('shows a failed list reload after a committed save and retries without saving the account twice',async()=>{
+ mount();await idle();fireEvent.change(screen.getByLabelText('Razón social'),{target:{value:'Empresa pendiente'}});const dialog=await add();fill(dialog);state.load.mockRejectedValueOnce(new Error('No se pudo actualizar la lista'));save(dialog);expect(await screen.findByRole('alert')).toBeTruthy();await waitFor(()=>expect(screen.queryByRole('dialog')).toBeNull());expect(screen.getByRole('alert').textContent).toContain('No se pudo actualizar la lista');expect(state.save).toHaveBeenCalledTimes(1);fireEvent.click(screen.getByRole('button',{name:'Actualizar cuentas'}));await screen.findByRole('article',{name:'Cuenta Principal'});expect(screen.queryByRole('alert')).toBeNull();expect(state.save).toHaveBeenCalledTimes(1);expect((screen.getByLabelText('Razón social') as HTMLInputElement).value).toBe('Empresa pendiente');
 });

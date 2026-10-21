@@ -3,6 +3,7 @@ import {SelectField} from './forms/SelectField';
 import {loadBusinessBankAccounts,type BusinessBankAccount,type BankAccountSnapshot,type BankAccountSnapshotSource} from '../services/businessBankAccounts';
 import type {SalesSettings} from '../services/settingsSchema';
 import {errorMessage} from '../services/toast';
+import {formatBankAccountIban} from './bankAccountDisplay';
 import './business-bank-accounts.css';
 
 export const MISSING_BANK_ACCOUNT='Falta una cuenta bancaria en Configuración → General';
@@ -40,7 +41,7 @@ export function useBankAccountChoice({active=true,documentKey,persistedId,series
 
 export function BankAccountSelect({accounts,value,onChange,required=false,disabled=false,loading=false,error='',onRetry,emptyLabel='Sin cuenta bancaria',ariaLabel='Cuenta bancaria',allowEmpty=false}:{accounts:BusinessBankAccount[];value:string;onChange:(id:string)=>void;required?:boolean;disabled?:boolean;loading?:boolean;error?:string;onRetry?:()=>void;emptyLabel?:string;ariaLabel?:string;allowEmpty?:boolean}){
  const selected=accounts.find(account=>account.id===value);
- const options=accounts.filter(bankAccountUsable).map(account=>({value:account.id,label:`${account.alias} · ${account.iban}`}));
+ const options=accounts.filter(bankAccountUsable).map(account=>({value:account.id,label:`${account.alias} · ${formatBankAccountIban(account.iban)}`}));
  if(value&&!options.some(option=>option.value===value))options.push({value,label:selected?`${selected.alias} · ${selected.archivedAt?'Archivada':'Pendiente de revisión'}`:'Cuenta no disponible'});
  const invalid=Boolean(value&&!accounts.some(account=>account.id===value&&bankAccountUsable(account)));
  return <div className="bankAccountField"><label><span>Cuenta bancaria</span><SelectField ariaLabel={ariaLabel} value={value} onChange={onChange} options={options} allowEmpty={allowEmpty||!accounts.some(bankAccountUsable)} emptyLabel={emptyLabel} disabled={disabled||loading}/></label>

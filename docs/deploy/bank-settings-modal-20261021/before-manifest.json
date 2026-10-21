@@ -1,0 +1,2003 @@
+{
+  "phase": "before",
+  "baseline": "d2c3e00d5f3574a603a3267cfa13e9029610c456",
+  "sourceMode": "git show immutable baseline",
+  "synthetic": true,
+  "networkBlocked": true,
+  "clock": "2026-10-21T12:00:00Z",
+  "scope": "Offline real forms, SettingsProvider and Sidebar; synthetic persistence only, no production E2E or writes",
+  "fixtureSha256": "af874d5b47c26f1d77cdd1894376973511480c5e03a82abcdb089dae4c2df2e6",
+  "sourceSha256": {
+    "src/main.tsx": "e9fb9dc33fdae0acccbe75ed63e8f3752967bc8d46384a0248e56f924fda036a",
+    "src/App.tsx": "e7f74ac0a6ac324540a9f7dcd4b070eb9aca70de6a28dd3932a73f9e8086cf70",
+    "src/hooks/useEntityRefresh.ts": "1e5563f21a2f43351488254602358c62cd8bf090b1efacfdfcaf91b440f2e195",
+    "src/services/entityChanges.ts": "cfaa4b28034fceed0f05d83ab4b7a3ace581a88cbedf25b0a4d76f8b90aa90c8",
+    "src/context/MfaContext.tsx": "c55aff75cc2ccb61447e98a8c0aa9fcf85507d120c7d7a1f39f679e8186c1571",
+    "src/services/supabase.ts": "ca8bb9550be9bb5b194ae9d485e85b5e4a05ea882ca47830a433cbce53e87878",
+    "src/services/viewCache.ts": "09f3e1e993b42d1339f38ab4025b277cddc09303fe801141aa53b0bdf286573c",
+    "src/services/authFetch.ts": "1dce7345ecff9571bef5c239876390cc88749b88e0861d76a79df1a1a0d183ac",
+    "src/services/mfa.ts": "68b483b26d8bee33fcbc489a0c35e6f1894f4a8f99bb0dd76f4ac15529ccc27a",
+    "src/components/MfaScreen.tsx": "072708ef284c65110f16a3d3c4bc92e0a3db0b8440b9e6559e3e1a85fd441991",
+    "src/components/forms/SelectField.tsx": "c9ca6a1efd512b5f68e22f5ac2255d789201a8bdf780235a2fe09be9ec48fe88",
+    "src/components/forms/useFloatingSelectMenu.ts": "d49b039f1f805298652447e74ae3a69e0f35c17b5fb56f44340d9470a71ad5c7",
+    "src/services/authResilience.ts": "b54e2c9eef28580ecc8f9cb2f08b17cf3e625b2ae866b2173ded621cc4b49966",
+    "src/services/publicEntry.ts": "2275953e81febea13b450ba9c9df64fc129e41728611e0b8d74ef2d26d9a9b8b",
+    "src/components/RetainedImportPage.tsx": "cb1bcbe13d30415b2f50515241a596cea84ec7ad445e43e9a5ab119e48f191bf",
+    "src/components/Sidebar.tsx": "06397b5a4f5509895d70ba8c8932123afc3cbd2b019f49dccf064eadab45f7a1",
+    "src/branding.ts": "6bee9ebc2acfa1ea83b752077193bf7d13d7a9c4d4f4473de39d3961c12c998b",
+    "src/components/UploadInvoiceModal.tsx": "ec3e8c66ddf6137eed358647dca58c68fc2c4b4dd332951d2b62216a4294f1ce",
+    "src/components/useImportActivity.ts": "35fc9706b799c994bd8eb8271217b2c426a9b8fbf134471bad37ae0633b03f2a",
+    "src/services/activity.ts": "106ff5cc6ba2fc5ef3dd7a77309362bf5a580047e39edeb7fef399fb63fc2e1a",
+    "src/services/pdf.ts": "2e7634c39235a8c5dbfd43f861eb939a0902800c6d27389c07312e680ac58f5a",
+    "src/services/invoiceReaderEnhanced.ts": "e6dc7ed7af807cbe5bde1f0cb703c9c0e5868c77f8dae0ee4df9ed622d2ab60f",
+    "src/types.ts": "6cfddc64f9ad7d4e2f8d4cb2afaa4d290ccc56284c87b8f065fb91f29eef8075",
+    "src/services/invoiceReader.ts": "cc33303d95e7036c8f95fc2505df03ea1059dbf60a8acaa134e6aef247d5a9db",
+    "src/services/textSanitizer.ts": "38436f6f16d09223e756dd8878eea6c029f89961b39411c7c69fb0d81249ca9c",
+    "src/services/invoiceDateExtractor.ts": "2cb7ce5b166ee3dc2d5b8eee65da87212cd90ed924deda3f7794a7818245d69f",
+    "src/services/invoiceCurrency.ts": "e09e9c078813835aa5ff48e66ba58f5b70fbe0c55a449bf34ed0ce42946f7cb9",
+    "src/services/invoiceReaderV2.ts": "9439ab25395304071167966122f3b4e1136f987698463c29c87fbfd8259ed3d9",
+    "src/services/invoiceRetailCorrections.ts": "8ec1709afd9e33a639589ffa91740d0296a1f26aed34d21bdc9b3f2cdd3e231a",
+    "src/services/supplierIdentity.ts": "0d753cddd26cb3ceed492dfbeb1b197d65d984c6ee533b45de4ecfd7c6ae0722",
+    "src/services/invoiceBundle.ts": "c3ee51de77ce58b779efcdb43a4c1be45347fa73c8630968b684f117bee97fc3",
+    "src/services/invoiceFiscalReconciler.ts": "0986beec1700d5999483aa857f2b2997c60b57a3decd53a0f6ec5073637263fe",
+    "src/services/invoiceIntelligence.ts": "6d4c09dbd3a9ec075c4e85014caccabb32b39a2f146d14ff3d832c88248b7da2",
+    "src/services/invoiceImportPipeline.ts": "dfc53975da06d31b021230f258c23aaa70d3eba4e47b3fcc0bd17e51f6a1c2ed",
+    "src/services/invoiceProductLine.ts": "c9e4c953d5c1b7ddf10aea9882edf274468a64108c6a46571aaacb040a8f1ed7",
+    "src/services/supplierContactExtractor.ts": "f3470a4b6ac9562998d8313815143789aedb97bcac1f4754389136909aa9890d",
+    "src/services/validation.ts": "f6d5d5d066b0b952e27f86b5079e465118c7434a9ba9298b2fc9c83e8d398cfa",
+    "src/services/supplierInvoiceDetails.ts": "46717f3e82db9f738ee88e95d95bd4394f293740c6483ec914b1a7895d685b5f",
+    "src/services/invoiceRecipientRules.ts": "d8e5edc2b6c401c15df1bcb3278ef919063387e27bbf69cf4e1fbf1a48de76b5",
+    "src/services/invoicePartyExtractor.ts": "a601cac7768a725755ac0f28ea07dff3c1fe5a54f46494db0a576c6a6f6beabc",
+    "src/services/expenseImportPolicy.ts": "620909d81634cde4bfde4a5cad53e9bcbb973734c687b58412a4aef350d4f37c",
+    "src/components/InvoiceCandidateForm.tsx": "609a5d6fc5cdfb2478f9552ac66a510ec5a8764b504657c671024835a9663580",
+    "src/components/forms/SearchableSelect.tsx": "78554c5c78d7392c59e58ec22d965165a1b011bc44839626f4e71ded652d037d",
+    "src/services/toast.ts": "90599d246ef0dbd72840140b367678a8fb19df0a07b93293d07e76fdb10c5459",
+    "src/context/SettingsContext.tsx": "9302d228f79b3537d23286ba60865e7acf1208140b0d00af4086897d7c372e49",
+    "src/services/browserStorage.ts": "c778179d1cb1ff30c9554e5d58fcfb5ad8959c6f6a85a0bf773f1721ad2bf59e",
+    "src/services/settings.ts": "9ddfc453718efb649e5749a90b17d3fd63784c1cb4a26a4cd97476811669421d",
+    "src/services/settingsSchema.ts": "51cdb88cc7e948bf2fbe591e7c574590ac4b2e9d0a13622196cdf2248225c885",
+    "src/components/BulkInvoiceImportModal.tsx": "cc640cb1055d77e7695ae5e766ec744392b909b801f033f636b715ea3946b3db",
+    "src/components/ProductModal.tsx": "422bd4d9ecd4cbf05d8c2db0c82fdeeff8d5786d84267b901f698df8d3f681ba",
+    "src/services/productEditor.ts": "642ae77388af79ac06152022d3510360e7ba47498f3e8f02c29733a5f577d97d",
+    "src/services/productMetrics.ts": "a3e09c505f3deef8ab76cc0b1da5ddbd306e45059621d505ac7175c8e646d05a",
+    "src/components/forms/FormPrimitives.tsx": "f756bbaeb053dc67500a790de7ce6fce30429973b83405561485e89170d29293",
+    "src/components/SupplierModal.tsx": "ade2ec71a414b6190fd6151fd98b561b7c8cd8582f06e7f0d20020fb3a6e57c7",
+    "src/services/supplierEditor.ts": "03c932c6283701c24540eff7b0394a806e8babcf749e771da1eaacde49864c84",
+    "src/components/ToastHost.tsx": "1c81ce29609480945175db95c2eaf36efad24d3c802287208ef4948cbcc30060",
+    "src/components/AlertCenter.tsx": "f1b6db505279ec82ab8e5c321f59c5f090cb955d0ca16c0c129fa60637d36adf",
+    "src/services/sales.ts": "f308af6943e7a94e07b6d0ef30951730e6e889327cc28b99a74cc6f8fc777003",
+    "src/services/businessBankAccounts.ts": "49feb0201a08354e10527c8e99810397a644d253a856542a212bd16312a1a200",
+    "src/services/bankAccountValidation.ts": "e851b3df528f1f3e1bd280b3492868d2a3a14548b9dc97f48bf5fa5700659961",
+    "src/services/salesDefaults.ts": "c224cd02bcd92518b520fa9b9f43c276c52f7560801fee3999d20cdac09e175f",
+    "src/services/orders.ts": "1e2261363067076994988d1a7d151d6ecc4060d9b0c97dd673c79dd3e94912aa",
+    "src/services/orderStatus.ts": "1cccb005e10901be8ac455d1ce3ae52d2338107809ea7e961f3bf18e792208b5",
+    "src/services/ordersSnapshot.ts": "d7787640c0b792c88695103a3b746ebb2d48d97d39d4fd6fd3cd8a103cdab65b",
+    "src/services/automationRules.ts": "a706c91c7edc897ce4b6df18abcecb030f2aed6815d77edeefba3baf957cad97",
+    "src/services/providerQuotes.ts": "290cab9d84a79ae6a2596d1b7602d74cbdd41e8196f0a9ccb595497bf7567c60",
+    "src/services/integrations.ts": "86fe11e633c283d225246566476994b995013d546210dfe3a83a407c653a292c",
+    "src/services/amazon.ts": "e0158ccffe26ecaa6618495fcaed5c90239d394a48a5c3d2deda829e441481b8",
+    "src/services/amazonReadQueue.ts": "30e79172dbd19abc63840320d22fb55a0c0c018eb2131a8c063537933df81866",
+    "src/services/amazonJobWait.ts": "87a215070f94254a43518e54db8335f09686b1bf8b14ccb3fa63dd7cdeb9f655",
+    "src/services/gmail.ts": "f9344adb8a55ba2ce28c700a2ca2d61825d2dbe4863340ca641d621f4cb9b919",
+    "src/services/alerts.ts": "b0f17c87c56edf5920398da26624d2aa05d6531e488be1fe000d51195a9d0d80",
+    "src/services/formatting.ts": "c2bf77d31fa31128d296699dc3d5f8a075b9ef6038ccad047da4ae34150471e4",
+    "src/components/AppAgent.tsx": "cf2ecc97842b6bc1c884d5e9fbc28d9e50c55cd3f44bf93dd06d366070a61f70",
+    "src/services/appAgent.ts": "eb2f0bb7051e2f0a521b2d1219df0257a6a6aff37c073d568acfd896f41a8a0f",
+    "src/components/AuthScreen.tsx": "80eb729e25310a59330c61b0dba840fd38513f6dec9e40e303fdce06267faf68",
+    "src/components/InvitePasswordSetup.tsx": "1805540572beeae709033ec637ad21f6aadcfaacb7681cdd49f8c82c0a5dc9d2",
+    "src/components/InviteTokenSetup.tsx": "e6ee12c3015d6d9b548c9f3d0f4da4b0798c0c31409232f548ff2e67466f5165",
+    "src/components/RecoveryTokenSetup.tsx": "ef4b7a3240aa2a4eb588114fb13657cd942dd1bd5401c9cee253323725280408",
+    "src/components/PasskeySetup.tsx": "29de33d43076c8c6e4d8ed03e468c0f5347566c763001b66d39e7761a7c3f414",
+    "src/pages/Dashboard.tsx": "ab1580f03f812fcb4af7ed09d99f7ae19d91af96eb9c26959f0a71cf55071f58",
+    "src/components/KpiGrid.tsx": "3c42a942fe952d8407b1baae54e094846168e869a1a756f07b2d3990c856b6f5",
+    "src/components/PageHeader.tsx": "3c42a942fe952d8407b1baae54e094846168e869a1a756f07b2d3990c856b6f5",
+    "src/services/orderLiveUpdates.ts": "aea4f8a123f24a0be25f1ae3a4030118999fe5384aea4898df155cd10f46c172",
+    "src/components/StatCard.tsx": "3c42a942fe952d8407b1baae54e094846168e869a1a756f07b2d3990c856b6f5",
+    "src/components/PeriodFilterPanel.tsx": "67b6ff2438230eb75f089ae48e4cd245ec8cbea5c036eb851889aa3308125bee",
+    "src/services/filters.ts": "d5f8596cdf309578e5e1581127a6e959a167a8c5f2ab7ef36108e7e28814e604",
+    "src/services/uiPreferences.ts": "3f173f77701a6a9030e75ff318649ce17dc670ff1af7544ad0e4427a07d48675",
+    "src/pages/ExpenseInvoicesHub.tsx": "d8f77756c43341448b388ef12bd7ad6725bc3d74c325f211c4e7843a2d3072c8",
+    "src/components/PageTabs.tsx": "3c42a942fe952d8407b1baae54e094846168e869a1a756f07b2d3990c856b6f5",
+    "src/pages/Invoices.tsx": "0c7a9c4246776ee13e20ab581d9cc7124b78fd3230ada090547936adcb347a39",
+    "src/components/FilterBar.tsx": "3c42a942fe952d8407b1baae54e094846168e869a1a756f07b2d3990c856b6f5",
+    "src/services/exportQuarter.ts": "db7eb3a9fbced330963752bdd13f8d1d89566b49f9495b43e6da0d9893eab746",
+    "src/services/repository.ts": "429c665416dc081f8bfcefe84e963fc22364160178e5095bf82f4a7cf3202e98",
+    "src/services/importProductIdentity.ts": "b3cfdc61a4e1ee66bbe30bae1e4205e140b045094aafff197a784ec01b8e6fab",
+    "src/services/entityAliases.ts": "47fba6e2ad5739d856dc2df1c8ae5c3e44d83c55eedd2dd79f7a8adf3b90fb1d",
+    "src/services/entityAliasCore.ts": "3f4f96919723bfdc695719c695f9e8b923e54518cab482237912695aa104bbd1",
+    "src/components/InvoiceDetailModal.tsx": "2ed76cfdb25cee5ce368c5f7d8321954b1b40be42b17317c37c2bb325f62917f",
+    "src/components/SortableTableHeader.tsx": "3c42a942fe952d8407b1baae54e094846168e869a1a756f07b2d3990c856b6f5",
+    "src/components/InvoiceFilters.tsx": "4b6afdfde7a4ee26f835d7b82831f8c7c5c30e2915c268363c77bdb86497e8c2",
+    "src/components/Pagination.tsx": "e996e5c7ebfb5a91f6f7a2e5502df143180778c65e8167d3e67e60aedec9cd58",
+    "src/components/BulkSelectionToolbar.tsx": "b35d9ca5a453668aa91e0d99e5ca38f158dd2890a0b52e0d2f5eec827060bc49",
+    "src/services/actionDialog.ts": "b9a56e3aef272cf63da50c796899722bb39d828f81a6257ae1fb20570b5ecc72",
+    "src/pages/Gmail.tsx": "173906d7b1d4e811c9e35adcd93045f221d31c49dec8d9568927a51cc4bbdc9f",
+    "src/services/gmailBackgroundImport.ts": "4cecada5e19dc1b68e02002af056d193c74d2653eb72b04df28baf2fe9b0f3fb",
+    "src/services/gmailImport.ts": "24ae5817a351852d268918b02e6438aa1f6d3acdd65f19778211e87f4635aeb4",
+    "src/services/invoiceCandidateClassifier.ts": "1729a2e8ccd6aa70e1445eeb47fd2e121d37ea083d046b453113151f65c9638e",
+    "src/services/gmailBulkImport.ts": "7fa147bd620c8d9468f9007d2b96829cc8f184a3fcbff2a3a91ec5c9758f9a35",
+    "src/services/gmailStableSearch.ts": "80672c2802e9e8acc5a2297b285e7d2341e7c6d1318648a222b9ede893ee8ae4",
+    "src/services/invoiceLifecycle.ts": "c4b944cee11bbd74b8c564bc869b30895faabe379b6e0963b7908cd4b9948086",
+    "src/services/gmailAccounts.ts": "d8d01393def4eb8d5bba477ccef3cdcef609772c2b509010aa3cc04a11ce86b4",
+    "src/services/integrationAccounts.ts": "2b0a64bd0ff7c144b82f4f2e5a81ecf67f1041ae72ba61278d6f7e8e1a8ec2fa",
+    "src/pages/SalesInvoices.tsx": "d8c02167c8d106594b25de8eb57e9e3203cde119fb0f9faf4a89db36b0d2f15a",
+    "src/pages/SalesInvoicesCore.tsx": "5b6e9291706844159d9b9c2c6b15d753b8c1011ba8948273fca76e4a4f92a07f",
+    "src/components/BankAccountSelect.tsx": "80f89edbbfd27b434f9dbd6853b7a06a636232b7b5148d4ef83ad9b8ecf9a49b",
+    "src/hooks/useClientOptions.ts": "07e8bf8298caa88677797edb18f1583ffdba1043a40a972cdf3a8b2dd20376a2",
+    "src/services/salesInvoiceNumber.ts": "1c8b67e093b8726cc667882e9dca9bdc00f177aed593918005d6f9aa4362b9d1",
+    "src/services/billableProducts.ts": "6f5a01531d0984344f8cc932d42d3175d5672c104eadecb5151933c89e393161",
+    "src/services/salesRectifying.ts": "886aab9c06484bd758ac82c16725c9ab7140419fea2a0fbef85e304ad4fdd9eb",
+    "src/services/salesDraftDelete.ts": "b3f5ef7205255506d22adb55551f5f1e97ef88b230e1f2ccd6f2fa25c83a16bc",
+    "src/services/salesReversible.ts": "1e42d2827a59475b43dd5f43742fb16f0d2f0f752024caa274c78a52ad6ff957",
+    "src/services/salesInvoicePdf.ts": "679b1a4c81c25682fbb22927425589c8a55436986c382033fc49052f9543cc5f",
+    "src/services/companyBranding.ts": "e209f6e66fa0003d38d9d0251fc8287d0cdfd56a1acc0fe77846ac68ed3384b1",
+    "src/services/companyStampImage.ts": "a4cbff5389ac0b4ee95b57602741373f54e2f3d59135744773a16beb4c5ab241",
+    "src/services/salesConfig.ts": "604363e8c23f41b34eac51f82a2c3e20285f3874069250f6f1cb3c297e26888c",
+    "src/components/SalesConfigurationModals.tsx": "d1b35c4cc725d282af67cc63201bcd156564c2f963e4984f37289beb72cf1eda",
+    "src/services/countryCatalog.ts": "baa7de3ff90a3995a380478e092ea0058f49683638eb97deffaefd02701df037",
+    "src/components/forms/CountryPicker.tsx": "bd221e8e002d22da7b26ac45e83b3855e38d1fdfafbcf67b4b84d20b213fd3cb",
+    "src/components/ProductCatalogPicker.tsx": "cc47ba950aabe0233dfde63f0a634424365698da292a7cc08fd694e3e85f13af",
+    "src/components/SendInvoiceModal.tsx": "ce169decdda044e27b0fc76ff6ff647304474f30dd35e437553b924dd8d4ceef",
+    "src/services/gmailSender.ts": "3d1c0343d76d9f3bc822f92ee6cc441843bebda76c36c3dfccd41cdb1e3882ca",
+    "src/components/forms/PostalAddressFields.tsx": "6610ef2c7ba96295541ddd8eba6bf897636165e7be7dcaf11fa98d36730b7592",
+    "src/services/postalLookup.ts": "74eeffa7fdb5818a53e31734bc0121b9a56ef8a158e0c275957c31971ba3b934",
+    "src/components/SalesInvoiceImportModal.tsx": "cfa77dbb1a720d4f22d4584fe247e7bea37ea29ecd710d5693ceca9cec15c328",
+    "src/services/salesInvoiceImport.ts": "31aac8debbcf84a50fe5a5e0df44b0de083351f21eaef35f0e7db8c10c33e4eb",
+    "src/pages/SalesReceipts.tsx": "adbfa5364be9fcf790d4e3255c454793981912e2f67db1753a9641291eb92bcc",
+    "src/components/RecordDetailDrawer.tsx": "f95f5ebfd7cbf7ab5174d1658b5a9027df6917abe305a8dcb5ca33e8ce3a09ab",
+    "src/services/salesReceipts.ts": "f45c045d1a7dbed0a1459e07c2ee90b86a7634eb86df7dbcbe9fafca3f852d7e",
+    "src/services/salesReceiptPdf.ts": "5e8d926e5baea9468daefc677fa25c71f0f30c701aad671265aa7b559f2e403c",
+    "src/services/salesInvoiceExport.ts": "7d0a246f23a8b1cd094a02a0f85eea53d2aa1f540aa7f8f28b322940af4f29a4",
+    "src/pages/Orders.tsx": "c5d28f18d4af1ca6d6a6437a3ec6a90464d94b669754b07b48ff0f3c350bd495",
+    "src/services/pluralization.ts": "bbe6b029ab986b32fc4755a49ced1740761fc9a8098778614fcf1c54626ad397",
+    "src/components/OrderProductLines.tsx": "04241e44496fbfef4b70f171d7867bd164c404f396beda760517ea016ad7c3b6",
+    "src/components/PickupReports.tsx": "e350b08a712b3c4bb8e5e0d4a7d2bf4ae25ea2176a48ee0b477450703c110bc4",
+    "src/services/pickupReports.ts": "c7c375c171251b0c1d68c230c12904d3104d539e3dfddd403ddadd0fc9c97a3a",
+    "src/services/pickupReportPdf.ts": "8e4da0f1676744fd32dbd0fb290c9690b50a8f745f572365d148b2e45e4823c1",
+    "src/components/ShippingProviderStatus.tsx": "78c223cc6fae2882e892d581753e3475e09cbf1b0b1a19186d4f82105f2e1a40",
+    "src/components/OrderInvoiceModal.tsx": "703f34acdab3ab268380626752b4cd9a1e8815e3fbc9efa03375e53e254991ee",
+    "src/services/orderProvince.ts": "7fa3eda8da4837e2235da8bec2261049dbac3dd24a0b960c5ca6531922a9e1ae",
+    "src/services/orderInvoices.ts": "060065a29bdd80ade7cafdc906704a05e036e1a351f2e11f47c5d5ce5a1efca1",
+    "src/services/shopifyInvoiceCore.ts": "0a59ea414bb23bbb1f7e0401513458ce768b35b746dda4ca9ac58046127ee2eb",
+    "src/components/OrderEditModal.tsx": "c04956873552679c4fb732fcc373c1bf6c36f9ab4cd8921c72e7503c052584f5",
+    "src/services/orderShipping.ts": "a8b17065791015af7a9f227c8d8aea2f285c1276900b7cb6dfaac7d245e6897d",
+    "src/services/transportTariffs.ts": "b313bc05f124cd5d59cfc2972111017307476a2ea55e28d28218a41ba594e7ef",
+    "src/services/orderLabelFiles.ts": "71d4f72af8a573cd278352701265069432b0c09ae54a390fd14d48dae5360ebf",
+    "src/services/shippingRuleCore.ts": "babdde9d97a5f3438b67b4b377a0805686d37398fd35e2708d94a2a26ddde621",
+    "src/services/shippingRules.ts": "1f9dc2e0f37f48c09b383947a3f4ebc1bb786eddbd6495ffc598319bfe546384",
+    "src/services/labelPdf.ts": "6bfb8dd5a271f761735d2b586d4d25addf8b327353dbaba5171c0682a2bace09",
+    "src/pages/Clients.tsx": "25d6c512c36af79a2ebe47fe9356e94fbb7584f43c8defd41ba58ca1a7525c3f",
+    "src/components/DataTable.tsx": "3c42a942fe952d8407b1baae54e094846168e869a1a756f07b2d3990c856b6f5",
+    "src/components/RowActions.tsx": "cc6fe6451e419953cde808a48ec14f73c4633557ca3ec67c7b297b637022ef76",
+    "src/components/ListSelection.tsx": "5954bd64ff0c9dde6d5bf65c51cbfd2a89e87b62ede47273c492fad7c3bb25bf",
+    "src/pages/Products.tsx": "2d55af4a6f9d1a2e9b60bb260aac33e9ca4904b36c99601ff9cb02230626e7d0",
+    "src/pages/Suppliers.tsx": "054f0190c3b9e8e85adbb5bb0f35060e73a78665afdb541aaad4660ecb7d9daf",
+    "src/pages/Shopify.tsx": "1e6d495f0adf336b7a4eddba1b63e679c29c20d547157d2fa5a82b14ee12b85b",
+    "src/components/forms/CheckboxOption.tsx": "21ade8b4a9687cced31e5a10189943585b6b0977c25f2e56fcf83588b2b87bd9",
+    "src/services/amazonCalendar.ts": "1b6a59b8c681e697686f8ac3a157319f8216f9c14b76c19193fc8c5a636c8a09",
+    "src/services/amazonDashboard.ts": "edf3ad86fd43bb7bb629d78dbf1741245647a410392b04f506968c4fc822b7ee",
+    "src/services/shopifyAnalyticsCore.ts": "08e933c05e44bd8ad77b7c4540f20955e39e4ded2208de9f85f3da215224c408",
+    "src/services/shopifyAnalytics.ts": "7d179f41957a5cb5e61c033fbd2f277447b9158cb9e868afa9b3ede435d10951",
+    "src/services/shopifyLiveUpdates.ts": "68dfba64b6510347860ef8cbff91db42177e8a677b833d0f4b5b720324831e3d",
+    "src/components/shopify/ShopifyPeriodCards.tsx": "ab217002bfcfbf43ba65a11846a16dd90a8032c4f10dab2202aa3c326b804bde",
+    "src/components/shopify/ShopifyProducts.tsx": "bbcde767aad011e26cbfefe8be3739469fe0d627f7a08f55e3c5b351cfc68af7",
+    "src/components/ProductIdentity.tsx": "f6dd4b25edf48a3b4fd84af784d7b3ccb1d78562272d587f6d7206884701ba70",
+    "src/components/ProductMappingAction.tsx": "8c4494192b211863df3c485332976d9b6bada7e909d966ca601701a408d82715",
+    "src/components/shopify/ShopifyMappingModal.tsx": "4805a0630711bec1777a1a02e6b060c92b4d602b034541b8fb029aee5576e8b4",
+    "src/components/ProductMappingEditor.tsx": "65ef211a38c642d0e16b8e5ef7858c2d7fcb7b958481d776010b1b9f5ef1302a",
+    "src/components/ProductMappingModal.tsx": "8c30160506e8798b4499e2ddb06c451bf7245f0402bcc18c1ed5ed74135558ba",
+    "src/pages/Amazon.tsx": "03940a8d0c26b15c824ad9c2cd086e3f43f037adec34286bf417fe172aba81e5",
+    "src/components/amazon/AmazonLoading.tsx": "16a9826b1016abe3e588f77bd543db801026d9bdabbf98e378d34db9a46a0223",
+    "src/components/amazon/AmazonFilters.tsx": "0e04a8e4db89e293aa28476516b217abf537041c87b75041acd3b1871e35833b",
+    "src/components/amazon/AmazonSummary.tsx": "ea81db49face1df708de8e8333567f463e4715939cdee2ec46d63810a17d3b90",
+    "src/components/amazon/AmazonPeriodCards.tsx": "00514a33b1db1ca9c1ef5f8dc23eda3f1df5860d0d30b0676c46bc7396e8ba40",
+    "src/components/amazon/AmazonProducts.tsx": "208e97897cbfd4f8bcf966beaaf7a4351872c0b9b26b911a16e5270710c40eaa",
+    "src/components/amazon/AmazonMappingModal.tsx": "38d39c7f747adcebad87a700c3396fc9bc312bd2da4906c82623ee0fce9a142b",
+    "src/components/amazon/AmazonMappingEditor.tsx": "9580bc57e0f8e25cef84030c3c24faad5b1a2fde45afb36a75fc0a726d119f61",
+    "src/components/amazon/AmazonMarketplaces.tsx": "d4810cc417e5951cab662414a627f4111a1192c7ff6a1a1d7ca4df4cbd124ef3",
+    "src/components/amazon/AmazonOrders.tsx": "a117dc93babaad17bf668dba80bc7b3f325117bc3a4d9419db1275a11a7af714",
+    "src/components/amazon/marketplaceLabel.ts": "4819edfd216c0a6d4b25a1f172e29894c1c71150c93a157bf97df2cd1f956fac",
+    "src/components/amazon/AmazonInventory.tsx": "d7c53e5137c1c0d68dd92c6a3b2c09bd2e5ff38474cca61f7cc8433fd2d1d55b",
+    "src/components/amazon/AmazonUnmapped.tsx": "77fcfa972252a2f0c50ab68b5f9d6c6802c91c21dfda736bb39bd2bfd524d7f6",
+    "src/pages/Admin.tsx": "c839827d762c11f56aee3f46dbbcdd50c4a47ec82c8d1d86c9890f8a40a52d20",
+    "src/services/access.ts": "53b405fa96dbae6e9af925a7566a79bfde37e9f943b775624be39f7b90d32295",
+    "src/services/audit.ts": "73f9c734e9db79c3ca202ee822a908167533cf67fc356fb259ee5de0a702b267",
+    "src/pages/Settings.tsx": "a1a40ded9040321b8f8bd4fdcbe787fe91b1dcee3fae21ecf4fb6ae6f9434679",
+    "src/components/BusinessBankAccountsPanel.tsx": "f3a63558a56c8017081eade1dc26d69cc283e4edf0d2222cdc93173d7acc8f47",
+    "src/components/SessionSecurity.tsx": "d3b0c3c1d0ae71f8a3bc90008c3d3d5e0973bbc667e0ef0b143fe74d1fc93f20",
+    "src/components/MfaDevices.tsx": "ad135ad9a4150df6bca2bd02ccde3c08a6a0b77ddb39951d518ed7e6b89244fd",
+    "src/services/expenseCategories.ts": "933712200e9508c8c8bbdb1514df19c2e3cc6ae4a1baa6661197616864bd77e9",
+    "src/services/maintenance.ts": "197668aa571518a69bc7c976c4f49c5e8b1a764aa35ad457a899f15384253453",
+    "src/services/settingsExport.ts": "034d2a5c7c9dc4d47b4660c8b543afa5370a094f5fcdd123515f9df076a8023a",
+    "src/services/mrwCatalog.ts": "223d6e3139e364720178b438039dcd52cba762f274643a1603a76efbd2c45354",
+    "src/services/billing.ts": "6d87e45d8c2b72eb7823133ca8fe6a03880d96af1def98e85daae4624ed423a6",
+    "src/pages/Support.tsx": "a07d67904334fe76566dcfd457d9c98b46745666e818a4452e0b419e60967bb4",
+    "src/services/support.ts": "b8ea945963b4bd2d3479a156858783eb8a492862971c40dc0392e6373ee132af",
+    "src/services/invoiceEditor.ts": "db24edc0f6a9897d40eaddc125779e2511fac20930c79e1d73889a02f9307f87",
+    "src/services/shopifyOAuthCallback.ts": "28f88f6c941839a2680044a506b3cb67dcdacd9e20bc2a1c69e2d46d584ea5b1",
+    "src/components/AutoPagination.tsx": "81e672164662f49cbdd8cd6df585b38a1b55f1005d4ea2746b92bf4ea9fe57a5",
+    "src/services/paginationBars.ts": "d65cee3f03cdab5f6272d86efd36c030bd2ea0e9edadf85184f6edccc992c250",
+    "src/services/autoListPagination.ts": "27e896e616f1246dcc129902e5ab0892770df5996f7022bad97c7187b4a36fc8",
+    "src/components/OrderLabelDefaults.tsx": "fe1b15be9336394cbb446874d389dd4794615c69a9ab53723e6c19d452ad7c8e",
+    "src/components/TransportTariffsPanel.tsx": "086f15b39874f0c303418ec1ba7a1cd83a40f3efcba3f0ffc1950b51e8bf543a",
+    "src/components/UnifiedListExperience.tsx": "ed9e77231f173b0910eb775544cd7e9acb5fa2b8a22c39252f060e5da70085f3",
+    "src/services/truncatedTextTooltip.ts": "9563ae61db6fdb0bdcf12fca5f25573fd47a80fd208d8cb89a5ff9aa4a0cd064",
+    "src/components/ActionDialogHost.tsx": "13b16fcbb85869767b0f633e896d86e0ce051b53adc346c920322b41fc5821a1",
+    "src/components/ActivityCenter.tsx": "6a5096cfaafede97ff3fd7e20083bba040181b2fa4ae5a95f860bafec96c6762",
+    "src/components/AppErrorBoundary.tsx": "39e832a1fef2b5090091ff9886de1ada1e87d9ccfe6e90aa6daafa5f02fcc001",
+    "src/components/auth-gestion-brand.css": "8cc63da5a0185489c6a27751fbdc4272e6fb015199dcda036f808ebe5e59ba54",
+    "src/sales.css": "f8a7768f0d0194af910a7d306bcca50a3b595a4a96774571dbf6aa1486577b31",
+    "src/bulk-selection.css": "7818f0bb7ca4d91ae76a7cd012e57c984750becea096610a5ad4453716fd0040",
+    "src/orders-products.css": "1154cbbb8c4b5183e0ad6e8e829c2e8ef850cae5f948654d38366dd60714792f",
+    "src/interface-normalization.css": "b7e69f71089ba375c790d0dcac1ff74c5c157ebb5009821db7d7303f4d42700e",
+    "src/orders-tracking.css": "20962f9e5052b3eb7ba2569972e059a0bd8be84401d358d40b78a46d70c32ba4",
+    "src/shared-forms.css": "0edb934f785d7e62ea1ea7aa078a9932d747c2b2b7d9a7f7347200425f8ce1a3",
+    "src/sales-transfer.css": "81c665b8acc2092118ceae61c455e66a3f2e3be0f37a4e7588ea5e11f6175645",
+    "src/master-data.css": "e1ccc0fb7093cedde70ab021f28936feb180c785906125a3c2d3e55925ee1179",
+    "src/admin.css": "ed1b320d8baf6d0635978de31ab1f5eb466240713c2b2f4102f9468a424599d6",
+    "src/gmail-mobile.css": "cebc708db99aaf8dec1b3fd9a948b47de8b8c98280390a06406f7d278fe0e03e",
+    "src/passkey.css": "0dcaa8bd3308cf64225011b8ffd76dc8684202493afcc1806986ff9a207d3812",
+    "src/components/transport-tariffs.css": "29766c936c62de91ad6b3fbdc1da3a3d6e9d9675b14449e495b100277fae4db8",
+    "src/unified-list-experience.css": "b0e981e92bb89dcc29ea51dfc5ab3e6d248fb6c70bf23906bd41858117659053",
+    "src/shopify.css": "0137ef682f18de6c0997f5d2d710fab6c92386fe8e0b215684012b7fae61f876",
+    "src/layout-polish.css": "a4567180b399422992c2f943844e0595d1ad46268d5289a390af6aeb6d11abeb",
+    "src/modal-sticky-fix.css": "b58c934b21c452bd806896d52c2026f0cc7418756a11add4581f9c46aef5d6eb",
+    "src/pickup-reports.css": "2e75b74b111f0281a0ca29890ac07fdb89b80b40d96d658cd851b2a82ca60616",
+    "src/supplier-actions.css": "cd62b5718c22833231acc0bfd68f4eb3cd76950578c0e6f84692ce8d15410fff",
+    "src/support.css": "dba5517908088d18f2cbc311a7a4ff57122d7066155d2c5a36d6eb7ce0eeb6ff",
+    "src/supplier-period.css": "bf0d55863d335c7bf21b5acfe3e511d9ed630ac387ebc44e21b7133d052b0943",
+    "src/sales-config.css": "dbad1d251245a6df8d33a51cf160befbb685379721d48e639e9e1c48c4637262",
+    "src/orders.css": "2ac8a6d44bcf0e6ea0507b6edd1d7ac9038d5ed2319418fd1a594b8009a06254",
+    "src/action-dialog.css": "3de82334b76b88f48f6b0fa523a0801b0eca875bfc0aa5f4810328c839fe5c59",
+    "src/styles.css": "fd0c94b987869384f74289c4d16035dbc1eb6e27fb97c92ac2b6e99457a89862",
+    "src/orders-edit.css": "496fa9c9724956ad4d83ff2338cbdaf9cf75ac4fcb82a45574b57130df0d44b8",
+    "src/enhancements.css": "f63887d57be7674779573b23735057b9be4cace27fdf7cb3a9b7d6ff007403f6",
+    "src/responsive-hardening.css": "9737a1afff06a27a9f11e2468f93b78f1469772444c0bb63f3089fd42353e1d9",
+    "src/modern-forms.css": "d15a0386da4786cf0d4602256fb4f57e774aa67c4bd003f47b2e20baab80cbf4",
+    "src/mobile-session.css": "0732b783eb4d7ed7c052d1322291d6a80df20cba780def8dd7e857473c92a338",
+    "src/design-system.css": "d0efd14d1e9a5ff4c8aab63137e35094d88c50041f044fc7f4c69310c4a394c5",
+    "src/destructive-actions.css": "dc6af5a7ad44a1e27771375969a7cdbfe9dc8cef4ac0da7abe70f7d78819740f",
+    "src/orders-tracking-filter.css": "19ac0cb2c114e6051f1460c6b8f52d62a4a12b2c750eaeb1db26f1d1552ca18f",
+    "src/mobile-ui-normalization.css": "dbbea5207bd5cbee2a7e7240def4125fbe6196d61a3ebb20bb142be327cfeb97",
+    "src/dark-mode-consistency.css": "91cc9e43ae0c87ae3493180ab90458a9f23823fff2d95c114fb810afc37f9661",
+    "src/pagination.css": "b9db42330eada2b8feee56017938f972f4467de47aa0e0bf3467c7a672abe43d",
+    "src/readability.css": "734126f5c60f553f153d81b9122e22bc9b1e96f8bb8b36ca10b2bf636eb017df",
+    "src/gmail.css": "d7ebd7b272b6367cdeabfba8aa1e92df55b580bd486f89a4986be1c53a066ed4",
+    "src/mobile-nav.css": "1a0f9364b536592a61c90bf2b583acbf9c8549ae2942cf7291b9147a6689e484",
+    "src/gmail-filter.css": "d5f0aad6600499e5c8fcfe57cf94214788779040b88d2086581a5d0b53de93c8",
+    "src/toast.css": "0f1099c1bdb56f29bf87ec3da8fb126c5584b4a060b52b32871ee334157ea0e5",
+    "src/validation.css": "b48567712aa75a1e555c9f03ced043703c36bb4f863df0a42e185a2f8f530e08",
+    "src/amazon-mapping.css": "6312ef48661a8581747bf027d2c3c924c7372b5a6acabdd13eac7e8cde6367ff",
+    "src/settings.css": "f070291adbc14d3ccf512bb7d6150d0b4d8a826f45af9f5c854d1fcd7d70b411",
+    "src/gmail-preview.css": "5212cde9239d9677b51544ebf89690d3a74ff8e07fc9149855dae1b8a0ba016b",
+    "src/alerts.css": "ba36cd953b3072d6d51af746639602946056f074d6abe6eac837d2b8fd551583",
+    "src/activity.css": "d1a659c1dff1b5b5318dc842ee6a051aad34e884ecb5db504c755540e999eb80",
+    "src/dashboard-summary.css": "1248613623fcd6f486f3ff77a624e76cedd46dcf04894722433d7327c188aa65",
+    "src/history-theme.css": "6327d5fd972b5dff293e089359c8859e8443662efda1b66e50604535f8fb85e2",
+    "src/amazon.css": "fdb328ac33525ebfe2918476d71a79202057fac3d6d1eaf6f84e1c24a59c16fc",
+    "src/bulk-invoice-import.css": "b9dd6d77c9a678b621f24ee07ec0752b2cb045f9359ec04d0c9bfb8a830a9b8c",
+    "src/truncated-tooltip.css": "b85f0d31df23ddbeb3ca4e4990735bdf8e6d399824f47d5ede4993d9aba82916",
+    "src/components/business-bank-accounts.css": "2a6a80f621819d913fc60d23fba3e63abd0efb04fa29c4c4c6924aeb656e8b1b",
+    "src/app-agent.css": "c94f7d35bb00db54037529e8627718aa5c5c42c6820885859bcab0660ddbf7c6",
+    "src/orders-label-default.css": "8ddabd214979c18f3ddbbabe38be16f9b50f0e3986cde4bd3d01b5dba2ce66c8",
+    "src/orders-status.css": "30525e051540b2a2a833bb3683787f8e4e558bb9a172b78f233294e748ea0a2c",
+    "src/theme-consistency.css": "6309641e99df4a2bbd3b943456faf050667aca6031565fc1189774d00a52a8f5",
+    "src/sidebar-brand.css": "a0cde09170e7f2795eb80e332a7db59f5b8084efc0578a2a1ca92ff5cb29a259",
+    "src/image-previews.css": "1478a399dd989c4045364317abf0b6f59bed4e356b276626fd4551a776e02132",
+    "packages/ui/src/styles.css": "a4c3c9f78273a0a672ad57b51a956a2b34de95d9de9854c1cb289eae97c99422",
+    "packages/ui/src/forms.css": "0b2d91e53804f625fd6798898e7baa8a394208ea7d82d59f555d7d06ae58f069",
+    "packages/ui/src/index.ts": "b5e9ff7ec3dd70fa17efaceefc138b57dc7b1b9d238ccca4d8b8cd30b21739da",
+    "packages/ui/src/PageHeader.tsx": "563cbc0f083b8f2921fab09118c350a468a348cb30f87a67092918cc98e56878",
+    "packages/ui/src/KpiGrid.tsx": "2ba3ce41d92ae41e98e0282e5d3227e443adcffd1d3b76502a6d449a47f4b669",
+    "packages/ui/src/StatCard.tsx": "87276696ad896897d58966703d3c548f0acdee2020ca50e2b81b23fbc0e116c1",
+    "packages/ui/src/FilterBar.tsx": "ee436803091ec0c045c301fc2ae8f0658b322ba0c50eab4e572fc0712f0dfa4b",
+    "packages/ui/src/PageTabs.tsx": "de972bdbf5956a49682c31ba3c1d3909116e842fb2303a381ebba7ef70ce147f",
+    "packages/ui/src/DataTable.tsx": "1b0003573fa0a2f9267eb98d1512210697899d4198167d5922214dcea2ff618b",
+    "packages/ui/src/SortableTableHeader.tsx": "9f5fb075d1e34ce1314e3ba50ae4d484d7268d4f7c4ee3297bd340dbb75f2978",
+    "packages/ui/src/forms/FormPrimitives.tsx": "4adda998ed091584bd52e998c6f08fb2cc2b1f447fcf6e48c1f376ef279a7527"
+  },
+  "cssImports": [
+    "src/components/auth-gestion-brand.css",
+    "src/shared-forms.css",
+    "src/bulk-selection.css",
+    "src/components/business-bank-accounts.css",
+    "src/sales.css",
+    "src/sales-transfer.css",
+    "src/pickup-reports.css",
+    "src/supplier-actions.css",
+    "src/shopify.css",
+    "src/admin.css",
+    "src/support.css",
+    "src/components/transport-tariffs.css",
+    "src/action-dialog.css",
+    "src/styles.css",
+    "src/enhancements.css",
+    "src/sidebar-brand.css",
+    "src/gmail.css",
+    "src/gmail-filter.css",
+    "src/mobile-nav.css",
+    "src/gmail-mobile.css",
+    "src/gmail-preview.css",
+    "src/history-theme.css",
+    "src/mobile-session.css",
+    "src/toast.css",
+    "src/validation.css",
+    "src/pagination.css",
+    "src/readability.css",
+    "src/modal-sticky-fix.css",
+    "src/sales-config.css",
+    "src/master-data.css",
+    "src/supplier-period.css",
+    "src/orders.css",
+    "src/orders-status.css",
+    "src/orders-edit.css",
+    "src/orders-products.css",
+    "src/orders-tracking.css",
+    "src/orders-tracking-filter.css",
+    "src/orders-label-default.css",
+    "src/dashboard-summary.css",
+    "src/amazon.css",
+    "src/amazon-mapping.css",
+    "src/interface-normalization.css",
+    "src/modern-forms.css",
+    "src/destructive-actions.css",
+    "src/mobile-ui-normalization.css",
+    "src/passkey.css",
+    "src/unified-list-experience.css",
+    "src/truncated-tooltip.css",
+    "src/bulk-invoice-import.css",
+    "src/dark-mode-consistency.css",
+    "src/layout-polish.css",
+    "src/activity.css",
+    "src/settings.css",
+    "src/alerts.css",
+    "src/app-agent.css",
+    "src/theme-consistency.css",
+    "src/responsive-hardening.css",
+    "src/design-system.css",
+    "src/image-previews.css"
+  ],
+  "resolvedCssSources": [
+    "src/components/auth-gestion-brand.css",
+    "src/sales.css",
+    "src/bulk-selection.css",
+    "src/orders-products.css",
+    "src/interface-normalization.css",
+    "src/orders-tracking.css",
+    "src/shared-forms.css",
+    "src/sales-transfer.css",
+    "src/master-data.css",
+    "src/admin.css",
+    "src/gmail-mobile.css",
+    "src/passkey.css",
+    "src/components/transport-tariffs.css",
+    "src/unified-list-experience.css",
+    "src/shopify.css",
+    "src/layout-polish.css",
+    "src/modal-sticky-fix.css",
+    "src/pickup-reports.css",
+    "src/supplier-actions.css",
+    "src/support.css",
+    "src/supplier-period.css",
+    "src/sales-config.css",
+    "src/orders.css",
+    "src/action-dialog.css",
+    "src/styles.css",
+    "src/orders-edit.css",
+    "src/enhancements.css",
+    "src/responsive-hardening.css",
+    "src/modern-forms.css",
+    "src/mobile-session.css",
+    "src/design-system.css",
+    "src/destructive-actions.css",
+    "src/orders-tracking-filter.css",
+    "src/mobile-ui-normalization.css",
+    "src/dark-mode-consistency.css",
+    "src/pagination.css",
+    "src/readability.css",
+    "src/gmail.css",
+    "src/mobile-nav.css",
+    "src/gmail-filter.css",
+    "src/toast.css",
+    "src/validation.css",
+    "src/amazon-mapping.css",
+    "src/settings.css",
+    "src/gmail-preview.css",
+    "src/alerts.css",
+    "src/activity.css",
+    "src/dashboard-summary.css",
+    "src/history-theme.css",
+    "src/amazon.css",
+    "src/bulk-invoice-import.css",
+    "src/truncated-tooltip.css",
+    "src/components/business-bank-accounts.css",
+    "src/app-agent.css",
+    "src/orders-label-default.css",
+    "src/orders-status.css",
+    "src/theme-consistency.css",
+    "src/sidebar-brand.css",
+    "src/image-previews.css",
+    "packages/ui/src/styles.css",
+    "packages/ui/src/forms.css"
+  ],
+  "cssSha256": "2a198f7507b3fa02efe1c54ce51cfdd2c3701e36282366092547084bb7a613b2",
+  "jsSha256": "62cb61d2f47af88f871cd7be34083fa50e9573b896f87f8052814ee7e25e5537",
+  "mockedModules": [
+    "src/services/supabase.ts",
+    "src/services/settings.ts",
+    "src/services/salesConfig.ts",
+    "src/services/toast.ts",
+    "src/services/sales.ts",
+    "src/services/orderInvoices.ts",
+    "src/services/companyBranding.ts",
+    "src/services/salesInvoicePdf.ts",
+    "src/services/billableProducts.ts",
+    "src/services/salesReceiptPdf.ts",
+    "src/services/salesReceipts.ts",
+    "src/services/businessBankAccounts.ts"
+  ],
+  "virtualExports": [
+    "GeneralSection exported for isolated capture without changing implementation"
+  ],
+  "checks": [
+    {
+      "screen": "general",
+      "width": 390,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Moneda",
+          "text": "EUR · Euro",
+          "disabled": null
+        },
+        {
+          "label": "Formato de fecha",
+          "text": "DD/MM/YYYY",
+          "disabled": null
+        },
+        {
+          "label": "Idioma",
+          "text": "Español",
+          "disabled": null
+        },
+        {
+          "label": "Página inicial predeterminada de empresa",
+          "text": "Resumen",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Guardar cambios",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuentas bancariasElige una cuenta predeterminada para documentos nuevos. También puedes elegir una cuenta distinta por factura o serie. Las facturas emitidas y los recibos guardados conservan sus datos bancarios.Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SLEditarEliminarCuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SLUsar por defectoEditarEliminarNueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SLEditarEliminarCuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SLUsar por defectoEditarEliminar",
+        "Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SLEditarEliminar",
+        "Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SL",
+        "Predeterminada",
+        "ES9121000418450200051332",
+        "EditarEliminar",
+        "Cuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SLUsar por defectoEditarEliminar",
+        "Cuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SL",
+        "DE89370400440532013000",
+        "Usar por defectoEditarEliminar",
+        "Nueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "Usar por defecto",
+        "Añadir cuenta"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessSettings",
+          "args": []
+        },
+        {
+          "name": "loadCompanyBranding",
+          "args": []
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "bank-section",
+          "file": "before-general-390-bank-section.png",
+          "sha256": "bcec72c86fdaa06f5f56a5f0c87fe5ac0135d5644c152154a92cc832c036756e",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "bank-section"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "bank-section"
+        ]
+      }
+    },
+    {
+      "screen": "general",
+      "width": 1280,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Moneda",
+          "text": "EUR · Euro",
+          "disabled": null
+        },
+        {
+          "label": "Formato de fecha",
+          "text": "DD/MM/YYYY",
+          "disabled": null
+        },
+        {
+          "label": "Idioma",
+          "text": "Español",
+          "disabled": null
+        },
+        {
+          "label": "Página inicial predeterminada de empresa",
+          "text": "Resumen",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Guardar cambios",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuentas bancariasElige una cuenta predeterminada para documentos nuevos. También puedes elegir una cuenta distinta por factura o serie. Las facturas emitidas y los recibos guardados conservan sus datos bancarios.Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SLEditarEliminarCuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SLUsar por defectoEditarEliminarNueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SLEditarEliminarCuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SLUsar por defectoEditarEliminar",
+        "Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SLEditarEliminar",
+        "Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SL",
+        "Predeterminada",
+        "ES9121000418450200051332",
+        "EditarEliminar",
+        "Cuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SLUsar por defectoEditarEliminar",
+        "Cuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SL",
+        "DE89370400440532013000",
+        "Usar por defectoEditarEliminar",
+        "Nueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "Usar por defecto",
+        "Añadir cuenta"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessSettings",
+          "args": []
+        },
+        {
+          "name": "loadCompanyBranding",
+          "args": []
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "bank-section",
+          "file": "before-general-1280-bank-section.png",
+          "sha256": "85b85322f0db1153313eb1f0860f22b444fbfcb83c41bf4d4392b88870fbe365",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "bank-section"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "bank-section"
+        ]
+      }
+    },
+    {
+      "screen": "general",
+      "width": 1440,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Moneda",
+          "text": "EUR · Euro",
+          "disabled": null
+        },
+        {
+          "label": "Formato de fecha",
+          "text": "DD/MM/YYYY",
+          "disabled": null
+        },
+        {
+          "label": "Idioma",
+          "text": "Español",
+          "disabled": null
+        },
+        {
+          "label": "Página inicial predeterminada de empresa",
+          "text": "Resumen",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Guardar cambios",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuentas bancariasElige una cuenta predeterminada para documentos nuevos. También puedes elegir una cuenta distinta por factura o serie. Las facturas emitidas y los recibos guardados conservan sus datos bancarios.Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SLEditarEliminarCuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SLUsar por defectoEditarEliminarNueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SLEditarEliminarCuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SLUsar por defectoEditarEliminar",
+        "Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SLEditarEliminar",
+        "Cuenta principal · pruebaPredeterminadaES9121000418450200051332BIC / SWIFT: CAIXESBBXXXTitular: Empresa de demostración SL",
+        "Predeterminada",
+        "ES9121000418450200051332",
+        "EditarEliminar",
+        "Cuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SLUsar por defectoEditarEliminar",
+        "Cuenta internacional · pruebaDE89370400440532013000BIC / SWIFT: COBADEFFXXXTitular: Empresa de demostración SL",
+        "DE89370400440532013000",
+        "Usar por defectoEditarEliminar",
+        "Nueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "Usar por defecto",
+        "Añadir cuenta"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessSettings",
+          "args": []
+        },
+        {
+          "name": "loadCompanyBranding",
+          "args": []
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "bank-section",
+          "file": "before-general-1440-bank-section.png",
+          "sha256": "735448206a9e1edf47d4838b5e18f3fdd84cc15358c83d5e6a1a7d0c378d01a6",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "bank-section"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "bank-section"
+        ]
+      }
+    },
+    {
+      "screen": "general-missing",
+      "width": 390,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Moneda",
+          "text": "EUR · Euro",
+          "disabled": null
+        },
+        {
+          "label": "Formato de fecha",
+          "text": "DD/MM/YYYY",
+          "disabled": null
+        },
+        {
+          "label": "Idioma",
+          "text": "Español",
+          "disabled": null
+        },
+        {
+          "label": "Página inicial predeterminada de empresa",
+          "text": "Resumen",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Guardar cambios",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuentas bancariasElige una cuenta predeterminada para documentos nuevos. También puedes elegir una cuenta distinta por factura o serie. Las facturas emitidas y los recibos guardados conservan sus datos bancarios.No hay cuentas bancarias. Añade una para cobrar por transferencia.Nueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "No hay cuentas bancarias. Añade una para cobrar por transferencia.",
+        "Nueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "Usar por defecto",
+        "Añadir cuenta"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessSettings",
+          "args": []
+        },
+        {
+          "name": "loadCompanyBranding",
+          "args": []
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "bank-section",
+          "file": "before-general-missing-390-bank-section.png",
+          "sha256": "7634e7046147d35ceba111add1c02692c9aeb87ec2286243f6d583c254fe2016",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "bank-section"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "bank-section"
+        ]
+      }
+    },
+    {
+      "screen": "general-missing",
+      "width": 1280,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Moneda",
+          "text": "EUR · Euro",
+          "disabled": null
+        },
+        {
+          "label": "Formato de fecha",
+          "text": "DD/MM/YYYY",
+          "disabled": null
+        },
+        {
+          "label": "Idioma",
+          "text": "Español",
+          "disabled": null
+        },
+        {
+          "label": "Página inicial predeterminada de empresa",
+          "text": "Resumen",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Guardar cambios",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuentas bancariasElige una cuenta predeterminada para documentos nuevos. También puedes elegir una cuenta distinta por factura o serie. Las facturas emitidas y los recibos guardados conservan sus datos bancarios.No hay cuentas bancarias. Añade una para cobrar por transferencia.Nueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "No hay cuentas bancarias. Añade una para cobrar por transferencia.",
+        "Nueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "Usar por defecto",
+        "Añadir cuenta"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessSettings",
+          "args": []
+        },
+        {
+          "name": "loadCompanyBranding",
+          "args": []
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "bank-section",
+          "file": "before-general-missing-1280-bank-section.png",
+          "sha256": "7753788c50e02957a3eaea5809e4d0b9c750c051e9a4bffae15049823e7a0055",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "bank-section"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "bank-section"
+        ]
+      }
+    },
+    {
+      "screen": "general-missing",
+      "width": 1440,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Moneda",
+          "text": "EUR · Euro",
+          "disabled": null
+        },
+        {
+          "label": "Formato de fecha",
+          "text": "DD/MM/YYYY",
+          "disabled": null
+        },
+        {
+          "label": "Idioma",
+          "text": "Español",
+          "disabled": null
+        },
+        {
+          "label": "Página inicial predeterminada de empresa",
+          "text": "Resumen",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Guardar cambios",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuentas bancariasElige una cuenta predeterminada para documentos nuevos. También puedes elegir una cuenta distinta por factura o serie. Las facturas emitidas y los recibos guardados conservan sus datos bancarios.No hay cuentas bancarias. Añade una para cobrar por transferencia.Nueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "No hay cuentas bancarias. Añade una para cobrar por transferencia.",
+        "Nueva cuenta bancariaAlias de la cuentaIBAN de la cuentaBIC / SWIFT opcionalTitular opcionalUsar por defectoAñadir cuenta",
+        "Usar por defecto",
+        "Añadir cuenta"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessSettings",
+          "args": []
+        },
+        {
+          "name": "loadCompanyBranding",
+          "args": []
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "bank-section",
+          "file": "before-general-missing-1440-bank-section.png",
+          "sha256": "d1e7556708e1c822e5d1935b77fd6a9849c4ccd10a23f668ac2f8936e97c0695",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "bank-section"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "bank-section"
+        ]
+      }
+    },
+    {
+      "screen": "invoice",
+      "width": 390,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Cliente de la factura",
+          "text": "Cliente de demostración",
+          "disabled": null
+        },
+        {
+          "label": "Serie de facturación",
+          "text": "Serie general · próximo F-2026-0001",
+          "disabled": null
+        },
+        {
+          "label": "Registro IVA del emisor",
+          "text": "Selecciona…",
+          "disabled": null
+        },
+        {
+          "label": "Forma de pago",
+          "text": "Transferencia bancaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria",
+          "text": "Cuenta principal · prueba · ES9121000418450200051332",
+          "disabled": null
+        },
+        {
+          "label": "IVA de la línea",
+          "text": "21 %",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "disabled": false
+        },
+        {
+          "text": "Guardar borrador",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta principal · prueba · ES9121000418450200051332"
+      ],
+      "calls": [
+        {
+          "name": "loadClients",
+          "args": [
+            ""
+          ]
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        },
+        {
+          "name": "loadTaxRegistrations",
+          "args": []
+        },
+        {
+          "name": "ensureSalesSeries",
+          "args": [
+            2026
+          ]
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "payment",
+          "file": "before-invoice-390-payment.png",
+          "sha256": "501da0e55a3661ab862c8c40dabea6b9860d9facc05699e3166670f57e4ae084",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "payment"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "payment"
+        ]
+      }
+    },
+    {
+      "screen": "invoice",
+      "width": 1280,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Cliente de la factura",
+          "text": "Cliente de demostración",
+          "disabled": null
+        },
+        {
+          "label": "Serie de facturación",
+          "text": "Serie general · próximo F-2026-0001",
+          "disabled": null
+        },
+        {
+          "label": "Registro IVA del emisor",
+          "text": "Selecciona…",
+          "disabled": null
+        },
+        {
+          "label": "Forma de pago",
+          "text": "Transferencia bancaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria",
+          "text": "Cuenta principal · prueba · ES9121000418450200051332",
+          "disabled": null
+        },
+        {
+          "label": "IVA de la línea",
+          "text": "21 %",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "disabled": false
+        },
+        {
+          "text": "Guardar borrador",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta principal · prueba · ES9121000418450200051332"
+      ],
+      "calls": [
+        {
+          "name": "loadClients",
+          "args": [
+            ""
+          ]
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        },
+        {
+          "name": "loadTaxRegistrations",
+          "args": []
+        },
+        {
+          "name": "ensureSalesSeries",
+          "args": [
+            2026
+          ]
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "payment",
+          "file": "before-invoice-1280-payment.png",
+          "sha256": "ddf297b3270c125719ea55657d95853bcd4957e468e03b9f11711683b41d46c2",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "payment"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "payment"
+        ]
+      }
+    },
+    {
+      "screen": "invoice",
+      "width": 1440,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Cliente de la factura",
+          "text": "Cliente de demostración",
+          "disabled": null
+        },
+        {
+          "label": "Serie de facturación",
+          "text": "Serie general · próximo F-2026-0001",
+          "disabled": null
+        },
+        {
+          "label": "Registro IVA del emisor",
+          "text": "Selecciona…",
+          "disabled": null
+        },
+        {
+          "label": "Forma de pago",
+          "text": "Transferencia bancaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria",
+          "text": "Cuenta principal · prueba · ES9121000418450200051332",
+          "disabled": null
+        },
+        {
+          "label": "IVA de la línea",
+          "text": "21 %",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "disabled": false
+        },
+        {
+          "text": "Guardar borrador",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta principal · prueba · ES9121000418450200051332"
+      ],
+      "calls": [
+        {
+          "name": "loadClients",
+          "args": [
+            ""
+          ]
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        },
+        {
+          "name": "loadTaxRegistrations",
+          "args": []
+        },
+        {
+          "name": "ensureSalesSeries",
+          "args": [
+            2026
+          ]
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "payment",
+          "file": "before-invoice-1440-payment.png",
+          "sha256": "db46c976ee12015541b7cfb580dddf531d089fb71d6a4ef2c7ad46f86bb90f81",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "payment"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "payment"
+        ]
+      }
+    },
+    {
+      "screen": "receipt-new",
+      "width": 390,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Cliente del recibo",
+          "text": "Cliente de demostración",
+          "disabled": null
+        },
+        {
+          "label": "Forma de pago del recibo",
+          "text": "Transferencia bancaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria",
+          "text": "Cuenta principal · prueba · ES9121000418450200051332",
+          "disabled": null
+        },
+        {
+          "label": "IVA que se aplicará al facturar",
+          "text": "21 %",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "disabled": false
+        },
+        {
+          "text": "Guardar recibo",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta principal · prueba · ES9121000418450200051332"
+      ],
+      "calls": [
+        {
+          "name": "loadClients",
+          "args": [
+            ""
+          ]
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "top",
+          "file": "before-receipt-new-390-top.png",
+          "sha256": "0a0aeb0bc5bbce92a40ee8331d9850ea000d1555c34a39d3f5420aa85d3213ca",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "top"
+        ]
+      }
+    },
+    {
+      "screen": "receipt-new",
+      "width": 1280,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Cliente del recibo",
+          "text": "Cliente de demostración",
+          "disabled": null
+        },
+        {
+          "label": "Forma de pago del recibo",
+          "text": "Transferencia bancaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria",
+          "text": "Cuenta principal · prueba · ES9121000418450200051332",
+          "disabled": null
+        },
+        {
+          "label": "IVA que se aplicará al facturar",
+          "text": "21 %",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "disabled": false
+        },
+        {
+          "text": "Guardar recibo",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta principal · prueba · ES9121000418450200051332"
+      ],
+      "calls": [
+        {
+          "name": "loadClients",
+          "args": [
+            ""
+          ]
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "top",
+          "file": "before-receipt-new-1280-top.png",
+          "sha256": "f8165e5c13a14c455ff40bc4494bb2d35937fb252f62b430125d19d7e79138c1",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "top"
+        ]
+      }
+    },
+    {
+      "screen": "receipt-new",
+      "width": 1440,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Cliente del recibo",
+          "text": "Cliente de demostración",
+          "disabled": null
+        },
+        {
+          "label": "Forma de pago del recibo",
+          "text": "Transferencia bancaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria",
+          "text": "Cuenta principal · prueba · ES9121000418450200051332",
+          "disabled": null
+        },
+        {
+          "label": "IVA que se aplicará al facturar",
+          "text": "21 %",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cancelar",
+          "disabled": false
+        },
+        {
+          "text": "Guardar recibo",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta principal · prueba · ES9121000418450200051332"
+      ],
+      "calls": [
+        {
+          "name": "loadClients",
+          "args": [
+            ""
+          ]
+        },
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "top",
+          "file": "before-receipt-new-1440-top.png",
+          "sha256": "a54840220d3daeb305072b8dc9973bd94b93876fee29971e318344b79f8cf087",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "top"
+        ]
+      }
+    },
+    {
+      "screen": "shopify",
+      "width": 390,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Serie",
+          "text": "Serie general · F-2026-",
+          "disabled": null
+        },
+        {
+          "label": "Registro IVA del emisor",
+          "text": "Registro por defecto",
+          "disabled": null
+        },
+        {
+          "label": "Forma de pago Shopify",
+          "text": "Transferencia bancaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria",
+          "text": "Cuenta principal · prueba · ES9121000418450200051332",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cerrar",
+          "disabled": false
+        },
+        {
+          "text": "Guardar borrador",
+          "disabled": false
+        },
+        {
+          "text": "Generar factura",
+          "disabled": false
+        },
+        {
+          "text": "Generar y enviar",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta principal · prueba · ES9121000418450200051332"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        },
+        {
+          "name": "prepareOrderInvoice",
+          "args": [
+            {
+              "id": "order-demo",
+              "orderNumber": "#DEMO-1001",
+              "sourceChannel": "shopify",
+              "currency": "EUR",
+              "customerName": "Cliente de demostración",
+              "customerEmail": "cliente@example.test",
+              "billingAddress": {
+                "name": "Cliente de demostración",
+                "address_line_1": "Calle de prueba 1",
+                "postal_code": "28001",
+                "city": "Madrid",
+                "country_code": "ES"
+              },
+              "shippingAddress": {},
+              "items": [],
+              "totalAmount": 24.2
+            }
+          ]
+        },
+        {
+          "name": "ensureSalesSeries",
+          "args": [
+            2026
+          ]
+        },
+        {
+          "name": "loadBusinessSettings",
+          "args": []
+        },
+        {
+          "name": "loadCompanyBranding",
+          "args": []
+        },
+        {
+          "name": "loadClients",
+          "args": []
+        },
+        {
+          "name": "loadTaxRegistrations",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "top",
+          "file": "before-shopify-390-top.png",
+          "sha256": "9ad5195a22ee84f0d7176c8648cd9a4ad96809b115673acba339b204da7f2c67",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "top"
+        ]
+      }
+    },
+    {
+      "screen": "shopify",
+      "width": 1280,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Serie",
+          "text": "Serie general · F-2026-",
+          "disabled": null
+        },
+        {
+          "label": "Registro IVA del emisor",
+          "text": "Registro por defecto",
+          "disabled": null
+        },
+        {
+          "label": "Forma de pago Shopify",
+          "text": "Transferencia bancaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria",
+          "text": "Cuenta principal · prueba · ES9121000418450200051332",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cerrar",
+          "disabled": false
+        },
+        {
+          "text": "Guardar borrador",
+          "disabled": false
+        },
+        {
+          "text": "Generar factura",
+          "disabled": false
+        },
+        {
+          "text": "Generar y enviar",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta principal · prueba · ES9121000418450200051332"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        },
+        {
+          "name": "prepareOrderInvoice",
+          "args": [
+            {
+              "id": "order-demo",
+              "orderNumber": "#DEMO-1001",
+              "sourceChannel": "shopify",
+              "currency": "EUR",
+              "customerName": "Cliente de demostración",
+              "customerEmail": "cliente@example.test",
+              "billingAddress": {
+                "name": "Cliente de demostración",
+                "address_line_1": "Calle de prueba 1",
+                "postal_code": "28001",
+                "city": "Madrid",
+                "country_code": "ES"
+              },
+              "shippingAddress": {},
+              "items": [],
+              "totalAmount": 24.2
+            }
+          ]
+        },
+        {
+          "name": "ensureSalesSeries",
+          "args": [
+            2026
+          ]
+        },
+        {
+          "name": "loadBusinessSettings",
+          "args": []
+        },
+        {
+          "name": "loadCompanyBranding",
+          "args": []
+        },
+        {
+          "name": "loadClients",
+          "args": []
+        },
+        {
+          "name": "loadTaxRegistrations",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "top",
+          "file": "before-shopify-1280-top.png",
+          "sha256": "ee7a1f9a879117420ccba111097f1c5e21828837ffcd11a527ed715a9309ff54",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "top"
+        ]
+      }
+    },
+    {
+      "screen": "shopify",
+      "width": 1440,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Serie",
+          "text": "Serie general · F-2026-",
+          "disabled": null
+        },
+        {
+          "label": "Registro IVA del emisor",
+          "text": "Registro por defecto",
+          "disabled": null
+        },
+        {
+          "label": "Forma de pago Shopify",
+          "text": "Transferencia bancaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria",
+          "text": "Cuenta principal · prueba · ES9121000418450200051332",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cerrar",
+          "disabled": false
+        },
+        {
+          "text": "Guardar borrador",
+          "disabled": false
+        },
+        {
+          "text": "Generar factura",
+          "disabled": false
+        },
+        {
+          "text": "Generar y enviar",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta principal · prueba · ES9121000418450200051332"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        },
+        {
+          "name": "prepareOrderInvoice",
+          "args": [
+            {
+              "id": "order-demo",
+              "orderNumber": "#DEMO-1001",
+              "sourceChannel": "shopify",
+              "currency": "EUR",
+              "customerName": "Cliente de demostración",
+              "customerEmail": "cliente@example.test",
+              "billingAddress": {
+                "name": "Cliente de demostración",
+                "address_line_1": "Calle de prueba 1",
+                "postal_code": "28001",
+                "city": "Madrid",
+                "country_code": "ES"
+              },
+              "shippingAddress": {},
+              "items": [],
+              "totalAmount": 24.2
+            }
+          ]
+        },
+        {
+          "name": "ensureSalesSeries",
+          "args": [
+            2026
+          ]
+        },
+        {
+          "name": "loadBusinessSettings",
+          "args": []
+        },
+        {
+          "name": "loadCompanyBranding",
+          "args": []
+        },
+        {
+          "name": "loadClients",
+          "args": []
+        },
+        {
+          "name": "loadTaxRegistrations",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "top",
+          "file": "before-shopify-1440-top.png",
+          "sha256": "40a249e7e7794deb776459a86ef54beda19fba130fb4fa014757fc663506c057",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "top"
+        ]
+      }
+    },
+    {
+      "screen": "series",
+      "width": 390,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Tipo de serie",
+          "text": "Ordinaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria de la serie",
+          "text": "Cuenta internacional · prueba · DE89370400440532013000",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cerrar",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta internacional · prueba · DE89370400440532013000"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        },
+        {
+          "name": "loadManagedSalesSeries",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "edit-series",
+          "file": "before-series-390-edit-series.png",
+          "sha256": "15e93ce9c8b39b46607d804c34638a41a91436022a8ccd3000c37fe01fd0e0bf",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "edit-series"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "edit-series"
+        ]
+      }
+    },
+    {
+      "screen": "series",
+      "width": 1280,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Tipo de serie",
+          "text": "Ordinaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria de la serie",
+          "text": "Cuenta internacional · prueba · DE89370400440532013000",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cerrar",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta internacional · prueba · DE89370400440532013000"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        },
+        {
+          "name": "loadManagedSalesSeries",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "edit-series",
+          "file": "before-series-1280-edit-series.png",
+          "sha256": "2b4f434c731d9a7c9cc49f5d1cb838caf9e7064cb929c38efe42f5f7a5b477c6",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "edit-series"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "edit-series"
+        ]
+      }
+    },
+    {
+      "screen": "series",
+      "width": 1440,
+      "interactions": [],
+      "documentOverflow": false,
+      "comboboxes": [
+        {
+          "label": "Tipo de serie",
+          "text": "Ordinaria",
+          "disabled": null
+        },
+        {
+          "label": "Cuenta bancaria de la serie",
+          "text": "Cuenta internacional · prueba · DE89370400440532013000",
+          "disabled": null
+        }
+      ],
+      "buttons": [
+        {
+          "text": "Cerrar",
+          "disabled": false
+        }
+      ],
+      "warnings": [],
+      "bankText": [
+        "Cuenta bancariaCuenta internacional · prueba · DE89370400440532013000"
+      ],
+      "calls": [
+        {
+          "name": "loadBusinessBankAccounts",
+          "args": []
+        },
+        {
+          "name": "loadManagedSalesSeries",
+          "args": []
+        }
+      ],
+      "errors": [],
+      "captures": [
+        {
+          "state": "edit-series",
+          "file": "before-series-1440-edit-series.png",
+          "sha256": "0e31f4f24c2e0ae4fcd0cafd0a65450b5eea220800268ad4b6a45e320b0c9f65",
+          "geometry": {
+            "overflow": false,
+            "dialog": null
+          }
+        }
+      ],
+      "captureValidation": {
+        "allStates": [
+          "top",
+          "edit-series"
+        ],
+        "allPassed": true,
+        "deliveredStates": [
+          "edit-series"
+        ]
+      }
+    }
+  ],
+  "captureCuration": {
+    "validatedRawCaptures": 30,
+    "deliveredCaptures": 18,
+    "reason": "Retain one focused capture per scenario/width; second only for account editor or series-versus-manual choice. All interaction, overflow and browser checks ran before curation. Full raw receipt retained locally outside repository."
+  }
+}

@@ -11,3 +11,5 @@ El comparador general de maestros normaliza exclusivamente «Productos visibles�
 Verificación focal local: contratos paquete 3/3 y comparador 1/1; nueve casos del selector de alcance pasan. Recorrido completo de maestros antes/después se repite antes de integrar. La CI final se registrará tras este follow-up.
 
 Revisión independiente previa: sin bloqueantes; confirmó fuentes, CSS y 48 hashes, y ejecutó las cinco regresiones React. Rollback preparado antes de publicación: deployment dpl_Bn7hL8R6vYWkqefn8qsud3ARhfvy / main5e90cb6fc6e1997ca4dd3376e3c6e15e06573699. No SQL ni Edge.
+
+Recorrido final local completo de maestros: 9 before + 9 after verdes a390/1280/1440, incluidas selección, opciones, ordenación y acciones. El DOM textContent concatena etiqueta/valor sin espacios; la regresión cubre ese formato real y conserva estrictamente valores y periodo.

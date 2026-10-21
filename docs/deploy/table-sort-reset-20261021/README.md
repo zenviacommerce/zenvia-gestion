@@ -58,3 +58,5 @@ Validación local final: **271/271** pruebas React (52 ficheros), **1240/1240** 
 | Orden recuperado, selección conservada | — | [Escritorio](sort-reset-1280.png) | [Escritorio](sort-reset-1440.png) |
 
 [Prueba 1280](sort-reset-proof-1280.json) · [Prueba 1440](sort-reset-proof-1440.json). Capturas con datos sintéticos, sin compradores reales.
+
+CI detectó una suposición antigua del harness de maestros: tras dos clics esperaba volver al ascendente y encontrar el primer registro en página 1. Ahora dos clics resuelven descendente y ese registro está en otra página. El harness sigue verificando la selección conservada, pulsa el restablecimiento real y después comprueba la misma selección al cambiar a móvil. No se debilita la comprobación ni se cambia el producto para satisfacer la prueba.

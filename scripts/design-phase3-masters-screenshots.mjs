@@ -1,5 +1,6 @@
 // Real billing/expense/receipt components + production list adapters/CSS; offline synthetic data.
 import {build} from 'esbuild';
+import {masterKpiTexts} from './master-kpi-comparison.mjs';
 import {assertHeaderActionsPreserved} from './header-actions-contract.mjs';
 import {writeFile,mkdir,mkdtemp,chmod} from 'node:fs/promises';
 import {readReviewFile as readFile,captureReviewScreenshot,reviewCaptureStyles} from './review-file-loader.mjs';
@@ -63,7 +64,7 @@ try{for(const screen of ['products','clients','suppliers'])for(const width of (p
 
  const before=JSON.parse(await readFile(output+'/before-manifest.json','utf8')).checks.find(c=>c.screen===screen&&c.width===width),clean=s=>s.replace(/\s+/g,' ').trim();
  try{assertHeaderActionsPreserved(before.headerActions,proof.headerActions,screen+' '+width);}catch(e){failures.push(e.message)}
- if(JSON.stringify(before.cards.map(c=>clean(c.text)))!==JSON.stringify(proof.cards.map(c=>clean(c.text))))failures.push('KPI content changed');
+ if(JSON.stringify(masterKpiTexts(screen,before.cards))!==JSON.stringify(masterKpiTexts(screen,proof.cards)))failures.push('KPI content changed');
  if(JSON.stringify(before.cards.map(c=>c.warning))!==JSON.stringify(proof.cards.map(c=>c.warning)))failures.push('Semantic variants changed');
  if(JSON.stringify(before.filterOptions)!==JSON.stringify(proof.filterOptions))failures.push('Full filter option labels changed');
  if(JSON.stringify(before.filters.map(c=>clean(c.text)))!==JSON.stringify(proof.filters.map(c=>clean(c.text))))failures.push('Filter options changed');

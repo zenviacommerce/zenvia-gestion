@@ -19,11 +19,29 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node --test scripts/shared-ui-package.test.mjs
-      - run: npm install --no-save --package-lock=false playwright@1.58.2
-      - run: npx playwright install --with-deps chromium
-      - run: node scripts/shared-ui-review.mjs
+      - name: Determine extraction parity scope
+        id: parity
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ "$EVENT_NAME" = workflow_dispatch ]; then
+            echo 'required=true' >> "$GITHUB_OUTPUT"
+          elif git diff --name-only "$BASE_SHA" "$HEAD_SHA" | rg -q '^(packages/ui/|package(-lock)?\.json$|scripts/(shared-ui-|review-file-loader)|src/(design-system\.css|shared-forms\.css|hooks/useTableSorting\.[jt]sx?$|components/(forms/|SortableTableHeader\.[jt]sx?$|(PageHeader|KpiGrid|StatCard|PageTabs|DataTable|FilterBar|TableSort)[^/]*\.[jt]sx?$)))'; then
+            echo 'required=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'required=false' >> "$GITHUB_OUTPUT"
+            echo 'Package contracts passed. Extraction pixel parity does not freeze later product changes.'
+          fi
+      - if: steps.parity.outputs.required == 'true'
+        run: npm install --no-save --package-lock=false playwright@1.58.2
+      - if: steps.parity.outputs.required == 'true'
+        run: npx playwright install --with-deps chromium
+      - if: steps.parity.outputs.required == 'true'
+        run: node scripts/shared-ui-review.mjs
       - uses: actions/upload-artifact@v4
-        if: always()
+        if: always() && steps.parity.outputs.required == 'true'
         with:
           name: shared-ui-before-after-and-comparison
           path: docs/deploy/ui-extraction-20261021/review/

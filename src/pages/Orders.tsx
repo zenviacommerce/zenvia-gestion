@@ -49,7 +49,7 @@ import { formatAppDateTime } from '../services/formatting';
 import { startActivity } from '../services/activity';
 import { confirmAction } from '../services/actionDialog';
 import type { GeneralSettings, ShippingSettings } from '../services/settingsSchema';
-import { SortableTableHeader, useSortableTable } from '../components/SortableTableHeader';
+import { SortableTableHeader, TableSortReset, useSortableTable } from '../components/SortableTableHeader';
 
 const money=(value:number|null,currency='EUR')=>value==null?'—':new Intl.NumberFormat('es-ES',{style:'currency',currency:currency||'EUR'}).format(value);
 const dateLabel=(value:string|null|undefined,general:GeneralSettings)=>formatAppDateTime(value,general,'—');
@@ -1034,6 +1034,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     {printer&&<div className="ordersPrinterBar"><Printer size={15}/><span>Impresora directa:</span>{printers.length?<SearchableSelect value={printer} options={printers.map(item=>({value:item.id,label:`${item.name}${item.default?' · predeterminada':''}`,searchText:item.name}))} onChange={value=>{setPrinter(value);void patchPreferences({labelPrinterId:value})}} searchPlaceholder="Buscar impresora…" ariaLabel="Impresora directa"/>:<strong>{printer}</strong>}<button className="link" onClick={()=>{setPrinter('');void patchPreferences({labelPrinterId:null})}}>Usar PDF</button></div>}
 
     {(selectedCount>0||filtered.some(order=>order.sourceChannel==='shopify'))&&<div className="ordersPrinterBar"><FileText size={16}/><span>Facturación manual de Shopify</span><button className="secondary" onClick={()=>void openShopifyInvoiceSelection()}>Seleccionar pedidos para facturar</button></div>}
+    <TableSortReset sorting={sorting}/>
     {pager}
     <section className="card tableCard ordersTableCard">{loading?<div className="emptyState large"><LoaderCircle className="spin"/> Cargando pedidos…</div>:filtered.length?<table className="ordersTable"><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allSelectableSelected} indeterminate={visibleSelectedCount>0&&!allSelectableSelected} disabled={selectionBusy||bulkGenerating||!selectableOrders.length} onChange={toggleVisiblePage} label={allSelectableSelected?(state==='pending'?'Deseleccionar pedidos pendientes de esta página':'Deseleccionar pedidos de esta página'):(state==='pending'?'Seleccionar pedidos pendientes de esta página':'Seleccionar pedidos de esta página')}/></th>
       <SortableTableHeader label="Canal" sortKey="channel" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-react';
+import { ArrowDown, ArrowUp, ArrowUpDown, RotateCcw } from 'lucide-react';
 
 export type TableSortDirection='asc'|'desc';
 export type TableSortValue=string|number|boolean|Date|null|undefined;
@@ -10,15 +10,54 @@ const collator=new Intl.Collator('es',{numeric:true,sensitivity:'base'});
 
 function storageKey(tableId:string){return `zenvia:table-sort:${tableId}`; }
 
-function readStoredSort(tableId:string,keys:Set<string>,fallback:TableSortState):TableSortState{
-  if(typeof window==='undefined')return fallback;
+function readStoredSort(tableId:string,keys:Set<string>,fallback:TableSortState):TableSortState|null{
+  if(typeof window==='undefined')return null;
   try{
     const raw=window.localStorage.getItem(storageKey(tableId));
-    if(!raw)return fallback;
+    if(!raw)return null;
     const parsed=JSON.parse(raw);
-    if(!keys.has(String(parsed?.key||'')))return fallback;
-    return {key:String(parsed.key),direction:parsed.direction==='desc'?'desc':'asc'};
-  }catch{return fallback;}
+    if(!keys.has(String(parsed?.key||''))||!['asc','desc'].includes(parsed?.direction))return null;
+    if(parsed.key===fallback.key&&parsed.direction===fallback.direction)return null;
+    return {key:String(parsed.key),direction:parsed.direction};
+  }catch{return null;}
+}
+
+/** An override has three states; the resolved sort always remains valid for server queries. */
+export function useTableSort(tableId:string,allowedKeys:string[],defaultSort:TableSortState,{persist=true}:{persist?:boolean}={}){
+  const keySignature=allowedKeys.join('\0');
+  const keys=useMemo(()=>new Set(allowedKeys),[keySignature]);
+  const safeDefault=keys.has(defaultSort.key)?defaultSort:{key:allowedKeys[0]||'',direction:'asc' as const};
+  const [state,setState]=useState<{tableId:string;override:TableSortState|null}>(()=>({tableId,override:persist?readStoredSort(tableId,keys,safeDefault):null}));
+  const scoped=state.tableId===tableId?state.override:(persist?readStoredSort(tableId,keys,safeDefault):null);
+  const override=scoped&&keys.has(scoped.key)?scoped:null;
+  const sort=override||safeDefault;
+  const isDefaultSort=sort.key===safeDefault.key&&sort.direction===safeDefault.direction;
+  useEffect(()=>{
+    if(state.tableId!==tableId||scoped&&!keys.has(scoped.key))setState({tableId,override});
+  },[tableId,keys,state.tableId,scoped?.key]);
+  useEffect(()=>{
+    if(!persist||typeof window==='undefined'||state.tableId!==tableId)return;
+    try{
+      if(isDefaultSort)window.localStorage.removeItem(storageKey(tableId));
+      else window.localStorage.setItem(storageKey(tableId),JSON.stringify(sort));
+    }catch{}
+  },[persist,tableId,state.tableId,sort.key,sort.direction,isDefaultSort]);
+  const resetSort=()=>setState({tableId,override:null});
+  const toggleSort=(key:string)=>{
+    if(!keys.has(key))return;
+    setState(current=>{
+      const previous=current.tableId===tableId?current.override:override;
+      const next=previous?.key===key?(previous.direction==='asc'?{key,direction:'desc' as const}:null):{key,direction:'asc' as const};
+      return {tableId,override:next};
+    });
+  };
+  return {sort,isDefaultSort,resetSort,toggleSort};
+}
+
+export type TableSortControls={isDefaultSort:boolean;resetSort:()=>void};
+export function TableSortReset({sorting}:{sorting:TableSortControls}){
+  if(sorting.isDefaultSort)return null;
+  return <div className="tableSortControls"><button type="button" className="secondary" onClick={sorting.resetSort} title="Volver al orden predeterminado de esta lista"><RotateCcw size={14}/> Restablecer orden</button></div>;
 }
 
 function rank(value:TableSortValue){
@@ -48,19 +87,8 @@ export function useSortableTable<T>(
   accessors:Record<string,TableSortAccessor<T>>,
   defaultSort:TableSortState,
 ){
-  const keys=useMemo(()=>new Set(Object.keys(accessors)),[accessors]);
-  const safeDefault=keys.has(defaultSort.key)?defaultSort:{key:Object.keys(accessors)[0]||'',direction:'asc' as const};
-  const [sort,setSort]=useState<TableSortState>(()=>readStoredSort(tableId,keys,safeDefault));
-
-  useEffect(()=>{
-    if(keys.has(sort.key))return;
-    setSort(safeDefault);
-  },[keys,safeDefault.key,safeDefault.direction,sort.key]);
-
-  useEffect(()=>{
-    if(typeof window==='undefined'||!sort.key)return;
-    try{window.localStorage.setItem(storageKey(tableId),JSON.stringify(sort));}catch{}
-  },[tableId,sort]);
+  const controls=useTableSort(tableId,Object.keys(accessors),defaultSort);
+  const {sort}=controls;
 
   const sortedRows=useMemo(()=>{
     const accessor=accessors[sort.key];
@@ -71,14 +99,7 @@ export function useSortableTable<T>(
       .map(item=>item.row);
   },[rows,accessors,sort]);
 
-  const toggleSort=(key:string)=>{
-    if(!keys.has(key))return;
-    setSort(current=>current.key===key
-      ?{key,direction:current.direction==='asc'?'desc':'asc'}
-      :{key,direction:'asc'});
-  };
-
-  return {rows:sortedRows,sort,toggleSort};
+  return {rows:sortedRows,...controls};
 }
 
 export function SortableTableHeader({

@@ -40,7 +40,7 @@ import { useSettings } from '../context/SettingsContext';
 import { persistRememberedFilter, rememberedFilter } from '../services/uiPreferences';
 import type { GeneralSettings, SalesSettings } from '../services/settingsSchema';
 import { formatAppDate } from '../services/formatting';
-import { SortableTableHeader, useSortableTable } from '../components/SortableTableHeader';
+import { SortableTableHeader, TableSortReset, useSortableTable } from '../components/SortableTableHeader';
 import '../sales.css';
 
 const today=()=>new Date().toISOString().slice(0,10);
@@ -568,7 +568,7 @@ export function SalesInvoices({
       <button className="primary" type="button" disabled={!selectedVisible.length||bulkDeleting||bulkIssuing} onClick={()=>onExportSelected?.(selectedVisible.map(invoice=>invoice.id))}><Download size={15}/> Exportar seleccionadas ({selectedVisible.length})</button>
     </BulkSelectionToolbar>}
     {error&&<div className="errorBox">{error}</div>}
-    <section className="card tableCard salesInvoiceTableCard">{loading?<div className="emptyState large">Cargando facturación…</div>:filtered.length?<table><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allVisibleSelected} onChange={toggleAllVisible} label={allVisibleSelected?'Deseleccionar facturas visibles':'Seleccionar facturas visibles'}/></th>
+    <TableSortReset sorting={sorting}/><section className="card tableCard salesInvoiceTableCard">{loading?<div className="emptyState large">Cargando facturación…</div>:filtered.length?<table><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allVisibleSelected} onChange={toggleAllVisible} label={allVisibleSelected?'Deseleccionar facturas visibles':'Seleccionar facturas visibles'}/></th>
       <SortableTableHeader label="Fecha" sortKey="issueDate" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Vencimiento" sortKey="dueDate" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Número" sortKey="number" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>

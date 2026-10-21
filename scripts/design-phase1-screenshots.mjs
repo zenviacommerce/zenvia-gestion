@@ -6,6 +6,7 @@
 // SHIPPING_CHROMIUM_PACKAGE=1 node scripts/orders-product-lines-screenshots.mjs after
 import {build} from 'esbuild';
 import {assertHeaderActionsPreserved} from './header-actions-contract.mjs';
+import {verifyOrderSortReset} from './table-sort-review.mjs';
 import {pickupLogoFixture} from './pickup-pdf-fixture.mjs';
 import {readFile,mkdir,writeFile,mkdtemp,chmod} from 'node:fs/promises';
 import {brotliDecompressSync} from 'node:zlib';
@@ -80,6 +81,7 @@ const browser=await chromium.launch(launchOptions);
 const checks=[];
 try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,1440]){
  const page=await browser.newPage({locale:'es-ES',viewport:{width,height:1000}});const errors=[];page.on('pageerror',e=>{errors.push(e.message);console.error('PAGE',screen,width,e.message)});await page.route('**/*',r=>r.abort());
+ if(process.env.SORT_RESET_REVIEW==='1'){await page.route('https://sort-review.zenvia.test/',r=>r.fulfill({status:200,contentType:'text/html',body:'<html lang=es-ES></html>'}));await page.goto('https://sort-review.zenvia.test/');}
  await page.setContent('<html lang="es-ES"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\/script')+'</script></body></html>');
  await page.evaluate(s=>globalThis.renderFixture(s),screen);
  await page.locator('.stat').first().waitFor();
@@ -133,6 +135,10 @@ try {for(const screen of ['dashboard','orders'])for(const width of [390,1280,144
   await page.evaluate(()=>{document.documentElement.dataset.theme='dark';scrollTo(0,0)});
   await page.screenshot({path:output+'/after-'+screen+'-390-dark.png'});
   if(await page.locator('.stat').evaluateAll(cards=>cards.some(el=>el.scrollWidth>el.clientWidth+1)))failures.push('Dark KPI overflow');
+ }
+ if(process.env.SORT_RESET_REVIEW==='1'&&phase==='after'&&screen==='orders'&&width>=1280){
+  const sortReset=await verifyOrderSortReset(page,output,width);
+  await writeFile(output+'/sort-reset-proof-'+width+'.json',JSON.stringify(sortReset,null,2));
  }
  checks.push({screen,width,...proof,failures});await page.close();
 }

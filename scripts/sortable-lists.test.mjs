@@ -35,7 +35,8 @@ test('shared table sorting is stable, persisted per list and null-safe',async()=
   assert.match(source,/Intl\.Collator\('es'/);
   assert.match(source,/left\.index-right\.index/);
   assert.match(source,/if\(av\.empty\)return 1/);
-  assert.match(source,/current\.direction==='asc'\?'desc':'asc'/);
+  assert.match(source,/resetSort/);
+  assert.match(source,/TableSortReset/);
   assert.match(source,/aria-sort/);
 });
 

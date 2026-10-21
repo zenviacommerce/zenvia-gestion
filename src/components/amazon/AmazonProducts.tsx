@@ -1,14 +1,14 @@
 import { ProductIdentity } from '../ProductIdentity';
 import { ProductMappingAction } from '../ProductMappingAction';
 import { AmazonLoading } from './AmazonLoading';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RefreshCw, Search } from 'lucide-react';
-import { isAmazonConnectivityError, loadAmazonProductMetadata, loadAmazonProducts, type AmazonAnalyticsFilters, type AmazonPageResult, type AmazonProductAnalytics, type AmazonProductMetadata, type AmazonProductSort, type AmazonSortDirection } from '../../services/amazon';
+import { isAmazonConnectivityError, loadAmazonProductMetadata, loadAmazonProducts, type AmazonAnalyticsFilters, type AmazonPageResult, type AmazonProductAnalytics, type AmazonProductMetadata, type AmazonProductSort } from '../../services/amazon';
 import { errorMessage } from '../../services/toast';
 import { AmazonMappingModal } from './AmazonMappingModal';
 import { readViewCache, stableCacheKey, writeViewCache } from '../../services/viewCache';
 import { useSettings } from '../../context/SettingsContext';
-import { SortableTableHeader } from '../SortableTableHeader';
+import { SortableTableHeader, TableSortReset, useTableSort } from '../SortableTableHeader';
 
 const integer=new Intl.NumberFormat('es-ES',{maximumFractionDigits:0});
 type SortableHeader={key:AmazonProductSort;label:string};
@@ -38,31 +38,30 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
   const [loading,setLoading]=useState(()=>!initialProducts);
   const [editing,setEditing]=useState<string|null>(null);
   const [error,setError]=useState('');
-  const [sortBy,setSortBy]=useState<AmazonProductSort>('profit_before_ads');
-  const [sortDir,setSortDir]=useState<AmazonSortDirection>('desc');
+  const sorting=useTableSort('amazon-products',sortableHeaders.map(h=>h.key),{key:'profit_before_ads',direction:'desc'},{persist:false});
+  const sortBy=sorting.sort.key as AmazonProductSort,sortDir=sorting.sort.direction;
   const [metadata,setMetadata]=useState<Record<string,AmazonProductMetadata>>({});
 
+  const requestRevision=useRef(0);
   const refresh=()=>{
+    const revision=++requestRevision.current;
     const key=stableCacheKey('amazon:products',{filters,search,page,pageSize,sortBy,sortDir});
     const cached=readViewCache<AmazonPageResult<AmazonProductAnalytics>>(key);
     if(cached)setData(cached);
     setLoading(true);
     setError('');
     return loadAmazonProducts(filters,search,page,pageSize,sortBy,sortDir)
-      .then(next=>{setData(next);writeViewCache(key,next);})
-      .catch(e=>{if(!isAmazonConnectivityError(e))setError(errorMessage(e,'No se pudieron cargar los productos.'));})
-      .finally(()=>setLoading(false));
+      .then(next=>{if(revision===requestRevision.current){setData(next);writeViewCache(key,next);}})
+      .catch(e=>{if(revision===requestRevision.current&&!isAmazonConnectivityError(e))setError(errorMessage(e,'No se pudieron cargar los productos.'));})
+      .finally(()=>{if(revision===requestRevision.current)setLoading(false)});
   };
-  useEffect(()=>{void refresh();},[filters.from,filters.to,filters.marketplaceIds.join(','),search,page,sortBy,sortDir,refreshToken,pageSize]);
+  useEffect(()=>{void refresh();return()=>{requestRevision.current++};},[filters.from,filters.to,filters.marketplaceIds.join(','),search,page,sortBy,sortDir,refreshToken,pageSize]);
   useEffect(()=>{const asins=data.items.map(row=>row.asin).filter((value):value is string=>Boolean(value));if(!asins.length){setMetadata({});return}void loadAmazonProductMetadata(asins).then(setMetadata).catch(()=>setMetadata({}));},[data.items]);
   useEffect(()=>{setPage(1);},[pageSize]);
   const editingRow=editing?data.items.find(row=>row.sellerSku===editing):undefined;
 
-  const changeSort=(key:AmazonProductSort)=>{
-    setPage(1);
-    if(sortBy===key)setSortDir(value=>value==='desc'?'asc':'desc');
-    else{setSortBy(key);setSortDir(key==='product_name'?'asc':'desc');}
-  };
+  const changeSort=(key:string)=>{setPage(1);sorting.toggleSort(key);};
+  const resetSort=()=>{setPage(1);sorting.resetSort();};
 
   return <section id={embedded?'amazon-period-products':undefined} className={embedded?'card amazonTableCard amazonEmbeddedProducts':'card amazonTableCard'}>
     <div className="amazonTableToolbar">
@@ -75,7 +74,7 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
       <label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU, ASIN o producto"/></label>
     </div>
     {error&&!embedded&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}
-    {loading&&<AmazonLoading>Cargando productos de Amazon…</AmazonLoading>}<div className="amazonTableScroll">
+    {loading&&<AmazonLoading>Cargando productos de Amazon…</AmazonLoading>}<TableSortReset sorting={{...sorting,resetSort}}/><div className="amazonTableScroll">
       <table className="amazonTable amazonProductTable">
         <thead>
           <tr>

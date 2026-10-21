@@ -1,28 +1,30 @@
 import { ProductMappingAction } from '../ProductMappingAction';
 import { AmazonLoading } from './AmazonLoading';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ImageOff, RefreshCw, Search } from 'lucide-react';
 import { amazonMarketplaceCode, isAmazonConnectivityError, loadAmazonProductMetadata, loadAmazonUnmapped, type AmazonPageResult, type AmazonProductMetadata, type AmazonUnmappedSku } from '../../services/amazon';
 import { errorMessage } from '../../services/toast';
 import { AmazonMappingModal } from './AmazonMappingModal';
 import { readViewCache, stableCacheKey, writeViewCache } from '../../services/viewCache';
-import { SortableTableHeader, useSortableTable } from '../SortableTableHeader';
+import { SortableTableHeader, TableSortReset, useSortableTable } from '../SortableTableHeader';
 import { useSettings } from '../../context/SettingsContext';
 export function AmazonUnmapped({onChanged,refreshToken=0,defaultConsumptionFactor=1}:{onChanged?:()=>void;refreshToken?:number;defaultConsumptionFactor?:number}){
   const {settings}=useSettings();
   const money=new Intl.NumberFormat('es-ES',{style:'currency',currency:settings.amazon.consolidatedCurrency});
  const [search,setSearch]=useState('');const [page,setPage]=useState(1);const initialKey=stableCacheKey('amazon:unmapped',{search:'',page:1,pageSize:25});const initialData=readViewCache<AmazonPageResult<AmazonUnmappedSku>>(initialKey);const [data,setData]=useState<AmazonPageResult<AmazonUnmappedSku>>(()=>initialData||{items:[],page:1,pageSize:25,total:0});const [loading,setLoading]=useState(()=>!initialData);const [editing,setEditing]=useState<string|null>(null);const [error,setError]=useState('');const [metadata,setMetadata]=useState<Record<string,AmazonProductMetadata>>({});
- const refresh=()=>{const key=stableCacheKey('amazon:unmapped',{search,page,pageSize:25});const cached=readViewCache<AmazonPageResult<AmazonUnmappedSku>>(key);if(cached)setData(cached);setLoading(true);setError('');return loadAmazonUnmapped(search,page,25).then(next=>{setData(next);writeViewCache(key,next);}).catch(e=>{if(!isAmazonConnectivityError(e))setError(errorMessage(e,'No se pudieron cargar los SKU sin vincular.'));}).finally(()=>setLoading(false));};
- useEffect(()=>{void refresh();},[search,page,refreshToken]);
+ const requestRevision=useRef(0);
+ const refresh=()=>{const revision=++requestRevision.current;const key=stableCacheKey('amazon:unmapped',{search,page,pageSize:25});const cached=readViewCache<AmazonPageResult<AmazonUnmappedSku>>(key);if(cached)setData(cached);setLoading(true);setError('');return loadAmazonUnmapped(search,page,25).then(next=>{if(revision===requestRevision.current){setData(next);writeViewCache(key,next);}}).catch(e=>{if(revision===requestRevision.current&&!isAmazonConnectivityError(e))setError(errorMessage(e,'No se pudieron cargar los SKU sin vincular.'));}).finally(()=>{if(revision===requestRevision.current)setLoading(false)});};
+ useEffect(()=>{void refresh();return()=>{requestRevision.current++};},[search,page,refreshToken]);
  useEffect(()=>{const asins=data.items.map(row=>row.asin).filter((value):value is string=>Boolean(value));if(!asins.length){setMetadata({});return}void loadAmazonProductMetadata(asins).then(setMetadata).catch(()=>setMetadata({}));},[data.items]);
  const sorting=useSortableTable('amazon-unmapped',data.items,{
    product:row=>metadata[row.asin||'']?.productName||row.sellerSku,
    marketplaces:row=>row.marketplaceIds.map(amazonMarketplaceCode).join(', '),
    orders:row=>row.orders,units:row=>row.units,sales:row=>row.recentNetSales,
  },{key:'orders',direction:'desc'});
+ useEffect(()=>{setPage(1)},[sorting.sort.key,sorting.sort.direction]);
  const rows=sorting.rows;
  const editingRow=editing?data.items.find(row=>row.sellerSku===editing):undefined;
- return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">CALIDAD DE DATOS</span><strong>Sin vincular</strong><p>Relaciona cada SKU de Amazon con uno o varios productos internos y define el factor de consumo de cada componente.</p></div><label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU o ASIN"/></label></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}{loading&&<AmazonLoading>Cargando SKU sin vincular de Amazon…</AmazonLoading>}<div className="amazonTableScroll"><table className="amazonTable amazonUnmappedTable"><thead><tr>
+ return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">CALIDAD DE DATOS</span><strong>Sin vincular</strong><p>Relaciona cada SKU de Amazon con uno o varios productos internos y define el factor de consumo de cada componente.</p></div><label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU o ASIN"/></label></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}{loading&&<AmazonLoading>Cargando SKU sin vincular de Amazon…</AmazonLoading>}<TableSortReset sorting={sorting}/><div className="amazonTableScroll"><table className="amazonTable amazonUnmappedTable"><thead><tr>
 <SortableTableHeader label="Producto Amazon" sortKey="product" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Marketplaces" sortKey="marketplaces" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Pedidos" sortKey="orders" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>

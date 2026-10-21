@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ExternalLink, FileText, Trash2, X } from 'lucide-react';
 import type { ExpenseCategory, Invoice, InvoicePaymentStatus, Supplier } from '../types';
 import { SearchableSelect } from './forms/SearchableSelect';
-import { SortableTableHeader, useSortableTable } from './SortableTableHeader';
+import { SortableTableHeader, TableSortReset, useSortableTable } from './SortableTableHeader';
 import { useSettings } from '../context/SettingsContext';
 import { formatAppMoney } from '../services/formatting';
 
@@ -124,7 +124,7 @@ export function InvoiceDetailModal({invoice,suppliers,categories,onClose,onOpenF
 
     <div className="detailSection">
       <div className="detailSectionHead"><div><strong>Líneas de producto</strong><span>{invoice.lines.length ? `${invoice.lines.length} línea${invoice.lines.length>1?'s':''} registrada${invoice.lines.length>1?'s':''}` : 'No se detectaron líneas'}</span></div></div>
-      {invoice.lines.length ? <div className="detailLinesWrap"><table className="detailLines"><thead><tr>
+      {invoice.lines.length ? <div className="detailLinesWrap"><TableSortReset sorting={lineSorting}/><table className="detailLines"><thead><tr>
       <SortableTableHeader label="Descripción" sortKey="description" activeKey={lineSorting.sort.key} direction={lineSorting.sort.direction} onSort={lineSorting.toggleSort}/>
       <SortableTableHeader label="Cantidad" sortKey="quantity" activeKey={lineSorting.sort.key} direction={lineSorting.sort.direction} onSort={lineSorting.toggleSort} className="right"/>
       <SortableTableHeader label="Precio ud." sortKey="unitPrice" activeKey={lineSorting.sort.key} direction={lineSorting.sort.direction} onSort={lineSorting.toggleSort} className="right"/>

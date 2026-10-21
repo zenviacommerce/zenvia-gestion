@@ -1,4 +1,5 @@
 -- Correct only shadow functions while source config remains disabled.
+alter table private.platform_shadow_source_config add column last_repair_started_at timestamptz;
 create table private.platform_shadow_capture_failures(
  id bigint generated always as identity primary key,failed_at timestamptz not null default clock_timestamp(),
  source_table text not null check(source_table in ('fulfillment_orders','support_tickets','app_users','amazon_accounts')),
@@ -75,7 +76,7 @@ returns jsonb language sql stable security definer set search_path='' as $$
  'metrics_has_more',(select count(*)>=25 from metrics),
  'workspaces',(select coalesce(jsonb_agg(workspace_id),'[]'::jsonb) from private.platform_shadow_source_workspaces where bootstrap_completed_at is not null),
  'observed_at',statement_timestamp(),
- 'outbox',jsonb_build_object('capture_failed_24h',(select count(*) from private.platform_shadow_capture_failures where failed_at>statement_timestamp()-interval '24 hours'),'last_capture_failure_at',(select max(failed_at) from private.platform_shadow_capture_failures),'pending',(select count(*) from private.platform_shadow_outbox where delivered_at is null and failed_at is null),
+ 'outbox',jsonb_build_object('repair_started_at',(select last_repair_started_at from private.platform_shadow_source_config),'capture_failed_24h',(select count(*) from private.platform_shadow_capture_failures where failed_at>statement_timestamp()-interval '24 hours'),'last_capture_failure_at',(select max(failed_at) from private.platform_shadow_capture_failures),'pending',(select count(*) from private.platform_shadow_outbox where delivered_at is null and failed_at is null),
  'failed',(select count(*) from private.platform_shadow_outbox where failed_at is not null),
  'oldest_at',(select min(created_at) from private.platform_shadow_outbox where delivered_at is null)));
 $$;
@@ -90,4 +91,28 @@ begin
  insert into private.platform_shadow_versions(workspace_id,entity_type,entity_id,deleted,fingerprint) values(p_workspace,p_type,p_id,p_deleted,case when p_type='ticket' then md5((case when p_deleted then '{}'::jsonb else private.platform_shadow_ticket_payload(p_workspace,p_id) end)::text) end)
  on conflict(workspace_id,entity_type,entity_id) do update set revision=private.platform_shadow_versions.revision+1,updated_at=clock_timestamp(),deleted=excluded.deleted,fingerprint=excluded.fingerprint returning id into v_id;
  insert into private.platform_shadow_outbox(version_id) values(v_id);
+end;$$;
+
+create or replace function public.platform_shadow_source_bootstrap() returns void language plpgsql security definer set search_path='' as $$
+declare w record;t record;version_row record;fp text;
+begin
+ if not exists(select 1 from private.platform_shadow_source_config where enabled) then raise exception 'SHADOW_DISABLED';end if;
+ if not pg_try_advisory_xact_lock(72104215) then raise exception 'REPAIR_BUSY';end if;
+ update private.platform_shadow_source_config set last_repair_started_at=clock_timestamp() where singleton;
+ for w in select workspace_id from private.platform_shadow_source_workspaces order by workspace_id loop
+  perform private.platform_shadow_touch(w.workspace_id,'metrics',w.workspace_id);
+  for t in select st.id from public.support_tickets st where st.owner_id=w.workspace_id order by st.id for share loop
+   fp=md5(private.platform_shadow_ticket_payload(w.workspace_id,t.id)::text);
+   if not exists(select 1 from private.platform_shadow_versions where workspace_id=w.workspace_id and entity_type='ticket' and entity_id=t.id and not deleted and fingerprint=fp) then
+    perform private.platform_shadow_touch(w.workspace_id,'ticket',t.id);
+   end if;
+  end loop;
+  for version_row in select * from private.platform_shadow_versions v where v.workspace_id=w.workspace_id and v.entity_type='ticket' and not v.deleted
+   and not exists(select 1 from public.support_tickets st where st.owner_id=v.workspace_id and st.id=v.entity_id) order by v.id for update skip locked loop
+   if not exists(select 1 from public.support_tickets st where st.owner_id=version_row.workspace_id and st.id=version_row.entity_id) then
+    perform private.platform_shadow_touch(w.workspace_id,'ticket',version_row.entity_id,true);
+   end if;
+  end loop;
+  update private.platform_shadow_source_workspaces set bootstrap_completed_at=clock_timestamp() where workspace_id=w.workspace_id;
+ end loop;
 end;$$;

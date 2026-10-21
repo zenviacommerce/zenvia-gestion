@@ -8,4 +8,5 @@ test('approved Products wording preserves strict comparison of values and period
  assert.notDeepEqual(masterKpiTexts('products',before),masterKpiTexts('products',[...after.slice(0,2),{text:'Coste medio 11,00 € Este mes'}]));
  assert.notDeepEqual(masterKpiTexts('products',before),masterKpiTexts('products',[{text:'Productos en periodo 31 Este mes'},...after.slice(1)]));
  assert.notDeepEqual(masterKpiTexts('clients',before),masterKpiTexts('clients',after));
+ assert.deepEqual(masterKpiTexts('products',[{text:'Productos visibles32Todo el histórico'},{text:'Con precio de venta32de 32 visibles'}]),masterKpiTexts('products',[{text:'Productos en periodo32Todo el histórico'},{text:'Con precio de venta32de 32 en el periodo'}]));
 });

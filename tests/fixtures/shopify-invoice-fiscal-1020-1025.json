@@ -1,0 +1,490 @@
+[
+  {
+    "payload": {
+      "lineItems": {
+        "nodes": [
+          {
+            "name": "Producto 1",
+            "quantity": 1,
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "1.91",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountAllocations": [],
+            "originalUnitPriceSet": {
+              "shopMoney": {
+                "amount": "10.99",
+                "currencyCode": "EUR"
+              }
+            }
+          },
+          {
+            "name": "Producto 2",
+            "quantity": 1,
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "1.91",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountAllocations": [],
+            "originalUnitPriceSet": {
+              "shopMoney": {
+                "amount": "10.99",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "eyJsYXN0X2lkIjozNzUyNDY0ODgyMTA2OCwibGFzdF92YWx1ZSI6Mzc1MjQ2NDg4MjEwNjh9",
+          "hasNextPage": false
+        }
+      },
+      "cancelledAt": null,
+      "shippingLines": {
+        "nodes": [
+          {
+            "title": "Transporte",
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "0.0",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountedPriceSet": {
+              "shopMoney": {
+                "amount": "0.0",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      },
+      "taxesIncluded": true,
+      "totalPriceSet": {
+        "shopMoney": {
+          "amount": "21.98",
+          "currencyCode": "EUR"
+        }
+      },
+      "displayFinancialStatus": "PAID"
+    },
+    "orderNumber": "#1020"
+  },
+  {
+    "payload": {
+      "lineItems": {
+        "nodes": [
+          {
+            "name": "Producto 1",
+            "quantity": 1,
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "1.87",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountAllocations": [
+              {
+                "allocatedAmountSet": {
+                  "shopMoney": {
+                    "amount": "1.19",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "originalUnitPriceSet": {
+              "shopMoney": {
+                "amount": "11.99",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "eyJsYXN0X2lkIjozNzUzMzQwMDIwMzU5NiwibGFzdF92YWx1ZSI6Mzc1MzM0MDAyMDM1OTZ9",
+          "hasNextPage": false
+        }
+      },
+      "cancelledAt": null,
+      "shippingLines": {
+        "nodes": [
+          {
+            "title": "Transporte",
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "0.0",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountedPriceSet": {
+              "shopMoney": {
+                "amount": "0.0",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      },
+      "taxesIncluded": true,
+      "totalPriceSet": {
+        "shopMoney": {
+          "amount": "10.8",
+          "currencyCode": "EUR"
+        }
+      },
+      "displayFinancialStatus": "PAID"
+    },
+    "orderNumber": "#1021"
+  },
+  {
+    "payload": {
+      "lineItems": {
+        "nodes": [
+          {
+            "name": "Producto 1",
+            "quantity": 3,
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "5.72",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountAllocations": [],
+            "originalUnitPriceSet": {
+              "shopMoney": {
+                "amount": "10.99",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "eyJsYXN0X2lkIjozNzU0MjAyMzI5OTQwNCwibGFzdF92YWx1ZSI6Mzc1NDIwMjMyOTk0MDR9",
+          "hasNextPage": false
+        }
+      },
+      "cancelledAt": null,
+      "shippingLines": {
+        "nodes": [
+          {
+            "title": "Transporte",
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "0.0",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountedPriceSet": {
+              "shopMoney": {
+                "amount": "0.0",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      },
+      "taxesIncluded": true,
+      "totalPriceSet": {
+        "shopMoney": {
+          "amount": "32.97",
+          "currencyCode": "EUR"
+        }
+      },
+      "displayFinancialStatus": "PAID"
+    },
+    "orderNumber": "#1022"
+  },
+  {
+    "payload": {
+      "lineItems": {
+        "nodes": [
+          {
+            "name": "Producto 1",
+            "quantity": 1,
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "4.86",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountAllocations": [],
+            "originalUnitPriceSet": {
+              "shopMoney": {
+                "amount": "27.99",
+                "currencyCode": "EUR"
+              }
+            }
+          },
+          {
+            "name": "Producto 2",
+            "quantity": 1,
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "2.25",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountAllocations": [],
+            "originalUnitPriceSet": {
+              "shopMoney": {
+                "amount": "12.99",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "eyJsYXN0X2lkIjozNzU0NzY1NTQ2MzI0NCwibGFzdF92YWx1ZSI6Mzc1NDc2NTU0NjMyNDR9",
+          "hasNextPage": false
+        }
+      },
+      "cancelledAt": null,
+      "shippingLines": {
+        "nodes": [
+          {
+            "title": "Transporte",
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "0.0",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountedPriceSet": {
+              "shopMoney": {
+                "amount": "0.0",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      },
+      "taxesIncluded": true,
+      "totalPriceSet": {
+        "shopMoney": {
+          "amount": "40.98",
+          "currencyCode": "EUR"
+        }
+      },
+      "displayFinancialStatus": "PAID"
+    },
+    "orderNumber": "#1023"
+  },
+  {
+    "payload": {
+      "lineItems": {
+        "nodes": [
+          {
+            "name": "Producto 1",
+            "quantity": 2,
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "4.16",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountAllocations": [],
+            "originalUnitPriceSet": {
+              "shopMoney": {
+                "amount": "11.99",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "eyJsYXN0X2lkIjozNzU1OTk1MDczNzc0MCwibGFzdF92YWx1ZSI6Mzc1NTk5NTA3Mzc3NDB9",
+          "hasNextPage": false
+        }
+      },
+      "cancelledAt": null,
+      "shippingLines": {
+        "nodes": [
+          {
+            "title": "Transporte",
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "0.0",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountedPriceSet": {
+              "shopMoney": {
+                "amount": "0.0",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      },
+      "taxesIncluded": true,
+      "totalPriceSet": {
+        "shopMoney": {
+          "amount": "23.98",
+          "currencyCode": "EUR"
+        }
+      },
+      "displayFinancialStatus": "PAID"
+    },
+    "orderNumber": "#1024"
+  },
+  {
+    "payload": {
+      "lineItems": {
+        "nodes": [
+          {
+            "name": "Producto 1",
+            "quantity": 1,
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "5.15",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountAllocations": [
+              {
+                "allocatedAmountSet": {
+                  "shopMoney": {
+                    "amount": "3.29",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "originalUnitPriceSet": {
+              "shopMoney": {
+                "amount": "32.99",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "endCursor": "eyJsYXN0X2lkIjozNzU2NTU0ODM2NDEwOCwibGFzdF92YWx1ZSI6Mzc1NjU1NDgzNjQxMDh9",
+          "hasNextPage": false
+        }
+      },
+      "cancelledAt": null,
+      "shippingLines": {
+        "nodes": [
+          {
+            "title": "Transporte",
+            "taxLines": [
+              {
+                "rate": 0.21,
+                "priceSet": {
+                  "shopMoney": {
+                    "amount": "0.0",
+                    "currencyCode": "EUR"
+                  }
+                }
+              }
+            ],
+            "discountedPriceSet": {
+              "shopMoney": {
+                "amount": "0.0",
+                "currencyCode": "EUR"
+              }
+            }
+          }
+        ],
+        "pageInfo": {
+          "hasNextPage": false
+        }
+      },
+      "taxesIncluded": true,
+      "totalPriceSet": {
+        "shopMoney": {
+          "amount": "29.7",
+          "currencyCode": "EUR"
+        }
+      },
+      "displayFinancialStatus": "PAID"
+    },
+    "orderNumber": "#1025"
+  }
+]

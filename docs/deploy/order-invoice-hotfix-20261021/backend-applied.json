@@ -1,0 +1,19 @@
+{
+  "lines": {
+    "count": 45,
+    "totals_hash": "ce2a99321cad46ad35e2b49f20f9edfb"
+  },
+  "invoices": {
+    "count": 27,
+    "totals_hash": "b47ce38eacebf50fa837153554086513"
+  },
+  "migration": {
+    "name": "shopify_invoice_tax_rounding",
+    "version": "20261021115856"
+  },
+  "checked_at": "2026-10-21T11:59:07.794968+00:00",
+  "helper_anon": false,
+  "trigger_hash": "cfc9d89f7cb6b558da857a914f634758",
+  "helper_definer": true,
+  "helper_authenticated": true
+}

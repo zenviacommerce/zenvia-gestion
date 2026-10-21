@@ -1,0 +1,47 @@
+[
+  {
+    "phase": "before",
+    "width": 390,
+    "total": "Total: 0.00 EUR",
+    "lines": 0,
+    "issuer": "Emisor: . Los descuentos están incluidos en los precios netos.",
+    "error": "El total de la factura no cuadra con Shopify. Revisa descuentos, impuestos y otros cargos antes de emitir."
+  },
+  {
+    "phase": "before",
+    "width": 1280,
+    "total": "Total: 0.00 EUR",
+    "lines": 0,
+    "issuer": "Emisor: . Los descuentos están incluidos en los precios netos.",
+    "error": "El total de la factura no cuadra con Shopify. Revisa descuentos, impuestos y otros cargos antes de emitir."
+  },
+  {
+    "phase": "before",
+    "width": 1440,
+    "total": "Total: 0.00 EUR",
+    "lines": 0,
+    "issuer": "Emisor: . Los descuentos están incluidos en los precios netos.",
+    "error": "El total de la factura no cuadra con Shopify. Revisa descuentos, impuestos y otros cargos antes de emitir."
+  },
+  {
+    "phase": "after",
+    "width": 390,
+    "total": "Total: 40.98 EUR",
+    "lines": 3,
+    "issuer": "Emisor: Emisor de prueba. Los descuentos están incluidos en los precios netos."
+  },
+  {
+    "phase": "after",
+    "width": 1280,
+    "total": "Total: 40.98 EUR",
+    "lines": 3,
+    "issuer": "Emisor: Emisor de prueba. Los descuentos están incluidos en los precios netos."
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "total": "Total: 40.98 EUR",
+    "lines": 3,
+    "issuer": "Emisor: Emisor de prueba. Los descuentos están incluidos en los precios netos."
+  }
+]

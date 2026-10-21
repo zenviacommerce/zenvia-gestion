@@ -14,7 +14,11 @@ export function shopifyInvoiceLines(order:any):SalesInvoiceLine[]{
     if(rates.some(r=>!Number.isFinite(r)||r<0)||rates.filter(r=>r>0).length>1)throw new Error('La línea tiene varios impuestos. Revisa su facturación desde Facturas de venta.');
     const taxRate=round(rates.reduce((a,b)=>a+b,0),4);
     const net=order.taxesIncluded?price/(1+taxRate/100):price;
-    lines.push({position:lines.length+1,description,quantity,unit:'ud',unitPrice:round(net/quantity,4),discountPercent:0,taxRate});
+    const unitPrice=round(net/quantity,4);
+    const lineNet=round(quantity*unitPrice);
+    // Match Shopify's included-tax rounding and the scoped database trigger.
+    const taxAmount=round((order.taxesIncluded?quantity*unitPrice:lineNet)*taxRate/100);
+    lines.push({position:lines.length+1,description,quantity,unit:'ud',unitPrice,discountPercent:0,taxRate,lineNet,taxAmount,lineTotal:round(lineNet+taxAmount)});
   }
   for(const item of order.lineItems?.nodes||[]){
     if(!Array.isArray(item.discountAllocations))throw new Error('Actualizar pedidos: faltan los descuentos de Shopify.');
@@ -23,7 +27,7 @@ export function shopifyInvoiceLines(order:any):SalesInvoiceLine[]{
   }
   for(const shipping of order.shippingLines?.nodes||[])add(shipping.title||'Transporte',1,amount(shipping.discountedPriceSet),shipping.taxLines);
   if(!lines.length)throw new Error('El pedido no tiene líneas facturables.');
-  const total=lines.reduce((sum,line)=>{const net=round(line.quantity*line.unitPrice);return sum+net+round(net*line.taxRate/100)},0);
+  const total=lines.reduce((sum,line)=>sum+line.lineTotal!,0);
   const expected=amount(order.totalPriceSet);
   if(!Number.isFinite(expected)||Math.abs(round(total)-round(expected))>.001)throw new Error('El total de la factura no cuadra con Shopify. Revisa descuentos, impuestos y otros cargos antes de emitir.');
   return lines;

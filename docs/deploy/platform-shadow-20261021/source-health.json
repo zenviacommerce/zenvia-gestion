@@ -1,0 +1,17 @@
+[
+  {
+    "source_health": {
+      "outbox": {
+        "failed": 0,
+        "pending": 0,
+        "delivered": 58
+      },
+      "enabled": true,
+      "guarded": true,
+      "checked_at": "2026-10-21T09:56:17.418336+00:00",
+      "capture_failures": 0,
+      "whole_row_capture": false,
+      "unknown_outbox_fields": 0
+    }
+  }
+]

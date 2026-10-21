@@ -1,0 +1,69 @@
+[
+  {
+    "comparison": {
+      "summary": {
+        "workspaces": 2,
+        "active_plans": 4,
+        "open_tickets": 0,
+        "subscriptions": 2,
+        "awaiting_reply": 0
+      },
+      "checked_at": "2026-10-21T09:55:37.599163+00:00",
+      "workspaces": [
+        {
+          "partial": false,
+          "users_active": 5,
+          "workspace_id": "7461b2b7-f383-460d-b1c7-6ccbb52e42b2",
+          "monthly_orders": 165,
+          "amazon_accounts": 1,
+          "users_observed_at": "2026-10-21T09:55:01.93948+00:00",
+          "orders_observed_at": "2026-10-21T09:55:01.93948+00:00"
+        },
+        {
+          "partial": false,
+          "users_active": 1,
+          "workspace_id": "835a7f45-7edf-4af2-b455-a8ec9c9f07e0",
+          "monthly_orders": 0,
+          "amazon_accounts": 0,
+          "users_observed_at": "2026-10-21T09:55:01.93948+00:00",
+          "orders_observed_at": "2026-10-21T09:55:01.93948+00:00"
+        }
+      ],
+      "observability": {
+        "mode": "shadow",
+        "sources": [
+          {
+            "alert": null,
+            "outbox": {
+              "failed": 0,
+              "pending": 0,
+              "oldest_at": null,
+              "repair_started_at": "2026-10-21T09:53:01.990892+00:00",
+              "capture_failed_24h": 0,
+              "last_capture_failure_at": null
+            },
+            "project": "sjkxxbedkkmgmqnvaqjh",
+            "alert_active": false,
+            "last_error_code": null,
+            "last_reconcile_at": "2026-10-21T09:55:02.209814+00:00",
+            "outbox_observed_at": "2026-10-21T09:55:02.209815+00:00",
+            "last_full_repair_at": "2026-10-21T09:53:02.734722+00:00",
+            "full_repaired_through": "2026-10-21T09:53:01.990892+00:00",
+            "reconcile_age_seconds": 35.399202
+          }
+        ],
+        "coverage": {
+          "fresh": 2,
+          "covered": 2,
+          "expected": 2
+        },
+        "checked_at": "2026-10-21T09:55:37.608906+00:00",
+        "dedicated_enabled": false,
+        "read_model_enabled": false,
+        "freshness_budget_seconds": 900
+      },
+      "ticket_digest": "d751713988987e9331980363e24189ce",
+      "tickets_total": 0
+    }
+  }
+]

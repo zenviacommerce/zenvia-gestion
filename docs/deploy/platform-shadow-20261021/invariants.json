@@ -1,0 +1,12 @@
+{
+  "source": {
+    "mfa_functions_unchanged": true,
+    "business_triggers_unchanged": true,
+    "existing_cron_unchanged": true
+  },
+  "central": {
+    "mfa_functions_unchanged": true,
+    "business_triggers_unchanged": true,
+    "existing_cron_unchanged": true
+  }
+}

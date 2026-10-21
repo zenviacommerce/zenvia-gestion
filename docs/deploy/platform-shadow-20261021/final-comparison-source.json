@@ -1,0 +1,28 @@
+[
+  {
+    "comparison": {
+      "checked_at": "2026-10-21T09:55:38.212322+00:00",
+      "workspaces": [
+        {
+          "open_tickets": 0,
+          "users_active": 5,
+          "workspace_id": "7461b2b7-f383-460d-b1c7-6ccbb52e42b2",
+          "tickets_total": 0,
+          "awaiting_reply": 0,
+          "monthly_orders": 165,
+          "amazon_accounts": 1
+        },
+        {
+          "open_tickets": 0,
+          "users_active": 1,
+          "workspace_id": "835a7f45-7edf-4af2-b455-a8ec9c9f07e0",
+          "tickets_total": 0,
+          "awaiting_reply": 0,
+          "monthly_orders": 0,
+          "amazon_accounts": 0
+        }
+      ],
+      "ticket_digest": "d751713988987e9331980363e24189ce"
+    }
+  }
+]

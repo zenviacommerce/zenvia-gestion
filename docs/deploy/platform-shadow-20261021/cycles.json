@@ -1,0 +1,33 @@
+[
+  {
+    "cycles": {
+      "flags": {
+        "enabled": true,
+        "singleton": true,
+        "concurrency": 3,
+        "dedicated_enabled": false,
+        "read_model_enabled": false,
+        "freshness_budget_seconds": 900
+      },
+      "last_two": [
+        {
+          "id": 66448,
+          "failed": "0",
+          "completed": "1",
+          "status_code": 200,
+          "completed_at": "2026-10-21T09:53:02.734721+00:00"
+        },
+        {
+          "id": 66455,
+          "failed": "0",
+          "completed": "1",
+          "status_code": 200,
+          "completed_at": "2026-10-21T09:55:02.209814+00:00"
+        }
+      ],
+      "checked_at": "2026-10-21T09:56:18.182508+00:00",
+      "failed_cycles": 0,
+      "successful_cycles": 39
+    }
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "status": {
+      "checked_at": "2026-10-21T07:59:58.814816+00:00",
+      "shadow_cron": [],
+      "shadow_tables": [],
+      "shadow_migrations": []
+    }
+  }
+]

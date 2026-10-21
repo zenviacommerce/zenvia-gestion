@@ -1,0 +1,439 @@
+[
+  {
+    "snapshot": {
+      "cron": [
+        {
+          "name": "amazon-orchestrator-hourly",
+          "jobid": 1,
+          "active": true,
+          "schedule": "7 * * * *",
+          "command_md5": "88a002c2cd1b86f67d314410b1471c50"
+        },
+        {
+          "name": "amazon-fx-daily",
+          "jobid": 4,
+          "active": true,
+          "schedule": "17 4 * * *",
+          "command_md5": "b2d148f67c137e76c3d40fa061e7f686"
+        },
+        {
+          "name": "amazon-product-images-refresh",
+          "jobid": 5,
+          "active": true,
+          "schedule": "*/10 * * * *",
+          "command_md5": "06d7c686c94d3791cfc5160330557d0b"
+        },
+        {
+          "name": "amazon-sync-worker",
+          "jobid": 8,
+          "active": true,
+          "schedule": "* * * * *",
+          "command_md5": "88d1e0c65d67a2f1a0c289da65ec6eb3"
+        },
+        {
+          "name": "amazon-orders-five-minutes",
+          "jobid": 9,
+          "active": true,
+          "schedule": "*/5 * * * *",
+          "command_md5": "f2165fd44d710ed79ff3ff52d285b9f8"
+        },
+        {
+          "name": "amazon-recipient-fallback-refresh",
+          "jobid": 10,
+          "active": true,
+          "schedule": "3-59/15 * * * *",
+          "command_md5": "fdec65e6e450fbef5914413c88b2a7df"
+        },
+        {
+          "name": "shopify-analytics-sync",
+          "jobid": 11,
+          "active": false,
+          "schedule": "18,48 * * * *",
+          "command_md5": "b539411fd0d0694fdd372eb52aaef4b1"
+        },
+        {
+          "name": "cron-job-run-details-retention-7d",
+          "jobid": 12,
+          "active": true,
+          "schedule": "40 3 * * *",
+          "command_md5": "aed295dc30a1bea04ba36d08abe8a58d"
+        },
+        {
+          "name": "amazon-worker-maintenance",
+          "jobid": 14,
+          "active": true,
+          "schedule": "13,28,43,58 * * * *",
+          "command_md5": "1234da24fac3e7e6646454ec5f609e16"
+        },
+        {
+          "name": "amazon-pii-purge-daily",
+          "jobid": 15,
+          "active": true,
+          "schedule": "30 2 * * *",
+          "command_md5": "e9fef852b8d91844934740c633b90981"
+        },
+        {
+          "name": "amazon-sync-job-retention",
+          "jobid": 17,
+          "active": true,
+          "schedule": "*/10 1-3 * * *",
+          "command_md5": "fce001bb63a57054bb1ad234b7e763e1"
+        },
+        {
+          "name": "shopify-order-freshness",
+          "jobid": 21,
+          "active": true,
+          "schedule": "* * * * *",
+          "command_md5": "258a065d120cb1181215f742e1099f88"
+        }
+      ],
+      "checked_at": "2026-10-21T08:07:12.045146+00:00",
+      "shadow_tables": null,
+      "business_triggers": [
+        {
+          "md5": "f258d70ecafc3e4145fcf787af3f99b8",
+          "name": "mfa_admin_promotion",
+          "table": "app_users"
+        },
+        {
+          "md5": "13e29ea5a6e661ca00eed573660c1e23",
+          "name": "trg_app_users_sync_workspace",
+          "table": "app_users"
+        },
+        {
+          "md5": "e06104f4eaea41aca1736936a5de17db",
+          "name": "aaaa_amazon_pii_write_fence",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "a1a54b21d5aea1b874ecded04c8e4d92",
+          "name": "aaab_amazon_pii_external_lease_guard",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "96ba76987870a61045e2e2d8bb911599",
+          "name": "fulfillment_amazon_account_name",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "6f1bc6d55319413e884d17fa4dfb71fe",
+          "name": "fulfillment_amazon_status_freshness",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "ada0f1cc692bc99854c449865f3ee934",
+          "name": "fulfillment_orders_normalize_status",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "490af7f2e538a171c1c5a90300eb7c87",
+          "name": "fulfillment_orders_set_updated_at",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "eb79b0f26b47d1531af4c35a6176dd88",
+          "name": "fulfillment_preserve_cancellations",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "38b8b746544b9d8b6864688ddfc81ebf",
+          "name": "fulfillment_preserve_shopify_local_tracking",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "db46a255a6fc171b8fb360fb038faaee",
+          "name": "fulfillment_preserve_shopify_shipping_edits",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "f7f8a915b49fbb207788e276ee4da720",
+          "name": "zz_shopify_reject_stale_snapshot",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "e070cbc0e614c06c63af39c6f726ff2f",
+          "name": "zzzz_amazon_pii_guard",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "d16855b76dcdab054e22301eae011eaf",
+          "name": "zzzzz_amazon_pii_remove_capabilities",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "0ecc7fc89702a8d8dd557996066b4f80",
+          "name": "zzzzzz_assert_amazon_pii_country_preserved",
+          "table": "fulfillment_orders"
+        },
+        {
+          "md5": "c126ae876bcc05eef632ed1379323fe6",
+          "name": "audit_support_tickets",
+          "table": "support_tickets"
+        },
+        {
+          "md5": "e23f5d5f83cc946a18f6a526146eeeff",
+          "name": "trg_support_prepare_ticket",
+          "table": "support_tickets"
+        }
+      ],
+      "mfa_function_hashes": [
+        {
+          "md5": "062126c90c2654e6d029f4f34905be3b",
+          "signature": "private.mfa_activation_findings()"
+        },
+        {
+          "md5": "5026b6d163316ae3e67086aab6c75cd5",
+          "signature": "private.mfa_allowed()"
+        },
+        {
+          "md5": "42f825ac07bccc731dca1cc89fba4488",
+          "signature": "private.mfa_configuration_guard()"
+        },
+        {
+          "md5": "4e9c9340f569837262ab13f99cfa324e",
+          "signature": "private.mfa_error(boolean,boolean)"
+        },
+        {
+          "md5": "7f2f241ce83d1894fd5b713369919f23",
+          "signature": "private.mfa_impl_101073(date,date,text[])"
+        },
+        {
+          "md5": "d385e3fa5dd305e63c010407926878b7",
+          "signature": "private.mfa_impl_101076(date,date,text[],text)"
+        },
+        {
+          "md5": "22a4c78146d3fbb7879e15dc5aea24d8",
+          "signature": "private.mfa_impl_101291(uuid)"
+        },
+        {
+          "md5": "34837b6c54befcc5d744850536a4d626",
+          "signature": "private.mfa_impl_101292(uuid)"
+        },
+        {
+          "md5": "7df654741a1f27d7fe3f454bdebbe182",
+          "signature": "private.mfa_impl_1068730(text)"
+        },
+        {
+          "md5": "528c50adbbafc644248c2d3340e9850f",
+          "signature": "private.mfa_impl_1068731(text,uuid)"
+        },
+        {
+          "md5": "87bc37e6fa4bd87f345f2c034dfdc191",
+          "signature": "private.mfa_impl_1069174(text,uuid,numeric)"
+        },
+        {
+          "md5": "cb02852e5bea14f0740eab761138dbeb",
+          "signature": "private.mfa_impl_136301(date,date,text[],text,integer,integer,text,text)"
+        },
+        {
+          "md5": "a2d3116bce670f61f0c4a5d064915c8d",
+          "signature": "private.mfa_impl_140103(uuid)"
+        },
+        {
+          "md5": "71ff9f2be3e3bdbf0139867bf9bc1f40",
+          "signature": "private.mfa_impl_140801(uuid,date,jsonb)"
+        },
+        {
+          "md5": "ab27e8ee5782a5ea869696d20a593c8e",
+          "signature": "private.mfa_impl_201805(date,date,text[])"
+        },
+        {
+          "md5": "29cbf11a2ed62e110e8969a1e3801381",
+          "signature": "private.mfa_impl_3790978()"
+        },
+        {
+          "md5": "8d82fd95f461e2d2d5ae27924bf70251",
+          "signature": "private.mfa_impl_3790979(date,date,uuid[])"
+        },
+        {
+          "md5": "023d38a6f097173bc94954545ba7ee98",
+          "signature": "private.mfa_impl_3790982(uuid,text)"
+        },
+        {
+          "md5": "0b60df4748314d88ac600823db418a5f",
+          "signature": "private.mfa_impl_3790983(text)"
+        },
+        {
+          "md5": "29fb5c7e99b9940ff0468f629b3913c6",
+          "signature": "private.mfa_impl_3790984(uuid,text,uuid,numeric)"
+        },
+        {
+          "md5": "237758232cfcb03dfcd45c17383c76c5",
+          "signature": "private.mfa_impl_3793373(date,date,uuid[],text,integer,integer,text,text,boolean)"
+        },
+        {
+          "md5": "522f475fa9a396133761d00e87b4bb77",
+          "signature": "private.mfa_impl_687056(uuid,uuid)"
+        },
+        {
+          "md5": "b85354b4185f1d9db248f4eb91aedbd4",
+          "signature": "private.mfa_impl_687058(uuid,uuid)"
+        },
+        {
+          "md5": "3fa6dd243436db43ff3da7b0d95418de",
+          "signature": "private.mfa_impl_687217(boolean)"
+        },
+        {
+          "md5": "29e335118b6c5401be41dd9473088845",
+          "signature": "private.mfa_impl_687218(boolean)"
+        },
+        {
+          "md5": "23cfa8daf59a277a228c7eeb64e13542",
+          "signature": "private.mfa_impl_687219(boolean)"
+        },
+        {
+          "md5": "0da7b8eca6730d9a4780b32ac0ef10fc",
+          "signature": "private.mfa_impl_687220(uuid,jsonb)"
+        },
+        {
+          "md5": "7c065bb05c0b913dfa0249bba26516f5",
+          "signature": "private.mfa_impl_687222(integer,jsonb)"
+        },
+        {
+          "md5": "4e19db7932ff68f67a27ae44a6314eb4",
+          "signature": "private.mfa_impl_77077(date,date,text[])"
+        },
+        {
+          "md5": "a3110813e66352167cd6652f24d083e0",
+          "signature": "private.mfa_impl_77079(date,date,text[],text)"
+        },
+        {
+          "md5": "e67d03c10143bb9ce9b6cf318b90d901",
+          "signature": "private.mfa_impl_78544(date,date,text[])"
+        },
+        {
+          "md5": "4dd46bd4ff935e24f7a5ee4c5ef6cc7d",
+          "signature": "private.mfa_impl_78545(date,date,text[],text,integer,integer)"
+        },
+        {
+          "md5": "d661b59601213e4d6cee026fd0468b79",
+          "signature": "private.mfa_impl_78547(text[],text,integer,integer)"
+        },
+        {
+          "md5": "6a9efcdc003e41b99c758b6f85ef63a5",
+          "signature": "private.mfa_impl_78548(text,integer,integer)"
+        },
+        {
+          "md5": "64d04a6d7a99e0a1f632d09fe057f79a",
+          "signature": "private.mfa_impl_78549(text,uuid,numeric)"
+        },
+        {
+          "md5": "9c883f0ac8bc8c7f4aca8193c6284d9c",
+          "signature": "private.mfa_impl_78550(text)"
+        },
+        {
+          "md5": "655ec1bb2c8cf7353873a25f51b5862c",
+          "signature": "private.mfa_impl_orders_dashboard_pickup_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[],text,boolean)"
+        },
+        {
+          "md5": "ecfec230cd202a5223a681d68e1a5760",
+          "signature": "private.mfa_impl_pickup_report_create(uuid[],uuid,boolean,jsonb)"
+        },
+        {
+          "md5": "2dfb284719a8da70f40b93c00dd1a908",
+          "signature": "private.mfa_impl_pickup_report_get(uuid)"
+        },
+        {
+          "md5": "7bd75f93587af087caf44acc706fe9ae",
+          "signature": "private.mfa_impl_pickup_report_list(uuid,integer)"
+        },
+        {
+          "md5": "0b6c3f01030345c49557f7a3f7ecbbb7",
+          "signature": "private.mfa_impl_pickup_report_preview(uuid[])"
+        },
+        {
+          "md5": "fdb29c7cd7d83a9b0bd489990aa19daa",
+          "signature": "private.mfa_impl_pickup_report_selection(jsonb,integer)"
+        },
+        {
+          "md5": "ea438c5eebcd788af21da119183fba6d",
+          "signature": "private.mfa_impl_rename_factor(uuid,text)"
+        },
+        {
+          "md5": "4cdc8f0ac90b45ade6c231965317c856",
+          "signature": "private.mfa_impl_shopify_summary_batch(jsonb,uuid[])"
+        },
+        {
+          "md5": "1830d4551fb423a935698e5004418dea",
+          "signature": "private.mfa_is_admin()"
+        },
+        {
+          "md5": "3b7e723b1bf1710dce6fe83127b11543",
+          "signature": "private.mfa_promoted_admin()"
+        },
+        {
+          "md5": "811f8f2daf079d785d6429ab86cfaad3",
+          "signature": "private.mfa_recovery_peer_count(uuid)"
+        },
+        {
+          "md5": "59e6d07d1d26a59ddf36aae8c49a14e0",
+          "signature": "private.mfa_required()"
+        },
+        {
+          "md5": "7c681e64e04f3e0f54f3d76e442a044f",
+          "signature": "security_mfa_approve_recovery(uuid,text)"
+        },
+        {
+          "md5": "33c89c211446450e2dadbe7e5b5760cf",
+          "signature": "security_mfa_assert(boolean)"
+        },
+        {
+          "md5": "8439f8eaf19783c234f43c253ca88ec2",
+          "signature": "security_mfa_authorize_enrollment(uuid,text,boolean)"
+        },
+        {
+          "md5": "364f45cf31d0aab32f81a6ba2bb536f6",
+          "signature": "security_mfa_begin_factor_add()"
+        },
+        {
+          "md5": "5e95fb9ca2d1a26de8a9e34ae0eafcf2",
+          "signature": "security_mfa_begin_self_enrollment()"
+        },
+        {
+          "md5": "b74c9778818fed585b1f9aac4f01e1fc",
+          "signature": "security_mfa_bridge_allowed()"
+        },
+        {
+          "md5": "3b6053b392de975def46e3c6a20d0803",
+          "signature": "security_mfa_bridge_allowed(text,text,text)"
+        },
+        {
+          "md5": "f99e34589ff8f5a7ead13cd7744d3685",
+          "signature": "security_mfa_complete_enrollment(uuid)"
+        },
+        {
+          "md5": "b02993d775369fb960a6876ff0d765dd",
+          "signature": "security_mfa_forget_factor(uuid)"
+        },
+        {
+          "md5": "5c3cff845977bb8a2831e55f465fdc84",
+          "signature": "security_mfa_oauth_actor_assert(uuid,uuid,uuid,numeric,uuid)"
+        },
+        {
+          "md5": "9285daa325790d3f3f1ef154df32e2c4",
+          "signature": "security_mfa_oauth_start_context()"
+        },
+        {
+          "md5": "f5b458fc814751038eb9669e1c8f4fad",
+          "signature": "security_mfa_prepare_enrollment(uuid)"
+        },
+        {
+          "md5": "40ad011e2049277c5b94ae503fe71698",
+          "signature": "security_mfa_release_enrollment(uuid,text,uuid,uuid)"
+        },
+        {
+          "md5": "e2c8f54f6f0ff7145913549da6d6009f",
+          "signature": "security_mfa_release_enrollment(uuid,text,uuid)"
+        },
+        {
+          "md5": "09c12a2e59b2b7bf752b88a8ca4e03cb",
+          "signature": "security_mfa_rename_factor(uuid,text)"
+        },
+        {
+          "md5": "a18577108e2b660f8effe809b55e2663",
+          "signature": "security_mfa_status()"
+        }
+      ]
+    }
+  }
+]

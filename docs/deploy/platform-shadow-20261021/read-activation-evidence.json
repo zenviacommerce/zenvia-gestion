@@ -1,0 +1,1535 @@
+{
+  "subject_e2e_created": [
+    {
+      "id": "5a117cb7-9a60-42a8-9724-3d962f877098",
+      "ticket_number": "ZG-2026-000008",
+      "status": "open",
+      "priority": "normal",
+      "created_at": "2026-10-21 10:51:22.746403+00"
+    }
+  ],
+  "subject_e2e_read": [
+    {
+      "clock_timestamp": "2026-10-21 10:52:28.190706+00",
+      "ticket_id": "5a117cb7-9a60-42a8-9724-3d962f877098",
+      "subject": "PRUEBA SOMBRA ASUNTO",
+      "status": "open",
+      "priority": "normal",
+      "received_at": "2026-10-21 10:52:01.479485+00",
+      "latency_seconds": "38.733082"
+    }
+  ],
+  "subject_e2e_privacy": [
+    {
+      "receipts": 2,
+      "body_leaks": 0,
+      "forbidden_keys": 0,
+      "subject_receipts": 2
+    }
+  ],
+  "subject_reader_filters": [
+    {
+      "opts": {
+        "query": "PRUEBA SOMBRA ASUNTO ACTUALIZADO"
+      },
+      "total": 1,
+      "subject": "PRUEBA SOMBRA ASUNTO ACTUALIZADO"
+    },
+    {
+      "opts": {
+        "type": "incident",
+        "queue": "awaiting",
+        "status": "closed",
+        "priority": "urgent",
+        "assigned_to": "d2fd3456-f2ae-4cd4-8b21-0c869c4aa89f",
+        "workspace_id": "835a7f45-7edf-4af2-b455-a8ec9c9f07e0"
+      },
+      "total": 1,
+      "subject": "PRUEBA SOMBRA ASUNTO ACTUALIZADO"
+    },
+    {
+      "opts": {
+        "status": "open"
+      },
+      "total": 0,
+      "subject": null
+    },
+    {
+      "opts": {
+        "workspace_id": "7461b2b7-f383-460d-b1c7-6ccbb52e42b2"
+      },
+      "total": 0,
+      "subject": null
+    }
+  ],
+  "subject_e2e_tombstones": [
+    {
+      "ticket_id": "4dceec2b-f8b2-4bb1-b8fd-5be567ee9011",
+      "deleted": true,
+      "subject": null,
+      "revision": 7,
+      "received_at": "2026-10-21 10:32:02.145256+00"
+    },
+    {
+      "ticket_id": "5a117cb7-9a60-42a8-9724-3d962f877098",
+      "deleted": true,
+      "subject": null,
+      "revision": 3,
+      "received_at": "2026-10-21 11:04:01.943402+00"
+    }
+  ],
+  "subject_e2e_privacy_final": [
+    {
+      "receipts": 10,
+      "body_leaks": 0,
+      "forbidden_keys": 0
+    }
+  ],
+  "read_activation": [
+    {
+      "activated_at": "2026-10-21 11:05:43.117355+00",
+      "result": {
+        "stats": {
+          "workspaces": 2,
+          "activePlans": 4,
+          "openTickets": 0,
+          "subscriptions": 2,
+          "ticketsAwaitingReply": 0
+        },
+        "total": 0,
+        "central": true,
+        "enabled": true,
+        "tickets": [],
+        "coverage": {
+          "as_of": "2026-10-21T11:04:01.957915+00:00",
+          "fresh": 2,
+          "covered": 2,
+          "expected": 2,
+          "budget_seconds": 900
+        },
+        "known_total": 0,
+        "next_cursor": null
+      }
+    }
+  ],
+  "read_final": [
+    {
+      "checked_at": "2026-10-21 11:06:29.174856+00",
+      "result": {
+        "stats": {
+          "workspaces": 2,
+          "activePlans": 4,
+          "openTickets": 0,
+          "subscriptions": 2,
+          "ticketsAwaitingReply": 0
+        },
+        "total": 0,
+        "central": true,
+        "enabled": true,
+        "tickets": [],
+        "coverage": {
+          "as_of": "2026-10-21T11:06:01.692964+00:00",
+          "fresh": 2,
+          "covered": 2,
+          "expected": 2,
+          "budget_seconds": 900
+        },
+        "known_total": 0,
+        "next_cursor": null
+      }
+    }
+  ],
+  "read_final_observe": [
+    {
+      "observation": {
+        "mode": "shadow",
+        "sources": [
+          {
+            "alert": null,
+            "outbox": {
+              "failed": 0,
+              "pending": 1,
+              "oldest_at": "2026-10-21T11:05:02.915442+00:00",
+              "repair_started_at": "2026-10-21T11:04:01.775579+00:00",
+              "capture_failed_24h": 0,
+              "last_capture_failure_at": null
+            },
+            "project": "sjkxxbedkkmgmqnvaqjh",
+            "alert_active": false,
+            "last_error_code": null,
+            "last_reconcile_at": "2026-10-21T11:06:01.69369+00:00",
+            "outbox_observed_at": "2026-10-21T11:06:01.693691+00:00",
+            "last_full_repair_at": "2026-10-21T11:04:01.958726+00:00",
+            "full_repaired_through": "2026-10-21T11:04:01.775579+00:00",
+            "reconcile_age_seconds": 28.566646
+          }
+        ],
+        "coverage": {
+          "fresh": 2,
+          "covered": 2,
+          "expected": 2
+        },
+        "checked_at": "2026-10-21T11:06:30.260249+00:00",
+        "dedicated_enabled": false,
+        "read_model_enabled": true,
+        "freshness_budget_seconds": 900
+      }
+    }
+  ],
+  "read_final_source_health": [
+    {
+      "checked_at": "2026-10-21 11:06:59.366535+00",
+      "test_tickets_remaining": 0,
+      "pending": 0,
+      "failed": 0,
+      "capture_failures": 0
+    }
+  ],
+  "subject_mfa_after_source": [
+    {
+      "mfa_hashes": [
+        {
+          "hash": "2b8fff9e3c6b481eb00a55ac1c7c2557",
+          "signature": "private.mfa_activation_findings()"
+        },
+        {
+          "hash": "3000b2c09e1b6d352c3c1e038a406759",
+          "signature": "private.mfa_allowed()"
+        },
+        {
+          "hash": "6c19bf8847a542a5021b24199696dcb1",
+          "signature": "private.mfa_configuration_guard()"
+        },
+        {
+          "hash": "966727d56b787727f605644db1660504",
+          "signature": "private.mfa_error(boolean,boolean)"
+        },
+        {
+          "hash": "637226e96b9d94233c6e283c07d4d364",
+          "signature": "private.mfa_impl_101073(date,date,text[])"
+        },
+        {
+          "hash": "f74ecd06dfa28030960f79970c51f50d",
+          "signature": "private.mfa_impl_101076(date,date,text[],text)"
+        },
+        {
+          "hash": "832fd77fcbec898401114dcee2dd9cbd",
+          "signature": "private.mfa_impl_101291(uuid)"
+        },
+        {
+          "hash": "d91bc0d7ad0c943e0ebbf9a3fbe8ecbb",
+          "signature": "private.mfa_impl_101292(uuid)"
+        },
+        {
+          "hash": "0506a6c5e16274141e7fe36b1c2be054",
+          "signature": "private.mfa_impl_1068730(text)"
+        },
+        {
+          "hash": "bfa27fb27dce768dda7cdeaa10497a9b",
+          "signature": "private.mfa_impl_1068731(text,uuid)"
+        },
+        {
+          "hash": "1bb4d7b5edfa3577996a84cf1c3ef219",
+          "signature": "private.mfa_impl_1069174(text,uuid,numeric)"
+        },
+        {
+          "hash": "69b5e7a8207f5153d773563a542ac230",
+          "signature": "private.mfa_impl_136301(date,date,text[],text,integer,integer,text,text)"
+        },
+        {
+          "hash": "aac748a530afdb596ec52dafc324caa4",
+          "signature": "private.mfa_impl_140103(uuid)"
+        },
+        {
+          "hash": "95a09d609d587d2b4b4889e3cda02bcd",
+          "signature": "private.mfa_impl_140801(uuid,date,jsonb)"
+        },
+        {
+          "hash": "6829ed4f96bd804a0f84ccd5fd9a74ee",
+          "signature": "private.mfa_impl_201805(date,date,text[])"
+        },
+        {
+          "hash": "e1d4ac8dab40436c29ef690b5c7d635a",
+          "signature": "private.mfa_impl_3790978()"
+        },
+        {
+          "hash": "3fc576907732734456cc8478ffc6416d",
+          "signature": "private.mfa_impl_3790979(date,date,uuid[])"
+        },
+        {
+          "hash": "e84641ca40db8b9eb534018b1da51937",
+          "signature": "private.mfa_impl_3790982(uuid,text)"
+        },
+        {
+          "hash": "de543a37aa7e770e8aa77f4f9e387ef8",
+          "signature": "private.mfa_impl_3790983(text)"
+        },
+        {
+          "hash": "f0296dc4603eb0bd6a44fa41b2ade911",
+          "signature": "private.mfa_impl_3790984(uuid,text,uuid,numeric)"
+        },
+        {
+          "hash": "d495173e68cf89a2553ddaa784972244",
+          "signature": "private.mfa_impl_3793373(date,date,uuid[],text,integer,integer,text,text,boolean)"
+        },
+        {
+          "hash": "e5930cb61e48b7a9ebbdb629f96e104f",
+          "signature": "private.mfa_impl_687056(uuid,uuid)"
+        },
+        {
+          "hash": "b4c5d6512c22436136389c12dd2039c0",
+          "signature": "private.mfa_impl_687058(uuid,uuid)"
+        },
+        {
+          "hash": "4fe37f3ad4b312113649238c1e4e59b7",
+          "signature": "private.mfa_impl_687217(boolean)"
+        },
+        {
+          "hash": "1a87dd36feaad48d17b78d878f50eba9",
+          "signature": "private.mfa_impl_687218(boolean)"
+        },
+        {
+          "hash": "ef8707971c74192c7fc2613385febef2",
+          "signature": "private.mfa_impl_687219(boolean)"
+        },
+        {
+          "hash": "0d135b05406175a05773e3a98f36752d",
+          "signature": "private.mfa_impl_687220(uuid,jsonb)"
+        },
+        {
+          "hash": "a8f757de660b8bc03a7720b454ab3657",
+          "signature": "private.mfa_impl_687222(integer,jsonb)"
+        },
+        {
+          "hash": "7b1e552b6bd979c6cc2996b613ea5e98",
+          "signature": "private.mfa_impl_77077(date,date,text[])"
+        },
+        {
+          "hash": "2421c7ee786b96914e3f57f6167b4f90",
+          "signature": "private.mfa_impl_77079(date,date,text[],text)"
+        },
+        {
+          "hash": "40dbe24de8b9934d8df955b68b8a96be",
+          "signature": "private.mfa_impl_78544(date,date,text[])"
+        },
+        {
+          "hash": "c02039015bef316fab41c0227325f4f1",
+          "signature": "private.mfa_impl_78545(date,date,text[],text,integer,integer)"
+        },
+        {
+          "hash": "cdfb39f8833b785e5bd15f8da83f2267",
+          "signature": "private.mfa_impl_78547(text[],text,integer,integer)"
+        },
+        {
+          "hash": "3d008b5c691ecbe5aa73b84ee583df4b",
+          "signature": "private.mfa_impl_78548(text,integer,integer)"
+        },
+        {
+          "hash": "62fa89642da99e234a3e65f1dec374f3",
+          "signature": "private.mfa_impl_78549(text,uuid,numeric)"
+        },
+        {
+          "hash": "a66339b63f8d297cc6c97f52ec553086",
+          "signature": "private.mfa_impl_78550(text)"
+        },
+        {
+          "hash": "c171701e01f711ba49878f597ea2b309",
+          "signature": "private.mfa_impl_orders_dashboard_pickup_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[],text,boolean)"
+        },
+        {
+          "hash": "7e4b7e1e88ddea3409381fdece02c0f1",
+          "signature": "private.mfa_impl_pickup_report_create(uuid[],uuid,boolean,jsonb)"
+        },
+        {
+          "hash": "d851ff795db2ac1c48807f33d5b7a957",
+          "signature": "private.mfa_impl_pickup_report_get(uuid)"
+        },
+        {
+          "hash": "e4129df20268b77040db8dee744f5043",
+          "signature": "private.mfa_impl_pickup_report_list(uuid,integer)"
+        },
+        {
+          "hash": "0555cbdb593548be89511d43bed985c2",
+          "signature": "private.mfa_impl_pickup_report_preview(uuid[])"
+        },
+        {
+          "hash": "282939ef7e93bc97e347be1274d6b734",
+          "signature": "private.mfa_impl_pickup_report_selection(jsonb,integer)"
+        },
+        {
+          "hash": "072646107901c635020a4eac364cdea6",
+          "signature": "private.mfa_impl_rename_factor(uuid,text)"
+        },
+        {
+          "hash": "fa68f31038c5acf97249eba6cba491a2",
+          "signature": "private.mfa_impl_shopify_summary_batch(jsonb,uuid[])"
+        },
+        {
+          "hash": "8d7060fad156d2adf4f2eb4171731ff6",
+          "signature": "private.mfa_is_admin()"
+        },
+        {
+          "hash": "0536d92c901473340e820ce14e827f16",
+          "signature": "private.mfa_promoted_admin()"
+        },
+        {
+          "hash": "80f04b6ff95fe72800a32f94260e7f23",
+          "signature": "private.mfa_recovery_peer_count(uuid)"
+        },
+        {
+          "hash": "22b3e48b9efd9f4f804659a8bcafbb18",
+          "signature": "private.mfa_required()"
+        },
+        {
+          "hash": "73a31925dc98eabef9545ba0e72bf49e",
+          "signature": "security_mfa_approve_recovery(uuid,text)"
+        },
+        {
+          "hash": "fbee1bb2fcce22ea1e03241fb94516c8",
+          "signature": "security_mfa_assert(boolean)"
+        },
+        {
+          "hash": "98caa9dfa52f362021cc9632ca37d024",
+          "signature": "security_mfa_authorize_enrollment(uuid,text,boolean)"
+        },
+        {
+          "hash": "657fae22579a6afc51cf0c176625ab2b",
+          "signature": "security_mfa_begin_factor_add()"
+        },
+        {
+          "hash": "c4f2253c9a9d141bff9788f4bda5f880",
+          "signature": "security_mfa_begin_self_enrollment()"
+        },
+        {
+          "hash": "4a9ce0a7348f71151b1bda86bd706e27",
+          "signature": "security_mfa_bridge_allowed()"
+        },
+        {
+          "hash": "26842a9e46a4578df4df3f92ad40e0d3",
+          "signature": "security_mfa_bridge_allowed(text,text,text)"
+        },
+        {
+          "hash": "3a5e0f71e2a510591f0d784283a10f52",
+          "signature": "security_mfa_complete_enrollment(uuid)"
+        },
+        {
+          "hash": "ffe20692528068b19290249a90068b0b",
+          "signature": "security_mfa_forget_factor(uuid)"
+        },
+        {
+          "hash": "25e5fe737441aa44fb1f64729a1fbc0c",
+          "signature": "security_mfa_oauth_actor_assert(uuid,uuid,uuid,numeric,uuid)"
+        },
+        {
+          "hash": "592344983cb3559b1f1e3c0d59632cad",
+          "signature": "security_mfa_oauth_start_context()"
+        },
+        {
+          "hash": "747559bf6257747cbcbd9f235cb81153",
+          "signature": "security_mfa_prepare_enrollment(uuid)"
+        },
+        {
+          "hash": "b8ab1cd47127d1def24480ef12c54677",
+          "signature": "security_mfa_release_enrollment(uuid,text,uuid,uuid)"
+        },
+        {
+          "hash": "0d85af5ba6f57316f79b06172cbf27c0",
+          "signature": "security_mfa_release_enrollment(uuid,text,uuid)"
+        },
+        {
+          "hash": "bfeab6c2f8ca1a6768a8c07cf4e1c6b2",
+          "signature": "security_mfa_rename_factor(uuid,text)"
+        },
+        {
+          "hash": "5fffa1a15447fcf1f0380eb3e00c174d",
+          "signature": "security_mfa_status()"
+        }
+      ]
+    }
+  ],
+  "subject_mfa_after_central": [
+    {
+      "mfa_hashes": null
+    }
+  ],
+  "ci_source": {
+    "total_count": 6,
+    "check_runs": [
+      {
+        "id": 119181097627,
+        "name": "Vercel Preview Comments",
+        "node_id": "CR_kwDOUUhA3M8AAAAbv786mw",
+        "head_sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+        "external_id": "",
+        "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119181097627",
+        "html_url": "https://github.com/zenviacommerce/zenvia-gestion/runs/119181097627",
+        "details_url": "https://vercel.com/github",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-21T10:53:10Z",
+        "completed_at": "2026-10-21T10:53:10Z",
+        "output": {
+          "title": "✅ No unresolved feedback",
+          "summary": "💬 0 unresolved, 0 resolved. [Go to feedback](https://vercel.live/open-feedback/zenvia-gestion-git-feat-platform-ce-a5ecbc-sergiorojasdiaz-7097.vercel.app?via=pr-comment-feedback-link)",
+          "text": null,
+          "annotations_count": 0,
+          "annotations_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119181097627/annotations"
+        },
+        "check_suite": {
+          "id": 107280064312
+        },
+        "app": {
+          "id": 8329,
+          "client_id": "Iv1.9d7d662ea00b8481",
+          "slug": "vercel",
+          "node_id": "MDM6QXBwODMyOQ==",
+          "owner": {
+            "login": "vercel",
+            "id": 14985020,
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0OTg1MDIw",
+            "avatar_url": "https://avatars.githubusercontent.com/u/14985020?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/vercel",
+            "html_url": "https://github.com/vercel",
+            "followers_url": "https://api.github.com/users/vercel/followers",
+            "following_url": "https://api.github.com/users/vercel/following{/other_user}",
+            "gists_url": "https://api.github.com/users/vercel/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/vercel/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/vercel/subscriptions",
+            "organizations_url": "https://api.github.com/users/vercel/orgs",
+            "repos_url": "https://api.github.com/users/vercel/repos",
+            "events_url": "https://api.github.com/users/vercel/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/vercel/received_events",
+            "type": "Organization",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "name": "Vercel",
+          "description": "Vercel for GitHub automatically deploys your PRs to Vercel.\r\nPreview every PR live, without any configuration required.\r\n\r\nFor more information, see our [documentation](https://vercel.com/docs/github?utm_source=github&utm_medium=marketplace&utm_campaign=vercel-app).\r\n\r\n![](https://assets.vercel.com/image/upload/v1597943727/front/github/github-comment-monorepo.png)",
+          "external_url": "https://vercel.com/github",
+          "html_url": "https://github.com/apps/vercel",
+          "created_at": "2018-01-19T21:51:06Z",
+          "updated_at": "2026-10-12T19:18:05Z",
+          "permissions": {
+            "actions": "read",
+            "administration": "write",
+            "checks": "write",
+            "contents": "write",
+            "deployments": "write",
+            "emails": "read",
+            "issues": "write",
+            "members": "read",
+            "metadata": "read",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "statuses": "write",
+            "workflows": "write"
+          },
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "delete",
+            "deployment",
+            "issue_comment",
+            "membership",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "pull_request_review_thread",
+            "push",
+            "repository",
+            "status",
+            "team"
+          ]
+        },
+        "pull_requests": [
+          {
+            "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/pulls/269",
+            "id": 4947998459,
+            "number": 269,
+            "head": {
+              "ref": "feat/platform-central-shadow",
+              "sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "ea5ef5987114e7a9651d672c61257deb518d1cf1",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 119180843093,
+        "name": "auth-tests",
+        "node_id": "CR_kwDOUUhA3M8AAAAbv7tYVQ",
+        "head_sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+        "external_id": "4dfd3653-2c9b-5f3a-bf0c-8e67d728510a",
+        "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119180843093",
+        "html_url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39587769821/job/119180843093",
+        "details_url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39587769821/job/119180843093",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-21T10:52:36Z",
+        "completed_at": "2026-10-21T10:54:06Z",
+        "output": {
+          "title": null,
+          "summary": null,
+          "text": null,
+          "annotations_count": 2,
+          "annotations_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119180843093/annotations"
+        },
+        "check_suite": {
+          "id": 107280085349
+        },
+        "app": {
+          "id": 15368,
+          "client_id": "Iv1.05c79e9ad1f6bdfa",
+          "slug": "github-actions",
+          "node_id": "MDM6QXBwMTUzNjg=",
+          "owner": {
+            "login": "github",
+            "id": 9919,
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+            "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/github",
+            "html_url": "https://github.com/github",
+            "followers_url": "https://api.github.com/users/github/followers",
+            "following_url": "https://api.github.com/users/github/following{/other_user}",
+            "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+            "organizations_url": "https://api.github.com/users/github/orgs",
+            "repos_url": "https://api.github.com/users/github/repos",
+            "events_url": "https://api.github.com/users/github/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/github/received_events",
+            "type": "Organization",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "name": "GitHub Actions",
+          "description": "Automate your workflow from idea to production",
+          "external_url": "https://help.github.com/en/actions",
+          "html_url": "https://github.com/apps/github-actions",
+          "created_at": "2018-07-30T09:30:17Z",
+          "updated_at": "2026-06-18T16:17:48Z",
+          "permissions": {
+            "actions": "write",
+            "administration": "read",
+            "artifact_metadata": "write",
+            "attestations": "write",
+            "checks": "write",
+            "code_quality": "write",
+            "contents": "write",
+            "copilot_requests": "write",
+            "deployments": "write",
+            "discussions": "write",
+            "drives": "write",
+            "issues": "write",
+            "merge_queues": "write",
+            "metadata": "read",
+            "models": "read",
+            "packages": "write",
+            "pages": "write",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "repository_projects": "write",
+            "security_events": "write",
+            "statuses": "write",
+            "vulnerability_alerts": "read"
+          },
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "check_suite",
+            "create",
+            "delete",
+            "deployment",
+            "deployment_status",
+            "discussion",
+            "discussion_comment",
+            "fork",
+            "gollum",
+            "issues",
+            "issue_comment",
+            "label",
+            "merge_group",
+            "milestone",
+            "page_build",
+            "public",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "push",
+            "registry_package",
+            "release",
+            "repository",
+            "repository_dispatch",
+            "status",
+            "watch",
+            "workflow_dispatch",
+            "workflow_run"
+          ]
+        },
+        "pull_requests": [
+          {
+            "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/pulls/269",
+            "id": 4947998459,
+            "number": 269,
+            "head": {
+              "ref": "feat/platform-central-shadow",
+              "sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "ea5ef5987114e7a9651d672c61257deb518d1cf1",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 119180842840,
+        "name": "screenshots",
+        "node_id": "CR_kwDOUUhA3M8AAAAbv7tXWA",
+        "head_sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+        "external_id": "a295fc24-d00c-591e-b017-1acca7708560",
+        "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119180842840",
+        "html_url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39587769748/job/119180842840",
+        "details_url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39587769748/job/119180842840",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-21T10:52:36Z",
+        "completed_at": "2026-10-21T10:56:33Z",
+        "output": {
+          "title": null,
+          "summary": null,
+          "text": null,
+          "annotations_count": 2,
+          "annotations_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119180842840/annotations"
+        },
+        "check_suite": {
+          "id": 107280085141
+        },
+        "app": {
+          "id": 15368,
+          "client_id": "Iv1.05c79e9ad1f6bdfa",
+          "slug": "github-actions",
+          "node_id": "MDM6QXBwMTUzNjg=",
+          "owner": {
+            "login": "github",
+            "id": 9919,
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+            "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/github",
+            "html_url": "https://github.com/github",
+            "followers_url": "https://api.github.com/users/github/followers",
+            "following_url": "https://api.github.com/users/github/following{/other_user}",
+            "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+            "organizations_url": "https://api.github.com/users/github/orgs",
+            "repos_url": "https://api.github.com/users/github/repos",
+            "events_url": "https://api.github.com/users/github/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/github/received_events",
+            "type": "Organization",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "name": "GitHub Actions",
+          "description": "Automate your workflow from idea to production",
+          "external_url": "https://help.github.com/en/actions",
+          "html_url": "https://github.com/apps/github-actions",
+          "created_at": "2018-07-30T09:30:17Z",
+          "updated_at": "2026-06-18T16:17:48Z",
+          "permissions": {
+            "actions": "write",
+            "administration": "read",
+            "artifact_metadata": "write",
+            "attestations": "write",
+            "checks": "write",
+            "code_quality": "write",
+            "contents": "write",
+            "copilot_requests": "write",
+            "deployments": "write",
+            "discussions": "write",
+            "drives": "write",
+            "issues": "write",
+            "merge_queues": "write",
+            "metadata": "read",
+            "models": "read",
+            "packages": "write",
+            "pages": "write",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "repository_projects": "write",
+            "security_events": "write",
+            "statuses": "write",
+            "vulnerability_alerts": "read"
+          },
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "check_suite",
+            "create",
+            "delete",
+            "deployment",
+            "deployment_status",
+            "discussion",
+            "discussion_comment",
+            "fork",
+            "gollum",
+            "issues",
+            "issue_comment",
+            "label",
+            "merge_group",
+            "milestone",
+            "page_build",
+            "public",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "push",
+            "registry_package",
+            "release",
+            "repository",
+            "repository_dispatch",
+            "status",
+            "watch",
+            "workflow_dispatch",
+            "workflow_run"
+          ]
+        },
+        "pull_requests": [
+          {
+            "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/pulls/269",
+            "id": 4947998459,
+            "number": 269,
+            "head": {
+              "ref": "feat/platform-central-shadow",
+              "sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "ea5ef5987114e7a9651d672c61257deb518d1cf1",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 119180842764,
+        "name": "build",
+        "node_id": "CR_kwDOUUhA3M8AAAAbv7tXDA",
+        "head_sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+        "external_id": "f8abe772-9c0d-586d-ae95-1f2179a158db",
+        "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119180842764",
+        "html_url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39587769689/job/119180842764",
+        "details_url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39587769689/job/119180842764",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-21T10:52:36Z",
+        "completed_at": "2026-10-21T10:53:59Z",
+        "output": {
+          "title": null,
+          "summary": null,
+          "text": null,
+          "annotations_count": 2,
+          "annotations_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119180842764/annotations"
+        },
+        "check_suite": {
+          "id": 107280084993
+        },
+        "app": {
+          "id": 15368,
+          "client_id": "Iv1.05c79e9ad1f6bdfa",
+          "slug": "github-actions",
+          "node_id": "MDM6QXBwMTUzNjg=",
+          "owner": {
+            "login": "github",
+            "id": 9919,
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+            "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/github",
+            "html_url": "https://github.com/github",
+            "followers_url": "https://api.github.com/users/github/followers",
+            "following_url": "https://api.github.com/users/github/following{/other_user}",
+            "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+            "organizations_url": "https://api.github.com/users/github/orgs",
+            "repos_url": "https://api.github.com/users/github/repos",
+            "events_url": "https://api.github.com/users/github/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/github/received_events",
+            "type": "Organization",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "name": "GitHub Actions",
+          "description": "Automate your workflow from idea to production",
+          "external_url": "https://help.github.com/en/actions",
+          "html_url": "https://github.com/apps/github-actions",
+          "created_at": "2018-07-30T09:30:17Z",
+          "updated_at": "2026-06-18T16:17:48Z",
+          "permissions": {
+            "actions": "write",
+            "administration": "read",
+            "artifact_metadata": "write",
+            "attestations": "write",
+            "checks": "write",
+            "code_quality": "write",
+            "contents": "write",
+            "copilot_requests": "write",
+            "deployments": "write",
+            "discussions": "write",
+            "drives": "write",
+            "issues": "write",
+            "merge_queues": "write",
+            "metadata": "read",
+            "models": "read",
+            "packages": "write",
+            "pages": "write",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "repository_projects": "write",
+            "security_events": "write",
+            "statuses": "write",
+            "vulnerability_alerts": "read"
+          },
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "check_suite",
+            "create",
+            "delete",
+            "deployment",
+            "deployment_status",
+            "discussion",
+            "discussion_comment",
+            "fork",
+            "gollum",
+            "issues",
+            "issue_comment",
+            "label",
+            "merge_group",
+            "milestone",
+            "page_build",
+            "public",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "push",
+            "registry_package",
+            "release",
+            "repository",
+            "repository_dispatch",
+            "status",
+            "watch",
+            "workflow_dispatch",
+            "workflow_run"
+          ]
+        },
+        "pull_requests": [
+          {
+            "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/pulls/269",
+            "id": 4947998459,
+            "number": 269,
+            "head": {
+              "ref": "feat/platform-central-shadow",
+              "sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "ea5ef5987114e7a9651d672c61257deb518d1cf1",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 119180842562,
+        "name": "build",
+        "node_id": "CR_kwDOUUhA3M8AAAAbv7tWQg",
+        "head_sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+        "external_id": "8872f464-e128-5491-81f1-173179c2b415",
+        "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119180842562",
+        "html_url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39587769646/job/119180842562",
+        "details_url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39587769646/job/119180842562",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-21T10:52:35Z",
+        "completed_at": "2026-10-21T10:53:14Z",
+        "output": {
+          "title": null,
+          "summary": null,
+          "text": null,
+          "annotations_count": 2,
+          "annotations_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119180842562/annotations"
+        },
+        "check_suite": {
+          "id": 107280084879
+        },
+        "app": {
+          "id": 15368,
+          "client_id": "Iv1.05c79e9ad1f6bdfa",
+          "slug": "github-actions",
+          "node_id": "MDM6QXBwMTUzNjg=",
+          "owner": {
+            "login": "github",
+            "id": 9919,
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+            "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/github",
+            "html_url": "https://github.com/github",
+            "followers_url": "https://api.github.com/users/github/followers",
+            "following_url": "https://api.github.com/users/github/following{/other_user}",
+            "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+            "organizations_url": "https://api.github.com/users/github/orgs",
+            "repos_url": "https://api.github.com/users/github/repos",
+            "events_url": "https://api.github.com/users/github/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/github/received_events",
+            "type": "Organization",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "name": "GitHub Actions",
+          "description": "Automate your workflow from idea to production",
+          "external_url": "https://help.github.com/en/actions",
+          "html_url": "https://github.com/apps/github-actions",
+          "created_at": "2018-07-30T09:30:17Z",
+          "updated_at": "2026-06-18T16:17:48Z",
+          "permissions": {
+            "actions": "write",
+            "administration": "read",
+            "artifact_metadata": "write",
+            "attestations": "write",
+            "checks": "write",
+            "code_quality": "write",
+            "contents": "write",
+            "copilot_requests": "write",
+            "deployments": "write",
+            "discussions": "write",
+            "drives": "write",
+            "issues": "write",
+            "merge_queues": "write",
+            "metadata": "read",
+            "models": "read",
+            "packages": "write",
+            "pages": "write",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "repository_projects": "write",
+            "security_events": "write",
+            "statuses": "write",
+            "vulnerability_alerts": "read"
+          },
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "check_suite",
+            "create",
+            "delete",
+            "deployment",
+            "deployment_status",
+            "discussion",
+            "discussion_comment",
+            "fork",
+            "gollum",
+            "issues",
+            "issue_comment",
+            "label",
+            "merge_group",
+            "milestone",
+            "page_build",
+            "public",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "push",
+            "registry_package",
+            "release",
+            "repository",
+            "repository_dispatch",
+            "status",
+            "watch",
+            "workflow_dispatch",
+            "workflow_run"
+          ]
+        },
+        "pull_requests": [
+          {
+            "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/pulls/269",
+            "id": 4947998459,
+            "number": 269,
+            "head": {
+              "ref": "feat/platform-central-shadow",
+              "sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "ea5ef5987114e7a9651d672c61257deb518d1cf1",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 119180842317,
+        "name": "real-auth-vault",
+        "node_id": "CR_kwDOUUhA3M8AAAAbv7tVTQ",
+        "head_sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+        "external_id": "35969621-f021-5052-be8a-33bbc18cfba9",
+        "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119180842317",
+        "html_url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39587769614/job/119180842317",
+        "details_url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39587769614/job/119180842317",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-21T10:52:35Z",
+        "completed_at": "2026-10-21T10:56:26Z",
+        "output": {
+          "title": null,
+          "summary": null,
+          "text": null,
+          "annotations_count": 2,
+          "annotations_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/check-runs/119180842317/annotations"
+        },
+        "check_suite": {
+          "id": 107280084759
+        },
+        "app": {
+          "id": 15368,
+          "client_id": "Iv1.05c79e9ad1f6bdfa",
+          "slug": "github-actions",
+          "node_id": "MDM6QXBwMTUzNjg=",
+          "owner": {
+            "login": "github",
+            "id": 9919,
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+            "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/github",
+            "html_url": "https://github.com/github",
+            "followers_url": "https://api.github.com/users/github/followers",
+            "following_url": "https://api.github.com/users/github/following{/other_user}",
+            "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+            "organizations_url": "https://api.github.com/users/github/orgs",
+            "repos_url": "https://api.github.com/users/github/repos",
+            "events_url": "https://api.github.com/users/github/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/github/received_events",
+            "type": "Organization",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "name": "GitHub Actions",
+          "description": "Automate your workflow from idea to production",
+          "external_url": "https://help.github.com/en/actions",
+          "html_url": "https://github.com/apps/github-actions",
+          "created_at": "2018-07-30T09:30:17Z",
+          "updated_at": "2026-06-18T16:17:48Z",
+          "permissions": {
+            "actions": "write",
+            "administration": "read",
+            "artifact_metadata": "write",
+            "attestations": "write",
+            "checks": "write",
+            "code_quality": "write",
+            "contents": "write",
+            "copilot_requests": "write",
+            "deployments": "write",
+            "discussions": "write",
+            "drives": "write",
+            "issues": "write",
+            "merge_queues": "write",
+            "metadata": "read",
+            "models": "read",
+            "packages": "write",
+            "pages": "write",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "repository_projects": "write",
+            "security_events": "write",
+            "statuses": "write",
+            "vulnerability_alerts": "read"
+          },
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "check_suite",
+            "create",
+            "delete",
+            "deployment",
+            "deployment_status",
+            "discussion",
+            "discussion_comment",
+            "fork",
+            "gollum",
+            "issues",
+            "issue_comment",
+            "label",
+            "merge_group",
+            "milestone",
+            "page_build",
+            "public",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "push",
+            "registry_package",
+            "release",
+            "repository",
+            "repository_dispatch",
+            "status",
+            "watch",
+            "workflow_dispatch",
+            "workflow_run"
+          ]
+        },
+        "pull_requests": [
+          {
+            "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/pulls/269",
+            "id": 4947998459,
+            "number": 269,
+            "head": {
+              "ref": "feat/platform-central-shadow",
+              "sha": "1a01931111cfe8aa7160cceb6a3c24b2012c83f2",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "ea5ef5987114e7a9651d672c61257deb518d1cf1",
+              "repo": {
+                "id": 1363689692,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion",
+                "name": "zenvia-gestion"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "ci_central": {
+    "total_count": 2,
+    "check_runs": [
+      {
+        "id": 119179967217,
+        "name": "Vercel Preview Comments",
+        "node_id": "CR_kwDOUrwhxc8AAAAbv6368Q",
+        "head_sha": "b31676d11e8a8fe2f183bd7bc6043a0e08d17224",
+        "external_id": "",
+        "url": "https://api.github.com/repos/zenviacommerce/zenvia-platform/check-runs/119179967217",
+        "html_url": "https://github.com/zenviacommerce/zenvia-platform/runs/119179967217",
+        "details_url": "https://vercel.com/github",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-21T10:50:24Z",
+        "completed_at": "2026-10-21T10:50:24Z",
+        "output": {
+          "title": "✅ No unresolved feedback",
+          "summary": "💬 0 unresolved, 0 resolved. [Go to feedback](https://vercel.live/open-feedback/zenvia-platform-git-feat-platform-c-820504-sergiorojasdiaz-7097.vercel.app?via=pr-comment-feedback-link)",
+          "text": null,
+          "annotations_count": 0,
+          "annotations_url": "https://api.github.com/repos/zenviacommerce/zenvia-platform/check-runs/119179967217/annotations"
+        },
+        "check_suite": {
+          "id": 107279287212
+        },
+        "app": {
+          "id": 8329,
+          "client_id": "Iv1.9d7d662ea00b8481",
+          "slug": "vercel",
+          "node_id": "MDM6QXBwODMyOQ==",
+          "owner": {
+            "login": "vercel",
+            "id": 14985020,
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjE0OTg1MDIw",
+            "avatar_url": "https://avatars.githubusercontent.com/u/14985020?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/vercel",
+            "html_url": "https://github.com/vercel",
+            "followers_url": "https://api.github.com/users/vercel/followers",
+            "following_url": "https://api.github.com/users/vercel/following{/other_user}",
+            "gists_url": "https://api.github.com/users/vercel/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/vercel/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/vercel/subscriptions",
+            "organizations_url": "https://api.github.com/users/vercel/orgs",
+            "repos_url": "https://api.github.com/users/vercel/repos",
+            "events_url": "https://api.github.com/users/vercel/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/vercel/received_events",
+            "type": "Organization",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "name": "Vercel",
+          "description": "Vercel for GitHub automatically deploys your PRs to Vercel.\r\nPreview every PR live, without any configuration required.\r\n\r\nFor more information, see our [documentation](https://vercel.com/docs/github?utm_source=github&utm_medium=marketplace&utm_campaign=vercel-app).\r\n\r\n![](https://assets.vercel.com/image/upload/v1597943727/front/github/github-comment-monorepo.png)",
+          "external_url": "https://vercel.com/github",
+          "html_url": "https://github.com/apps/vercel",
+          "created_at": "2018-01-19T21:51:06Z",
+          "updated_at": "2026-10-12T19:18:05Z",
+          "permissions": {
+            "actions": "read",
+            "administration": "write",
+            "checks": "write",
+            "contents": "write",
+            "deployments": "write",
+            "emails": "read",
+            "issues": "write",
+            "members": "read",
+            "metadata": "read",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "statuses": "write",
+            "workflows": "write"
+          },
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "delete",
+            "deployment",
+            "issue_comment",
+            "membership",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "pull_request_review_thread",
+            "push",
+            "repository",
+            "status",
+            "team"
+          ]
+        },
+        "pull_requests": [
+          {
+            "url": "https://api.github.com/repos/zenviacommerce/zenvia-platform/pulls/78",
+            "id": 4948001528,
+            "number": 78,
+            "head": {
+              "ref": "feat/platform-central-shadow",
+              "sha": "b31676d11e8a8fe2f183bd7bc6043a0e08d17224",
+              "repo": {
+                "id": 1388061125,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-platform",
+                "name": "zenvia-platform"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "cbee862fb15424945c72c6edb0933a61c81b114f",
+              "repo": {
+                "id": 1388061125,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-platform",
+                "name": "zenvia-platform"
+              }
+            }
+          }
+        ]
+      },
+      {
+        "id": 119179894222,
+        "name": "test-build",
+        "node_id": "CR_kwDOUrwhxc8AAAAbv6zdzg",
+        "head_sha": "b31676d11e8a8fe2f183bd7bc6043a0e08d17224",
+        "external_id": "98f7d12b-afc7-5bfd-9816-75adcc1d229f",
+        "url": "https://api.github.com/repos/zenviacommerce/zenvia-platform/check-runs/119179894222",
+        "html_url": "https://github.com/zenviacommerce/zenvia-platform/actions/runs/39587485386/job/119179894222",
+        "details_url": "https://github.com/zenviacommerce/zenvia-platform/actions/runs/39587485386/job/119179894222",
+        "status": "completed",
+        "conclusion": "success",
+        "started_at": "2026-10-21T10:50:16Z",
+        "completed_at": "2026-10-21T10:51:14Z",
+        "output": {
+          "title": null,
+          "summary": null,
+          "text": null,
+          "annotations_count": 2,
+          "annotations_url": "https://api.github.com/repos/zenviacommerce/zenvia-platform/check-runs/119179894222/annotations"
+        },
+        "check_suite": {
+          "id": 107279306246
+        },
+        "app": {
+          "id": 15368,
+          "client_id": "Iv1.05c79e9ad1f6bdfa",
+          "slug": "github-actions",
+          "node_id": "MDM6QXBwMTUzNjg=",
+          "owner": {
+            "login": "github",
+            "id": 9919,
+            "node_id": "MDEyOk9yZ2FuaXphdGlvbjk5MTk=",
+            "avatar_url": "https://avatars.githubusercontent.com/u/9919?v=4",
+            "gravatar_id": "",
+            "url": "https://api.github.com/users/github",
+            "html_url": "https://github.com/github",
+            "followers_url": "https://api.github.com/users/github/followers",
+            "following_url": "https://api.github.com/users/github/following{/other_user}",
+            "gists_url": "https://api.github.com/users/github/gists{/gist_id}",
+            "starred_url": "https://api.github.com/users/github/starred{/owner}{/repo}",
+            "subscriptions_url": "https://api.github.com/users/github/subscriptions",
+            "organizations_url": "https://api.github.com/users/github/orgs",
+            "repos_url": "https://api.github.com/users/github/repos",
+            "events_url": "https://api.github.com/users/github/events{/privacy}",
+            "received_events_url": "https://api.github.com/users/github/received_events",
+            "type": "Organization",
+            "user_view_type": "public",
+            "site_admin": false
+          },
+          "name": "GitHub Actions",
+          "description": "Automate your workflow from idea to production",
+          "external_url": "https://help.github.com/en/actions",
+          "html_url": "https://github.com/apps/github-actions",
+          "created_at": "2018-07-30T09:30:17Z",
+          "updated_at": "2026-06-18T16:17:48Z",
+          "permissions": {
+            "actions": "write",
+            "administration": "read",
+            "artifact_metadata": "write",
+            "attestations": "write",
+            "checks": "write",
+            "code_quality": "write",
+            "contents": "write",
+            "copilot_requests": "write",
+            "deployments": "write",
+            "discussions": "write",
+            "drives": "write",
+            "issues": "write",
+            "merge_queues": "write",
+            "metadata": "read",
+            "models": "read",
+            "packages": "write",
+            "pages": "write",
+            "pull_requests": "write",
+            "repository_hooks": "write",
+            "repository_projects": "write",
+            "security_events": "write",
+            "statuses": "write",
+            "vulnerability_alerts": "read"
+          },
+          "events": [
+            "branch_protection_rule",
+            "check_run",
+            "check_suite",
+            "create",
+            "delete",
+            "deployment",
+            "deployment_status",
+            "discussion",
+            "discussion_comment",
+            "fork",
+            "gollum",
+            "issues",
+            "issue_comment",
+            "label",
+            "merge_group",
+            "milestone",
+            "page_build",
+            "public",
+            "pull_request",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "push",
+            "registry_package",
+            "release",
+            "repository",
+            "repository_dispatch",
+            "status",
+            "watch",
+            "workflow_dispatch",
+            "workflow_run"
+          ]
+        },
+        "pull_requests": [
+          {
+            "url": "https://api.github.com/repos/zenviacommerce/zenvia-platform/pulls/78",
+            "id": 4948001528,
+            "number": 78,
+            "head": {
+              "ref": "feat/platform-central-shadow",
+              "sha": "b31676d11e8a8fe2f183bd7bc6043a0e08d17224",
+              "repo": {
+                "id": 1388061125,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-platform",
+                "name": "zenvia-platform"
+              }
+            },
+            "base": {
+              "ref": "main",
+              "sha": "cbee862fb15424945c72c6edb0933a61c81b114f",
+              "repo": {
+                "id": 1388061125,
+                "url": "https://api.github.com/repos/zenviacommerce/zenvia-platform",
+                "name": "zenvia-platform"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  },
+  "merge_source": {
+    "sha": "3decf71a4ce436fe4762b9d5cd0aad9800d285b2",
+    "merged": true,
+    "message": "Pull Request successfully merged"
+  },
+  "merge_central": {
+    "sha": "7b461c2fde2598794777c28ff86f6761f0186656",
+    "merged": true,
+    "message": "Pull Request successfully merged"
+  }
+}

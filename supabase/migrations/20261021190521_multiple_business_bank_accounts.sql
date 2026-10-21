@@ -1,6 +1,24 @@
--- PROVISIONAL local filename: Supabase CLI is unavailable in this workspace.
+-- Created with Supabase CLI 2.121.0; release snapshot added before approved bank DDL/DML.
 -- Do not apply to production before SQL, affected-row counts and UI review.
 -- No authentication helper, existing MFA policy, existing grant or numbering RPC is replaced.
+
+-- Owner-approved release snapshot, captured once before any document metadata changes.
+-- Private, never exposed to API roles; reruns must not replace the original rows.
+create table if not exists private.bank_release_20261021_business_settings as
+ select * from public.business_settings;
+create table if not exists private.bank_release_20261021_sales_invoices as
+ select * from public.sales_invoices where status<>'draft' or reserved_number is not null;
+create table if not exists private.bank_release_20261021_sales_receipts as
+ select * from public.sales_receipts;
+create table if not exists private.bank_release_20261021_functions as
+ select n.nspname as schema_name,p.proname as function_name,
+ pg_catalog.pg_get_function_identity_arguments(p.oid) as arguments,
+ pg_catalog.pg_get_functiondef(p.oid) as definition
+ from pg_catalog.pg_proc p join pg_catalog.pg_namespace n on n.oid=p.pronamespace
+ where n.nspname='public' and p.proname='save_shopify_order_invoice';
+revoke all on private.bank_release_20261021_business_settings,
+ private.bank_release_20261021_sales_invoices,private.bank_release_20261021_sales_receipts,
+ private.bank_release_20261021_functions from public,anon,authenticated;
 
 create or replace function private.bank_normalize_iban(p_value text)
 returns text language sql immutable set search_path='' as $$

@@ -7,9 +7,9 @@ import {brotliDecompressSync} from 'node:zlib';
 import {createHash} from 'node:crypto';
 import {createRequire} from 'node:module';
 import {installBankAccountFixture} from './fixtures/bank-account-data.mjs';
-const phase=process.argv[2]||'before',baseline='95891f9816313bfe11b7b910593689e267e200c5',root=process.cwd(),output=resolve('docs/deploy/bank-accounts-20261021');
+const phase=process.argv[2]||'before',baseline=process.env.BANK_CAPTURE_BASELINE||'95891f9816313bfe11b7b910593689e267e200c5',root=process.cwd(),output=resolve(process.env.BANK_CAPTURE_OUTPUT||'docs/deploy/bank-accounts-20261021');
 if(!['before','after'].includes(phase))throw Error('before|after');
-const toolRequire=createRequire('/workspace/scratch/209f463fbd52/ui-extraction/package.json');
+const toolRequire=createRequire(resolve('package.json'));
 const {build}=await import(toolRequire.resolve('esbuild')),pw=await import(toolRequire.resolve('playwright')),chromium=pw.chromium||pw.default.chromium;
 const hashes={},cache=new Map(),hash=s=>createHash('sha256').update(s).digest('hex');
 async function source(p){if(!cache.has(p)){const t=phase==='before'?execFileSync('git',['show',`${baseline}:${p}`],{encoding:'utf8'}):await readFile(p,'utf8');cache.set(p,t);hashes[p]=hash(t)}return cache.get(p)}
@@ -77,6 +77,17 @@ try{for(const screen of screens)for(const width of [390,1280,1440]){const page=a
  if(renderScreen==='invoice-edit'&&mode==='normal'){if(!(await bank.innerText()).includes('Cuenta internacional'))throw Error('Persisted draft account replaced');interactions.push({persistedDraftAccountPreserved:true});await bank.scrollIntoViewIfNeeded();await capture('bank-persisted-draft');}
  if(renderScreen==='series'){const seriesBank=page.getByRole('combobox',{name:/Cuenta bancaria/});await seriesBank.waitFor();if(!(await seriesBank.innerText()).includes('Cuenta internacional'))throw Error('Series account not loaded on edit');await seriesBank.scrollIntoViewIfNeeded();await capture('series-bank-default');interactions.push({seriesBankDefaultLoaded:true});}
  }
+ if(phase==='after'&&process.env.BANK_LAYOUT_REVIEW==='1'&&['invoice','receipt-new','shopify'].includes(renderScreen)){
+  const paymentLabel=renderScreen==='invoice'?'Forma de pago':renderScreen==='receipt-new'?'Forma de pago del recibo':'Forma de pago Shopify';
+  const inside=await page.getByRole('combobox',{name:'Cuenta bancaria',exact:true}).evaluate(el=>{
+   const section=el.closest('section');const payment=[...document.querySelectorAll('[role="combobox"]')].find(e=>/^Forma de pago/.test(e.getAttribute('aria-label')||''));
+   return Boolean(section&&section===payment?.closest('section')&&section.textContent.includes('Fechas y cobro'));
+  });if(!inside)throw Error('Bank field outside collection card');
+  await choose(paymentLabel,'Efectivo');if(await page.getByRole('combobox',{name:'Cuenta bancaria',exact:true}).count())throw Error('Bank field visible for cash');
+  await page.getByRole('combobox',{name:paymentLabel,exact:true}).scrollIntoViewIfNeeded();await capture('cash-no-bank');
+  await choose(paymentLabel,'Transferencia bancaria');if(!await page.getByRole('combobox',{name:'Cuenta bancaria',exact:true}).count())throw Error('Bank field missing on return to transfer');
+  interactions.push({bankInsideCollectionCard:true,cashHidesBank:true,returnToTransferRestoresBank:true});
+ }
  const proof=await page.evaluate(()=>({documentOverflow:document.documentElement.scrollWidth>innerWidth,comboboxes:[...document.querySelectorAll('[role="combobox"]')].map(e=>({label:e.getAttribute('aria-label'),text:e.textContent.trim(),disabled:e.getAttribute('aria-disabled')})),buttons:[...document.querySelectorAll('.modalActions button,.settingsSectionActions button')].map(e=>({text:e.textContent.trim(),disabled:e.disabled})),warnings:[...document.querySelectorAll('.errorBox,[role="alert"]')].map(e=>e.textContent.trim()),bankText:[...document.querySelectorAll('[class*="bank" i]')].map(e=>e.textContent.trim()).filter(Boolean),calls:globalThis.bankFixtureCalls}));
  if(errors.length||proof.documentOverflow)throw Error(JSON.stringify({screen,width,errors,proof}));checks.push({screen,width,interactions,...proof,errors,captures});await page.close();}}finally{await browser.close()}
 const rawManifest={phase,baseline,sourceMode:phase==='before'?'git show immutable baseline':'working tree',synthetic:true,networkBlocked:true,clock:'2026-10-21T12:00:00Z',scope:'Offline real forms, SettingsProvider and Sidebar; synthetic persistence only, no production E2E or writes',fixtureSha256:hash(await readFile('scripts/fixtures/bank-account-data.mjs')),sourceSha256:hashes,cssImports:[...cssImports],resolvedCssSources:Object.keys(hashes).filter(p=>p.endsWith('.css')),cssSha256:hash(css),jsSha256:hash(js),mockedModules:[...mocks.keys(),...boundaryFiles],virtualExports:['GeneralSection exported for isolated capture without changing implementation'],checks};
@@ -85,6 +96,7 @@ await writeFile(resolve(archive,`${phase}-raw-manifest.json`),JSON.stringify(raw
 const statesBefore={'general':['bank-section'],'invoice':['payment'],'invoice-edit':['payment'],'receipt-new':['top'],'receipt-edit':['top'],'shopify':['top'],'series':['edit-series']};
 const statesAfter={'general':['global-default-changed','edit-account'],'general-missing':['bank-section'],'invoice':['bank-series-default','bank-manual-override'],'invoice-edit':['bank-persisted-draft'],'invoice-missing':['missing-bank-warning'],'invoice-edit-snapshot':['bank-readonly-snapshot'],'invoice-edit-legacy':['bank-readonly-snapshot'],'invoice-edit-legacy-missing':['bank-readonly-snapshot'],'invoice-edit-stale':['archived-bank-warning'],'receipt-new':['bank-manual-override'],'receipt-new-missing':['missing-bank-warning'],'receipt-edit':['bank-readonly-snapshot'],'receipt-edit-snapshot':['bank-readonly-snapshot'],'shopify':['bank-series-default','bank-manual-override'],'shopify-missing':['missing-bank-warning'],'shopify-snapshot':['bank-readonly-snapshot'],'series':['series-bank-default']};
 let rawCount=0;
+if(process.env.BANK_LAYOUT_REVIEW==='1'&&phase==='after')for(const screen of ['invoice','receipt-new','shopify'])statesAfter[screen].push('cash-no-bank');
 const curated=checks.map(c=>{const states=(phase==='before'?statesBefore:statesAfter)[c.screen];if(!states)throw Error('Missing curation policy '+c.screen);rawCount+=c.captures.length;const allStates=c.captures.map(shot=>shot.state),retained=c.captures.filter(shot=>states.includes(shot.state));if(retained.length!==states.length)throw Error('Missing curated state '+c.screen);return{...c,captureValidation:{allStates,allPassed:true,deliveredStates:states},captures:retained}});
 for(const c of checks)for(const shot of c.captures){await copyFile(resolve(output,shot.file),resolve(archive,shot.file));if(!(phase==='before'?statesBefore:statesAfter)[c.screen].includes(shot.state))await unlink(resolve(output,shot.file));}
 const keptCount=curated.reduce((n,c)=>n+c.captures.length,0);

@@ -21,3 +21,5 @@
 .bankAccountSnapshot dd{margin:0;overflow-wrap:anywhere}.bankAccountSnapshot dt{color:var(--muted,#777)}
 @media(max-width:640px){.bankAccountEditor form{grid-template-columns:minmax(0,1fr)}.bankAccountRow{align-items:stretch;flex-direction:column}.bankAccountActions>*{flex:1}.bankAccountSnapshot dl{grid-template-columns:minmax(0,1fr);gap:4px}.bankAccountSnapshot dd{margin-bottom:8px}}
 .bankAccountEditor input[type="checkbox"]{width:auto;align-self:flex-start}
+
+.salesInvoiceMeta .bankAccountField,.salesFormGrid .bankAccountField{margin-top:0}

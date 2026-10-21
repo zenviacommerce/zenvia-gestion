@@ -6,7 +6,7 @@ import {ReceiptModal} from '../src/pages/SalesReceipts';
 import {OrderInvoiceModal} from '../src/components/OrderInvoiceModal';
 import {SeriesManagerModal} from '../src/components/SalesConfigurationModals';
 
-const api=vi.hoisted(()=>({accounts:[] as any[],settings:{} as any,saveInvoice:vi.fn(),saveReceipt:vi.fn(),updateReceipt:vi.fn(),orderSave:vi.fn(),seriesSave:vi.fn(),updateInvoice:vi.fn()}));
+const api=vi.hoisted(()=>({accounts:[] as any[],bankLoadError:false,settings:{} as any,saveInvoice:vi.fn(),saveReceipt:vi.fn(),updateReceipt:vi.fn(),orderSave:vi.fn(),seriesSave:vi.fn(),updateInvoice:vi.fn()}));
 vi.mock('../src/context/SettingsContext',()=>({useSettings:()=>({settings:api.settings,preferences:DEFAULT_USER_PREFERENCES})}));
 vi.mock('../src/services/sales',async original=>({...await original<any>(),
  loadBusinessSettings:async()=>({legalName:'Empresa prueba',countryCode:'ES'}),
@@ -19,17 +19,33 @@ vi.mock('../src/services/sales',async original=>({...await original<any>(),
 vi.mock('../src/services/salesConfig',async original=>({...await original<any>(),loadTaxRegistrations:async()=>[],loadManagedSalesSeries:async()=>[],addSalesSeries:(input:any)=>api.seriesSave(input)}));
 vi.mock('../src/services/salesInvoiceNumber',()=>({updateSalesInvoiceNumber:async()=>{}}));
 vi.mock('../src/services/salesReceipts',async original=>({...await original<any>(),createSalesReceipt:(...args:any[])=>api.saveReceipt(...args),updateSalesReceipt:(...args:any[])=>api.updateReceipt(...args)}));
-vi.mock('../src/services/businessBankAccounts',async original=>({...await original<any>(),loadBusinessBankAccounts:async()=>api.accounts}));
+vi.mock('../src/services/businessBankAccounts',async original=>({...await original<any>(),loadBusinessBankAccounts:async()=>{if(api.bankLoadError)throw Error('Bank lookup unavailable');return api.accounts}}));
 vi.mock('../src/services/companyBranding',async original=>({...await original<any>(),loadCompanyBranding:async()=>({logoPath:null,logoDataUrl:null})}));
 vi.mock('../src/services/orderInvoices',()=>({prepareOrderInvoice:async()=>({invoice:null,lines:[{position:1,description:'Pedido prueba',quantity:1,unitPrice:10,discountPercent:0,taxRate:21}]}),saveOrderInvoice:(...args:any[])=>api.orderSave(...args)}));
 const a={id:'a',alias:'Principal',iban:'ES9121000418450200051332',bic:'CAIXESBBXXX',holder:'Empresa prueba',isDefault:true,archivedAt:null,validationStatus:'valid'};
 const b={...a,id:'b',alias:'Ventas',iban:'DE89370400440532013000',isDefault:false};
-beforeEach(()=>{api.accounts=[a,b];api.settings=structuredClone(DEFAULT_APP_SETTINGS);api.settings.sales.defaultSeriesId='s1';api.saveInvoice.mockReset().mockResolvedValue('invoice');api.saveReceipt.mockReset().mockResolvedValue('receipt');api.updateReceipt.mockReset().mockResolvedValue(undefined);api.orderSave.mockReset().mockResolvedValue({id:'new',status:'issued'});api.seriesSave.mockReset().mockResolvedValue(undefined);api.updateInvoice.mockReset().mockResolvedValue(undefined)});
+beforeEach(()=>{api.bankLoadError=false;api.accounts=[a,b];api.settings=structuredClone(DEFAULT_APP_SETTINGS);api.settings.sales.defaultSeriesId='s1';api.saveInvoice.mockReset().mockResolvedValue('invoice');api.saveReceipt.mockReset().mockResolvedValue('receipt');api.updateReceipt.mockReset().mockResolvedValue(undefined);api.orderSave.mockReset().mockResolvedValue({id:'new',status:'issued'});api.seriesSave.mockReset().mockResolvedValue(undefined);api.updateInvoice.mockReset().mockResolvedValue(undefined)});
 afterEach(cleanup);
 const clients=[{id:'client',name:'Cliente prueba',countryCode:'ES'}];
 async function choose(label:string,option:RegExp|string){fireEvent.click(screen.getByRole('combobox',{name:label}));fireEvent.click(await screen.findByRole('option',{name:option}));}
 function invoice(){return render(<InvoiceModal open invoice={null} clients={clients} products={[]} onClose={()=>{}} onSaved={async()=>{}}/>)}
 describe('bank choices on real document forms',()=>{
+ it('keeps the bank next to payment inside the invoice collection card and hides it for cash',async()=>{
+  invoice();const bank=await screen.findByRole('combobox',{name:'Cuenta bancaria'});
+  expect(bank.closest('section')).toBe(screen.getByRole('combobox',{name:'Forma de pago'}).closest('section'));
+  await choose('Forma de pago','Efectivo');expect(screen.queryByRole('combobox',{name:'Cuenta bancaria'})).toBeNull();
+  await choose('Forma de pago','Transferencia bancaria');expect(screen.getByRole('combobox',{name:'Cuenta bancaria'})).toBeTruthy();
+ });
+ it('shows receipt bank only for transfers inside the collection card',async()=>{
+  render(<ReceiptModal receipt={null} clients={clients} products={[]} onClose={()=>{}} onSaved={async()=>{}}/>);
+  const bank=await screen.findByRole('combobox',{name:'Cuenta bancaria'});expect(bank.closest('section')).toBe(screen.getByRole('combobox',{name:'Forma de pago del recibo'}).closest('section'));
+  await choose('Forma de pago del recibo','Efectivo');expect(screen.queryByRole('combobox',{name:'Cuenta bancaria'})).toBeNull();
+ });
+ it('shows Shopify bank only for transfers inside the collection card',async()=>{
+  render(<OrderInvoiceModal order={{id:'order',orderNumber:'#123',billingAddress:{name:'Cliente',address_line_1:'Calle prueba',postal_code:'28001',city:'Madrid',country_code:'ES'},shippingAddress:{},customerName:'Cliente',customerEmail:'',currency:'EUR'} as any} onClose={()=>{}} onSaved={()=>{}}/>);
+  const bank=await screen.findByRole('combobox',{name:'Cuenta bancaria'});expect(bank.closest('section')).toBe(screen.getByRole('combobox',{name:'Forma de pago Shopify'}).closest('section'));
+  await choose('Forma de pago Shopify','Efectivo');expect(screen.queryByRole('combobox',{name:'Cuenta bancaria'})).toBeNull();
+ });
  it('resolves series/global defaults and preserves a manual invoice override on series change',async()=>{
   invoice();expect(await screen.findByRole('combobox',{name:'Cuenta bancaria'})).toBeTruthy();
   await waitFor(()=>expect(screen.getByRole('combobox',{name:'Cuenta bancaria'}).textContent).toContain('Principal'));
@@ -56,7 +72,7 @@ describe('bank choices on real document forms',()=>{
 });
 
 it('shows an archived draft selection as unavailable without silently using the current default',async()=>{
- const draft={id:'draft-old',clientId:'client',seriesId:'s1',issueDate:'2026-10-01',invoiceType:'standard',invoiceNumber:'A-0001',lines:[],bankAccountId:'archived'};
+ const draft={id:'draft-old',clientId:'client',seriesId:'s1',issueDate:'2026-10-01',invoiceType:'standard',invoiceNumber:'A-0001',paymentMethod:'Transferencia bancaria',paymentMethodId:'bank_transfer',lines:[],bankAccountId:'archived'};
  render(<InvoiceModal open invoice={draft as any} clients={clients} products={[]} onClose={()=>{}} onSaved={async()=>{}}/>);
  expect(await screen.findByRole('combobox',{name:'Cuenta bancaria'})).toBeTruthy();
  await waitFor(()=>expect(screen.getByRole('combobox',{name:'Cuenta bancaria'}).textContent).toContain('Cuenta no disponible'));
@@ -95,4 +111,19 @@ it('does not offer a no-bank override that the server would replace with a defau
  invoice();await waitFor(()=>expect(screen.getByRole('combobox',{name:'Cuenta bancaria'}).textContent).toContain('Principal'));
  fireEvent.click(screen.getByRole('combobox',{name:'Cuenta bancaria'}));await screen.findByRole('option',{name:/Ventas/});
  expect(screen.queryByRole('option',{name:'Sin cuenta bancaria'})).toBeNull();
+});
+
+it.each(['invoice','receipt','shopify'])('allows cash %s when the hidden bank lookup fails',async kind=>{
+ api.bankLoadError=true;
+ if(kind==='invoice')invoice();
+ else if(kind==='receipt')render(<ReceiptModal receipt={null} clients={clients} products={[]} onClose={()=>{}} onSaved={async()=>{}}/>);
+ else render(<OrderInvoiceModal order={{id:'order',orderNumber:'#123',billingAddress:{name:'Cliente',address_line_1:'Calle prueba',postal_code:'28001',city:'Madrid',country_code:'ES'},shippingAddress:{},customerName:'Cliente',customerEmail:'',currency:'EUR'} as any} onClose={()=>{}} onSaved={()=>{}}/>);
+ await screen.findByText('Bank lookup unavailable');
+ await choose(kind==='invoice'?'Forma de pago':kind==='receipt'?'Forma de pago del recibo':'Forma de pago Shopify','Efectivo');
+ if(kind==='invoice')fireEvent.change(screen.getByPlaceholderText('Producto o servicio facturado'),{target:{value:'Servicio'}});
+ if(kind==='receipt')fireEvent.change(screen.getByLabelText('Descripción'),{target:{value:'Servicio'}});
+ const save=kind==='invoice'?api.saveInvoice:kind==='receipt'?api.saveReceipt:api.orderSave;
+ fireEvent.click(screen.getByRole('button',{name:kind==='receipt'?'Guardar recibo':'Guardar borrador',exact:true}));
+ await waitFor(()=>expect(save).toHaveBeenCalled());
+ expect(save.mock.calls[0][kind==='shopify'?1:0]).toMatchObject({bankAccountId:null,paymentMethodId:'cash'});
 });

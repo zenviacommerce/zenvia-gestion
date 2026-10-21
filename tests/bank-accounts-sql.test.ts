@@ -22,6 +22,8 @@ it('migrates idempotently and freezes bank data across account changes, archive,
  INSERT INTO sales_receipts VALUES('${id(20)}','${owner}');
  SET test.owner='${owner}';SET test.uid='${owner}';SET test.admin='yes';SET test.sales='yes';SET test.mfa='yes';`);
  await db.exec(sql);await db.exec(sql);
+ expect((await db.query<any>('select count(*)::int n from private.bank_release_20261021_sales_invoices')).rows[0].n).toBe(2);
+ expect((await db.query<any>("select has_table_privilege('authenticated','private.bank_release_20261021_business_settings','SELECT') allowed")).rows[0].allowed).toBe(false);
  expect((await db.query<any>('select count(*)::int n from business_bank_accounts')).rows[0].n).toBe(2);
  const legacy=(await db.query<any>(`select bank_account_snapshot,bank_snapshot_source from sales_invoices where id='${id(10)}'`)).rows[0];
  expect(legacy.bank_account_snapshot.iban).toBe(' es91 2100 0418 4502 0005 1332 ');expect(legacy.bank_snapshot_source).toBe('legacy_current_render');

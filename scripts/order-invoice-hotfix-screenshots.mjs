@@ -9,7 +9,7 @@ await mkdir(output,{recursive:true});
 const main=await readFile('src/main.tsx','utf8');
 const paths=[...new Set([...main.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map(m=>'src/'+m[1].replace('./','')).concat(['src/sales.css','src/shared-forms.css']))];
 const css=(await Promise.all(paths.map(p=>readFile(p,'utf8')))).join('\n');
-const browser=await chromium.launch({executablePath:process.env.INVOICE_CHROMIUM,args:['--no-sandbox','--disable-dev-shm-usage']});
+const browser=await chromium.launch({executablePath:process.env.INVOICE_CHROMIUM,args:['--no-sandbox','--disable-dev-shm-usage','--lang=es-ES','--accept-lang=es-ES,es'],env:{...process.env,LANG:'es_ES.UTF-8',LC_ALL:'es_ES.UTF-8'}});
 const checks=[];
 try{for(const phase of ['before','after']){
  const entry=`import React from 'react';import {createRoot} from 'react-dom/client';import {OrderInvoiceModal} from './src/components/OrderInvoiceModal';import {shopifyInvoiceLines} from './src/services/shopifyInvoiceCore';

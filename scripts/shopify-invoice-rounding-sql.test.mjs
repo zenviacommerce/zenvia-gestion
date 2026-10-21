@@ -31,5 +31,16 @@ test('Shopify included-tax invoice #1023 totals 40.98; manual, Amazon and receip
  assert.equal((await db.query("select private.sales_shopify_tax_included('10000000-0000-0000-0000-000000000006') included")).rows[0].included,false,'foreign workspace cannot inspect a fiscal flag');
  const receipt=await insert('10000000-0000-0000-0000-000000000004','receipt',null,0);assert.deepEqual(receipt.map(x=>Number(x.tax_amount)),[0,0]);
  await assert.rejects(()=>insert('10000000-0000-0000-0000-000000000005','receipt',null,21),/IVA 0/);
+ // Exercise real receipt creation, numbering and totals in the isolated database.
+ const receiptSql=await readFile(new URL('../supabase/migrations/20260928133000_sales_receipts.sql',import.meta.url),'utf8');
+ await db.exec('create table sales_receipt_counters(owner_id uuid,year integer,next_number integer,primary key(owner_id,year));create table sales_receipts(id uuid primary key,owner_id uuid,receipt_date date,receipt_number text,total_amount numeric default 0);create table sales_receipt_lines(receipt_id uuid,quantity numeric,unit_price numeric,discount_percent numeric,invoice_tax_rate numeric,line_total numeric);');
+ for(const name of ['assign_sales_receipt_number','sales_receipt_line_calculate','recalculate_sales_receipt_total'])await db.exec(receiptSql.match(new RegExp('create or replace function private\\.'+name+'\\(\\)[\\s\\S]*?\\$\\$;','i'))[0]);
+ await db.exec('create trigger number before insert on sales_receipts for each row execute function private.assign_sales_receipt_number();create trigger receipt_calc before insert or update on sales_receipt_lines for each row execute function private.sales_receipt_line_calculate();create trigger receipt_total after insert or update or delete on sales_receipt_lines for each row execute function private.recalculate_sales_receipt_total();begin;');
+ const receiptId='20000000-0000-0000-0000-000000000001';
+ await db.query("insert into sales_receipts(id,owner_id,receipt_date) values($1,'00000000-0000-0000-0000-000000000099','2026-10-21')",[receiptId]);
+ await db.query('insert into sales_receipt_lines(receipt_id,quantity,unit_price,discount_percent,invoice_tax_rate) values($1,2,12.99,10,21)',[receiptId]);
+ const created=(await db.query('select receipt_number,total_amount from sales_receipts where id=$1',[receiptId])).rows[0];
+ assert.equal(created.receipt_number,'REC-2026-0001');assert.equal(Number(created.total_amount),23.38,'receipt retains future invoice rate but does not add VAT');
+ await db.exec('rollback');assert.equal((await db.query('select count(*)::int n from sales_receipts')).rows[0].n,0);
  }finally{await db.close()}
 });

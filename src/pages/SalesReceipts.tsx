@@ -15,7 +15,7 @@ import { StatCard } from '../components/StatCard';
 import { BulkSelectCheckbox, BulkSelectionToolbar } from '../components/BulkSelectionToolbar';
 import { PeriodFilterPanel } from '../components/PeriodFilterPanel';
 import { RecordDetailDrawer } from '../components/RecordDetailDrawer';
-import { SortableTableHeader, useSortableTable } from '../components/SortableTableHeader';
+import { SortableTableHeader, TableSortReset, useSortableTable } from '../components/SortableTableHeader';
 import { useSettings } from '../context/SettingsContext';
 import { loadBillableProducts, type BillableProduct } from '../services/billableProducts';
 import { loadCompanyBranding, type CompanyBranding } from '../services/companyBranding';
@@ -360,7 +360,7 @@ export function SalesReceipts(){
       <button className="secondary" type="button" disabled={!collectableSelected.length||busy} onClick={()=>setBulkPaymentReceipts(collectableSelected)}><Banknote size={15}/> Cobrar seleccionados ({collectableSelected.length})</button>
       <button className="primary" type="button" disabled={!selectedRows.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={15}/> Facturar seleccionados ({selectedRows.length})</button>
     </BulkSelectionToolbar>}
-    <section className="card tableCard salesReceiptTableCard">
+    <TableSortReset sorting={sorting}/><section className="card tableCard salesReceiptTableCard">
       {loading?<div className="emptyState large">Cargando recibos…</div>:sortedReceipts.length?<table><thead><tr>
         <th className="bulkSelectionCell"><BulkSelectCheckbox checked={allVisibleSelected} onChange={toggleAllVisible} label={allVisibleSelected?'Deseleccionar recibos visibles':'Seleccionar recibos visibles'}/></th>
         <SortableTableHeader label="Recibo" sortKey="number" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>

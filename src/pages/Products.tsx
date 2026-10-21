@@ -141,6 +141,7 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
    margin:p=>productMetrics(p,salesMap.get(p.id)).marginPct,
    costChange:p=>productMetrics(p,salesMap.get(p.id)).delta,
  },{key:'product',direction:'asc'});
+ useEffect(()=>{setPage(1)},[sorting.sort.key,sorting.sort.direction]);
  const sorted=sorting.rows;
  const totalPages=Math.max(1,Math.ceil(sorted.length/pageSize));
  const paged=useMemo(()=>sorted.slice((page-1)*pageSize,page*pageSize),[sorted,page,pageSize]);
@@ -248,7 +249,7 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
         </BulkSelectionToolbar>
       )}
 
-      <DataTable label="Lista de productos">
+      <DataTable sorting={sorting} label="Lista de productos">
         {shown.length?(
           <table className="masterTable" data-preference-table="products">
             <thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allShownSelected} indeterminate={shown.some(item=>checkedIds.has(item.id))&&!allShownSelected} onChange={toggleAllProducts} label={allShownSelected?'Deseleccionar productos visibles':'Seleccionar productos visibles'}/></th>{columns.map(columnHeader)}<th></th></tr></thead>

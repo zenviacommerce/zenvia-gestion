@@ -205,3 +205,9 @@ Soporte, Configuración, Administración y la subpantalla Gmail adoptan los comp
 El guard `scripts/design-final-contract.test.mjs` recorre todas las pantallas/componentes TSX y prohíbe wrappers heredados de cabecera/KPI salvo sus propietarios PageHeader y StatCard; no hay excepciones por pantalla. Los carruseles analíticos especializados aprobados mantienen su contrato propio. Esto certifica los patrones migrados, no elimina cada selector histórico ni convierte los grids de campos de formularios en KPI.
 
 Evidencia final: [galería y alturas](deploy/design-phase3-final-20261020/README.md), 390/1280/1440 px, antes/después, escenarios de acciones/variantes/filtros y navegación cancelada. Este lote requiere revisión del propietario antes de fusionar/publicar.
+
+### Ordenación reversible de listas
+
+Las cabeceras ordenables comparten `useTableSort`/`useSortableTable`: primer clic ascendente, segundo descendente, tercero elimina la preferencia y recupera el orden predeterminado de la pantalla. La flecha y `aria-sort` reflejan siempre el orden efectivo, incluido el predeterminado. `TableSortReset`, integrado también en DataTable, muestra «Restablecer orden» cuando el orden efectivo difiere del predeterminado; permanece accesible en móvil. El restablecimiento elimina la preferencia persistida de esa lista, vuelve a la primera página y conserva la selección por ID. Las respuestas de páginas anteriores no deben sobrescribir la página vigente.
+
+Toda tabla nueva o migrada, incluida Platform, debe adoptar este contrato. El control ligero `scripts/table-sort-reset-contract.test.mjs` audita todos los consumidores actuales; las pruebas de React cubren el ciclo, almacenamiento y parámetros de paginación y el harness de Pedidos verifica la selección entre páginas. No atribuir orden global a una API que solo devuelve una página sin aceptar parámetros de orden.

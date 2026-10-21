@@ -1,0 +1,15 @@
+{
+  "width": 1440,
+  "states": [
+    "order:asc",
+    "order:desc",
+    "orderDate:desc"
+  ],
+  "pageAfterReset": 0,
+  "selectedIds": [
+    "demo-0",
+    "demo-25"
+  ],
+  "storageAfterReset": null,
+  "mobileResetVisible": true
+}

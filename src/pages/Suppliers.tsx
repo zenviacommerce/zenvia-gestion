@@ -125,6 +125,7 @@ export function Suppliers({suppliers,onAdd,onEdit,onDelete}:{suppliers:Supplier[
    spend:s=>metrics.get(s.id)?.total??0,
    lastInvoice:s=>metrics.get(s.id)?.lastDate||'',
  },{key:'supplier',direction:'asc'});
+ useEffect(()=>{setPage(1)},[sorting.sort.key,sorting.sort.direction]);
  const sorted=sorting.rows;
  const totalPages=Math.max(1,Math.ceil(sorted.length/pageSize));
  const paged=useMemo(()=>sorted.slice((page-1)*pageSize,page*pageSize),[sorted,page,pageSize]);
@@ -207,7 +208,7 @@ export function Suppliers({suppliers,onAdd,onEdit,onDelete}:{suppliers:Supplier[
 
     {error&&<div className="errorBox supplierPageError">{error}</div>}
 
-    <DataTable label="Lista de proveedores">
+    <DataTable sorting={sorting} label="Lista de proveedores">
       {filtered.length?(
         <table className="masterTable" data-preference-table="suppliers">
           <thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allFilteredSelected} indeterminate={filtered.some(item=>checkedIds.has(item.id))&&!allFilteredSelected} onChange={toggleAllSuppliers} label={allFilteredSelected?'Deseleccionar proveedores visibles':'Seleccionar proveedores visibles'}/></th>{columns.map(columnHeader)}<th></th></tr></thead>

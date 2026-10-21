@@ -28,7 +28,7 @@ jobs:
       - name: Verify migrated design layouts and data parity
         run: |
           node scripts/design-phase1-screenshots.mjs before
-          node scripts/design-phase1-screenshots.mjs after
+          SORT_RESET_REVIEW=1 node scripts/design-phase1-screenshots.mjs after
       - name: Verify image previews preserve complete images
         run: |
           node scripts/image-preview-screenshots.mjs before

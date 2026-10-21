@@ -1,23 +1,25 @@
 import { AmazonLoading } from './AmazonLoading';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ImageOff, RefreshCw, Search } from 'lucide-react';
 import { isAmazonConnectivityError, loadAmazonInventory, loadAmazonProductImages, type AmazonAnalyticsFilters, type AmazonInventoryAnalytics, type AmazonMarketplaceStatus, type AmazonPageResult } from '../../services/amazon';
 import { errorMessage } from '../../services/toast';
 import { formatAmazonMarketplace } from './marketplaceLabel';
 import { readViewCache, stableCacheKey, writeViewCache } from '../../services/viewCache';
-import { SortableTableHeader, useSortableTable } from '../SortableTableHeader';
+import { SortableTableHeader, TableSortReset, useSortableTable } from '../SortableTableHeader';
 export function AmazonInventory({filters,marketplaces,refreshToken=0}:{filters:AmazonAnalyticsFilters;marketplaces:AmazonMarketplaceStatus[];refreshToken?:number}){
  const [search,setSearch]=useState('');const [page,setPage]=useState(1);const initialKey=stableCacheKey('amazon:inventory',{marketplaceIds:filters.marketplaceIds,search:'',page:1,pageSize:25});const initialData=readViewCache<AmazonPageResult<AmazonInventoryAnalytics>>(initialKey);const [data,setData]=useState<AmazonPageResult<AmazonInventoryAnalytics>>(()=>initialData||{items:[],page:1,pageSize:25,total:0});const [loading,setLoading]=useState(()=>!initialData);const [error,setError]=useState('');const [images,setImages]=useState<Record<string,string>>({});
- const refresh=()=>{const key=stableCacheKey('amazon:inventory',{marketplaceIds:filters.marketplaceIds,search,page,pageSize:25});const cached=readViewCache<AmazonPageResult<AmazonInventoryAnalytics>>(key);if(cached)setData(cached);setLoading(true);setError('');return loadAmazonInventory(filters,search,page,25).then(next=>{setData(next);writeViewCache(key,next);}).catch(e=>{if(!isAmazonConnectivityError(e))setError(errorMessage(e,'No se pudo cargar el inventario.'));}).finally(()=>setLoading(false));};
- useEffect(()=>{void refresh();},[filters.marketplaceIds.join(','),search,page,refreshToken]);
+ const requestRevision=useRef(0);
+ const refresh=()=>{const revision=++requestRevision.current;const key=stableCacheKey('amazon:inventory',{marketplaceIds:filters.marketplaceIds,search,page,pageSize:25});const cached=readViewCache<AmazonPageResult<AmazonInventoryAnalytics>>(key);if(cached)setData(cached);setLoading(true);setError('');return loadAmazonInventory(filters,search,page,25).then(next=>{if(revision===requestRevision.current){setData(next);writeViewCache(key,next);}}).catch(e=>{if(revision===requestRevision.current&&!isAmazonConnectivityError(e))setError(errorMessage(e,'No se pudo cargar el inventario.'));}).finally(()=>{if(revision===requestRevision.current)setLoading(false)});};
+ useEffect(()=>{void refresh();return()=>{requestRevision.current++};},[filters.marketplaceIds.join(','),search,page,refreshToken]);
  useEffect(()=>{const asins=data.items.map(row=>row.asin).filter((value):value is string=>Boolean(value));if(!asins.length){setImages({});return}void loadAmazonProductImages(asins).then(setImages).catch(()=>setImages({}));},[data.items]);
  const sorting=useSortableTable('amazon-inventory',data.items,{
    sku:row=>row.sellerSku,marketplace:row=>formatAmazonMarketplace(row.marketplaceId,marketplaces),
    fulfillable:row=>row.fulfillable,reserved:row=>row.reserved,inbound:row=>row.inbound,
    unfulfillable:row=>row.unfulfillable,researching:row=>row.researching,total:row=>row.total,lastSync:row=>row.lastSync,
  },{key:'sku',direction:'asc'});
+ useEffect(()=>{setPage(1)},[sorting.sort.key,sorting.sort.direction]);
  const rows=sorting.rows;
- return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">FBA</span><strong>Inventario</strong></div><label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU o ASIN"/></label></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}{loading&&<AmazonLoading>Cargando inventario de Amazon…</AmazonLoading>}<div className="amazonTableScroll"><table className="amazonTable"><thead><tr>
+ return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">FBA</span><strong>Inventario</strong></div><label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU o ASIN"/></label></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}{loading&&<AmazonLoading>Cargando inventario de Amazon…</AmazonLoading>}<TableSortReset sorting={sorting}/><div className="amazonTableScroll"><table className="amazonTable"><thead><tr>
 <SortableTableHeader label="SKU" sortKey="sku" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Marketplace" sortKey="marketplace" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Disponible" sortKey="fulfillable" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>

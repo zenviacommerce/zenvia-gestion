@@ -67,3 +67,12 @@ La investigación separó el ruido del navegador de los cambios del paquete: el 
 Revisor independiente: sin bloqueadores; comprobó fuentes y CSS contra git, tarball SSR/TypeScript y `npm ci --offline` en una copia temporal sin dist ni node_modules. Los iconos generados por el build, logs, builds y capturas históricas quedan fuera del cambio.
 
 Estado: preparada para PR en borrador y CI. La publicación continúa detenida para revisión del propietario. El estado de CI no se deduce del resultado local; se consulta en la PR.
+
+
+## Primera CI de la PR #272
+
+Commit `718c9bfb`: build, Auth/Vitest, Node/SQL, Vercel y el workflow nuevo de paridad visual estricta pasan. El workflow visual general falla en `Full filter option labels changed`: el harness de maestros consultaba `getByRole('option')` antes de que el portal fuera visible (su visibilidad cambia en requestAnimationFrame). Los logs muestran listas vacías intermitentes tanto en baseline como en current; la selección se conserva.
+
+Corrección limitada al harness: esperar el listbox identificado por aria-controls y sus opciones visibles; leer sólo ese listado; cerrar desde el combobox y esperar que desaparezca. No se relajan aserciones ni se cambia el producto. Se repite el flujo completo de maestros antes/después y la CI. La comparación de 66 PNG ya fue validada por GitHub Actions en el primer commit.
+
+Verificación del follow-up: flujo real del harness de maestros completo, 9 vistas/anchos antes y 9 después, todas sin fallos; etiquetas completas de todos los filtros y selección conservada en current. [Recibo de opciones y selección](masters-ci-followup.json). Revisor independiente confirma la corrección de sincronización sin cambiar el producto ni relajar aserciones.

@@ -48,8 +48,13 @@ try{for(const screen of ['products','clients','suppliers'])for(const width of (p
 
  const filterOptions=[];
  for(const combo of await page.locator('.businessFilterFields [role="combobox"]').all()){
-  const label=await combo.getAttribute('aria-label');await combo.click();
-  const labels=await page.getByRole('option').allTextContents();filterOptions.push({label,options:labels.map(text=>text.replace(/\s+/g,' ').trim())});await page.keyboard.press('Escape');
+  const label=await combo.getAttribute('aria-label'),listId=await combo.getAttribute('aria-controls');await combo.click();
+  // SearchableSelect reveals its portal on requestAnimationFrame. Role queries
+  // exclude the hidden menu; reading immediately can falsely record no options.
+  const listbox=page.locator('[role="listbox"][id='+JSON.stringify(listId)+']');
+  await listbox.waitFor({state:'visible'});await listbox.getByRole('option').first().waitFor({state:'visible'});
+  const labels=await listbox.getByRole('option').allTextContents();filterOptions.push({label,options:labels.map(text=>text.replace(/\s+/g,' ').trim())});
+  await combo.press('Escape');await listbox.waitFor({state:'detached'});
  }
  await page.evaluate(()=>scrollTo(0,0));
  proof.filterOptions=filterOptions;

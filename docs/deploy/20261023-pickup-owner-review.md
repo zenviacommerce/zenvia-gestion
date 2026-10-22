@@ -52,3 +52,6 @@ where function_oid=v_oid;
 | email | 1440 dark | [Antes](20261023-pickup-owner-before/after-email-1440-dark.png) | [Después](20261023-pickup-owner-after/after-email-1440-dark.png) |
 
 Firma con dedo: [390 claro](20261023-pickup-owner-after/after-finger-390-light.png), [390 oscuro](20261023-pickup-owner-after/after-finger-390-dark.png). Los manifest contienen medidas CSS/retina y hashes.
+
+## Integración posterior a A
+A publicado en main b22007380156cd9bb48b8b339285f7b948acc19d. Conflictos únicamente documentales: conservar tanto la sección de firma como los ajustes del sistema de diseño y el historial de CI. Código de aplicación integrado automáticamente. Se vuelve a exigir CI del commit de integración antes de B.

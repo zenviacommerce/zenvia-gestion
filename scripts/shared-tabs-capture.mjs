@@ -5,7 +5,7 @@ import {resolve} from 'node:path';
 const phase=process.argv[2]||'before';
 if(!['before','after'].includes(phase))throw Error('before or after required');
 const jobs=[['orders-workbench-review.mjs',['orders'],'const output='],['design-phase2-screenshots.mjs',['billing','expenses'],'let options='],['design-phase3-commerce-screenshots.mjs',['amazon','shopify'],'let options='],['design-phase3-final-screenshots.mjs',['support','admin','settings'],'let options=']];
-const out=resolve('docs/deploy/20261022-shared-tabs-review',phase);
+const out=resolve(process.env.TABS_REVIEW_OUTPUT||'docs/deploy/20261022-shared-tabs-review',phase);
 for(const [fixture,screens,marker] of jobs.filter(job=>!process.env.TABS_CAPTURE_JOB||job[0].includes(process.env.TABS_CAPTURE_JOB))){
  let prefix=(await readFile('scripts/'+fixture,'utf8')).split(marker)[0];
  // These fixtures all use the current worktree for both sides; run before editing.
@@ -21,6 +21,7 @@ try{for(const screen of ${JSON.stringify(screens)})for(const theme of ['light','
  await page.setContent('<html lang="es" data-theme="'+theme+'"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>'+css+'*{animation:none!important;transition:none!important}</style></head><body><div id="root"></div><script>'+bundled.outputFiles[0].text.replaceAll('</script','<\\\\/script')+'</script></body></html>');
  await page.evaluate(s=>globalThis.renderFixture(s),screen);await page.getByRole('tablist').waitFor({timeout:10000}).catch(e=>{throw Error(screen+': '+errors.join('; ')+e.message)});await page.waitForTimeout(800);
  const proof=await page.evaluate(()=>({tabs:[...document.querySelectorAll('[role="tab"]')].map(e=>e.textContent.replace(/\\s+/g,' ').trim()),actions:[...document.querySelectorAll('.pageHead button,.dsPageHeader button')].map(e=>e.textContent.trim()),overflow:document.documentElement.scrollWidth>innerWidth}));
+ if(screen==='orders'&&${JSON.stringify(phase)}==='after'){const controls=await page.evaluate(()=>{const buttons=[document.querySelector('.dsPageHeaderActions>button'),document.querySelector('.ordersHeaderMore>summary')];return buttons.map(e=>{const r=e.getBoundingClientRect(),s=getComputedStyle(e);return {height:r.height,font:s.font,whiteSpace:s.whiteSpace,text:e.textContent,icon:!!e.querySelector('svg')}})});if(Math.abs(controls[0].height-controls[1].height)>1||controls[0].font!==controls[1].font||!controls[1].icon)throw Error('Header control mismatch '+JSON.stringify(controls));proof.headerControls=controls;}
  if(errors.length)throw Error(screen+': '+errors.join('; '));if(proof.overflow)throw Error(screen+' overflow '+width);
  const file=screen+'-'+width+'-'+theme+'.png';await page.screenshot({path:captureRoot+'/'+file,animations:'disabled'});results.push({screen,width,theme,file,...proof});
  if(${JSON.stringify(phase)}==='after'){

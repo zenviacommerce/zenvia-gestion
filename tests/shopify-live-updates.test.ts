@@ -19,3 +19,10 @@ it('rejects stale tenant callbacks and rebinds its channel',async()=>{
 it('serializes slow refreshes and schedules one trailing refresh',async()=>{
  vi.useFakeTimers();let done!:()=>void;const refresh=vi.fn(()=>new Promise<void>(resolve=>{done=resolve})),stop=watchShopifyAnalytics(refresh);state.handlers[0]();await vi.advanceTimersByTimeAsync(250);state.handlers[0]();await vi.advanceTimersByTimeAsync(250);expect(refresh).toHaveBeenCalledTimes(1);done();await vi.advanceTimersByTimeAsync(250);expect(refresh).toHaveBeenCalledTimes(2);stop();done();
 });
+it('releases hidden subscriptions and uses a sixty second visible fallback',async()=>{
+ vi.useFakeTimers();let visibility='visible';vi.spyOn(document,'visibilityState','get').mockImplementation(()=>visibility as DocumentVisibilityState);
+ const refresh=vi.fn(),stop=watchShopifyAnalytics(refresh),old=state.handlers[0];
+ await vi.advanceTimersByTimeAsync(59999);expect(refresh).not.toHaveBeenCalled();await vi.advanceTimersByTimeAsync(251);expect(refresh).toHaveBeenCalledTimes(1);
+ visibility='hidden';document.dispatchEvent(new Event('visibilitychange'));expect(state.removed).toHaveBeenCalledTimes(1);old();await vi.advanceTimersByTimeAsync(120000);expect(refresh).toHaveBeenCalledTimes(1);
+ visibility='visible';document.dispatchEvent(new Event('visibilitychange'));old();await vi.advanceTimersByTimeAsync(250);expect(refresh).toHaveBeenCalledTimes(2);stop();
+});

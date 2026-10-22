@@ -14,3 +14,8 @@ export function trackingPresentation(order:TrackingFields,now=Date.now(),staleDa
   staleLabel:state&&!isTerminal(state)&&age!=null&&age>=staleDays?`Sin movimiento registrado en ${age} días`:null,
   error:order.trackingError||null};
 }
+
+// Civil provider timestamps have no timezone: localize their display only.
+export function formatTrackingCivilTime(value:string){
+ return value.replace(/^(\d{4})-(\d{2})-(\d{2})([ T])/,(_match,year,month,day)=>`${day}/${month}/${year} `);
+}

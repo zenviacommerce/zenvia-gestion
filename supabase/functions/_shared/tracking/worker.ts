@@ -35,7 +35,7 @@ export async function runTrackingWorker(admin:any,request:typeof fetch=fetch,env
     }catch(error){
      failed++;errorCode=error instanceof TrackingError?error.code:error instanceof Error&&/^(TRACKING_|MRW_)/.test(error.message)?error.message:'TRACKING_PROVIDER_UNAVAILABLE';
      if(error instanceof TrackingError){providerStatus=error.status;retryAfter=error.retryAfterSeconds;}
-     if(providerStatus===401||providerStatus===403||providerStatus===429||/CREDENTIALS|PASSWORD_REQUIRED|REJECTED/.test(errorCode)){
+     if(providerStatus===401||providerStatus===403||providerStatus===429||/CREDENTIALS|PASSWORD_REQUIRED|REJECTED|ACCESS_DENIED/.test(errorCode)){
       paused.add(accountId);
       await checked(await admin.from('shipment_tracking_account_health').upsert({account_id:accountId,owner_id:job.owner_id,provider:job.provider,last_error:errorCode,paused_until:new Date(Date.now()+(providerStatus===429?Math.max(300000,Math.min(86400000,retryAfter*1000)):6*3600000)).toISOString()}));
      }

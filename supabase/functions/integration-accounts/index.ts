@@ -1,3 +1,4 @@
+import {resumeMrwTrackingAfterCredentialSave} from '../_shared/tracking/credentialResume.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
 import {loadAmazonSpApiCredentials} from '../_shared/amazon/config.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -762,6 +763,7 @@ Deno.serve(async(req:Request)=>{
       }
       const saved=await admin.from('integration_accounts').update(patch).eq('id',id).eq('owner_id',caller.data_owner_id).select('*').single();
       if(saved.error)throw saved.error;
+      await resumeMrwTrackingAfterCredentialSave(admin,account,credentials);
       if(body?.isDefault===true)await makeDefault(admin,caller.data_owner_id,account.provider,id);
       return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,id))});
     }

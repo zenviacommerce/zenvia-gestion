@@ -15,3 +15,5 @@ Capturas antes/después: [galería](20261023-owner-review/README.md). CI anterio
 Build Gestión local correcto; advertencia histórica de chunks>500kB. Ningún dato ni acción de producción modificado durante estas comprobaciones.
 
 CI del primer ajuste detectó el pin de forms.css en shared-ui-package.test.mjs (esperaba el color anterior). Se actualiza exclusivamente la huella del stylesheet aprobado; se conservan todas las demás huellas. Contratos locales se repiten antes del nuevo commit. Esto no fue un fallo del build ni se desactiva el control de paridad.
+
+Segunda CI de A, ejecutada pasada medianoche de Madrid: cuatro variantes de orders-workbench.test.ts comparaban la fecha UTC del test con la fecha de negocio Madrid de los envíos. Se aplica la corrección ya presente en B: p_from/p_to usan (now() at time zone 'Europe/Madrid')::date. Se mantienen resultados esperados, seguridad y consultas de producto. Build/Auth se repiten con este test corregido.

@@ -52,3 +52,5 @@ CI 39860351677 completó las capturas de Pedidos sin pérdidas, pero el test de 
 ## Estabilización de fecha del fixture de bandeja
 
 CI 39862334103 ejecutó 624 pruebas y falló solo en cuatro modos del fixture antiguo de bandeja: a las 22:07 UTC ya era el día siguiente en Madrid, pero p_from/p_to usaban current_date de la sesión UTC. Los envíos se clasifican por día de Madrid. El fixture pasa esa fecha explícita; se conservan las aserciones de 8 enviados, 3 incidencias, permisos y todos los modos. 4/4 focalizadas correctas. No se cambia SQL ni comportamiento del producto. La revisión visual del head anterior ya ha superado abrir/cancelar informes y continúa con las demás pantallas.
+
+Actualización de estado del detalle: un informe firmado/anulado desde el historial del pedido debe refrescar también la pertenencia que queda visible detrás del diálogo. Se emite un evento sin PII tras crear, firmar o anular, y el detalle visible vuelve a leer su estado. Regresión roja y verde; 13/13 pruebas focalizadas de detalle, creación, firma e historial.

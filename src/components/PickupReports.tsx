@@ -1,5 +1,5 @@
 import {FormModal} from '@zenvia/ui';
-import {pickupStatusLabel} from '../services/pickupDocumentState';
+import {pickupStatusLabel,notifyPickupReportsChanged} from '../services/pickupDocumentState';
 import {useFormDialog} from './forms/useFormDialog';
 import {lazy,Suspense,useEffect,useId,useRef,useState} from 'react';
 import {Download,FileText,X} from 'lucide-react';
@@ -23,7 +23,7 @@ export function PickupReportModal({ids,onClose,onCreated,initialCounts}:{ids:str
   if(saving.current)return;
   if(!preview||invalid||!validCounts||(repeated&&!allowDuplicates))return;
   saving.current=true;setBusy(true);setAttempted(true);setError('');const current=generation.current;
-  try{const reports=await createPickupReports(ids,requestId.current,allowDuplicates,counts);if(current!==generation.current)return;setSavedReports(reports);onCreated(reports[0]);if(reports.length===1)try{await downloadPickupReportPdf(reports[0])}catch{setError('Informe '+reports[0].number+' guardado. No se pudo descargar el PDF; vuelve a descargarlo o reimprime desde el historial.')}}
+  try{const reports=await createPickupReports(ids,requestId.current,allowDuplicates,counts);if(current!==generation.current)return;setSavedReports(reports);notifyPickupReportsChanged();onCreated(reports[0]);if(reports.length===1)try{await downloadPickupReportPdf(reports[0])}catch{setError('Informe '+reports[0].number+' guardado. No se pudo descargar el PDF; vuelve a descargarlo o reimprime desde el historial.')}}
   catch(e){if(current===generation.current)setError(errorMessage(e,'No se pudo guardar el informe. Reintentar mantiene la misma solicitud.'))}
   finally{saving.current=false;setBusy(false)};
  };
@@ -56,6 +56,7 @@ export function PickupReportHistory({onClose,orderId,embedded=false,onChanged}:{
 }
 export function PickupOrderMembership({orderId,revision=0,onOpen}:{orderId:string;revision?:number;onOpen:()=>void}){
  const [rows,setRows]=useState<PickupReportSummary[]>([]),[failed,setFailed]=useState(false),[loading,setLoading]=useState(true),[retry,setRetry]=useState(0);
+ useEffect(()=>{const changed=()=>setRetry(n=>n+1);window.addEventListener('zenvia:pickup-reports-changed',changed);return()=>window.removeEventListener('zenvia:pickup-reports-changed',changed)},[]);
  useEffect(()=>{let alive=true;setFailed(false);setLoading(true);void listPickupReports(orderId,true).then(data=>{if(alive)setRows(data)}).catch(()=>{if(alive)setFailed(true)}).finally(()=>{if(alive)setLoading(false)});return()=>{alive=false}},[orderId,revision,retry]);
  return <section className="ordersDrawerSection"><h3><FileText size={16}/> Recogida</h3>{loading?<p role="status">Consultando informes…</p>:failed?<button className="link" onClick={()=>setRetry(v=>v+1)}>No se pudieron consultar los informes · Reintentar</button>:rows.length?<><p>Incluido en el informe {rows.map(r=>r.number+' · '+(r.carriers?.join(' / ')||'')+' · '+pickupStatusLabel(r.document?.status)).join(', ')}</p><button className="secondary" onClick={onOpen}>Consultar y reimprimir</button></>:<p className="muted">Todavía no figura en un informe de recogida.</p>}</section>;
 }

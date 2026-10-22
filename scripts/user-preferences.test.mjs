@@ -57,7 +57,7 @@ test('visible table columns honor saved order and ignore unknown keys',async()=>
     rememberFilters:true,
     tableColumns:{clients:['client','country','pending']},
     tableColumnOrder:{clients:['pending','unknown','client']},
-    dashboardKpis:[],filters:{},labelPrinterId:null,
+    dashboardKpis:[],filters:{},
   };
   assert.deepEqual(orderedTableColumns(preferences,'clients'),['pending','client','country']);
 });
@@ -95,7 +95,7 @@ test('remembered filters persist as a partial patch and cannot overwrite theme o
   const preferences={
     theme:'light',density:'spacious',pageSize:50,startPage:'sales',defaultPeriod:'current_month',
     rememberFilters:true,tableColumns:{clients:['client']},tableColumnOrder:{clients:['client']},
-    dashboardKpis:['sales'],filters:{},labelPrinterId:'printer-1',
+    dashboardKpis:['sales'],filters:{},
   };
   let patch=null;
   const changed=await persistRememberedFilter(preferences,async value=>{patch=value},'clients.filters',{query:'abc'});
@@ -113,7 +113,7 @@ test('automatic preference writers patch shared preferences while manual theme s
   assert.doesNotMatch(app,/patchPreferences\(\{theme:next\}\)/);
   assert.match(app,/DEVICE_THEME_OVERRIDE_KEY/);
   assert.match(app,/safeStorageSet\('local',DEVICE_THEME_OVERRIDE_KEY,next\)/);
-  assert.match(orders,/patchPreferences\(\{labelPrinterId:/);
+  assert.doesNotMatch(orders,/labelPrinterId/);
   assert.doesNotMatch(orders,/updatePreferences\(\{\.\.\.preferences,labelPrinterId:/);
   assert.match(dashboard,/persistRememberedFilter\(preferences,patchPreferences/);
 });
@@ -123,4 +123,12 @@ test('preference patch service reloads the persisted row and merges nested filte
   assert.match(source,/export async function patchUserPreferences/);
   assert.match(source,/const current=await loadUserPreferences\(\)/);
   assert.match(source,/filters:patch\.filters\?\{\.\.\.current\.filters,\.\.\.patch\.filters\}:current\.filters/);
+});
+
+test('retired printer preference is discarded without warnings or damage to existing profiles',async()=>{
+ const {normalizeUserPreferences}=await transpiled('../src/services/settingsSchema.ts');
+ const result=normalizeUserPreferences({labelPrinterId:'retired-device',theme:'dark',pageSize:50});
+ assert.equal(result.value.theme,'dark');assert.equal(result.value.pageSize,50);
+ assert.equal(Object.hasOwn(result.value,'labelPrinterId'),false);
+ assert.equal(result.warnings.some(w=>JSON.stringify(w).includes('labelPrinterId')),false);
 });

@@ -3,9 +3,9 @@
 .page .tableCard th,.page .masterTable th,.page .ordersTable th{font-size:var(--ui-font-xs,12px);line-height:1.25;letter-spacing:.015em}
 .page .tableCard td,.page .masterTable td,.page .ordersTable td{font-size:var(--ui-font-md,14px);line-height:1.4}
 .page .tableCard td small,.page .masterTable td small,.page .ordersTable td small{font-size:var(--ui-font-xs,12px);line-height:1.35}
-.page .search input,.page .toolbar select,.page .salesToolbar select,.page .auditFilters select,.page .masterPeriodDates input,.page .ordersPrinterBar select{font-size:var(--ui-font-md,14px)!important}
+.page .search input,.page .toolbar select,.page .salesToolbar select,.page .auditFilters select,.page .masterPeriodDates input{font-size:var(--ui-font-md,14px)!important}
 .page .toolbar button,.page .masterFilters button,.page .masterPeriodQuick button,.page .ordersFilterGroup button,.page .adminTabs button,.page .gmailFilterBar select{font-size:var(--ui-font-control,13.5px)!important}
-.page .filterResultCount,.page .gmailFilterSummary,.page .masterToolbar,.page .ordersPrinterBar{font-size:var(--ui-font-sm,13px)}
+.page .filterResultCount,.page .gmailFilterSummary,.page .masterToolbar{font-size:var(--ui-font-sm,13px)}
 .page .masterMobileRow,.page .ordersMobileRow,.page .gmailImportRow,.page .adminUserRow,.page .auditRow{font-size:var(--ui-font-md,14px)}
 .page .masterMobileRow small,.page .ordersMobileRow small,.page .gmailImportRow small,.page .adminUserRow small,.page .auditRow small{font-size:12px}
 .page .masterContactCell span,.page .masterEntityCell strong,.page .gmailImportMain strong,.page .auditMain strong{font-size:var(--ui-font-md,14px)}

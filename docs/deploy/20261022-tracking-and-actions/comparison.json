@@ -1,0 +1,585 @@
+[
+  {
+    "width": 390,
+    "intentionallyRemoved": [
+      "Impresión directa"
+    ],
+    "drawerComparisons": [],
+    "originalHeaderActions": [
+      {
+        "name": " Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": " Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": " Facturación manual de Shopify",
+        "disabled": false
+      }
+    ],
+    "reachableAfterActions": [
+      " Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      " Facturación manual de Shopify",
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      "Facturación manual de Shopify",
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida",
+      "Añadir filtro",
+      "Seleccionar todos de esta página",
+      "Ver selección",
+      "Quitar selección",
+      "Generar etiquetas seleccionadas (0)",
+      "Generar etiquetas pendientes (15)",
+      "Anterior",
+      "Siguiente",
+      "Canal",
+      "Pedido",
+      "Cliente",
+      "Productos",
+      "Destino",
+      "Transportista",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Seguimiento",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      "AmazonDEMO-001Cliente demostración 1 · 1 kg · Correos Express · Envío —Pedido 18/09/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más121,00 €PendienteSin información",
+      "ShopifyDEMO-002Cliente demostración 2 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más122,21 €PendienteSin información",
+      "OtroDEMO-003Cliente demostración 3 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más123,42 €PendienteSin información",
+      "AmazonDEMO-004Cliente demostración 4 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más124,63 €PendienteSin información",
+      "ShopifyDEMO-005Cliente demostración 5 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más125,84 €PendienteSin información",
+      "OtroDEMO-006Cliente demostración 6 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más127,05 €PendienteSin información",
+      "AmazonDEMO-007Cliente demostración 7 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más128,26 €PendienteSin información",
+      "ShopifyDEMO-008Cliente demostración 8 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más129,47 €PendienteSin información",
+      "OtroDEMO-009Cliente demostración 9 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más130,68 €PendienteSin información",
+      "AmazonDEMO-010Cliente demostración 10 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más131,89 €PendienteSin información",
+      "ShopifyDEMO-011Cliente demostración 11 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más133,10 €PendienteSin información",
+      "OtroDEMO-012Cliente demostración 12 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más134,31 €PendienteSin información",
+      "AmazonDEMO-013Cliente demostración 13 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más135,52 €PendienteSin información",
+      "ShopifyDEMO-014Cliente demostración 14 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más136,73 €PendienteSin información",
+      "OtroDEMO-015Cliente demostración 15 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más137,94 €PendienteSin información",
+      "Anterior",
+      "Siguiente",
+      " Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      " Facturación manual de Shopify",
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      "Facturación manual de Shopify",
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida",
+      "Añadir filtro",
+      "Seleccionar todos de esta página",
+      "Ver selección",
+      "Quitar selección",
+      "Anterior",
+      "Siguiente",
+      "Pedido",
+      "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
+      "Productos",
+      "Destino",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      "Abrir seguimiento de DEMO-026 en MRW",
+      "Abrir seguimiento de DEMO-027 en Correos Express",
+      "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+      "Abrir seguimiento de DEMO-026 en MRW",
+      "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+      "Abrir seguimiento de DEMO-027 en Correos Express",
+      "Anterior",
+      "Siguiente"
+    ],
+    "columnsPreserved": true,
+    "firstRowBefore": 586,
+    "firstRowAfter": 586,
+    "documentHorizontalOverflow": 0
+  },
+  {
+    "width": 1280,
+    "intentionallyRemoved": [
+      "Impresión directa"
+    ],
+    "drawerComparisons": [
+      {
+        "context": "pending",
+        "order": "Pedido DEMO-001",
+        "before": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Editar pedido",
+            "disabled": false
+          },
+          {
+            "name": "Preparar etiqueta",
+            "disabled": false
+          }
+        ],
+        "after": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Editar pedido",
+            "disabled": false
+          },
+          {
+            "name": "Preparar etiqueta",
+            "disabled": false
+          }
+        ],
+        "preserved": true
+      },
+      {
+        "context": "pending",
+        "order": "Pedido DEMO-002",
+        "before": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Generar / ver factura",
+            "disabled": false
+          },
+          {
+            "name": "Editar pedido",
+            "disabled": false
+          },
+          {
+            "name": "Preparar etiqueta",
+            "disabled": false
+          }
+        ],
+        "after": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Generar / ver factura",
+            "disabled": false
+          },
+          {
+            "name": "Editar pedido",
+            "disabled": false
+          },
+          {
+            "name": "Preparar etiqueta",
+            "disabled": false
+          }
+        ],
+        "preserved": true
+      },
+      {
+        "context": "issues",
+        "order": "Pedido DEMO-026",
+        "before": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Consultar manualmente en MRW",
+            "disabled": false
+          },
+          {
+            "name": "Generar / ver factura",
+            "disabled": false
+          },
+          {
+            "name": "Descargar",
+            "disabled": false
+          },
+          {
+            "name": "Imprimir",
+            "disabled": false
+          }
+        ],
+        "after": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Consultar manualmente en MRW",
+            "disabled": false
+          },
+          {
+            "name": "Generar / ver factura",
+            "disabled": false
+          },
+          {
+            "name": "Descargar",
+            "disabled": false
+          },
+          {
+            "name": "Imprimir",
+            "disabled": false
+          }
+        ],
+        "preserved": true
+      },
+      {
+        "context": "issues",
+        "order": "Pedido DEMO-027",
+        "before": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Descargar",
+            "disabled": false
+          },
+          {
+            "name": "Imprimir",
+            "disabled": false
+          }
+        ],
+        "after": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Descargar",
+            "disabled": false
+          },
+          {
+            "name": "Imprimir",
+            "disabled": false
+          }
+        ],
+        "preserved": true
+      }
+    ],
+    "originalHeaderActions": [
+      {
+        "name": " Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": " Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": " Facturación manual de Shopify",
+        "disabled": false
+      }
+    ],
+    "reachableAfterActions": [
+      " Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      " Facturación manual de Shopify",
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      "Facturación manual de Shopify",
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida",
+      "Añadir filtro",
+      "Seleccionar todos de esta página",
+      "Ver selección",
+      "Quitar selección",
+      "Generar etiquetas seleccionadas (0)",
+      "Generar etiquetas pendientes (15)",
+      "Anterior",
+      "Siguiente",
+      "Canal",
+      "Pedido",
+      "Cliente",
+      "Productos",
+      "Destino",
+      "Transportista",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Seguimiento",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      "AmazonDEMO-001Cliente demostración 1 · 1 kg · Correos Express · Envío —Pedido 18/09/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más121,00 €PendienteSin información",
+      "ShopifyDEMO-002Cliente demostración 2 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más122,21 €PendienteSin información",
+      "OtroDEMO-003Cliente demostración 3 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más123,42 €PendienteSin información",
+      "AmazonDEMO-004Cliente demostración 4 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más124,63 €PendienteSin información",
+      "ShopifyDEMO-005Cliente demostración 5 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más125,84 €PendienteSin información",
+      "OtroDEMO-006Cliente demostración 6 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más127,05 €PendienteSin información",
+      "AmazonDEMO-007Cliente demostración 7 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más128,26 €PendienteSin información",
+      "ShopifyDEMO-008Cliente demostración 8 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más129,47 €PendienteSin información",
+      "OtroDEMO-009Cliente demostración 9 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más130,68 €PendienteSin información",
+      "AmazonDEMO-010Cliente demostración 10 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más131,89 €PendienteSin información",
+      "ShopifyDEMO-011Cliente demostración 11 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más133,10 €PendienteSin información",
+      "OtroDEMO-012Cliente demostración 12 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más134,31 €PendienteSin información",
+      "AmazonDEMO-013Cliente demostración 13 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más135,52 €PendienteSin información",
+      "ShopifyDEMO-014Cliente demostración 14 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más136,73 €PendienteSin información",
+      "OtroDEMO-015Cliente demostración 15 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más137,94 €PendienteSin información",
+      "Anterior",
+      "Siguiente",
+      " Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      " Facturación manual de Shopify",
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      "Facturación manual de Shopify",
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida",
+      "Añadir filtro",
+      "Seleccionar todos de esta página",
+      "Ver selección",
+      "Quitar selección",
+      "Anterior",
+      "Siguiente",
+      "Pedido",
+      "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
+      "Productos",
+      "Destino",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      "Abrir seguimiento de DEMO-026 en MRW",
+      "Abrir seguimiento de DEMO-027 en Correos Express",
+      "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+      "Abrir seguimiento de DEMO-026 en MRW",
+      "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+      "Abrir seguimiento de DEMO-027 en Correos Express",
+      "Anterior",
+      "Siguiente"
+    ],
+    "columnsPreserved": true,
+    "firstRowBefore": 572,
+    "firstRowAfter": 572,
+    "documentHorizontalOverflow": 0
+  },
+  {
+    "width": 1440,
+    "intentionallyRemoved": [
+      "Impresión directa"
+    ],
+    "drawerComparisons": [],
+    "originalHeaderActions": [
+      {
+        "name": " Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": " Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": " Facturación manual de Shopify",
+        "disabled": false
+      }
+    ],
+    "reachableAfterActions": [
+      " Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      " Facturación manual de Shopify",
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      "Facturación manual de Shopify",
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida",
+      "Añadir filtro",
+      "Seleccionar todos de esta página",
+      "Ver selección",
+      "Quitar selección",
+      "Generar etiquetas seleccionadas (0)",
+      "Generar etiquetas pendientes (15)",
+      "Anterior",
+      "Siguiente",
+      "Canal",
+      "Pedido",
+      "Cliente",
+      "Productos",
+      "Destino",
+      "Transportista",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Seguimiento",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      "AmazonDEMO-001Cliente demostración 1 · 1 kg · Correos Express · Envío —Pedido 18/09/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más121,00 €PendienteSin información",
+      "ShopifyDEMO-002Cliente demostración 2 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más122,21 €PendienteSin información",
+      "OtroDEMO-003Cliente demostración 3 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más123,42 €PendienteSin información",
+      "AmazonDEMO-004Cliente demostración 4 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más124,63 €PendienteSin información",
+      "ShopifyDEMO-005Cliente demostración 5 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más125,84 €PendienteSin información",
+      "OtroDEMO-006Cliente demostración 6 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más127,05 €PendienteSin información",
+      "AmazonDEMO-007Cliente demostración 7 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más128,26 €PendienteSin información",
+      "ShopifyDEMO-008Cliente demostración 8 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más129,47 €PendienteSin información",
+      "OtroDEMO-009Cliente demostración 9 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más130,68 €PendienteSin información",
+      "AmazonDEMO-010Cliente demostración 10 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más131,89 €PendienteSin información",
+      "ShopifyDEMO-011Cliente demostración 11 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más133,10 €PendienteSin información",
+      "OtroDEMO-012Cliente demostración 12 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más134,31 €PendienteSin información",
+      "AmazonDEMO-013Cliente demostración 13 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más135,52 €PendienteSin información",
+      "ShopifyDEMO-014Cliente demostración 14 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más136,73 €PendienteSin información",
+      "OtroDEMO-015Cliente demostración 15 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más137,94 €PendienteSin información",
+      "Anterior",
+      "Siguiente",
+      " Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      " Facturación manual de Shopify",
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Abrir tarifas de transporte",
+      "Formato rápido de etiqueta",
+      "Facturación manual de Shopify",
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida",
+      "Añadir filtro",
+      "Seleccionar todos de esta página",
+      "Ver selección",
+      "Quitar selección",
+      "Anterior",
+      "Siguiente",
+      "Pedido",
+      "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
+      "Productos",
+      "Destino",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      "Abrir seguimiento de DEMO-026 en MRW",
+      "Abrir seguimiento de DEMO-027 en Correos Express",
+      "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+      "Abrir seguimiento de DEMO-026 en MRW",
+      "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+      "Abrir seguimiento de DEMO-027 en Correos Express",
+      "Anterior",
+      "Siguiente"
+    ],
+    "columnsPreserved": true,
+    "firstRowBefore": 531,
+    "firstRowAfter": 531,
+    "documentHorizontalOverflow": 0
+  }
+]

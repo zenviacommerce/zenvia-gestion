@@ -33,10 +33,10 @@ import { PeriodFilterPanel } from '../components/PeriodFilterPanel';
 import { defaultDateFilter, periodLabel } from '../services/filters';
 import {
   createManualOrder, createOrderLabel, confirmOrderTracking, fetchOrderLabel,
-  completeAmazonRecipients, getEnviaStatus, getSendcloudStatus, getShippingOptions, getOrderTrackingLink, labelBlob, fetchOrdersDashboardPage, listMatchingOrdersForAction, listMatchingPendingOrdersForBulk, fetchMatchingOrderIds, listSelectedOrdersForBulk, listLocalPrinters, markOrderLabelPrinted,
-  openLabelForPrint, printLabelWithClient,
+  completeAmazonRecipients, getEnviaStatus, getSendcloudStatus, getShippingOptions, getOrderTrackingLink, labelBlob, fetchOrdersDashboardPage, listMatchingOrdersForAction, listMatchingPendingOrdersForBulk, fetchMatchingOrderIds, listSelectedOrdersForBulk, markOrderLabelPrinted,
+  openLabelForPrint,
   syncShopifyOrders, reconcileAmazonOrders, retryAmazonTrackingConfirmations, updateFulfillmentOrder,
-  type FulfillmentOrder, type LocalPrinter, type ManualOrderItem, type OrderChannel, type OrderUpdateInput,
+  type FulfillmentOrder, type ManualOrderItem, type OrderChannel, type OrderUpdateInput,
   type SendcloudStatus, type ShippingOption, type ProviderQuotes, type QuoteProvider, type OrdersDashboardFilters, type OrdersDashboardKpis,
 } from '../services/orders';
 import { bulkLabelZipFilename, labelPdfFilename, uniqueLabelPdfFilename } from '../services/orderLabelFiles';
@@ -424,7 +424,6 @@ export function Orders({pendingOnly=false,active=true}:{pendingOnly?:boolean;act
   const quoteGeneration=useRef(0),quoteStates=useRef<ProviderQuotes<ShippingOption>>({});
   useEffect(()=>{const reset=()=>{quoteGeneration.current++;setLabelOrder(null);setPreparingOrder(null)};window.addEventListener('zenvia:tenant-changed',reset);return()=>{quoteGeneration.current++;window.removeEventListener('zenvia:tenant-changed',reset)}},[]);
   const [selected,setSelected]=useState<FulfillmentOrder|null>(null),[labelOrder,setLabelOrder]=useState<FulfillmentOrder|null>(null),[options,setOptions]=useState<ShippingOption[]>([]),[optionsMessage,setOptionsMessage]=useState(''),[optionsLoading,setOptionsLoading]=useState(false),[preparingOrder,setPreparingOrder]=useState<string|null>(null),[busyOrder,setBusyOrder]=useState<string|null>(null);
-  const [printers,setPrinters]=useState<LocalPrinter[]>([]),[printer,setPrinter]=useState(preferences.labelPrinterId||''),[printerChecking,setPrinterChecking]=useState(false);
   const [dateFilter,setDateFilter]=useState(remembered.dateFilter);
   const [manualOpen,setManualOpen]=useState(false),[manualSaving,setManualSaving]=useState(false);
   const [editOrder,setEditOrder]=useState<FulfillmentOrder|null>(null),[editSaving,setEditSaving]=useState(false);
@@ -466,7 +465,6 @@ export function Orders({pendingOnly=false,active=true}:{pendingOnly?:boolean;act
   const [tariffs,setTariffs]=useState<TransportTariffDocument[]>([]);
   const [editValidationCarrier,setEditValidationCarrier]=useState('');
   const [amazonImages,setAmazonImages]=useState<Record<string,string>>({});
-  useEffect(()=>{setPrinter(preferences.labelPrinterId||'')},[preferences.labelPrinterId]);
   useEffect(()=>{
     const value={query,state,trackingFilter,countryFilter,carrierFilter,pickupReportFilter,dateFilter};
     const timer=window.setTimeout(()=>{void persistRememberedFilter(preferences,patchPreferences,'orders.filters',value)},350);
@@ -735,7 +733,6 @@ export function Orders({pendingOnly=false,active=true}:{pendingOnly?:boolean;act
   const handleBlob=async(blob:Blob,order:FulfillmentOrder,mode:'print'|'download')=>{
     const prepared=await prepareLabelPdf(blob,settings.shipping);
     if(mode==='download'){downloadLabel(prepared,labelPdfFilename(order,labelFilenameOptions));return}
-    if(preferences.labelPrinterId){try{await printLabelWithClient(prepared,preferences.labelPrinterId,settings.shipping.labelSize);showSuccess('Etiqueta enviada a la impresora.');return}catch{/* PDF */}}
     openLabelForPrint(prepared);
   };
   const createLabel=async(option:ShippingOption|null,explicitOrder:FulfillmentOrder|null=labelOrder)=>{if(!explicitOrder)return;const order=explicitOrder;
@@ -953,7 +950,6 @@ export function Orders({pendingOnly=false,active=true}:{pendingOnly?:boolean;act
       setInvoiceSelectionOpen(true);
     }catch(e){showError(errorMessage(e,'No se pudieron recuperar los pedidos Shopify para facturar.'))}
   };
-  const detectPrinters=async()=>{setPrinterChecking(true);try{const found=await listLocalPrinters();setPrinters(found);const chosen=preferences.labelPrinterId||found.find(item=>item.default)?.id||found[0]?.id||'';setPrinter(chosen);if(chosen)await patchPreferences({labelPrinterId:chosen});showSuccess(found.length?`${found.length} impresora${found.length===1?'':'s'} detectada${found.length===1?'':'s'} para impresión directa.`:'El agente de impresión está disponible, pero no ha devuelto ninguna impresora.')}catch{setPrinters([]);setPrinter('');await patchPreferences({labelPrinterId:null}).catch(()=>undefined);showInfo('La impresión directa requiere ZENVIA Print Agent instalado y abierto. Durante la transición también se admite el Print Client de Sendcloud. No afecta a la generación de etiquetas: puedes descargarlas e imprimirlas como PDF con normalidad.')}finally{setPrinterChecking(false)}};
   const changeLabelSize=async(value:ShippingSettings['labelSize'])=>{
     if(value===settings.shipping.labelSize)return;
     try{
@@ -981,8 +977,7 @@ export function Orders({pendingOnly=false,active=true}:{pendingOnly?:boolean;act
   const trackingCell=(order:FulfillmentOrder)=><><ShipmentTrackingStatus order={order} staleDays={settings.orders.trackingStaleDays} operational/>{trackingUrlForOrder(order)&&<a className="ordersQuickTracking" href={trackingUrlForOrder(order)!} target="_blank" rel="noreferrer" aria-label={`Abrir seguimiento de ${order.orderNumber||order.orderId} en ${carrierLabel(order)}`} onClick={event=>event.stopPropagation()}>Abrir seguimiento <ExternalLink size={14}/></a>}{!trackingUrlForOrder(order)&&order.trackingNumber&&!order.piiPurgedAt&&<button type="button" className="link ordersQuickTracking" onClick={event=>{event.stopPropagation();void openQuickTracking(order)}} aria-label={`Abrir seguimiento de ${order.orderNumber||order.orderId} en ${carrierLabel(order)}`}>Abrir seguimiento <ExternalLink size={14}/></button>}</>;
   const headerUtilities=<>
     <button type="button" className="secondary zenviaTransportTariffsButton" aria-label="Abrir tarifas de transporte" onClick={()=>setTariffsOpen(true)}><Truck size={16}/> Tarifas de transporte</button>
-    <button className="secondary" onClick={detectPrinters} disabled={printerChecking} title="Impresión opcional con ZENVIA Print Agent; las etiquetas también se pueden descargar.">{printerChecking?<LoaderCircle className="spin" size={16}/>:<Printer size={16}/>} Impresión directa</button>
-    <label className="ordersQuickLabelFormat"><span>Formato</span><SelectField value={settings.shipping.labelSize} onChange={value=>void changeLabelSize(value as ShippingSettings['labelSize'])} ariaLabel="Formato rápido de etiqueta" options={[{value:'AUTO',label:'Original'},{value:'A6',label:'A6'},{value:'10x15',label:'10 × 15'},{value:'A5',label:'A5'},{value:'A4',label:'A4'}]}/></label>
+    <label className="ordersQuickLabelFormat"><span>Formato del PDF</span><SelectField value={settings.shipping.labelSize} onChange={value=>void changeLabelSize(value as ShippingSettings['labelSize'])} ariaLabel="Formato rápido de etiqueta" options={[{value:'AUTO',label:'Original'},{value:'A6',label:'A6'},{value:'10x15',label:'10 × 15'},{value:'A5',label:'A5'},{value:'A4',label:'A4'}]}/></label>
     <button className="secondary" onClick={()=>void openShopifyInvoiceSelection()} disabled={bulkGenerating||selectionBusy}><FileText size={16}/> Facturación manual de Shopify</button>
   </>;
   const changeWorkbenchFilter=(patch:Partial<OrdersWorkbenchFilterValues>)=>{
@@ -1024,7 +1019,6 @@ export function Orders({pendingOnly=false,active=true}:{pendingOnly?:boolean;act
       {!labelSelectionAllowed&&<p className="muted">La selección contiene pedidos que ya no admiten una nueva etiqueta. Revisa «Ver selección» antes de generar etiquetas.</p>}
       {selectionError&&<p className="errorText" role="alert">{selectionError}</p>}
     </div>}
-    {printer&&<div className="ordersPrinterBar"><Printer size={15}/><span>Impresora directa:</span>{printers.length?<SearchableSelect value={printer} options={printers.map(item=>({value:item.id,label:`${item.name}${item.default?' · predeterminada':''}`,searchText:item.name}))} onChange={value=>{setPrinter(value);void patchPreferences({labelPrinterId:value})}} searchPlaceholder="Buscar impresora…" ariaLabel="Impresora directa"/>:<strong>{printer}</strong>}<button className="link" onClick={()=>{setPrinter('');void patchPreferences({labelPrinterId:null})}}>Usar PDF</button></div>}
 
 
     <TableSortReset sorting={sorting}/>

@@ -1,0 +1,3697 @@
+[
+  {
+    "phase": "before",
+    "baselineRevision": "c570c47dd688ece8d00e2c83c03653f45e00d9e4",
+    "reviewSourceHashes": {
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
+      "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
+      "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
+      "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
+      "packages/ui/src/PageTabs.tsx": "0dad08de47f0b0cdcee6cdf1e9aedb6e19aa750acaad86c5726be97820d24736",
+      "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7"
+    },
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
+    "context": "pending",
+    "width": 390,
+    "documentWidth": 390,
+    "horizontalOverflow": 0,
+    "firstRowTop": 586,
+    "headerActions": [
+      {
+        "name": " Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": " Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": " Facturación manual de Shopify",
+        "disabled": false
+      }
+    ],
+    "allActions": [
+      {
+        "name": "Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": "Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Facturación manual de Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Pendientes15",
+        "disabled": false
+      },
+      {
+        "name": "Etiquetados10",
+        "disabled": false
+      },
+      {
+        "name": "Enviados14",
+        "disabled": false
+      },
+      {
+        "name": "Incidencias2",
+        "disabled": false
+      },
+      {
+        "name": "Cancelados4",
+        "disabled": false
+      },
+      {
+        "name": "Informes de recogida",
+        "disabled": false
+      },
+      {
+        "name": "Añadir filtro",
+        "disabled": false
+      },
+      {
+        "name": "Seleccionar todos de esta página",
+        "disabled": false
+      },
+      {
+        "name": "Ver selección",
+        "disabled": true
+      },
+      {
+        "name": "Quitar selección",
+        "disabled": true
+      },
+      {
+        "name": "Generar etiquetas seleccionadas (0)",
+        "disabled": true
+      },
+      {
+        "name": "Generar etiquetas pendientes (15)",
+        "disabled": false
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
+        "name": "Pedido",
+        "disabled": false
+      },
+      {
+        "name": "Cliente",
+        "disabled": false
+      },
+      {
+        "name": "Productos",
+        "disabled": false
+      },
+      {
+        "name": "Destino",
+        "disabled": false
+      },
+      {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Envío",
+        "disabled": false
+      },
+      {
+        "name": "Peso",
+        "disabled": false
+      },
+      {
+        "name": "Unidades",
+        "disabled": false
+      },
+      {
+        "name": "Total",
+        "disabled": false
+      },
+      {
+        "name": "Estado",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Fecha pedido",
+        "disabled": false
+      },
+      {
+        "name": "Fecha etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Impresión",
+        "disabled": false
+      },
+      {
+        "name": "Informe de recogida",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-001Cliente demostración 1 · 1 kg · Correos Express · Envío —Pedido 18/09/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más121,00 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-002Cliente demostración 2 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más122,21 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-003Cliente demostración 3 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más123,42 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-004Cliente demostración 4 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más124,63 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-005Cliente demostración 5 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más125,84 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-006Cliente demostración 6 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más127,05 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-007Cliente demostración 7 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más128,26 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-008Cliente demostración 8 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más129,47 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-009Cliente demostración 9 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más130,68 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-010Cliente demostración 10 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más131,89 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-011Cliente demostración 11 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más133,10 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-012Cliente demostración 12 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más134,31 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-013Cliente demostración 13 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más135,52 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-014Cliente demostración 14 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más136,73 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-015Cliente demostración 15 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más137,94 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      }
+    ],
+    "columns": [
+      "",
+      "Canal",
+      "Pedido",
+      "Cliente",
+      "Productos",
+      "Destino",
+      "Transportista",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Seguimiento",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      ""
+    ],
+    "stickyCells": [
+      {
+        "text": "",
+        "position": "sticky",
+        "left": "0px"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Cliente",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Productos",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Destino",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Envío",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Peso",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Unidades",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Total",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Estado",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha etiqueta",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Impresión",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Informe de recogida",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "",
+        "position": "static",
+        "left": "auto"
+      }
+    ],
+    "cards": [],
+    "tabs": [
+      {
+        "name": "Pendientes15",
+        "selected": "true"
+      },
+      {
+        "name": "Etiquetados10",
+        "selected": "false"
+      },
+      {
+        "name": "Enviados14",
+        "selected": "false"
+      },
+      {
+        "name": "Incidencias2",
+        "selected": "false"
+      },
+      {
+        "name": "Cancelados4",
+        "selected": "false"
+      },
+      {
+        "name": "Informes de recogida",
+        "selected": "false"
+      }
+    ],
+    "requests": [
+      {
+        "from": "",
+        "to": "",
+        "state": "pending",
+        "channel": "all",
+        "query": "",
+        "tracking": "all",
+        "workbench": true,
+        "trackingStaleDays": 3,
+        "country": "all",
+        "carrier": "all",
+        "pickupReport": "all",
+        "page": 0,
+        "pageSize": 25,
+        "overdueHours": 24,
+        "sortKey": "orderDate",
+        "sortDirection": "desc"
+      }
+    ],
+    "responses": [
+      {
+        "params": {
+          "from": "",
+          "to": "",
+          "state": "pending",
+          "channel": "all",
+          "query": "",
+          "tracking": "all",
+          "workbench": true,
+          "trackingStaleDays": 3,
+          "country": "all",
+          "carrier": "all",
+          "pickupReport": "all",
+          "page": 0,
+          "pageSize": 25,
+          "overdueHours": 24,
+          "sortKey": "orderDate",
+          "sortDirection": "desc"
+        },
+        "allMatchingIds": [
+          "demo-0",
+          "demo-1",
+          "demo-2",
+          "demo-3",
+          "demo-4",
+          "demo-5",
+          "demo-6",
+          "demo-7",
+          "demo-8",
+          "demo-9",
+          "demo-10",
+          "demo-11",
+          "demo-12",
+          "demo-13",
+          "demo-14"
+        ],
+        "aggregate": {
+          "pending": 15,
+          "preparablePending": 15,
+          "amazon": 5,
+          "shopify": 5,
+          "manual": 5,
+          "labelled": 10,
+          "shipped": 14,
+          "cancelled": 4,
+          "overduePending": 15,
+          "sales": {
+            "gross": 5615.610000000002,
+            "net": 4653.783333333333,
+            "vat": 961.8266666666696,
+            "count": 39,
+            "average": 143.99000000000007
+          },
+          "transport": {
+            "total": 163.79999999999998,
+            "net": 135.37190082644628,
+            "tax": 28.428099173553704,
+            "mrw": 81.2,
+            "correos": 82.60000000000001,
+            "other": 0,
+            "shipments": 28,
+            "valued": 28,
+            "missing": 0,
+            "basis": "recorded_only"
+          }
+        },
+        "tariffCandidateIds": [
+          "demo-15",
+          "demo-16",
+          "demo-17",
+          "demo-18",
+          "demo-19",
+          "demo-20",
+          "demo-21",
+          "demo-22",
+          "demo-23",
+          "demo-24",
+          "demo-25",
+          "demo-26",
+          "demo-27",
+          "demo-28",
+          "demo-29",
+          "demo-30",
+          "demo-31",
+          "demo-32",
+          "demo-33",
+          "demo-34",
+          "demo-35",
+          "demo-36",
+          "demo-37",
+          "demo-38",
+          "demo-39",
+          "demo-40",
+          "demo-41",
+          "demo-42"
+        ]
+      }
+    ],
+    "truth": {
+      "total": 43,
+      "counters": {
+        "pending": 15,
+        "labelled": 10,
+        "shipped": 14,
+        "issues": 2,
+        "cancelled": 4
+      },
+      "all": {
+        "pending": 15,
+        "preparablePending": 15,
+        "amazon": 5,
+        "shopify": 5,
+        "manual": 5,
+        "labelled": 10,
+        "shipped": 14,
+        "cancelled": 4,
+        "overduePending": 15,
+        "sales": {
+          "gross": 5615.610000000002,
+          "net": 4653.783333333333,
+          "vat": 961.8266666666696,
+          "count": 39,
+          "average": 143.99000000000007
+        },
+        "transport": {
+          "total": 163.79999999999998,
+          "net": 135.37190082644628,
+          "tax": 28.428099173553704,
+          "mrw": 81.2,
+          "correos": 82.60000000000001,
+          "other": 0,
+          "shipments": 28,
+          "valued": 28,
+          "missing": 0,
+          "basis": "recorded_only"
+        }
+      },
+      "oldPending": "demo-0",
+      "oldLabelled": "demo-15",
+      "exception": "demo-25",
+      "staleActive": "demo-26",
+      "staleTerminal": "demo-27"
+    },
+    "dangerous": [],
+    "pdfDownloads": [],
+    "menuOverflow": "auto hidden",
+    "drawerInventory": [],
+    "networkBlocked": 2,
+    "errors": [],
+    "failures": []
+  },
+  {
+    "phase": "before",
+    "baselineRevision": "c570c47dd688ece8d00e2c83c03653f45e00d9e4",
+    "reviewSourceHashes": {
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
+      "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
+      "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
+      "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
+      "packages/ui/src/PageTabs.tsx": "0dad08de47f0b0cdcee6cdf1e9aedb6e19aa750acaad86c5726be97820d24736",
+      "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7"
+    },
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
+    "context": "issues",
+    "width": 390,
+    "documentWidth": 390,
+    "horizontalOverflow": 0,
+    "firstRowTop": 568,
+    "headerActions": [
+      {
+        "name": " Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": " Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": " Facturación manual de Shopify",
+        "disabled": false
+      }
+    ],
+    "allActions": [
+      {
+        "name": "Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": "Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Facturación manual de Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Pendientes15",
+        "disabled": false
+      },
+      {
+        "name": "Etiquetados10",
+        "disabled": false
+      },
+      {
+        "name": "Enviados14",
+        "disabled": false
+      },
+      {
+        "name": "Incidencias2",
+        "disabled": false
+      },
+      {
+        "name": "Cancelados4",
+        "disabled": false
+      },
+      {
+        "name": "Informes de recogida",
+        "disabled": false
+      },
+      {
+        "name": "Añadir filtro",
+        "disabled": false
+      },
+      {
+        "name": "Seleccionar todos de esta página",
+        "disabled": false
+      },
+      {
+        "name": "Ver selección",
+        "disabled": true
+      },
+      {
+        "name": "Quitar selección",
+        "disabled": true
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      },
+      {
+        "name": "Pedido",
+        "disabled": false
+      },
+      {
+        "name": "Cliente",
+        "disabled": false
+      },
+      {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
+        "name": "Productos",
+        "disabled": false
+      },
+      {
+        "name": "Destino",
+        "disabled": false
+      },
+      {
+        "name": "Envío",
+        "disabled": false
+      },
+      {
+        "name": "Peso",
+        "disabled": false
+      },
+      {
+        "name": "Unidades",
+        "disabled": false
+      },
+      {
+        "name": "Total",
+        "disabled": false
+      },
+      {
+        "name": "Estado",
+        "disabled": false
+      },
+      {
+        "name": "Fecha pedido",
+        "disabled": false
+      },
+      {
+        "name": "Fecha etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Impresión",
+        "disabled": false
+      },
+      {
+        "name": "Informe de recogida",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      }
+    ],
+    "columns": [
+      "",
+      "Pedido",
+      "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
+      "Productos",
+      "Destino",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      ""
+    ],
+    "stickyCells": [
+      {
+        "text": "",
+        "position": "sticky",
+        "left": "0px"
+      },
+      {
+        "text": "Pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Cliente",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Productos",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Destino",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Envío",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Peso",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Unidades",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Total",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Estado",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha etiqueta",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Impresión",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Informe de recogida",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "",
+        "position": "static",
+        "left": "auto"
+      }
+    ],
+    "cards": [],
+    "tabs": [
+      {
+        "name": "Pendientes15",
+        "selected": "false"
+      },
+      {
+        "name": "Etiquetados10",
+        "selected": "false"
+      },
+      {
+        "name": "Enviados14",
+        "selected": "false"
+      },
+      {
+        "name": "Incidencias2",
+        "selected": "true"
+      },
+      {
+        "name": "Cancelados4",
+        "selected": "false"
+      },
+      {
+        "name": "Informes de recogida",
+        "selected": "false"
+      }
+    ],
+    "requests": [
+      {
+        "from": "",
+        "to": "",
+        "state": "pending",
+        "channel": "all",
+        "query": "",
+        "tracking": "all",
+        "workbench": true,
+        "trackingStaleDays": 3,
+        "country": "all",
+        "carrier": "all",
+        "pickupReport": "all",
+        "page": 0,
+        "pageSize": 25,
+        "overdueHours": 24,
+        "sortKey": "orderDate",
+        "sortDirection": "desc"
+      },
+      {
+        "from": "",
+        "to": "",
+        "state": "issues",
+        "channel": "all",
+        "query": "",
+        "tracking": "all",
+        "workbench": true,
+        "trackingStaleDays": 3,
+        "country": "all",
+        "carrier": "all",
+        "pickupReport": "all",
+        "page": 0,
+        "pageSize": 25,
+        "overdueHours": 24,
+        "sortKey": "orderDate",
+        "sortDirection": "desc"
+      }
+    ],
+    "responses": [
+      {
+        "params": {
+          "from": "",
+          "to": "",
+          "state": "pending",
+          "channel": "all",
+          "query": "",
+          "tracking": "all",
+          "workbench": true,
+          "trackingStaleDays": 3,
+          "country": "all",
+          "carrier": "all",
+          "pickupReport": "all",
+          "page": 0,
+          "pageSize": 25,
+          "overdueHours": 24,
+          "sortKey": "orderDate",
+          "sortDirection": "desc"
+        },
+        "allMatchingIds": [
+          "demo-0",
+          "demo-1",
+          "demo-2",
+          "demo-3",
+          "demo-4",
+          "demo-5",
+          "demo-6",
+          "demo-7",
+          "demo-8",
+          "demo-9",
+          "demo-10",
+          "demo-11",
+          "demo-12",
+          "demo-13",
+          "demo-14"
+        ],
+        "aggregate": {
+          "pending": 15,
+          "preparablePending": 15,
+          "amazon": 5,
+          "shopify": 5,
+          "manual": 5,
+          "labelled": 10,
+          "shipped": 14,
+          "cancelled": 4,
+          "overduePending": 15,
+          "sales": {
+            "gross": 5615.610000000002,
+            "net": 4653.783333333333,
+            "vat": 961.8266666666696,
+            "count": 39,
+            "average": 143.99000000000007
+          },
+          "transport": {
+            "total": 163.79999999999998,
+            "net": 135.37190082644628,
+            "tax": 28.428099173553704,
+            "mrw": 81.2,
+            "correos": 82.60000000000001,
+            "other": 0,
+            "shipments": 28,
+            "valued": 28,
+            "missing": 0,
+            "basis": "recorded_only"
+          }
+        },
+        "tariffCandidateIds": [
+          "demo-15",
+          "demo-16",
+          "demo-17",
+          "demo-18",
+          "demo-19",
+          "demo-20",
+          "demo-21",
+          "demo-22",
+          "demo-23",
+          "demo-24",
+          "demo-25",
+          "demo-26",
+          "demo-27",
+          "demo-28",
+          "demo-29",
+          "demo-30",
+          "demo-31",
+          "demo-32",
+          "demo-33",
+          "demo-34",
+          "demo-35",
+          "demo-36",
+          "demo-37",
+          "demo-38",
+          "demo-39",
+          "demo-40",
+          "demo-41",
+          "demo-42"
+        ]
+      },
+      {
+        "params": {
+          "from": "",
+          "to": "",
+          "state": "issues",
+          "channel": "all",
+          "query": "",
+          "tracking": "all",
+          "workbench": true,
+          "trackingStaleDays": 3,
+          "country": "all",
+          "carrier": "all",
+          "pickupReport": "all",
+          "page": 0,
+          "pageSize": 25,
+          "overdueHours": 24,
+          "sortKey": "orderDate",
+          "sortDirection": "desc"
+        },
+        "allMatchingIds": [
+          "demo-25",
+          "demo-26"
+        ],
+        "aggregate": {
+          "pending": 15,
+          "preparablePending": 15,
+          "amazon": 5,
+          "shopify": 5,
+          "manual": 5,
+          "labelled": 10,
+          "shipped": 14,
+          "cancelled": 4,
+          "overduePending": 15,
+          "sales": {
+            "gross": 5615.610000000002,
+            "net": 4653.783333333333,
+            "vat": 961.8266666666696,
+            "count": 39,
+            "average": 143.99000000000007
+          },
+          "transport": {
+            "total": 163.79999999999998,
+            "net": 135.37190082644628,
+            "tax": 28.428099173553704,
+            "mrw": 81.2,
+            "correos": 82.60000000000001,
+            "other": 0,
+            "shipments": 28,
+            "valued": 28,
+            "missing": 0,
+            "basis": "recorded_only"
+          }
+        },
+        "tariffCandidateIds": [
+          "demo-15",
+          "demo-16",
+          "demo-17",
+          "demo-18",
+          "demo-19",
+          "demo-20",
+          "demo-21",
+          "demo-22",
+          "demo-23",
+          "demo-24",
+          "demo-25",
+          "demo-26",
+          "demo-27",
+          "demo-28",
+          "demo-29",
+          "demo-30",
+          "demo-31",
+          "demo-32",
+          "demo-33",
+          "demo-34",
+          "demo-35",
+          "demo-36",
+          "demo-37",
+          "demo-38",
+          "demo-39",
+          "demo-40",
+          "demo-41",
+          "demo-42"
+        ]
+      }
+    ],
+    "truth": {
+      "total": 43,
+      "counters": {
+        "pending": 15,
+        "labelled": 10,
+        "shipped": 14,
+        "issues": 2,
+        "cancelled": 4
+      },
+      "all": {
+        "pending": 15,
+        "preparablePending": 15,
+        "amazon": 5,
+        "shopify": 5,
+        "manual": 5,
+        "labelled": 10,
+        "shipped": 14,
+        "cancelled": 4,
+        "overduePending": 15,
+        "sales": {
+          "gross": 5615.610000000002,
+          "net": 4653.783333333333,
+          "vat": 961.8266666666696,
+          "count": 39,
+          "average": 143.99000000000007
+        },
+        "transport": {
+          "total": 163.79999999999998,
+          "net": 135.37190082644628,
+          "tax": 28.428099173553704,
+          "mrw": 81.2,
+          "correos": 82.60000000000001,
+          "other": 0,
+          "shipments": 28,
+          "valued": 28,
+          "missing": 0,
+          "basis": "recorded_only"
+        }
+      },
+      "oldPending": "demo-0",
+      "oldLabelled": "demo-15",
+      "exception": "demo-25",
+      "staleActive": "demo-26",
+      "staleTerminal": "demo-27"
+    },
+    "dangerous": [],
+    "pdfDownloads": [],
+    "drawerInventory": [],
+    "networkBlocked": 3,
+    "errors": [],
+    "failures": []
+  },
+  {
+    "phase": "before",
+    "baselineRevision": "c570c47dd688ece8d00e2c83c03653f45e00d9e4",
+    "reviewSourceHashes": {
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
+      "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
+      "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
+      "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
+      "packages/ui/src/PageTabs.tsx": "0dad08de47f0b0cdcee6cdf1e9aedb6e19aa750acaad86c5726be97820d24736",
+      "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7"
+    },
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
+    "context": "pending",
+    "width": 1280,
+    "documentWidth": 1280,
+    "horizontalOverflow": 0,
+    "firstRowTop": 572,
+    "headerActions": [
+      {
+        "name": " Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": " Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": " Facturación manual de Shopify",
+        "disabled": false
+      }
+    ],
+    "allActions": [
+      {
+        "name": "Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": "Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Facturación manual de Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Pendientes15",
+        "disabled": false
+      },
+      {
+        "name": "Etiquetados10",
+        "disabled": false
+      },
+      {
+        "name": "Enviados14",
+        "disabled": false
+      },
+      {
+        "name": "Incidencias2",
+        "disabled": false
+      },
+      {
+        "name": "Cancelados4",
+        "disabled": false
+      },
+      {
+        "name": "Informes de recogida",
+        "disabled": false
+      },
+      {
+        "name": "Añadir filtro",
+        "disabled": false
+      },
+      {
+        "name": "Seleccionar todos de esta página",
+        "disabled": false
+      },
+      {
+        "name": "Ver selección",
+        "disabled": true
+      },
+      {
+        "name": "Quitar selección",
+        "disabled": true
+      },
+      {
+        "name": "Generar etiquetas seleccionadas (0)",
+        "disabled": true
+      },
+      {
+        "name": "Generar etiquetas pendientes (15)",
+        "disabled": false
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
+        "name": "Pedido",
+        "disabled": false
+      },
+      {
+        "name": "Cliente",
+        "disabled": false
+      },
+      {
+        "name": "Productos",
+        "disabled": false
+      },
+      {
+        "name": "Destino",
+        "disabled": false
+      },
+      {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Envío",
+        "disabled": false
+      },
+      {
+        "name": "Peso",
+        "disabled": false
+      },
+      {
+        "name": "Unidades",
+        "disabled": false
+      },
+      {
+        "name": "Total",
+        "disabled": false
+      },
+      {
+        "name": "Estado",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Fecha pedido",
+        "disabled": false
+      },
+      {
+        "name": "Fecha etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Impresión",
+        "disabled": false
+      },
+      {
+        "name": "Informe de recogida",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-001Cliente demostración 1 · 1 kg · Correos Express · Envío —Pedido 18/09/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más121,00 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-002Cliente demostración 2 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más122,21 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-003Cliente demostración 3 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más123,42 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-004Cliente demostración 4 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más124,63 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-005Cliente demostración 5 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más125,84 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-006Cliente demostración 6 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más127,05 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-007Cliente demostración 7 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más128,26 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-008Cliente demostración 8 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más129,47 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-009Cliente demostración 9 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más130,68 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-010Cliente demostración 10 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más131,89 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-011Cliente demostración 11 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más133,10 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-012Cliente demostración 12 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más134,31 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-013Cliente demostración 13 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más135,52 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-014Cliente demostración 14 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más136,73 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-015Cliente demostración 15 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más137,94 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      }
+    ],
+    "columns": [
+      "",
+      "Canal",
+      "Pedido",
+      "Cliente",
+      "Productos",
+      "Destino",
+      "Transportista",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Seguimiento",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      ""
+    ],
+    "stickyCells": [
+      {
+        "text": "",
+        "position": "sticky",
+        "left": "0px"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Cliente",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Productos",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Destino",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Envío",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Peso",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Unidades",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Total",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Estado",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha etiqueta",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Impresión",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Informe de recogida",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "",
+        "position": "static",
+        "left": "auto"
+      }
+    ],
+    "cards": [],
+    "tabs": [
+      {
+        "name": "Pendientes15",
+        "selected": "true"
+      },
+      {
+        "name": "Etiquetados10",
+        "selected": "false"
+      },
+      {
+        "name": "Enviados14",
+        "selected": "false"
+      },
+      {
+        "name": "Incidencias2",
+        "selected": "false"
+      },
+      {
+        "name": "Cancelados4",
+        "selected": "false"
+      },
+      {
+        "name": "Informes de recogida",
+        "selected": "false"
+      }
+    ],
+    "requests": [
+      {
+        "from": "",
+        "to": "",
+        "state": "pending",
+        "channel": "all",
+        "query": "",
+        "tracking": "all",
+        "workbench": true,
+        "trackingStaleDays": 3,
+        "country": "all",
+        "carrier": "all",
+        "pickupReport": "all",
+        "page": 0,
+        "pageSize": 25,
+        "overdueHours": 24,
+        "sortKey": "orderDate",
+        "sortDirection": "desc"
+      }
+    ],
+    "responses": [
+      {
+        "params": {
+          "from": "",
+          "to": "",
+          "state": "pending",
+          "channel": "all",
+          "query": "",
+          "tracking": "all",
+          "workbench": true,
+          "trackingStaleDays": 3,
+          "country": "all",
+          "carrier": "all",
+          "pickupReport": "all",
+          "page": 0,
+          "pageSize": 25,
+          "overdueHours": 24,
+          "sortKey": "orderDate",
+          "sortDirection": "desc"
+        },
+        "allMatchingIds": [
+          "demo-0",
+          "demo-1",
+          "demo-2",
+          "demo-3",
+          "demo-4",
+          "demo-5",
+          "demo-6",
+          "demo-7",
+          "demo-8",
+          "demo-9",
+          "demo-10",
+          "demo-11",
+          "demo-12",
+          "demo-13",
+          "demo-14"
+        ],
+        "aggregate": {
+          "pending": 15,
+          "preparablePending": 15,
+          "amazon": 5,
+          "shopify": 5,
+          "manual": 5,
+          "labelled": 10,
+          "shipped": 14,
+          "cancelled": 4,
+          "overduePending": 15,
+          "sales": {
+            "gross": 5615.610000000002,
+            "net": 4653.783333333333,
+            "vat": 961.8266666666696,
+            "count": 39,
+            "average": 143.99000000000007
+          },
+          "transport": {
+            "total": 163.79999999999998,
+            "net": 135.37190082644628,
+            "tax": 28.428099173553704,
+            "mrw": 81.2,
+            "correos": 82.60000000000001,
+            "other": 0,
+            "shipments": 28,
+            "valued": 28,
+            "missing": 0,
+            "basis": "recorded_only"
+          }
+        },
+        "tariffCandidateIds": [
+          "demo-15",
+          "demo-16",
+          "demo-17",
+          "demo-18",
+          "demo-19",
+          "demo-20",
+          "demo-21",
+          "demo-22",
+          "demo-23",
+          "demo-24",
+          "demo-25",
+          "demo-26",
+          "demo-27",
+          "demo-28",
+          "demo-29",
+          "demo-30",
+          "demo-31",
+          "demo-32",
+          "demo-33",
+          "demo-34",
+          "demo-35",
+          "demo-36",
+          "demo-37",
+          "demo-38",
+          "demo-39",
+          "demo-40",
+          "demo-41",
+          "demo-42"
+        ]
+      }
+    ],
+    "truth": {
+      "total": 43,
+      "counters": {
+        "pending": 15,
+        "labelled": 10,
+        "shipped": 14,
+        "issues": 2,
+        "cancelled": 4
+      },
+      "all": {
+        "pending": 15,
+        "preparablePending": 15,
+        "amazon": 5,
+        "shopify": 5,
+        "manual": 5,
+        "labelled": 10,
+        "shipped": 14,
+        "cancelled": 4,
+        "overduePending": 15,
+        "sales": {
+          "gross": 5615.610000000002,
+          "net": 4653.783333333333,
+          "vat": 961.8266666666696,
+          "count": 39,
+          "average": 143.99000000000007
+        },
+        "transport": {
+          "total": 163.79999999999998,
+          "net": 135.37190082644628,
+          "tax": 28.428099173553704,
+          "mrw": 81.2,
+          "correos": 82.60000000000001,
+          "other": 0,
+          "shipments": 28,
+          "valued": 28,
+          "missing": 0,
+          "basis": "recorded_only"
+        }
+      },
+      "oldPending": "demo-0",
+      "oldLabelled": "demo-15",
+      "exception": "demo-25",
+      "staleActive": "demo-26",
+      "staleTerminal": "demo-27"
+    },
+    "dangerous": [],
+    "pdfDownloads": [],
+    "menuOverflow": "visible",
+    "drawerInventory": [
+      {
+        "order": "Pedido DEMO-001",
+        "sections": [
+          "Entrega",
+          "Contenido",
+          " Recogida"
+        ],
+        "actions": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Editar pedido",
+            "disabled": false
+          },
+          {
+            "name": "Preparar etiqueta",
+            "disabled": false
+          }
+        ]
+      },
+      {
+        "order": "Pedido DEMO-002",
+        "sections": [
+          "Entrega",
+          "Contenido",
+          " Recogida",
+          "Factura"
+        ],
+        "actions": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Generar / ver factura",
+            "disabled": false
+          },
+          {
+            "name": "Editar pedido",
+            "disabled": false
+          },
+          {
+            "name": "Preparar etiqueta",
+            "disabled": false
+          }
+        ]
+      }
+    ],
+    "networkBlocked": 4,
+    "errors": [],
+    "failures": []
+  },
+  {
+    "phase": "before",
+    "baselineRevision": "c570c47dd688ece8d00e2c83c03653f45e00d9e4",
+    "reviewSourceHashes": {
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
+      "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
+      "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
+      "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
+      "packages/ui/src/PageTabs.tsx": "0dad08de47f0b0cdcee6cdf1e9aedb6e19aa750acaad86c5726be97820d24736",
+      "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7"
+    },
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
+    "context": "issues",
+    "width": 1280,
+    "documentWidth": 1280,
+    "horizontalOverflow": 0,
+    "firstRowTop": 450,
+    "headerActions": [
+      {
+        "name": " Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": " Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": " Facturación manual de Shopify",
+        "disabled": false
+      }
+    ],
+    "allActions": [
+      {
+        "name": "Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": "Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Facturación manual de Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Pendientes15",
+        "disabled": false
+      },
+      {
+        "name": "Etiquetados10",
+        "disabled": false
+      },
+      {
+        "name": "Enviados14",
+        "disabled": false
+      },
+      {
+        "name": "Incidencias2",
+        "disabled": false
+      },
+      {
+        "name": "Cancelados4",
+        "disabled": false
+      },
+      {
+        "name": "Informes de recogida",
+        "disabled": false
+      },
+      {
+        "name": "Añadir filtro",
+        "disabled": false
+      },
+      {
+        "name": "Seleccionar todos de esta página",
+        "disabled": false
+      },
+      {
+        "name": "Ver selección",
+        "disabled": true
+      },
+      {
+        "name": "Quitar selección",
+        "disabled": true
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      },
+      {
+        "name": "Pedido",
+        "disabled": false
+      },
+      {
+        "name": "Cliente",
+        "disabled": false
+      },
+      {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
+        "name": "Productos",
+        "disabled": false
+      },
+      {
+        "name": "Destino",
+        "disabled": false
+      },
+      {
+        "name": "Envío",
+        "disabled": false
+      },
+      {
+        "name": "Peso",
+        "disabled": false
+      },
+      {
+        "name": "Unidades",
+        "disabled": false
+      },
+      {
+        "name": "Total",
+        "disabled": false
+      },
+      {
+        "name": "Estado",
+        "disabled": false
+      },
+      {
+        "name": "Fecha pedido",
+        "disabled": false
+      },
+      {
+        "name": "Fecha etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Impresión",
+        "disabled": false
+      },
+      {
+        "name": "Informe de recogida",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      }
+    ],
+    "columns": [
+      "",
+      "Pedido",
+      "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
+      "Productos",
+      "Destino",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      ""
+    ],
+    "stickyCells": [
+      {
+        "text": "",
+        "position": "sticky",
+        "left": "0px"
+      },
+      {
+        "text": "Pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Cliente",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Productos",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Destino",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Envío",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Peso",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Unidades",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Total",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Estado",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha etiqueta",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Impresión",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Informe de recogida",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "",
+        "position": "static",
+        "left": "auto"
+      }
+    ],
+    "cards": [],
+    "tabs": [
+      {
+        "name": "Pendientes15",
+        "selected": "false"
+      },
+      {
+        "name": "Etiquetados10",
+        "selected": "false"
+      },
+      {
+        "name": "Enviados14",
+        "selected": "false"
+      },
+      {
+        "name": "Incidencias2",
+        "selected": "true"
+      },
+      {
+        "name": "Cancelados4",
+        "selected": "false"
+      },
+      {
+        "name": "Informes de recogida",
+        "selected": "false"
+      }
+    ],
+    "requests": [
+      {
+        "from": "",
+        "to": "",
+        "state": "pending",
+        "channel": "all",
+        "query": "",
+        "tracking": "all",
+        "workbench": true,
+        "trackingStaleDays": 3,
+        "country": "all",
+        "carrier": "all",
+        "pickupReport": "all",
+        "page": 0,
+        "pageSize": 25,
+        "overdueHours": 24,
+        "sortKey": "orderDate",
+        "sortDirection": "desc"
+      },
+      {
+        "from": "",
+        "to": "",
+        "state": "issues",
+        "channel": "all",
+        "query": "",
+        "tracking": "all",
+        "workbench": true,
+        "trackingStaleDays": 3,
+        "country": "all",
+        "carrier": "all",
+        "pickupReport": "all",
+        "page": 0,
+        "pageSize": 25,
+        "overdueHours": 24,
+        "sortKey": "orderDate",
+        "sortDirection": "desc"
+      }
+    ],
+    "responses": [
+      {
+        "params": {
+          "from": "",
+          "to": "",
+          "state": "pending",
+          "channel": "all",
+          "query": "",
+          "tracking": "all",
+          "workbench": true,
+          "trackingStaleDays": 3,
+          "country": "all",
+          "carrier": "all",
+          "pickupReport": "all",
+          "page": 0,
+          "pageSize": 25,
+          "overdueHours": 24,
+          "sortKey": "orderDate",
+          "sortDirection": "desc"
+        },
+        "allMatchingIds": [
+          "demo-0",
+          "demo-1",
+          "demo-2",
+          "demo-3",
+          "demo-4",
+          "demo-5",
+          "demo-6",
+          "demo-7",
+          "demo-8",
+          "demo-9",
+          "demo-10",
+          "demo-11",
+          "demo-12",
+          "demo-13",
+          "demo-14"
+        ],
+        "aggregate": {
+          "pending": 15,
+          "preparablePending": 15,
+          "amazon": 5,
+          "shopify": 5,
+          "manual": 5,
+          "labelled": 10,
+          "shipped": 14,
+          "cancelled": 4,
+          "overduePending": 15,
+          "sales": {
+            "gross": 5615.610000000002,
+            "net": 4653.783333333333,
+            "vat": 961.8266666666696,
+            "count": 39,
+            "average": 143.99000000000007
+          },
+          "transport": {
+            "total": 163.79999999999998,
+            "net": 135.37190082644628,
+            "tax": 28.428099173553704,
+            "mrw": 81.2,
+            "correos": 82.60000000000001,
+            "other": 0,
+            "shipments": 28,
+            "valued": 28,
+            "missing": 0,
+            "basis": "recorded_only"
+          }
+        },
+        "tariffCandidateIds": [
+          "demo-15",
+          "demo-16",
+          "demo-17",
+          "demo-18",
+          "demo-19",
+          "demo-20",
+          "demo-21",
+          "demo-22",
+          "demo-23",
+          "demo-24",
+          "demo-25",
+          "demo-26",
+          "demo-27",
+          "demo-28",
+          "demo-29",
+          "demo-30",
+          "demo-31",
+          "demo-32",
+          "demo-33",
+          "demo-34",
+          "demo-35",
+          "demo-36",
+          "demo-37",
+          "demo-38",
+          "demo-39",
+          "demo-40",
+          "demo-41",
+          "demo-42"
+        ]
+      },
+      {
+        "params": {
+          "from": "",
+          "to": "",
+          "state": "issues",
+          "channel": "all",
+          "query": "",
+          "tracking": "all",
+          "workbench": true,
+          "trackingStaleDays": 3,
+          "country": "all",
+          "carrier": "all",
+          "pickupReport": "all",
+          "page": 0,
+          "pageSize": 25,
+          "overdueHours": 24,
+          "sortKey": "orderDate",
+          "sortDirection": "desc"
+        },
+        "allMatchingIds": [
+          "demo-25",
+          "demo-26"
+        ],
+        "aggregate": {
+          "pending": 15,
+          "preparablePending": 15,
+          "amazon": 5,
+          "shopify": 5,
+          "manual": 5,
+          "labelled": 10,
+          "shipped": 14,
+          "cancelled": 4,
+          "overduePending": 15,
+          "sales": {
+            "gross": 5615.610000000002,
+            "net": 4653.783333333333,
+            "vat": 961.8266666666696,
+            "count": 39,
+            "average": 143.99000000000007
+          },
+          "transport": {
+            "total": 163.79999999999998,
+            "net": 135.37190082644628,
+            "tax": 28.428099173553704,
+            "mrw": 81.2,
+            "correos": 82.60000000000001,
+            "other": 0,
+            "shipments": 28,
+            "valued": 28,
+            "missing": 0,
+            "basis": "recorded_only"
+          }
+        },
+        "tariffCandidateIds": [
+          "demo-15",
+          "demo-16",
+          "demo-17",
+          "demo-18",
+          "demo-19",
+          "demo-20",
+          "demo-21",
+          "demo-22",
+          "demo-23",
+          "demo-24",
+          "demo-25",
+          "demo-26",
+          "demo-27",
+          "demo-28",
+          "demo-29",
+          "demo-30",
+          "demo-31",
+          "demo-32",
+          "demo-33",
+          "demo-34",
+          "demo-35",
+          "demo-36",
+          "demo-37",
+          "demo-38",
+          "demo-39",
+          "demo-40",
+          "demo-41",
+          "demo-42"
+        ]
+      }
+    ],
+    "truth": {
+      "total": 43,
+      "counters": {
+        "pending": 15,
+        "labelled": 10,
+        "shipped": 14,
+        "issues": 2,
+        "cancelled": 4
+      },
+      "all": {
+        "pending": 15,
+        "preparablePending": 15,
+        "amazon": 5,
+        "shopify": 5,
+        "manual": 5,
+        "labelled": 10,
+        "shipped": 14,
+        "cancelled": 4,
+        "overduePending": 15,
+        "sales": {
+          "gross": 5615.610000000002,
+          "net": 4653.783333333333,
+          "vat": 961.8266666666696,
+          "count": 39,
+          "average": 143.99000000000007
+        },
+        "transport": {
+          "total": 163.79999999999998,
+          "net": 135.37190082644628,
+          "tax": 28.428099173553704,
+          "mrw": 81.2,
+          "correos": 82.60000000000001,
+          "other": 0,
+          "shipments": 28,
+          "valued": 28,
+          "missing": 0,
+          "basis": "recorded_only"
+        }
+      },
+      "oldPending": "demo-0",
+      "oldLabelled": "demo-15",
+      "exception": "demo-25",
+      "staleActive": "demo-26",
+      "staleTerminal": "demo-27"
+    },
+    "dangerous": [],
+    "pdfDownloads": [],
+    "drawerInventory": [
+      {
+        "order": "Pedido DEMO-026",
+        "sections": [
+          "Entrega",
+          "Contenido",
+          "Coste de envío",
+          " Recogida",
+          "Expedición",
+          "Historial de seguimiento",
+          "Factura"
+        ],
+        "actions": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Consultar manualmente en MRW",
+            "disabled": false
+          },
+          {
+            "name": "Generar / ver factura",
+            "disabled": false
+          },
+          {
+            "name": "Descargar",
+            "disabled": false
+          },
+          {
+            "name": "Imprimir",
+            "disabled": false
+          }
+        ]
+      },
+      {
+        "order": "Pedido DEMO-027",
+        "sections": [
+          "Entrega",
+          "Contenido",
+          "Coste de envío",
+          " Recogida",
+          "Expedición",
+          "Historial de seguimiento"
+        ],
+        "actions": [
+          {
+            "name": "",
+            "disabled": false
+          },
+          {
+            "name": "Descargar",
+            "disabled": false
+          },
+          {
+            "name": "Imprimir",
+            "disabled": false
+          }
+        ]
+      }
+    ],
+    "networkBlocked": 5,
+    "errors": [],
+    "failures": []
+  },
+  {
+    "phase": "before",
+    "baselineRevision": "c570c47dd688ece8d00e2c83c03653f45e00d9e4",
+    "reviewSourceHashes": {
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
+      "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
+      "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
+      "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
+      "packages/ui/src/PageTabs.tsx": "0dad08de47f0b0cdcee6cdf1e9aedb6e19aa750acaad86c5726be97820d24736",
+      "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7"
+    },
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
+    "context": "pending",
+    "width": 1440,
+    "documentWidth": 1440,
+    "horizontalOverflow": 0,
+    "firstRowTop": 531,
+    "headerActions": [
+      {
+        "name": " Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": " Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": " Facturación manual de Shopify",
+        "disabled": false
+      }
+    ],
+    "allActions": [
+      {
+        "name": "Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": "Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Facturación manual de Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Pendientes15",
+        "disabled": false
+      },
+      {
+        "name": "Etiquetados10",
+        "disabled": false
+      },
+      {
+        "name": "Enviados14",
+        "disabled": false
+      },
+      {
+        "name": "Incidencias2",
+        "disabled": false
+      },
+      {
+        "name": "Cancelados4",
+        "disabled": false
+      },
+      {
+        "name": "Informes de recogida",
+        "disabled": false
+      },
+      {
+        "name": "Añadir filtro",
+        "disabled": false
+      },
+      {
+        "name": "Seleccionar todos de esta página",
+        "disabled": false
+      },
+      {
+        "name": "Ver selección",
+        "disabled": true
+      },
+      {
+        "name": "Quitar selección",
+        "disabled": true
+      },
+      {
+        "name": "Generar etiquetas seleccionadas (0)",
+        "disabled": true
+      },
+      {
+        "name": "Generar etiquetas pendientes (15)",
+        "disabled": false
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
+        "name": "Pedido",
+        "disabled": false
+      },
+      {
+        "name": "Cliente",
+        "disabled": false
+      },
+      {
+        "name": "Productos",
+        "disabled": false
+      },
+      {
+        "name": "Destino",
+        "disabled": false
+      },
+      {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Envío",
+        "disabled": false
+      },
+      {
+        "name": "Peso",
+        "disabled": false
+      },
+      {
+        "name": "Unidades",
+        "disabled": false
+      },
+      {
+        "name": "Total",
+        "disabled": false
+      },
+      {
+        "name": "Estado",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Fecha pedido",
+        "disabled": false
+      },
+      {
+        "name": "Fecha etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Impresión",
+        "disabled": false
+      },
+      {
+        "name": "Informe de recogida",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-001Cliente demostración 1 · 1 kg · Correos Express · Envío —Pedido 18/09/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más121,00 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-002Cliente demostración 2 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más122,21 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-003Cliente demostración 3 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más123,42 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-004Cliente demostración 4 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más124,63 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-005Cliente demostración 5 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más125,84 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-006Cliente demostración 6 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más127,05 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-007Cliente demostración 7 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más128,26 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-008Cliente demostración 8 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más129,47 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-009Cliente demostración 9 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más130,68 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-010Cliente demostración 10 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más131,89 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-011Cliente demostración 11 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más133,10 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-012Cliente demostración 12 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más134,31 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-013Cliente demostración 13 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más135,52 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-014Cliente demostración 14 · 1 kg · MRW · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más136,73 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-015Cliente demostración 15 · 1 kg · Correos Express · Envío —Pedido 19/10/2026 11:00 · Etiqueta —Aceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más137,94 €PendienteSin información",
+        "disabled": false
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      }
+    ],
+    "columns": [
+      "",
+      "Canal",
+      "Pedido",
+      "Cliente",
+      "Productos",
+      "Destino",
+      "Transportista",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Seguimiento",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      ""
+    ],
+    "stickyCells": [
+      {
+        "text": "",
+        "position": "sticky",
+        "left": "0px"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Cliente",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Productos",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Destino",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Envío",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Peso",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Unidades",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Total",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Estado",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha etiqueta",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Impresión",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Informe de recogida",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "",
+        "position": "static",
+        "left": "auto"
+      }
+    ],
+    "cards": [],
+    "tabs": [
+      {
+        "name": "Pendientes15",
+        "selected": "true"
+      },
+      {
+        "name": "Etiquetados10",
+        "selected": "false"
+      },
+      {
+        "name": "Enviados14",
+        "selected": "false"
+      },
+      {
+        "name": "Incidencias2",
+        "selected": "false"
+      },
+      {
+        "name": "Cancelados4",
+        "selected": "false"
+      },
+      {
+        "name": "Informes de recogida",
+        "selected": "false"
+      }
+    ],
+    "requests": [
+      {
+        "from": "",
+        "to": "",
+        "state": "pending",
+        "channel": "all",
+        "query": "",
+        "tracking": "all",
+        "workbench": true,
+        "trackingStaleDays": 3,
+        "country": "all",
+        "carrier": "all",
+        "pickupReport": "all",
+        "page": 0,
+        "pageSize": 25,
+        "overdueHours": 24,
+        "sortKey": "orderDate",
+        "sortDirection": "desc"
+      }
+    ],
+    "responses": [
+      {
+        "params": {
+          "from": "",
+          "to": "",
+          "state": "pending",
+          "channel": "all",
+          "query": "",
+          "tracking": "all",
+          "workbench": true,
+          "trackingStaleDays": 3,
+          "country": "all",
+          "carrier": "all",
+          "pickupReport": "all",
+          "page": 0,
+          "pageSize": 25,
+          "overdueHours": 24,
+          "sortKey": "orderDate",
+          "sortDirection": "desc"
+        },
+        "allMatchingIds": [
+          "demo-0",
+          "demo-1",
+          "demo-2",
+          "demo-3",
+          "demo-4",
+          "demo-5",
+          "demo-6",
+          "demo-7",
+          "demo-8",
+          "demo-9",
+          "demo-10",
+          "demo-11",
+          "demo-12",
+          "demo-13",
+          "demo-14"
+        ],
+        "aggregate": {
+          "pending": 15,
+          "preparablePending": 15,
+          "amazon": 5,
+          "shopify": 5,
+          "manual": 5,
+          "labelled": 10,
+          "shipped": 14,
+          "cancelled": 4,
+          "overduePending": 15,
+          "sales": {
+            "gross": 5615.610000000002,
+            "net": 4653.783333333333,
+            "vat": 961.8266666666696,
+            "count": 39,
+            "average": 143.99000000000007
+          },
+          "transport": {
+            "total": 163.79999999999998,
+            "net": 135.37190082644628,
+            "tax": 28.428099173553704,
+            "mrw": 81.2,
+            "correos": 82.60000000000001,
+            "other": 0,
+            "shipments": 28,
+            "valued": 28,
+            "missing": 0,
+            "basis": "recorded_only"
+          }
+        },
+        "tariffCandidateIds": [
+          "demo-15",
+          "demo-16",
+          "demo-17",
+          "demo-18",
+          "demo-19",
+          "demo-20",
+          "demo-21",
+          "demo-22",
+          "demo-23",
+          "demo-24",
+          "demo-25",
+          "demo-26",
+          "demo-27",
+          "demo-28",
+          "demo-29",
+          "demo-30",
+          "demo-31",
+          "demo-32",
+          "demo-33",
+          "demo-34",
+          "demo-35",
+          "demo-36",
+          "demo-37",
+          "demo-38",
+          "demo-39",
+          "demo-40",
+          "demo-41",
+          "demo-42"
+        ]
+      }
+    ],
+    "truth": {
+      "total": 43,
+      "counters": {
+        "pending": 15,
+        "labelled": 10,
+        "shipped": 14,
+        "issues": 2,
+        "cancelled": 4
+      },
+      "all": {
+        "pending": 15,
+        "preparablePending": 15,
+        "amazon": 5,
+        "shopify": 5,
+        "manual": 5,
+        "labelled": 10,
+        "shipped": 14,
+        "cancelled": 4,
+        "overduePending": 15,
+        "sales": {
+          "gross": 5615.610000000002,
+          "net": 4653.783333333333,
+          "vat": 961.8266666666696,
+          "count": 39,
+          "average": 143.99000000000007
+        },
+        "transport": {
+          "total": 163.79999999999998,
+          "net": 135.37190082644628,
+          "tax": 28.428099173553704,
+          "mrw": 81.2,
+          "correos": 82.60000000000001,
+          "other": 0,
+          "shipments": 28,
+          "valued": 28,
+          "missing": 0,
+          "basis": "recorded_only"
+        }
+      },
+      "oldPending": "demo-0",
+      "oldLabelled": "demo-15",
+      "exception": "demo-25",
+      "staleActive": "demo-26",
+      "staleTerminal": "demo-27"
+    },
+    "dangerous": [],
+    "pdfDownloads": [],
+    "menuOverflow": "visible",
+    "drawerInventory": [],
+    "networkBlocked": 2,
+    "errors": [],
+    "failures": []
+  },
+  {
+    "phase": "before",
+    "baselineRevision": "c570c47dd688ece8d00e2c83c03653f45e00d9e4",
+    "reviewSourceHashes": {
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
+      "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
+      "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
+      "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
+      "packages/ui/src/PageTabs.tsx": "0dad08de47f0b0cdcee6cdf1e9aedb6e19aa750acaad86c5726be97820d24736",
+      "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7"
+    },
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
+    "context": "issues",
+    "width": 1440,
+    "documentWidth": 1440,
+    "horizontalOverflow": 0,
+    "firstRowTop": 450,
+    "headerActions": [
+      {
+        "name": " Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": " Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": " Facturación manual de Shopify",
+        "disabled": false
+      }
+    ],
+    "allActions": [
+      {
+        "name": "Nuevo pedido",
+        "disabled": false
+      },
+      {
+        "name": "Actualizar pedidos",
+        "disabled": false
+      },
+      {
+        "name": "Abrir tarifas de transporte",
+        "disabled": false
+      },
+      {
+        "name": "Impresión directa",
+        "disabled": false
+      },
+      {
+        "name": "Formato rápido de etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Facturación manual de Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Pendientes15",
+        "disabled": false
+      },
+      {
+        "name": "Etiquetados10",
+        "disabled": false
+      },
+      {
+        "name": "Enviados14",
+        "disabled": false
+      },
+      {
+        "name": "Incidencias2",
+        "disabled": false
+      },
+      {
+        "name": "Cancelados4",
+        "disabled": false
+      },
+      {
+        "name": "Informes de recogida",
+        "disabled": false
+      },
+      {
+        "name": "Añadir filtro",
+        "disabled": false
+      },
+      {
+        "name": "Seleccionar todos de esta página",
+        "disabled": false
+      },
+      {
+        "name": "Ver selección",
+        "disabled": true
+      },
+      {
+        "name": "Quitar selección",
+        "disabled": true
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      },
+      {
+        "name": "Pedido",
+        "disabled": false
+      },
+      {
+        "name": "Cliente",
+        "disabled": false
+      },
+      {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
+        "name": "Productos",
+        "disabled": false
+      },
+      {
+        "name": "Destino",
+        "disabled": false
+      },
+      {
+        "name": "Envío",
+        "disabled": false
+      },
+      {
+        "name": "Peso",
+        "disabled": false
+      },
+      {
+        "name": "Unidades",
+        "disabled": false
+      },
+      {
+        "name": "Total",
+        "disabled": false
+      },
+      {
+        "name": "Estado",
+        "disabled": false
+      },
+      {
+        "name": "Fecha pedido",
+        "disabled": false
+      },
+      {
+        "name": "Fecha etiqueta",
+        "disabled": false
+      },
+      {
+        "name": "Impresión",
+        "disabled": false
+      },
+      {
+        "name": "Informe de recogida",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Anterior",
+        "disabled": true
+      },
+      {
+        "name": "Siguiente",
+        "disabled": true
+      }
+    ],
+    "columns": [
+      "",
+      "Pedido",
+      "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
+      "Productos",
+      "Destino",
+      "Envío",
+      "Peso",
+      "Unidades",
+      "Total",
+      "Estado",
+      "Fecha pedido",
+      "Fecha etiqueta",
+      "Impresión",
+      "Informe de recogida",
+      ""
+    ],
+    "stickyCells": [
+      {
+        "text": "",
+        "position": "sticky",
+        "left": "0px"
+      },
+      {
+        "text": "Pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Cliente",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Productos",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Destino",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Envío",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Peso",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Unidades",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Total",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Estado",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha pedido",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Fecha etiqueta",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Impresión",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Informe de recogida",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "",
+        "position": "static",
+        "left": "auto"
+      }
+    ],
+    "cards": [],
+    "tabs": [
+      {
+        "name": "Pendientes15",
+        "selected": "false"
+      },
+      {
+        "name": "Etiquetados10",
+        "selected": "false"
+      },
+      {
+        "name": "Enviados14",
+        "selected": "false"
+      },
+      {
+        "name": "Incidencias2",
+        "selected": "true"
+      },
+      {
+        "name": "Cancelados4",
+        "selected": "false"
+      },
+      {
+        "name": "Informes de recogida",
+        "selected": "false"
+      }
+    ],
+    "requests": [
+      {
+        "from": "",
+        "to": "",
+        "state": "pending",
+        "channel": "all",
+        "query": "",
+        "tracking": "all",
+        "workbench": true,
+        "trackingStaleDays": 3,
+        "country": "all",
+        "carrier": "all",
+        "pickupReport": "all",
+        "page": 0,
+        "pageSize": 25,
+        "overdueHours": 24,
+        "sortKey": "orderDate",
+        "sortDirection": "desc"
+      },
+      {
+        "from": "",
+        "to": "",
+        "state": "issues",
+        "channel": "all",
+        "query": "",
+        "tracking": "all",
+        "workbench": true,
+        "trackingStaleDays": 3,
+        "country": "all",
+        "carrier": "all",
+        "pickupReport": "all",
+        "page": 0,
+        "pageSize": 25,
+        "overdueHours": 24,
+        "sortKey": "orderDate",
+        "sortDirection": "desc"
+      }
+    ],
+    "responses": [
+      {
+        "params": {
+          "from": "",
+          "to": "",
+          "state": "pending",
+          "channel": "all",
+          "query": "",
+          "tracking": "all",
+          "workbench": true,
+          "trackingStaleDays": 3,
+          "country": "all",
+          "carrier": "all",
+          "pickupReport": "all",
+          "page": 0,
+          "pageSize": 25,
+          "overdueHours": 24,
+          "sortKey": "orderDate",
+          "sortDirection": "desc"
+        },
+        "allMatchingIds": [
+          "demo-0",
+          "demo-1",
+          "demo-2",
+          "demo-3",
+          "demo-4",
+          "demo-5",
+          "demo-6",
+          "demo-7",
+          "demo-8",
+          "demo-9",
+          "demo-10",
+          "demo-11",
+          "demo-12",
+          "demo-13",
+          "demo-14"
+        ],
+        "aggregate": {
+          "pending": 15,
+          "preparablePending": 15,
+          "amazon": 5,
+          "shopify": 5,
+          "manual": 5,
+          "labelled": 10,
+          "shipped": 14,
+          "cancelled": 4,
+          "overduePending": 15,
+          "sales": {
+            "gross": 5615.610000000002,
+            "net": 4653.783333333333,
+            "vat": 961.8266666666696,
+            "count": 39,
+            "average": 143.99000000000007
+          },
+          "transport": {
+            "total": 163.79999999999998,
+            "net": 135.37190082644628,
+            "tax": 28.428099173553704,
+            "mrw": 81.2,
+            "correos": 82.60000000000001,
+            "other": 0,
+            "shipments": 28,
+            "valued": 28,
+            "missing": 0,
+            "basis": "recorded_only"
+          }
+        },
+        "tariffCandidateIds": [
+          "demo-15",
+          "demo-16",
+          "demo-17",
+          "demo-18",
+          "demo-19",
+          "demo-20",
+          "demo-21",
+          "demo-22",
+          "demo-23",
+          "demo-24",
+          "demo-25",
+          "demo-26",
+          "demo-27",
+          "demo-28",
+          "demo-29",
+          "demo-30",
+          "demo-31",
+          "demo-32",
+          "demo-33",
+          "demo-34",
+          "demo-35",
+          "demo-36",
+          "demo-37",
+          "demo-38",
+          "demo-39",
+          "demo-40",
+          "demo-41",
+          "demo-42"
+        ]
+      },
+      {
+        "params": {
+          "from": "",
+          "to": "",
+          "state": "issues",
+          "channel": "all",
+          "query": "",
+          "tracking": "all",
+          "workbench": true,
+          "trackingStaleDays": 3,
+          "country": "all",
+          "carrier": "all",
+          "pickupReport": "all",
+          "page": 0,
+          "pageSize": 25,
+          "overdueHours": 24,
+          "sortKey": "orderDate",
+          "sortDirection": "desc"
+        },
+        "allMatchingIds": [
+          "demo-25",
+          "demo-26"
+        ],
+        "aggregate": {
+          "pending": 15,
+          "preparablePending": 15,
+          "amazon": 5,
+          "shopify": 5,
+          "manual": 5,
+          "labelled": 10,
+          "shipped": 14,
+          "cancelled": 4,
+          "overduePending": 15,
+          "sales": {
+            "gross": 5615.610000000002,
+            "net": 4653.783333333333,
+            "vat": 961.8266666666696,
+            "count": 39,
+            "average": 143.99000000000007
+          },
+          "transport": {
+            "total": 163.79999999999998,
+            "net": 135.37190082644628,
+            "tax": 28.428099173553704,
+            "mrw": 81.2,
+            "correos": 82.60000000000001,
+            "other": 0,
+            "shipments": 28,
+            "valued": 28,
+            "missing": 0,
+            "basis": "recorded_only"
+          }
+        },
+        "tariffCandidateIds": [
+          "demo-15",
+          "demo-16",
+          "demo-17",
+          "demo-18",
+          "demo-19",
+          "demo-20",
+          "demo-21",
+          "demo-22",
+          "demo-23",
+          "demo-24",
+          "demo-25",
+          "demo-26",
+          "demo-27",
+          "demo-28",
+          "demo-29",
+          "demo-30",
+          "demo-31",
+          "demo-32",
+          "demo-33",
+          "demo-34",
+          "demo-35",
+          "demo-36",
+          "demo-37",
+          "demo-38",
+          "demo-39",
+          "demo-40",
+          "demo-41",
+          "demo-42"
+        ]
+      }
+    ],
+    "truth": {
+      "total": 43,
+      "counters": {
+        "pending": 15,
+        "labelled": 10,
+        "shipped": 14,
+        "issues": 2,
+        "cancelled": 4
+      },
+      "all": {
+        "pending": 15,
+        "preparablePending": 15,
+        "amazon": 5,
+        "shopify": 5,
+        "manual": 5,
+        "labelled": 10,
+        "shipped": 14,
+        "cancelled": 4,
+        "overduePending": 15,
+        "sales": {
+          "gross": 5615.610000000002,
+          "net": 4653.783333333333,
+          "vat": 961.8266666666696,
+          "count": 39,
+          "average": 143.99000000000007
+        },
+        "transport": {
+          "total": 163.79999999999998,
+          "net": 135.37190082644628,
+          "tax": 28.428099173553704,
+          "mrw": 81.2,
+          "correos": 82.60000000000001,
+          "other": 0,
+          "shipments": 28,
+          "valued": 28,
+          "missing": 0,
+          "basis": "recorded_only"
+        }
+      },
+      "oldPending": "demo-0",
+      "oldLabelled": "demo-15",
+      "exception": "demo-25",
+      "staleActive": "demo-26",
+      "staleTerminal": "demo-27"
+    },
+    "dangerous": [],
+    "pdfDownloads": [],
+    "drawerInventory": [],
+    "networkBlocked": 3,
+    "errors": [],
+    "failures": []
+  }
+]

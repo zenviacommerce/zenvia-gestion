@@ -239,7 +239,6 @@ export type UserPreferences = {
   dashboardKpis: string[];
   dashboardKpisVersion: 1;
   filters: Record<string, unknown>;
-  labelPrinterId: string | null;
   dismissedAlerts: Record<string, string>;
 };
 
@@ -439,7 +438,6 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   dashboardKpis: [],
   dashboardKpisVersion: 1,
   filters: {},
-  labelPrinterId: null,
   dismissedAlerts: {},
 };
 
@@ -975,8 +973,9 @@ export function normalizeUserPreferences(input:unknown):{value:UserPreferences;w
     if(input!==undefined)warn(warnings,'$','Las preferencias deben ser un objeto. Se han aplicado los valores predeterminados.');
     return {value:clone(d),warnings};
   }
-  const keys=['theme','density','pageSize','startPage','defaultPeriod','rememberFilters','tableColumns','tableColumnOrder','dashboardKpis','dashboardKpisVersion','filters','labelPrinterId','dismissedAlerts'];
-  unknownKeys(input,keys,'',warnings);
+  const keys=['theme','density','pageSize','startPage','defaultPeriod','rememberFilters','tableColumns','tableColumnOrder','dashboardKpis','dashboardKpisVersion','filters','dismissedAlerts'];
+  // Retired printing preference is discarded silently when loading existing profiles.
+  unknownKeys(Object.fromEntries(Object.entries(input).filter(([key])=>key!=='labelPrinterId')),keys,'',warnings);
 
   let pageSize=d.pageSize;
   if('pageSize' in input){
@@ -1013,7 +1012,6 @@ export function normalizeUserPreferences(input:unknown):{value:UserPreferences;w
       dashboardKpis:migratedDashboardKpis,
       dashboardKpisVersion:1,
       filters:freeRecordValue(input,'filters',d.filters,'filters',warnings),
-      labelPrinterId:nullableStringValue(input,'labelPrinterId',d.labelPrinterId,'labelPrinterId',warnings),
       dismissedAlerts:recordOfStringsValue(input,'dismissedAlerts',d.dismissedAlerts,'dismissedAlerts',warnings),
     },
     warnings,

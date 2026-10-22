@@ -196,7 +196,6 @@ Deno.serve(async(req:Request)=>{
             owner_id:caller.data_owner_id,
             sendcloud_id:`shopify:${account.id}:${remoteId}`,
             sendcloud_remote_id:null,
-            shipping_integration_account_id:null,
             source_integration_account_id:account.id,
             order_id:clean(order.id)||remoteId,
             order_number:clean(order.name)||remoteId,

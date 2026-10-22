@@ -1,6 +1,6 @@
 .ordersPage.ordersWorkbench{min-width:0}
 .ordersWorkbench .dsPageHeader{margin-bottom:14px;gap:12px;align-items:flex-start}
-.ordersWorkbench .dsPageHeaderActions{flex-wrap:nowrap;overflow:visible;gap:8px}
+.ordersPage.ordersWorkbench .dsPageHeaderActions{flex-wrap:nowrap;overflow:visible;gap:8px}
 .ordersWorkbench .dsPageHeaderActionsFrame{min-width:0;max-width:100%}
 .ordersWorkbench .ordersConnection{padding:5px 0;margin:8px 0;font-size:12px;background:transparent;border:0}
 .ordersWorkbench .ordersConnection small{font-size:11px}
@@ -30,7 +30,7 @@
  .ordersWorkbench .dsPageHeaderIdentity .eyebrow,.ordersWorkbench .dsPageHeaderIdentity>p{display:none}
  .ordersWorkbench .dsPageHeaderIdentity h1{font-size:24px;margin:0}
  .ordersWorkbench .dsPageHeaderActionsFrame{width:100%;overflow:visible}
- .ordersWorkbench .dsPageHeaderActions{display:flex;flex-wrap:nowrap;justify-content:flex-start;overflow:visible;width:100%;gap:6px}
+ .ordersPage.ordersWorkbench .dsPageHeaderActions{display:flex;flex-wrap:nowrap;justify-content:flex-start;overflow:visible;width:100%;gap:6px}
  .ordersWorkbench .dsPageHeaderActions>button{min-width:0;flex-basis:0;min-height:42px;padding:8px;font-size:12px;flex:1 1 0;white-space:nowrap}
  .ordersWorkbench .ordersHeaderMore{flex:0 0 auto}
  .ordersWorkbench .ordersConnection{flex-wrap:wrap;gap:4px;margin:4px 0;padding:2px 0}

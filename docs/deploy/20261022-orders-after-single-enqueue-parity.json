@@ -1,0 +1,94 @@
+[
+  {
+    "receipt": {
+      "cases": [
+        {
+          "name": "orders_dashboard_page_v1:all",
+          "after_ms": 130.005,
+          "before_ms": 727.834,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_page_v1:cancelled",
+          "after_ms": 112.303,
+          "before_ms": 682.787,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_page_v1:ES",
+          "after_ms": 114.286,
+          "before_ms": 691.519,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_page_v1:labelled",
+          "after_ms": 81.454,
+          "before_ms": 702.936,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_page_v1:pending",
+          "after_ms": 94.587,
+          "before_ms": 713.23,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_page_v1:RECsort",
+          "after_ms": 115.92,
+          "before_ms": 684.434,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_page_v1:shipped",
+          "after_ms": 109.85,
+          "before_ms": 809.865,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_pickup_v1:all",
+          "after_ms": 83.352,
+          "before_ms": 775.074,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_pickup_v1:cancelled",
+          "after_ms": 76.207,
+          "before_ms": 657.546,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_pickup_v1:ES",
+          "after_ms": 90.23,
+          "before_ms": 713.99,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_pickup_v1:labelled",
+          "after_ms": 63.228,
+          "before_ms": 698.166,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_pickup_v1:pending",
+          "after_ms": 86.422,
+          "before_ms": 679.752,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_pickup_v1:RECsort",
+          "after_ms": 105.069,
+          "before_ms": 722.131,
+          "identical": true
+        },
+        {
+          "name": "orders_dashboard_pickup_v1:shipped",
+          "after_ms": 91.496,
+          "before_ms": 667.85,
+          "identical": true
+        }
+      ],
+      "passed": 14,
+      "captured_at": "2026-10-22T09:18:56.413332+00:00"
+    }
+  }
+]

@@ -1,5 +1,7 @@
 # Production write gate — 22 October 2026
 
+**Historical decision, superseded by owner approval and [production activation receipt](20261022-orders-production-activation.md).**
+
 **Gate not passed conservatively. Reads remain unactivated and `read_enabled=false`; maintenance remains on. No pg_stat_statements reset and no frontend publication.** PR #281 contains only the separately prepared visible-tab refresh frontend.
 
 Each phase updated the same cohort of 200 real, non-purged Amazon orders, one harmless `updated_at` change per row. The transaction always rolled back. Receipts execute after ROLLBACK and verify `pg_xact_status=aborted`. The same cohort hash was observed throughout. Independent pg_cron connections split distinct groups across 1, 2 or 4 sessions; timestamp overlap and a separate observer confirmed actual concurrency. Earlier MCP parallel attempts were serialized and are excluded.

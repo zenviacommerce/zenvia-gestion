@@ -1,0 +1,17 @@
+[
+  {
+    "checked_at": "2026-10-22 09:15:38.673498+00",
+    "oid": "3877413",
+    "acl": "{postgres=X/postgres}",
+    "proconfig": [
+      "search_path=\"\"",
+      "lock_timeout=25ms"
+    ],
+    "hash": "0dc05711e36f5599371517d0a448010d",
+    "control": {
+      "singleton": true,
+      "read_enabled": true,
+      "maintenance_enabled": true
+    }
+  }
+]

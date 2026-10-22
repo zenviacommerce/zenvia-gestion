@@ -1,0 +1,18 @@
+[
+  {
+    "captured_at": "2026-10-22 09:14:09.753165+00",
+    "trigger_definition": "CREATE OR REPLACE FUNCTION private.orders_dashboard_projection_changed()\n RETURNS trigger\n LANGUAGE plpgsql\n SECURITY DEFINER\n SET search_path TO ''\n SET lock_timeout TO '25ms'\nAS $function$\nBEGIN\n BEGIN\n  IF NOT coalesce((SELECT maintenance_enabled FROM private.orders_projection_control WHERE singleton),false) THEN RETURN NULL;END IF;\n  IF TG_OP='UPDATE' AND NEW IS NOT DISTINCT FROM OLD THEN RETURN NULL;END IF;\n  IF TG_OP<>'INSERT' THEN\n   INSERT INTO private.orders_projection_dirty(owner_id,group_key)\n   VALUES(OLD.owner_id,private.orders_dashboard_group_key(OLD.source_channel,OLD.order_number,OLD.id));\n  END IF;\n  IF TG_OP<>'DELETE' THEN\n   INSERT INTO private.orders_projection_dirty(owner_id,group_key)\n   VALUES(NEW.owner_id,private.orders_dashboard_group_key(NEW.source_channel,NEW.order_number,NEW.id));\n  END IF;\n EXCEPTION WHEN OTHERS THEN\n  BEGIN\n   PERFORM private.orders_projection_record_failure(SQLSTATE,\n    CASE WHEN TG_OP='DELETE' THEN OLD.owner_id ELSE NEW.owner_id END,\n    CASE WHEN TG_OP='DELETE' THEN private.orders_dashboard_group_key(OLD.source_channel,OLD.order_number,OLD.id)\n    ELSE private.orders_dashboard_group_key(NEW.source_channel,NEW.order_number,NEW.id) END);\n  EXCEPTION WHEN OTHERS THEN RAISE LOG 'orders projection queue and recorder unavailable';\n  END;\n END;\n RETURN NULL;\nEND $function$\n",
+    "oid": "3877413",
+    "acl": "{postgres=X/postgres}",
+    "proconfig": [
+      "search_path=\"\"",
+      "lock_timeout=25ms"
+    ],
+    "hash": "30d1218a555db66aa3d74f6a7d97c173",
+    "control": {
+      "singleton": true,
+      "read_enabled": true,
+      "maintenance_enabled": true
+    }
+  }
+]

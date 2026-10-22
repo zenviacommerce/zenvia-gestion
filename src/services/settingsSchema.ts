@@ -225,6 +225,8 @@ export type AppSettings = {
   maintenance: MaintenanceSettings;
 };
 
+export const ORDER_FINANCIAL_KPI_KEYS=['orderVat','orderNet','orderAverage','orderTransport'] as const;
+
 export type UserPreferences = {
   theme: ThemePreference;
   density: DensityPreference;
@@ -235,6 +237,7 @@ export type UserPreferences = {
   tableColumns: Record<string, string[]>;
   tableColumnOrder: Record<string, string[]>;
   dashboardKpis: string[];
+  dashboardKpisVersion: 1;
   filters: Record<string, unknown>;
   labelPrinterId: string | null;
   dismissedAlerts: Record<string, string>;
@@ -434,6 +437,7 @@ export const DEFAULT_USER_PREFERENCES: UserPreferences = {
   tableColumns: {},
   tableColumnOrder: {},
   dashboardKpis: [],
+  dashboardKpisVersion: 1,
   filters: {},
   labelPrinterId: null,
   dismissedAlerts: {},
@@ -971,7 +975,7 @@ export function normalizeUserPreferences(input:unknown):{value:UserPreferences;w
     if(input!==undefined)warn(warnings,'$','Las preferencias deben ser un objeto. Se han aplicado los valores predeterminados.');
     return {value:clone(d),warnings};
   }
-  const keys=['theme','density','pageSize','startPage','defaultPeriod','rememberFilters','tableColumns','tableColumnOrder','dashboardKpis','filters','labelPrinterId','dismissedAlerts'];
+  const keys=['theme','density','pageSize','startPage','defaultPeriod','rememberFilters','tableColumns','tableColumnOrder','dashboardKpis','dashboardKpisVersion','filters','labelPrinterId','dismissedAlerts'];
   unknownKeys(input,keys,'',warnings);
 
   let pageSize=d.pageSize;
@@ -988,6 +992,14 @@ export function normalizeUserPreferences(input:unknown):{value:UserPreferences;w
     else warn(warnings,'startPage','Página inicial no válida.');
   }
 
+  const dashboardKpis=stringArrayValue(input,'dashboardKpis',d.dashboardKpis,'dashboardKpis',warnings);
+  // Older explicit selections predate the four moved financial metrics. Add
+  // only those new defaults, never restore a hidden legacy card. The marker
+  // travels with the existing preferences JSON so later user choices survive.
+  const migratedDashboardKpis=input.dashboardKpisVersion!==1&&dashboardKpis.length
+    ?Array.from(new Set([...dashboardKpis,...ORDER_FINANCIAL_KPI_KEYS]))
+    :dashboardKpis;
+
   return {
     value:{
       theme:enumValue(input,'theme',d.theme,'theme',warnings,['light','dark']),
@@ -998,7 +1010,8 @@ export function normalizeUserPreferences(input:unknown):{value:UserPreferences;w
       rememberFilters:booleanValue(input,'rememberFilters',d.rememberFilters,'rememberFilters',warnings),
       tableColumns:recordOfStringArraysValue(input,'tableColumns',d.tableColumns,'tableColumns',warnings),
       tableColumnOrder:recordOfStringArraysValue(input,'tableColumnOrder',d.tableColumnOrder,'tableColumnOrder',warnings),
-      dashboardKpis:stringArrayValue(input,'dashboardKpis',d.dashboardKpis,'dashboardKpis',warnings),
+      dashboardKpis:migratedDashboardKpis,
+      dashboardKpisVersion:1,
       filters:freeRecordValue(input,'filters',d.filters,'filters',warnings),
       labelPrinterId:nullableStringValue(input,'labelPrinterId',d.labelPrinterId,'labelPrinterId',warnings),
       dismissedAlerts:recordOfStringsValue(input,'dismissedAlerts',d.dismissedAlerts,'dismissedAlerts',warnings),

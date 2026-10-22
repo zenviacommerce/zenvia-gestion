@@ -1,0 +1,47 @@
+.ordersPage.ordersWorkbench{min-width:0}
+.ordersWorkbench .dsPageHeader{margin-bottom:14px;gap:12px;align-items:flex-start}
+.ordersWorkbench .dsPageHeaderActions{flex-wrap:wrap;overflow:visible;gap:8px}
+.ordersWorkbench .dsPageHeaderActionsFrame{min-width:0;max-width:100%}
+.ordersWorkbench .ordersConnection{padding:5px 0;margin:8px 0;font-size:12px;background:transparent;border:0}
+.ordersWorkbench .ordersConnection small{font-size:11px}
+.ordersWorkbench .ordersPeriodPanel{margin:12px 0;min-height:0}
+.ordersWorkbench .ordersQueueNotice{margin:4px 0 8px;color:var(--text-muted,#64748b);font-size:12px}
+.ordersWorkbench .ordersSelectionScope{margin:6px 0;font-size:12px}
+.ordersWorkbench .ordersSelectionScope p{margin:4px 0}
+.ordersWorkbench .ordersPager{margin:8px 0;font-size:12px;min-height:40px}
+.ordersWorkbench .ordersTabCount{display:inline-flex;justify-content:center;min-width:23px;margin-left:6px;padding:1px 6px;border-radius:6px;background:var(--surface-soft,#e8eef0);font-size:12px;font-variant-numeric:tabular-nums}
+.ordersWorkbench .ordersAllView{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
+.ordersHeaderMore{position:relative;align-self:center}
+.ordersHeaderMore>summary,.pickupHistoryFilters details>summary{cursor:pointer;list-style:none;padding:10px;border:1px solid var(--border,#dbe2ea);border-radius:9px;white-space:nowrap;font-size:12px;min-height:42px;box-sizing:border-box}
+.ordersHeaderMore>summary::-webkit-details-marker{display:none}
+.ordersHeaderMenu{position:absolute;top:calc(100% + 8px);right:0;z-index:40;width:260px;max-width:calc(100vw - 32px);padding:12px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--border,#dbe2ea);border-radius:12px;background:var(--surface,#fff);box-shadow:0 12px 32px #0002}
+.ordersHeaderMenu>button{width:100%;justify-content:flex-start}
+.pickupHistoryEmbedded{margin-top:12px;min-width:0}
+.pickupHistoryEmbedded .modalHead{padding:16px;border-bottom:1px solid var(--border,#dbe2ea)}
+.pickupHistoryEmbedded .modalHead h2{font-size:18px;margin:0 0 6px}
+.pickupHistoryEmbedded .modalActions:empty{display:none}
+.pickupHistoryFilters{display:flex;gap:12px;align-items:flex-end;padding:12px 16px;flex-wrap:wrap}
+.pickupHistoryFilters>label{display:grid;gap:5px;font-size:12px;flex:1;min-width:160px}
+.pickupHistoryFilters input{height:42px;box-sizing:border-box;width:100%}
+.pickupHistoryFilters details{position:relative}
+.pickupHistoryFilters details>label{position:absolute;right:0;top:calc(100% + 8px);width:220px;padding:12px;z-index:25;background:var(--surface,#fff);border:1px solid var(--border,#dbe2ea);border-radius:10px}
+@media(max-width:767px){
+ .ordersWorkbench .dsPageHeader{display:flex;flex-direction:column;gap:8px;margin-bottom:8px}
+ .ordersWorkbench .dsPageHeaderIdentity .eyebrow,.ordersWorkbench .dsPageHeaderIdentity>p{display:none}
+ .ordersWorkbench .dsPageHeaderIdentity h1{font-size:24px;margin:0}
+ .ordersWorkbench .dsPageHeaderActionsFrame{width:100%;overflow:visible}
+ .ordersWorkbench .dsPageHeaderActions{display:flex;flex-wrap:nowrap;justify-content:flex-start;overflow:visible;width:100%;gap:6px}
+ .ordersWorkbench .dsPageHeaderActions>button{min-width:0;flex-basis:0;min-height:42px;padding:8px;font-size:12px;flex:1 1 0;white-space:nowrap}
+ .ordersWorkbench .ordersHeaderMore{flex:0 0 auto}
+ .ordersWorkbench .ordersConnection{flex-wrap:wrap;gap:4px;margin:4px 0;padding:2px 0}
+ .ordersWorkbench .ordersConnection small{flex-basis:100%}
+ .ordersWorkbench .bulkSelectionToolbar{padding:8px;gap:6px;margin:8px 0}
+ .ordersWorkbench .bulkSelectionToolbar button{padding:8px;font-size:12px;min-height:40px}
+ .ordersWorkbench .ordersPager{flex-direction:row;align-items:center;gap:6px;margin:6px 0;font-size:11px}
+ .ordersWorkbench .ordersPagerActions{width:auto;gap:4px}
+ .ordersWorkbench .ordersPagerActions button{padding:6px 8px;min-height:38px;font-size:12px}
+}
+
+.ordersWorkbench .bulkSelectionTextButton{color:var(--text,#172033)}
+[data-theme='dark'] .ordersWorkbench .ordersWorkbenchFilters .ordersWorkbenchShowAll,
+[data-theme='dark'] .ordersWorkbench .bulkSelectionActions>.link{color:#5eead4}

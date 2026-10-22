@@ -1,0 +1,41 @@
+[
+  {
+    "context": "pending",
+    "width": 390,
+    "suffix": "-menu",
+    "documentWidth": 390,
+    "horizontalOverflow": 0,
+    "background": "rgb(9, 15, 28)",
+    "theme": "dark",
+    "pageErrors": [],
+    "consoleErrors": [],
+    "blockedRequests": 2,
+    "syntheticFlagAssets": true
+  },
+  {
+    "context": "pending",
+    "width": 390,
+    "suffix": "-filters",
+    "documentWidth": 390,
+    "horizontalOverflow": 0,
+    "background": "rgb(9, 15, 28)",
+    "theme": "dark",
+    "pageErrors": [],
+    "consoleErrors": [],
+    "blockedRequests": 2,
+    "syntheticFlagAssets": true
+  },
+  {
+    "context": "dashboard",
+    "width": 1440,
+    "suffix": "",
+    "documentWidth": 1440,
+    "horizontalOverflow": 0,
+    "background": "rgb(9, 15, 28)",
+    "theme": "dark",
+    "pageErrors": [],
+    "consoleErrors": [],
+    "blockedRequests": 0,
+    "syntheticFlagAssets": true
+  }
+]

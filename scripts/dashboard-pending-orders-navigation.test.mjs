@@ -12,8 +12,10 @@ test('pending orders KPI navigates to Orders through the app navigation callback
     read('src/pages/Orders.tsx'),
   ]);
   assert.match(app,/onOrders=\{can\('orders'\)\?\(\)=>void navigate\('orders',\{pendingOrders:true\}\):undefined\}/);
-  assert.match(app,/<Orders pendingOnly=\{ordersPendingEntry\}\/>/);
-  assert.match(orders,/pendingOnly\?'pending':remembered\.state/);
+  assert.match(app,/<Orders pendingOnly=\{ordersPendingEntry\} active=\{page==='orders'\}\/>/);
+  assert.match(orders,/if\(pendingOnly\)return 'pending'/);
+  assert.match(orders,/const \[activeTab,setActiveTab\]=useState<OrdersTab>/);
+  assert.match(orders,/const state:OrderFilter=activeTab==='reports'\?'all':activeTab/);
   assert.match(orders,/pendingOnly\?'':remembered\.query/);
   assert.match(orders,/pendingOnly\?'all':remembered\.trackingFilter/);
   assert.match(orders,/pendingOnly\?'all':remembered\.countryFilter/);

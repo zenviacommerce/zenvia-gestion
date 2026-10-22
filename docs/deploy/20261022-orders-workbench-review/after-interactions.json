@@ -1,0 +1,88 @@
+{
+  "phase": "after",
+  "synthetic": true,
+  "networkBlocked": true,
+  "checks": [
+    {
+      "name": "Selection survives page, tab, search and three-state sorting",
+      "passed": true,
+      "selectedIds": [
+        "demo-0",
+        "demo-1",
+        "demo-15"
+      ],
+      "sortStates": [
+        "order:asc",
+        "order:desc",
+        "orderDate:desc"
+      ]
+    },
+    {
+      "name": "Transport tariffs remains available",
+      "passed": true,
+      "action": "open and close"
+    },
+    {
+      "name": "Manual order remains available",
+      "passed": true,
+      "action": "open and cancel"
+    },
+    {
+      "name": "Pickup report preparation remains available",
+      "passed": true,
+      "action": "preview and cancel; no report created"
+    },
+    {
+      "name": "Issues includes normalized exception and stale active movement; excludes stale delivered",
+      "passed": true,
+      "issueIds": [
+        "demo-25",
+        "demo-26"
+      ],
+      "terminalExcluded": "demo-27",
+      "freshCheckedAt": "2026-10-22T09:59:00Z"
+    },
+    {
+      "name": "Inline report history can reprint saved report using isolated PDF fixture",
+      "passed": true,
+      "download": "REC-2026-0042",
+      "realPdfNetwork": false
+    },
+    {
+      "name": "Mobile More actions reveals tariffs, printing, format and Shopify invoicing",
+      "passed": true,
+      "mobileActions": [
+        {
+          "name": "Abrir tarifas de transporte",
+          "left": 128,
+          "right": 362,
+          "visible": true
+        },
+        {
+          "name": " Impresión directa",
+          "left": 128,
+          "right": 362,
+          "visible": true
+        },
+        {
+          "name": " Facturación manual de Shopify",
+          "left": 128,
+          "right": 362,
+          "visible": true
+        }
+      ]
+    },
+    {
+      "name": "Shopify billing and quick format remain usable",
+      "passed": true,
+      "billingCandidates": 5,
+      "actions": "open and cancel; format options open and Escape"
+    },
+    {
+      "name": "No write, purchase, send or report-create action executed",
+      "passed": true,
+      "dangerousCalls": [],
+      "pageErrors": []
+    }
+  ]
+}

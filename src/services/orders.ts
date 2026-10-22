@@ -231,7 +231,8 @@ async function readFulfillmentOrders(client:ReturnType<typeof getActiveSupabase>
   return publishOrdersSnapshot(orders,snapshotVersion);
 }
 export type OrdersDashboardFilters={
-  from:string;to:string;state:'pending'|'labelled'|'shipped'|'cancelled'|'all';
+  from:string;to:string;state:'pending'|'labelled'|'shipped'|'issues'|'cancelled'|'all';
+  workbench?:boolean;trackingStaleDays?:number;
   channel:'all'|OrderChannel;query:string;tracking:string;country:string;carrier:string;
   pickupReport?:'all'|'none'|'in';selectedIds?:string[];page:number;pageSize:number;overdueHours:number;sortKey:string;sortDirection:'asc'|'desc';
 };
@@ -244,7 +245,9 @@ export type OrdersDashboardKpis={
   transport:{total:number;net:number;tax:number;mrw:number;correos:number;other:number;
     shipments:number;valued:number;missing:number;basis:'recorded_only'|'recorded_and_tariff'};
 };
+export type OrdersWorkbenchCounters={pending:number;labelled:number;shipped:number;issues:number;cancelled:number};
 export type OrdersDashboardPage={
+  counters?:OrdersWorkbenchCounters;
   orders:FulfillmentOrder[];total:number;selectableTotal:number;page:number;pageSize:number;
   tariffCandidates:Array<FulfillmentOrder & {kpiCarrierLabel:string}>;
   kpis:OrdersDashboardKpis;
@@ -257,7 +260,8 @@ export type OrdersDashboardPage={
  */
 export async function fetchOrdersDashboardPage(filters:OrdersDashboardFilters):Promise<OrdersDashboardPage>{
   const client=getActiveSupabase();
-  const {data,error}=await client.rpc('orders_dashboard_pickup_v1',{
+  const {data,error}=await client.rpc(filters.workbench?'orders_workbench_v1':'orders_dashboard_pickup_v1',{
+    ...(filters.workbench?{p_tracking_stale_days:filters.trackingStaleDays??3}:{}),
     p_from:filters.from||null,p_to:filters.to||null,
     p_state:filters.state,p_channel:filters.channel,p_query:filters.query,
     p_tracking:filters.tracking,p_country:filters.country,p_carrier:filters.carrier,
@@ -272,6 +276,7 @@ export async function fetchOrdersDashboardPage(filters:OrdersDashboardFilters):P
   if(!data||!Array.isArray(data.rows)||!data.kpis)throw new Error('La respuesta de estadísticas de pedidos no es válida.');
   return {
     orders:data.rows.map(mapRow),
+    ...(data.counters?{counters:data.counters as OrdersWorkbenchCounters}:{}),
     tariffCandidates:(Array.isArray(data.tariffCandidates)?data.tariffCandidates:[]).map((row:any)=>({...mapRow(row),kpiCarrierLabel:String(row.kpi_carrier_label||'')})),
     total:Number(data.total||0),
     selectableTotal:Number(data.selectableTotal||0),
@@ -287,7 +292,8 @@ export async function fetchOrdersDashboardPage(filters:OrdersDashboardFilters):P
 
 /** IDs come from the same server-side eligibility/filter scope as the dashboard. */
 export async function fetchMatchingOrderIds(filters:OrdersDashboardFilters,allEligible=false):Promise<string[]>{
-  const {data,error}=await getActiveSupabase().rpc('orders_dashboard_pickup_v1',{
+  const {data,error}=await getActiveSupabase().rpc(filters.workbench?'orders_workbench_v1':'orders_dashboard_pickup_v1',{
+    ...(filters.workbench?{p_tracking_stale_days:filters.trackingStaleDays??3}:{}),
     p_from:filters.from||null,p_to:filters.to||null,p_state:filters.state,
     p_channel:filters.channel,p_query:filters.query,p_tracking:filters.tracking,
     p_country:filters.country,p_carrier:filters.carrier,p_selection_limit:2000,p_selection_ids_only:true,p_selection_all:allEligible,p_pickup_report:filters.pickupReport||'all',

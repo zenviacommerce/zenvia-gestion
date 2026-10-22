@@ -33,3 +33,30 @@ it('shows a real MRW observation with an unknown code as unclassified without in
  const p=trackingPresentation({shippingProvider:'mrw',trackingNumber:'synthetic',trackingNormalizedState:null,trackingStatusCode:'SHIPPED',trackingStatusMessage:'Código nuevo del transportista',trackingObservedAt:'2026-10-22T10:00:00Z',trackingError:'MRW_UNKNOWN_STATUS_999'});
  expect(p.label).toBe('Estado sin clasificar');expect(p.className).toBe('none');expect(p.state).toBeNull();expect(p.unavailable).toBe(false);expect(p.dateKind).toBe('Detectado');
 });
+
+it('ages civil provider movement using the Madrid calendar across UTC midnight',()=>{
+ const p=trackingPresentation({trackingNormalizedState:'in_transit',trackingEventTimeRaw:'2026-10-19T23:30:00'},Date.parse('2026-10-21T22:30:00Z'),3);
+ expect(p.staleLabel).toBe('Sin movimiento registrado en 3 días');
+});
+it('rejects impossible civil dates and falls back to a real event timestamp',()=>{
+ const now=Date.parse('2026-03-05T12:00:00Z');
+ expect(trackingPresentation({trackingNormalizedState:'in_transit',trackingEventTimeRaw:'2026-02-30T10:00:00'},now).staleLabel).toBeNull();
+ expect(trackingPresentation({trackingNormalizedState:'in_transit',trackingEventTimeRaw:'2026-02-30T10:00:00',trackingEventAt:'2026-03-01T12:00:00Z'},now).staleLabel).toContain('4 días');
+});
+it('does not invent movement from label creation, observations or successful checks',()=>{
+ const now=Date.parse('2026-10-22T10:00:00Z');
+ expect(trackingPresentation({trackingNormalizedState:'pre_transit',labelCreatedAt:'2026-10-01T10:00:00Z',trackingObservedAt:'2026-10-01T10:00:00Z',trackingCheckedAt:'2026-10-01T10:00:00Z'},now).staleLabel).toBeNull();
+ expect(trackingPresentation({trackingNormalizedState:'in_transit',trackingMovementAt:'2026-10-18T10:00:00Z',trackingObservedAt:'2026-10-22T10:00:00Z',trackingCheckedAt:'2026-10-22T10:00:00Z'},now).staleLabel).toContain('4 días');
+});
+it('uses the real event timestamp when movement_at is missing and honors threshold boundaries',()=>{
+ const order={trackingNormalizedState:'in_transit' as const,trackingEventAt:'2026-10-19T10:00:00Z'};
+ expect(trackingPresentation(order,Date.parse('2026-10-22T10:00:00Z')).staleLabel).toContain('3 días');
+ expect(trackingPresentation(order,Date.parse('2026-10-22T09:59:59Z')).staleLabel).toBeNull();
+});
+it('clamps stale thresholds to 1 through 90 days and excludes future or terminal movement',()=>{
+ const now=Date.parse('2026-10-22T10:00:00Z'),order={trackingNormalizedState:'in_transit' as const,trackingMovementAt:'2026-07-24T10:00:00Z'};
+ expect(trackingPresentation(order,now,999).staleLabel).toContain('90 días');
+ expect(trackingPresentation({...order,trackingMovementAt:'2026-10-22T09:00:00Z'},now,0).staleLabel).toBeNull();
+ expect(trackingPresentation({...order,trackingMovementAt:'2026-10-23T10:00:00Z'},now).staleLabel).toBeNull();
+ for(const state of ['delivered','returned','cancelled'] as const)expect(trackingPresentation({...order,trackingNormalizedState:state},now).staleLabel).toBeNull();
+});

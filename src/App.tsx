@@ -51,6 +51,7 @@ import { safeStorageGet, safeStorageRemove, safeStorageSet } from './services/br
 import { completeShopifyAuthorization } from './services/integrationAccounts';
 import { clearShopifyOAuthCallback, getShopifyOAuthCallback, shopifyOAuthWasDenied } from './services/shopifyOAuthCallback';
 import { effectiveStartPage } from './services/uiPreferences';
+import {ordersEntryPage,ordersTabUrl} from './services/ordersWorkbench';
 import { ensureViewCacheScope } from './services/viewCache';
 import { loadCompanyBranding } from './services/companyBranding';
 import type { AppData, Invoice, InvoicePaymentStatus, NewInvoiceInput, Product, Supplier } from './types';
@@ -295,13 +296,31 @@ export default function App(){
  useEffect(()=>{
    if(!mfaAccess.ready||!accessReady||!access?.active||!allowedPages.length)return;
    if(!startPageApplied.current&&!settingsLoading){
-     const initial=effectiveStartPage(preferences.startPage,settings.general.startPage,allowedPages);
+     const initial=ordersEntryPage(window.location.search,allowedPages)||effectiveStartPage(preferences.startPage,settings.general.startPage,allowedPages);
      if(initial)setPage(initial);
      startPageApplied.current=true;
      return;
    }
    if(!allowedPages.includes(page))setPage(allowedPages[0]);
  },[mfaAccess.ready,accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading]);
+
+ useEffect(()=>{
+   if(!mfaAccess.ready||!accessReady||!access?.active)return;
+   const onHistory=()=>{void (async()=>{
+     const requested=new URLSearchParams(window.location.search).get('page')||'dashboard';
+     if(!allowedPages.includes(requested as Page))return;
+     const next=requested as Page;
+     if(next===page)return;
+     if(page==='settings'&&settingsDirty){
+       const confirmed=await confirmAction({title:'Cambios sin guardar',message:'Tienes cambios sin guardar en Configuración.',confirmLabel:'Descartar cambios',tone:'warning',details:['Si continúas, los cambios realizados se perderán.']});
+       if(!confirmed){const restored=new URL(window.location.href);restored.searchParams.set('page',page);restored.searchParams.delete('tab');window.history.replaceState(null,'',restored.pathname+restored.search+restored.hash);return;}
+       setSettingsDirty(false);
+     }
+     startPageApplied.current=true;setOrdersPendingEntry(false);setPage(next);
+   })();};
+   window.addEventListener('popstate',onHistory);
+   return()=>window.removeEventListener('popstate',onHistory);
+ },[mfaAccess.ready,accessReady,access?.active,allowedPages,page,settingsDirty]);
 
  useEffect(()=>{
    if(!mfaAccess.ready||!accessReady||!access?.active||!allowedPages.includes('settings'))return;
@@ -379,6 +398,11 @@ export default function App(){
      setSettingsDirty(false);
    }
    startPageApplied.current=true;
+   const nextUrl=new URL(window.location.href);
+   nextUrl.searchParams.set('page',next);
+   if(next!=='orders')nextUrl.searchParams.delete('tab');
+   const destination=next==='orders'&&options?.pendingOrders?ordersTabUrl(nextUrl.href,'pending'):nextUrl.pathname+nextUrl.search+nextUrl.hash;
+   if(destination!==window.location.pathname+window.location.search+window.location.hash)window.history.pushState(null,'',destination);
    if(next==='orders')setOrdersPendingEntry(Boolean(options?.pendingOrders));
    else setOrdersPendingEntry(false);
    setPage(next);
@@ -661,7 +685,7 @@ export default function App(){
    {error&&<div className="globalError">{error}<button onClick={refresh}>Reintentar</button></div>}
    {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders',{pendingOrders:true}):undefined}/>}
    {can('sales')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':sales'} active={page==='sales'}><SalesInvoices/></RetainedImportPage>}
-   {can('orders')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':orders'} active={page==='orders'}><Orders pendingOnly={ordersPendingEntry}/></RetainedImportPage>}
+   {can('orders')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':orders'} active={page==='orders'}><Orders pendingOnly={ordersPendingEntry} active={page==='orders'}/></RetainedImportPage>}
    {can('invoices')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':invoices'} active={page==='invoices'}><ExpenseInvoicesHub invoices={data.invoices} suppliers={data.suppliers} categories={data.categories} onUpload={()=>setUpload(true)} onBulkUpload={()=>setBulkUpload(true)} onStatusChange={changeStatus} onPaymentStatusChange={changePaymentStatus} onBulkPaymentStatusChange={changePaymentStatuses} onOpenFile={openInvoice} onDelete={removeInvoice} onSupplierChange={changeInvoiceSupplier} onCategoryChange={changeInvoiceCategory} onImported={refresh} canManageAccounts={access.role==='admin'} onManageAccounts={()=>{setSettingsInitialSection('integrations');void navigate('settings');}}/></RetainedImportPage>}
    {page==='clients'&&can('clients')&&<Clients/>}
    {page==='products'&&can('products')&&<Products products={data.products} onAdd={openNewProduct} onEdit={openEditProduct} onDelete={removeProduct}/>}

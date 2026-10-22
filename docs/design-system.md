@@ -231,3 +231,16 @@ Excepciones existentes revisadas, pendientes de una migración específica; no s
 | Alias de proveedores | Persistencia independiente inmediata; proveedor buscable, prioridad, estado y confirmación. |
 
 Las cuentas de integración ya siguen lista y modal. Los campos escalares, preferencias, herramientas de mantenimiento y líneas de documento no son colecciones independientes y no se convierten mecánicamente a este patrón.
+
+
+## Pedidos como bandeja de trabajo — revisión 22/10/2026
+
+Implementación preparada para revisión; **sin publicar**. La especificación del propietario sustituye la jerarquía anterior de Pedidos, manteniendo los contratos compartidos.
+
+- `@zenvia/ui/PageTabs` incorpora `variant="workbench"`: navegación horizontal desplazable, contador, foco por teclado (flechas/Home/End) y asociación tab/panel. La variante existente conserva su aspecto.
+- Seis pestañas principales: Pendientes, Etiquetados, Enviados, Incidencias, Cancelados e Informes de recogida. Los contadores proceden del servidor, no de las filas de una página. «Todos los pedidos» permanece como acceso secundario en Añadir filtro.
+- Cabecera con acciones compactas; en móvil, Nuevo pedido y Actualizar permanecen visibles y «Más acciones» agrupa Tarifas, Impresión directa, formato y Facturación manual de Shopify. Las confirmaciones y servicios operativos se conservan.
+- Buscador y Añadir filtro, con chips quitables. Solo Enviados y Cancelados muestran periodo. Pendientes, Etiquetados e Incidencias son colas sin periodo. La selección sobrevive a cambios de contexto y se relee antes de operar.
+- Los cinco KPI de pedidos pasan a Resumen y comparten su periodo: Total vendido, IVA estimado, Neto sin IVA, Ticket medio y Coste transportistas con desglose. Las métricas fiscales de facturas siguen diferenciadas; la agregación actual de pedidos es en EUR.
+- Informes de recogida muestra el historial en línea y reutiliza la reimpresión; el historial por pedido sigue disponible como modal.
+- En esta revisión la lista debe comenzar en el primer viewport móvil con los datos de referencia. Evidencias: [capturas e inventario](deploy/20261022-orders-workbench-review/README.md).

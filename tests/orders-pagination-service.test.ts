@@ -35,3 +35,17 @@ it('sends pickup filter to server pages and IDs, but neutralizes it when rereadi
  await listSelectedOrdersForBulk({...filters,pickupReport:'none'},['one']);expect(api.rpc).toHaveBeenLastCalledWith('orders_dashboard_pickup_v1',expect.objectContaining({p_pickup_report:'all'}));
  api.rpc.mockReturnValue({abortSignal:()=>Promise.resolve({data:{ids:['one'],total:1},error:null})});await fetchMatchingOrderIds({...filters,pickupReport:'none'});expect(api.rpc).toHaveBeenLastCalledWith('orders_dashboard_pickup_v1',expect.objectContaining({p_pickup_report:'none',p_selection_ids_only:true}));
 });
+
+it('routes workbench pages and IDs together while leaving financial calls on the existing API',async()=>{
+ const {fetchOrdersDashboardPage,fetchMatchingOrderIds}=await import('../src/services/orders');
+ api.rpc.mockReturnValue({abortSignal:()=>Promise.resolve({data:{rows:[],total:0,kpis:{},facets:{},counters:{pending:4,labelled:3,shipped:2,issues:1,cancelled:0}},error:null})});
+ const result=await fetchOrdersDashboardPage({...filters,workbench:true,trackingStaleDays:7,state:'issues'});
+ expect(result.counters?.issues).toBe(1);
+ expect(api.rpc).toHaveBeenLastCalledWith('orders_workbench_v1',expect.objectContaining({p_state:'issues',p_tracking_stale_days:7}));
+ api.rpc.mockReturnValue({abortSignal:()=>Promise.resolve({data:{ids:[],total:0},error:null})});
+ await fetchMatchingOrderIds({...filters,workbench:true,trackingStaleDays:7,state:'issues'},true);
+ expect(api.rpc).toHaveBeenLastCalledWith('orders_workbench_v1',expect.objectContaining({p_state:'issues',p_tracking_stale_days:7,p_selection_all:true}));
+ api.rpc.mockReturnValue({abortSignal:()=>Promise.resolve({data:{rows:[],kpis:{},facets:{}},error:null})});
+ await fetchOrdersDashboardPage({...filters,state:'all',pageSize:1});
+ expect(api.rpc).toHaveBeenLastCalledWith('orders_dashboard_pickup_v1',expect.not.objectContaining({p_tracking_stale_days:expect.anything()}));
+});

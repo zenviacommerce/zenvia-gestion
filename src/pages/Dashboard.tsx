@@ -1,3 +1,4 @@
+import {OrderFinancialSummary} from '../components/OrderFinancialSummary';
 import {KpiGrid} from '../components/KpiGrid';
 import {PageHeader} from '../components/PageHeader';
 import {readOrdersSnapshot,ORDERS_SNAPSHOT_EVENT} from '../services/ordersSnapshot';
@@ -34,6 +35,7 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
   const money=(value:number,maximumFractionDigits=2)=>formatAppMoney(value,settings.general.currencyCode,settings.general,{minimumFractionDigits:2,maximumFractionDigits});
   const [filter,setFilter]=useState(()=>rememberedFilter(preferences,'dashboard.period',defaultDateFilter(preferences.defaultPeriod)));
   const [sales,setSales]=useState<SalesInvoice[]>(()=>readViewCache<SalesInvoice[]>(DASHBOARD_SALES_CACHE)||[]);
+  const [ordersRefreshRevision,setOrdersRefreshRevision]=useState(0);
   const [orders,setOrders]=useState<FulfillmentOrder[]>(()=>readOrdersSnapshot());
 
   useEffect(()=>{
@@ -48,7 +50,7 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
   useEffect(()=>{
     let alive=true;
     let inFlight=false;
-    const publish=(next:FulfillmentOrder[])=>{if(!alive)return;setOrders(next);};
+    const publish=(next:FulfillmentOrder[])=>{if(!alive)return;setOrders(next);setOrdersRefreshRevision(value=>value+1);};
     const refreshOrders=async()=>{
       if(inFlight)return;
       inFlight=true;
@@ -59,7 +61,7 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
     };
     // Background ingestion runs on the server; this page reads persisted data.
     void refreshOrders();
-    const onSnapshot=()=>{if(alive)setOrders(readOrdersSnapshot());};
+    const onSnapshot=()=>{if(alive){setOrders(readOrdersSnapshot());setOrdersRefreshRevision(value=>value+1);}};
     window.addEventListener(ORDERS_SNAPSHOT_EVENT,onSnapshot);
     const stopLiveUpdates=watchFulfillmentOrders(refreshOrders,Math.max(60,settings.orders.refreshSeconds)*1000);
     return()=>{alive=false;stopLiveUpdates();window.removeEventListener(ORDERS_SNAPSHOT_EVENT,onSnapshot);};
@@ -103,7 +105,6 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
   const cancelledOrders=selectedOrders.filter(isCancelledOrder).length;
   const amazonOrders=validOrders.filter(order=>order.sourceChannel==='amazon').length;
   const shopifyOrders=validOrders.filter(order=>order.sourceChannel==='shopify').length;
-  const orderValue=validOrders.reduce((sum,order)=>sum+((order.currency==null||order.currency==='EUR')?(order.totalAmount||0):0),0);
 
   const byCategory=Object.entries(periodExpenses.reduce<Record<string,number>>((a,i)=>{a[i.category]=(a[i.category]||0)+i.total;return a;},{})).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value);
   const changed=products.filter(p=>p.lastPrice!=null&&p.previousPrice!=null).sort((a,b)=>Math.abs(((b.lastPrice!-b.previousPrice!)/b.previousPrice!))-Math.abs(((a.lastPrice!-a.previousPrice!)/a.previousPrice!)))[0];
@@ -121,10 +122,11 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
       {showKpi('receivable')&&<StatCard label="Pendiente de cobro" value={money(receivable)} sub="Facturas de venta emitidas" icon={<ReceiptText/>}/>}
       {showKpi('pendingExpenses')&&<StatCard label="Gastos por revisar" value={String(pending)} sub={selectedPeriod} icon={<AlertCircle/>}/>}</KpiGrid></>}
 
-    {[...['orders','orderValue','pendingOrders','shippedOrders','cancelledOrders']].some(showKpi)&&<><div className="dashboardSectionHead orders"><div><div className="eyebrow">OPERATIVA</div><h2>Pedidos y logística</h2><p>Amazon, Shopify y pedidos manuales · {selectedPeriod}</p></div></div>
+    <OrderFinancialSummary filter={filter} refreshRevision={ordersRefreshRevision} visibleKpis={visibleKpis}/>
+
+    {[...['orders','pendingOrders','shippedOrders','cancelledOrders']].some(showKpi)&&<><div className="dashboardSectionHead orders"><div><div className="eyebrow">OPERATIVA</div><h2>Pedidos y logística</h2><p>Amazon, Shopify y pedidos manuales · {selectedPeriod}</p></div></div>
     <KpiGrid label="Pedidos y logística" dense>
       {showKpi('orders')&&<StatCard label="Pedidos" value={String(orderCount)} sub={`Amazon ${amazonOrders} · Shopify ${shopifyOrders}`} icon={<ShoppingBag/>}/>}
-      {showKpi('orderValue')&&<StatCard label="Valor de pedidos" value={money(orderValue)} sub="Pedidos no cancelados · no fiscal" icon={<BadgeEuro/>}/>}
       {showKpi('pendingOrders')&&<StatCard variant={pendingOrders>0?'warning':'default'} label="Pendientes" value={String(pendingOrders)} sub={pendingOrders>0?'Pendientes reales · sin limitar por periodo':'Sin pedidos pendientes'} icon={<PackageCheck/>} onClick={onOrders}/>}
       {showKpi('shippedOrders')&&<StatCard label="Enviados" value={String(shippedOrders)} sub={selectedPeriod} icon={<Truck/>}/>}
       {showKpi('cancelledOrders')&&<StatCard label="Cancelados" value={String(cancelledOrders)} sub={selectedPeriod} icon={<XCircle/>}/>}

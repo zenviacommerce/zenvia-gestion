@@ -1,12 +1,13 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import ts from 'typescript';
+import {build} from 'esbuild';
+import {fileURLToPath} from 'node:url';
 
 async function transpiled(path){
-  const source=await readFile(new URL(path,import.meta.url),'utf8');
-  const output=ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.ES2022,target:ts.ScriptTarget.ES2022}}).outputText;
-  return import(`data:text/javascript;base64,${Buffer.from(output).toString('base64')}`);
+  // Bundle real local dependencies; a data: module cannot resolve relative imports.
+  const result=await build({entryPoints:[fileURLToPath(new URL(path,import.meta.url))],bundle:true,platform:'node',format:'esm',write:false,logLevel:'silent'});
+  return import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0].text).toString('base64')}`);
 }
 
 test('theme resolution uses explicit light or dark preference',async()=>{

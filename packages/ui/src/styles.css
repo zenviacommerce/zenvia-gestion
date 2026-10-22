@@ -182,3 +182,16 @@ html[data-theme='dark'] .masterDesignPage .bulkSelectionTextButton{color:#d7deea
 
 .gmailImportedKpi .statIcon{background:#eff6ff;color:#2563eb}
 .gmailAutomaticKpi .statIcon{background:#faf5ff;color:#7e22ce}
+
+/* Workbench tabs: one compact horizontal rail at every viewport width. */
+.dsPageTabs.dsWorkbenchTabs{display:flex;flex-direction:row;flex-wrap:nowrap;gap:4px;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin;border:0;border-bottom:1px solid var(--border,#e2e8f0);border-radius:0;background:transparent;padding:0;margin:0;box-shadow:none}
+.dsPageTabs.dsWorkbenchTabs>button{display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:44px;padding:10px 12px;border:0;border-bottom:2px solid transparent;border-radius:0;box-shadow:none;background:transparent;color:var(--muted,#64748b);white-space:nowrap}
+.dsPageTabs.dsWorkbenchTabs>button.active{border-bottom-color:var(--accent,#0f766e);color:var(--accent,#0f766e);background:transparent}
+.dsPageTabs.dsWorkbenchTabs>button:focus-visible{outline:2px solid var(--accent,#0f766e);outline-offset:-3px}
+.dsWorkbenchTabs .expenseHubTabText strong{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:13px}
+.dsWorkbenchTabs .dsWorkbenchTabCount{display:inline-block;min-width:20px;padding:2px 6px;border-radius:12px;background:var(--surface-soft,#f1f5f9);color:inherit;font-size:11px;font-weight:600;text-align:center;font-variant-numeric:tabular-nums}
+.dsWorkbenchTabs .expenseHubTabIcon{display:inline-flex;width:18px;height:18px;flex:0 0 18px;background:transparent}
+.dsWorkbenchTabs .expenseHubTabIcon svg{width:16px;height:16px}
+
+[data-theme='dark'] .dsPageTabs.dsWorkbenchTabs>button.active{color:#5eead4;border-bottom-color:#2dd4bf}
+[data-theme='dark'] .dsPageTabs.dsWorkbenchTabs>button:focus-visible{outline-color:#5eead4}

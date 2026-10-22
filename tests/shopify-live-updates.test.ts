@@ -3,7 +3,7 @@ const state=vi.hoisted(()=>({workspace:'one',handlers:[] as Array<()=>void>,remo
 vi.mock('../src/services/supabase',()=>({getActiveTenant:()=>({workspace_id:state.workspace}),getActiveSupabase:()=>client}));
 const client={channel:vi.fn(()=>({on:vi.fn(function(this:any,_kind:any,_filter:any,callback:()=>void){state.handlers.push(callback);return this}),subscribe:vi.fn(function(this:any){return this})})),removeChannel:state.removed};
 import {watchShopifyAnalytics} from '../src/services/shopifyLiveUpdates';
-afterEach(()=>{vi.useRealTimers();state.handlers=[];state.workspace='one';vi.clearAllMocks();});
+afterEach(()=>{vi.useRealTimers();vi.restoreAllMocks();state.handlers=[];state.workspace='one';vi.clearAllMocks();});
 it('coalesces scoped realtime and local events, polls only visibly, and cleans up',async()=>{
  vi.useFakeTimers();let visibility='visible';vi.spyOn(document,'visibilityState','get').mockImplementation(()=>visibility as DocumentVisibilityState);
  const refresh=vi.fn(async()=>{}),stop=watchShopifyAnalytics(refresh);
@@ -18,4 +18,20 @@ it('rejects stale tenant callbacks and rebinds its channel',async()=>{
 });
 it('serializes slow refreshes and schedules one trailing refresh',async()=>{
  vi.useFakeTimers();let done!:()=>void;const refresh=vi.fn(()=>new Promise<void>(resolve=>{done=resolve})),stop=watchShopifyAnalytics(refresh);state.handlers[0]();await vi.advanceTimersByTimeAsync(250);state.handlers[0]();await vi.advanceTimersByTimeAsync(250);expect(refresh).toHaveBeenCalledTimes(1);done();await vi.advanceTimersByTimeAsync(250);expect(refresh).toHaveBeenCalledTimes(2);stop();done();
+});
+it('releases hidden subscriptions and uses a sixty second visible fallback',async()=>{
+ vi.useFakeTimers();let visibility='visible';vi.spyOn(document,'visibilityState','get').mockImplementation(()=>visibility as DocumentVisibilityState);
+ const refresh=vi.fn(),stop=watchShopifyAnalytics(refresh),old=state.handlers[0];
+ await vi.advanceTimersByTimeAsync(59999);expect(refresh).not.toHaveBeenCalled();await vi.advanceTimersByTimeAsync(251);expect(refresh).toHaveBeenCalledTimes(1);
+ visibility='hidden';document.dispatchEvent(new Event('visibilitychange'));expect(state.removed).toHaveBeenCalledTimes(1);old();await vi.advanceTimersByTimeAsync(120000);expect(refresh).toHaveBeenCalledTimes(1);
+ visibility='visible';document.dispatchEvent(new Event('visibilitychange'));old();await vi.advanceTimersByTimeAsync(250);expect(refresh).toHaveBeenCalledTimes(2);stop();
+});
+it('subscribes only after a hidden tab becomes visible and cancels hidden event bursts',async()=>{
+ vi.useFakeTimers();let visibility='hidden';vi.spyOn(document,'visibilityState','get').mockImplementation(()=>visibility as DocumentVisibilityState);
+ const refresh=vi.fn(),stop=watchShopifyAnalytics(refresh);expect(client.channel).not.toHaveBeenCalled();
+ window.dispatchEvent(new Event('zenvia:analytics-update'));await vi.advanceTimersByTimeAsync(120000);expect(refresh).not.toHaveBeenCalled();
+ visibility='visible';document.dispatchEvent(new Event('visibilitychange'));expect(client.channel).toHaveBeenCalledTimes(1);const old=state.handlers[0];
+ old();window.dispatchEvent(new Event('zenvia:shopify-analytics-updated'));visibility='hidden';document.dispatchEvent(new Event('visibilitychange'));await vi.advanceTimersByTimeAsync(250);expect(refresh).not.toHaveBeenCalled();
+ visibility='visible';document.dispatchEvent(new Event('visibilitychange'));old();window.dispatchEvent(new Event('focus'));await vi.advanceTimersByTimeAsync(250);expect(refresh).toHaveBeenCalledTimes(1);
+ stop();await vi.advanceTimersByTimeAsync(120000);expect(refresh).toHaveBeenCalledTimes(1);expect(vi.getTimerCount()).toBe(0);
 });

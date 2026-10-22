@@ -485,20 +485,12 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     void request.finally(()=>{if(refreshRequest.current?.request===request)refreshRequest.current=null}).catch(()=>{});
     return request;
   },[]);
-  useEffect(()=>{
-    let timer:number|undefined;
-    const unsubscribe=watchFulfillmentOrders(()=>{
-      // Coalesce a burst of order row updates into one page + KPI refresh.
-      if(timer!=null)return;
-      timer=window.setTimeout(()=>{timer=undefined;void refresh()},1200);
-    });
-    return()=>{if(timer!=null)window.clearTimeout(timer);unsubscribe()};
-  },[refresh]);
+  useEffect(()=>watchFulfillmentOrders(refresh,Math.max(60,settings.orders.refreshSeconds)*1000),[refresh,settings.orders.refreshSeconds]);
   const refreshStatus=useCallback(async()=>{try{setStatus(await getSendcloudStatus())}catch(e){setStatus({configured:false,integrations:[],message:errorMessage(e,'No se pudo comprobar Sendcloud.')})}},[]);
   const refreshEnviaStatus=useCallback(async()=>{try{const result=await getEnviaStatus();setEnviaStatus({configured:result.configured,accounts:result.accounts||[]})}catch{setEnviaStatus({configured:false,accounts:[]})}},[]);
   const refreshTariffs=useCallback(async()=>{try{setTariffs(await listTransportTariffs())}catch{/* El precio real seleccionado seguirá disponible aunque no haya tarifa estimada. */}},[]);
   useEffect(()=>{
-    const onAgentRefresh=()=>{void Promise.all([refresh(),refreshStatus(),refreshEnviaStatus(),refreshTariffs()]);};
+    const onAgentRefresh=()=>{if(document.visibilityState==='visible')void Promise.all([refreshStatus(),refreshEnviaStatus(),refreshTariffs()]);};
     window.addEventListener('zenvia:orders-refresh',onAgentRefresh);
     return()=>window.removeEventListener('zenvia:orders-refresh',onAgentRefresh);
   },[refresh,refreshStatus,refreshEnviaStatus,refreshTariffs]);
@@ -557,16 +549,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       }
     }finally{syncingRef.current=false;setSyncing(false)}
   },[refresh,settings.integrations.amazonEnabled,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled,settings.integrations.shopifyEnabled,settings.orders.retryTrackingConfirmation,status?.configured,enviaStatus?.configured]);
-  useEffect(()=>{
-    const enabled=Boolean(settings.integrations.amazonEnabled||settings.integrations.shopifyEnabled||(settings.integrations.enviaEnabled&&enviaStatus?.configured));
-    const tick=()=>enabled
-      ?sync(true,false,true)
-      :Promise.all([refresh(),settings.orders.retryTrackingConfirmation?retryAmazonTrackingConfirmations():Promise.resolve()]);
-    // Initial mount only reads one server page. Cron already performs automatic
-    // Amazon work; invoking every connector at the same instant causes a pool storm.
-    const timer=window.setInterval(()=>{if(document.visibilityState==='visible')void tick()},Math.max(30,settings.orders.refreshSeconds)*1000);
-    return()=>window.clearInterval(timer);
-  },[status?.configured,enviaStatus?.configured,sync,refresh,settings.orders.refreshSeconds,settings.orders.retryTrackingConfirmation,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled]);
+
 
   const dateFrom=dateFilter.from,dateTo=dateFilter.to;
   const selectedPeriod=periodLabel(dateFilter);

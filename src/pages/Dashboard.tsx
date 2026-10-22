@@ -13,7 +13,7 @@ import { StatCard } from '../components/StatCard';
 import { PeriodFilterPanel } from '../components/PeriodFilterPanel';
 import { defaultDateFilter, periodLabel } from '../services/filters';
 import { loadSalesInvoices, type SalesInvoice } from '../services/sales';
-import { listFulfillmentOrders, syncSendcloudOrders, type FulfillmentOrder } from '../services/orders';
+import { listFulfillmentOrders, type FulfillmentOrder } from '../services/orders';
 import { isCancelledOrder, isPendingOrder, orderStatusCode } from '../services/orderStatus';
 import { readViewCache, writeViewCache } from '../services/viewCache';
 import { useSettings } from '../context/SettingsContext';
@@ -49,26 +49,20 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
     let alive=true;
     let inFlight=false;
     const publish=(next:FulfillmentOrder[])=>{if(!alive)return;setOrders(next);};
-    const loadPersisted=async()=>{
-      try{publish(await listFulfillmentOrders());}catch{/* El caché mantiene el KPI visible mientras se recupera la lectura. */}
-    };
     const refreshOrders=async()=>{
       if(inFlight)return;
       inFlight=true;
       try{
-        if(settings.integrations.sendcloudEnabled){try{await syncSendcloudOrders(false,true,true);}catch{/* Sendcloud puede fallar sin vaciar el resumen. */}}
         publish(await listFulfillmentOrders());
       }catch{/* Conserva los KPI existentes ante un fallo puntual de sincronización o lectura. */}
       finally{inFlight=false;}
     };
-    // Primero pintamos el estado persistido de Supabase; la sincronización externa ocurre después.
-    void loadPersisted();
+    // Background ingestion runs on the server; this page reads persisted data.
     void refreshOrders();
     const onSnapshot=()=>{if(alive)setOrders(readOrdersSnapshot());};
     window.addEventListener(ORDERS_SNAPSHOT_EVENT,onSnapshot);
-    const stopLiveUpdates=watchFulfillmentOrders(()=>void loadPersisted());
-    const timer=window.setInterval(()=>void refreshOrders(),Math.max(30,settings.orders.refreshSeconds)*1000);
-    return()=>{alive=false;stopLiveUpdates();window.removeEventListener(ORDERS_SNAPSHOT_EVENT,onSnapshot);window.clearInterval(timer);};
+    const stopLiveUpdates=watchFulfillmentOrders(refreshOrders,Math.max(60,settings.orders.refreshSeconds)*1000);
+    return()=>{alive=false;stopLiveUpdates();window.removeEventListener(ORDERS_SNAPSHOT_EVENT,onSnapshot);};
   },[settings.integrations.sendcloudEnabled,settings.orders.refreshSeconds]);
 
   const periodExpenses=useMemo(()=>invoices.filter(invoice=>(!filter.from||invoice.invoiceDate>=filter.from)&&(!filter.to||invoice.invoiceDate<=filter.to)),[invoices,filter]);

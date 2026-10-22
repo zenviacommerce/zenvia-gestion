@@ -1,0 +1,46 @@
+{
+  "gestion": [
+    {
+      "name": "Shared UI package and tab contracts",
+      "head": "b7aa764853ed76706f2cc8a30932bdde1c172a14",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39857849965"
+    },
+    {
+      "name": "Build check",
+      "head": "b7aa764853ed76706f2cc8a30932bdde1c172a14",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39857849983"
+    },
+    {
+      "name": "Auth resilience tests",
+      "head": "b7aa764853ed76706f2cc8a30932bdde1c172a14",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39857849944"
+    },
+    {
+      "name": "Build ZENVIA Gestión",
+      "head": "b7aa764853ed76706f2cc8a30932bdde1c172a14",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39857849952"
+    },
+    {
+      "name": "MFA real integration (disposable Supabase)",
+      "head": "b7aa764853ed76706f2cc8a30932bdde1c172a14",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39857849907"
+    },
+    {
+      "name": "MFA visual review (Playwright)",
+      "head": "b7aa764853ed76706f2cc8a30932bdde1c172a14",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39857849954"
+    }
+  ],
+  "platform": {
+    "head": "ab6093fa4df37e77e191e10920d94d7d7b89900d",
+    "conclusion": "success",
+    "run": "https://github.com/zenviacommerce/zenvia-platform/actions/runs/39847437026"
+  },
+  "published": false
+}

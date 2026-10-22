@@ -4,7 +4,7 @@ import {Plus,Search,X} from 'lucide-react';
 import {SelectField,type SelectFieldOption} from './forms/SelectField';
 import '../orders-workbench-filters.css';
 
-export type OrdersWorkbenchFilterValues={query:string;channel:string;country:string;carrier:string;pickupReport:'all'|'none'|'in';tracking:string};
+export type OrdersWorkbenchFilterValues={query:string;channel:string;country:string;carrier:string;pickupReport:'all'|'none'|'in'|'pending'|'signed'|'void';tracking:string};
 export type OrdersWorkbenchFiltersProps={
  tab:string;
  values:OrdersWorkbenchFilterValues;
@@ -59,7 +59,7 @@ export function OrdersWorkbenchFilters({tab,values,onChange,countries,carriers,c
   channel:[{value:'all',label:'Todos los canales'},{value:'amazon',label:`Amazon${channelCounts?` (${channelCounts.amazon})`:''}`},{value:'shopify',label:`Shopify${channelCounts?` (${channelCounts.shopify})`:''}`},{value:'other',label:`Manual / API${channelCounts?` (${channelCounts.manual})`:''}`}],
   country:[{value:'all',label:'Todos los países'},...countries.filter(option=>option.value!=='all')],
   carrier:[{value:'all',label:'Todos los transportistas'},...carriers.filter(option=>option.value!=='all')],
-  pickupReport:[{value:'all',label:'Todos'},{value:'none',label:'Sin informe'},{value:'in',label:'En informe'}],
+  pickupReport:[{value:'all',label:'Todos'},{value:'none',label:'Sin informe activo'},{value:'in',label:'En informe activo'},{value:'pending',label:'Pendiente de firma'},{value:'signed',label:'Firmado'},{value:'void',label:'Anulado'}],
   tracking:trackingOptions.filter(option=>tab!=='issues'||!terminalTracking.has(option.value)),
  };
  const active=allowed.filter(key=>values[key]!=='all'&&!(tab==='issues'&&key==='tracking'&&terminalTracking.has(values.tracking)));

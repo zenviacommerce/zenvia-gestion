@@ -1,0 +1,742 @@
+{
+  "baseline": "2659cc4",
+  "synthetic": true,
+  "networkBlocked": true,
+  "realEmailsSent": 0,
+  "checks": [
+    {
+      "phase": "before",
+      "screen": "create",
+      "width": 390,
+      "theme": "light",
+      "file": "before-create-390-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "ba243149b4297b4e9484a68c7d0a751d928568e1a56a34ed2cf397ab85e961f0"
+    },
+    {
+      "phase": "before",
+      "screen": "history",
+      "width": 390,
+      "theme": "light",
+      "file": "before-history-390-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "a00fa6009ebad1aed27b36b2b41343d4090bb60883018b2ae21e74010b33d1f0"
+    },
+    {
+      "phase": "before",
+      "screen": "create",
+      "width": 390,
+      "theme": "dark",
+      "file": "before-create-390-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "6e3360e1d6a5c1426d1e3527e0e9ab197687ab99811d2d9afe23d74f6ba9ccf0"
+    },
+    {
+      "phase": "before",
+      "screen": "history",
+      "width": 390,
+      "theme": "dark",
+      "file": "before-history-390-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "b224c24f3bbc1b6a8d1829ee4deb7343435563cfd8c238db183cf7b789061f6c"
+    },
+    {
+      "phase": "before",
+      "screen": "create",
+      "width": 1280,
+      "theme": "light",
+      "file": "before-create-1280-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "d910fb96ec279729c8702583cb3bce38b15f70a3dd1db459d6424e23c819b907"
+    },
+    {
+      "phase": "before",
+      "screen": "history",
+      "width": 1280,
+      "theme": "light",
+      "file": "before-history-1280-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "8e8f287cf56e3ee4e1b49f3e201e9f7821f9ab570437c51da1c68cb2e5ff5f24"
+    },
+    {
+      "phase": "before",
+      "screen": "create",
+      "width": 1280,
+      "theme": "dark",
+      "file": "before-create-1280-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "a8f5e259ce44f29a67ceb648fc5994bbd29940114679e017a8d9cd41e60f60a8"
+    },
+    {
+      "phase": "before",
+      "screen": "history",
+      "width": 1280,
+      "theme": "dark",
+      "file": "before-history-1280-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "0d7350399943682fb39782ced67a78ca308ed4a68f29a4f9b2ddea588034537f"
+    },
+    {
+      "phase": "before",
+      "screen": "create",
+      "width": 1440,
+      "theme": "light",
+      "file": "before-create-1440-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "b608095e8f729cdab86d2f4627f8ed3d25b56bc019f8c7495344274e8a217e3e"
+    },
+    {
+      "phase": "before",
+      "screen": "history",
+      "width": 1440,
+      "theme": "light",
+      "file": "before-history-1440-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "8b30da8e92f737e5f5348577b798ea6444aa638dfc0e3c9c8a16aa638f37da3c"
+    },
+    {
+      "phase": "before",
+      "screen": "create",
+      "width": 1440,
+      "theme": "dark",
+      "file": "before-create-1440-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "c81a1135d6f160e9a1a3ba938c14b9678963aed0bae04ba6f3f48f6c51162aa7"
+    },
+    {
+      "phase": "before",
+      "screen": "history",
+      "width": 1440,
+      "theme": "dark",
+      "file": "before-history-1440-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "58b11422d0b624a9155f9c8fdd8071626a48ae483f945b382fcb3116b705efe6"
+    },
+    {
+      "phase": "after",
+      "screen": "create",
+      "width": 390,
+      "theme": "light",
+      "file": "after-create-390-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "ee11a3d6a5002f63ce7147f2e36a706a9742f4144a06697c57617eb99e9e81d0"
+    },
+    {
+      "phase": "after",
+      "screen": "created",
+      "width": 390,
+      "theme": "light",
+      "file": "after-created-390-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "7951ddc7865b93837eeddb4d181adc42e84bcc898ea287909367230e2b9db330"
+    },
+    {
+      "phase": "after",
+      "screen": "pending",
+      "width": 390,
+      "theme": "light",
+      "file": "after-pending-390-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "bc26b35f4d56620cb2b5ea3ed87eebf44dce211b55a7e35224b4241b1572bc65"
+    },
+    {
+      "phase": "after",
+      "screen": "signature",
+      "width": 390,
+      "theme": "light",
+      "file": "after-signature-390-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "4b95ad0a26f05a4f8226cc42d511c92065db2514ad1b7a959bc9b85167819242"
+    },
+    {
+      "phase": "after",
+      "screen": "finger",
+      "width": 390,
+      "theme": "light",
+      "file": "after-finger-390-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "acb33992847339305d95fa619f14d93115d75aff12c864b6792862dacef8153b"
+    },
+    {
+      "phase": "after",
+      "screen": "signed",
+      "width": 390,
+      "theme": "light",
+      "file": "after-signed-390-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "e0641baf6d140b4cf69c712f7ab240f159a561308e543444b55dbba55b80ab6b"
+    },
+    {
+      "phase": "after",
+      "screen": "email",
+      "width": 390,
+      "theme": "light",
+      "file": "after-email-390-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "a81f7bd86126ae4ed8f1ca7a8fe52ac39cb5e4b1c52c279a106ed5f677c6cab1"
+    },
+    {
+      "phase": "after",
+      "screen": "void",
+      "width": 390,
+      "theme": "light",
+      "file": "after-void-390-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "9ba45d42223ed0897896161c96b3c3a16b5fc52e894f87ef28ecc3f07fd3c08d"
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "touch": true,
+      "scrollBefore": [
+        0,
+        0
+      ],
+      "scrollAfter": [
+        0,
+        0
+      ],
+      "retina": {
+        "width": 972,
+        "cssWidth": 324,
+        "ratio": 3
+      }
+    },
+    {
+      "phase": "after",
+      "screen": "history",
+      "width": 390,
+      "theme": "light",
+      "file": "after-history-390-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "0fe7d50d47b78c87a71ad8e6964d56be7f10478d214763487cc5d8c3f92c7461"
+    },
+    {
+      "phase": "after",
+      "screen": "create",
+      "width": 390,
+      "theme": "dark",
+      "file": "after-create-390-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "cab877129a6dadb9e82f6aad89efc12a42d6f18ff9103bab596b53f4afa34777"
+    },
+    {
+      "phase": "after",
+      "screen": "created",
+      "width": 390,
+      "theme": "dark",
+      "file": "after-created-390-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "eb3bb55f4dd9353f865d700f0c488db8f1b2864d2a39fb2ce8b40bf0a97b4d86"
+    },
+    {
+      "phase": "after",
+      "screen": "pending",
+      "width": 390,
+      "theme": "dark",
+      "file": "after-pending-390-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "d275e57e3798d0f86bdfdfb4b778d883ab5d2ea8801f50e368d462d6bcdb0647"
+    },
+    {
+      "phase": "after",
+      "screen": "signature",
+      "width": 390,
+      "theme": "dark",
+      "file": "after-signature-390-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "ab94c51a4699e5bab1fef7210514b73a286415454cade273cb709d892b105065"
+    },
+    {
+      "phase": "after",
+      "screen": "finger",
+      "width": 390,
+      "theme": "dark",
+      "file": "after-finger-390-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "821bdbfddde7e36e870db77862c8b8dd6fcf11be40da63408f9d4bf0d981b82c"
+    },
+    {
+      "phase": "after",
+      "screen": "signed",
+      "width": 390,
+      "theme": "dark",
+      "file": "after-signed-390-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "2c6a46cba9240926a710b07a4010a65ef8382ab691612fb62a31845c291e2bf4"
+    },
+    {
+      "phase": "after",
+      "screen": "email",
+      "width": 390,
+      "theme": "dark",
+      "file": "after-email-390-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "84e370d8a78c6b83bc51fccc389adcdb673296634aab39b5145cc7e5c2d20c85"
+    },
+    {
+      "phase": "after",
+      "screen": "void",
+      "width": 390,
+      "theme": "dark",
+      "file": "after-void-390-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "f8c0934e72fade8f3ae1b6534825d50cccabf79e5bd74d779aeae49322a49c41"
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "touch": true,
+      "scrollBefore": [
+        0,
+        0
+      ],
+      "scrollAfter": [
+        0,
+        0
+      ],
+      "retina": {
+        "width": 972,
+        "cssWidth": 324,
+        "ratio": 3
+      }
+    },
+    {
+      "phase": "after",
+      "screen": "history",
+      "width": 390,
+      "theme": "dark",
+      "file": "after-history-390-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "7eb72f1276da434b02c5146d55a7ce06afaca723750e8555ef01eeb630bcd444"
+    },
+    {
+      "phase": "after",
+      "screen": "create",
+      "width": 1280,
+      "theme": "light",
+      "file": "after-create-1280-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "69f9a5536eff6f0354362ee467d6960a6556815408f62b0b430ee2b433cf4a72"
+    },
+    {
+      "phase": "after",
+      "screen": "created",
+      "width": 1280,
+      "theme": "light",
+      "file": "after-created-1280-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "26d6ee341ee08e21ccaf7e4efe4ede776c3c72fb93505095c6a6b05c7f2bbe60"
+    },
+    {
+      "phase": "after",
+      "screen": "pending",
+      "width": 1280,
+      "theme": "light",
+      "file": "after-pending-1280-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "c3a2bae8f414a8b20b30f4c71565e408ae91f1fec37c1d6af7205e6e210e6208"
+    },
+    {
+      "phase": "after",
+      "screen": "signature",
+      "width": 1280,
+      "theme": "light",
+      "file": "after-signature-1280-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "4f8723e98cc6b97245d60f4f3f24af8ff5d54ade1363dc2809a188b81c015794"
+    },
+    {
+      "phase": "after",
+      "screen": "signed",
+      "width": 1280,
+      "theme": "light",
+      "file": "after-signed-1280-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "75fe059bd776ea2aca0e46dd8c83d293638f22847e1b7970f3b35c83b2554603"
+    },
+    {
+      "phase": "after",
+      "screen": "email",
+      "width": 1280,
+      "theme": "light",
+      "file": "after-email-1280-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "0af27c2b3d17642dcb30aff40522d18ec548db0acb4ce298d68efc74cd0d2bf6"
+    },
+    {
+      "phase": "after",
+      "screen": "void",
+      "width": 1280,
+      "theme": "light",
+      "file": "after-void-1280-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "0bc8b53fef4281641b0a098361cb7fc1f8d9fb2805b2929f4a6837259fd5c9d9"
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "touch": false,
+      "scrollBefore": [
+        0,
+        0
+      ],
+      "scrollAfter": [
+        0,
+        0
+      ],
+      "retina": {
+        "width": 678,
+        "cssWidth": 678,
+        "ratio": 1
+      }
+    },
+    {
+      "phase": "after",
+      "screen": "history",
+      "width": 1280,
+      "theme": "light",
+      "file": "after-history-1280-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "1bc47a8850b31960fd08a756980179354e1d1daa945cee924fbb6437ab2b5006"
+    },
+    {
+      "phase": "after",
+      "screen": "create",
+      "width": 1280,
+      "theme": "dark",
+      "file": "after-create-1280-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "a98e4b566c86809fc9062106e317895e9a1d76ae6b89b15fae2437f6a8b62999"
+    },
+    {
+      "phase": "after",
+      "screen": "created",
+      "width": 1280,
+      "theme": "dark",
+      "file": "after-created-1280-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "a0264642a311171b7fcf679d187d22176af01e31c38edc213c81aa067c8d7fc8"
+    },
+    {
+      "phase": "after",
+      "screen": "pending",
+      "width": 1280,
+      "theme": "dark",
+      "file": "after-pending-1280-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "d5533a7b2e7a6c5aa24a641ce9771c2ee799d0cf26486f57523878eeb926afc9"
+    },
+    {
+      "phase": "after",
+      "screen": "signature",
+      "width": 1280,
+      "theme": "dark",
+      "file": "after-signature-1280-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "73c60204b4e68fdda79bc7656a5a3b132312714b5436dd7a23f254d024d89fae"
+    },
+    {
+      "phase": "after",
+      "screen": "signed",
+      "width": 1280,
+      "theme": "dark",
+      "file": "after-signed-1280-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "1cd9726d34ecfe73426762aab046947b93730450d78f19bc635f5d849d5e5dc0"
+    },
+    {
+      "phase": "after",
+      "screen": "email",
+      "width": 1280,
+      "theme": "dark",
+      "file": "after-email-1280-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "17c5331a3411eea1b1a774f8aac9e6df038dea229f88e3645a25c2aa0dcfcb4e"
+    },
+    {
+      "phase": "after",
+      "screen": "void",
+      "width": 1280,
+      "theme": "dark",
+      "file": "after-void-1280-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "52ee249563d2836181aae2b47b50fffeefd4eaf21a0ea5bc47ca262bdc9bdfc8"
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "touch": false,
+      "scrollBefore": [
+        0,
+        0
+      ],
+      "scrollAfter": [
+        0,
+        0
+      ],
+      "retina": {
+        "width": 678,
+        "cssWidth": 678,
+        "ratio": 1
+      }
+    },
+    {
+      "phase": "after",
+      "screen": "history",
+      "width": 1280,
+      "theme": "dark",
+      "file": "after-history-1280-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "14604e333967cf6520cebf84486a4eadc3d5dafb46f6a63ab31e8d451ae84344"
+    },
+    {
+      "phase": "after",
+      "screen": "create",
+      "width": 1440,
+      "theme": "light",
+      "file": "after-create-1440-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "b3c911e74449e429ef3ccc59f0f353a072814fa3e7a4b00de3c82b8748cacef5"
+    },
+    {
+      "phase": "after",
+      "screen": "created",
+      "width": 1440,
+      "theme": "light",
+      "file": "after-created-1440-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "d3c8785ceec6514b410fbbbf7f2d18fff4cc1e237f8dce1ed57f64f4fed88c54"
+    },
+    {
+      "phase": "after",
+      "screen": "pending",
+      "width": 1440,
+      "theme": "light",
+      "file": "after-pending-1440-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "77f964529e260435f33653c1902c7f5859a5ed621bb4e607b892395beacddbed"
+    },
+    {
+      "phase": "after",
+      "screen": "signature",
+      "width": 1440,
+      "theme": "light",
+      "file": "after-signature-1440-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "79405d1672a2bb984687fc6d017b06845afd58aa047e88fb908e25f79d095849"
+    },
+    {
+      "phase": "after",
+      "screen": "signed",
+      "width": 1440,
+      "theme": "light",
+      "file": "after-signed-1440-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "ad6ce96cb24fd5588e162bf8b26bf7ff9c1d97b971620e8385b24eb5797947e4"
+    },
+    {
+      "phase": "after",
+      "screen": "email",
+      "width": 1440,
+      "theme": "light",
+      "file": "after-email-1440-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "920c8ef75c9b45fd0876b1ffdc9afe2482e2a0bf9bf7be62d97ea5cf42224a6c"
+    },
+    {
+      "phase": "after",
+      "screen": "void",
+      "width": 1440,
+      "theme": "light",
+      "file": "after-void-1440-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "0890e331c995606e19fca3e70a622342a68cb8648e9fd76a89b6f293710216a6"
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "touch": false,
+      "scrollBefore": [
+        0,
+        0
+      ],
+      "scrollAfter": [
+        0,
+        0
+      ],
+      "retina": {
+        "width": 678,
+        "cssWidth": 678,
+        "ratio": 1
+      }
+    },
+    {
+      "phase": "after",
+      "screen": "history",
+      "width": 1440,
+      "theme": "light",
+      "file": "after-history-1440-light.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "b5aa08004867be2b110d68ad3ba4bc01dfec1b86f45b2d85462ecead147115d5"
+    },
+    {
+      "phase": "after",
+      "screen": "create",
+      "width": 1440,
+      "theme": "dark",
+      "file": "after-create-1440-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "e0469573a81d44bcc410cb024463c0b3bb32794d73422ecbeb3f27d028e622d9"
+    },
+    {
+      "phase": "after",
+      "screen": "created",
+      "width": 1440,
+      "theme": "dark",
+      "file": "after-created-1440-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "3677dbf37a47f522db3960f35de87dd8eb127e6e9beb6ed1a2168ad24cff2593"
+    },
+    {
+      "phase": "after",
+      "screen": "pending",
+      "width": 1440,
+      "theme": "dark",
+      "file": "after-pending-1440-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "21456586374702bb259033d9d251eca98d34d4e372d303760e91341bb7f634f5"
+    },
+    {
+      "phase": "after",
+      "screen": "signature",
+      "width": 1440,
+      "theme": "dark",
+      "file": "after-signature-1440-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "bdfe9d271519a80de1c009b361253fe60357c4355f4708a950d5bee0fe3584a8"
+    },
+    {
+      "phase": "after",
+      "screen": "signed",
+      "width": 1440,
+      "theme": "dark",
+      "file": "after-signed-1440-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "860360222742e3fd0d920daa699e753e1725446e0564c86ceab141836ee32f97"
+    },
+    {
+      "phase": "after",
+      "screen": "email",
+      "width": 1440,
+      "theme": "dark",
+      "file": "after-email-1440-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "e3d6e856f8e65f80091a31ffc83f024a5657914e63d2edb784818c3c70771a09"
+    },
+    {
+      "phase": "after",
+      "screen": "void",
+      "width": 1440,
+      "theme": "dark",
+      "file": "after-void-1440-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "a8b7759819abb13c0b10306f460ce6ac8f1a1dc31624e2edbfeeefe5f3c7934c"
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "touch": false,
+      "scrollBefore": [
+        0,
+        0
+      ],
+      "scrollAfter": [
+        0,
+        0
+      ],
+      "retina": {
+        "width": 678,
+        "cssWidth": 678,
+        "ratio": 1
+      }
+    },
+    {
+      "phase": "after",
+      "screen": "history",
+      "width": 1440,
+      "theme": "dark",
+      "file": "after-history-1440-dark.png",
+      "overflow": false,
+      "errors": [],
+      "sha256": "79990aa486f426e4f948f85597260f3bb71c2a1ee75e1914b9638a6388c4e96d"
+    }
+  ]
+}

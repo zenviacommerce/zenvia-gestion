@@ -30,7 +30,7 @@ Sin producción modificada. Gestión base publicada: 036c49b78362a67921ffcffea52
 - Revisión independiente: sin pérdidas de acciones/handlers/retención; corregida la unión visual de la pestaña activa y reforzado gate de CSS y tokens genéricos. Foco tras click vetado probado en rojo y verde.
 - Paquete @zenvia/ui 0.2.0 SHA256: 13e046836dc5631e38b6097f093417dbfc00512a4aa51a0a57a67fbccfdae6b2. Misma fuente y tarball de Platform; no hay tag ni release publicado.
 - Tarea de consumo existente verificada: 6ada0435d7d081918b634b4fe22aa88e, 23/10/2026 11:20 Europe/Madrid. No se crea otra.
-- Parada obligatoria antes de publicar A. B pendiente, estimación preliminar 6–10 h, antes de 2b.
+- Parada obligatoria antes de publicar A. B en desarrollo, estimación revisada 8–12 h, antes de 2b.
 
 - Regresión adicional Home tras scroll manual: prueba roja y verde; 10/10 pruebas focalizadas de pestañas tras el ajuste. Swipe mediante eventos táctiles nativos de Chromium a 390 px, sin red, con desplazamiento comprobado en manifiesto de Pedidos.
 
@@ -41,3 +41,5 @@ La revisión financiera histórica buscaba la clase expenseHubNav retirada por l
 Segunda revisión de CI: el baseline remoto aa8677d usa botones sin role=tab dentro de expenseHubNav; leído directamente de GitHub. El inventario lee ambos marcados para comparar antes/después, mientras la entrega actual sigue obligada a tener dos roles tab. El primer ajuste local había usado un baseline moderno y no detectó esta diferencia histórica. Sin cambios de UI.
 
 CI posterior confirma superadas Finanzas, listas maestras y Amazon/Shopify; detecta el mismo supuesto histórico en el scroll móvil de Configuración antes de la migración. El selector de ese paso reconoce el nav histórico y el tablist actual. Se mantienen click, rechazo de cambios sin guardar y guardia de teclado en la entrega actual.
+
+CI definitivo de A: las seis comprobaciones de Gestión y la de Platform correctas, con heads y enlaces en 20261022-shared-tabs-ci-receipt.json. A continúa en borrador #289/#82, sin publicación.

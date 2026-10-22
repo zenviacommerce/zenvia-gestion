@@ -1,0 +1,3 @@
+import {it,expect} from 'vitest';import {formatMadridPickupTime,parseMadridPickupTime} from '../src/services/pickupDocumentTime';
+it('shows Spanish wall time in Madrid independently of the device timezone',()=>{expect(formatMadridPickupTime(new Date('2026-10-22T10:30:00Z'))).toBe('22/10/2026 12:30');expect(parseMadridPickupTime('22/10/2026 12:30')).toBe('2026-10-22T10:30:00.000Z');expect(parseMadridPickupTime('22/12/2026 12:30')).toBe('2026-12-22T11:30:00.000Z')});
+it.each(['31/02/2026 12:00','29/03/2026 02:30','22/10/2026 25:00','2026-10-22',''])('rejects invalid or nonexistent Madrid time %s',value=>expect(parseMadridPickupTime(value)).toBeNull());

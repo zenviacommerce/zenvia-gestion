@@ -1,0 +1,132 @@
+{
+  "synthetic": true,
+  "networkBlocked": true,
+  "checks": [
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "file": "after-orders-390-light.png",
+      "links": 4
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "file": "after-orders-filter-390-light.png",
+      "options": [
+        "Todos",
+        "Sin informe activo",
+        "En informe activo",
+        "Pendiente de firma",
+        "Firmado",
+        "Anulado"
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "file": "after-orders-390-dark.png",
+      "links": 4
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "file": "after-orders-filter-390-dark.png",
+      "options": [
+        "Todos",
+        "Sin informe activo",
+        "En informe activo",
+        "Pendiente de firma",
+        "Firmado",
+        "Anulado"
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "file": "after-orders-1280-light.png",
+      "links": 4
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "file": "after-orders-filter-1280-light.png",
+      "options": [
+        "Todos",
+        "Sin informe activo",
+        "En informe activo",
+        "Pendiente de firma",
+        "Firmado",
+        "Anulado"
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "file": "after-orders-1280-dark.png",
+      "links": 4
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "file": "after-orders-filter-1280-dark.png",
+      "options": [
+        "Todos",
+        "Sin informe activo",
+        "En informe activo",
+        "Pendiente de firma",
+        "Firmado",
+        "Anulado"
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "file": "after-orders-1440-light.png",
+      "links": 4
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "file": "after-orders-filter-1440-light.png",
+      "options": [
+        "Todos",
+        "Sin informe activo",
+        "En informe activo",
+        "Pendiente de firma",
+        "Firmado",
+        "Anulado"
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "file": "after-orders-1440-dark.png",
+      "links": 4
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "file": "after-orders-filter-1440-dark.png",
+      "options": [
+        "Todos",
+        "Sin informe activo",
+        "En informe activo",
+        "Pendiente de firma",
+        "Firmado",
+        "Anulado"
+      ]
+    }
+  ]
+}

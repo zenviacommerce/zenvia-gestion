@@ -502,7 +502,6 @@ function BillingSection({access}:{access:AccessProfile}){
         const features=planFeatureLabels(plan);
         return <article className={currentPlan?'billingPlanCard current':'billingPlanCard'} key={plan.planKey}>
           <div className="billingPlanCardHead"><div><span>{currentPlan?'Tu plan':'Plan'}</span><h4>{plan.name}</h4></div>{currentPlan&&<span className="billingCurrentPill">Actual</span>}</div>
-          {plan.commercialVersion!=null&&<small>Versión comercial {plan.commercialVersion}</small>}
           <p>{plan.description}</p>
           <div className="billingPlanPrice"><strong>{billingMoney(price)}</strong>{price!=null&&<><span>{cycle==='yearly'?'/ año':'/ mes'}</span><small>+ IVA</small></>}</div>
           {features.length>0&&<ul>{features.map(feature=><li key={feature}><ShieldCheck size={14}/>{feature}</li>)}</ul>}

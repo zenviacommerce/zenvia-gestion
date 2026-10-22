@@ -1,0 +1,82 @@
+{
+  "gestionA": {
+    "head": "d61bfdf9dc7859fe126001f4474d85761c994e7f",
+    "merge": "b22007380156cd9bb48b8b339285f7b948acc19d",
+    "workflows": [
+      {
+        "id": 39866196638,
+        "name": "Auth resilience tests",
+        "conclusion": "success"
+      },
+      {
+        "id": 39866196565,
+        "name": "MFA real integration (disposable Supabase)",
+        "conclusion": "success"
+      },
+      {
+        "id": 39866196666,
+        "name": "Build ZENVIA Gestión",
+        "conclusion": "success"
+      },
+      {
+        "id": 39866196478,
+        "name": "Shared UI package and tab contracts",
+        "conclusion": "success"
+      },
+      {
+        "id": 39866196809,
+        "name": "Build check",
+        "conclusion": "success"
+      },
+      {
+        "id": 39866196573,
+        "name": "MFA visual review (Playwright)",
+        "conclusion": "success"
+      }
+    ],
+    "rollback": "dpl_BU2EGbbPrHvenTxGPeXAANoovFDN"
+  },
+  "gestionB": {
+    "head": "a77148b39e944d7b3497e13bd1f24d8485755969",
+    "workflows": [
+      {
+        "id": 39865864127,
+        "name": "Shared UI package and tab contracts",
+        "conclusion": "success"
+      },
+      {
+        "id": 39865864085,
+        "name": "Build check",
+        "conclusion": "success"
+      },
+      {
+        "id": 39865864071,
+        "name": "Auth resilience tests",
+        "conclusion": "success"
+      },
+      {
+        "id": 39865864086,
+        "name": "MFA real integration (disposable Supabase)",
+        "conclusion": "success"
+      },
+      {
+        "id": 39865864092,
+        "name": "Build ZENVIA Gestión",
+        "conclusion": "success"
+      },
+      {
+        "id": 39865864101,
+        "name": "MFA visual review (Playwright)",
+        "conclusion": "success"
+      }
+    ]
+  },
+  "platform": {
+    "head": "c9610d6e65ecdac37302072f76ee2dcbf3db5b91",
+    "merge": "40ec644513ac98f91b6931b3607dc7bab8b0df7c",
+    "ci": "39865565177",
+    "state": "READY",
+    "deployment": "dpl_CyDHGFPkfuRGd8viRVLzU1xPCNu7",
+    "rollback": "dpl_H7vDiQhpcxBfRVfJdREkvdvLbose"
+  }
+}

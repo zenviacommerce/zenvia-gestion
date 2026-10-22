@@ -8,7 +8,7 @@ await writeFile(path,Buffer.from(await createPickupReportPdfBlob(pickupFixture).
 async function extract(blob){const pdf=await getDocument({data:new Uint8Array(await blob.arrayBuffer()),useSystemFonts:true,disableFontFace:true}).promise;const pages=[];for(let n=1;n<=pdf.numPages;n++){const page=await pdf.getPage(n);const content=await page.getTextContent();pages.push(content.items.map(i=>i.str).join(' '))}await pdf.destroy();return pages.join('\f')+'\f'}
 const text=await extract(createPickupReportPdfBlob(pickupFixture));
 const pages=text.split('\f').filter(page=>page.trim());
-assert.ok(pages.length>=4,'48 rows must produce multiple carrier sheets');
+assert.ok(pages.length>=2,'48 rows must produce separate carrier sheets');
 assert.equal((text.match(/Firma del conductor\/a/g)||[]).length,2);
 assert.equal((text.match(/Firma \/ sello del remitente/g)||[]).length,2);
 assert.ok(text.includes('39 bultos / 26 envíos'));
@@ -39,13 +39,13 @@ assert.ok(lowerCase.includes('Fecha y hora de recogida:'));
 assert.ok(lowerCase.includes('9:30'));assert.ok(lowerCase.includes('9:45'));
 
 // Check PDF drawing geometry, not only extracted text: no separator crosses text,
-// signature rectangles are at least 70 x 30 mm, tracking stays in its column.
+// signature rectangles are 60 x 25 mm, tracking stays in its column.
 const styled = await getDocument({data:new Uint8Array(await createPickupReportPdfBlob(pickupFixture,{logoDataUrl:pickupLogoFixture}).arrayBuffer()),useSystemFonts:true,disableFontFace:true}).promise;
 let boxes=0,logos=0;const mm=72/25.4;
 for(let n=1;n<=styled.numPages;n++){
  const page=await styled.getPage(n), content=await page.getTextContent(), ops=await page.getOperatorList();
  const orders=content.items.filter(i=>/^PED-2026-/.test(i.str)).length;
- const channels=content.items.filter(i=>i.str==='Amazon'||i.str==='Shopify').length;
+ const channels=content.items.filter(i=>/ · (Amazon|Shopify)$/.test(i.str)).length;
  assert.equal(channels,orders,'A normal row must not leave its channel orphaned on another page');
  for(let j=0;j<ops.fnArray.length;j++){
   const fn=ops.fnArray[j],args=ops.argsArray[j];
@@ -53,11 +53,11 @@ for(let n=1;n<=styled.numPages;n++){
   if(fn===OPS.paintImageXObject)logos++;
   if(fn!==OPS.constructPath)continue;
   const [commands,coords]=args;
-  if(commands.length===1&&commands[0]===OPS.rectangle&&Math.abs(Math.abs(coords[3])/mm-30)<0.1&&coords[2]/mm>=70)boxes++;
+  if(commands.length===1&&commands[0]===OPS.rectangle&&Math.abs(Math.abs(coords[3])/mm-25)<0.1&&Math.abs(coords[2]/mm-60)<0.1)boxes++;
   if(commands.length!==2||commands[0]!==OPS.moveTo||commands[1]!==OPS.lineTo||coords[1]!==coords[3])continue;
   const y=coords[1];
   for(const item of content.items){if(!item.str?.trim())continue;const [,,,,x,baseline]=item.transform;if(x+item.width<coords[0]||x>coords[2])continue;assert.ok(y<baseline-1||y>baseline+item.height,'Separator overlaps '+item.str);}
  }
- for(const item of content.items){if(item.str?.trim()&&Math.abs(item.transform[4]/mm-75)<0.2)assert.ok(item.width/mm<=99.1,'Tracking escapes its column: '+item.str);}
+ for(const item of content.items){if(item.str?.trim()&&Math.abs(item.transform[4]/mm-77)<0.2)assert.ok(item.width/mm<=112.1,'Tracking escapes its column: '+item.str);}
 }
-assert.equal(boxes,4,'Two 30mm signature boxes per carrier');assert.equal(logos,styled.numPages,'Logo on every page');await styled.destroy();
+assert.equal(boxes,4,'Two 60 x 25mm signature boxes per carrier');assert.equal(logos,styled.numPages,'Logo on every page');await styled.destroy();

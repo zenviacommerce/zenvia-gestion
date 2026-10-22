@@ -19,79 +19,96 @@ export function createPickupReportPdfBlob(report: PickupReport, options: PickupP
   let first = true;
   for (const [carrier, items] of groups) {
     const parcels = items.reduce((sum, item) => sum + item.packages, 0);
-    let y = 0, pageBodyY = 0;
+    const left = 12, right = 198, bodyBottom = 274, lineHeight = 3.5, signatureHeight = 48;
+    let y = 0;
     const newPage = () => {
       if (!first) doc.addPage();
       first = false;
-      doc.setTextColor(32, 41, 55); doc.setFont('helvetica', 'bold'); doc.setFontSize(17);
-      doc.text('JUSTIFICANTE DE RECOGIDA', 14, 19);
+      doc.setTextColor(32, 41, 55);
       if (options.logoDataUrl) {
         try {
           const image = doc.getImageProperties(options.logoDataUrl);
-          const scale = Math.min(35 / image.width, 14 / image.height);
-          doc.addImage(options.logoDataUrl, undefined as any, 196 - image.width * scale, 10, image.width * scale, image.height * scale);
+          const scale = Math.min(23 / image.width, 15 / image.height);
+          doc.addImage(options.logoDataUrl, undefined as any, left, 9, image.width * scale, image.height * scale);
         } catch { /* A damaged optional logo must not prevent printing the saved receipt. */ }
       }
-      doc.setFontSize(10); doc.text(lines(`Informe ${report.number} · ${carrier}`, 182), 14, 27);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
-      doc.text(`Creado: ${created}   |   Generado: ${generated}`, 14, 35);
-      const sender = [report.sender.legalName, `NIF: ${report.sender.taxId}`, report.sender.address,
-        [report.sender.email, report.sender.phone].filter(Boolean).join(' · ')].filter(Boolean);
-      y = 43;
-      for (const part of sender) { const wrapped = lines(part, 180); doc.text(wrapped, 14, y); y += wrapped.length * 3.6; }
-      y += 5;
+      const senderX = options.logoDataUrl ? 40 : left;
       doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-      doc.text(`Transportista: ${carrier}   |   Envíos: ${items.length}   |   Bultos: ${parcels}`, 14, y);
-      y += 8;
-      doc.setFillColor(245, 247, 249); doc.rect(14, y - 5, 182, 8, 'F');
-      doc.setFontSize(8); doc.text('Pedido / canal', 16, y); doc.text('Seguimiento', 75, y); doc.text('Bultos', 193, y, { align: 'right' });
-      doc.setFont('helvetica', 'normal'); y += 8; pageBodyY = y;
+      const nameLines = lines(`${report.sender.legalName} · NIF: ${report.sender.taxId}`, right - senderX);
+      doc.text(nameLines, senderX, 12);
+      const senderY = 16 + Math.max(0, nameLines.length - 1) * 3.7;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      const sender = [report.sender.address, [report.sender.email, report.sender.phone].filter(Boolean).join(' · ')].filter(Boolean).join(' · ');
+      const senderLines = lines(sender, right - senderX);
+      doc.text(senderLines, senderX, senderY);
+      const titleY = Math.max(26, senderY + 2 + senderLines.length * 3.3);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+      doc.text('JUSTIFICANTE DE RECOGIDA', left, titleY);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7);
+      doc.text(`Generado: ${generated}`, right, titleY, {align: 'right'});
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+      const summary = lines(`Informe ${report.number} · Transportista: ${carrier} · Creado: ${created} · Envíos: ${items.length} · Bultos: ${parcels}`, right - left - 4);
+      const stripY = titleY + 3, stripHeight = summary.length * 3.5 + 3;
+      doc.setFillColor(240, 243, 246); doc.rect(left, stripY, right - left, stripHeight, 'F');
+      doc.text(summary, left + 2, stripY + 3.7);
+      y = stripY + stripHeight + 4;
+      doc.setFontSize(8);
+      doc.text('Pedido · canal', left + 2, y); doc.text('Seguimiento', 77, y); doc.text('Bultos', right - 2, y, {align: 'right'});
+      doc.setDrawColor(190); doc.setLineWidth(0.15); doc.line(left, y + 1.7, right, y + 1.7);
+      y += 5;
     };
     newPage();
-    for (const item of items) {
-      doc.setFontSize(9);
+    for (let index = 0; index < items.length; index++) {
+      const item = items[index];
       const channel = ({amazon: 'Amazon', shopify: 'Shopify'} as Record<string, string>)[item.channel.toLowerCase()] || item.channel;
-      const order = [...lines(item.orderNumber, 52), ...lines(channel, 52)];
-      const tracking = lines(item.trackingNumber || 'Sin seguimiento', 97);
-      let offset = 0;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      const order = lines(`${item.orderNumber} · ${channel}`, 59);
+      doc.setFont('courier', 'normal');
+      const tracking = lines(item.trackingNumber || 'Sin seguimiento', 112);
       const count = Math.max(order.length, tracking.length);
-      const rowHeight = count * 4.2 + 5;
-      if (rowHeight <= 260 - pageBodyY && rowHeight > 260 - y) newPage();
+      const rowHeight = count * lineHeight + 1.5;
+      const isLast = index === items.length - 1;
+      // The last shipment travels with the signature block, never leaving a signature-only page.
+      if (rowHeight <= 180 && y + rowHeight + (isLast ? signatureHeight : 0) > bodyBottom) newPage();
+      let offset = 0;
       while (offset < count) {
-        const room = Math.floor((260 - y - 5) / 4.2);
+        let room = Math.floor((bodyBottom - y - 1.5) / lineHeight);
+        if (isLast && count - offset <= room && y + (count - offset) * lineHeight + 1.5 + signatureHeight > bodyBottom) {
+          const roomWithSignatures = Math.floor((bodyBottom - y - 1.5 - signatureHeight) / lineHeight);
+          // Preserve a final fragment on the signature page for exceptionally long identifiers.
+          room = Math.min(room, Math.max(0, count - offset - Math.max(1, roomWithSignatures)));
+        }
         if (room < 1) { newPage(); continue; }
         const take = Math.min(room, count - offset);
-        // Explicit baselines share the same metrics as pagination and separators.
-        doc.setFontSize(9);
-        order.slice(offset, offset + take).forEach((line, i) => doc.text(line, 16, y + i * 4.2));
-        tracking.slice(offset, offset + take).forEach((line, i) => doc.text(line, 75, y + i * 4.2));
-        if (!offset) doc.text(String(item.packages), 193, y, { align: 'right' });
-        const ruleY = y + (take - 1) * 4.2 + 3;
-        doc.setDrawColor(225); doc.line(14, ruleY, 196, ruleY);
-        y = ruleY + 5;
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+        order.slice(offset, offset + take).forEach((line, i) => doc.text(line, left + 2, y + i * lineHeight));
+        doc.setFont('courier', 'normal');
+        tracking.slice(offset, offset + take).forEach((line, i) => doc.text(line, 77, y + i * lineHeight));
+        doc.setFont('helvetica', 'normal');
+        if (!offset) doc.text(String(item.packages), right - 2, y, {align: 'right'});
+        const ruleY = y + (take - 1) * lineHeight + 1.8;
+        doc.setDrawColor(225); doc.setLineWidth(0.1); doc.line(left, ruleY, right, ruleY);
+        y += take * lineHeight + 1.5;
         offset += take;
         if (offset < count) newPage();
       }
     }
-    if (y + 88 > 274) newPage();
-    y += 4;
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-    doc.text(`TOTAL RECOGIDO · ${carrier}: ${parcels} bultos / ${items.length} envíos`, 14, y);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); y += 10;
-    doc.text('Conductor/a: ___________________________________________________', 14, y); y += 9;
-    doc.text('DNI / matrícula: __________________', 14, y); y += 8;
-    doc.text('Fecha y hora de recogida: _______________________________________', 14, y); y += 8;
-    doc.text(`Total de bultos entregados: ${parcels}`, 14, y); y += 9;
-    doc.text('Firma del conductor/a', 14, y); doc.text('Firma / sello del remitente', 110, y);
-    y += 3; doc.setDrawColor(100); doc.setLineWidth(0.3);
-    doc.rect(14, y, 82, 30); doc.rect(110, y, 86, 30);
-    if(options.stampDataUrl){
-      try{
-        const image=doc.getImageProperties(options.stampDataUrl);
-        const scale=Math.min(80/image.width,24/image.height);
-        const width=image.width*scale,height=image.height*scale;
-        doc.addImage(options.stampDataUrl,undefined as any,110+(86-width)/2,y+(30-height)/2,width,height);
-      }catch{/* An optional stamp must never block a printable report. */}
+    y += 3;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    doc.text(`TOTAL RECOGIDO · ${carrier}: ${parcels} bultos / ${items.length} envíos`, left, y);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); y += 5;
+    doc.text('Conductor/a: __________________________________    DNI / matrícula: __________________', left, y); y += 5;
+    doc.text('Fecha y hora de recogida: ________________________________________________________', left, y); y += 5;
+    doc.text('Firma del conductor/a', left, y); doc.text('Firma / sello del remitente', 110, y);
+    y += 2; doc.setDrawColor(100); doc.setLineWidth(0.2);
+    doc.rect(left, y, 60, 25); doc.rect(110, y, 60, 25);
+    if (options.stampDataUrl) {
+      try {
+        const image = doc.getImageProperties(options.stampDataUrl);
+        const scale = Math.min(56 / image.width, 21 / image.height);
+        const width = image.width * scale, height = image.height * scale;
+        doc.addImage(options.stampDataUrl, undefined as any, 110 + (60 - width) / 2, y + (25 - height) / 2, width, height);
+      } catch { /* An optional stamp must never block a printable report. */ }
     }
   }
   const total = doc.getNumberOfPages();

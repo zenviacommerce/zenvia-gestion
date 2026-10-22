@@ -13,3 +13,5 @@ Eyebrow compartido FormModal usa --primary (#0f766e) como LOGÍSTICA. Paquete0.2
 Capturas antes/después: [galería](20261023-owner-review/README.md). CI anterior a estos ajustes: Gestión2896/6 verdes b7aa764853ed76706f2cc8a30932bdde1c172a14; B2906/6 verdes9baeab64d950fc1e867e9051594404b522bf6849; Platform82 verdeab6093fa4df37e77e191e10920d94d7d7b89900d. La publicación exige comprobar de nuevo los commits finales.
 
 Build Gestión local correcto; advertencia histórica de chunks>500kB. Ningún dato ni acción de producción modificado durante estas comprobaciones.
+
+CI del primer ajuste detectó el pin de forms.css en shared-ui-package.test.mjs (esperaba el color anterior). Se actualiza exclusivamente la huella del stylesheet aprobado; se conservan todas las demás huellas. Contratos locales se repiten antes del nuevo commit. Esto no fue un fallo del build ni se desactiva el control de paridad.

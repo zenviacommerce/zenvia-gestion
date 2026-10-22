@@ -11,8 +11,10 @@ test('extracted implementations and CSS match approved production sources (form 
  const baseline=JSON.parse(await readFile('packages/ui/approved-source-hashes.json','utf8'));
  assert.equal(baseline.baseline,'45441a470dd2ff30fc4d78020a0cc1309290bf6d');
  // Reviewed Tabs 0.2: only the compatibility alias and shared tab styles
- // differ from extraction. Keep every other approved production hash pinned.
+ // differ from extraction. Owner-approved23/10 modal eyebrow uses brand green.
+ // Keep every other approved production hash pinned.
  const workbenchHashes={
+  'src/forms.css':'1b0ddee8dc1c5ccda7dbfa7804401ee31d3769826fd5a9e21a3e04498fe80ead',
   'src/PageTabs.tsx':'bf71a9e55c43282d0c87eb7a9b3be9360c1a47e8ccfe6103c2bba97e17892da3',
   'src/styles.css':'ed5734521712bf8e1d6f556ddcdb70c573de4b633293de2d24146e93735c91d8',
  };

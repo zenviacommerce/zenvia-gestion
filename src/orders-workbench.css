@@ -9,7 +9,6 @@
 .ordersWorkbench .ordersSelectionScope{margin:6px 0;font-size:12px}
 .ordersWorkbench .ordersSelectionScope p{margin:4px 0}
 .ordersWorkbench .ordersPager{margin:8px 0;font-size:12px;min-height:40px}
-.ordersWorkbench .ordersTabCount{display:inline-flex;justify-content:center;min-width:23px;margin-left:6px;padding:1px 6px;border-radius:6px;background:var(--surface-soft,#e8eef0);font-size:12px;font-variant-numeric:tabular-nums}
 .ordersWorkbench .ordersAllView{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
 .ordersHeaderMore{position:relative;align-self:center}
 .ordersHeaderMore>summary,.pickupHistoryFilters details>summary{cursor:pointer;list-style:none;padding:10px;border:1px solid var(--border,#dbe2ea);border-radius:9px;white-space:nowrap;font-size:12px;min-height:42px;box-sizing:border-box}

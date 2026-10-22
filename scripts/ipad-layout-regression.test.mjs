@@ -15,5 +15,5 @@ test('wide business tables remain horizontally scrollable on iPad-sized viewport
 test('expense Gmail/factures tabs clear the fixed tablet header',async()=>{
   const css=await read('src/theme-consistency.css');
   assert.match(css,/\.expenseHubNavShell[\s\S]*padding:calc\(92px \+ env\(safe-area-inset-top\)\) 15px 0!important/);
-  assert.match(css,/\.expenseHubNav[\s\S]*overflow-x:auto/);
+  assert.match(await read('packages/ui/src/styles.css'),/\.dsTabs\{[^}]*overflow-x:auto/);
 });

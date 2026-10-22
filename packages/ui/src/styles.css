@@ -61,8 +61,6 @@
 /* Phase 2: field state and values remain owned by each screen. */
 .dsFilterBar{min-width:0;max-width:100%;gap:12px}
 .dsFilterBar .search,.dsFilterBar .filterField,.dsFilterBar label{min-width:0}
-.dsPageTabs{min-width:0;max-width:100%}
-.dsPageTabs>button{min-width:0}
 @media(max-width:767px){
  :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar{margin-bottom:10px;padding:10px;gap:8px}
  :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterGrid,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .businessFilterFields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;width:100%;min-width:0}
@@ -71,11 +69,6 @@
  :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterReset,:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterResetCompact{min-height:40px;justify-content:center}
  :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterResultCount{font-size:11px;line-height:1.3}
  :is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .salesReceiptNotice{margin:8px 0;padding:10px;font-size:12px;line-height:1.4}
- .dsPageTabs .expenseHubTabText small{display:block;font-size:10px;white-space:normal;line-height:1.25}
- .expenseHubNav.dsPageTabs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));width:100%;flex:0 1 auto;overflow:visible}
- .dsPageTabs>button{padding:8px;gap:6px;min-height:52px}
- .dsPageTabs .expenseHubTabIcon{flex:0 0 26px;width:26px;height:26px}
- .dsPageTabs .expenseHubTabText{min-width:0}
 }
 
 @media(max-width:767px){:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterGrid>label{grid-column:auto}:is(.financeDesignPage,.masterDesignPage,.finalDesignPage) .dsFilterBar .filterGrid>.filterReset{grid-column:1/-1}}
@@ -127,15 +120,9 @@ html[data-theme='dark'] .masterDesignPage .bulkSelectionTextButton{color:#d7deea
 .commerceDesignPage .dsCommerceFilters summary>span{min-width:0;flex:1}
 .commerceDesignPage .dsCommerceFilters summary strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .commerceDesignPage .dsCommerceFilters summary>svg{flex-shrink:0}
-.commerceDesignPage .commerceTabs{display:flex;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;width:100%;gap:6px;border:0;border-bottom:1px solid var(--border,#e2e8f0);background:transparent;padding:0;margin:0;box-shadow:none}
-.commerceDesignPage .commerceTabs>button{flex:0 0 auto;border:0;border-bottom:2px solid transparent;border-radius:0;box-shadow:none;background:transparent;padding:12px 18px;min-height:44px;color:var(--muted,#64748b)}
-.commerceDesignPage .commerceTabs>button.active{border-bottom-color:var(--accent,#0f766e);color:var(--accent,#0f766e);background:transparent}
-.commerceDesignPage .commerceTabs strong{font-size:12px;white-space:nowrap}
-.commerceTabBadge{display:inline-block;margin-left:6px;padding:2px 6px;border-radius:10px;background:#ccfbf1;color:#0f766e}
 .commerceDesignPage .dsPageHeader .eyebrow{display:flex;align-items:center;gap:6px}
 @media(max-width:767px){
  .commerceDesignPage .amazonToolbar{gap:8px;margin-bottom:12px}
- .commerceDesignPage .commerceTabs>button{padding:10px 12px}
  .commerceDesignPage .amazonCompactStatus{padding:10px;margin-bottom:10px;gap:6px}
  .commerceDesignPage .amazonCompactMeta{gap:6px;font-size:11px}
  .commerceDesignPage .amazonTableToolbar{gap:8px}
@@ -143,8 +130,6 @@ html[data-theme='dark'] .masterDesignPage .bulkSelectionTextButton{color:#d7deea
  .commerceDesignPage .amazonFilterDropdownPanel{max-width:calc(100vw - 30px)}
  .commerceDesignPage .dsCommerceFilters>.amazonFilterDropdown:last-child .amazonFilterDropdownPanel{left:auto;right:0}
 }
-
-[data-theme="dark"] .commerceDesignPage .commerceTabs>button.active{color:#5eead4;border-bottom-color:#2dd4bf}
 /* The page gap owns section spacing; avoid adding header/card margins twice. */
 .page.commerceDesignPage .dsPageHeader{margin-bottom:0}
 .commerceDesignPage.amazonPage{gap:12px}
@@ -156,42 +141,48 @@ html[data-theme='dark'] .masterDesignPage .bulkSelectionTextButton{color:#d7deea
 .commerceTabPanel{display:flex;flex-direction:column;gap:inherit;min-width:0;max-width:100%}
 
 /* Final migration: screens retain handlers and own only their content layout. */
-.finalDesignPage .finalPageTabs{margin-bottom:16px;max-width:100%}
 .finalDesignPage .finalFilters{padding:12px 16px;border-bottom:1px solid var(--border,#e2e8f0)}
 .finalDesignPage .finalFilters>.search{margin:0;width:100%;max-width:none}
-.finalDesignPage .settingsNav.dsPageTabs{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px;width:100%;min-width:0;overflow:visible}
-.finalDesignPage .settingsNav.dsPageTabs>button{width:100%;justify-content:flex-start;text-align:left;min-width:0;padding:10px;white-space:normal}
-.finalDesignPage .settingsNav .expenseHubTabText{min-width:0;flex:1}
-.finalDesignPage .settingsNav .expenseHubTabText strong,.finalDesignPage .settingsNav .expenseHubTabText small{white-space:normal;overflow-wrap:anywhere;display:block}
 .finalDesignPage .settingsContent{min-width:0}
 .finalDesignPage .finalGmailFilters{display:grid;grid-template-columns:minmax(0,1fr) minmax(160px,240px) auto;align-items:center;gap:10px;width:100%}
 .finalDesignPage .finalGmailFilters .searchableSelectTrigger>span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:767px){
- .finalDesignPage .finalPageTabs{display:flex;flex-wrap:nowrap;overflow-x:auto;margin-bottom:10px;gap:6px;padding:4px}
- .finalDesignPage .finalPageTabs>button{flex:0 0 auto;min-height:44px;white-space:nowrap}
  .finalDesignPage .supportListHead,.finalDesignPage .adminUsersHead{padding:10px;gap:8px}
  .finalDesignPage .finalFilters{padding:10px}
  .finalDesignPage .finalGmailFilters{grid-template-columns:minmax(0,1fr) auto}
  .finalDesignPage .finalGmailFilters>.search{grid-column:1/-1;width:100%}
- .finalDesignPage .settingsNav.dsPageTabs{flex-direction:row;overflow-x:auto;max-width:100%;padding:6px;gap:6px}
- .finalDesignPage .settingsNav.dsPageTabs>button{flex:0 0 180px;min-height:64px;padding:8px}
  .finalDesignPage .settingsLayout{display:block}
  .finalDesignPage .settingsContent{margin-top:10px}
 }
-@media(min-width:768px){.finalDesignPage .settingsNav.dsPageTabs{max-height:calc(100dvh - 40px);overflow-y:auto;overscroll-behavior:contain}}
 
 .gmailImportedKpi .statIcon{background:#eff6ff;color:#2563eb}
 .gmailAutomaticKpi .statIcon{background:#faf5ff;color:#7e22ce}
 
 /* Workbench tabs: one compact horizontal rail at every viewport width. */
-.dsPageTabs.dsWorkbenchTabs{display:flex;flex-direction:row;flex-wrap:nowrap;gap:4px;width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin;border:0;border-bottom:1px solid var(--border,#e2e8f0);border-radius:0;background:transparent;padding:0;margin:0;box-shadow:none}
-.dsPageTabs.dsWorkbenchTabs>button{display:inline-flex;flex:0 0 auto;align-items:center;justify-content:center;gap:6px;min-width:0;min-height:44px;padding:10px 12px;border:0;border-bottom:2px solid transparent;border-radius:0;box-shadow:none;background:transparent;color:var(--muted,#64748b);white-space:nowrap}
-.dsPageTabs.dsWorkbenchTabs>button.active{border-bottom-color:var(--accent,#0f766e);color:var(--accent,#0f766e);background:transparent}
-.dsPageTabs.dsWorkbenchTabs>button:focus-visible{outline:2px solid var(--accent,#0f766e);outline-offset:-3px}
-.dsWorkbenchTabs .expenseHubTabText strong{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;font-size:13px}
-.dsWorkbenchTabs .dsWorkbenchTabCount{display:inline-block;min-width:20px;padding:2px 6px;border-radius:12px;background:var(--surface-soft,#f1f5f9);color:inherit;font-size:11px;font-weight:600;text-align:center;font-variant-numeric:tabular-nums}
-.dsWorkbenchTabs .expenseHubTabIcon{display:inline-flex;width:18px;height:18px;flex:0 0 18px;background:transparent}
-.dsWorkbenchTabs .expenseHubTabIcon svg{width:16px;height:16px}
 
-[data-theme='dark'] .dsPageTabs.dsWorkbenchTabs>button.active{color:#5eead4;border-bottom-color:#2dd4bf}
-[data-theme='dark'] .dsPageTabs.dsWorkbenchTabs>button:focus-visible{outline-color:#5eead4}
+/* Tabs owns its entire appearance. Applications may lay out panels, never restyle tabs. */
+.dsTabsSection{min-width:0;max-width:100%}
+.dsTabsContent{background:var(--surface,#fff);border:1px solid var(--border,#dbe3ea);border-top:0;border-radius:0 0 14px 14px;padding:16px;min-width:0;max-width:100%}
+.dsTabs[hidden]{display:none}
+@media(max-width:767px){.dsTabsContent{padding:10px}}
+.dsTabs{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:stretch;gap:6px;isolation:isolate;width:100%;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x pan-y;scrollbar-width:thin;border:0;padding:6px 2px 0;margin:0;background:linear-gradient(var(--border,#dbe3ea),var(--border,#dbe3ea)) left bottom/100% 1px no-repeat}
+.dsTabs>[role='tab']{appearance:none;position:relative;display:inline-flex;align-items:center;justify-content:flex-start;gap:9px;flex:0 0 auto;min-height:48px;min-width:max-content;max-width:none;padding:12px 17px;border:1px solid transparent;border-bottom:0;border-radius:12px 12px 0 0;background:var(--surface-soft,#edf1f5);color:var(--text-secondary,#526176);font:inherit;text-align:left;white-space:nowrap;cursor:pointer;box-shadow:none;transition:background .15s,color .15s}
+.dsTabs>[role='tab']:hover{background:var(--border,#dce5eb);color:var(--text,#172033)}
+.dsTabs>[role='tab'][aria-selected='true']{z-index:1;background:var(--surface,#fff);border-color:var(--border,#dbe3ea);color:var(--accent,#0f766e)}
+.dsTabs>[role='tab']:focus-visible{outline:3px solid var(--accent,#0f766e);outline-offset:-4px}
+.dsTabIcon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 18px}
+.dsTabIcon svg{width:18px;height:18px}
+.dsTabText{display:flex;flex-direction:column;gap:3px;min-width:0}
+.dsTabTitle{display:inline-flex;align-items:center;gap:8px;font-size:var(--ui-font-sm,13px);font-weight:600;line-height:1.4;white-space:nowrap}
+.dsTabs>[aria-selected='true'] .dsTabTitle{font-weight:800}
+.dsTabDescription{display:block;max-width:230px;color:var(--muted,#64748b);font-size:var(--ui-font-xs,12px);line-height:1.35;white-space:normal}
+.dsTabBadge{display:inline-flex;align-items:center;justify-content:center;min-width:24px;padding:2px 7px;border-radius:999px;background:#e2e8f0;color:#475569;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.4}
+.dsTabBadge[data-tone='danger']{background:#fee2e2;color:#b91c1c}
+[data-theme='dark'] .dsTabs{background-image:linear-gradient(#334155,#334155)}
+[data-theme='dark'] .dsTabs>[role='tab']{background:#1e293b;color:#b9c5d6}
+[data-theme='dark'] .dsTabs>[role='tab']:hover{background:#334155;color:#f1f5f9}
+[data-theme='dark'] .dsTabs>[role='tab'][aria-selected='true']{background:var(--surface,#111827);border-color:#334155;color:#5eead4}
+[data-theme='dark'] .dsTabBadge{background:#334155;color:#e2e8f0}
+[data-theme='dark'] .dsTabBadge[data-tone='danger']{background:#591c2b;color:#fecaca}
+[data-theme='dark'] .dsTabDescription{color:#94a3b8}
+@media(max-width:767px){.dsTabs{gap:5px}.dsTabs>[role='tab']{min-height:48px;padding:11px 13px}}

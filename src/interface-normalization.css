@@ -4,7 +4,7 @@
 .page .tableCard td,.page .masterTable td,.page .ordersTable td{font-size:var(--ui-font-md,14px);line-height:1.4}
 .page .tableCard td small,.page .masterTable td small,.page .ordersTable td small{font-size:var(--ui-font-xs,12px);line-height:1.35}
 .page .search input,.page .toolbar select,.page .salesToolbar select,.page .auditFilters select,.page .masterPeriodDates input{font-size:var(--ui-font-md,14px)!important}
-.page .toolbar button,.page .masterFilters button,.page .masterPeriodQuick button,.page .ordersFilterGroup button,.page .adminTabs button,.page .gmailFilterBar select{font-size:var(--ui-font-control,13.5px)!important}
+.page .toolbar button,.page .masterFilters button,.page .masterPeriodQuick button,.page .ordersFilterGroup button,.page .gmailFilterBar select{font-size:var(--ui-font-control,13.5px)!important}
 .page .filterResultCount,.page .gmailFilterSummary,.page .masterToolbar{font-size:var(--ui-font-sm,13px)}
 .page .masterMobileRow,.page .ordersMobileRow,.page .gmailImportRow,.page .adminUserRow,.page .auditRow{font-size:var(--ui-font-md,14px)}
 .page .masterMobileRow small,.page .ordersMobileRow small,.page .gmailImportRow small,.page .adminUserRow small,.page .auditRow small{font-size:12px}
@@ -12,7 +12,7 @@
 .page .masterContactCell small,.page .masterEntityCell small,.page .gmailSubject,.page .auditMain span{font-size:12px}
 .listPagination{font-size:var(--ui-font-sm,13px)}
 .listPagination button{font-size:var(--ui-font-sm,13px)}
-@media(max-width:760px){.page .search input,.page .toolbar select,.page .salesToolbar select,.page .auditFilters select,.page .masterPeriodDates input{font-size:16px!important}.page .masterFilters button,.page .masterPeriodQuick button,.page .ordersFilterGroup button,.page .adminTabs button{font-size:var(--ui-font-md,14px)!important}}
+@media(max-width:760px){.page .search input,.page .toolbar select,.page .salesToolbar select,.page .auditFilters select,.page .masterPeriodDates input{font-size:16px!important}.page .masterFilters button,.page .masterPeriodQuick button,.page .ordersFilterGroup button{font-size:var(--ui-font-md,14px)!important}}
 /* deploy trigger 2026-09-15 */
 
 /* Unified filters + KPI layout across business sections */

@@ -1,4 +1,4 @@
-import {PageTabs} from '../components/PageTabs';
+import {Tabs} from '@zenvia/ui';
 import {RetainedImportPage} from '../components/RetainedImportPage';
 import { useState } from 'react';
 import { FileText, Mail } from 'lucide-react';
@@ -10,8 +10,10 @@ export function ExpenseInvoicesHub({invoices,suppliers,categories,onUpload,onBul
  const [tab,setTab]=useState<'invoices'|'gmail'>('invoices');
  return <div className="expenseInvoicesHub">
    <div className="expenseHubNavShell">
-     <PageTabs label="Facturas de gasto" value={tab} onChange={setTab} items={[{id:'invoices',label:'Facturas de gasto',description:'Histórico, filtros y exportación',icon:<FileText size={18}/>},{id:'gmail',label:'Importar desde Gmail',description:'Buscar y añadir facturas recibidas',icon:<Mail size={18}/>}]} />
+     <Tabs panelId="expense-hub-panel" label="Facturas de gasto" value={tab} onChange={setTab} items={[{id:'invoices',label:'Facturas de gasto',description:'Histórico, filtros y exportación',icon:<FileText size={18}/>},{id:'gmail',label:'Importar desde Gmail',description:'Buscar y añadir facturas recibidas',icon:<Mail size={18}/>}]} >
+   <div role="tabpanel" id="expense-hub-panel" aria-labelledby={'expense-hub-panel-tab-'+tab}><RetainedImportPage active={tab==='invoices'}><Invoices invoices={invoices} suppliers={suppliers} categories={categories} onUpload={onUpload} onBulkUpload={onBulkUpload} onStatusChange={onStatusChange} onPaymentStatusChange={onPaymentStatusChange} onBulkPaymentStatusChange={onBulkPaymentStatusChange} onOpenFile={onOpenFile} onDelete={onDelete} onSupplierChange={onSupplierChange} onCategoryChange={onCategoryChange}/></RetainedImportPage><RetainedImportPage active={tab==='gmail'}><GmailPage categories={categories} onImported={onImported} onManageAccounts={onManageAccounts} canManageAccounts={canManageAccounts}/></RetainedImportPage>
    </div>
-   <RetainedImportPage active={tab==='invoices'}><Invoices invoices={invoices} suppliers={suppliers} categories={categories} onUpload={onUpload} onBulkUpload={onBulkUpload} onStatusChange={onStatusChange} onPaymentStatusChange={onPaymentStatusChange} onBulkPaymentStatusChange={onBulkPaymentStatusChange} onOpenFile={onOpenFile} onDelete={onDelete} onSupplierChange={onSupplierChange} onCategoryChange={onCategoryChange}/></RetainedImportPage><RetainedImportPage active={tab==='gmail'}><GmailPage categories={categories} onImported={onImported} onManageAccounts={onManageAccounts} canManageAccounts={canManageAccounts}/></RetainedImportPage>
+</Tabs>
+ </div>
  </div>
 }

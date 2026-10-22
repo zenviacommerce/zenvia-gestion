@@ -1,7 +1,4 @@
 .supportPage{display:grid;gap:16px}
-.supportScopeTabs{display:flex;gap:8px;flex-wrap:wrap}
-.supportScopeTabs button{display:inline-flex;align-items:center;gap:7px;min-height:38px;padding:0 14px;border:1px solid var(--border);border-radius:10px;background:var(--surface);color:var(--muted);font-weight:700}
-.supportScopeTabs button.active{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 45%,var(--border));background:color-mix(in srgb,var(--accent) 8%,var(--surface))}
 .supportStats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
 .supportStat{display:flex;align-items:center;gap:12px;padding:15px}
 .supportStat>svg{width:20px;height:20px;color:var(--accent)}

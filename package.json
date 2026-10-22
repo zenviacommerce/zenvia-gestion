@@ -14,7 +14,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "2.105.0",
-    "@zenvia/ui": "0.1.0",
+    "@zenvia/ui": "0.2.0",
     "jspdf": "2.5.1",
     "jszip": "3.10.1",
     "lucide-react": "0.468.0",
@@ -43,3 +43,4 @@
     "packages/ui"
   ]
 }
+

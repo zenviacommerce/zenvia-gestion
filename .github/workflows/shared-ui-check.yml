@@ -1,4 +1,4 @@
-name: Shared UI package and visual parity
+name: Shared UI package and tab contracts
 on:
   pull_request:
     branches: [main]
@@ -18,7 +18,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: node --test scripts/shared-ui-package.test.mjs
+      - run: node --test scripts/shared-ui-package.test.mjs scripts/shared-tabs-contract.test.mjs
       - name: Determine extraction parity scope
         id: parity
         env:
@@ -39,10 +39,13 @@ jobs:
       - if: steps.parity.outputs.required == 'true'
         run: npx playwright install --with-deps chromium
       - if: steps.parity.outputs.required == 'true'
-        run: node scripts/shared-ui-review.mjs
+        run: |
+          node scripts/shared-tabs-capture.mjs after
+          node scripts/shared-tabs-gallery.mjs
       - uses: actions/upload-artifact@v4
         if: always() && steps.parity.outputs.required == 'true'
         with:
           name: shared-ui-before-after-and-comparison
-          path: docs/deploy/ui-extraction-20261021/review/
+          path: docs/deploy/20261022-shared-tabs-review/
           if-no-files-found: error
+

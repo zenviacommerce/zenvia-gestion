@@ -1,7 +1,7 @@
 import {ExternalShipmentModal} from '../components/ExternalShipmentModal';
 import {registerExternalShipment} from '../services/externalShipment';
 import {loadIntegrationAccounts,type IntegrationAccount} from '../services/integrationAccounts';
-import {PageTabs} from '../components/PageTabs';
+import {Tabs} from '@zenvia/ui';
 import {OrdersWorkbenchFilters,type OrdersWorkbenchFilterValues} from '../components/OrdersWorkbenchFilters';
 import {TransportTariffsPanel} from '../components/TransportTariffsPanel';
 import {ORDERS_TABS,isOrdersTab,parseOrdersTab,ordersTabUrl,ordersTabUsesPeriod,ordersTabActions,type OrdersTab} from '../services/ordersWorkbench';
@@ -1002,7 +1002,7 @@ export function Orders({pendingOnly=false,active=true}:{pendingOnly?:boolean;act
       <button className="primary" aria-label="Actualizar pedidos" onClick={()=>sync(false,false)} disabled={syncing||bulkGenerating}>{syncing?<LoaderCircle className="spin" size={16}/>:<RefreshCw size={16}/>} {compactHeader?'Actualizar':'Actualizar pedidos'}</button>
       <details className="ordersHeaderMore"><summary>Más acciones</summary><div className="ordersHeaderMenu">{headerUtilities}</div></details>
     </>}/>
-    <PageTabs label="Bandejas de pedidos" value={activeTab==='all'?'pending':activeTab} onChange={changeTab} variant="workbench" panelId="orders-workbench-panel" items={ORDERS_TABS.map(tab=>({...tab,badge:tab.id==='reports'?undefined:<span className="ordersTabCount">{workbenchCounters?.[tab.id]==null?'—':workbenchCounters[tab.id]?.toLocaleString('es-ES')}</span>}))}/>
+    <Tabs label="Bandejas de pedidos" value={activeTab==='all'?'pending':activeTab} onChange={changeTab} panelId="orders-workbench-panel" items={ORDERS_TABS.map(tab=>({...tab,badge:tab.id==='reports'?undefined:workbenchCounters?.[tab.id]==null?'—':workbenchCounters[tab.id]?.toLocaleString('es-ES'),badgeTone:tab.id==='issues'&&(workbenchCounters?.issues||0)>0?'danger':'neutral'}))}>
     <div id="orders-workbench-panel" role="tabpanel" aria-labelledby={'orders-workbench-panel-tab-'+(activeTab==='all'?'pending':activeTab)}>
     {activeTab==='all'&&<div className="ordersAllView"><strong>Todos los pedidos</strong><button className="link" onClick={()=>changeTab('pending')}>Volver a Pendientes</button></div>}
 
@@ -1053,6 +1053,7 @@ export function Orders({pendingOnly=false,active=true}:{pendingOnly?:boolean;act
 
     </>}
     </div>
+</Tabs>
     <TransportTariffsPanel open={tariffsOpen} onClose={()=>setTariffsOpen(false)}/>
     {bulkPreview&&<div className="modalBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!bulkPreview.loading)setBulkPreview(null)}}><section className="modal ordersLabelModal">
       <div className="modalHead"><div><h3>Generar etiquetas en bloque</h3><p>Compara los transportistas disponibles para los {bulkPreview.targets.length} pedidos y elige con cuál generar todas las etiquetas.</p></div><button disabled={bulkPreview.loading||bulkGenerating} onClick={()=>setBulkPreview(null)}><X size={18}/></button></div>

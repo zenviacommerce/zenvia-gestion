@@ -10,11 +10,6 @@
   justify-content:flex-start!important;
   align-items:center!important;
 }
-.expenseHubNav{
-  margin:0!important;
-  margin-inline:0!important;
-  justify-content:flex-start!important;
-}
 .expenseInvoicesHub>.page{padding-top:20px}
 
 .amazonOfflineNotice{
@@ -39,11 +34,6 @@ html[data-theme='dark'] .amazonOfflineNotice span{color:#d6c39a}
     padding:calc(72px + env(safe-area-inset-top)) 15px 0!important;
     overflow-x:auto;
     -webkit-overflow-scrolling:touch;
-  }
-  .expenseHubNav:not(.dsPageTabs){
-    width:max-content!important;
-    min-width:100%;
-    flex:0 0 auto;
   }
   .expenseInvoicesHub>.page{padding-top:16px}
   .amazonOfflineNotice{align-items:flex-start;flex-wrap:wrap}

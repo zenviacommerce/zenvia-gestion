@@ -44,3 +44,7 @@ Build de producción correcto. Deno 2.9.6 comprueba ambas nuevas Edge Functions.
 La suite completa alcanzó 620/620 Vitest. La revisión final encontró caché de PDF pendiente tras firmar y cambios del PNG al girar el móvil tras un fallo. Corregidos con descarga siempre desde el estado actual del servidor, sin fallback a PDF sin firma, y payload congelado por solicitud; el canvas desactivado puede redibujar sin emitir otro PNG. Regresiones rojas y verdes: 16/16 UI/descarga/canvas/Edge; 9/9 Edge tras añadir PDF firmado y branding opcional. El gate global detectó un select nativo de históricos y se cambió a SelectField; 8/8 comprobaciones Node focalizadas correctas. Queda confirmar CI global del borrador.
 
 A: seis comprobaciones de Gestión y una de Platform en verde; recibo de heads y enlaces guardado. No se publica A ni B.
+
+## Corrección final del rol de diálogo detectada por CI visual
+
+CI 39860351677 completó las capturas de Pedidos sin pérdidas, pero el test de abrir/cancelar informe encontró el role=dialog en un wrapper sin área visible alrededor del FormModal fijo. Se coloca el rol y su nombre accesible en la superficie .modal real mediante el hook de formulario, manteniendo foco, Escape y trapping. Prueba roja/verdes de host de rol y 12/12 UI focalizadas; galería completa regenerada con aserción de diálogo visible en navegador (62 capturas/68 checks). No se relajó la comprobación de CI ni se publicó nada.

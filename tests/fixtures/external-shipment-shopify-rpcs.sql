@@ -24,3 +24,8 @@ AS $function$
  order by shopify_tracking_last_attempt_at asc nulls first limit 5;
 $function$
 ;
+-- Match the production ACLs captured on 22/10; these are internal service RPCs.
+REVOKE ALL ON FUNCTION public.integration_shopify_claim_shipment(uuid,uuid,uuid) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.integration_shopify_pending_shipments(uuid) FROM PUBLIC,anon,authenticated;
+GRANT EXECUTE ON FUNCTION public.integration_shopify_claim_shipment(uuid,uuid,uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.integration_shopify_pending_shipments(uuid) TO service_role;

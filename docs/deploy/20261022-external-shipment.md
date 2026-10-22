@@ -71,3 +71,9 @@ Límites: no se ha probado una confirmación comercial real ni el sondeo de un t
 PR **#287**, rama `feature/register-external-shipment-20261022`, abierta como borrador. La base sigue siendo `0ae9622b1da1bf6f0901b6c27a4bb2982ac67750`. Se han subido las 48 fuentes/evidencias previstas conservando el árbol base; no se ha fusionado ni publicado. El harness usa esa base inmutable por defecto (la copia local equivalente se indica con EXTERNAL_BASELINE).
 
 CI remota en curso al escribir este recibo; consultar los checks de la PR para su resultado final. La segunda revisión de código no encuentra bloqueos importantes. El siguiente paso del propietario es revisar la galería, antes de autorizar producción.
+
+### Dependencia histórica descubierta por CI
+
+El run `39804687217` falló al arrancar Supabase **desechable**, antes de ejecutar las pruebas reales: las funciones `integration_shopify_pending_shipments` y `integration_shopify_claim_shipment` existen en producción, pero no en el historial de migraciones. La nueva migración fallaba correctamente al no encontrarlas; no se suaviza esa comprobación ni se modifica SQL/auth/MFA de producción.
+
+El runner ya reconstruye dependencias históricas ausentes a partir de fixtures. Se añade a ese mismo paso la fixture capturada de ambas funciones, con sus ACL reales (`postgres` y `service_role`, sin anon/authenticated). Cambio de cuatro líneas en el montaje de CI, sin alterar pruebas ni lógica MFA. Una regresión consulta `has_function_privilege` para comprobar que la migración conserva esas ACL. La suite SQL pasa a **27 pruebas**. Repetición remota pendiente de este recibo.

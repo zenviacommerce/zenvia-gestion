@@ -15,7 +15,7 @@ const hash=async()=>(await d.query<any>("select md5(pg_get_functiondef(oid)) has
 const before=await hash();
 const implBefore=(await d.query<any>("select md5(pg_get_functiondef(oid)) hash from pg_proc where proname='mfa_impl_orders_dashboard_pickup_v1'")).rows[0].hash;
 if(mode==='active-disabled')await d.exec('update private.orders_projection_control set read_enabled=false,maintenance_enabled=false');
-await d.exec(read('supabase/migrations/20261022114001_orders_workbench.sql'));
+await d.exec(read('supabase/migrations/20261022125659_orders_workbench.sql'));
 expect((await d.query<any>("select count(*)::int n from pg_proc where proname='orders_workbench_v1'")).rows[0].n).toBe(1);
 expect(await hash()).toBe(before);
 expect((await d.query<any>("select md5(pg_get_functiondef(oid)) hash from pg_proc where proname='mfa_impl_orders_dashboard_pickup_v1'")).rows[0].hash).toBe(implBefore);

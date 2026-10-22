@@ -37,7 +37,7 @@ La galería aporta 42 capturas completas antes/después a 390, 1280 y 1440 px, m
 
 ## Despliegue pendiente y reversión
 
-1. Revisar y aprobar UI/SQL antes de publicar. La migración nueva `20261022114001_orders_workbench.sql` es aditiva: crea funciones y registra su wrapper; no contiene DELETE, UPDATE de datos de negocio ni DROP.
+1. Revisar y aprobar UI/SQL antes de publicar. La migración nueva `20261022125659_orders_workbench.sql` es aditiva: crea funciones y registra su wrapper; no contiene DELETE, UPDATE de datos de negocio ni DROP.
 2. Tras aprobación, instalar primero la RPC aditiva. No sustituye `orders_dashboard_pickup_v1`, sus permisos ni los interruptores de proyección existentes. Validar en producción permisos, igualdad de filas existentes y contadores antes del frontend.
 3. Publicar el frontend aprobado y comprobar las seis pestañas, Resumen, selección y acciones de cabecera.
 4. Reversión: restaurar el despliegue anterior del frontend. El RPC previo sigue intacto; la RPC nueva puede quedar sin uso sin borrar nada. No cambiar interruptores, cron ni datos de pedidos para revertir la interfaz.

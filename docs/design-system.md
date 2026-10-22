@@ -272,3 +272,6 @@ Implementación preparada para revisión; **sin publicar**. La especificación d
 
 La cabecera mantiene Nuevo pedido, Actualizar y Más acciones en una fila también en escritorio. Tarifas, impresión directa, formato y facturación Shopify se conservan en el menú. Incidencias y Enviados adelantan Pedido, Cliente, Transportista y Seguimiento, manteniendo el inventario completo de columnas. El seguimiento muestra texto, último movimiento y antigüedad; el acceso externo queda fuera del botón de la tarjeta móvil. La prueba de geometría exige que el motivo sea visible sin scroll horizontal a 1280/1440 px.
 
+
+## Ajustes aprobados23/10/2026
+Las cabeceras de menú «Más acciones» conservan secondary, tipografía y altura de los botones hermanos, icono y texto sin salto. Los disclosures nativos mantienen su semántica de teclado. La etiqueta superior de FormModal usa --primary (verde de marca), como PageHeader.

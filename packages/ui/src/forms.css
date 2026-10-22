@@ -4,7 +4,7 @@
 .formModalBody{overflow:auto;padding:0 2px 8px;display:flex;flex-direction:column;gap:14px}
 .formModalHead{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:14px}
 .formModalHead h3{margin:2px 0 4px}.formModalHead p{margin:0;color:var(--muted,#6b7280);font-size:.92rem;line-height:1.45}
-.formModalEyebrow{font-size:.72rem;font-weight:800;letter-spacing:.1em;color:var(--accent,#4f46e5)}
+.formModalEyebrow{font-size:.72rem;font-weight:800;letter-spacing:.1em;color:var(--primary,#0f766e)}
 .formModalClose{border:0;background:transparent;display:grid;place-items:center;border-radius:10px;padding:8px;cursor:pointer;color:inherit}
 .formModalClose:hover{background:var(--soft,#f3f4f6)}
 .formSection{border:1px solid var(--border,#e5e7eb);border-radius:16px;padding:16px;background:var(--card,#fff)}

@@ -104,3 +104,11 @@ Base producción main 0ae9622b1da1bf6f0901b6c27a4bb2982ac67750. Vercel rollback 
 Bundles actuales capturados completos en supabase/snapshots/20261022-external-shipment/: mrw-shipping v24, envia-shipping v44, sendcloud-orders v34, sendcloud-order-tools v36 y Shopify v6 ya capturado. El plan de despliegue preserva todos los ficheros actuales de cada bundle, verify_jwt=true, auth/MFA intactos; solo inserta la guardia external_shipment en amazonPiiRead y cambia la condición Shopify revisada. Nueva Edge register-external-shipment con validación de usuario/empresa/MFA vigente.
 
 Inspección BD confirma columna external_shipment aún ausente. Migración aditiva y creación/reemplazo de rutinas; no ejecuta UPDATE/DELETE sobre pedidos existentes ni reprocesa datos. Rollback de esquema existente aborta si ya hay altas; rollback operativo conserva auditoría y envíos y desactiva la nueva alta. No se ha aplicado rollback ni despliegue al escribir este preflight.
+
+### Recibo de ajustes y CI remota
+
+Head de ajustes 457290965efbc0da55f9efd7c875d91ac6ea3e1b. Validación final local: 571/571 Vitest en 102 archivos, 1281/1281 Node y build completo correcto. Revisión independiente final sin bloqueos.
+
+El run MFA desechable 39836124683 (job 120024824299) falla antes de ejecutar la integración real: Docker devuelve `toomanyrequests` al descargar imágenes. Las regresiones sintéticas del mismo job pasan. Se reintenta el job fallido sin cambios de código ni exclusiones. Producción todavía no modificada; publicación condicionada a que este commit quede verde.
+
+El segundo intento (job 120026818322) repite GHCR toomanyrequests. La acción setup-cli fija ghcr.io para CLI 2.45.5; se explicita el registro predeterminado oficial public.ecr.aws en el job desechable. La fuente oficial CLI v2.45.5, internal/utils/docker.go, confirma que GetRegistry/GetRegistryImageUrl solo cambia el host y conserva las etiquetas; setup-cli src/main.ts respeta el valor configurado. Sin cambios de versión, auth/MFA de producción, SQL ni pruebas. Los otros cinco flujos del head previo pasan o completan sus jobs correctamente.

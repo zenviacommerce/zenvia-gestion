@@ -11,6 +11,9 @@ jobs:
   real-auth-vault:
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    env:
+      # Use the CLI default official mirror; GHCR throttles shared runners.
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

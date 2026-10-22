@@ -706,3 +706,11 @@ Only recorded exact rollback SQL in the repository. A CI workflow change to test
 - Worker: 13 runs `success`; la muestra inicial tenía 29 jobs completados y 1 recién encolado, sin lease ni ejecución activa. El job restante cerró en `success` y la comprobación posterior confirmó 0 pendientes, 0 en proceso, 0 fallidos y 0 leases activos; el siguiente cron fue `succeeded`.
 - Cron de la última hora: worker 60/60, pedidos 12/12, imágenes 6/6, destinatarios 4/4, mantenimiento 4/4, orquestador 1/1, frescura Shopify 60/60 y sombra Platform 60/60; todos `succeeded`.
 - Resultado: estable, sin incidencia significativa ni acción correctiva.
+
+
+### Vigilancia piloto MFA — 2026-10-22 08:52 CEST
+- Configuración exacta: `enabled=true`, cohort único autorizado; `private.mfa_activation_findings()` = 0 y sin eventos MFA en la última hora. Sin cambios ni apagado de emergencia.
+- Ventana 07:51–08:51 CEST: 0 `PGRST003`, 0 `57014`, 0 `MFA_REQUIRED`/AAL1 inesperados, 0 denegaciones fuera del cohort, 0 `context canceled`, 0 `job startup timeout` y 0 Auth/MFA 5xx. Auth: 101 respuestas HTTP 200; un registro `Login` informativo sin estado HTTP y dos entradas de auditoría, sin error.
+- Worker: 13 runs `success`, 30 jobs recientes `success`, 0 `failed`; cola en 0 pendientes, 0 en proceso, 0 fallidos y sin lease retenido. Cron por minuto: 60/60 `succeeded`.
+- Resto de cron: pedidos 12/12, imágenes 6/6, destinatarios 4/4, mantenimiento 4/4, orquestador 1/1, frescura Shopify 60/60, sombra Platform 60/60 y seguimiento de envíos en sombra 11/11; todos `succeeded`.
+- Resultado: estable, sin incidencia significativa ni acción correctiva.

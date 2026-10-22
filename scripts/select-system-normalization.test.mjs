@@ -47,7 +47,7 @@ test('orders use searchable selects for growing catalogs and SelectField for tra
   assert.match(filters,/channel:'Filtrar por canal'/);
   assert.match(filters,/tracking:'Filtrar por seguimiento'/);
   assert.match(filters,/<SelectField ariaLabel=\{ariaLabels\[editing\]\} value=\{values\[editing\]\} options=\{options\[editing\]\}/);
-  assert.match(orders,/Impresora directa:<\/span>\{printers\.length\?<SearchableSelect/);
+  assert.doesNotMatch(orders,/Impresora directa|printers.length/);
   assert.match(filters,/country:\[\{value:'all',label:'Todos los países'\},\.\.\.countries/);
   assert.match(filters,/carrier:\[\{value:'all',label:'Todos los transportistas'\},\.\.\.carriers/);
 });

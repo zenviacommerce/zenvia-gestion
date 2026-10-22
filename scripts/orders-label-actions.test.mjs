@@ -18,13 +18,12 @@ test('bulk label generation is not disabled by background sync or status health 
   assert.doesNotMatch(source,/disabled=\{!selectedOrders\.length\|\|bulkGenerating\|\|syncing\|\|!status\?\.configured\}/);
 });
 
-test('direct printing remains optional with ZENVIA Print Agent and PDF fallback',async()=>{
-  const source=await read('../src/pages/Orders.tsx');
-  assert.match(source,/Impresión directa/);
-  assert.match(source,/Impresión opcional con ZENVIA Print Agent; las etiquetas también se pueden descargar/);
-  assert.match(source,/onClick=\{detectPrinters\}/);
-  assert.match(source,/Usar PDF/);
-  assert.match(source,/showInfo\('La impresión directa requiere ZENVIA Print Agent/);
+test('direct printing was intentionally removed while PDF downloads and format remain',async()=>{
+ const source=await read('../src/pages/Orders.tsx');
+ assert.doesNotMatch(source,/Impresión directa|detectPrinters|labelPrinterId|printLabelWithClient/);
+ assert.match(source,/prepareLabelPdf\(blob,settings.shipping\)/);
+ assert.match(source,/Formato del PDF/);
+ assert.match(source,/downloadLabel\(prepared,labelPdfFilename/);
 });
 
 test('toast system supports neutral informational messages',async()=>{

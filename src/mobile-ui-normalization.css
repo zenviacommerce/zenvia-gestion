@@ -2,8 +2,7 @@
 .page .salesToolbar>select,
 .page .toolbar>select,
 .page .gmailFilterBar select,
-.page .auditFilters select,
-.page .ordersPrinterBar select{
+.page .auditFilters select{
   -webkit-appearance:none;
   appearance:none;
   min-height:42px;
@@ -27,16 +26,14 @@
 .page .salesToolbar>select:hover,
 .page .toolbar>select:hover,
 .page .gmailFilterBar select:hover,
-.page .auditFilters select:hover,
-.page .ordersPrinterBar select:hover{
+.page .auditFilters select:hover{
   border-color:#b8c4d2!important;
 }
 
 .page .salesToolbar>select:focus,
 .page .toolbar>select:focus,
 .page .gmailFilterBar select:focus,
-.page .auditFilters select:focus,
-.page .ordersPrinterBar select:focus{
+.page .auditFilters select:focus{
   border-color:#14b8a6!important;
   box-shadow:0 0 0 3px #14b8a61f!important;
 }
@@ -44,8 +41,7 @@
 html[data-theme='dark'] .page .salesToolbar>select,
 html[data-theme='dark'] .page .toolbar>select,
 html[data-theme='dark'] .page .gmailFilterBar select,
-html[data-theme='dark'] .page .auditFilters select,
-html[data-theme='dark'] .page .ordersPrinterBar select{
+html[data-theme='dark'] .page .auditFilters select{
   background-color:#0f172a!important;
   border-color:#334155!important;
   color:#e5e7eb!important;
@@ -189,8 +185,7 @@ html[data-theme='dark'] .page .ordersPrinterBar select{
   .page .salesToolbar>select,
   .page .toolbar>select,
   .page .gmailFilterBar select,
-  .page .auditFilters select,
-  .page .ordersPrinterBar select{
+  .page .auditFilters select{
     width:100%;
     min-height:48px!important;
     border-radius:12px!important;

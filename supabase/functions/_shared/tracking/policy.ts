@@ -6,7 +6,7 @@ const phases:Record<string,TrackingState>={no_label:'pre_transit',announcing:'pr
 const legacy:Record<string,TrackingState>={...envio,driver_on_route:'out_for_delivery',driver_en_route:'out_for_delivery',delivery_failed:'exception',awaiting_customer_pickup:'exception',delivery_date_changed:'exception',returned_to_sender:'returned',ready_to_send:'pre_transit',announced:'pre_transit',parcel_en_route:'in_transit',shipment_collected_by_customer:'delivered',address_invalid:'exception',delivery_delayed:'exception'};
 const mrw:Record<string,TrackingState>={entregado:'delivered',entregada:'delivered',en_reparto:'out_for_delivery',en_transito:'in_transit',recogido:'in_transit',pendiente_de_recoger:'pre_transit',en_oficina:'exception',incidencia:'exception',ausente:'exception',devuelto:'returned',anulado:'cancelled'};
 // Observed on the authenticated TrackingService GetEnvios diagnostic (2026-10-22).
-const mrwCodes:Record<string,TrackingState>={'00':'delivered','16':'out_for_delivery','79':'in_transit','57':'in_transit','17':'in_transit','47':'pre_transit','48':'pre_transit'};
+const mrwCodes:Record<string,TrackingState>={'00':'delivered','16':'out_for_delivery','79':'in_transit','57':'in_transit','17':'in_transit','47':'pre_transit','48':'pre_transit','33':'in_transit','35':'exception','59':'in_transit','72':'in_transit','91':'in_transit'};
 const lookup=(map:Record<string,TrackingState>,value:string)=>Object.prototype.hasOwnProperty.call(map,value)?map[value]:null;
 export function normalizeStatus(provider:string,code:unknown,detail:unknown='',eventType='carrier'):TrackingState|null{
  if(eventType==='claim')return null;

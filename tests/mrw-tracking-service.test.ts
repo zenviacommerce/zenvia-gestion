@@ -70,3 +70,19 @@ it.each([
  expect(normalizeStatus('mrw',code,description)).toBe(state);expect(normalizeStatus('mrw',code,'')).toBe(state);
  expect(parseMrw(response(`<Estado>${code}</Estado><EstadoDescripcion>${description}</EstadoDescripcion><Intentos>0</Intentos>`),'TEST-T1')).toMatchObject({state,code});
 });
+it.each([
+ ['33','Entrega concertada','in_transit'],
+ ['33','Concertada próxima entrega','in_transit'],
+ ['35','Entrega aplazada pendiente de cobro o cita previa','exception'],
+ ['59','Llegada a franquicia destino','in_transit'],
+ ['72','Recogido en plataforma','in_transit'],
+ ['91','Pendiente de recibir en destino','in_transit'],
+])('normalizes requested MRW code %s while retaining provider description %s',(code,description,state)=>{
+ expect(normalizeStatus('mrw',code,'')).toBe(state);
+ const event=parseMrw(response(`<Estado>${code}</Estado><EstadoDescripcion>${description}</EstadoDescripcion><Intentos>0</Intentos>`),'TEST-T1');
+ expect(event).toMatchObject({state,code,message:description});expect(event.warningCode).toBeUndefined();
+ expect(event.history?.[0]).toMatchObject({state,code,message:description});
+});
+it.each(['33','59','72','91'])('keeps positive delivery attempts as an exception for MRW transit code %s',(code)=>{
+ expect(parseMrw(response(`<Estado>${code}</Estado><EstadoDescripcion>Movimiento confirmado</EstadoDescripcion><Intentos>1</Intentos>`),'TEST-T1').state).toBe('exception');
+});

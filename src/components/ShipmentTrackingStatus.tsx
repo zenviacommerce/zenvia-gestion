@@ -5,6 +5,7 @@ export function ShipmentTrackingStatus({order,staleDays=3}:{order:TrackingFields
  const detail=[order.trackingStatusCode,order.trackingStatusMessage,t.checkedAt?`Última comprobación: ${new Date(t.checkedAt).toLocaleString('es-ES')}`:null].filter(Boolean).join(' · ');
  return <span className="shipmentTrackingSummary">
   <span className={`ordersTracking ${t.className}`} title={detail}>{t.label}</span>
+  {order.shippingProvider==='mrw'&&order.trackingStatusCode==='33'&&order.trackingStatusMessage&&<small>{order.trackingStatusMessage}</small>}
   {formatted&&<small>{t.dateKind}: {formatted}</small>}
   {!formatted&&t.eventTimeRaw&&<small>Último movimiento: {formatTrackingCivilTime(t.eventTimeRaw)} (zona no indicada)</small>}
   {!formatted&&!t.eventTimeRaw&&order.trackingNumber&&<small>Fecha de movimiento no disponible</small>}

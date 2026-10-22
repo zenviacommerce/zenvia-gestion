@@ -64,3 +64,10 @@ Límites: no se ha probado una confirmación comercial real ni el sondeo de un t
 - Capturas: 390/1280/1440, claro/oscuro; inventario de acciones y disabled comparado contra base inmutable; selección real de cuenta MRW; sin solicitudes comerciales.
 - `git diff --check`: correcto. CI remota se comprobará en la PR; no se confunde con verificación local.
 - Las primeras ejecuciones localizaron archivos omitidos al copiar el repositorio (imagen del logo, iconos y dos documentos de pruebas); se recuperaron del mismo commit y las suites se repitieron. No se modificó el producto para ocultar esos fallos.
+- Registro y rollback: **26/26 pruebas SQL** tras añadir las dos pruebas del rollback. El rollback vacío restaura las funciones y retira la columna; con un registro existente aborta sin pérdida.
+
+## Entrega para revisión
+
+PR **#287**, rama `feature/register-external-shipment-20261022`, abierta como borrador. La base sigue siendo `0ae9622b1da1bf6f0901b6c27a4bb2982ac67750`. Se han subido las 48 fuentes/evidencias previstas conservando el árbol base; no se ha fusionado ni publicado. El harness usa esa base inmutable por defecto (la copia local equivalente se indica con EXTERNAL_BASELINE).
+
+CI remota en curso al escribir este recibo; consultar los checks de la PR para su resultado final. La segunda revisión de código no encuentra bloqueos importantes. El siguiente paso del propietario es revisar la galería, antes de autorizar producción.

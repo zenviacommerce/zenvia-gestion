@@ -5,7 +5,7 @@ import {execFileSync} from 'node:child_process';
 import {resolve} from 'node:path';
 import {assertHeaderActionsPreserved} from './header-actions-contract.mjs';
 const {chromium}=await import(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright/index.mjs');
-const baseline=process.env.EXTERNAL_BASELINE||execFileSync('git',['rev-parse','HEAD'],{encoding:'utf8'}).trim();
+const baseline=process.env.EXTERNAL_BASELINE||'0ae9622b1da1bf6f0901b6c27a4bb2982ac67750';
 const output='docs/deploy/20261022-external-shipment-review';await mkdir(output,{recursive:true});
 const baselineSource=execFileSync('git',['show',baseline+':src/pages/Orders.tsx'],{encoding:'utf8'});
 const afterSource=await readFile('src/pages/Orders.tsx','utf8');

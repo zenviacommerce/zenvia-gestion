@@ -52,7 +52,7 @@ import { DASHBOARD_KPI_DEFAULTS, TABLE_COLUMN_DEFAULTS, type PreferenceTableKey 
 import { MRW_SERVICE_OPTIONS, mrwServiceName as getMrwServiceName } from '../services/mrwCatalog';
 import { formatAppDateTime, formatAppMoney } from '../services/formatting';
 import type { AccessProfile } from '../services/access';
-import { BILLING_CHECKOUT_PAUSED, BILLING_CHECKOUT_PAUSE_MESSAGE, importCustomerSubscriptionInvoiceAsExpense, loadCustomerBillingOverview, loadCustomerSubscriptionInvoices, startCustomerPayPalCheckout, type BillingCycle, type CustomerBillingOverview, type CustomerBillingPlan, type CustomerSubscriptionInvoice } from '../services/billing';
+import { customerCheckoutAvailable, BILLING_CHECKOUT_PAUSE_MESSAGE, importCustomerSubscriptionInvoiceAsExpense, loadCustomerBillingOverview, loadCustomerSubscriptionInvoices, startCustomerPayPalCheckout, type BillingCycle, type CustomerBillingOverview, type CustomerBillingPlan, type CustomerSubscriptionInvoice } from '../services/billing';
 
 type SettingsSectionId =
   | 'general'
@@ -406,7 +406,14 @@ function BillingSection({access}:{access:AccessProfile}){
       setError(message);showError(message);
     }finally{setLoading(false)}
   };
-  useEffect(()=>{void load()},[access.workspaceId,access.planKey]);
+  useEffect(()=>{
+    let busy=false;
+    const refresh=async()=>{if(busy||document.visibilityState==='hidden')return;busy=true;try{await load()}finally{busy=false}};
+    void refresh();
+    window.addEventListener('focus',refresh);document.addEventListener('visibilitychange',refresh);
+    const timer=window.setInterval(refresh,60000);
+    return ()=>{window.removeEventListener('focus',refresh);document.removeEventListener('visibilitychange',refresh);window.clearInterval(timer)};
+  },[access.workspaceId,access.planKey]);
 
   const requestChange=async(plan:CustomerBillingPlan)=>{
     setRequesting(plan.planKey);
@@ -432,6 +439,7 @@ function BillingSection({access}:{access:AccessProfile}){
   const currentMonthly=current.monthlyPriceCents;
   const currentYearly=current.yearlyPriceCents;
   const publicPlans=overview.availablePlans;
+  const checkoutPaused=publicPlans.some(plan=>!customerCheckoutAvailable(plan,cycle));
   const usage=[
     {label:'Pedidos este mes',...overview.usage.monthlyOrders},
     {label:'Usuarios activos',...overview.usage.users},
@@ -452,7 +460,8 @@ function BillingSection({access}:{access:AccessProfile}){
         {current.planKey==='internal'&&<div className="billingInternalNote"><ShieldCheck size={16}/><span>Plan interno de ZENVIA. No aparece en la oferta comercial para clientes.</span></div>}
       </div>
       <div className="billingPriceBox">
-        <strong>{currentMonthly==null&&currentYearly==null?'Sin precio comercial':billingMoney(currentMonthly)}</strong>
+        <strong>{currentMonthly==null&&currentYearly==null?(current.planKey==='internal'?'Sin precio comercial':'Condiciones de tu suscripción'):billingMoney(currentMonthly)}</strong>
+        {current.planKey!=='internal'&&<small>Los precios del catálogo se aplican a nuevas contrataciones. Tu suscripción conserva sus condiciones.</small>}
         {currentMonthly!=null&&<span>/ mes</span>}
         {currentYearly!=null&&<small>{billingMoney(currentYearly)} / año</small>}
       </div>
@@ -484,7 +493,9 @@ function BillingSection({access}:{access:AccessProfile}){
           <button type="button" className={cycle==='yearly'?'active':''} onClick={()=>setCycle('yearly')}>Anual</button>
         </div>
       </div>
-      {BILLING_CHECKOUT_PAUSED&&<p id="billing-checkout-pause" className="settingsHelpText" role="status">{BILLING_CHECKOUT_PAUSE_MESSAGE}</p>}
+      {checkoutPaused&&<p id="billing-checkout-pause" className="settingsHelpText" role="status">{BILLING_CHECKOUT_PAUSE_MESSAGE}</p>}
+      {overview.catalogError&&<div className="settingsWarning" role="alert"><span>{overview.catalogError}</span><button type="button" className="secondary" onClick={()=>void load()}>Reintentar</button></div>}
+      {overview.paypalMode==='sandbox'&&<p className="settingsHelpText">Entorno de pruebas: no se realizarán cobros reales.</p>}
       {publicPlans.length?<div className="billingPlanGrid">{publicPlans.map(plan=>{
         const currentPlan=plan.planKey===access.planKey;
         const price=cycle==='yearly'?plan.yearlyPriceCents:plan.monthlyPriceCents;
@@ -492,9 +503,9 @@ function BillingSection({access}:{access:AccessProfile}){
         return <article className={currentPlan?'billingPlanCard current':'billingPlanCard'} key={plan.planKey}>
           <div className="billingPlanCardHead"><div><span>{currentPlan?'Tu plan':'Plan'}</span><h4>{plan.name}</h4></div>{currentPlan&&<span className="billingCurrentPill">Actual</span>}</div>
           <p>{plan.description}</p>
-          <div className="billingPlanPrice"><strong>{billingMoney(price)}</strong>{price!=null&&<span>{cycle==='yearly'?'/ año':'/ mes'}</span>}</div>
+          <div className="billingPlanPrice"><strong>{billingMoney(price)}</strong>{price!=null&&<><span>{cycle==='yearly'?'/ año':'/ mes'}</span><small>+ IVA</small></>}</div>
           {features.length>0&&<ul>{features.map(feature=><li key={feature}><ShieldCheck size={14}/>{feature}</li>)}</ul>}
-          <button type="button" className={currentPlan?'secondary':'primary'} aria-describedby={BILLING_CHECKOUT_PAUSED?'billing-checkout-pause':undefined} disabled={BILLING_CHECKOUT_PAUSED||(currentPlan&&overview.subscription.billingProvider==='paypal'&&overview.subscription.status==='active')||requesting!==null} onClick={()=>void requestChange(plan)}>
+          <button type="button" className={currentPlan?'secondary':'primary'} aria-describedby={!customerCheckoutAvailable(plan,cycle)?'billing-checkout-pause':undefined} disabled={!customerCheckoutAvailable(plan,cycle)||(currentPlan&&overview.subscription.billingProvider==='paypal'&&overview.subscription.status==='active')||requesting!==null} onClick={()=>void requestChange(plan)}>
             {requesting===plan.planKey?'Abriendo PayPal…':currentPlan&&overview.subscription.billingProvider==='paypal'&&overview.subscription.status==='active'?'Plan actual':currentPlan?'Activar con PayPal':'Contratar con PayPal'}
           </button>
         </article>;

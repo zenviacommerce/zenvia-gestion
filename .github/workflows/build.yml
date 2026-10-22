@@ -23,7 +23,7 @@ jobs:
       - name: Orders pool-pressure and KPI regressions
         run: npx vitest run tests/orders-pool.test.ts tests/shopify-performance-sql.test.ts
       - name: Billing checkout pause regressions
-        run: npx vitest run tests/billing-checkout-pause.test.tsx tests/billing-checkout-pause-service.test.ts
+        run: npx vitest run tests/billing-checkout-pause.test.tsx tests/billing-checkout-pause-service.test.ts tests/billing-central-catalog.test.ts
       - name: Build
         run: npm run build
       - name: Upload dist artifact

@@ -54,3 +54,11 @@ CI 39860351677 completó las capturas de Pedidos sin pérdidas, pero el test de 
 CI 39862334103 ejecutó 624 pruebas y falló solo en cuatro modos del fixture antiguo de bandeja: a las 22:07 UTC ya era el día siguiente en Madrid, pero p_from/p_to usaban current_date de la sesión UTC. Los envíos se clasifican por día de Madrid. El fixture pasa esa fecha explícita; se conservan las aserciones de 8 enviados, 3 incidencias, permisos y todos los modos. 4/4 focalizadas correctas. No se cambia SQL ni comportamiento del producto. La revisión visual del head anterior ya ha superado abrir/cancelar informes y continúa con las demás pantallas.
 
 Actualización de estado del detalle: un informe firmado/anulado desde el historial del pedido debe refrescar también la pertenencia que queda visible detrás del diálogo. Se emite un evento sin PII tras crear, firmar o anular, y el detalle visible vuelve a leer su estado. Regresión roja y verde; 13/13 pruebas focalizadas de detalle, creación, firma e historial.
+
+## Cierre antes de publicación
+
+Código revisado en GitHub: 9baeab64d950fc1e867e9051594404b522bf6849, PR #290 en borrador. Las seis comprobaciones están correctas, incluida revisión visual y Supabase/MFA real con todas las migraciones en un entorno desechable. Auth ejecuta 114 archivos / 625 pruebas correctas; suite Node 1284/1284. Build, Deno y generación real de PDF en memoria en Deno correctos. Ver 20261022-pickup-signature-ci-receipt.json para heads y enlaces.
+
+A sigue sin publicar, con CI de Gestión y Platform en verde. Recibos y rollback de 2a guardados. B conserva históricos mixtos sin división/renumeración, crea nuevos informes por transportista y deja purga de 365 días desactivada y sin cron. No se han aplicado migraciones ni desplegado Edge/UI a producción, ni enviado correos reales. Antes de activar cualquier purga se mostrará el recuento y el SQL para autorización.
+
+Se guarda este cierre documental separado del head de código validado para conservar la referencia exacta de CI. No añade código ni autoriza publicación. A y B esperan revisión del propietario; 2b continúa aparcada detrás de ellas.

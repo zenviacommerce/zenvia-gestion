@@ -1,0 +1,82 @@
+{
+  "date": "2026-10-22",
+  "published": false,
+  "productionWrites": 0,
+  "codeHead": "9baeab64d950fc1e867e9051594404b522bf6849",
+  "sourceTree": "b12e4074c2e4afb10dc21fd8ea22fb6413deaedd",
+  "pullRequest": "https://github.com/zenviacommerce/zenvia-gestion/pull/290",
+  "ci": [
+    {
+      "name": "Shared UI package and tab contracts",
+      "head": "9baeab64d950fc1e867e9051594404b522bf6849",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39863136839"
+    },
+    {
+      "name": "Build check",
+      "head": "9baeab64d950fc1e867e9051594404b522bf6849",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39863136733"
+    },
+    {
+      "name": "Auth resilience tests",
+      "head": "9baeab64d950fc1e867e9051594404b522bf6849",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39863136760"
+    },
+    {
+      "name": "Build ZENVIA Gestión",
+      "head": "9baeab64d950fc1e867e9051594404b522bf6849",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39863136814"
+    },
+    {
+      "name": "MFA real integration (disposable Supabase)",
+      "head": "9baeab64d950fc1e867e9051594404b522bf6849",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39863136746"
+    },
+    {
+      "name": "MFA visual review (Playwright)",
+      "head": "9baeab64d950fc1e867e9051594404b522bf6849",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39863136792"
+    }
+  ],
+  "validation": {
+    "vitest": {
+      "files": 114,
+      "passed": 625
+    },
+    "node": {
+      "passed": 1284
+    },
+    "deno": "2.9.6, both Edge Functions typechecked; signed PDF generated in memory under Deno (6110 bytes)",
+    "browser": {
+      "applicationScreenshots": 80,
+      "pdfRenders": 2,
+      "pdfSamples": 2,
+      "touchCases": 2,
+      "dpr": 3,
+      "unchangedScroll": true,
+      "readonlyInteractions": 9
+    },
+    "independentReview": "security and UI findings fixed; final verification22/22 before final dialog/state-refresh regressions"
+  },
+  "retention": {
+    "days": 365,
+    "configurable": true,
+    "purgeEnabled": false,
+    "activeCron": false,
+    "requiresPriorCountAndOwnerAuthorization": true,
+    "removeOnly": [
+      "identifier",
+      "signature image",
+      "original PDF copies embedding those fields"
+    ],
+    "preserveReducedPdf": true
+  },
+  "rollback": "supabase/rollback/20261022_pickup_document_read_only.sql",
+  "aReceipt": "docs/deploy/20261022-shared-tabs-ci-receipt.json",
+  "remaining": "Owner review before publishing A and B; then resume2b and backlog"
+}

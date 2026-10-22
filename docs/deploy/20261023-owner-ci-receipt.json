@@ -1,0 +1,35 @@
+{
+  "platform": {
+    "head": "c9610d6e65ecdac37302072f76ee2dcbf3db5b91",
+    "run": 39865565177,
+    "result": "success",
+    "merge": "40ec644513ac98f91b6931b3607dc7bab8b0df7c",
+    "deployment": "dpl_CyDHGFPkfuRGd8viRVLzU1xPCNu7",
+    "state": "READY",
+    "domain": "admin.zenviacommerce.com",
+    "rollback": "dpl_H7vDiQhpcxBfRVfJdREkvdvLbose",
+    "uiReadOnly": {
+      "tablist": "Secciones del cliente",
+      "class": "dsTabs",
+      "arrowRightSelectsIdentity": true
+    }
+  },
+  "gestionB": {
+    "head": "a77148b39e944d7b3497e13bd1f24d8485755969",
+    "workflows": {
+      "39865864127": "success",
+      "39865864085": "success",
+      "39865864071": "success",
+      "39865864086": "success",
+      "39865864092": "success",
+      "39865864101": "success"
+    },
+    "local": {
+      "vitest": 627,
+      "node": 1284,
+      "targetedRecovery": 16,
+      "deno": "2.9.6 pass",
+      "build": "pass"
+    }
+  }
+}

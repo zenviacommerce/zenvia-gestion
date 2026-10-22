@@ -1,0 +1,10 @@
+[
+  {
+    "function": "pickup-report-documents",
+    "unauthenticatedStatus": 401
+  },
+  {
+    "function": "pickup-report-purge",
+    "unauthenticatedStatus": 401
+  }
+]

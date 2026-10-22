@@ -1,0 +1,64 @@
+{
+  "url": "https://gestion.zenviacommerce.com",
+  "status": 200,
+  "commit": "8069361a870595dd7eac8f496fd9d7f131479262",
+  "deployment": "dpl_CbsCXuosdtPzaPYQU9Q5WZKzTXuE",
+  "assets": [
+    {
+      "path": "/assets/index-CKZ7Uo9S.js",
+      "sha256": "37a855e993ad12d9842426b6582eab805c07358eacd8ec4ebbce93506594fb20",
+      "sharedTabs": true,
+      "ownerCopyStyles": false
+    },
+    {
+      "path": "/assets/index-TKiegU48.css",
+      "sha256": "1d8486aac28204a71993fdf6880bf0ac4768ec423a638b9020b1eec3f962f211",
+      "sharedTabs": true,
+      "ownerCopyStyles": true
+    }
+  ],
+  "uiReadOnly": {
+    "report": "REC-2026-0003",
+    "ownerCopy": {
+      "label": "Enviar copia a info@zenviacommerce.com",
+      "checked": true,
+      "belowRecipient": true
+    },
+    "eyebrowColor": "rgb(15,118,110)",
+    "mobile": {
+      "viewportWidth": 390,
+      "viewportHeight": 844,
+      "inputFontPx": 16,
+      "canvasTop": 512.328125,
+      "canvasBottom": 698,
+      "canvasHeight": 185.671875,
+      "signDisabled": true,
+      "driverEmpty": true
+    },
+    "syntheticTouchRetina": {
+      "cssCanvasWidth": 336,
+      "backingWidth": 1008,
+      "dpr": 3,
+      "scrollBefore": [
+        0,
+        0
+      ],
+      "scrollAfter": [
+        0,
+        0
+      ]
+    },
+    "noRealWrites": {
+      "reports": 3,
+      "signatureOperations": 0,
+      "signatures": 0,
+      "mails": 0
+    },
+    "purgeEnabled": false,
+    "purgeCronJobs": 0,
+    "screenshots": [
+      "20261023-pickup-production-email-390.jpg",
+      "20261023-pickup-production-signature-390.jpg"
+    ]
+  }
+}

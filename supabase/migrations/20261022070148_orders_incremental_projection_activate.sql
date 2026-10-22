@@ -17,7 +17,13 @@ BEGIN
   END IF;
   SELECT string_agg(format('p.%I',attname),',' ORDER BY attnum) INTO cols FROM pg_attribute
   WHERE attrelid='private.orders_dashboard_projection'::regclass AND attnum>0 AND NOT attisdropped AND attname<>'projection_group_key';
-  newdef:=replace(original,source_prefix,'WITH classified AS MATERIALIZED (SELECT '||cols||' FROM private.orders_dashboard_projection p WHERE p.owner_id=(SELECT private.app_workspace_owner_id()))');
+  -- One statement snapshot chooses a fresh projection or the exact original
+  -- classifier. The false branch is a one-time filter, so source classification
+  -- is not evaluated on eligible projection reads.
+  newdef:=replace(original,source_prefix,
+   'WITH projection_gate AS MATERIALIZED (SELECT private.orders_dashboard_projection_usable() usable),classified AS MATERIALIZED ('||
+   'SELECT '||cols||' FROM private.orders_dashboard_projection p WHERE (SELECT usable FROM projection_gate) AND p.owner_id=(SELECT private.app_workspace_owner_id()) UNION ALL SELECT original.* FROM ('||
+   source_prefix||' SELECT * FROM classified) original WHERE NOT (SELECT usable FROM projection_gate))');
   EXECUTE newdef;
   INSERT INTO private.orders_projection_rpc_backup VALUES(f.signature,original,md5(pg_get_functiondef(f.oid)));
  END LOOP;

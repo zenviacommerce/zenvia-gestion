@@ -33,3 +33,5 @@ Resultado final local: 653/653 Vitest en116archivos,1284/1284Node, build correct
 Ruling: se conserva el registro histórico aparcado como segundo padre del commit remoto, reconstruyendo el árbol sobre main real64a09358. No se publican padres sintéticos locales ni se pierde la historia previa. Coste si fuera incorrecto: ruido de historial; se comprueba el diff de PR contra main.
 
 Rollback previo capturado en supabase/snapshots/20261023-relabel-base: MRW25,Envia45,Sendcloud-orders35,tools37; todos verify_jwt=true y con sus dependencias MFA vigentes. Manifiesto docs/deploy/20261023-relabel-rollback-base.json. Volver a comprobar versiones antes de desplegar. Comparación remota main64a09358→head01262a49:40archivos, merge-base exacto64a09358; A/B no se vuelven a cambiar.
+
+CI final remota: head01262a49fd519e34fb120024a45302b71990aaa5, seis workflows completados con success (39872247154,39872247427,39872246964,39872246961,39872246970,39872246974). Manifiesto20261023-relabel-final-ci.json. PR288 permanece en borrador, sin merge ni despliegue. Se detiene antes de publicar para revisión visual del propietario.

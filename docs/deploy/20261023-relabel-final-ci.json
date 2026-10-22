@@ -1,0 +1,46 @@
+{
+  "head": "01262a49fd519e34fb120024a45302b71990aaa5",
+  "base": "64a09358e253bfb6c44e8de73cd8b01c117d4e57",
+  "pr": 288,
+  "published": false,
+  "local": {
+    "vitest": 653,
+    "node": 1284,
+    "mrwPdfRetry": 1,
+    "deno": "2.9.6",
+    "build": "pass",
+    "actionInventory": "preserved"
+  },
+  "workflows": [
+    {
+      "id": 39872247154,
+      "name": "Build check",
+      "conclusion": "success"
+    },
+    {
+      "id": 39872247427,
+      "name": "Auth resilience tests",
+      "conclusion": "success"
+    },
+    {
+      "id": 39872246964,
+      "name": "Shared UI package and tab contracts",
+      "conclusion": "success"
+    },
+    {
+      "id": 39872246961,
+      "name": "MFA real integration (disposable Supabase)",
+      "conclusion": "success"
+    },
+    {
+      "id": 39872246970,
+      "name": "MFA visual review (Playwright)",
+      "conclusion": "success"
+    },
+    {
+      "id": 39872246974,
+      "name": "Build ZENVIA Gestión",
+      "conclusion": "success"
+    }
+  ]
+}

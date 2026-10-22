@@ -24,6 +24,7 @@ export async function withOrderLabelCreation(admin:any,order:any,operation:()=>P
   if(!fresh.data)return denied('Pedido no encontrado.',404);
   Object.assign(order,fresh.data);
   if(order.pii_purged_at)return denied('Los datos personales de este pedido se han eliminado por retención.',410);
+  if(order.external_shipment)return denied('Este pedido ya tiene un envío externo registrado.',409);
   if(order.shipping_remote_id||order.sendcloud_parcel_id||order.label_created_at)return denied('Este pedido ya tiene una etiqueta. Actualiza el pedido para consultarla.',409);
   return await operation();
  }finally{

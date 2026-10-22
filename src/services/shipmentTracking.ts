@@ -1,5 +1,5 @@
 import {normalizeStatus,isTerminal,type TrackingState} from '../../supabase/functions/_shared/tracking/policy';
-export type TrackingFields={trackingNormalizedState?:TrackingState|null;trackingEventAt?:string|null;trackingEventTimeRaw?:string|null;trackingObservedAt?:string|null;trackingMovementAt?:string|null;trackingCheckedAt?:string|null;trackingError?:string|null;trackingStatusCode?:string|null;trackingStatusMessage?:string|null;shippingProvider?:string|null;trackingNumber?:string|null;labelCreatedAt?:string|null};
+export type TrackingFields={shippingIntegrationAccountId?:string|null;trackingNormalizedState?:TrackingState|null;trackingEventAt?:string|null;trackingEventTimeRaw?:string|null;trackingObservedAt?:string|null;trackingMovementAt?:string|null;trackingCheckedAt?:string|null;trackingError?:string|null;trackingStatusCode?:string|null;trackingStatusMessage?:string|null;shippingProvider?:string|null;trackingNumber?:string|null;labelCreatedAt?:string|null};
 const labels:Record<TrackingState,{label:string;className:string}>={pre_transit:{label:'Preparado',className:'ready'},in_transit:{label:'En tránsito',className:'transit'},out_for_delivery:{label:'En reparto',className:'route'},delivered:{label:'Entregado',className:'delivered'},exception:{label:'Incidencia',className:'issue'},returned:{label:'Devuelto',className:'returned'},cancelled:{label:'Cancelado',className:'cancelled'}};
 const madridDay=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit'});
 function civilDay(value:string|null):number|null{
@@ -14,9 +14,11 @@ export function trackingPresentation(order:TrackingFields,now=Date.now(),staleDa
  const directMrw=order.shippingProvider==='mrw'&&!!order.trackingNumber;
  const softWarning=/^MRW_UNKNOWN_STATUS_(?:\d{1,4}|UNKNOWN)$/.test(order.trackingError||'');
  const unclassified=directMrw&&!order.trackingNormalizedState&&softWarning&&!!order.trackingObservedAt;
- const unavailable=directMrw&&((!order.trackingNormalizedState&&!unclassified)||(!!order.trackingError&&!softWarning));
- const state=order.trackingNormalizedState||((unavailable||unclassified)?null:normalizeStatus(order.shippingProvider==='envia'?'envia':'legacy',order.trackingStatusCode));
- const base=state?labels[state]:{label:unclassified?'Estado sin clasificar':unavailable?'Sin seguimiento disponible':'Sin información',className:'none'};
+ const integrated=!!order.shippingIntegrationAccountId&&['mrw','envia','sendcloud'].includes(order.shippingProvider||'');
+ const pending=integrated&&!!order.trackingNumber&&!order.trackingNormalizedState&&!order.trackingObservedAt&&!order.trackingCheckedAt&&!order.trackingError;
+ const unavailable=!pending&&((!!order.trackingNumber&&!integrated&&!order.trackingNormalizedState&&!order.trackingStatusCode)||(directMrw&&((!order.trackingNormalizedState&&!unclassified)||(!!order.trackingError&&!softWarning))));
+ const state=order.trackingNormalizedState||((pending||unavailable||unclassified)?null:normalizeStatus(order.shippingProvider==='envia'?'envia':'legacy',order.trackingStatusCode));
+ const base=state?labels[state]:{label:pending?'Pendiente de la primera consulta':unclassified?'Estado sin clasificar':unavailable?(integrated?'Consulta pendiente':'Sin seguimiento disponible'):'Sin información',className:'none'};
  const event=order.trackingEventAt||null,observed=order.trackingObservedAt||null;
  const movement=order.trackingMovementAt||order.trackingEventAt||null;
  const rawTime=order.trackingEventTimeRaw||null;

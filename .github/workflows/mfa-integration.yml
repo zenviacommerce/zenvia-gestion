@@ -11,6 +11,9 @@ jobs:
   real-auth-vault:
     runs-on: ubuntu-latest
     timeout-minutes: 35
+    env:
+      # Use upstream images directly; GHCR/ECR throttle shared runners.
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: docker.io
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -102,6 +105,10 @@ jobs:
                   if column:
                       out.write('ALTER TABLE public.fulfillment_orders ADD COLUMN IF NOT EXISTS '+column+';\n')
           PYFIXTURE
+          # Two existing production Shopify RPCs are likewise absent from the
+          # historical migrations. Restore their captured definitions/ACLs only
+          # in this disposable fixture, before testing later migrations.
+          cat tests/fixtures/external-shipment-shopify-rpcs.sql >> supabase/migrations/20261016194727_mfa_ci_cancellation_dependency.sql
           supabase start
           supabase db reset --local --yes
       - name: Real GoTrue and Vault smoke; deny unsupported/skipped gates
@@ -120,3 +127,4 @@ jobs:
           name: mfa-real-integration-results
           path: mfa-real-results.json
           if-no-files-found: warn
+

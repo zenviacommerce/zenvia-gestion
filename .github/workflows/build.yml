@@ -28,7 +28,9 @@ jobs:
         run: npx vitest run tests/orders-tracking-projection-compatibility.test.ts tests/tracking-*.test.ts tests/shipment-tracking-*.test.ts tests/shipment-tracking-*.test.tsx tests/mrw-*.test.ts tests/mrw-*.test.tsx
       - name: Orders workbench and Summary regressions
         run: npx vitest run tests/orders-workbench*.test.ts tests/orders-workbench*.test.tsx tests/workbench-tabs.test.tsx tests/pickup-history-embedded.test.tsx tests/dashboard-order-finance*.test.tsx tests/amazon-pii-operational-list.test.tsx tests/orders-pagination-service.test.ts
-      - name: Build
+      - name: External shipment regressions
+        run: npx vitest run tests/external-shipment*.test.ts tests/external-shipment*.test.tsx tests/shipping-quote-isolation.test.ts
+      - name: Build production bundle
         run: npm run build
       - name: Upload dist artifact
         uses: actions/upload-artifact@v4
@@ -37,3 +39,4 @@ jobs:
           path: dist
           if-no-files-found: error
           retention-days: 7
+

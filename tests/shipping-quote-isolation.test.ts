@@ -5,6 +5,11 @@ import {filterAggregatorOptions,directCarrierIds} from '../supabase/functions/_s
 describe('concurrent quotes and label creation',()=>{
  const order={id:'order',owner_id:'owner',source_channel:'amazon',pii_purged_at:null};
  const denied=(message:string,status:number)=>({message,status});
+ it('never purchases a label for an externally registered shipment after re-reading the lease',async()=>{
+  let calls=0;const chain:any={eq(){return this},maybeSingle:async()=>({data:{...order,external_shipment:{registeredAt:'now'}},error:null}),then(resolve:any){return Promise.resolve({error:null}).then(resolve)}};
+  const admin={rpc:async()=>({data:true,error:null}),from:()=>({select:()=>chain,update:()=>chain})};
+  expect(await withOrderLabelCreation(admin,{...order},async()=>++calls,denied)).toMatchObject({status:409});expect(calls).toBe(0);
+ });
  it('two quotes return identical options without RPCs or writes',async()=>{
   const admin={rpc:()=>{throw Error('quote acquired a lock')},from:()=>{throw Error('quote wrote to DB')}};
   const quote=()=>withOrderQuote(admin,order,async()=>['mrw','correos'],denied);

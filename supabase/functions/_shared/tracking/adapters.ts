@@ -24,25 +24,70 @@ export function parseEnvia(payload:any,tracking:string):Movement{
  const message=clean(e.status?.name||e.status?.description||e.description||e.status||e.message||e.event||row.status).slice(0,500);
  return {state:normalizeStatus('envia',code)||normalizeStatus('envia',parentCode),code,message,eventAt:h?.at||dated(e.eventDate||e.event_at||e.statusDate),eventTimeRaw:h?.civil||null};
 }
-function xmlValue(s:string,name:string){const m=s.match(new RegExp(`<(?:(?:\\w+):)?${name}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/(?:(?:\\w+):)?${name}>`,'i'));return clean(m?.[1]).replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g,'$1').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&apos;/g,"'").replace(/&amp;/g,'&')}
+// WSDL retrieved without credentials on 2026-10-22. The advertised SOAP address
+// differs from the former /TrackingServices/TrackingService.svc URL (HTTP 404).
+export const MRW_TRACKING_ENDPOINT='https://trackingservice.mrw.es/TrackingService.svc/TrackingServices';
+export function buildMrwTrackingEnvelope(credentials:any,tracking:string,tipoInformacion='1'){
+ const esc=(v:unknown)=>clean(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+ const username=clean(credentials?.username)||clean(credentials?.userName)||clean(credentials?.usuario);
+ if(!username||!clean(credentials?.password))throw new TrackingError('MRW_CREDENTIALS_REQUIRED');
+ if(!['0','1'].includes(tipoInformacion))throw new TrackingError('MRW_TRACKING_INVALID_INFORMATION_TYPE');
+ // Exact-number filtering has no date window. WSDL declares both dates as
+ // optional nullable strings; leaving them empty avoids excluding older labels.
+ return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><GetEnvios xmlns="http://tempuri.org/"><login>${esc(username)}</login><pass>${esc(credentials.password)}</pass><codigoIdioma>3082</codigoIdioma><tipoFiltro>0</tipoFiltro><valorFiltroDesde>${esc(tracking)}</valorFiltroDesde><valorFiltroHasta></valorFiltroHasta><fechaDesde></fechaDesde><fechaHasta></fechaHasta><tipoInformacion>${tipoInformacion}</tipoInformacion><codigoAbonado>${esc(credentials.subscriberCode||credentials.codigoAbonado)}</codigoAbonado><codigoFranquicia>${esc(credentials.franchiseCode||credentials.codigoFranquicia)}</codigoFranquicia></GetEnvios></soap:Body></soap:Envelope>`;
+}
+type XmlNode={name:string;qualified:string;text:string;children:XmlNode[]};
+function xmlTree(xml:string):XmlNode{
+ if(xml.length>1000000||/<!DOCTYPE|<!ENTITY/i.test(xml))throw Error('TRACKING_INVALID_XML');
+ const root:XmlNode={name:'',qualified:'',text:'',children:[]},stack=[root];let end=0;
+ const decode=(value:string)=>value.replace(/&(?:lt|gt|quot|apos|amp|#\d+|#x[\da-f]+);/gi,entity=>{
+  const known:Record<string,string>={'&lt;':'<','&gt;':'>','&quot;':'"','&apos;':"'",'&amp;':'&'};if(known[entity])return known[entity];
+  const n=entity[2].toLowerCase()==='x'?parseInt(entity.slice(3,-1),16):Number(entity.slice(2,-1));return n>0&&n<=0x10ffff?String.fromCodePoint(n):'';
+ });
+ for(const match of xml.matchAll(/<!--[\s\S]*?-->|<\?[\s\S]*?\?>|<!\[CDATA\[[\s\S]*?\]\]>|<[^>]+>|[^<]+/g)){
+  if(match.index!==end)throw Error('TRACKING_INVALID_XML');end=match.index+match[0].length;const token=match[0];
+  if(token.startsWith('<!--')||token.startsWith('<?'))continue;
+  if(token.startsWith('<![CDATA[')){stack.at(-1)!.text+=token.slice(9,-3);continue;}
+  if(token.startsWith('</')){const name=token.match(/^<\/([\w.:-]+)\s*>$/)?.[1];if(stack.length===1||name!==stack.at(-1)!.qualified)throw Error('TRACKING_INVALID_XML');stack.pop();continue;}
+  if(token.startsWith('<')){const name=token.match(/^<([\w.:-]+)(?:\s[^<>]*|\s*\/?)>$/)?.[1];if(!name||stack.length>64)throw Error('TRACKING_INVALID_XML');const node:XmlNode={name:name.split(':').pop()!,qualified:name,text:'',children:[]};stack.at(-1)!.children.push(node);if(!/\/\s*>$/.test(token))stack.push(node);continue;}
+  stack.at(-1)!.text+=decode(token);
+ }
+ if(end!==xml.length||stack.length!==1||root.children.length!==1||root.text.trim())throw Error('TRACKING_INVALID_XML');return root.children[0];
+}
+const child=(node:XmlNode,name:string)=>node.children.find(value=>value.name===name);
+const value=(node:XmlNode,name:string)=>clean(child(node,name)?.text);
+function descendants(node:XmlNode,name:string):XmlNode[]{return [...(node.name===name?[node]:[]),...node.children.flatMap(item=>descendants(item,name))]}
 function madridDate(day:string,hour:string){
- const d=day.match(/^(\d{2})\/(\d{2})\/(\d{4})$/),t=hour.match(/^(\d{2}):(\d{2})(?::(\d{2}))?$/);if(!d||!t)return null;
- const local=Date.UTC(+d[3],+d[2]-1,+d[1],+t[1],+t[2],+(t[3]||0));let utc=local;
- for(let i=0;i<2;i++){const parts=new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',second:'2-digit',hourCycle:'h23'}).formatToParts(utc);const p=Object.fromEntries(parts.map(v=>[v.type,v.value]));utc=local-(Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute,+p.second)-utc)}
- return new Date(utc).toISOString();
+ const d=day.match(/^(\d{2})(\d{2})(\d{4})$/),t=hour.match(/^(\d{2})(\d{2})$/);if(!d||!t)return null;
+ const local=Date.UTC(+d[3],+d[2]-1,+d[1],+t[1],+t[2]);
+ const expected=`${d[3]}-${d[2]}-${d[1]} ${t[1]}:${t[2]}`;
+ const fmt=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+ // Both possible Madrid offsets are checked. Zero matches is an invalid or DST
+ // missing time; two matches is ambiguous. Neither permits an invented instant.
+ const candidates=[local-3600000,local-7200000].filter(utc=>fmt.format(utc)===expected);
+ return candidates.length===1?new Date(candidates[0]).toISOString():null;
 }
 export function parseMrw(xml:string,tracking:string):Movement{
- // A HTTP 200 SOAP envelope can still deny access. Inspect the outer result
- // before shipment data, including namespace-qualified boolean fields.
- const outer=xml.replace(/<(?:\w+:)?Envio(?:\s[^>]*)?>[\s\S]*?<\/(?:\w+:)?Envio>/gi,'');
- if(/^(false|0)$/i.test(xmlValue(outer,'Estado')))throw Error('MRW_TRACKING_ACCESS_DENIED');
- if(/<(?:\w+:)?Fault[\s>]/i.test(xml))throw Error('MRW_TRACKING_REJECTED');
- const rows=[...xml.matchAll(/<(?:\w+:)?Envio(?:\s[^>]*)?>([\s\S]*?)<\/(?:\w+:)?Envio>/gi)].map(v=>v[1]);
- const row=rows.find(v=>xmlValue(v,'Numero')===tracking);if(!row)throw Error('TRACKING_RESPONSE_MISMATCH');
- const code=xmlValue(row,'Estado'),message=xmlValue(row,'EstadoDescripcion'),state=normalizeStatus('mrw',code,message);
- // Fecha is shipment creation. Only FechaEntrega + HoraEntrega proves delivery time.
- const eventAt=state==='delivered'?madridDate(xmlValue(row,'FechaEntrega'),xmlValue(row,'HoraEntrega')):null;
- return {state,code,message:message.slice(0,500),eventAt};
+ const root=xmlTree(xml);
+ if(descendants(root,'Fault').length)throw Error('MRW_TRACKING_REJECTED');
+ const result=descendants(root,'GetEnviosResult')[0];if(!result)throw Error('TRACKING_RESPONSE_MISMATCH');
+ const notice=value(result,'MensajeSeguimiento');
+ if(/acceso|credencial|login|password|contrase[nñ]a|usuario/i.test(notice))throw Error('MRW_TRACKING_ACCESS_DENIED');
+ const matching=descendants(result,'Seguimiento').filter(node=>value(node,'NumAlbaran')===tracking);
+ if(!matching.length)throw Error(notice?'MRW_TRACKING_REJECTED':'TRACKING_RESPONSE_MISMATCH');
+ const events=matching.map(row=>{
+  // Restrict machine codes before they reach warning logs or persisted errors.
+  const raw=value(row,'Estado'),code=/^\d{1,4}$/.test(raw)?raw:'UNKNOWN';
+  const message=value(row,'EstadoDescripcion').slice(0,500);
+  let state=normalizeStatus('mrw',code,message);
+  const attempts=value(row,'Intentos');if(state!=='delivered'&&/^\d+$/.test(attempts)&&Number(attempts)>0)state='exception';
+  const eventAt=dated(value(row,'Publicado'))||(state==='delivered'?madridDate(value(row,'FechaEntrega'),value(row,'HoraEntrega')):null);
+  return {state,code,message,eventAt,...(!state?{warningCode:'MRW_UNKNOWN_STATUS_'+code}:{})};
+ });
+ events.sort((a,b)=>(Date.parse(b.eventAt||'')||0)-(Date.parse(a.eventAt||'')||0));
+ // Only state, machine code, description and event time leave this parser.
+ // PersonaEntrega, Referencia and subscriber fields are intentionally discarded.
+ return {...events[0],history:[...events].sort((a,b)=>(Date.parse(a.eventAt||'')||0)-(Date.parse(b.eventAt||'')||0)).slice(-200)};
 }
 export class TrackingError extends Error {constructor(public code:string,public status=0,public retryAfterSeconds=0){super(code)}}
 export async function pollShipment(account:any,credentials:any,tracking:string,request:typeof fetch=fetch):Promise<Movement>{
@@ -57,12 +102,9 @@ export async function pollShipment(account:any,credentials:any,tracking:string,r
   url=(account.config?.environment==='production'?'https://api.envia.com':'https://api-test.envia.com')+'/ship/generaltrack/';
   options.method='POST';options.headers={Authorization:'Bearer '+token,'Content-Type':'application/json'};options.body=JSON.stringify({trackingNumbers:[tracking]});
  }else if(account.provider==='mrw'){
-  const password=clean(credentials.trackingPassword)||clean(credentials.tracking_password);
-  if(!password)throw new TrackingError('MRW_TRACKING_PASSWORD_REQUIRED');
-  const esc=(v:unknown)=>clean(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
-  url='https://seguimiento.mrw.es/swc/wssgmntnvs.asmx';options.method='POST';
-  options.headers={'Content-Type':'text/xml; charset=utf-8',SOAPAction:'"http://www.mrw.es/webservices/seguimiento/SeguimientoNumeroEnvioMRWNacional"'};
-  options.body=`<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><SeguimientoNumeroEnvioMRWNacional xmlns="http://www.mrw.es/webservices/seguimiento"><Franquicia>${esc(credentials.franchiseCode||credentials.codigoFranquicia)}</Franquicia><Cliente>${esc(credentials.subscriberCode||credentials.codigoAbonado)}</Cliente><Password>${esc(password)}</Password><NumeroMRW>${esc(tracking)}</NumeroMRW><Referencia></Referencia><Agrupado>N</Agrupado></SeguimientoNumeroEnvioMRWNacional></soap:Body></soap:Envelope>`;
+  url=MRW_TRACKING_ENDPOINT;options.method='POST';
+  options.headers={'Content-Type':'text/xml; charset=utf-8',SOAPAction:'"http://tempuri.org/ITrackingService/GetEnvios"'};
+  options.body=buildMrwTrackingEnvelope(credentials,tracking);
  }else throw new TrackingError('UNSUPPORTED_PROVIDER');
  const r=await request(url,options);
  if(!r.ok){const retry=r.headers.get('Retry-After')||'';const seconds=/^\d+$/.test(retry)?Number(retry):Math.max(0,(Date.parse(retry)-Date.now())/1000);throw new TrackingError('PROVIDER_HTTP_'+r.status,r.status,Number.isFinite(seconds)?seconds:0)}

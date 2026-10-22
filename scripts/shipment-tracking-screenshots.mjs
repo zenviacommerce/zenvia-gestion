@@ -74,7 +74,7 @@ try{for(const width of [390,1280,1440])for(const theme of ['light','dark']){
   const cell=page.locator('.ordersTable .shipmentTrackingSummary').first();await cell.waitFor();
   const proof=await cell.evaluate(el=>{const r=el.getBoundingClientRect(),p=el.closest('.ordersTableCard').getBoundingClientRect();return {left:r.left,right:r.right,clipLeft:p.left,clipRight:p.right};});
   if(proof.left<proof.clipLeft||proof.right>proof.clipRight)throw Error('Tracking is clipped: '+JSON.stringify(proof));
-  for(const label of ['Preparado','En tránsito','En reparto','Entregado','Incidencias','Devuelto','Cancelado'])if(!await page.locator('.ordersTable .ordersTracking').getByText(label,{exact:true}).count())throw Error('Missing normalized label '+label);
+  for(const label of ['Preparado','En tránsito','En reparto','Entregado','Incidencia','Devuelto','Cancelado'])if(!await page.locator('.ordersTable .ordersTracking').getByText(label,{exact:true}).count())throw Error('Missing normalized label '+label);
   await page.locator('.ordersTableCard').screenshot({path:output+'/tracking-seven-states-'+theme+'-'+width+'.png'});
  }
  await page.screenshot({path:output+'/'+phase+'-'+theme+'-'+width+'.png',fullPage:true});
@@ -82,6 +82,7 @@ try{for(const width of [390,1280,1440])for(const theme of ['light','dark']){
   if(!await page.getByText('Último movimiento: 18/10/2026, 10:15').count())throw Error('Missing provider event time');
   const row=page.locator(width===390?'.ordersMobileRow':'.ordersTable tbody tr').first();await row.click();
   await page.getByRole('heading',{name:'Historial de seguimiento',exact:true}).waitFor();await page.getByText('Destinatario ausente. Nuevo intento de entrega pendiente.',{exact:true}).waitFor();
+  if(!await page.locator('.ordersDrawer .shipmentTrackingSummary .ordersTracking').getByText('Incidencia',{exact:true}).count()||!await page.locator('.shipmentTrackingHistory .ordersTracking').getByText('Incidencia',{exact:true}).count())throw Error('Missing singular shipment label in detail/history');
   await page.locator('.ordersDrawer').screenshot({path:output+'/detail-history-'+theme+'-'+width+'.png'});
   await page.locator('.ordersDrawer').evaluate(el=>{el.scrollTop=el.scrollHeight});await page.locator('.ordersDrawer').screenshot({path:output+'/detail-events-'+theme+'-'+width+'.png'});
   await page.locator('.shipmentTrackingHistory').screenshot({path:output+'/history-events-'+theme+'-'+width+'.png'});
@@ -97,6 +98,7 @@ try{for(const width of [390,1280,1440])for(const theme of ['light','dark']){
    await page.locator('.ordersDrawerHead .iconBtn').click();
   }
   await page.getByRole('combobox',{name:'Filtrar por seguimiento'}).click();await page.getByRole('option',{name:'Incidencias',exact:true}).click();await page.getByText('2 pedidos · Página 1 de 1',{exact:true}).first().waitFor();
+  if(!await page.getByRole('combobox',{name:'Filtrar por seguimiento'}).getByText('Incidencias',{exact:true}).count())throw Error('Incident filter must remain plural');
   await page.screenshot({path:output+'/after-incidents-'+theme+'-'+width+'.png',fullPage:true});
   if(width>600){
    await page.locator('.ordersTable').evaluate(el=>{const th=[...el.querySelectorAll('th')].find(n=>n.textContent.includes('Seguimiento'));const card=el.closest('.ordersTableCard');card.scrollLeft=th.getBoundingClientRect().left-card.getBoundingClientRect().left+card.scrollLeft-160;});

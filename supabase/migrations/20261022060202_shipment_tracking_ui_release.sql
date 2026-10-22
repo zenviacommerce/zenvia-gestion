@@ -26,6 +26,9 @@ grant execute on function private.tracking_legacy_state(text,text) to authentica
 do $patch$
 declare fn record; src text; before_src text; anchor text; pos_start integer;pos_end integer;patched integer:=0;
 begin
+ -- Projection releases normalize preserved originals in the additive adapter.
+ -- Never search inside the guarded RPC's nested UNION fallback.
+ if to_regclass('private.orders_projection_classifier') is not null then return;end if;
  for fn in select p.oid from pg_proc p join pg_namespace n on n.oid=p.pronamespace where (n.nspname='public' and p.proname='orders_dashboard_page_v1') or (n.nspname='private' and p.proname in('pickup_report_dashboard_scope','mfa_impl_orders_dashboard_pickup_v1')) loop
  src:=pg_get_functiondef(fn.oid);before_src:=src;
  anchor:=' SELECT r.*,'||chr(10)||'   lower(trim';
@@ -38,7 +41,7 @@ begin
  pos_start:=position('  CASE'||chr(10)||'   WHEN (NOT n.has_label' in src);pos_end:=position('  END AS tracking_class' in src);
  if pos_start=0 or pos_end<=pos_start then raise exception 'TRACKING_CLASS_SOURCE_CHANGED';end if;
  anchor:=substring(src from pos_start for pos_end+length('  END AS tracking_class')-pos_start);
- src:=replace(src,anchor,$code$  CASE coalesce(n.tracking_normalized_state,private.tracking_legacy_state(n.shipping_provider,n.tracking_status_code))
+ src:=replace(src,anchor,$code$  CASE coalesce(n.tracking_normalized_state,CASE WHEN n.shipping_provider='mrw' THEN NULL ELSE private.tracking_legacy_state(n.shipping_provider,n.tracking_status_code) END)
  WHEN 'pre_transit' THEN 'ready' WHEN 'in_transit' THEN 'transit' WHEN 'out_for_delivery' THEN 'route'
  WHEN 'delivered' THEN 'delivered' WHEN 'exception' THEN 'issue' WHEN 'returned' THEN 'returned' WHEN 'cancelled' THEN 'cancelled' ELSE 'none' END AS tracking_class$code$);
  if src=before_src then raise exception 'TRACKING_PATCH_EMPTY';end if;execute src;patched:=patched+1;

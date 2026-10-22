@@ -1,11 +1,12 @@
 import {normalizeStatus,isTerminal,type TrackingState} from '../../supabase/functions/_shared/tracking/policy';
 export type TrackingFields={trackingNormalizedState?:TrackingState|null;trackingEventAt?:string|null;trackingEventTimeRaw?:string|null;trackingObservedAt?:string|null;trackingMovementAt?:string|null;trackingCheckedAt?:string|null;trackingError?:string|null;trackingStatusCode?:string|null;trackingStatusMessage?:string|null;shippingProvider?:string|null;trackingNumber?:string|null;labelCreatedAt?:string|null};
-const labels:Record<TrackingState,{label:string;className:string}>={pre_transit:{label:'Preparado',className:'ready'},in_transit:{label:'En tránsito',className:'transit'},out_for_delivery:{label:'En reparto',className:'route'},delivered:{label:'Entregado',className:'delivered'},exception:{label:'Incidencias',className:'issue'},returned:{label:'Devuelto',className:'returned'},cancelled:{label:'Cancelado',className:'cancelled'}};
+const labels:Record<TrackingState,{label:string;className:string}>={pre_transit:{label:'Preparado',className:'ready'},in_transit:{label:'En tránsito',className:'transit'},out_for_delivery:{label:'En reparto',className:'route'},delivered:{label:'Entregado',className:'delivered'},exception:{label:'Incidencia',className:'issue'},returned:{label:'Devuelto',className:'returned'},cancelled:{label:'Cancelado',className:'cancelled'}};
 export function trackingPresentation(order:TrackingFields,now=Date.now(),staleDays=3){
  // A created/shipped label is not a carrier observation. When direct MRW has
  // no observation, never imply transit from the legacy label status.
  const directMrw=order.shippingProvider==='mrw'&&!!order.trackingNumber;
- const unavailable=directMrw&&(!order.trackingNormalizedState||!!order.trackingError);
+ const softWarning=/^MRW_UNKNOWN_STATUS_(?:\d{1,4}|UNKNOWN)$/.test(order.trackingError||'');
+ const unavailable=directMrw&&(!order.trackingNormalizedState||(!!order.trackingError&&!softWarning));
  const state=order.trackingNormalizedState||(unavailable?null:normalizeStatus(order.shippingProvider==='envia'?'envia':'legacy',order.trackingStatusCode));
  const base=state?labels[state]:{label:unavailable?'Sin seguimiento disponible':'Sin información',className:'none'};
  const event=order.trackingEventAt||null,observed=order.trackingObservedAt||null;

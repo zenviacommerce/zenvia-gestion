@@ -10,29 +10,37 @@ function fixture(){
  {account_id:'mrw',owner_id:'owner',provider:'mrw',normalized_state:'exception',next_poll_at:'later',last_error:'MRW_CREDENTIALS_REJECTED'}]};
  return {rows,from(table:string){let patch:any;const predicates:Array<(r:any)=>boolean>=[];const q:any={update(p:any){patch=p;return q},eq(k:string,v:any){predicates.push(r=>r[k]===v);return q},in(k:string,v:any[]){predicates.push(r=>v.includes(r[k]));return q},not(k:string,op:string,v:any){predicates.push(r=>op==='is'?r[k]!==v:!['delivered','returned','cancelled'].includes(r[k]));return q},or(){predicates.push(r=>!['delivered','returned','cancelled'].includes(r.normalized_state));return q},select(){return q},then(resolve:any){const matched=rows[table].filter(r=>predicates.every(p=>p(r)));matched.forEach(r=>Object.assign(r,patch));return Promise.resolve({data:matched,error:null}).then(resolve)}};return q}};
 }
-it('secure MRW password save resumes only missing-password pause and recoverable active states',async()=>{const db=fixture();await resumeMrwTrackingAfterCredentialSave(db,{id:'mrw',owner_id:'owner',provider:'mrw'},{trackingPassword:'new-test-only'},'2026-10-22T10:00:00Z');expect(db.rows.shipment_tracking_account_health.map(x=>x.paused_until)).toEqual([null,'later']);expect(db.rows.shipment_tracking_state.map(x=>x.next_poll_at)).toEqual(['2026-10-22T10:00:00Z','2026-10-22T10:00:00Z',null,'later','later','later']);});
-it('does not clear rejection pauses or resume after unrelated/blank credential edits',async()=>{for(const credentials of [{password:'sagec'},{trackingPassword:' '},{tracking_password:'new-test-only'}]){const db=fixture();db.rows.shipment_tracking_account_health[0].last_error='MRW_CREDENTIALS_REJECTED';await resumeMrwTrackingAfterCredentialSave(db,{id:'mrw',owner_id:'owner',provider:'mrw'},credentials);expect(db.rows.shipment_tracking_state[0].next_poll_at).toBe('later');expect(db.rows.shipment_tracking_account_health[0].paused_until).toBe('later')}});
-it('accepts the tracking_password alias and never resumes terminal states even if incorrectly scheduled',async()=>{const db=fixture();db.rows.shipment_tracking_state[2].next_poll_at='later';db.rows.shipment_tracking_state[2].last_error='ACCOUNT_PAUSED';await resumeMrwTrackingAfterCredentialSave(db,{id:'mrw',owner_id:'owner',provider:'mrw'},{tracking_password:'test-only'},'now');expect(db.rows.shipment_tracking_state[0].next_poll_at).toBe('now');expect(db.rows.shipment_tracking_state[2].next_poll_at).toBe('later')});
-it('keeps the missing-password safety pause if waking states fails',async()=>{const db=fixture(),from=db.from.bind(db);db.from=(table:string)=>table==='shipment_tracking_state'?{update:()=>{const q:any={eq:()=>q,not:()=>q,or:()=>q,in:async()=>({error:Error('db unavailable')})};return q}}:from(table);await expect(resumeMrwTrackingAfterCredentialSave(db,{id:'mrw',owner_id:'owner',provider:'mrw'},{trackingPassword:'test-only'})).rejects.toThrow('MRW_TRACKING_RESUME_FAILED');expect(db.rows.shipment_tracking_account_health[0].paused_until).toBe('later')});
-it('an explicit new tracking override resumes access-denied active states only for its account and owner',async()=>{
- const db=fixture();db.rows.shipment_tracking_account_health[0].last_error='MRW_TRACKING_ACCESS_DENIED';db.rows.shipment_tracking_state[0].last_error='MRW_TRACKING_ACCESS_DENIED';db.rows.shipment_tracking_state[3].last_error='MRW_TRACKING_ACCESS_DENIED';db.rows.shipment_tracking_state[4].last_error='MRW_TRACKING_ACCESS_DENIED';
- await resumeMrwTrackingAfterCredentialSave(db,{id:'mrw',owner_id:'owner',provider:'mrw'},{trackingPassword:'new-override-test-only'},'now');
- expect(db.rows.shipment_tracking_account_health.map(r=>r.paused_until)).toEqual([null,'later']);expect(db.rows.shipment_tracking_state.map(r=>r.next_poll_at)).toEqual(['now','now',null,'later','later','later']);
+const account={id:'mrw',owner_id:'owner',provider:'mrw'};
+const sagec={username:'synthetic-user',password:'synthetic-password'};
+it.each(['MRW_CREDENTIALS_REQUIRED','MRW_TRACKING_PASSWORD_REQUIRED','MRW_TRACKING_ACCESS_DENIED','MRW_CREDENTIALS_REJECTED'])('saving complete SAGEC credentials resumes %s for only owned nonterminal recoverable shipments',async(error)=>{
+ const db=fixture();db.rows.shipment_tracking_account_health[0].last_error=error;
+ await resumeMrwTrackingAfterCredentialSave(db,account,sagec,'now');
+ expect(db.rows.shipment_tracking_account_health.map(r=>r.paused_until)).toEqual([null,'later']);
+ expect(db.rows.shipment_tracking_state.map(r=>r.next_poll_at)).toEqual(['now','now',null,'later','later','now']);
 });
-it('blank or unrelated edits preserve access denial and an explicit override preserves rejected and limited pauses',async()=>{
- for(const credentials of [{password:'new-sagec-test-only'},{trackingPassword:' '},null,{}]){
-  const db=fixture();db.rows.shipment_tracking_account_health[0].last_error='MRW_TRACKING_ACCESS_DENIED';db.rows.shipment_tracking_state[0].last_error='MRW_TRACKING_ACCESS_DENIED';await resumeMrwTrackingAfterCredentialSave(db,{id:'mrw',owner_id:'owner',provider:'mrw'},credentials);expect(db.rows.shipment_tracking_account_health[0].paused_until).toBe('later');expect(db.rows.shipment_tracking_state[0].next_poll_at).toBe('later');
- }
- for(const error of ['MRW_CREDENTIALS_REJECTED','PROVIDER_HTTP_429']){
-  const db=fixture();db.rows.shipment_tracking_account_health[0].last_error=error;await resumeMrwTrackingAfterCredentialSave(db,{id:'mrw',owner_id:'owner',provider:'mrw'},{trackingPassword:'new-override-test-only'});expect(db.rows.shipment_tracking_account_health[0].paused_until).toBe('later');expect(db.rows.shipment_tracking_state[0].next_poll_at).toBe('later');
- }
+it.each([{password:'new-password'},{username:'new-user'}])('uses the saved merged SAGEC pair after a partial credential edit',async(edit)=>{
+ const db=fixture();await resumeMrwTrackingAfterCredentialSave(db,account,edit,'now',{...sagec,...edit});expect(db.rows.shipment_tracking_state[0].next_poll_at).toBe('now');
 });
-
-it('keeps SAGEC connection health when saving only independent tracking credentials',async()=>{
+it.each(['userName','usuario'])('supports a saved SAGEC %s alias when updating the password',async(key)=>{
+ const db=fixture();await resumeMrwTrackingAfterCredentialSave(db,account,{password:'new'},'now',{[key]:'saved-user',password:'new'});expect(db.rows.shipment_tracking_state[0].next_poll_at).toBe('now');
+});
+it.each([{trackingPassword:'old-override'},{tracking_password:'old-override'},{password:' '},{franchiseCode:'123'},null,{}])('unrelated or blank edits cannot resume tracking even with a saved pair',async(edit)=>{
+ const db=fixture();await resumeMrwTrackingAfterCredentialSave(db,account,edit,'now',sagec);expect(db.rows.shipment_tracking_account_health[0].paused_until).toBe('later');
+});
+it.each([{username:'user'},{password:'password'},{}])('incomplete saved credentials keep the pause',async(saved)=>{
+ const db=fixture();await resumeMrwTrackingAfterCredentialSave(db,account,{password:'new'},'now',saved);expect(db.rows.shipment_tracking_account_health[0].paused_until).toBe('later');
+});
+it('does not resume terminal shipments or rate limit pauses',async()=>{
+ const db=fixture();db.rows.shipment_tracking_state[2].next_poll_at='later';db.rows.shipment_tracking_state[2].last_error='ACCOUNT_PAUSED';await resumeMrwTrackingAfterCredentialSave(db,account,sagec,'now');expect(db.rows.shipment_tracking_state[2].next_poll_at).toBe('later');
+ const limited=fixture();limited.rows.shipment_tracking_account_health[0].last_error='PROVIDER_HTTP_429';await resumeMrwTrackingAfterCredentialSave(limited,account,sagec);expect(limited.rows.shipment_tracking_account_health[0].paused_until).toBe('later');
+});
+it('keeps the safety pause if waking states fails',async()=>{
+ const db=fixture(),from=db.from.bind(db);db.from=(table:string)=>table==='shipment_tracking_state'?{update:()=>{const q:any={eq:()=>q,not:()=>q,or:()=>q,in:async()=>({error:Error('db unavailable')})};return q}}:from(table);
+ await expect(resumeMrwTrackingAfterCredentialSave(db,account,sagec)).rejects.toThrow('MRW_TRACKING_RESUME_FAILED');expect(db.rows.shipment_tracking_account_health[0].paused_until).toBe('later');
+});
+it('SAGEC credential edits invalidate connection health while retired tracking-only edits do not',async()=>{
  const {credentialSaveConnectionPatch}=await import('../supabase/functions/_shared/tracking/credentialResume');
- expect(credentialSaveConnectionPatch('mrw',{trackingPassword:'test-only'})).toEqual({});
- expect(credentialSaveConnectionPatch('mrw',{tracking_password:'test-only'})).toEqual({});
- expect(credentialSaveConnectionPatch('mrw',{trackingPassword:' '})).toEqual({});
- expect(credentialSaveConnectionPatch('mrw',{password:'sagec-test-only',trackingPassword:'tracking-test-only'})).toEqual({status:'pending',last_error:null});
+ expect(credentialSaveConnectionPatch('mrw',{password:'new-password'})).toEqual({status:'pending',last_error:null});
+ expect(credentialSaveConnectionPatch('mrw',{trackingPassword:'old'})).toEqual({});
  expect(credentialSaveConnectionPatch('sendcloud',{secretKey:'test-only'})).toEqual({status:'pending',last_error:null});
 });

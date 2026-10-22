@@ -4,11 +4,11 @@ Prioridad posterior al trabajo actual de seguimiento; pendiente de diseño y apr
 
 ## Alta operativa y seguimiento independientes
 
-Preparar un flujo reutilizable para MRW, Correos Express, SEUR y GLS. Cada cuenta debe indicar su contrato, habilitación y credenciales para crear envíos/etiquetas, y por separado su autorización y credenciales de seguimiento. No asumir que el transportista comparte contraseña entre ambos servicios ni que las credenciales de una plataforma intermediaria sean reutilizables por Zenvia.
+Preparar un flujo reutilizable para MRW, Correos Express, SEUR y GLS. Cada cuenta debe indicar su contrato, habilitación y credenciales para crear envíos/etiquetas, y por separado su autorización y credenciales de seguimiento. Para los demás transportistas, verificar si comparten credenciales entre ambos servicios ni que las credenciales de una plataforma intermediaria sean reutilizables por Zenvia.
 
 El flujo deberá ofrecer un correo ya redactado para la franquicia o responsable de cuenta, con los servicios y campos pendientes; recibir secretos solo mediante la configuración segura, cifrados por cuenta; probar ambas conexiones por separado; y mostrar qué paso falta. Zenvia debe poder seguir operando y generando etiquetas cuando el seguimiento no esté habilitado, mostrando claramente «Sin seguimiento disponible» y la consulta manual apropiada.
 
-Definir la matriz de requisitos de cada transportista a partir de su contrato y documentación vigente antes de implementar cada adaptador. El caso confirmado de MRW exige alta del Web Service (opción 4) y contraseña de seguimiento facilitada por la franquicia.
+Definir la matriz de requisitos de cada transportista a partir de su contrato y documentación vigente antes de implementar cada adaptador. Para MRW, TrackingService utiliza el mismo usuario y contraseña SAGEC guardados de la cuenta; no requiere un campo de contraseña de seguimiento separado.
 
 ## Línea estratégica: programa de plataforma/integrador
 

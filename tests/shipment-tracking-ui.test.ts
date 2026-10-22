@@ -14,3 +14,17 @@ it('shows unavailable direct MRW without an observation and leaves Sendcloud MRW
  const sendcloud=trackingPresentation({shippingProvider:'sendcloud',trackingNumber:'test-only',trackingStatusCode:'SHIPPED',trackingError:'PROVIDER_HTTP_503'});
  expect(sendcloud.state).toBe('in_transit');expect(sendcloud.unavailable).toBe(false);
 });
+
+it('labels each normalized shipment state and uses singular Incidencia for one shipment',()=>{
+ const cases=[['pre_transit','Preparado'],['in_transit','En tránsito'],['out_for_delivery','En reparto'],['delivered','Entregado'],['exception','Incidencia'],['returned','Devuelto'],['cancelled','Cancelado']] as const;
+ for(const [state,label] of cases)expect(trackingPresentation({trackingNormalizedState:state}).label).toBe(label);
+});
+
+it.each(['MRW_UNKNOWN_STATUS_999','MRW_UNKNOWN_STATUS_UNKNOWN'])('preserves a known latest MRW state without access failure for soft warning %s',trackingError=>{
+ const p=trackingPresentation({shippingProvider:'mrw',trackingNumber:'synthetic',trackingNormalizedState:'delivered',trackingEventAt:'2026-10-22T10:00:00Z',trackingError});
+ expect(p.label).toBe('Entregado');expect(p.unavailable).toBe(false);expect(p.date).toBe('2026-10-22T10:00:00Z');expect(p.error).toBe(trackingError);
+});
+it('does not suppress actual MRW access failures or unknown current observations',()=>{
+ expect(trackingPresentation({shippingProvider:'mrw',trackingNumber:'synthetic',trackingNormalizedState:'delivered',trackingError:'MRW_TRACKING_ACCESS_DENIED'}).unavailable).toBe(true);
+ expect(trackingPresentation({shippingProvider:'mrw',trackingNumber:'synthetic',trackingNormalizedState:null,trackingError:'MRW_UNKNOWN_STATUS_999'}).unavailable).toBe(true);
+});

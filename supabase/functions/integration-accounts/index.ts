@@ -748,12 +748,14 @@ Deno.serve(async(req:Request)=>{
       if(typeof body?.enabled==='boolean')patch.enabled=body.enabled;
       if(body?.config&&typeof body.config==='object'&&!Array.isArray(body.config))patch.config={...(account.config||{}),...body.config};
       const credentials=(body?.credentials&&typeof body.credentials==='object'&&!Array.isArray(body.credentials))?body.credentials:null;
+      let savedTrackingCredentials:Record<string,unknown>|null=null;
       if(credentials&&(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='envia'||account.provider==='mrw'||account.provider==='shopify')){
         const existing=account.secret_id?await readVault(admin,account.secret_id):{};
         const merged=account.provider==='shopify'&&clean((credentials as any).accessToken)
           ?shopifyLegacyCredentials((credentials as any).shopDomain||account.external_account_id,(credentials as any).accessToken)
           :{...existing,...Object.fromEntries(Object.entries(credentials).filter(([,v])=>clean(v)))};
         patch.secret_id=await writeVault(admin,account.id,account.provider,merged,account.secret_id);
+        savedTrackingCredentials=merged;
         Object.assign(patch,credentialSaveConnectionPatch(account.provider,credentials));
         if(account.provider==='shopify'){
           const shopDomain=normalizeShopifyDomain((merged as any).shopDomain||(merged as any).shop_domain||body?.config?.shopDomain||account.external_account_id);
@@ -767,7 +769,7 @@ Deno.serve(async(req:Request)=>{
       }
       const saved=await admin.from('integration_accounts').update(patch).eq('id',id).eq('owner_id',caller.data_owner_id).select('*').single();
       if(saved.error)throw saved.error;
-      await resumeMrwTrackingAfterCredentialSave(admin,account,credentials);
+      await resumeMrwTrackingAfterCredentialSave(admin,account,credentials,undefined,savedTrackingCredentials);
       if(body?.isDefault===true)await makeDefault(admin,caller.data_owner_id,account.provider,id);
       return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,id))});
     }

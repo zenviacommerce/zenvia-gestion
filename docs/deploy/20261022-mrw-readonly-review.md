@@ -1,6 +1,6 @@
 # MRW directo — comprobación solicitada por el propietario
 
-> Actualización posterior del propietario: el dosier MRW 2.3 confirma alta mediante opción 4 y contraseña de seguimiento independiente, facilitada por la franquicia. Este documento conserva el diagnóstico histórico; la configuración vigente está en `docs/runbooks/mrw-tracking-activation.md`. El worker ya no intenta la contraseña SAGEC en seguimiento.
+> Corrección vigente: se consultó anteriormente un servicio distinto. TrackingService utiliza el mismo usuario y contraseña SAGEC de la cuenta. El resultado histórico de aquel endpoint no demuestra falta de acceso a TrackingService ni exige otra contraseña. Configuración vigente en `docs/runbooks/mrw-tracking-activation.md`.
 
 ## Resultado con las credenciales existentes
 

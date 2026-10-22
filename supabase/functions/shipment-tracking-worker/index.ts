@@ -1,3 +1,5 @@
+import {runMrwDiagnostic} from '../_shared/tracking/mrwDiagnostic.ts';
+import {previewTrackingReprocess,applyTrackingReprocess} from '../_shared/tracking/reprocess.ts';
 import {configureSendcloudWebhook} from '../_shared/tracking/setup-webhook.ts';
 import {createClient} from 'npm:@supabase/supabase-js@2.105.0';
 import {runTrackingWorker} from '../_shared/tracking/worker.ts';
@@ -9,6 +11,10 @@ Deno.serve(async(req:Request)=>{
  const environmentCredentials={sendcloud:{publicKey:Deno.env.get('SENDCLOUD_PUBLIC_KEY')||Deno.env.get('SENDCLOUD_API_KEY'),secretKey:Deno.env.get('SENDCLOUD_SECRET_KEY')||Deno.env.get('SENDCLOUD_API_SECRET')}};
  try{
   const body=await req.json().catch(()=>({}));
+  if(body.action==='mrw_diagnostic')return Response.json({diagnostic:await runMrwDiagnostic(admin,fetch,body.batchOnly===true)});
+  if(body.action==='preview_reprocess')return Response.json({preview:await previewTrackingReprocess(admin,fetch,environmentCredentials)});
+  if(body.action==='apply_reprocess')return Response.json({apply:await applyTrackingReprocess(admin,body.approvedCandidates,body.limit??25)});
+  if(body.action&&!['run','webhook_availability','configure_sendcloud_webhook'].includes(body.action))return Response.json({error:'UNKNOWN_ACTION'},{status:400});
   if(body.action==='webhook_availability'||body.action==='configure_sendcloud_webhook'){
    const {data:accounts,error}=await admin.from('integration_accounts').select('id,owner_id,provider,secret_id,credential_source').eq('provider','sendcloud').eq('enabled',true).neq('status','disabled');if(error)throw error;
    const results=[];

@@ -163,10 +163,10 @@ test('MRW only masks actual passwords; identifiers stay readable like the carrie
     assert.doesNotMatch(input,/type="password"/,`MRW identifier must remain readable: ${identifier}`);
   }
   assert.match(page,/type="password"[^>]*value=\{mrwPassword\}/);
-  assert.match(page,/<MrwTrackingPasswordField value=\{mrwTrackingPassword\} onChange=\{setMrwTrackingPassword\}/);
-  assert.match(tracking,/<span>Contraseña de seguimiento<\/span>/);
-  assert.match(tracking,/aria-label="Contraseña de seguimiento"[^>]*type="password"[^>]*autoComplete="new-password"[^>]*value=\{value\}/);
-  assert.match(page,/trackingPassword:mrwTrackingPassword\.trim\(\)/);
+  assert.match(page,/<MrwTrackingCredentialsNotice\/>/);
+  assert.match(tracking,/mismas credenciales SAGEC/);
+  assert.doesNotMatch(page,/mrwTrackingPassword|MrwTrackingPasswordField/);
+  assert.doesNotMatch(tracking,/Contraseña de seguimiento|opción 4/);
 });
 
 

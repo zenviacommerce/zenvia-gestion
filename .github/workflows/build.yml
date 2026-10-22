@@ -24,6 +24,8 @@ jobs:
         run: npx vitest run tests/orders-pool.test.ts tests/shopify-performance-sql.test.ts
       - name: Billing checkout pause regressions
         run: npx vitest run tests/billing-checkout-pause.test.tsx tests/billing-checkout-pause-service.test.ts tests/billing-central-catalog.test.ts
+      - name: Tracking release regressions
+        run: npx vitest run tests/orders-tracking-projection-compatibility.test.ts tests/tracking-*.test.ts tests/shipment-tracking-*.test.ts tests/shipment-tracking-*.test.tsx tests/mrw-*.test.ts tests/mrw-*.test.tsx
       - name: Build
         run: npm run build
       - name: Upload dist artifact

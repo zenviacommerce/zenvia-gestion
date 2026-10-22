@@ -1,0 +1,113 @@
+{
+  "functions": [
+    {
+      "signature": "private.mfa_impl_pickup_report_get(uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION private.mfa_impl_pickup_report_get(p_report_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE v_owner uuid:=private.pickup_report_owner(); result jsonb;\nBEGIN\n SELECT snapshot INTO result FROM public.pickup_reports WHERE owner_id=v_owner AND id=p_report_id;\n IF result IS NULL THEN RAISE EXCEPTION 'PICKUP_REPORT_NOT_FOUND' USING ERRCODE='42501'; END IF;\n RETURN result;\nEND $function$\n"
+    },
+    {
+      "signature": "private.mfa_impl_pickup_report_list(uuid,integer)",
+      "definition": "CREATE OR REPLACE FUNCTION private.mfa_impl_pickup_report_list(p_order_id uuid DEFAULT NULL::uuid, p_limit integer DEFAULT 50)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$\nDECLARE v_owner uuid:=private.pickup_report_owner(); v_key text;\nBEGIN\n IF p_order_id IS NOT NULL THEN\n SELECT CASE WHEN source_channel IN ('amazon','shopify') AND nullif(trim(order_number),'') IS NOT NULL\n THEN source_channel||':'||coalesce(source_integration_account_id::text,'legacy')||':'||trim(order_number) ELSE id::text END INTO v_key FROM public.fulfillment_orders WHERE owner_id=v_owner AND id=p_order_id;\n IF v_key IS NULL THEN RAISE EXCEPTION 'PICKUP_ORDERS_UNAVAILABLE' USING ERRCODE='42501'; END IF;\n END IF;\n RETURN coalesce((SELECT jsonb_agg(summary ORDER BY created_at DESC,id DESC) FROM (\n SELECT r.id,r.created_at,jsonb_build_object('id',r.id,'number',r.number,'createdAt',r.created_at,\n 'totalPackages',r.snapshot->'totalPackages','totalOrders',jsonb_array_length(r.snapshot->'items'),\n 'carriers',(SELECT jsonb_agg(carrier ORDER BY carrier) FROM (SELECT DISTINCT item->>'carrier' carrier FROM jsonb_array_elements(r.snapshot->'items') item)c)) summary\n FROM public.pickup_reports r WHERE r.owner_id=v_owner AND (p_order_id IS NULL OR EXISTS(\n SELECT 1 FROM public.pickup_report_items pi WHERE pi.report_id=r.id AND pi.owner_id=v_owner AND (pi.order_id=p_order_id OR pi.order_key=v_key)))\n ORDER BY r.created_at DESC,r.id DESC LIMIT least(greatest(coalesce(p_limit,50),1),200)\n )s),'[]'::jsonb);\nEND $function$\n"
+    },
+    {
+      "signature": "pickup_report_get(uuid)",
+      "definition": "CREATE OR REPLACE FUNCTION public.pickup_report_get(p_report_id uuid)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$BEGIN IF auth.uid() IS NULL THEN RAISE EXCEPTION 'AUTH_REQUIRED' USING ERRCODE='42501'; END IF; PERFORM public.security_mfa_assert(false); RETURN private.mfa_impl_pickup_report_get($1); END$function$\n"
+    },
+    {
+      "signature": "pickup_report_list(uuid,integer)",
+      "definition": "CREATE OR REPLACE FUNCTION public.pickup_report_list(p_order_id uuid DEFAULT NULL::uuid, p_limit integer DEFAULT 50)\n RETURNS jsonb\n LANGUAGE plpgsql\n STABLE SECURITY DEFINER\n SET search_path TO ''\nAS $function$BEGIN IF auth.uid() IS NULL THEN RAISE EXCEPTION 'AUTH_REQUIRED' USING ERRCODE='42501'; END IF; PERFORM public.security_mfa_assert(false); RETURN private.mfa_impl_pickup_report_list($1,$2); END$function$\n"
+    }
+  ],
+  "column_names": [
+    {
+      "type": "uuid",
+      "table": "company_branding",
+      "column": "owner_id"
+    },
+    {
+      "type": "text",
+      "table": "company_branding",
+      "column": "logo_path"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "company_branding",
+      "column": "created_at"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "company_branding",
+      "column": "updated_at"
+    },
+    {
+      "type": "text",
+      "table": "company_branding",
+      "column": "stamp_path"
+    },
+    {
+      "type": "uuid",
+      "table": "pickup_report_items",
+      "column": "report_id"
+    },
+    {
+      "type": "uuid",
+      "table": "pickup_report_items",
+      "column": "owner_id"
+    },
+    {
+      "type": "uuid",
+      "table": "pickup_report_items",
+      "column": "order_id"
+    },
+    {
+      "type": "text",
+      "table": "pickup_report_items",
+      "column": "order_key"
+    },
+    {
+      "type": "uuid",
+      "table": "pickup_reports",
+      "column": "id"
+    },
+    {
+      "type": "uuid",
+      "table": "pickup_reports",
+      "column": "owner_id"
+    },
+    {
+      "type": "uuid",
+      "table": "pickup_reports",
+      "column": "request_id"
+    },
+    {
+      "type": "jsonb",
+      "table": "pickup_reports",
+      "column": "request_fingerprint"
+    },
+    {
+      "type": "text",
+      "table": "pickup_reports",
+      "column": "number"
+    },
+    {
+      "type": "timestamp with time zone",
+      "table": "pickup_reports",
+      "column": "created_at"
+    },
+    {
+      "type": "uuid",
+      "table": "pickup_reports",
+      "column": "created_by"
+    },
+    {
+      "type": "jsonb",
+      "table": "pickup_reports",
+      "column": "snapshot"
+    }
+  ],
+  "report_count": 3,
+  "retention_functions": [
+    "private.amazon_sync_job_retention_once",
+    "private.guard_amazon_purged_pii",
+    "private.shipment_tracking_purge_order"
+  ]
+}

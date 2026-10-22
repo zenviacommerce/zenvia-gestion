@@ -273,5 +273,10 @@ Implementación preparada para revisión; **sin publicar**. La especificación d
 La cabecera mantiene Nuevo pedido, Actualizar y Más acciones en una fila también en escritorio. Tarifas, impresión directa, formato y facturación Shopify se conservan en el menú. Incidencias y Enviados adelantan Pedido, Cliente, Transportista y Seguimiento, manteniendo el inventario completo de columnas. El seguimiento muestra texto, último movimiento y antigüedad; el acceso externo queda fuera del botón de la tarjeta móvil. La prueba de geometría exige que el motivo sea visible sin scroll horizontal a 1280/1440 px.
 
 
+## Firma e informes de recogida
+
+Los formularios y la ficha del informe usan FormModal, FormSection y FormGrid de @zenvia/ui. El lienzo usa pointer events y resolución según devicePixelRatio; solo su superficie bloquea el gesto de desplazamiento. Borrar restaura el lienzo y Firmar requiere trazo, conductor, DNI/matrícula, fecha/hora Madrid y bultos. La firma guardada es inmutable; corregir exige anular y crear un informe nuevo.
+
+Cada informe nuevo es de un transportista. La confirmación de una selección mixta muestra todos los números y sus accesos, sin ocultar ningún resultado. Los estados son Pendiente, Firmado y Anulado; Parcialmente firmado se reserva a históricos mixtos que conservan su estructura. PDF y correo están disponibles desde la ficha; el historial conserva búsqueda, filtros y reimpresión. Inventario y capturas: docs/deploy/20261022-pickup-signature-review/README.md.
 ## Ajustes aprobados23/10/2026
 Las cabeceras de menú «Más acciones» conservan secondary, tipografía y altura de los botones hermanos, icono y texto sin salto. Los disclosures nativos mantienen su semántica de teclado. La etiqueta superior de FormModal usa --primary (verde de marca), como PageHeader.

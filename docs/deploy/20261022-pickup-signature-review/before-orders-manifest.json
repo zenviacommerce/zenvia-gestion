@@ -1,0 +1,48 @@
+{
+  "synthetic": true,
+  "networkBlocked": true,
+  "checks": [
+    {
+      "phase": "before",
+      "width": 390,
+      "theme": "light",
+      "file": "before-orders-390-light.png",
+      "links": 4
+    },
+    {
+      "phase": "before",
+      "width": 390,
+      "theme": "dark",
+      "file": "before-orders-390-dark.png",
+      "links": 4
+    },
+    {
+      "phase": "before",
+      "width": 1280,
+      "theme": "light",
+      "file": "before-orders-1280-light.png",
+      "links": 4
+    },
+    {
+      "phase": "before",
+      "width": 1280,
+      "theme": "dark",
+      "file": "before-orders-1280-dark.png",
+      "links": 4
+    },
+    {
+      "phase": "before",
+      "width": 1440,
+      "theme": "light",
+      "file": "before-orders-1440-light.png",
+      "links": 4
+    },
+    {
+      "phase": "before",
+      "width": 1440,
+      "theme": "dark",
+      "file": "before-orders-1440-dark.png",
+      "links": 4
+    }
+  ]
+}

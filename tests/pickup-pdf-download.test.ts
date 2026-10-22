@@ -1,11 +1,11 @@
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
-const state=vi.hoisted(()=>({workspace:'workspace-a',client:{},branding:vi.fn()}));
+const state=vi.hoisted(()=>({workspace:'workspace-a',client:{},pdf:vi.fn()}));
 vi.mock('../src/services/supabase',()=>({getActiveSupabase:()=>state.client,getActiveTenant:()=>({workspace_id:state.workspace})}));
-vi.mock('../src/services/companyBranding',()=>({loadCompanyBranding:state.branding}));
+vi.mock('../src/services/pickupReportDocuments',()=>({getPickupDocumentPdf:state.pdf}));
 import {downloadPickupReportPdf} from '../src/services/pickupReportPdf';
 const report={id:'report',number:'REC-2026-0042',createdAt:'2026-10-20T07:30:00Z',createdBy:'user',sender:{legalName:'Sender SL',taxId:'TAX',address:'Company address',email:'office@example.test',phone:''},items:[{orderId:'order',orderNumber:'406-1',channel:'amazon',carrier:'MRW',trackingNumber:'REAL-123',packages:1}],totalPackages:1};
-beforeEach(()=>{state.workspace='workspace-a';state.branding.mockReset();state.branding.mockResolvedValue({logoDataUrl:null});vi.stubGlobal('URL',class extends URL{static createObjectURL=vi.fn(()=> 'blob:pickup');static revokeObjectURL=vi.fn()});vi.spyOn(HTMLAnchorElement.prototype,'click').mockImplementation(()=>{});});
+beforeEach(()=>{state.workspace='workspace-a';state.pdf.mockReset();state.pdf.mockResolvedValue(new Blob(['%PDF SIGNED SYNTHETIC'],{type:'application/pdf'}));vi.stubGlobal('URL',class extends URL{static createObjectURL=vi.fn(()=> 'blob:pickup');static revokeObjectURL=vi.fn()});vi.spyOn(HTMLAnchorElement.prototype,'click').mockImplementation(()=>{});});
 afterEach(()=>{vi.restoreAllMocks();vi.unstubAllGlobals()});
-it('uses General branding when downloading and keeps the report filename',async()=>{await downloadPickupReportPdf(report);expect(state.branding).toHaveBeenCalledTimes(1);expect(URL.createObjectURL).toHaveBeenCalledTimes(1);expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledTimes(1)});
-it('still prints the saved sender data if the optional logo cannot load',async()=>{state.branding.mockRejectedValue(new Error('Storage unavailable'));await downloadPickupReportPdf(report);expect(URL.createObjectURL).toHaveBeenCalledTimes(1)});
-it('does not download a report if the workspace changes while loading its logo',async()=>{state.branding.mockImplementation(async()=>{state.workspace='workspace-b';return {logoDataUrl:null}});await expect(downloadPickupReportPdf(report)).rejects.toThrow('empresa o sesión ha cambiado');expect(URL.createObjectURL).not.toHaveBeenCalled()});
+it('resolves the current server PDF even when a creation snapshot still appears unsigned',async()=>{await downloadPickupReportPdf(report);expect(state.pdf).toHaveBeenCalledWith('report');expect(URL.createObjectURL).toHaveBeenCalledWith(await state.pdf.mock.results[0].value);expect(HTMLAnchorElement.prototype.click).toHaveBeenCalledTimes(1)});
+it('does not regenerate an unsigned copy if the stored document cannot be retrieved',async()=>{state.pdf.mockRejectedValue(new Error('Storage unavailable'));await expect(downloadPickupReportPdf(report)).rejects.toThrow('Storage unavailable');expect(URL.createObjectURL).not.toHaveBeenCalled()});
+it('does not download a PDF if the workspace changes while it is being retrieved',async()=>{state.pdf.mockImplementation(async()=>{state.workspace='workspace-b';return new Blob(['synthetic'])});await expect(downloadPickupReportPdf(report)).rejects.toThrow('empresa o sesión ha cambiado');expect(URL.createObjectURL).not.toHaveBeenCalled()});

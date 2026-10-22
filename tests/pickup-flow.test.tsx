@@ -1,11 +1,11 @@
 import {act,cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 const api=vi.hoisted(()=>({preview:vi.fn(),create:vi.fn(),list:vi.fn(),get:vi.fn(),download:vi.fn()}));
-vi.mock('../src/services/pickupReports',()=>({previewPickupReport:api.preview,createPickupReport:api.create,listPickupReports:api.list,getPickupReport:api.get}));
+vi.mock('../src/services/pickupReports',()=>({previewPickupReport:api.preview,createPickupReports:api.create,listPickupReports:api.list,getPickupReport:api.get}));
 vi.mock('../src/services/pickupReportPdf',()=>({downloadPickupReportPdf:api.download}));
 import {PickupReportModal,PickupReportHistory} from '../src/components/PickupReports';
 const item={orderId:'order',orderNumber:'406-0001',channel:'amazon',carrier:'MRW',trackingNumber:'MRW123',packages:1,eligible:true,previousReports:[],packageCountEstimated:true};
-beforeEach(()=>{vi.clearAllMocks();api.preview.mockResolvedValue({items:[item],canCreate:true,totalPackages:1});api.create.mockResolvedValue({id:'report',number:'REC-2026-0001',items:[item],totalPackages:1});api.list.mockResolvedValue([{id:'report',number:'REC-2026-0001',createdAt:'2026-10-20T07:00:00Z',totalPackages:1,totalOrders:1,carriers:['MRW']}]);api.get.mockResolvedValue({id:'report',number:'REC-2026-0001',items:[item]});});afterEach(cleanup);
+beforeEach(()=>{vi.clearAllMocks();api.preview.mockResolvedValue({items:[item],canCreate:true,totalPackages:1});api.create.mockResolvedValue([{id:'report',number:'REC-2026-0001',items:[item],totalPackages:1}]);api.list.mockResolvedValue([{id:'report',number:'REC-2026-0001',createdAt:'2026-10-20T07:00:00Z',totalPackages:1,totalOrders:1,carriers:['MRW']}]);api.get.mockResolvedValue({id:'report',number:'REC-2026-0001',items:[item]});});afterEach(cleanup);
 it('requires an explicit review then creates a saved report with parcel counts and downloads',async()=>{
  const done=vi.fn();render(<PickupReportModal ids={['order']} onClose={()=>{}} onCreated={done}/>);
  expect(await screen.findByText('MRW123')).toBeTruthy();expect(api.create).not.toHaveBeenCalled();fireEvent.change(screen.getByLabelText('Bultos de 406-0001'),{target:{value:'2'}});fireEvent.click(screen.getByRole('button',{name:'Guardar y descargar PDF'}));
@@ -22,3 +22,5 @@ it('shows a persisted report when PDF creation fails and retries download withou
  fireEvent.click(screen.getByRole('button',{name:'Descargar informe REC-2026-0001'}));
  await waitFor(()=>expect(api.download).toHaveBeenCalledTimes(2));expect(api.create).toHaveBeenCalledTimes(1);
 });
+
+it('creates and presents a separate accessible report for each selected carrier without silently downloading only one',async()=>{const other={...item,orderId:'other',orderNumber:'406-0002',carrier:'Correos Express',trackingNumber:'SYNTHETIC-2'};api.preview.mockResolvedValue({items:[item,other],canCreate:true,totalPackages:2});api.create.mockResolvedValue([{id:'report',number:'REC-2026-0001',items:[item],totalPackages:1},{id:'report2',number:'REC-2026-0002',items:[other],totalPackages:1}]);const close=vi.fn();render(<PickupReportModal ids={['order','other']} onClose={close} onCreated={()=>{}}/>);fireEvent.click(await screen.findByRole('button',{name:'Crear 2 informes'}));await screen.findByText('Se han creado 2 informes');expect(screen.getByRole('button',{name:'Abrir MRW (REC-2026-0001)'})).toBeTruthy();expect(screen.getByRole('button',{name:'Abrir Correos Express (REC-2026-0002)'})).toBeTruthy();expect(api.download).not.toHaveBeenCalled();expect(close).not.toHaveBeenCalled();fireEvent.click(screen.getByRole('button',{name:'Descargar informe REC-2026-0002'}));await waitFor(()=>expect(api.download).toHaveBeenCalledWith(expect.objectContaining({id:'report2'})))});

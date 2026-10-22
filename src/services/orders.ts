@@ -15,7 +15,7 @@ export interface FulfillmentOrder extends TrackingFields {
   integrationId:number; integrationName:string|null; integrationType:string|null; sourceChannel:OrderChannel;
   sourceStatus:string|null; orderCreatedAt:string|null; orderUpdatedAt:string|null;
   customerName:string|null; customerEmail:string|null; customerPhone:string|null;
-  pickupReports?:Array<{id:string;number:string}>;
+  pickupReports?:Array<{id:string;number:string;status?:string;carriers?:string[]}>;
   piiPurgedAt?:string|null; destinationCountryCode?:string|null;
   shippingAddress:Record<string,unknown>; billingAddress:Record<string,unknown>; items:Array<Record<string,unknown>>;
   totalAmount:number|null; currency:string|null; weightKg:number|null; weightEstimated?:boolean; weightSource?:string;
@@ -103,7 +103,7 @@ function mapRow(row:any):FulfillmentOrder{
   const shippingAddress=row.shipping_address||{};
   const balearicPending=isBalearicAddress(shippingAddress)&&row.sendcloud_parcel_id==null;
   return enforcePurge({
-    pickupReports:Array.isArray(row.pickup_reports)?row.pickup_reports.filter((r:any)=>typeof r?.id==='string'&&typeof r?.number==='string').map((r:any)=>({id:r.id,number:r.number})):[],
+    pickupReports:Array.isArray(row.pickup_reports)?row.pickup_reports.filter((r:any)=>typeof r?.id==='string'&&typeof r?.number==='string').map((r:any)=>({id:r.id,number:r.number,...(typeof r.status==='string'?{status:r.status}:{}),...(Array.isArray(r.carriers)?{carriers:r.carriers.filter((v:unknown)=>typeof v==='string')}:{})})):[],
     id:row.id, sendcloudId:String(row.sendcloud_remote_id||row.sendcloud_id), orderId:row.order_id||null, orderNumber:row.order_number||null,
     sourceIntegrationAccountId:row.source_integration_account_id||null, shippingIntegrationAccountId:row.shipping_integration_account_id||null,
     integrationId:Number(row.integration_id), integrationName:row.integration_name||null, integrationType:row.integration_type||null,
@@ -232,7 +232,7 @@ export type OrdersDashboardFilters={
   from:string;to:string;state:'pending'|'labelled'|'shipped'|'issues'|'cancelled'|'all';
   workbench?:boolean;trackingStaleDays?:number;
   channel:'all'|OrderChannel;query:string;tracking:string;country:string;carrier:string;
-  pickupReport?:'all'|'none'|'in';selectedIds?:string[];page:number;pageSize:number;overdueHours:number;sortKey:string;sortDirection:'asc'|'desc';
+  pickupReport?:'all'|'none'|'in'|'pending'|'signed'|'void';selectedIds?:string[];page:number;pageSize:number;overdueHours:number;sortKey:string;sortDirection:'asc'|'desc';
 };
 export type OrdersDashboardKpis={
   pending:number;preparablePending:number;amazon:number;shopify:number;manual:number;labelled:number;

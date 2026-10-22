@@ -41,10 +41,11 @@ globalThis.fixtureServices.selectPickupOrderIds=async p=>matches(p).map(o=>o.id)
 createRoot(document.getElementById('root')).render(<main className="main"><div style={{padding:24}}><p>Vista de revisión · datos sintéticos · sin conexión a proveedores</p><Orders/><ActionDialogHost/></div></main>);`;
 
 mocks.set('../services/pickupReports',(mocks.get('../services/pickupReports')||'')+
- 'export const previewPickupReport=(...a)=>globalThis.pickupFixture.preview(...a);export const createPickupReport=(...a)=>globalThis.pickupFixture.create(...a);export const listPickupReports=(...a)=>globalThis.pickupFixture.list(...a);export const getPickupReport=(...a)=>globalThis.pickupFixture.get(...a);');
+ 'export const previewPickupReport=(...a)=>globalThis.pickupFixture.preview(...a);export const createPickupReport=(...a)=>globalThis.pickupFixture.create(...a);export const createPickupReports=(...a)=>globalThis.pickupFixture.createBatch(...a);export const listPickupReports=(...a)=>globalThis.pickupFixture.list(...a);export const getPickupReport=(...a)=>globalThis.pickupFixture.get(...a);');
 mocks.set('./companyBranding', 'export const loadCompanyBranding=async()=>({logoDataUrl:'+JSON.stringify(pickupLogoFixture)+'});');
 mocks.set('./supabase', 'export const supabase={};export const getActiveSupabase=()=>null;export const getActiveTenant=()=>null;');
 mocks.delete('../services/actionDialog');
+mocks.delete('../services/pickupDocumentState');
 const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,loader:{'.css':'empty'},define:{'import.meta.env':'{}'},format:'iife',platform:'browser',jsx:'automatic',plugins:[{name:'offline-orders-fixture',setup(b){b.onResolve({filter:/.*/},args=>mocks.has(args.path)?{path:args.path,namespace:'fixture'}:null);b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:mocks.get(args.path),loader:'tsx'}));}}]});
 const main=await readFile('src/main.tsx','utf8');
 const cssFiles=[...new Set([...main.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map(x=>'src/'+x[1].replace('./','')))];
@@ -76,7 +77,7 @@ try{for(const device of [{name:'desktop',width:1440,height:1050},{name:'mobile',
  const membership=page.locator(device.name==='mobile'?'.ordersMobilePickup':'.ordersTable tbody').getByRole('button',{name:'Abrir informe REC-2026-0042'}).first();
  await membership.scrollIntoViewIfNeeded();await page.screenshot({path:output+'/orders-reports-'+device.name+'.png'});
  await membership.click();await page.getByRole('dialog',{name:'Informes de recogida'}).waitFor();await page.screenshot({path:output+'/order-report-history-'+device.name+'.png'});await page.getByRole('button',{name:'Cerrar historial de recogidas'}).click();
- await page.getByRole('combobox',{name:'Filtrar por informe de recogida'}).click();await page.getByRole('option',{name:'Sin informe',exact:true}).click();await page.getByText('42 pedidos · Página 1 de 2',{exact:true}).first().waitFor();await page.locator('.bulkSelectionToolbar').scrollIntoViewIfNeeded();await page.screenshot({path:output+'/orders-without-report-'+device.name+'.png'});
+ await page.getByRole('combobox',{name:'Filtrar por informe de recogida'}).click();await page.getByRole('option',{name:'Sin informe activo',exact:true}).click();await page.getByText('42 pedidos · Página 1 de 2',{exact:true}).first().waitFor();await page.locator('.bulkSelectionToolbar').scrollIntoViewIfNeeded();await page.screenshot({path:output+'/orders-without-report-'+device.name+'.png'});
  await page.getByRole('combobox',{name:'Filtrar por informe de recogida'}).click();await page.getByRole('option',{name:'En informe',exact:true}).click();await page.getByText('21 pedidos · Página 1 de 1',{exact:true}).first().waitFor();
  if(device.name==='desktop'){
   const before=await page.locator('.ordersTable tbody .bulkSelectionCell').first().boundingBox();

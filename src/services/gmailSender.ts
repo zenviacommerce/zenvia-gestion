@@ -1,3 +1,4 @@
+import {buildGmailPdfMessage} from '../../supabase/functions/_shared/gmailPdfMessage';
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined;
 const GMAIL_SEND_SCOPE = 'https://www.googleapis.com/auth/gmail.send';
 const TOKEN_KEY = 'zenvia-gmail-send-access';
@@ -40,41 +41,15 @@ async function connectForSend():Promise<SendConnection>{
 
 async function ensureConnection(){return cachedConnection()||connectForSend();}
 
-function utf8Base64(value:string){
-  const bytes=new TextEncoder().encode(value);let binary='';const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));return btoa(binary);
-}
-function bytesBase64(bytes:Uint8Array){let binary='';const chunk=0x8000;for(let i=0;i<bytes.length;i+=chunk)binary+=String.fromCharCode(...bytes.subarray(i,i+chunk));return btoa(binary);}
-function base64UrlFromUtf8(value:string){return utf8Base64(value).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');}
-function encodedHeader(value:string){return `=?UTF-8?B?${utf8Base64(value)}?=`;}
+export async function authorizeGmailSend(){return (await ensureConnection()).accessToken;}
+export function clearGmailSendAuthorization(){sessionStorage.removeItem(TOKEN_KEY)}
 
 export async function sendInvoiceViaGmail(input:{to:string;subject:string;body:string;pdf:Blob;filename:string}){
   const connection=await ensureConnection();
-  const pdfBytes=new Uint8Array(await input.pdf.arrayBuffer());
-  const boundary=`zenvia_${crypto.randomUUID().replace(/-/g,'')}`;
-  const mime=[
-    `To: ${input.to}`,
-    `Subject: ${encodedHeader(input.subject)}`,
-    'MIME-Version: 1.0',
-    `Content-Type: multipart/mixed; boundary="${boundary}"`,
-    '',
-    `--${boundary}`,
-    'Content-Type: text/plain; charset="UTF-8"',
-    'Content-Transfer-Encoding: 8bit',
-    '',
-    input.body,
-    '',
-    `--${boundary}`,
-    `Content-Type: application/pdf; name="${input.filename}"`,
-    'Content-Transfer-Encoding: base64',
-    `Content-Disposition: attachment; filename="${input.filename}"`,
-    '',
-    bytesBase64(pdfBytes).replace(/(.{76})/g,'$1\r\n'),
-    `--${boundary}--`,
-    '',
-  ].join('\r\n');
+  const raw=buildGmailPdfMessage({...input,pdf:new Uint8Array(await input.pdf.arrayBuffer())});
 
   const response=await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',{
-    method:'POST',headers:{Authorization:`Bearer ${connection.accessToken}`,'Content-Type':'application/json'},body:JSON.stringify({raw:base64UrlFromUtf8(mime)}),
+    method:'POST',headers:{Authorization:`Bearer ${connection.accessToken}`,'Content-Type':'application/json'},body:JSON.stringify({raw}),
   });
   if(response.status===401||response.status===403){sessionStorage.removeItem(TOKEN_KEY);const text=await response.text();throw new Error(`Gmail no autorizó el envío. Vuelve a intentarlo para renovar el permiso. ${text.slice(0,180)}`);}
   if(!response.ok){const text=await response.text();throw new Error(`Gmail no pudo enviar la factura (${response.status}). ${text.slice(0,180)}`);}

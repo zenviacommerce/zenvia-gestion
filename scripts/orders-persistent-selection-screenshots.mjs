@@ -41,10 +41,11 @@ globalThis.fixtureServices.selectPickupOrderIds=async p=>matches(p).map(o=>o.id)
 createRoot(document.getElementById('root')).render(<main className="main"><div style={{padding:24}}><p>Vista de revisión · datos sintéticos · sin conexión a proveedores</p><Orders/><ActionDialogHost/></div></main>);`;
 
 mocks.set('../services/pickupReports',(mocks.get('../services/pickupReports')||'')+
- 'export const previewPickupReport=(...a)=>globalThis.pickupFixture.preview(...a);export const createPickupReport=(...a)=>globalThis.pickupFixture.create(...a);export const listPickupReports=(...a)=>globalThis.pickupFixture.list(...a);export const getPickupReport=(...a)=>globalThis.pickupFixture.get(...a);');
+ 'export const previewPickupReport=(...a)=>globalThis.pickupFixture.preview(...a);export const createPickupReport=(...a)=>globalThis.pickupFixture.create(...a);export const createPickupReports=(...a)=>globalThis.pickupFixture.createBatch(...a);export const listPickupReports=(...a)=>globalThis.pickupFixture.list(...a);export const getPickupReport=(...a)=>globalThis.pickupFixture.get(...a);');
 mocks.set('./companyBranding', 'export const loadCompanyBranding=async()=>({logoDataUrl:'+JSON.stringify(pickupLogoFixture)+'});');
 mocks.set('./supabase', 'export const supabase={};export const getActiveSupabase=()=>null;export const getActiveTenant=()=>null;');
 mocks.delete('../services/actionDialog');
+mocks.delete('../services/pickupDocumentState');
 const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},bundle:true,write:false,loader:{'.css':'empty'},define:{'import.meta.env':'{}'},format:'iife',platform:'browser',jsx:'automatic',plugins:[{name:'offline-orders-fixture',setup(b){b.onResolve({filter:/.*/},args=>mocks.has(args.path)?{path:args.path,namespace:'fixture'}:null);b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:mocks.get(args.path),loader:'tsx'}));}}]});
 const main=await readFile('src/main.tsx','utf8');
 const cssFiles=[...new Set([...main.matchAll(/import ['"]([^'"]+\.css)['"]/g)].map(x=>'src/'+x[1].replace('./','')))];

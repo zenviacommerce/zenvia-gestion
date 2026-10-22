@@ -162,7 +162,7 @@ it('shows clickable report numbers in list and mobile, and sends report filter w
  const desktop=container.querySelector('.ordersTable tbody') as HTMLElement;const mobile=container.querySelector('.ordersMobileList') as HTMLElement;
  expect(within(mobile).getByRole('button',{name:'Abrir informe REC-2026-0001'})).toBeTruthy();
  fireEvent.click(within(desktop).getByRole('button',{name:'Abrir informe REC-2026-0001'}));expect(await screen.findByRole('dialog',{name:'Informes de recogida'})).toBeTruthy();fireEvent.click(screen.getByRole('button',{name:'Cerrar historial de recogidas'}));
- fireEvent.click(within(desktop).getByRole('checkbox'));fireEvent.click(screen.getByRole('button',{name:'Añadir filtro'}));fireEvent.click(within(screen.getByRole('dialog',{name:'Añadir filtro'})).getByRole('button',{name:'Informe de recogida',exact:true}));fireEvent.click(screen.getByLabelText('Filtrar por informe de recogida'));fireEvent.click(await screen.findByRole('option',{name:'Sin informe'}));
+ fireEvent.click(within(desktop).getByRole('checkbox'));fireEvent.click(screen.getByRole('button',{name:'Añadir filtro'}));fireEvent.click(within(screen.getByRole('dialog',{name:'Añadir filtro'})).getByRole('button',{name:'Informe de recogida',exact:true}));fireEvent.click(screen.getByLabelText('Filtrar por informe de recogida'));fireEvent.click(await screen.findByRole('option',{name:'Sin informe activo'}));
  await waitFor(()=>expect(boundary.pageCalls).toHaveBeenLastCalledWith(expect.objectContaining({pickupReport:'none'})));
  expect(screen.getByRole('button',{name:'Generar informe de recogida (1)'})).toBeTruthy();
 });

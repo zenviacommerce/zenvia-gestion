@@ -17,6 +17,11 @@ it('diagnoses same-owner active legacy and explicit-provider mismatches with GET
  expect(f.calls.every(c=>!c.options.method||c.options.method==='GET')).toBe(true);expect(f.calls.some(c=>c.url.includes('TERMINAL'))).toBe(false);
  expect(f.queries).toContainEqual(['fulfillment_orders','owner_id','owner']);expect(f.queries).toContainEqual(['fulfillment_orders','or','shipping_provider.eq.sendcloud,shipping_integration_account_id.eq.sc']);
 });
+it('omits free-form event descriptions that can contain recipient PII',async()=>{
+ const f=fixture();
+ const result=await runProviderDiagnostic(f.admin,async(url)=>String(url).includes('subscriptions')?Response.json({data:[]}):Response.json({events:[{event_type:'carrier',phase:'delivered',event_at:'2026-10-22T09:00:00Z',description:'Delivered to Jane Doe, jane.doe@example.test'}]}),{});
+ expect(JSON.stringify(result)).not.toMatch(/Jane Doe|jane.doe|Delivered to/);
+});
 it('caps all diagnostic HTTP requests at 25 and each event list at eight',async()=>{
  const f=fixture(100);const result=await runProviderDiagnostic(f.admin,f.request,{});expect(f.calls).toHaveLength(25);expect(result.httpRequests).toBe(25);expect(result.truncated).toBe(true);
 });
@@ -30,5 +35,5 @@ it('never uses an ambiguous same-owner account to probe a linked-provider mismat
 it('excludes normalized terminals even with legacy SHIPPED source and limits safe summaries to eight',async()=>{
  const f=fixture();f.rows.shipment_tracking_state.push({order_id:'order1',owner_id:'owner',normalized_state:'delivered'});
  const result=await runProviderDiagnostic(f.admin,async(url,options)=>String(url).includes('subscriptions')?Response.json({data:[]}):Response.json({events:Array.from({length:10},(_,i)=>({event_type:i%2?'carrier':'claim',event_at:'2026-10-'+String(10+i).padStart(2,'0')+'T00:00:00Z',description:'x'.repeat(300),recipient:'PRIVATE'}))}),{});
- expect(result.accounts[0].probes.map((p:any)=>p.orderId)).toEqual(['order0']);expect(result.accounts[0].probes[0].events).toHaveLength(8);expect(result.accounts[0].probes[0].events[0].event_at).toBe('2026-10-19T00:00:00Z');expect(result.accounts[0].probes[0].events.every((e:any)=>e.description.length===160)).toBe(true);expect(JSON.stringify(result)).not.toContain('PRIVATE');
+ expect(result.accounts[0].probes.map((p:any)=>p.orderId)).toEqual(['order0']);expect(result.accounts[0].probes[0].events).toHaveLength(8);expect(result.accounts[0].probes[0].events[0].event_at).toBe('2026-10-19T00:00:00Z');expect(result.accounts[0].probes[0].events.every((e:any)=>!('description' in e))).toBe(true);expect(JSON.stringify(result)).not.toContain('PRIVATE');
 });

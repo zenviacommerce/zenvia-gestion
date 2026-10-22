@@ -1,5 +1,5 @@
 // Operator-only, read-only provider evidence. Call only after internal key auth.
-type EventSummary={type:string;phase:string;exception:string;sub_status:string;event_at:string;description:string};
+type EventSummary={type:string;phase:string;exception:string;sub_status:string;event_at:string};
 type Probe={orderId:string;trackingNumber:string;accountMismatch:boolean;missingTrackingState:boolean;legacyWithoutParcel:boolean;httpStatus:number;events:EventSummary[]};
 type AccountResult={accountId:string;subscriptions:{httpStatus:number;items:Array<{id:string|number;event_type:string;is_active:boolean;connection_id:string|number|null}>};probes:Probe[];error?:'UNAVAILABLE'|'CREDENTIALS_UNAVAILABLE'};
 export type ProviderDiagnosticResult={accounts:AccountResult[];httpRequests:number;truncated:boolean};
@@ -55,7 +55,7 @@ export async function runProviderDiagnostic(admin:any,request:typeof fetch=fetch
    for(const order of candidates){
     const response=await get('v3/parcels/tracking/'+encodeURIComponent(order.tracking_number));if(!response)break;
     const raw=response.payload?.data??response.payload;
-    const events=(Array.isArray(raw?.events)?raw.events:[]).slice().sort((a:any,b:any)=>(Date.parse(b.event_at)||0)-(Date.parse(a.event_at)||0)).slice(0,8).map((e:any)=>({type:sanitize(e.event_type,80),phase:sanitize(e.phase,80),exception:sanitize(e.exception,80),sub_status:sanitize(e.sub_status,80),event_at:sanitize(e.event_at,80),description:sanitize(e.description)}));
+    const events=(Array.isArray(raw?.events)?raw.events:[]).slice().sort((a:any,b:any)=>(Date.parse(b.event_at)||0)-(Date.parse(a.event_at)||0)).slice(0,8).map((e:any)=>({type:sanitize(e.event_type,80),phase:sanitize(e.phase,80),exception:sanitize(e.exception,80),sub_status:sanitize(e.sub_status,80),event_at:sanitize(e.event_at,80)}));
     output.probes.push({orderId:order.id,trackingNumber:order.tracking_number,accountMismatch:order.shipping_integration_account_id!==account.id,missingTrackingState:!states.has(order.id),legacyWithoutParcel:!order.shipping_provider&&!order.sendcloud_parcel_id,httpStatus:response.httpStatus,events});
     if([401,403,429].includes(response.httpStatus))break;
    }

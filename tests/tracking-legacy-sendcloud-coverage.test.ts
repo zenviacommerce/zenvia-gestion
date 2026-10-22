@@ -40,11 +40,17 @@ async function sourceSnapshot(d:PGlite){return (await d.query<{snapshot:string}>
 it('covers 13 active legacy Sendcloud shipments without parcel metadata while leaving 242 delivered shipments unqueried',async()=>{
  const d=await fixture();try{
   const before=await sourceSnapshot(d),metadata=await functionMetadata(d);
+  const definitions=(await d.query<{proname:string,definition:string}>(`select proname,pg_get_functiondef(oid) definition from pg_proc where oid in('public.tracking_seed_shadow()'::regprocedure,'public.tracking_reprocess_candidates()'::regprocedure)`)).rows;
   // The real old functions reproduce the production coverage hole.
   expect((await d.query<{n:number}>('select tracking_seed_shadow() n')).rows[0].n).toBe(0);
   await d.exec(read(migration));
   expect(await sourceSnapshot(d)).toBe(before);
   expect(await functionMetadata(d)).toEqual(metadata);
+  for(const original of definitions){
+   const alias=original.proname==='tracking_seed_shadow'?'a':'s';
+   const definition=(await d.query<{definition:string}>(`select pg_get_functiondef($1::regprocedure) definition`,['public.'+original.proname+'()'])).rows[0].definition;
+   expect(definition).toBe(original.definition.replace(`(o.shipping_provider is null and ${alias}.provider='sendcloud' and o.sendcloud_parcel_id is not null)`,`(o.shipping_provider is null and ${alias}.provider='sendcloud')`));
+  }
   expect((await d.query<{n:number}>('select tracking_seed_shadow() n')).rows[0].n).toBe(13);
   const candidates=(await d.query<{tracking_number:string,provider:string}>('select * from tracking_reprocess_candidates()')).rows;
   expect(candidates).toHaveLength(13);
@@ -72,9 +78,9 @@ it('keeps candidate account/provider/terminal/privacy/identity guards even for p
  }finally{await d.close()}
 },20000);
 
-it('aborts atomically when either existing provider anchor has changed',async()=>{
+it.each(['tracking_seed_shadow','tracking_reprocess_candidates'])('aborts atomically when the %s provider anchor has changed',async(name)=>{
  const d=await fixture();try{
-  const original=(await d.query<{definition:string}>(`select pg_get_functiondef('public.tracking_reprocess_candidates()'::regprocedure) definition`)).rows[0].definition;
+  const original=(await d.query<{definition:string}>(`select pg_get_functiondef($1::regprocedure) definition`,['public.'+name+'()'])).rows[0].definition;
   await d.exec(original.replace("o.sendcloud_parcel_id is not null","o.sendcloud_parcel_id > 0"));
   const seedBefore=(await d.query<{definition:string}>(`select pg_get_functiondef('public.tracking_seed_shadow()'::regprocedure) definition`)).rows[0].definition;
   await expect(d.exec(read(migration))).rejects.toThrow(/TRACKING_LEGACY_SENDCLOUD/);

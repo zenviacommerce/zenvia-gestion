@@ -23,7 +23,7 @@ test('Envia label response supports documented data arrays and trackUrl',async()
   assert.match(edge,/data\?\.totalPrice/);
 });
 
-test('Envia shipments are synchronized independently from Sendcloud',async()=>{
+test('legacy Envia import remains available but Orders delegates tracking to the server',async()=>{
   const [edge,orders,page]=await Promise.all([
     read('supabase/functions/envia-shipping/index.ts'),
     read('src/services/orders.ts'),
@@ -32,7 +32,7 @@ test('Envia shipments are synchronized independently from Sendcloud',async()=>{
   assert.match(edge,/action==='sync_shipments'/);
   assert.match(edge,/\/guide\/\$\{period\.month\}\/\$\{period\.year\}/);
   assert.match(orders,/syncEnviaShipments/);
-  assert.match(page,/syncEnviaShipments/);
+  assert.doesNotMatch(page,/syncEnviaShipments\(/);
   assert.match(page,/Envia\.com/);
 });
 
@@ -106,7 +106,7 @@ test('tariff imports retain their provider metadata while estimates match carrie
 });
 
 
-test('Envia history backfill is independent from Sendcloud history state',async()=>{
+test('Orders never runs legacy Envia history import while refreshing tracking',async()=>{
   const [orders,page]=await Promise.all([
     read('src/services/orders.ts'),
     read('src/pages/Orders.tsx'),
@@ -114,9 +114,7 @@ test('Envia history backfill is independent from Sendcloud history state',async(
   assert.match(orders,/ENVIA_HISTORY_SYNC_KEY='zenvia-envia-history-sync'/);
   assert.match(orders,/shouldRunEnviaHistorySync/);
   assert.match(orders,/markEnviaHistorySyncDone/);
-  assert.match(page,/syncEnviaShipments\(enviaHistory\?12:2\)/);
-  assert.match(page,/markEnviaHistorySyncDone\(\)/);
-  assert.match(page,/shouldRunEnviaHistorySync\(\)/);
+  assert.doesNotMatch(page,/syncEnviaShipments\(|markEnviaHistorySyncDone\(|shouldRunEnviaHistorySync\(/);
 });
 
 

@@ -1,0 +1,6 @@
+
+[functions.shipment-tracking-worker]
+verify_jwt = false
+
+[functions.shipment-tracking-webhook]
+verify_jwt = false

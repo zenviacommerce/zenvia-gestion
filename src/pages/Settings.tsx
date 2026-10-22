@@ -1,3 +1,4 @@
+import {MrwTrackingCredentialsNotice,MrwTrackingTestButton} from '../components/MrwTrackingConnection';
 import {BusinessBankAccountsPanel} from '../components/BusinessBankAccountsPanel';
 import {PageHeader} from '../components/PageHeader';
 import {PageTabs} from '../components/PageTabs';
@@ -917,6 +918,7 @@ function OrdersSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
         <label className="settingsField"><span>Preselección al preparar etiqueta</span><SelectField ariaLabel="Preselección al preparar etiqueta" value={draft.shippingSelectionMode} options={[{value:'rules',label:'Según reglas de selección de envío'},{value:'cheapest',label:'Elegir automáticamente la tarifa más barata'},{value:'none',label:'No preseleccionar ninguna'}]} onChange={value=>update('shippingSelectionMode',value as OrdersSettings['shippingSelectionMode'])}/><small>Las reglas se configuran en Envíos y pueden elegir proveedor, cuenta, transportista y servicio según el destino.</small></label>
         <label className="settingsField"><span>Refresco de pedidos</span><div className="settingsNumberWithSuffix"><input type="number" min="30" max="3600" value={draft.refreshSeconds} onChange={e=>update('refreshSeconds',Number(e.target.value))}/><em>s</em></div></label>
         <label className="settingsField"><span>Pedido pendiente más de</span><div className="settingsNumberWithSuffix"><input type="number" min="1" max="720" value={draft.overdueHours} onChange={e=>update('overdueHours',Number(e.target.value))}/><em>h</em></div></label>
+        <label className="settingsField"><span>Avisar sin movimiento tras</span><div className="settingsNumberWithSuffix"><input type="number" min="1" max="90" value={draft.trackingStaleDays} onChange={e=>update('trackingStaleDays',Number(e.target.value))}/><em>días</em></div></label>
       </div>
     </div>
     <div className="settingsSubsection">
@@ -1232,7 +1234,6 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
   const [mrwDepartmentCode,setMrwDepartmentCode]=useState('');
   const [mrwUsername,setMrwUsername]=useState('');
   const [mrwPassword,setMrwPassword]=useState('');
-  const [mrwTrackingPassword,setMrwTrackingPassword]=useState('');
   const [mrwEnvironment,setMrwEnvironment]=useState<'test'|'production'>('production');
   const [mrwServiceCode,setMrwServiceCode]=useState('');
   const [mrwServiceName,setMrwServiceName]=useState('');
@@ -1338,7 +1339,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
     setSendcloudPublicKey('');setSendcloudSecretKey('');
     setEnviaToken('');
     setEnviaEnvironment(account?.provider==='envia'&&account?.config?.environment==='production'?'production':'sandbox');
-    setMrwFranchiseCode('');setMrwSubscriberCode('');setMrwDepartmentCode('');setMrwUsername('');setMrwPassword('');setMrwTrackingPassword('');
+    setMrwFranchiseCode('');setMrwSubscriberCode('');setMrwDepartmentCode('');setMrwUsername('');setMrwPassword('');
     setMrwEnvironment(account?.provider==='mrw'&&account?.config?.environment==='test'?'test':'production');
     const configuredMrwCode=account?.provider==='mrw'&&typeof account?.config?.serviceCode==='string'?String(account.config.serviceCode):'';
     const configuredMrwName=account?.provider==='mrw'&&typeof account?.config?.serviceName==='string'?String(account.config.serviceName):'';
@@ -1439,7 +1440,6 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
           if(mrwDepartmentCode.trim())credentials.departmentCode=mrwDepartmentCode.trim();
           if(mrwUsername.trim())credentials.username=mrwUsername.trim();
           if(mrwPassword.trim())credentials.password=mrwPassword.trim();
-          if(mrwTrackingPassword.trim())credentials.trackingPassword=mrwTrackingPassword.trim();
         }
         await updateIntegrationAccount(editing.id,{
           displayName:displayName.trim()||editing.displayName,enabled:accountEnabled,config:accountConfig(),
@@ -1485,7 +1485,7 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
         if(!mrwServiceCode.trim())throw new Error('Selecciona el servicio MRW predeterminado de esta cuenta.');
         await createIntegrationAccount({
           provider:'mrw',displayName:displayName.trim()||'MRW',
-          credentials:{franchiseCode:mrwFranchiseCode.trim(),subscriberCode:mrwSubscriberCode.trim(),departmentCode:mrwDepartmentCode.trim(),username:mrwUsername.trim(),password:mrwPassword.trim(),trackingPassword:mrwTrackingPassword.trim()},
+          credentials:{franchiseCode:mrwFranchiseCode.trim(),subscriberCode:mrwSubscriberCode.trim(),departmentCode:mrwDepartmentCode.trim(),username:mrwUsername.trim(),password:mrwPassword.trim()},
           config:accountConfig(),test:true,
         });
         showSuccess('Cuenta de MRW conectada directamente.');
@@ -1679,7 +1679,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                 </div>
                 <div className="integrationAccountActions">
                   {account.provider==='gmail'&&!account.legacy&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void renewGmailAccount(account)}>{busy==='renew:'+account.id?'Autorizando…':'Renovar autorización'}</button>}
-                  <button type="button" className="secondary" disabled={busy!==null||account.status==='disabled'} onClick={()=>void testAccount(account)}>{busy==='test:'+account.id?'Probando…':'Probar'}</button>
+                  <button type="button" className="secondary" disabled={busy!==null||account.status==='disabled'} onClick={()=>void testAccount(account)}>{busy==='test:'+account.id?'Probando…':account.provider==='mrw'?'Probar SAGEC':'Probar'}</button>
+                  {account.provider==='mrw'&&!account.legacy&&<MrwTrackingTestButton accountId={account.id} disabled={busy!==null||account.status==='disabled'} onResult={(message,ok)=>ok?showSuccess(message):showError(message)}/>}
                   {(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='shopify')&&<button type="button" className="secondary" disabled={busy!==null||account.status!=='connected'} onClick={()=>void syncAccount(account)}>{busy==='sync:'+account.id?'Sincronizando…':'Sincronizar'}</button>}
                   <button type="button" className="secondary" disabled={busy!==null} onClick={()=>resetEditor(account.provider,account)}>Configurar</button>
                   {!account.isDefault&&account.status!=='disabled'&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void makeDefault(account)}>Predeterminada</button>}
@@ -1769,7 +1770,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
               <label className="settingsField"><span>{editing?'Nuevo departamento (opcional)':'Departamento (opcional)'}</span><input autoComplete="off" value={mrwDepartmentCode} onChange={e=>setMrwDepartmentCode(e.target.value)} placeholder={editing?'Sin cambios':'Departamento (si aplica)'}/></label>
               <label className="settingsField"><span>{editing?'Nuevo usuario (opcional)':'Nombre de usuario'}</span><input autoComplete="username" value={mrwUsername} onChange={e=>setMrwUsername(e.target.value)} placeholder={editing?'Sin cambios':'Usuario MRW'}/></label>
               <label className="settingsField"><span>{editing?'Nueva contraseña (opcional)':'Contraseña'}</span><input type="password" autoComplete="new-password" value={mrwPassword} onChange={e=>setMrwPassword(e.target.value)} placeholder={editing?'Sin cambios':'Contraseña MRW'}/></label>
-              <label className="settingsField"><span>{editing?'Nueva contraseña de seguimiento (opcional)':'Contraseña de seguimiento (opcional)'}</span><input type="password" autoComplete="new-password" value={mrwTrackingPassword} onChange={e=>setMrwTrackingPassword(e.target.value)} placeholder={editing?'Sin cambios':'Solo necesaria para POD'}/><small>La misma contraseña usada en el seguimiento de MRW; solo es necesaria para recuperar POD.</small></label>
+              <MrwTrackingCredentialsNotice/>
+
               <label className="settingsField"><span>Entorno</span><SelectField ariaLabel="Entorno MRW" value={mrwEnvironment} options={[{value:'test',label:'Pruebas MRW'},{value:'production',label:'Producción MRW'}]} onChange={value=>setMrwEnvironment(value as 'test'|'production')}/></label>
               <label className="settingsField settingsFieldWide"><span>Servicio MRW predeterminado</span><SelectField ariaLabel="Servicio MRW predeterminado" allowEmpty emptyLabel="Selecciona el servicio asignado por MRW" value={mrwServiceCode} options={[
                 ...MRW_SERVICE_OPTIONS.map(item=>({value:item.code,label:`${item.code} · ${item.name}`})),

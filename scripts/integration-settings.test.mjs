@@ -147,16 +147,26 @@ test('Integrations supports a vaulted direct MRW account without exposing creden
 
 
 test('MRW only masks actual passwords; identifiers stay readable like the carrier contract form',async()=>{
-  const page=await read('src/pages/Settings.tsx');
+  const [page,tracking]=await Promise.all([
+    read('src/pages/Settings.tsx'),
+    read('src/components/MrwTrackingConnection.tsx'),
+  ]);
   assert.match(page,/Código de franquicia/);
   assert.match(page,/Código de suscriptor/);
   assert.match(page,/inputMode="numeric"[^>]*value=\{mrwFranchiseCode\}/);
   assert.match(page,/inputMode="numeric"[^>]*value=\{mrwSubscriberCode\}/);
   assert.match(page,/Departamento \(opcional\)/);
   assert.match(page,/autoComplete="username"[^>]*value=\{mrwUsername\}/);
+  for(const identifier of ['mrwFranchiseCode','mrwSubscriberCode','mrwDepartmentCode','mrwUsername']){
+    const input=page.match(new RegExp('<input[^>]*value=\\{'+identifier+'\\}[^>]*>'))?.[0];
+    assert.ok(input,`MRW identifier input missing: ${identifier}`);
+    assert.doesNotMatch(input,/type="password"/,`MRW identifier must remain readable: ${identifier}`);
+  }
   assert.match(page,/type="password"[^>]*value=\{mrwPassword\}/);
-  assert.match(page,/Contraseña de seguimiento \(opcional\)/);
-  assert.match(page,/trackingPassword:mrwTrackingPassword\.trim\(\)/);
+  assert.match(page,/<MrwTrackingCredentialsNotice\/>/);
+  assert.match(tracking,/mismas credenciales SAGEC/);
+  assert.doesNotMatch(page,/mrwTrackingPassword|MrwTrackingPasswordField/);
+  assert.doesNotMatch(tracking,/Contraseña de seguimiento|opción 4/);
 });
 
 

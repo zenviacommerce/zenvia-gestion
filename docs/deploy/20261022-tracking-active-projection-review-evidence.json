@@ -1,0 +1,20 @@
+{
+  "scope": "Local PGlite review only; no database connection or applied SQL modifications",
+  "tracking_base": "84aa9248ccb8f21128f93401024ea169bdedc3a6",
+  "historical_adapter": "b37749c0328d355c2fec5849198065cdd5f4d31f",
+  "normal_ci": "Review harness uses .review.ts and opt-in config; excluded from default .test/.spec include patterns",
+  "results": [
+    {
+      "path": "original held UI",
+      "failed_tests": 1,
+      "passed_tests": 0,
+      "expected_known_failure": "error: each UNION query must have the same number of columns"
+    },
+    {
+      "path": "historical cache-aware adapter",
+      "failed_tests": 1,
+      "passed_tests": 0,
+      "expected_known_failure": "AssertionError: dirty group must fall back after a business source UPDATE: expected 60 to be 59 // Object.is equality"
+    }
+  ]
+}

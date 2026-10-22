@@ -1,3 +1,5 @@
+import {probeMrwTrackingAccount} from '../_shared/tracking/accountProbe.ts';
+import {resumeMrwTrackingAfterCredentialSave,normalizeMrwCredentials,mergeMrwCredentials} from '../_shared/tracking/credentialResume.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
 import {loadAmazonSpApiCredentials} from '../_shared/amazon/config.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -93,14 +95,14 @@ async function consolidateLegacyGmail(admin:any,ownerId:string,target:any){
   if(plan.transferDefault)await makeDefault(admin,ownerId,'gmail',target.id);
   return loadAccount(admin,ownerId,target.id);
 }
-async function readVault(admin:any,secretId:string|null){
+async function readVault(admin:any,secretId:string|null,provider?:Provider){
   if(!secretId)return {};
   const {data,error}=await admin.rpc('integration_read_secret',{p_secret_id:secretId});
   if(error)throw error;
-  try{return JSON.parse(String(data||'{}'))}catch{throw new Error('Las credenciales almacenadas no tienen un formato válido.')}
+  try{const parsed=JSON.parse(String(data||'{}'));return provider==='mrw'?normalizeMrwCredentials(parsed):parsed}catch{throw new Error('Las credenciales almacenadas no tienen un formato válido.')}
 }
 async function writeVault(admin:any,accountId:string,provider:Provider,credentials:Record<string,unknown>,existingId:string|null){
-  const payload=JSON.stringify(credentials);
+  const payload=JSON.stringify(provider==='mrw'?normalizeMrwCredentials(credentials):credentials);
   if(provider==='shopify'){
     const {data,error}=await admin.rpc('integration_shopify_replace_secret',{p_account_id:accountId,p_secret:payload});
     if(error)throw error;
@@ -216,7 +218,7 @@ async function enviaCredentials(admin:any,account:any){
   return {token,environment};
 }
 async function mrwCredentials(admin:any,account:any){
-  const stored=account.secret_id?await readVault(admin,account.secret_id):{};
+  const stored=account.secret_id?await readVault(admin,account.secret_id,'mrw'):{};
   const credentials={
     franchiseCode:clean((stored as any).franchiseCode||(stored as any).codigoFranquicia),
     subscriberCode:clean((stored as any).subscriberCode||(stored as any).codigoAbonado),
@@ -432,6 +434,9 @@ Deno.serve(async(req:Request)=>{
     const body=await req.json().catch(()=>({}));
     const action=clean(body?.action||'list');
     const caller=await authenticate(req,admin,action);
+    if(action==='test_tracking'){
+      return response(await probeMrwTrackingAccount(admin,caller.data_owner_id,clean(body?.id)));
+    }
     if(['shopify_client_connect','shopify_install_connect','shopify_oauth_start','shopify_oauth_exchange'].includes(action)){
       await requireWorkspaceEntitlement(admin,caller.data_owner_id,'integration.shopify','Tu plan no incluye la integración con Shopify.');
     }
@@ -629,7 +634,8 @@ Deno.serve(async(req:Request)=>{
       let credentialSource='vault';
       let parentAccountId=clean(body?.parentAccountId)||null;
       let config=(body?.config&&typeof body.config==='object'&&!Array.isArray(body.config))?body.config:{};
-      const credentials=(body?.credentials&&typeof body.credentials==='object'&&!Array.isArray(body.credentials))?body.credentials:{};
+      const suppliedCredentials=(body?.credentials&&typeof body.credentials==='object'&&!Array.isArray(body.credentials))?body.credentials:{};
+      const credentials=provider==='mrw'?normalizeMrwCredentials(suppliedCredentials):suppliedCredentials;
       if(provider==='amazon'){
         externalAccountId=clean((credentials as any).sellerId||(credentials as any).seller_id||externalAccountId);
         if(!externalAccountId)throw new Error('Indica el Seller ID de Amazon.');
@@ -742,14 +748,17 @@ Deno.serve(async(req:Request)=>{
       if(typeof body?.displayName==='string'&&clean(body.displayName))patch.display_name=clean(body.displayName);
       if(typeof body?.enabled==='boolean')patch.enabled=body.enabled;
       if(body?.config&&typeof body.config==='object'&&!Array.isArray(body.config))patch.config={...(account.config||{}),...body.config};
-      const credentials=(body?.credentials&&typeof body.credentials==='object'&&!Array.isArray(body.credentials))?body.credentials:null;
+      const suppliedCredentials=(body?.credentials&&typeof body.credentials==='object'&&!Array.isArray(body.credentials))?body.credentials:null;
+      const credentials=suppliedCredentials&&account.provider==='mrw'?normalizeMrwCredentials(suppliedCredentials):suppliedCredentials;
+      let savedTrackingCredentials:Record<string,unknown>|null=null;
       if(credentials&&(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='envia'||account.provider==='mrw'||account.provider==='shopify')){
-        const existing=account.secret_id?await readVault(admin,account.secret_id):{};
-        const merged=account.provider==='shopify'&&clean((credentials as any).accessToken)
+        const existing=account.secret_id?await readVault(admin,account.secret_id,account.provider):{};
+        const merged=account.provider==='mrw'?mergeMrwCredentials(existing,credentials):account.provider==='shopify'&&clean((credentials as any).accessToken)
           ?shopifyLegacyCredentials((credentials as any).shopDomain||account.external_account_id,(credentials as any).accessToken)
           :{...existing,...Object.fromEntries(Object.entries(credentials).filter(([,v])=>clean(v)))};
         patch.secret_id=await writeVault(admin,account.id,account.provider,merged,account.secret_id);
-        patch.status='pending';patch.last_error=null;
+        savedTrackingCredentials=merged;
+        Object.assign(patch,{status:'pending',last_error:null});
         if(account.provider==='shopify'){
           const shopDomain=normalizeShopifyDomain((merged as any).shopDomain||(merged as any).shop_domain||body?.config?.shopDomain||account.external_account_id);
           const accessToken=clean((merged as any).accessToken||(merged as any).access_token);
@@ -762,6 +771,7 @@ Deno.serve(async(req:Request)=>{
       }
       const saved=await admin.from('integration_accounts').update(patch).eq('id',id).eq('owner_id',caller.data_owner_id).select('*').single();
       if(saved.error)throw saved.error;
+      await resumeMrwTrackingAfterCredentialSave(admin,account,credentials,undefined,savedTrackingCredentials);
       if(body?.isDefault===true)await makeDefault(admin,caller.data_owner_id,account.provider,id);
       return response({account:publicAccount(await loadAccount(admin,caller.data_owner_id,id))});
     }

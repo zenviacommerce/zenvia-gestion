@@ -27,8 +27,7 @@ test('Orders manual sync uses a stable in-flight guard instead of depending on s
   assert.match(orders,/if\(syncingRef\.current\)return/);
   assert.match(orders,/syncingRef\.current=true/);
   assert.match(orders,/syncingRef\.current=false/);
-  assert.match(orders,/settings\.integrations\.enviaEnabled/);
-  assert.match(orders,/syncEnviaShipments/);
+  assert.doesNotMatch(orders,/syncEnviaShipments\(/);
   assert.match(orders,/const runAmazon=Boolean\(settings\.integrations\.amazonEnabled\)/);
   assert.match(orders,/const runShopify=Boolean\(settings\.integrations\.shopifyEnabled\)/);
   assert.match(orders,/await requestAmazonSync\(undefined,\{waitForOrders:true\}\)/);
@@ -44,4 +43,4 @@ test('Dashboard pending orders KPI ignores period boundaries and reflects the re
   assert.doesNotMatch(dashboard,/const pendingOrders=validOrders\.filter\(isPendingOrder\)\.length/);
 });
 
-test('Orders has one visible persisted-data watcher and preserves manual connector actions',async()=>{const orders=await source('src/pages/Orders.tsx');assert.doesNotMatch(orders,/setInterval/);assert.match(orders,/watchFulfillmentOrders\(refresh,Math\.max\(60,settings\.orders\.refreshSeconds\)\*1000\)/);assert.match(orders,/runEnvia\?syncEnviaShipments\(enviaHistory\?12:2\)/);});
+test('Orders has one visible persisted-data watcher and keeps carrier tracking on the server',async()=>{const orders=await source('src/pages/Orders.tsx');assert.doesNotMatch(orders,/setInterval/);assert.match(orders,/watchFulfillmentOrders\(refresh,Math\.max\(60,settings\.orders\.refreshSeconds\)\*1000\)/);assert.doesNotMatch(orders,/syncEnviaShipments\(/);});

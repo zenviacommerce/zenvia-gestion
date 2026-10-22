@@ -242,6 +242,13 @@ export async function updateIntegrationAccount(id:string,input:UpdateIntegration
   return result.account;
 }
 
+export async function testMrwTrackingAccount(id:string){
+  return invoke<{ok:boolean;code:string;checkedAt:string}>(
+    {action:'test_tracking',id},
+    'No se pudo comprobar el seguimiento.',
+  );
+}
+
 export async function testIntegrationAccount(id:string){
   return invoke<{ok:true;checkedAt:string;account:IntegrationAccount;detail?:Record<string,unknown>}>(
     {action:'test',id},

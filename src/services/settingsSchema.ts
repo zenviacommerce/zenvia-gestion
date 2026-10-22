@@ -85,6 +85,7 @@ export type OrdersSettings = {
   retryTrackingConfirmation: boolean;
   refreshSeconds: number;
   overdueHours: number;
+  trackingStaleDays: number;
 };
 
 export type PackagePreset = {id:string;name:string;lengthCm:number;widthCm:number;heightCm:number};
@@ -313,6 +314,7 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
     retryTrackingConfirmation: true,
     refreshSeconds: 60,
     overdueHours: 24,
+    trackingStaleDays: 3,
   },
   shipping: {
     senderName: '',
@@ -744,7 +746,7 @@ function normalizeExpenses(input: AnyRecord | null,warnings:SettingsWarning[]):E
 
 function normalizeOrders(input:AnyRecord|null,warnings:SettingsWarning[]):OrdersSettings{
   const d=DEFAULT_APP_SETTINGS.orders;if(!input)return clone(d);
-  const keys=['defaultManualStatus','defaultChannel','originCountryCode','defaultCarrier','shippingSelectionMode','generateLabelAutomatically','downloadLabelAfterCreation','labelFilenameStrategy','customLabelFilenameTemplate','bulkZipFilenameTemplate','bulkScope','pushTrackingToMarketplace','markSentAfterLabel','retryTrackingConfirmation','refreshSeconds','overdueHours'];
+  const keys=['defaultManualStatus','defaultChannel','originCountryCode','defaultCarrier','shippingSelectionMode','generateLabelAutomatically','downloadLabelAfterCreation','labelFilenameStrategy','customLabelFilenameTemplate','bulkZipFilenameTemplate','bulkScope','pushTrackingToMarketplace','markSentAfterLabel','retryTrackingConfirmation','refreshSeconds','overdueHours','trackingStaleDays'];
   unknownKeys(input,keys,'orders',warnings);
   return {
     defaultManualStatus:stringValue(input,'defaultManualStatus',d.defaultManualStatus,'orders.defaultManualStatus',warnings,{min:1,max:80}),
@@ -763,6 +765,7 @@ function normalizeOrders(input:AnyRecord|null,warnings:SettingsWarning[]):Orders
     retryTrackingConfirmation:booleanValue(input,'retryTrackingConfirmation',d.retryTrackingConfirmation,'orders.retryTrackingConfirmation',warnings),
     refreshSeconds:numberValue(input,'refreshSeconds',d.refreshSeconds,'orders.refreshSeconds',warnings,30,3600,true),
     overdueHours:numberValue(input,'overdueHours',d.overdueHours,'orders.overdueHours',warnings,1,720,true),
+    trackingStaleDays:numberValue(input,'trackingStaleDays',d.trackingStaleDays,'orders.trackingStaleDays',warnings,1,90,true),
   };
 }
 

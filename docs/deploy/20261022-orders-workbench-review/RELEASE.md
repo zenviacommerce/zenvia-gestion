@@ -85,3 +85,17 @@ La migración se renombra en el repositorio a `20261022125659_orders_workbench.s
 - Rollback del ajuste: frontend `dpl_3wtaTuEXnEvcZjP2mWAFzdMPNk1G` conserva la nueva bandeja (con el recorte conocido); rollback completo a `dpl_usywB96ezEmZNWpSNGqPK7r1wFeG` conserva la pantalla anterior y RPC previa. No hay que revertir base de datos.
 
 Resultado local final del ajuste: 98 archivos / 526 pruebas Vitest correctas; 1.280 pruebas Node correctas; cuatro casos SQL de workbench con nombre canónico correctos; compilación de producción y verificación de icono correctas. Único aviso de build: tamaño de bundle Vite ya existente. Ningún documento real generado.
+
+### CI y publicación del ajuste de cascada
+
+Commit remoto final `a9e71140d29daba8787126d36e6aa709d26c0cdb`. CI 6/6 success: Shared UI 39785025637; Build check 39785025600; MFA disposable 39785025619; Auth resilience 39785025663; Build 39785026103; visual 39785025639. PR #285 fusionada, main `c570c47dd688ece8d00e2c83c03653f45e00d9e4`. No se vuelve a ejecutar la migración ni se cambian funciones.
+
+### Cierre verificado en producción
+
+- Vercel READY: `dpl_7vBQnPC6hWVntVa7B8aNfh4AVHhc`, alias `gestion.zenviacommerce.com`, commit `c570c47dd688ece8d00e2c83c03653f45e00d9e4`. Árbol `8042fe6d9d763717d2e5dea351b1ef1fe6b7130e`, idéntico al árbol validado localmente y en la PR.
+- Sesión real del piloto: acceso correcto tras recargar; Incidencias mantiene Pedido/Cliente/Transportista/Seguimiento. A 1280 Seguimiento termina en x=1031 dentro de x=1227; a 1440 x=1031 dentro de x=1387. Cabecera en una fila en los tres anchos; sin desbordamiento horizontal del documento. A 390 la tarjeta muestra motivo, fecha, antigüedad y acceso externo completos.
+- Enviados: 158 resultados para el trimestre, misma cifra previa; a 1440 Seguimiento termina en x=1056,28 dentro de x=1387. Pendientes y Cancelados conservan sus cifras del mismo alcance; Informes muestra el historial guardado, sin crear ni reimprimir documentos reales. Las cifras de pestañas sin periodo son de todo el historial y vuelven al periodo al entrar en Enviados/Cancelados.
+- Fechas observadas en pantalla y seguimiento: DD/MM/YYYY y hora de Madrid. Se conserva la distinción Detectado / Último movimiento.
+- Comprobación final DB: fingerprint de los 41 wrappers anteriores idéntico; manifiesto válido; una sola migración orders_workbench; proyección read/maintenance true. Sin reset de estadísticas ni reprocesados.
+- El historial de consola contenía mensajes de canal de extensión anteriores al despliegue (12:41 UTC); no se usan como defectos del nuevo bundle. No se observan errores nuevos en los flujos revisados.
+- Viewport temporal restaurado y navegador dejado en Incidencias para comprobación del propietario. Capturas versionadas solo sintéticas. Próxima actuación: comparación de consumo programada 23/10 a las 11:20 Europe/Madrid; después backlog aprobado en su orden.

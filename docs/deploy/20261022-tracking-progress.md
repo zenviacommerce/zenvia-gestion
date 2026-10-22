@@ -49,3 +49,10 @@ Pendiente de aprobación: la migración de privacidad (por separado), y después
 Ver [plan de reducción de consumo](20261022-compute-cost-plan.md). La publicación del catálogo ya ha terminado. Esta prioridad se intercala con las correcciones de revisión, antes de publicar la UI de seguimiento.
 
 Corrección local de frontend: un único temporizador de lectura por pantalla con intervalo mínimo de 60 s, solo con documento visible. La suscripción a fulfillment_orders se filtra por workspace y se desconecta al ocultar la pestaña; callbacks de cuentas anteriores se ignoran. Se serializan lecturas y se agrupan eventos. Pedidos y Dashboard dejan de lanzar sincronizaciones periódicas de transportistas desde el navegador. Se conserva la sincronización manual. Broadcast y optimización SQL siguen pendientes del plan; no se afirma cumplido el objetivo de 50 ms.
+
+
+## Correcciones encontradas por CI del PR #279
+
+- La fixture visual anterior simulaba trackingPresentation y devolvía undefined. Se conserva ahora el módulo puro real, igual que orderStatus/formatting, sin alterar el producto.
+- El ensayo real de MFA detectó que la política restrictiva de lectura propuesta no usaba el nombre esperado por private.mfa_activation_findings. La migración UI (todavía NO aplicada en producción) define mfa_select_gate, mfa_insert_gate, mfa_update_gate y mfa_delete_gate. Solo conserva GRANT SELECT; escrituras sin concesión ni política permisiva. Prueba adicional ejecuta el auditor real y exige cero hallazgos para shipment_tracking_state. No se toca el auditor ni se relajan sus comprobaciones.
+- La migración de privacidad denegada permanece exactamente igual al SQL presentado. Ninguna de estas correcciones se ha aplicado en producción.

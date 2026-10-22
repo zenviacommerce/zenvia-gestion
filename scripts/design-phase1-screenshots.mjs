@@ -26,7 +26,7 @@ const mocks=new Map();
 for(const match of (source+dashboard+tariffsPanel).matchAll(/import\s+([\s\S]*?)\s+from\s+['"]([^'"]+)['"]/g)){
  const [,clause,path]=match;
  if(!path.startsWith('../services/')&&!path.endsWith('SettingsContext'))continue;
- if(['orderStatus','filters','orderShipping','orderLabelFiles','shippingRuleCore','uiPreferences','formatting'].some(x=>path.endsWith('/'+x)))continue;
+ if(['orderStatus','filters','orderShipping','orderLabelFiles','shippingRuleCore','uiPreferences','formatting','shipmentTracking'].some(x=>path.endsWith('/'+x)))continue;
  const named=clause.match(/\{([\s\S]*?)\}/)?.[1]||'';
  const exports=named.split(',').map(x=>x.trim()).filter(x=>x&&!x.startsWith('type ')).map(x=>x.split(/\s+as\s+/).pop());
  mocks.set(path,(mocks.get(path)||'')+'\n'+exports.filter(x=>!(mocks.get(path)||'').includes('export const '+x+'=')).map(x=>`export const ${x}=(...args)=>globalThis.fixtureServices.${x}?.(...args);`).join('\n'));

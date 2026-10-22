@@ -2,7 +2,12 @@
 -- No fulfillment order writes. Reads remain tenant/permission/MFA scoped.
 grant select on public.shipment_tracking_state to authenticated;
 create policy shipment_tracking_workspace_select on public.shipment_tracking_state for select to authenticated using(owner_id=(select private.app_workspace_owner_id()) and (select private.app_has_permission('orders')) and exists(select 1 from public.fulfillment_orders o where o.id=shipment_tracking_state.order_id and o.owner_id=shipment_tracking_state.owner_id and o.pii_purged_at is null and shipment_tracking_state.identity_key=md5(jsonb_build_array(o.owner_id,o.shipping_integration_account_id,o.shipping_provider,o.tracking_number,o.shipping_remote_id,o.sendcloud_parcel_id,o.label_created_at,o.label_cancelled_at)::text)));
-create policy shipment_tracking_mfa_gate on public.shipment_tracking_state as restrictive for select to authenticated using((select private.mfa_allowed()));
+-- Match the activation audit's four restrictive policy names even though only
+-- SELECT is granted. Writes remain ungranted and have no permissive policy.
+create policy mfa_select_gate on public.shipment_tracking_state as restrictive for select to authenticated using((select private.mfa_allowed()));
+create policy mfa_insert_gate on public.shipment_tracking_state as restrictive for insert to authenticated with check((select private.mfa_allowed()));
+create policy mfa_update_gate on public.shipment_tracking_state as restrictive for update to authenticated using((select private.mfa_allowed())) with check((select private.mfa_allowed()));
+create policy mfa_delete_gate on public.shipment_tracking_state as restrictive for delete to authenticated using((select private.mfa_allowed()));
 create function private.tracking_legacy_state(p_provider text,p_code text) returns text language sql immutable set search_path='' as $$
  select case lower(regexp_replace(trim(coalesce(p_code,'')),'[ -]+','_','g'))
  when 'ready_to_send' then 'pre_transit' when 'created' then 'pre_transit' when 'announced' then 'pre_transit'

@@ -33,3 +33,7 @@ Sin producción modificada. Gestión base publicada: 036c49b78362a67921ffcffea52
 - Parada obligatoria antes de publicar A. B pendiente, estimación preliminar 6–10 h, antes de 2b.
 
 - Regresión adicional Home tras scroll manual: prueba roja y verde; 10/10 pruebas focalizadas de pestañas tras el ajuste. Swipe mediante eventos táctiles nativos de Chromium a 390 px, sin red, con desplazamiento comprobado en manifiesto de Pedidos.
+
+## Ajuste de contrato de CI visual
+
+La revisión financiera histórica buscaba la clase expenseHubNav retirada por la nueva primitiva. Se sustituye por roles tablist/tab, conservando la comparación exacta de etiquetas, descripciones y recuento de roles. El control de ancho comprueba límites del viewport; el desplazamiento interno es intencionado. Reproducción local del script completo: 9/9 combinaciones Facturación/Gastos/Recibos ×390/1280/1440, sin fallos de contenido, selección, filtros ni acciones. Ver finance-contract-verification.json. No se cambió la UI ni se eliminó ninguna comprobación funcional. CI vuelve a ejecutarse antes de cerrar la revisión.

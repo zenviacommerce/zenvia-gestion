@@ -25,3 +25,5 @@ Un hallazgo importante: al cambiar MRW/Envia → Sendcloud se conservaba la cuen
 Primera suite completa: 649/649 Vitest, 116 archivos; build correcto. Tras la corrección de revisión se repetirá la suite. Deno 2.9.6 valida las cuatro funciones.
 
 Incidencia local de verificación: cuatro pruebas Node fallaron porque el worktree parcial no incluía dos documentos y dos iconos ya presentes en main. Se restauran copias byte idénticas (hashes Git contrastados con el árbol remoto), sin cambios de producto ni exclusiones. Se repite Node completo.
+
+Validación posterior al hallazgo: 25/25 focales, Node completo1284/1284, Deno y build correctos. Inspección de capturas: el texto informativo de cancelación usa el párrafo normal del sistema para mantener contraste en oscuro; no se presenta como error. Se regeneran las24capturas y se conserva el inventario.

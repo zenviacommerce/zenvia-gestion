@@ -32,7 +32,7 @@ node scripts/orders-workbench-review.mjs before
 node scripts/orders-workbench-review.mjs after
 ```
 
-The script uses the primary runtime Playwright and the existing local Chromium fallback. `UI_CAPTURE_SOURCE` can select another immutable source revision; `DESIGN_REVIEW_OUTPUT` can select an output directory. Nothing is published.
+The script uses installed Playwright Chromium (or the primary runtime Playwright); WORKBENCH_CHROMIUM_ROOT optionally selects an extracted local Chromium bundle. `UI_CAPTURE_SOURCE` can select another immutable source revision; `DESIGN_REVIEW_OUTPUT` can select an output directory. Nothing is published.
 
 Action inventory (before → after)
 

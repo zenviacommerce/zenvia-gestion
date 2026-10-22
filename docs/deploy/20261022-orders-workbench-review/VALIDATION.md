@@ -24,3 +24,5 @@ Los avisos de tamaño de bundle de Vite permanecen; no son errores de compilaci�
 - Usar la misma fecha real/civil Madrid para Incidencias y avisos visibles; no inventar movimiento desde la creación de la etiqueta o su última consulta.
 - Mantener todas las acciones de cabecera accesibles en móvil sin desbordar el menú; ajustar contraste de etiquetas y enlaces en tema oscuro.
 - Introducir una versión de preferencias que haga visibles los cuatro KPI nuevos en selecciones antiguas, sin restaurar tarjetas antiguas ocultas ni sobrescribir elecciones posteriores.
+
+La antigua captura de fase 1 esperaba las tarjetas KPI en Pedidos. El flujo visual de CI pasa a ejecutar las 42 capturas del workbench y sus pruebas de acciones/selección/finanzas; conserva MFA y las fases del resto de pantallas. El navegador utiliza Playwright instalado en CI y una ruta local opcional mediante `WORKBENCH_CHROMIUM_ROOT`.

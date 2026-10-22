@@ -25,10 +25,10 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Render actual MFA components with test-only authentication fixtures
         run: node scripts/mfa-visual-screenshots.mjs
-      - name: Verify migrated design layouts and data parity
+      - name: Verify Orders workbench, financial relocation and action parity
         run: |
-          node scripts/design-phase1-screenshots.mjs before
-          SORT_RESET_REVIEW=1 node scripts/design-phase1-screenshots.mjs after
+          node scripts/orders-workbench-review.mjs before
+          node scripts/orders-workbench-review.mjs after
       - name: Verify image previews preserve complete images
         run: |
           node scripts/image-preview-screenshots.mjs before
@@ -93,8 +93,8 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: design-phase1-review
-          path: docs/deploy/design-phase1-review-20261020/
+          name: orders-workbench-review
+          path: docs/deploy/20261022-orders-workbench-review/
           if-no-files-found: error
       - name: Upload eight mobile and desktop screenshots
         if: always()

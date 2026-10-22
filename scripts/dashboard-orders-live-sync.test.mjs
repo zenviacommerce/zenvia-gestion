@@ -7,19 +7,17 @@ async function source(path){
   catch{return '';}
 }
 
-test('Dashboard refreshes Sendcloud before reading order KPIs when the integration is enabled',async()=>{
+test('Dashboard reads persisted order KPIs without browser-driven carrier synchronization',async()=>{
   const dashboard=await source('src/pages/Dashboard.tsx');
-  assert.match(dashboard,/settings\.integrations\.sendcloudEnabled/);
-  assert.match(dashboard,/await\s+syncSendcloudOrders\(false,true,true\)/);
+  assert.doesNotMatch(dashboard,/syncSendcloudOrders\(/);
   assert.match(dashboard,/await\s+listFulfillmentOrders\(\)/);
 });
 
 test('Dashboard uses the configured order refresh interval',async()=>{
   const dashboard=await source('src/pages/Dashboard.tsx');
   assert.match(dashboard,/settings\.orders\.refreshSeconds/);
-  assert.match(dashboard,/Math\.max\(30,settings\.orders\.refreshSeconds\)\*1000/);
-  assert.match(dashboard,/clearInterval/);
-  assert.doesNotMatch(dashboard,/setInterval\([^\n]*60000/);
+  assert.match(dashboard,/watchFulfillmentOrders\(refreshOrders,Math\.max\(60,settings\.orders\.refreshSeconds\)\*1000\)/);
+  assert.doesNotMatch(dashboard,/setInterval/);
 });
 
 
@@ -29,8 +27,7 @@ test('Orders auto-sync uses a stable in-flight guard instead of depending on syn
   assert.match(orders,/if\(syncingRef\.current\)return/);
   assert.match(orders,/syncingRef\.current=true/);
   assert.match(orders,/syncingRef\.current=false/);
-  assert.match(orders,/settings\.integrations\.enviaEnabled/);
-  assert.match(orders,/syncEnviaShipments/);
+  assert.doesNotMatch(orders,/syncEnviaShipments\(/);
   assert.match(orders,/const runAmazon=Boolean\(settings\.integrations\.amazonEnabled\)/);
   assert.match(orders,/const runShopify=Boolean\(settings\.integrations\.shopifyEnabled\)/);
   assert.match(orders,/await requestAmazonSync\(undefined,\{waitForOrders:true\}\)/);

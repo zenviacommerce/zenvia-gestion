@@ -225,3 +225,4 @@ html[data-theme='dark'] .ordersFieldError{color:#fca5a5}
 @media(max-width:1050px){.ordersPage .ordersToolbar .businessFilterFields{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:760px){.ordersPage .ordersToolbar .businessFilterFields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:480px){.ordersPage .ordersToolbar .businessFilterFields{grid-template-columns:minmax(0,1fr)}}
+.shipmentTrackingSummary{display:flex;flex-direction:column;align-items:flex-start;gap:4px;max-width:260px;white-space:normal}.shipmentTrackingSummary>small{font-size:11px;color:var(--text-muted);line-height:1.4}.shipmentTrackingSummary>.ordersValidationWarn{color:var(--warning,#b45309)}.ordersTracking.returned{background:var(--surface-soft);color:var(--text)}

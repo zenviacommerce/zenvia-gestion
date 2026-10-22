@@ -1,3 +1,4 @@
+import {build} from 'esbuild';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
@@ -13,9 +14,11 @@ test('redacted Amazon recipient preserves existing and original address fields',
  const local={...current,raw_payload:{...current.raw_payload,_zenvia_local_shipping_updated_at:'now'}};
  assert.equal(merge(local,{name:'Remote'}).name,'Edited');
 });
-test('Amazon tracking is shown without a locally generated label',()=>{
+test('Amazon tracking is shown without a locally generated label',async()=>{
+ const out=await build({entryPoints:['src/services/shipmentTracking.ts'],bundle:true,write:false,format:'esm',platform:'node'});
+ const {trackingPresentation}=await import('data:text/javascript;base64,'+Buffer.from(out.outputFiles[0].text).toString('base64'));
  const ui=fs.readFileSync('src/pages/Orders.tsx','utf8');
  const match=ui.match(/function trackingState[\s\S]*?\n}\n/);assert.ok(match);
- const state=vm.runInNewContext(ts.transpile(match[0],{target:ts.ScriptTarget.ES2022})+'\ntrackingState',{hasShippingLabel:()=>false});
- assert.equal(state({trackingNumber:'TRACK',trackingStatusCode:'SHIPPED'}).label,'Enviado');
+ const state=vm.runInNewContext(ts.transpile(match[0],{target:ts.ScriptTarget.ES2022})+'\ntrackingState',{hasShippingLabel:()=>false,trackingPresentation});
+ assert.equal(state({trackingNumber:'TRACK',trackingStatusCode:'SHIPPED'}).label,'En tránsito');
 });

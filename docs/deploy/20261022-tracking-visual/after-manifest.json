@@ -1,0 +1,50 @@
+[
+  {
+    "phase": "after",
+    "width": 390,
+    "theme": "light",
+    "errors": [],
+    "network": 0,
+    "synthetic": true
+  },
+  {
+    "phase": "after",
+    "width": 390,
+    "theme": "dark",
+    "errors": [],
+    "network": 0,
+    "synthetic": true
+  },
+  {
+    "phase": "after",
+    "width": 1280,
+    "theme": "light",
+    "errors": [],
+    "network": 0,
+    "synthetic": true
+  },
+  {
+    "phase": "after",
+    "width": 1280,
+    "theme": "dark",
+    "errors": [],
+    "network": 0,
+    "synthetic": true
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "theme": "light",
+    "errors": [],
+    "network": 0,
+    "synthetic": true
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "theme": "dark",
+    "errors": [],
+    "network": 0,
+    "synthetic": true
+  }
+]

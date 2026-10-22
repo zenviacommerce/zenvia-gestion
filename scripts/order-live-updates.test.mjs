@@ -9,13 +9,13 @@ test('both pages receive realtime, manual and fallback changes and unsubscribe o
  const channel={on(event,filter,callback){assert.equal(event,'postgres_changes');assert.equal(filter.table,'fulfillment_orders');onChange=callback;return this},subscribe(){return this}};
  const api={channel:()=>channel,removeChannel:async()=>{removed=true}};
  const win={setTimeout(fn){timers.set(++id,fn);return id},clearTimeout(i){timers.delete(i)},setInterval(fn){this.tick=fn;return 100},clearInterval(){this.tick=null},addEventListener(name,fn){listeners.set(name,fn)},removeEventListener(name){listeners.delete(name)}};
- const exports={};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:()=>({supabase:api}),window:win,crypto:{randomUUID:()=> 'test'}});
+ const exports={};vm.runInNewContext(ts.transpileModule(source,{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports,require:()=>({getActiveSupabase:()=>api,getActiveTenant:()=>({workspace_id:'owner'})}),document:{visibilityState:'visible',addEventListener(){},removeEventListener(){}},window:win,crypto:{randomUUID:()=> 'test'}});
  const stop=exports.watchFulfillmentOrders(()=>refreshes++);
  onChange();onChange();assert.equal(timers.size,1);
  const fire=()=>{const callbacks=[...timers.values()];timers.clear();callbacks.forEach(fn=>fn())};
- fire();assert.equal(refreshes,1);
- listeners.get('zenvia:orders-refresh')();fire();assert.equal(refreshes,2);
- win.tick();fire();assert.equal(refreshes,3);
+ fire();await Promise.resolve();assert.equal(refreshes,1);
+ listeners.get('zenvia:orders-refresh')();fire();await Promise.resolve();assert.equal(refreshes,2);
+ win.tick();fire();await Promise.resolve();assert.equal(refreshes,3);
  stop();assert.equal(removed,true);assert.equal(listeners.size,0);assert.equal(win.tick,null);
  onChange();assert.equal(timers.size,0);
 });

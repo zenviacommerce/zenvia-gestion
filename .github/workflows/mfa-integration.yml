@@ -25,7 +25,15 @@ jobs:
         run: npx vitest run tests/mfa-ui.test.tsx tests/mfa-sql.test.ts
       - name: Start disposable GoTrue, Postgres, Vault and Edge
         run: |
-          if [ ! -f supabase/config.toml ]; then supabase init; fi
+          # Production may track only function JWT overrides. Generate the full
+          # disposable stack defaults before applying those overrides in CI.
+          if [ -f supabase/config.toml ] && ! rg -q '^\[auth\.mfa\.totp\]' supabase/config.toml; then
+            mv supabase/config.toml "$RUNNER_TEMP/function-overrides.toml"
+            supabase init
+            cat "$RUNNER_TEMP/function-overrides.toml" >> supabase/config.toml
+          elif [ ! -f supabase/config.toml ]; then
+            supabase init
+          fi
           python3 - <<'PY'
           from pathlib import Path
           import re

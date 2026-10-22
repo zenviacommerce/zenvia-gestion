@@ -1,3 +1,4 @@
+import type {TrackingFields} from './shipmentTracking';
 import { supabase, getActiveSupabase } from './supabase';
 import { isAmazonAwaitingPayment } from './orderStatus';
 import {markOrderLabelCreated,ordersSnapshotVersion,publishOrdersSnapshot,readOrdersSnapshot,resetOrdersSnapshot} from './ordersSnapshot';
@@ -8,7 +9,7 @@ export type {ProviderQuotes,QuoteProvider} from './providerQuotes';
 
 export type OrderChannel = 'amazon' | 'shopify' | 'other';
 
-export interface FulfillmentOrder {
+export interface FulfillmentOrder extends TrackingFields {
   id:string; sendcloudId:string; orderId:string|null; orderNumber:string|null;
   sourceIntegrationAccountId:string|null; shippingIntegrationAccountId:string|null;
   integrationId:number; integrationName:string|null; integrationType:string|null; sourceChannel:OrderChannel;
@@ -122,7 +123,8 @@ function mapRow(row:any):FulfillmentOrder{
     shippingRemoteId:row.shipping_remote_id||null, shippingLabelUrl:row.shipping_label_url||null,
     trackingNumber:row.tracking_number||null, trackingUrl:row.tracking_url||null,
     carrierTrackingUrl:row.tracking_metadata?.number===row.tracking_number?row.tracking_metadata?.url||null:null,
-    trackingStatusCode:row.tracking_status_code||null, trackingStatusMessage:row.tracking_status_message||null, trackingUpdatedAt:row.tracking_updated_at||null,
+    trackingStatusCode:row.tracking_raw_code??row.tracking_status_code??null, trackingStatusMessage:row.tracking_raw_message??row.tracking_status_message??null, trackingUpdatedAt:row.tracking_updated_at||null,
+    trackingNormalizedState:row.tracking_normalized_state||null,trackingEventAt:row.tracking_event_at||null,trackingEventTimeRaw:row.tracking_event_time_raw||null,trackingObservedAt:row.tracking_observed_at||null,trackingMovementAt:row.tracking_movement_at||null,trackingCheckedAt:row.tracking_checked_at||null,trackingError:row.tracking_error||null,
     shippingOptionCode:row.shipping_option_code||null, contractId:row.contract_id==null?null:Number(row.contract_id),
     carrierCode:row.carrier_code||null, carrierName:row.carrier_name||(balearicPending?'🏝 Baleares · usar Correos':null), shippingServiceName:row.shipping_service_name||null,
     shippingCostAmount:row.shipping_cost_amount==null?null:Number(row.shipping_cost_amount), shippingCostCurrency:row.shipping_cost_currency||null, shippingCostSource:row.shipping_cost_source||null,

@@ -1,0 +1,27 @@
+import {configureSendcloudWebhook} from '../_shared/tracking/setup-webhook.ts';
+import {createClient} from 'npm:@supabase/supabase-js@2.105.0';
+import {runTrackingWorker} from '../_shared/tracking/worker.ts';
+function key(){try{const keys=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}');if(keys.default)return keys.default}catch{}return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||''}
+Deno.serve(async(req:Request)=>{
+ const secret=key();if(req.method!=='POST')return Response.json({error:'METHOD_NOT_ALLOWED'},{status:405});
+ if(!secret||req.headers.get('apikey')!==secret)return Response.json({error:'UNAUTHORIZED'},{status:401});
+ const admin=createClient(Deno.env.get('SUPABASE_URL')||'',secret,{auth:{persistSession:false,autoRefreshToken:false}});
+ const environmentCredentials={sendcloud:{publicKey:Deno.env.get('SENDCLOUD_PUBLIC_KEY')||Deno.env.get('SENDCLOUD_API_KEY'),secretKey:Deno.env.get('SENDCLOUD_SECRET_KEY')||Deno.env.get('SENDCLOUD_API_SECRET')}};
+ try{
+  const body=await req.json().catch(()=>({}));
+  if(body.action==='webhook_availability'||body.action==='configure_sendcloud_webhook'){
+   const {data:accounts,error}=await admin.from('integration_accounts').select('id,owner_id,provider,secret_id,credential_source').eq('provider','sendcloud').eq('enabled',true).neq('status','disabled');if(error)throw error;
+   const results=[];
+   for(const account of (accounts||[]).slice(0,10)){
+    let stored:any={};if(account.secret_id){const {data,error}=await admin.rpc('integration_read_secret',{p_secret_id:account.secret_id});if(error)throw error;stored=JSON.parse(String(data||'{}'))}
+    const c={...(account.credential_source==='environment'?environmentCredentials.sendcloud:{}),...stored};
+    const r=await fetch('https://panel.sendcloud.sc/api/v3/event-subscriptions/connections',{headers:{Authorization:'Basic '+btoa((c.publicKey||c.public_key||'')+':'+(c.secretKey||c.secret_key||''))},signal:AbortSignal.timeout(12000),redirect:'error'});
+    const available=r.ok;await r.body?.cancel();
+    if(body.action==='configure_sendcloud_webhook'&&available){const configured=await configureSendcloudWebhook(account,c,Deno.env.get('SUPABASE_URL')||'');const saved=await admin.from('shipment_tracking_account_health').update({webhook_status:JSON.stringify(configured)}).eq('account_id',account.id);if(saved.error)throw saved.error;results.push({account:account.id,...configured})}
+    else results.push({account:account.id,status:r.status,available});
+   }
+   return Response.json({accounts:results});
+  }
+  return Response.json(await runTrackingWorker(admin,fetch,environmentCredentials));
+ }catch{return Response.json({error:'TRACKING_WORKER_FAILED'},{status:503})}
+});

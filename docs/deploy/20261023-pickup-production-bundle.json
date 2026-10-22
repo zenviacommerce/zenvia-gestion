@@ -1,0 +1,34 @@
+{
+  "liveBaseline": {
+    "function": "mrw-shipping",
+    "version": 25,
+    "verifyJwt": true
+  },
+  "functions": {
+    "pickup-report-documents": {
+      "verifyJwt": true,
+      "files": {
+        "pickup-report-documents/index.ts": "7bab908cfdcc69d236507ca358b52390367a52a36adc5bd770d1b7e9be62b721",
+        "_shared/amazon/supabase.ts": "8c7210c4f6fa2636c7b079a042a5e7d248f62cd0d2bfd063639c211dfbe194f8",
+        "_shared/mfa.ts": "1da4d61cbfe1f034f5fdacb8dbe9db5762d260deb93d66a32692bab5e378c354",
+        "_shared/mfa-policy.ts": "00dfe08fc80e6b41b9bd2490c6c768330e6971defa72f68e899e710fdd039b4d",
+        "_shared/pickupDocumentHandler.ts": "dff1a62db404ef12f0dbc8e65c234c0e0017b4c64ad62824ccbce3fc5c93efa4",
+        "_shared/pickupReportDocument.ts": "560dc6d82235d3227902e6f53dd97d362e328f822a7322e261193d12dcc0d434",
+        "_shared/gmailPdfMessage.ts": "b82131549293328e264e181ed833d525bedc838a4028998d6fb442b6ba459564"
+      }
+    },
+    "pickup-report-purge": {
+      "verifyJwt": false,
+      "files": {
+        "pickup-report-purge/index.ts": "07198a2554cac964f806b8eac0d5fcfe5e60f11abd7bbd04eea2f43a6526b553",
+        "_shared/amazon/supabase.ts": "8c7210c4f6fa2636c7b079a042a5e7d248f62cd0d2bfd063639c211dfbe194f8",
+        "_shared/mfa.ts": "1da4d61cbfe1f034f5fdacb8dbe9db5762d260deb93d66a32692bab5e378c354",
+        "_shared/mfa-policy.ts": "00dfe08fc80e6b41b9bd2490c6c768330e6971defa72f68e899e710fdd039b4d",
+        "_shared/pickupDocumentPurge.ts": "9674eb56152167c6c31bfcd58ef1e1a576a6ce8bc1771d3d131049b4be820e39",
+        "_shared/pickupReportDocument.ts": "560dc6d82235d3227902e6f53dd97d362e328f822a7322e261193d12dcc0d434"
+      }
+    }
+  },
+  "mfaPolicyPreserved": true,
+  "purgeScheduled": false
+}

@@ -27,7 +27,7 @@ export interface FulfillmentOrder extends TrackingFields {
   carrierCode:string|null; carrierName:string|null; shippingServiceName:string|null;
   shippingCostAmount:number|null; shippingCostCurrency:string|null; shippingCostSource:string|null;
   shippingCostNetAmount:number|null; shippingCostTaxAmount:number|null; shippingCostRecordedAt:string|null;
-  labelCreatedAt:string|null; labelPrintedAt:string|null; labelPrintCount:number; labelPrintStateKnown:boolean; fulfilledAt:string|null; lastSyncedAt:string;
+  labelCancelledAt?:string|null; labelCreatedAt:string|null; labelPrintedAt:string|null; labelPrintCount:number; labelPrintStateKnown:boolean; fulfilledAt:string|null; lastSyncedAt:string;
 }
 
 export interface SendcloudIntegration {
@@ -127,7 +127,7 @@ function mapRow(row:any):FulfillmentOrder{
     carrierCode:row.carrier_code||null, carrierName:row.carrier_name||(balearicPending?'🏝 Baleares · usar Correos':null), shippingServiceName:row.shipping_service_name||null,
     shippingCostAmount:row.shipping_cost_amount==null?null:Number(row.shipping_cost_amount), shippingCostCurrency:row.shipping_cost_currency||null, shippingCostSource:row.shipping_cost_source||null,
     shippingCostNetAmount:row.shipping_cost_net_amount==null?null:Number(row.shipping_cost_net_amount), shippingCostTaxAmount:row.shipping_cost_tax_amount==null?null:Number(row.shipping_cost_tax_amount), shippingCostRecordedAt:row.shipping_cost_recorded_at||null,
-    labelCreatedAt:row.label_created_at||null, labelPrintedAt:row.label_printed_at||null, labelPrintCount:Number(row.label_print_count||0), labelPrintStateKnown:row.label_print_state_known!==false, fulfilledAt:row.fulfilled_at||null, lastSyncedAt:row.last_synced_at,
+    labelCancelledAt:row.label_cancelled_at||null,labelCreatedAt:row.label_created_at||null, labelPrintedAt:row.label_printed_at||null, labelPrintCount:Number(row.label_print_count||0), labelPrintStateKnown:row.label_print_state_known!==false, fulfilledAt:row.fulfilled_at||null, lastSyncedAt:row.last_synced_at,
   });
 }
 
@@ -221,7 +221,7 @@ export function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
 }
 async function readFulfillmentOrders(client:ReturnType<typeof getActiveSupabase>):Promise<FulfillmentOrder[]>{
   const snapshotVersion=ordersSnapshotVersion();
-  const {data,error}=await client.from('fulfillment_orders').select('id,sendcloud_id,sendcloud_remote_id,order_id,order_number,source_integration_account_id,shipping_integration_account_id,integration_id,integration_name,integration_type,source_channel,source_status,order_created_at,order_updated_at,pii_purged_at,destination_country_code,customer_name,customer_email,customer_phone,shipping_address,billing_address,items,total_amount,currency,shipping_measurement:raw_payload->shipping_details->measurement,tracking_metadata:raw_payload->_zenvia_tracking,package_length_cm,package_width_cm,package_height_cm,sendcloud_parcel_id,sendcloud_shipment_id,shipping_provider,shipping_remote_id,shipping_label_url,tracking_number,tracking_url,tracking_status_code,tracking_status_message,tracking_updated_at,shipping_option_code,contract_id,carrier_code,carrier_name,shipping_service_name,shipping_cost_amount,shipping_cost_currency,shipping_cost_source,shipping_cost_net_amount,shipping_cost_tax_amount,shipping_cost_recorded_at,label_created_at,label_printed_at,label_print_count,label_print_state_known,fulfilled_at,last_synced_at').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000).abortSignal(AbortSignal.timeout(15000));
+  const {data,error}=await client.from('fulfillment_orders').select('id,sendcloud_id,sendcloud_remote_id,order_id,order_number,source_integration_account_id,shipping_integration_account_id,integration_id,integration_name,integration_type,source_channel,source_status,order_created_at,order_updated_at,pii_purged_at,destination_country_code,customer_name,customer_email,customer_phone,shipping_address,billing_address,items,total_amount,currency,shipping_measurement:raw_payload->shipping_details->measurement,tracking_metadata:raw_payload->_zenvia_tracking,package_length_cm,package_width_cm,package_height_cm,sendcloud_parcel_id,sendcloud_shipment_id,shipping_provider,shipping_remote_id,shipping_label_url,tracking_number,tracking_url,tracking_status_code,tracking_status_message,tracking_updated_at,shipping_option_code,contract_id,carrier_code,carrier_name,shipping_service_name,shipping_cost_amount,shipping_cost_currency,shipping_cost_source,shipping_cost_net_amount,shipping_cost_tax_amount,shipping_cost_recorded_at,label_created_at,label_cancelled_at,label_printed_at,label_print_count,label_print_state_known,fulfilled_at,last_synced_at').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000).abortSignal(AbortSignal.timeout(15000));
   if(error)throw error;
   const orders=dedupeMarketplaceOrders((data||[]).map(mapRow)).filter(order=>!isAmazonAwaitingPayment(order));
   // Synchronization and the database identity trigger persist the account name.

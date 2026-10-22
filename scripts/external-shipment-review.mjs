@@ -6,7 +6,8 @@ import {resolve} from 'node:path';
 import {assertHeaderActionsPreserved} from './header-actions-contract.mjs';
 const {chromium}=await import(process.env.CODEX_PRIMARY_RUNTIME_NODE_MODULES+'/playwright/index.mjs');
 const baseline=process.env.EXTERNAL_BASELINE||'0ae9622b1da1bf6f0901b6c27a4bb2982ac67750';
-const output='docs/deploy/20261022-external-shipment-adjustments';await mkdir(output,{recursive:true});
+const relabelReview=process.env.REVIEW_MODE==='relabel';
+const output=relabelReview?'docs/deploy/20261022-relabel-review':'docs/deploy/20261022-external-shipment-adjustments';await mkdir(output,{recursive:true});
 const baselineSource=execFileSync('git',['show',baseline+':src/pages/Orders.tsx'],{encoding:'utf8'});
 const afterSource=await readFile('src/pages/Orders.tsx','utf8');
 const manifest=[];const beforeActions=new Map();
@@ -15,7 +16,7 @@ try{for(const phase of ['before','after']){
  const source=phase==='before'?baselineSource:afterSource,mocks=new Map();
  for(const match of (source+await readFile('src/components/TransportTariffsPanel.tsx','utf8')).matchAll(/import\s+([\s\S]*?)\s+from\s+['"]([^'"]+)['"]/g)){
   const [,clause,path]=match;if(!path.startsWith('../services/')&&!path.endsWith('SettingsContext'))continue;
-  if(['orderStatus','filters','orderShipping','orderLabelFiles','shippingRuleCore','uiPreferences','formatting','shipmentTracking','pluralization','ordersWorkbench'].some(x=>path.endsWith('/'+x)))continue;
+  if(['orderStatus','filters','orderShipping','orderLabelFiles','shippingRuleCore','uiPreferences','formatting','shipmentTracking','pluralization','ordersWorkbench','orderRelabel'].some(x=>path.endsWith('/'+x)))continue;
   const exports=(clause.match(/\{([\s\S]*?)\}/)?.[1]||'').split(',').map(x=>x.trim()).filter(x=>x&&!x.startsWith('type ')).map(x=>x.split(/\s+as\s+/).pop());
   mocks.set(path,(mocks.get(path)||'')+'\n'+exports.filter(x=>!(mocks.get(path)||'').includes('export const '+x+'=')).map(x=>`export const ${x}=(...args)=>globalThis.fixtureServices.${x}?.(...args);`).join('\n'));
  }
@@ -26,7 +27,7 @@ try{for(const phase of ['before','after']){
  if(!crypto.randomUUID)Object.defineProperty(crypto,'randomUUID',{value:()=> '00000000-0000-4000-8000-000000000042'});const settings=structuredClone(DEFAULT_APP_SETTINGS);globalThis.fixtureServices={useSettings:()=>({settings}),getOrderTrackingLink:async()=>({url:null}),loadShipmentTrackingEvents:async()=>[]};
  const order={id:'synthetic-order',orderNumber:'DEMO-2026-001',orderId:'synthetic',sourceChannel:'shopify',sourceStatus:'unshipped',integrationName:'Tienda de demostración',orderCreatedAt:'2026-10-22T08:00:00Z',totalAmount:49.9,currency:'EUR',weightKg:0.89,shippingAddress:{name:'Cliente de prueba',address_line_1:'Calle Ejemplo 10',postal_code:'28013',city:'Madrid',country_code:'ES'},customerName:'Cliente de prueba',items:[{name:'Producto de demostración',sku:'DEMO',quantity:1}],pickupReports:[]};
  globalThis.calls=[];function App(){const [modal,setModal]=useState(false),[kind,setKind]=useState('pending'),[registered,setRegistered]=useState(null);globalThis.setScenario=setKind;
- const current=kind==='labelled'?{...order,labelCreatedAt:'2026-10-22T09:00:00Z',shippingRemoteId:'demo-remote',trackingNumber:'SYNTHETIC',carrierName:'MRW',shippingProvider:'mrw'}:kind==='external'?{...order,sourceStatus:'shipped',fulfilledAt:'2026-10-22T09:00:00Z',trackingNumber:registered?.trackingNumber,carrierName:registered?.carrier,shippingIntegrationAccountId:registered?.accountId,shippingProvider:'mrw',shippingCostSource:'external_manual'}:order;
+ const current=kind==='cancelled-label'?{...order,sourceChannel:'amazon',sourceStatus:'Shipped',trackingStatusCode:'CANCELLED',shippingProvider:'sendcloud',fulfilledAt:'2026-10-22T09:00:00Z'}:kind==='labelled'?{...order,labelCreatedAt:'2026-10-22T09:00:00Z',shippingRemoteId:'demo-remote',trackingNumber:'SYNTHETIC',carrierName:'MRW',shippingProvider:'mrw'}:kind==='external'?{...order,sourceStatus:'shipped',fulfilledAt:'2026-10-22T09:00:00Z',trackingNumber:registered?.trackingNumber,carrierName:registered?.carrier,shippingIntegrationAccountId:registered?.accountId,shippingProvider:'mrw',shippingCostSource:'external_manual'}:order;
  return <main className="main"><OrderDrawer order={current} shippingPrice={null} validationIssues={[]} productImages={{}} busy={false} onClose={()=>{}} onPrepare={()=>globalThis.calls.push('prepare')} onEdit={()=>globalThis.calls.push('edit')} onPrint={()=>globalThis.calls.push('print')} onDownload={()=>globalThis.calls.push('download')} onInvoice={()=>globalThis.calls.push('invoice')} onConfirmShipment={()=>globalThis.calls.push('confirm')} onRegisterExternal={()=>setModal(true)}/>{modal&&<ExternalShipmentModal order={order} accounts={[{id:'demo-account',provider:'mrw',displayName:'MRW · Contrato propio',enabled:true,status:'connected'}]} onClose={()=>setModal(false)} onSave={async input=>{globalThis.calls.push(input);setRegistered(input);setModal(false);setKind('external')}}/>}</main>};createRoot(document.getElementById('root')).render(<App/>);`;
  const bundled=await build({stdin:{contents:entry,resolveDir:process.cwd(),loader:'tsx'},outdir:'out',bundle:true,write:false,define:{'import.meta.env':'{}'},format:'iife',platform:'browser',jsx:'automatic',plugins:[{name:'offline-review',setup(b){b.onLoad({filter:/[/]src[/]pages[/]Orders[.]tsx$/},()=>({contents:source,loader:'tsx',resolveDir:resolve('src/pages')}));b.onResolve({filter:/.*/},args=>mocks.has(args.path)?{path:args.path,namespace:'fixture'}:null);b.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:mocks.get(args.path),loader:'tsx'}));}}]});
  const js=bundled.outputFiles.find(x=>x.path.endsWith('.js')).text,css=bundled.outputFiles.find(x=>x.path.endsWith('.css')).text;
@@ -34,14 +35,15 @@ try{for(const phase of ['before','after']){
   const page=await browser.newPage({viewport:{width,height:1000},timezoneId:'Europe/Madrid',locale:'es-ES'}),errors=[];page.on('pageerror',e=>errors.push(e.message));await page.route('**/*',r=>r.request().url().startsWith('https://flagcdn.com/')?r.fulfill({status:200,contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="24" height="16"><path fill="#ad1519" d="M0 0h24v16H0z"/><path fill="#fabd00" d="M0 4h24v8H0z"/></svg>'}):r.abort());await page.clock.setFixedTime(new Date('2026-10-22T10:00:00Z'));
   await page.setContent(`<html lang="es" data-theme="${theme}"><head><meta name="viewport" content="width=device-width,initial-scale=1"><style>${css} *{caret-color:transparent!important}</style></head><body><div id="root"></div><script>${js.replaceAll('</script','<\\/script')}</script></body></html>`);
   await page.locator('.ordersDrawer').waitFor();
-  for(const kind of ['pending','labelled']){
+  for(const kind of ['pending','labelled',...(relabelReview?['cancelled-label']:[])]){
    await page.evaluate(kind=>globalThis.setScenario(kind),kind);await page.waitForTimeout(30);
    const actions=await page.locator('.ordersDrawer button').evaluateAll(es=>es.map(e=>({name:(e.getAttribute('aria-label')||e.textContent).trim(),disabled:e.disabled})));
    const key=width+theme+kind;if(phase==='before')beforeActions.set(key,actions);else{assertHeaderActionsPreserved(beforeActions.get(key).map(a=>a.name),actions.map(a=>a.name),key);for(const before of beforeActions.get(key)){if(!actions.some(a=>a.name===before.name&&a.disabled===before.disabled))throw Error('Disabled action changed '+key)}}
    manifest.push({phase,width,theme,kind,actions,errors});
+   if(kind==='cancelled-label'){await page.screenshot({path:`${output}/${phase}-cancelled-label-${theme}-${width}.png`});if(phase==='after'){await page.getByRole('button',{name:'Preparar nueva etiqueta',exact:true}).click();const calls=await page.evaluate(()=>globalThis.calls);if(calls.length!==1||calls[0]!=='prepare')throw Error('Relabel action did not use existing preparation flow');}}
    if(kind==='pending')await page.screenshot({path:`${output}/${phase}-detail-${theme}-${width}.png`});
   }
-  if(phase==='after'){
+  if(phase==='after'&&!relabelReview){
    await page.evaluate(()=>globalThis.setScenario('pending'));await page.getByRole('button',{name:'Registrar envío externo',exact:true}).click();
    await page.getByRole('combobox',{name:'Transportista *'}).click();await page.getByRole('option',{name:'MRW',exact:true}).click();await page.getByLabel('Tracking *').fill('SYNTHETIC-000123');
    await page.getByRole('combobox',{name:'Cuenta o integración (opcional)'}).click();await page.getByRole('option',{name:'MRW · Contrato propio · MRW',exact:true}).click();await page.getByLabel('Coste (EUR, opcional)').fill('4.50');

@@ -209,7 +209,7 @@ Deno.serve(async(req:Request)=>{
       const shipment=xmlValue(transmit,'NumeroEnvio');if(!shipment)throw new Error('MRW no devolvió número de envío.');
       const now=new Date().toISOString();
       const {error:updateError}=await admin.from('fulfillment_orders').update({
-        raw_payload:order.raw_payload,shipping_provider:'mrw',shipping_integration_account_id:account.row.id,shipping_remote_id:shipment,
+        raw_payload:order.raw_payload,label_cancelled_at:null,label_created_at:now,shipping_provider:'mrw',shipping_integration_account_id:account.row.id,shipping_remote_id:shipment,
         tracking_number:shipment,tracking_status_code:'READY_TO_SEND',tracking_status_message:'Ready to send',tracking_updated_at:now,
         carrier_code:'mrw',carrier_name:'MRW',shipping_option_code:serviceCode,shipping_service_name:serviceName,
         ...(Number(body?.shippingOption?.price)>0?{

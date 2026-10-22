@@ -81,3 +81,26 @@ El runner ya reconstruye dependencias históricas ausentes a partir de fixtures.
 ### Coherencia de importes y servicio
 
 La revisión final añade un caso con una cotización preparada pero sin expedición. Al registrar el envío externo se retiran el desglose neto/IVA, código de opción y contrato de esa cotización: no describen el nuevo envío y no se inventa IVA a partir del total introducido. Regresión observada en rojo y corregida; se mantiene el coste total opcional y su moneda visible. Suite SQL ampliada a 28 casos.
+
+
+## Ajustes aprobados por el propietario antes de publicar
+
+Estimación inicial de este paso: 60–90 min; siguiente 2b: 60–120 min. Autorización explícita del propietario: publicar después de cuatro ajustes y CI verde. No se interpreta como autorización de pruebas comerciales.
+
+- Selector MRW, Correos Express, CTT Express, SEUR, GLS, Correos, DHL, UPS, Nacex, FedEx, DPD y Otro. Cuenta MRW rellena MRW; los agregadores usan el carrier configurado si lo tienen (una cuenta Envia/Sendcloud puede operar varios transportistas). Normalización adicional en SQL para clientes antiguos, sin reprocesar filas.
+- Estado de primera consulta para cuentas integradas con tracking y sin observación. No se infiere tránsito de un SHIPPED heredado. Una consulta fallida con cuenta muestra Consulta pendiente, sin afirmar que no existe integración.
+- Alta programa next_poll_at explícitamente al momento de registro. Prueba SQL contra tracking_claim real demuestra que se reclama inmediatamente con MRW, sin etiqueta ni confirmación Amazon/Shopify. Producción comprobada: tracking activo y cron */5 * * * *.
+- Tracking completo y seleccionable, botón Copiar con confirmación; el harness conserva lo introducido y verifica el texto íntegro recibido por clipboard. Antes la fixture fijaba SYNTHETIC aunque se introdujese SYNTHETIC-000123.
+- Fecha dd/mm/aaaa y calendario español independientes del locale del navegador; hora hh:mm de 24 h; se rechazan fechas imposibles. Usa FormModal/FormGrid de @zenvia/ui y patrones existentes.
+- Galería ampliada: [390/1280/1440 claro y oscuro](20261022-external-shipment-adjustments/README.md), calendario incluido; inventario de acciones y disabled preservado. Capturas inspeccionadas visualmente.
+- CI del head anterior 26eb71c: los seis flujos completados success; no queda la X histórica de la dependencia Shopify ausente en el entorno desechable.
+- Verificación: 32 pruebas SQL del registro, 9 regresiones de estos ajustes; suite general 569/569 antes de las últimas dos regresiones añadidas (las 9 juntas pasan); Node 1281/1281. Build completo correcto; repetición final tras ajustes de formato en curso.
+- Revisión independiente detectó fallback legacy SHIPPED en la primera consulta; corregido con regresión observada en rojo. Sin otros bloqueos comunicados.
+
+### Preflight y rollback de publicación
+
+Base producción main 0ae9622b1da1bf6f0901b6c27a4bb2982ac67750. Vercel rollback READY: dpl_3mGW3zL16KPAMf99gM93HhRGzYyb, zenvia-gestion-p09izqx13-sergiorojasdiaz-7097.vercel.app. Proyecto prj_L6nGgpq78QTEnZByUNtjtmF5rGkv; dominio gestion.zenviacommerce.com.
+
+Bundles actuales capturados completos en supabase/snapshots/20261022-external-shipment/: mrw-shipping v24, envia-shipping v44, sendcloud-orders v34, sendcloud-order-tools v36 y Shopify v6 ya capturado. El plan de despliegue preserva todos los ficheros actuales de cada bundle, verify_jwt=true, auth/MFA intactos; solo inserta la guardia external_shipment en amazonPiiRead y cambia la condición Shopify revisada. Nueva Edge register-external-shipment con validación de usuario/empresa/MFA vigente.
+
+Inspección BD confirma columna external_shipment aún ausente. Migración aditiva y creación/reemplazo de rutinas; no ejecuta UPDATE/DELETE sobre pedidos existentes ni reprocesa datos. Rollback de esquema existente aborta si ya hay altas; rollback operativo conserva auditoría y envíos y desactiva la nueva alta. No se ha aplicado rollback ni despliegue al escribir este preflight.

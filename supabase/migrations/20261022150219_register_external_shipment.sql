@@ -24,6 +24,11 @@ begin
   and (c.status in('submitting','pending','unknown') or (c.kind='order' and c.status='confirmed'))) then raise exception 'El pedido tiene una cancelación pendiente o confirmada.'; end if;
  carrier:=nullif(trim(p_input->>'carrier'),''); tracking:=nullif(trim(p_input->>'trackingNumber'),'');link:=nullif(trim(p_input->>'url'),'');
  if carrier is null or length(carrier)>120 or tracking is null or length(tracking)>120 or tracking~'[[:cntrl:]]' then raise exception 'Transportista y tracking son obligatorios (máximo 120 caracteres).'; end if;
+ -- Normalize at the trusted boundary too: stale/API clients cannot fragment filters.
+ carrier:=case regexp_replace(lower(carrier),'[[:space:]_-]+','','g')
+  when 'mrw' then 'MRW' when 'correosexpress' then 'Correos Express' when 'cttexpress' then 'CTT Express'
+  when 'seur' then 'SEUR' when 'gls' then 'GLS' when 'correos' then 'Correos' when 'dhl' then 'DHL'
+  when 'ups' then 'UPS' when 'nacex' then 'Nacex' when 'fedex' then 'FedEx' when 'dpd' then 'DPD' else carrier end;
  if length(coalesce(p_input->>'service',''))>200 or length(coalesce(link,''))>2000 or (link is not null and link!~*'^https?://[^ /]+') then raise exception 'Servicio o URL de seguimiento no válidos.'; end if;
  shipped:=coalesce(nullif(p_input->>'shippedAt','')::timestamptz,stamp);
  if not isfinite(shipped) or shipped>stamp+interval '5 minutes' then raise exception 'Fecha de envío no válida.'; end if;
@@ -35,7 +40,7 @@ begin
  if account is not null then
   select * into a from public.integration_accounts where id=account and owner_id=p_owner and provider in('mrw','sendcloud','envia') and enabled and status<>'disabled' for share;
   if not found then raise exception 'La cuenta de transporte no está disponible para tu empresa.'; end if;
-  if a.provider='mrw' and lower(carrier) not like '%mrw%' then raise exception 'La cuenta MRW requiere el transportista MRW.'; end if;
+  if a.provider='mrw' and carrier<>'MRW' then raise exception 'La cuenta MRW requiere el transportista MRW.'; end if;
  end if;
  update public.fulfillment_orders set carrier_name=carrier,carrier_code=case when a.provider='mrw' then 'mrw' else null end,
   tracking_number=tracking,tracking_url=link,shipping_service_name=nullif(trim(p_input->>'service'),''),shipping_option_code=null,contract_id=null,
@@ -47,8 +52,8 @@ begin
   external_shipment=jsonb_build_object('registeredAt',stamp,'actorId',p_actor,'requestId',p_request,'notifySource',notify,'input',p_input)
  where id=o.id and owner_id=p_owner returning * into o;
  if account is not null then
-  insert into public.shipment_tracking_state(order_id,owner_id,account_id,provider,tracking_number,identity_key,label_created_at)
-   values(o.id,p_owner,account,a.provider,tracking,private.shipment_tracking_identity(o),shipped);
+  insert into public.shipment_tracking_state(order_id,owner_id,account_id,provider,tracking_number,identity_key,label_created_at,next_poll_at)
+   values(o.id,p_owner,account,a.provider,tracking,private.shipment_tracking_identity(o),shipped,stamp);
  end if;
  insert into public.audit_logs(workspace_owner_id,actor_user_id,module,action,entity_type,entity_id,entity_label,summary,details)
  values(p_owner,p_actor,'orders','register_external_shipment','fulfillment_order',o.id::text,o.order_number,'Envío externo registrado',

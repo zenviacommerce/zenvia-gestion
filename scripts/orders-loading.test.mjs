@@ -5,7 +5,7 @@ import vm from 'node:vm';
 import ts from 'typescript';
 const source=fs.readFileSync(new URL('../src/pages/Orders.tsx',import.meta.url),'utf8');
 test('order refreshes share an in-flight request and can run again after it completes',async()=>{
- const start=source.indexOf('  const refresh=useCallback');const end=source.indexOf('  useEffect(()=>{',start);
+ const start=source.indexOf('  const refresh=useCallback');const end=source.indexOf('  useEffect(',start);
  let resolve;let calls=0;const ref={current:null};
  const context=vm.createContext({useCallback:fn=>fn,refreshRequest:ref,pageParamsRef:{current:{}},refreshRevision:{current:0},setMatchingTotal:()=>{},setDashboardKpis:()=>{},setDashboardFacets:()=>{},fetchOrdersDashboardPage:()=>{calls++;return new Promise(r=>{resolve=r})},setOrders:()=>{},setError:()=>{},errorMessage:()=>''});
  vm.runInContext(ts.transpile(source.slice(start,end))+';globalThis.refresh=refresh;',context);

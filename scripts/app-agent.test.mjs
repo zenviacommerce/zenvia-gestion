@@ -69,8 +69,10 @@ test('orders refresh after agent-triggered synchronization',async()=>{
   const orders=await read('src/pages/Orders.tsx');
   assert.match(orders,/zenvia:orders-refresh/);
   assert.match(orders,/watchFulfillmentOrders\(refresh,/);
-  assert.match(orders,/document\.visibilityState==='visible'/);
-  assert.match(orders,/Promise\.all\(\[refreshStatus\(\),refreshEnviaStatus\(\),refreshTariffs\(\)\]\)/);
+  assert.match(orders,/document\.visibilityState==='visible'\)void Promise\.all\(\[refreshStatus\(\),refreshEnviaStatus\(\),refreshTariffs\(\)\]\)/);
+  const watcher=await read('src/services/orderLiveUpdates.ts');
+  assert.match(watcher,/zenvia:orders-refresh/);
+  assert.match(watcher,/window\.addEventListener\(event,schedule\)/);
 });
 
 

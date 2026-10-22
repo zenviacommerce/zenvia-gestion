@@ -7,7 +7,7 @@ async function source(path){
   catch{return '';}
 }
 
-test('Dashboard reads persisted order KPIs without browser-driven carrier synchronization',async()=>{
+test('Dashboard reads persisted KPIs without browser-driven carrier synchronization',async()=>{
   const dashboard=await source('src/pages/Dashboard.tsx');
   assert.doesNotMatch(dashboard,/syncSendcloudOrders\(/);
   assert.match(dashboard,/await\s+listFulfillmentOrders\(\)/);
@@ -21,7 +21,7 @@ test('Dashboard uses the configured order refresh interval',async()=>{
 });
 
 
-test('Orders auto-sync uses a stable in-flight guard instead of depending on syncing state',async()=>{
+test('Orders manual sync uses a stable in-flight guard instead of depending on syncing state',async()=>{
   const orders=await source('src/pages/Orders.tsx');
   assert.match(orders,/const syncingRef=useRef\(false\)/);
   assert.match(orders,/if\(syncingRef\.current\)return/);
@@ -42,3 +42,5 @@ test('Dashboard pending orders KPI ignores period boundaries and reflects the re
   assert.match(dashboard,/Pendientes reales · sin limitar por periodo/);
   assert.doesNotMatch(dashboard,/const pendingOrders=validOrders\.filter\(isPendingOrder\)\.length/);
 });
+
+test('Orders has one visible persisted-data watcher and keeps carrier tracking on the server',async()=>{const orders=await source('src/pages/Orders.tsx');assert.doesNotMatch(orders,/setInterval/);assert.match(orders,/watchFulfillmentOrders\(refresh,Math\.max\(60,settings\.orders\.refreshSeconds\)\*1000\)/);assert.doesNotMatch(orders,/syncEnviaShipments\(/);});

@@ -479,9 +479,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     void request.finally(()=>{if(refreshRequest.current?.request===request)refreshRequest.current=null}).catch(()=>{});
     return request;
   },[]);
-  useEffect(()=>{
-    return watchFulfillmentOrders(refresh,Math.max(60,settings.orders.refreshSeconds)*1000);
-  },[refresh,settings.orders.refreshSeconds]);
+  useEffect(()=>watchFulfillmentOrders(refresh,Math.max(60,settings.orders.refreshSeconds)*1000),[refresh,settings.orders.refreshSeconds]);
   const refreshStatus=useCallback(async()=>{try{setStatus(await getSendcloudStatus())}catch(e){setStatus({configured:false,integrations:[],message:errorMessage(e,'No se pudo comprobar Sendcloud.')})}},[]);
   const refreshEnviaStatus=useCallback(async()=>{try{const result=await getEnviaStatus();setEnviaStatus({configured:result.configured,accounts:result.accounts||[]})}catch{setEnviaStatus({configured:false,accounts:[]})}},[]);
   const refreshTariffs=useCallback(async()=>{try{setTariffs(await listTransportTariffs())}catch{/* El precio real seleccionado seguirá disponible aunque no haya tarifa estimada. */}},[]);
@@ -539,6 +537,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       }
     }finally{syncingRef.current=false;setSyncing(false)}
   },[refresh,settings.integrations.amazonEnabled,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled,settings.integrations.shopifyEnabled,settings.orders.retryTrackingConfirmation,status?.configured,enviaStatus?.configured]);
+
 
   const dateFrom=dateFilter.from,dateTo=dateFilter.to;
   const selectedPeriod=periodLabel(dateFilter);

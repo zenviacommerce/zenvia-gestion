@@ -17,3 +17,12 @@ it('coalesces events, serializes slow requests and ignores stale workspace callb
  state.handlers[0]();await vi.advanceTimersByTimeAsync(250);expect(refresh).toHaveBeenCalledTimes(1);done();await vi.advanceTimersByTimeAsync(250);expect(refresh).toHaveBeenCalledTimes(2);done();await vi.advanceTimersByTimeAsync(0);
  const old=state.handlers[0];state.workspace='two';window.dispatchEvent(new Event('zenvia:tenant-changed'));old();await vi.advanceTimersByTimeAsync(250);expect(refresh).toHaveBeenCalledTimes(2);stop();
 });
+it('creates no subscription or refresh while mounted hidden and cancels a scheduled burst on hide',async()=>{
+ vi.useFakeTimers();let visibility='hidden';vi.spyOn(document,'visibilityState','get').mockImplementation(()=>visibility as DocumentVisibilityState);
+ const refresh=vi.fn(),stop=watchFulfillmentOrders(refresh);expect(client.channel).not.toHaveBeenCalled();
+ window.dispatchEvent(new Event('focus'));window.dispatchEvent(new Event('zenvia:orders-refresh'));await vi.advanceTimersByTimeAsync(120000);expect(refresh).not.toHaveBeenCalled();
+ visibility='visible';document.dispatchEvent(new Event('visibilitychange'));expect(client.channel).toHaveBeenCalledTimes(1);
+ const old=state.handlers[0];old();window.dispatchEvent(new Event('zenvia:orders-refresh'));visibility='hidden';document.dispatchEvent(new Event('visibilitychange'));await vi.advanceTimersByTimeAsync(250);expect(refresh).not.toHaveBeenCalled();
+ visibility='visible';document.dispatchEvent(new Event('visibilitychange'));old();window.dispatchEvent(new Event('focus'));await vi.advanceTimersByTimeAsync(250);expect(refresh).toHaveBeenCalledTimes(1);
+ stop();await vi.advanceTimersByTimeAsync(120000);expect(refresh).toHaveBeenCalledTimes(1);expect(vi.getTimerCount()).toBe(0);
+});

@@ -4,7 +4,7 @@ import {getActiveSupabase,getActiveTenant} from './supabase';
 // refresh reads the tenant database only, never the external Shopify API.
 export function watchShopifyAnalytics(refresh:()=>void|Promise<void>){
  let alive=true,timer:number|undefined,busy=false,pending=false,unbind=()=>{};
- const visible=()=>document.visibilityState!=='hidden';
+ const visible=()=>document.visibilityState==='visible';
  const schedule=()=>{
   if(!alive||!visible())return;
   if(timer!==undefined)window.clearTimeout(timer);
@@ -25,7 +25,7 @@ export function watchShopifyAnalytics(refresh:()=>void|Promise<void>){
   const changed=()=>{if(current&&getActiveTenant()?.workspace_id===workspace&&getActiveSupabase()===client)schedule();};
   const channel=client.channel('shopify-analytics-'+crypto.randomUUID());
   for(const table of ['fulfillment_orders','shopify_analytics_orders'])channel.on('postgres_changes',{event:'*',schema:'public',table,filter:`owner_id=eq.${workspace}`},changed);
-  channel.subscribe(status=>{if(status==='SUBSCRIBED')changed();});
+  channel.subscribe();
   unbind=()=>{current=false;void client.removeChannel(channel);unbind=()=>{};};
  };
  const visibilityChanged=()=>{bind();schedule();};

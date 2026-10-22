@@ -25,3 +25,36 @@ Si el cambio de backend aún no está desplegado, el formulario ya guarda el sec
 ## Comprobación administrativa sin leer secretos
 
 Comprueba únicamente `last_success_at`, `last_error` y `paused_until` de `shipment_tracking_account_health`, y el resultado del worker en `shipment_tracking_runs`. Una observación con `last_checked_at` nuevo verifica que hubo intento; `last_success_at` nuevo sin error verifica respuesta válida del proveedor. No abras `vault.decrypted_secrets`, no pegues la contraseña en SQL, terminal, chat o tickets, ni registres el cuerpo SOAP.
+
+
+## Presentación mientras el servicio no está disponible
+
+Solo para `shippingProvider=mrw` (MRW directo): si hay número de expedición pero no existe una observación normalizada, Pedidos y el detalle muestran **Sin seguimiento disponible**. El estado heredado `SHIPPED` de la creación de etiqueta no demuestra un movimiento y no se convierte en «En tránsito». Si ya existe una observación normalizada válida, se conserva su estado y fecha; ante un error de consulta se indica **Seguimiento automático no disponible · último estado conocido**. Una denegación no borra movimientos históricos ni genera un evento de transporte.
+
+El detalle ofrece **Consultar manualmente en MRW**: usa el enlace registrado si existe o la página pública `https://www.mrw.es/seguimiento/`, donde el usuario puede introducir el número mostrado en el pedido. Este enlace no envía consultas ni copia datos automáticamente. MRW a través de Sendcloud conserva su seguimiento Sendcloud y no adopta este comportamiento.
+
+**La extracción automática de la web pública queda descartada sin autorización expresa de MRW.** No se implementa un scraper ni se utiliza como respaldo de la API.
+
+Estos cambios de interfaz permanecen **sin publicar**, pendientes de aprobación del propietario. Esta implementación no despliega la interfaz ni aplica migraciones.
+
+## Borrador para el propietario — solicitud a MRW
+
+Asunto: Habilitación y confirmación de acceso al seguimiento de envíos
+
+Buenos días:
+
+Queremos consultar el seguimiento de nuestras expediciones mediante `SeguimientoNumeroEnvioMRWNacional` en `https://seguimiento.mrw.es/swc/wssgmntnvs.asmx`.
+
+¿Podéis habilitar este servicio para nuestro abonado y confirmar qué valores debemos utilizar en los campos `Franquicia`, `Cliente` y `Password`, incluida la correspondencia de `Cliente` con nuestro abonado? En una prueba de tres expediciones propias, usando la combinación que tenemos configurada para SAGEC, el servicio respondió HTTP 200 con `Estado=false` y «Error de acceso al seguimiento de envíos.».
+
+Necesitamos confirmar si falta habilitación o si corresponde otra combinación de acceso. No damos por hecho que sea necesaria una contraseña diferente. Por favor, indicadnos el canal seguro para confirmar o facilitar esos datos.
+
+Gracias.
+
+
+## Verificación de este cambio
+
+- `npm test`: 73 archivos y 351 pruebas correctas.
+- `node --test scripts/shipped-order-cost-tracking.test.mjs scripts/shipment-tracking-worker.test.mjs scripts/shipment-tracking-adapters.test.mjs`: 23 pruebas correctas.
+- `npm run build`: correcto; persiste el aviso de tamaño del bundle.
+- `TRACKING_MRW_UNAVAILABLE=1 node scripts/shipment-tracking-screenshots.mjs`: revisión sintética en claro/oscuro, anchos 390/1280/1440, sin errores de página, solicitudes externas ni desbordamiento. El modo predeterminado y sus siete estados permanecen intactos; el modo opcional sustituye solo una fila redundante. Capturas nuevas: `docs/deploy/20261022-mrw-unavailable-review/mrw-unavailable-{light,dark}-{390,1280,1440}.png`. Se comprueban el texto de disponibilidad y el enlace manual; no se consulta MRW.

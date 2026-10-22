@@ -254,8 +254,8 @@ export function shippingPriceForOrder(order:FulfillmentOrder,preview:ShippingPri
 
 export function trackingUrlForOrder(order:FulfillmentOrder):string|null{
   if(order.piiPurgedAt)return null;
-  // The carrier is not a URL directory. Use the shipment's recorded link;
-  // provider links are resolved on the server, never guessed in the browser.
+  // Direct MRW has an explicit manual public form, never an automated lookup.
+  // All shipment-specific links still come from recorded/provider metadata.
   for(const value of [order.carrierTrackingUrl,order.trackingUrl]){
     try{
       if(!value)continue;
@@ -266,7 +266,7 @@ export function trackingUrlForOrder(order:FulfillmentOrder):string|null{
       if(['https:','http:'].includes(url.protocol)&&!url.username&&!url.password&&(!provider||forwarding))return url.href;
     }catch{/* The drawer will request fresh shipment metadata. */}
   }
-  return null;
+  return order.shippingProvider==='mrw'&&order.trackingNumber?'https://www.mrw.es/seguimiento/':null;
 }
 
 /** Reconcile the full-scope recorded baseline with the legacy tariff fallback.

@@ -9,6 +9,7 @@ export function ShipmentTrackingStatus({order,staleDays=3}:{order:TrackingFields
   {!formatted&&t.eventTimeRaw&&<small>Último movimiento: {formatTrackingCivilTime(t.eventTimeRaw)} (zona no indicada)</small>}
   {!formatted&&!t.eventTimeRaw&&order.trackingNumber&&<small>Fecha de movimiento no disponible</small>}
   {t.staleLabel&&<small className="ordersValidationWarn">{t.staleLabel}</small>}
-  {t.error&&<small className="ordersValidationWarn">{['MRW_TRACKING_PASSWORD_REQUIRED','MRW_TRACKING_ACCESS_DENIED'].includes(t.error)?'Acceso de seguimiento MRW pendiente':'Comprobación pendiente'}</small>}
+  {t.unavailable&&<small className="ordersValidationWarn">{t.state?'Seguimiento automático no disponible · último estado conocido':'Consulta manual disponible en el detalle'}</small>}
+  {t.error&&!t.unavailable&&<small className="ordersValidationWarn">Comprobación pendiente</small>}
  </span>;
 }

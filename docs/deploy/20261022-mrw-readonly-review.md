@@ -30,7 +30,7 @@ Se comprobó UN envío propio de MRW directo. El flujo necesita conservar cookie
 
 Riesgos: cambios de HTML/JavaScript sin contrato de API; cookies y redirecciones; posibles CAPTCHA/antibots en otras peticiones; límites de frecuencia no publicados; condiciones de uso. El aviso legal y las condiciones publicadas restringen copia/almacenamiento a uso personal/privado y el uso comercial, salvo autorización escrita; esa restricción requiere aclaración/permiso de integración antes de adoptar extracción automática comercial. No es un dictamen jurídico ni una autorización de MRW.
 
-Si se acuerda este respaldo: solo envíos propios activos de MRW directo; API preferente siempre; frecuencia máxima propuesta una vez/hora/envío con jitter, concurrencia 1/cuenta, caché compartida, detener terminales, backoff exponencial, respetar 429/Retry-After. Ante 403/CAPTCHA se pausa sin intentar eludirlo. Un cambio de estructura o ausencia de campos requeridos no cambia estados: conserva el último fiable y alerta. Guardar únicamente código, texto y fecha de movimiento, nunca página completa/POD/destinatarios.
+**Decisión del propietario: extracción automática de la web pública descartada sin autorización expresa de MRW.** No se implementa scraping, parser HTML, acceso automatizado por cookies ni un respaldo desde esa web. El único uso previsto es un enlace para que el usuario consulte manualmente la página pública. Cualquier propuesta futura de integración con esa web requiere autorización expresa de MRW y una decisión nueva del propietario.
 
 El diagnóstico temporal quedó desactivado: mrw-readonly-probe devuelve 410 DIAGNOSTIC_FINISHED y ya no accede a Vault, pedidos ni MRW.
 

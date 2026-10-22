@@ -52,3 +52,36 @@ Pendientes de completar con resultados reales de CI, migración y despliegue.
 ### Revisión independiente
 
 Revisor de solo lectura: 42 pruebas focalizadas correctas; detectó una P2 al mostrar movement_at inferido como movimiento real. Corregida: se conserva la distinción original Detectado / Último movimiento; prueba de regresión para respuesta sin fecha del transportista. Sin P1 ni fallos de alineación o propagación de acciones.
+
+### CI y backend publicados — 14:57 Madrid
+
+- Commit remoto revisado `ee61aacd79661202b231e7397ad7530836639767`; su árbol `35b2d329b4f006610db797bd9830aa4c022afed3` coincide exactamente con el árbol local verificado. Subido mediante conector de GitHub porque Git push no tenía credenciales.
+- CI 6/6 success: Shared UI 39781574185; Build check 39781574172; Auth resilience 39781574192; Build 39781574254; MFA disposable 39781574183; visual 39781574233.
+- Migración aplicada correctamente en Gestión: `orders_workbench`, versión remota `20261022125659` (contenido del archivo local `20261022114001_orders_workbench.sql`). Sin reprocesado, cambios de negocio ni reset de estadísticas.
+- Hashes de la RPC anterior, implementación anterior y pickup_report_owner idénticos al preflight. Las 41 entradas anteriores conservan fingerprint `4c662081cd1fa31fcb4f8e6dee746ed9`; manifiesto total 42, todos los hashes válidos. Proyección read/maintenance siguen true.
+- RPC pública nueva: anon EXECUTE=false; authenticated/service_role=true. Implementación privada: anon/authenticated/service_role=false. Wrapper protegido por pickup_report_owner, pruebas de MFA/permisos/tenant en CI.
+- Advisor incorpora el aviso genérico `authenticated_security_definer_function_executable` para la nueva RPC, coherente con el wrapper expuesto intencionalmente: acceso denegado a anon, cuerpo con comprobación MFA/tenant/permiso y sin acceso directo a implementación. Referencia: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable . No se silencian ni cambian alertas históricas.
+- PR #284 fusionada mediante expected-head en `0c84d23508b91f1c0fab339632ac3d84976b2a7d`. Pendiente comprobar el despliegue de Vercel y la sesión real.
+
+### Verificación real y ajuste de cascada — 15:00 Madrid
+
+Vercel publica `dpl_3wtaTuEXnEvcZjP2mWAFzdMPNk1G`, main `0c84d23`, árbol idéntico al verificado. Con sesión real del piloto:
+- Los cinco KPI trasladados a Resumen y el desglose por transportista coinciden exactamente con la comprobación previa. Se omiten importes operativos reales del diario público.
+- Pendientes conserva los mismos tres pedidos; fechas de producción DD/MM/YYYY HH:mm. Incidencias devuelve ocho registros con motivo y acceso MRW visibles.
+- La prueba de geometría real a 1280 encuentra Seguimiento hasta x=1387 frente al límite x=1227: motivo parcialmente fuera del área visible. No se considera terminada la publicación.
+- Causa reproducida: la importación CSS del componente ocurre antes de main, mientras el harness la añadía al final; orders-products.css imponía 315 px a la cuarta columna y 340 px a la quinta. Con el orden de producción, la regresión falla también con fixtures sintéticos (x=1387 > x=1242).
+- Corrección acotada: reglas semánticas de las colas con especificidad `.ordersWorkbench .ordersTrackingFirst`, independientes del orden heredado. Harness carga CSS de componentes antes del global, como el entrypoint real. Sin cambios de backend, datos, MFA ni integraciones.
+- CI del primer despliegue confirma 98 archivos / 526 pruebas Vitest correctas; más 1.280 Node.
+- No se suben capturas con clientes reales a este repositorio público. La evidencia versionada usa fixtures sintéticos; la geometría y cifras anteriores se registran sin identificadores de clientes.
+
+La migración se renombra en el repositorio a `20261022125659_orders_workbench.sql` para coincidir con la versión remota registrada por apply_migration. Su contenido no cambia y no se ejecuta de nuevo. Tests y referencias operativas apuntan al nombre canónico; se conserva arriba el nombre original revisado como trazabilidad.
+
+### Validación del ajuste de cascada
+
+- Regresión reproducida primero en rojo con el orden CSS real; corregida en verde. Con fixtures y cascada real Seguimiento termina en x=1043,16 dentro de x=1242 a 1280, y dentro de x=1402 a 1440; Enviados e Incidencias correctos.
+- Rehechas las 42 capturas antes/después con el orden corregido, nueve interacciones y tres comparaciones de inventario: sin fallos.
+- Revisión independiente de CSS/harness sin P1/P2.
+- Primer test completo en el checkout nuevo: workbench-tabs falló por resolver @zenvia/ui desde las dependencias prestadas del checkout antiguo. Se aisló el enlace al paquete de este checkout; no se cambia código de UI por ese fallo de entorno. Se repite la suite completa antes de subir.
+- Rollback del ajuste: frontend `dpl_3wtaTuEXnEvcZjP2mWAFzdMPNk1G` conserva la nueva bandeja (con el recorte conocido); rollback completo a `dpl_usywB96ezEmZNWpSNGqPK7r1wFeG` conserva la pantalla anterior y RPC previa. No hay que revertir base de datos.
+
+Resultado local final del ajuste: 98 archivos / 526 pruebas Vitest correctas; 1.280 pruebas Node correctas; cuatro casos SQL de workbench con nombre canónico correctos; compilación de producción y verificación de icono correctas. Único aviso de build: tamaño de bundle Vite ya existente. Ningún documento real generado.

@@ -12,12 +12,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "pending",
     "width": 390,
     "documentWidth": 390,
     "horizontalOverflow": 0,
-    "firstRowTop": 569,
+    "firstRowTop": 586,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -581,12 +581,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "labelled",
     "width": 390,
     "documentWidth": 390,
     "horizontalOverflow": 0,
-    "firstRowTop": 551,
+    "firstRowTop": 568,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -1268,12 +1268,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "shipped",
     "width": 390,
     "documentWidth": 390,
     "horizontalOverflow": 0,
-    "firstRowTop": 730,
+    "firstRowTop": 743,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -2115,12 +2115,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "issues",
     "width": 390,
     "documentWidth": 390,
     "horizontalOverflow": 0,
-    "firstRowTop": 551,
+    "firstRowTop": 568,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -2742,12 +2742,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "cancelled",
     "width": 390,
     "documentWidth": 390,
     "horizontalOverflow": 0,
-    "firstRowTop": 730,
+    "firstRowTop": 743,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -3391,7 +3391,7 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "reports",
     "width": 390,
     "documentWidth": 390,
@@ -3837,7 +3837,7 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "dashboard",
     "width": 390,
     "documentWidth": 390,
@@ -4250,12 +4250,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "pending",
     "width": 1280,
     "documentWidth": 1280,
     "horizontalOverflow": 0,
-    "firstRowTop": 562,
+    "firstRowTop": 572,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -4869,12 +4869,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "labelled",
     "width": 1280,
     "documentWidth": 1280,
     "horizontalOverflow": 0,
-    "firstRowTop": 489,
+    "firstRowTop": 499,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -5625,12 +5625,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "shipped",
     "width": 1280,
     "documentWidth": 1280,
     "horizontalOverflow": 0,
-    "firstRowTop": 638,
+    "firstRowTop": 648,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -6457,7 +6457,7 @@
     "priorityTracking": {
       "visibleWithoutScroll": true,
       "text": "Incidencia\nDestinatario ausente\nÚltimo movimiento: 21/10/2026, 10:00\nSin movimiento registrado en 1 día\nAbrir seguimiento",
-      "right": 1047.15625,
+      "right": 1043.15625,
       "viewportRight": 1242
     },
     "drawerInventory": [
@@ -6538,12 +6538,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "issues",
     "width": 1280,
     "documentWidth": 1280,
     "horizontalOverflow": 0,
-    "firstRowTop": 440,
+    "firstRowTop": 450,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -7150,7 +7150,7 @@
     "priorityTracking": {
       "visibleWithoutScroll": true,
       "text": "Incidencia\nDestinatario ausente\nÚltimo movimiento: 21/10/2026, 10:00\nSin movimiento registrado en 1 día\nAbrir seguimiento",
-      "right": 1047.15625,
+      "right": 1043.15625,
       "viewportRight": 1242
     },
     "drawerInventory": [
@@ -7231,12 +7231,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "cancelled",
     "width": 1280,
     "documentWidth": 1280,
     "horizontalOverflow": 0,
-    "firstRowTop": 589,
+    "firstRowTop": 599,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -7945,7 +7945,7 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "reports",
     "width": 1280,
     "documentWidth": 1280,
@@ -8391,7 +8391,7 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "dashboard",
     "width": 1280,
     "documentWidth": 1280,
@@ -8804,12 +8804,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "pending",
     "width": 1440,
     "documentWidth": 1440,
     "horizontalOverflow": 0,
-    "firstRowTop": 521,
+    "firstRowTop": 531,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -9373,12 +9373,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "labelled",
     "width": 1440,
     "documentWidth": 1440,
     "horizontalOverflow": 0,
-    "firstRowTop": 489,
+    "firstRowTop": 499,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -10060,12 +10060,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "shipped",
     "width": 1440,
     "documentWidth": 1440,
     "horizontalOverflow": 0,
-    "firstRowTop": 638,
+    "firstRowTop": 648,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -10892,7 +10892,7 @@
     "priorityTracking": {
       "visibleWithoutScroll": true,
       "text": "Incidencia\nDestinatario ausente\nÚltimo movimiento: 21/10/2026, 10:00\nSin movimiento registrado en 1 día\nAbrir seguimiento",
-      "right": 1047.15625,
+      "right": 1043.15625,
       "viewportRight": 1402
     },
     "drawerInventory": [],
@@ -10913,12 +10913,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "issues",
     "width": 1440,
     "documentWidth": 1440,
     "horizontalOverflow": 0,
-    "firstRowTop": 440,
+    "firstRowTop": 450,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -11525,7 +11525,7 @@
     "priorityTracking": {
       "visibleWithoutScroll": true,
       "text": "Incidencia\nDestinatario ausente\nÚltimo movimiento: 21/10/2026, 10:00\nSin movimiento registrado en 1 día\nAbrir seguimiento",
-      "right": 1047.15625,
+      "right": 1043.15625,
       "viewportRight": 1402
     },
     "drawerInventory": [],
@@ -11546,12 +11546,12 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "cancelled",
     "width": 1440,
     "documentWidth": 1440,
     "horizontalOverflow": 0,
-    "firstRowTop": 589,
+    "firstRowTop": 599,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -12195,7 +12195,7 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "reports",
     "width": 1440,
     "documentWidth": 1440,
@@ -12641,7 +12641,7 @@
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
     "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
-    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
+    "cssSha256": "fbdf8289f6373280a791e67f72661a5027e27412ff0cd9070f78a18dc93f4e53",
     "context": "dashboard",
     "width": 1440,
     "documentWidth": 1440,

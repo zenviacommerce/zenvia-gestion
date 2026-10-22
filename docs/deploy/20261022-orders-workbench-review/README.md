@@ -6,11 +6,11 @@ Before product sources and shared UI modules/CSS come from immutable baseline `2
 
 | Context | 390 | 1280 | 1440 |
 | --- | --- | --- | --- |
-| Pendientes | 1786 → 569 px | 1450 → 562 px | 1375 → 521 px |
-| Etiquetados | 1786 → 551 px | 1450 → 489 px | 1375 → 489 px |
-| Enviados | 1786 → 730 px | 1450 → 638 px | 1375 → 638 px |
-| Incidencias | 1786 → 551 px | 1450 → 440 px | 1358 → 440 px |
-| Cancelados | 1786 → 730 px | 1450 → 589 px | 1375 → 589 px |
+| Pendientes | 1786 → 586 px | 1450 → 572 px | 1375 → 531 px |
+| Etiquetados | 1786 → 568 px | 1450 → 499 px | 1375 → 499 px |
+| Enviados | 1786 → 743 px | 1450 → 648 px | 1375 → 648 px |
+| Incidencias | 1786 → 568 px | 1450 → 450 px | 1358 → 450 px |
+| Cancelados | 1786 → 743 px | 1450 → 599 px | 1375 → 599 px |
 | Informes de recogida | Modal → inline history | Modal → inline history | Modal → inline history |
 | Resumen | — | — | — |
 
@@ -78,9 +78,3 @@ Preserved table column inventory
 | 18 | Row actions | Row actions |
 
 Dark smoke: [manifest](dark-smoke-manifest.json) covers 390px Pending with the action menu and filter dialog open, plus 1440px Dashboard. Three additional viewport captures verify dark rendering, zero document overflow and zero JavaScript/console errors. Offline flag assets are local synthetic stand-ins.
-
-## Ajustes aprobados antes de publicar
-
-La galería `after-*` incluye ahora cabecera en una fila y prioridad del seguimiento en Incidencias/Enviados. Las capturas de la versión aprobada anterior se conservan como `approved-pending-*`, `approved-issues-*` y `approved-shipped-*`, a 390/1280/1440 px. En las dos pestañas operativas el orden es selección, Pedido, Cliente, Transportista y Seguimiento, seguido del resto del inventario original. Ver [diario de publicación y rollback](RELEASE.md).
-
-La comprobación geométrica confirma que Seguimiento acaba en x=1047 dentro de un contenedor que termina en x=1242 a 1280 px; no hace falta scroll horizontal para leer el motivo. El inventario conserva las 18 columnas en todas las pestañas, permitiendo su reordenación contextual. Más acciones conserva todas las utilidades también en escritorio.

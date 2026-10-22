@@ -21,11 +21,11 @@ it('keeps monthly and yearly plans visible while blocking checkout and explainin
  fireEvent.click(screen.getByRole('button',{name:'Anual',exact:true}));
  expect(screen.getByText('399,99 €')).toBeTruthy();expect((screen.getByRole('button',{name:'Contratar con PayPal'}) as HTMLButtonElement).disabled).toBe(true);
 });
-it('shows the base price + IVA and commercial revision, enabling only the verified cycle',async()=>{
+it('shows the base price + IVA without internal revision, enabling only the verified cycle',async()=>{
  state.verified=true;try{
  render(<SettingsPage isAdmin access={{workspaceId:'test',planKey:'internal',entitlements:{}} as any}/>);
  fireEvent.click(screen.getByRole('tab',{name:/Plan y facturación/}));
- expect(await screen.findByText('Versión comercial 2')).toBeTruthy();expect(screen.getByText('+ IVA')).toBeTruthy();
+ expect(await screen.findByText('+ IVA')).toBeTruthy();expect(screen.queryByText(/Versión comercial/)).toBeNull();
  expect((screen.getByRole('button',{name:'Contratar con PayPal'}) as HTMLButtonElement).disabled).toBe(false);
  fireEvent.click(screen.getByRole('button',{name:'Anual',exact:true}));
  expect((screen.getByRole('button',{name:'Contratar con PayPal'}) as HTMLButtonElement).disabled).toBe(true);

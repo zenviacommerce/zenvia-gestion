@@ -2,7 +2,7 @@
 import {it,expect} from 'vitest';
 import {PGlite} from '@electric-sql/pglite';
 import {readFileSync} from 'node:fs';
-const migration=readFileSync('supabase/migrations/20261022150219_register_external_shipment.sql','utf8');
+const migration=readFileSync('supabase/migrations/20261022192947_register_external_shipment.sql','utf8');
 const owner='00000000-0000-4000-8000-000000000001',actor='00000000-0000-4000-8000-000000000002',order='00000000-0000-4000-8000-000000000003',account='00000000-0000-4000-8000-000000000004',request='00000000-0000-4000-8000-000000000005';
 async function setup(){const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema private;
 create table app_users(user_id uuid,data_owner_id uuid,role text,active boolean,permissions text[]);

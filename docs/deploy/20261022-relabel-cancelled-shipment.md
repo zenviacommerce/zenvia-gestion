@@ -35,3 +35,7 @@ Una ejecución general simultánea con Node terminó 591/592 por timeout de 30 s
 
 Resultado de repetición completa: **592/592 Vitest**, 104 archivos, dos workers, 199,27 s; conserva los timeouts originales. Build completo correcto con los avisos de tamaño de chunks ya existentes. Node final se anota tras su terminación. git diff --check correcto.
 Node final secuencial: **1281/1281**, cero fallos, 31,06 s. Se comprueba además la regresión MRW posterior a persistir fecha antes del PDF, sin segundo envío. Sin cambios pendientes de implementación; detener antes de publicar 2b.
+
+2a publicado: merge main 036c49b78362a67921ffcffea522a4ad81e67a79, Vercel READY dpl_BU2EGbbPrHvenTxGPeXAANoovFDN. Snapshots exactos para rollback de 2b: supabase/snapshots/20261022-relabel-base/mrw-shipping-v25.json, envia-shipping-v45.json, sendcloud-orders-v35.json y sendcloud-order-tools-v37.json. Todos conservan los guards de envío externo y verify_jwt=true. PR288 permanece en borrador, sin publicación.
+
+La actualización de recibos renombra el archivo fuente de la migración de 2a para que coincida con su versión real MCP 20261022192947, sin modificar el SQL ni ejecutar DDL adicional. Las 32 pruebas SQL del registro pasan de nuevo leyendo el archivo renombrado.

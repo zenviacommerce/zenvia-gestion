@@ -92,10 +92,16 @@ try{for(const width of [390,1280,1440])for(const theme of ['light','dark']){
    const manual=page.getByRole('link',{name:'Consultar manualmente en MRW'});await manual.waitFor();
    if(await manual.getAttribute('href')!=='https://www.mrw.es/seguimiento/')throw Error('Missing manual MRW form');
    await page.locator('.ordersDrawer').screenshot({path:output+'/mrw-unavailable-'+theme+'-'+width+'.png'});
+   await manual.scrollIntoViewIfNeeded();
+   await page.locator('.ordersDrawer').screenshot({path:output+'/mrw-manual-link-'+theme+'-'+width+'.png'});
    await page.locator('.ordersDrawerHead .iconBtn').click();
   }
   await page.getByRole('combobox',{name:'Filtrar por seguimiento'}).click();await page.getByRole('option',{name:'Incidencias',exact:true}).click();await page.getByText('2 pedidos · Página 1 de 1',{exact:true}).first().waitFor();
   await page.screenshot({path:output+'/after-incidents-'+theme+'-'+width+'.png',fullPage:true});
+  if(width>600){
+   await page.locator('.ordersTable').evaluate(el=>{const th=[...el.querySelectorAll('th')].find(n=>n.textContent.includes('Seguimiento'));const card=el.closest('.ordersTableCard');card.scrollLeft=th.getBoundingClientRect().left-card.getBoundingClientRect().left+card.scrollLeft-160;});
+   await page.locator('.ordersTableCard').screenshot({path:output+'/incidents-tracking-'+theme+'-'+width+'.png'});
+  }
  }
  const geometry=await page.evaluate(()=>({width:innerWidth,scrollWidth:document.documentElement.scrollWidth}));if(geometry.scrollWidth>width||errors.length||network.length)throw Error(JSON.stringify({geometry,errors,network}));manifest.push({phase,width,theme,errors,network:network.length,synthetic:true});await page.close();
-}}finally{await browser.close()}await writeFile(output+'/'+phase+'-manifest.json',JSON.stringify(manifest,null,2));console.log(JSON.stringify({phase,captures:manifest.length*(phase==='after'?6+(process.env.TRACKING_MRW_UNAVAILABLE==='1'?1:0):2)+4,errors:0,network:0}));
+}}finally{await browser.close()}await writeFile(output+'/'+phase+'-manifest.json',JSON.stringify(manifest,null,2));console.log(JSON.stringify({phase,captures:manifest.length*(phase==='after'?6+(process.env.TRACKING_MRW_UNAVAILABLE==='1'?2:0):2)+(phase==='after'?8:4),errors:0,network:0}));

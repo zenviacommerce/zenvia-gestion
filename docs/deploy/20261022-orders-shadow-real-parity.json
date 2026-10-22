@@ -1,0 +1,566 @@
+{
+  "project": "sjkxxbedkkmgmqnvaqjh",
+  "authorization_scope": "Read-only verification after shadow 65250 only. No activation, no64741, no schema/source DML/reset.",
+  "method": {
+    "parity": "Actual public RPC under SET LOCAL ROLE authenticated and verified active member/AAL2; baseline full JSON retained only in transaction-local custom GUC. RESET ROLE then candidate body exact JSON comparison, same REPEATABLE READ READ ONLY transaction/snapshot/time. Candidate is inline postgres/definer-equivalent, not an installed authenticated endpoint.",
+    "candidate_latency": "25 samples after 2 warmups, server clock around EXECUTE candidate SQL body. Dynamic planning included. No HTTP or client/network latency; cannot label as postactivation RPC p95.",
+    "baseline_latency": "7 samples after 1 warmup, actual public function SELECT under role authenticated/AAL2, server clock. Nearest-rank p95 and p99 equal max; small sample tail estimate.",
+    "plans": "EXPLAIN ANALYZE BUFFERS SETTINGS FORMAT JSON on candidate inline queries; expression text omitted in saved plans to avoid source/JWT values. Original fallback branch actual loops zero when gate fresh.",
+    "safety": "All SQL transactions READ ONLY and ROLLBACK; no schema change, no source mutation, no activation, no statistics reset; output excludes raw/full RPC JSON, customer/order IDs and payloads."
+  },
+  "authenticated_parity": [
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "pending",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 8,
+      "measured_at": "2026-10-22 08:05:56.001669+00"
+    },
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "all_page1",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 1001,
+      "measured_at": "2026-10-22 08:05:57.264992+00"
+    },
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "all_page2",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 1001,
+      "measured_at": "2026-10-22 08:05:59.014362+00"
+    },
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "selection_all",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 8,
+      "measured_at": "2026-10-22 08:06:00.325668+00"
+    },
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "search_ES",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 954,
+      "measured_at": "2026-10-22 08:06:02.111929+00"
+    },
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "tracking_issue",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 3,
+      "measured_at": "2026-10-22 08:06:03.43292+00"
+    },
+    {
+      "rpc": "orders_dashboard_pickup_v1",
+      "scenario": "pending",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 8,
+      "measured_at": "2026-10-22 08:06:04.844821+00"
+    },
+    {
+      "rpc": "orders_dashboard_pickup_v1",
+      "scenario": "all_page1",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 1001,
+      "measured_at": "2026-10-22 08:06:06.451035+00"
+    },
+    {
+      "rpc": "orders_dashboard_pickup_v1",
+      "scenario": "all_page2",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 1001,
+      "measured_at": "2026-10-22 08:06:07.986846+00"
+    },
+    {
+      "rpc": "orders_dashboard_pickup_v1",
+      "scenario": "selection_all",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 1001,
+      "measured_at": "2026-10-22 08:06:09.574798+00"
+    },
+    {
+      "rpc": "orders_dashboard_pickup_v1",
+      "scenario": "search_ES",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 954,
+      "measured_at": "2026-10-22 08:06:10.998685+00"
+    },
+    {
+      "rpc": "orders_dashboard_pickup_v1",
+      "scenario": "tracking_issue",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 3,
+      "measured_at": "2026-10-22 08:06:12.294139+00"
+    },
+    {
+      "rpc": "orders_dashboard_pickup_v1",
+      "scenario": "REC_sort",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 1001,
+      "measured_at": "2026-10-22 08:06:15.094282+00"
+    },
+    {
+      "rpc": "orders_dashboard_pickup_v1",
+      "scenario": "REC_membership",
+      "full_json_equal": true,
+      "projection_usable": true,
+      "total": 19,
+      "measured_at": "2026-10-22 08:06:16.629661+00"
+    }
+  ],
+  "same_statement_body_parity": [
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "pending",
+      "result": [
+        {
+          "rpc": "orders_dashboard_page_v1",
+          "scenario": "pending",
+          "measured_at": "2026-10-22 08:02:57.285038+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 8
+        }
+      ]
+    },
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "all_page1",
+      "result": [
+        {
+          "rpc": "orders_dashboard_page_v1",
+          "scenario": "all_page1",
+          "measured_at": "2026-10-22 08:02:59.108827+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 1001
+        }
+      ]
+    },
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "all_page2",
+      "result": [
+        {
+          "rpc": "orders_dashboard_page_v1",
+          "scenario": "all_page2",
+          "measured_at": "2026-10-22 08:03:00.588246+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 1001
+        }
+      ]
+    },
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "selection_all",
+      "result": [
+        {
+          "rpc": "orders_dashboard_page_v1",
+          "scenario": "selection_all",
+          "measured_at": "2026-10-22 08:03:02.09038+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 8
+        }
+      ]
+    },
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "search_ES",
+      "result": [
+        {
+          "rpc": "orders_dashboard_page_v1",
+          "scenario": "search_ES",
+          "measured_at": "2026-10-22 08:03:03.469209+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 954
+        }
+      ]
+    },
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "tracking_issue",
+      "result": [
+        {
+          "rpc": "orders_dashboard_page_v1",
+          "scenario": "tracking_issue",
+          "measured_at": "2026-10-22 08:03:05.201472+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 3
+        }
+      ]
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "pending",
+      "result": [
+        {
+          "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+          "scenario": "pending",
+          "measured_at": "2026-10-22 08:03:07.31142+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 8
+        }
+      ]
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "all_page1",
+      "result": [
+        {
+          "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+          "scenario": "all_page1",
+          "measured_at": "2026-10-22 08:03:08.897309+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 1001
+        }
+      ]
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "all_page2",
+      "result": [
+        {
+          "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+          "scenario": "all_page2",
+          "measured_at": "2026-10-22 08:03:10.398423+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 1001
+        }
+      ]
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "selection_all",
+      "result": [
+        {
+          "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+          "scenario": "selection_all",
+          "measured_at": "2026-10-22 08:03:11.998844+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 1001
+        }
+      ]
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "search_ES",
+      "result": [
+        {
+          "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+          "scenario": "search_ES",
+          "measured_at": "2026-10-22 08:03:14.094266+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 954
+        }
+      ]
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "tracking_issue",
+      "result": [
+        {
+          "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+          "scenario": "tracking_issue",
+          "measured_at": "2026-10-22 08:03:15.983046+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 3
+        }
+      ]
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "REC_sort",
+      "result": [
+        {
+          "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+          "scenario": "REC_sort",
+          "measured_at": "2026-10-22 08:03:17.049896+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 1001
+        }
+      ]
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "REC_membership",
+      "result": [
+        {
+          "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+          "scenario": "REC_membership",
+          "measured_at": "2026-10-22 08:03:18.46002+00",
+          "projection_usable": true,
+          "full_json_equal": true,
+          "total": 19
+        }
+      ]
+    }
+  ],
+  "candidate_query_latency": [
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "pending",
+      "n": 25,
+      "mean_ms": 82.38704000000001,
+      "p95_ms": 93.782,
+      "p99_ms": 95.138,
+      "samples_ms": [
+        75.533,
+        73.819,
+        93.782,
+        83.732,
+        77.238,
+        78.98,
+        84.002,
+        90.406,
+        89.719,
+        75.455,
+        77.914,
+        83.327,
+        83.103,
+        73.179,
+        72.688,
+        79.24,
+        80.007,
+        81.343,
+        83.289,
+        95.138,
+        88.671,
+        89.812,
+        86.709,
+        85.452,
+        77.138
+      ],
+      "measured_at": "2026-10-22 08:04:44.84794+00",
+      "projection_usable": true
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "pending",
+      "n": 25,
+      "mean_ms": 86.4716,
+      "p95_ms": 104.702,
+      "p99_ms": 130.047,
+      "samples_ms": [
+        77.626,
+        96.508,
+        92.481,
+        77.536,
+        89.661,
+        86.343,
+        103.138,
+        130.047,
+        93.967,
+        96.981,
+        104.702,
+        75.954,
+        74.143,
+        80.992,
+        81.86,
+        79.045,
+        77.196,
+        80.409,
+        84.34,
+        75.206,
+        76.269,
+        77.971,
+        79.292,
+        81.604,
+        88.519
+      ],
+      "measured_at": "2026-10-22 08:04:47.934709+00",
+      "projection_usable": true
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "REC_sort",
+      "n": 25,
+      "mean_ms": 108.02784000000001,
+      "p95_ms": 117.565,
+      "p99_ms": 122.887,
+      "samples_ms": [
+        116.41,
+        107.81,
+        109.789,
+        113.771,
+        111.772,
+        105.766,
+        108.273,
+        111.31,
+        107.779,
+        113.812,
+        109.258,
+        117.565,
+        111.909,
+        122.887,
+        111.523,
+        104.908,
+        110.69,
+        99.429,
+        109.628,
+        95.65,
+        97.316,
+        98.394,
+        92.534,
+        109.092,
+        103.421
+      ],
+      "measured_at": "2026-10-22 08:04:51.566102+00",
+      "projection_usable": true
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "selection_all",
+      "n": 25,
+      "mean_ms": 31.97135999999999,
+      "p95_ms": 36.207,
+      "p99_ms": 37.868,
+      "samples_ms": [
+        32.935,
+        35.617,
+        30.387,
+        36.207,
+        37.868,
+        29.805,
+        28.885,
+        31.628,
+        32.974,
+        35.597,
+        33.314,
+        28.135,
+        31.017,
+        31.394,
+        34.044,
+        29.762,
+        33.007,
+        30.587,
+        31.955,
+        32.329,
+        32.218,
+        28.819,
+        28.063,
+        29.798,
+        32.939
+      ],
+      "measured_at": "2026-10-22 08:04:53.025872+00",
+      "projection_usable": true
+    }
+  ],
+  "actual_authenticated_public_baseline_latency": [
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "n": 7,
+      "mean_ms": 710.5714285714286,
+      "p95_ms": 759.967,
+      "p99_ms": 759.967,
+      "role": "authenticated",
+      "samples_ms": [
+        694.733,
+        685.977,
+        691.362,
+        759.967,
+        730.216,
+        695.085,
+        716.66
+      ],
+      "total": 8,
+      "mfa": true,
+      "measured_at": "2026-10-22 08:05:17.464605+00"
+    },
+    {
+      "rpc": "orders_dashboard_pickup_v1",
+      "n": 7,
+      "mean_ms": 679.0772857142857,
+      "p95_ms": 740.615,
+      "p99_ms": 740.615,
+      "role": "authenticated",
+      "samples_ms": [
+        740.615,
+        705.822,
+        657.076,
+        688.284,
+        665.04,
+        657.837,
+        638.867
+      ],
+      "total": 8,
+      "mfa": true,
+      "measured_at": "2026-10-22 08:05:23.6875+00"
+    }
+  ],
+  "explain_summary": [
+    {
+      "rpc": "orders_dashboard_page_v1",
+      "scenario": "pending",
+      "execution_ms": 77.591,
+      "planning_ms": 18.124,
+      "shared_hit_blocks": 4481,
+      "temp_written_blocks": 0
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "pending",
+      "execution_ms": 79.76,
+      "planning_ms": 22.716,
+      "shared_hit_blocks": 4497,
+      "temp_written_blocks": 0
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "REC_sort",
+      "execution_ms": 149.157,
+      "planning_ms": 23.141,
+      "shared_hit_blocks": 6752,
+      "temp_written_blocks": 0
+    },
+    {
+      "rpc": "mfa_impl_orders_dashboard_pickup_v1",
+      "scenario": "selection_all",
+      "execution_ms": 47.404,
+      "planning_ms": 24.83,
+      "shared_hit_blocks": 2536,
+      "temp_written_blocks": 0
+    }
+  ],
+  "final_verification": {
+    "at": "2026-10-22T08:07:13.819745+00:00",
+    "mfa": true,
+    "rpc_hashes": {
+      "orders_dashboard_page_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[])": "081c0519b77e14fd53598cefba39aeb7",
+      "private.pickup_report_dashboard_scope(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[])": "943ab6c033c812a159a52d0737df80dc",
+      "orders_dashboard_pickup_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[],text,boolean)": "4a5d7ee5c3d93eb71e22f4b51f7a2e63",
+      "private.mfa_impl_orders_dashboard_pickup_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[],text,boolean)": "655ec1bb2c8cf7353873a25f51b5862c"
+    },
+    "dirty_events": 0,
+    "failure_count": 0,
+    "member_active": true,
+    "tenant_verified": true,
+    "orders_permission": true,
+    "projection_usable": true
+  },
+  "conclusion": "14/14 actual authenticated public RPC full JSON parity scenarios passed. Candidate fresh-query p95 exceeds50ms for pending page/pickup and REC; target not met. Candidate timings are query-body observations, not activated RPC timings. Real sync overhead/contention measured by separate task."
+}

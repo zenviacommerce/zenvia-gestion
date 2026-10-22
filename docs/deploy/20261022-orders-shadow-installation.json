@@ -1,0 +1,28 @@
+{
+  "installed_migration": "20261022065250_orders_incremental_classified_projection.sql",
+  "reviewed_commit": "ae78976063ccdcac5c211b545e4a18235776e484",
+  "sql_sha256": "c2b853d73be198f3b94515d1a4f0e8979b87d577bebb081df33ecc94f0ce6cbf",
+  "verified_at": "2026-10-22T08:01:03Z",
+  "source_rows": 1018,
+  "tracking_rows": 95,
+  "projection_groups": 1004,
+  "projection_rows": 1003,
+  "dirty": 0,
+  "failures": 0,
+  "rpc_backups_activation": 0,
+  "all_four_rpc_hashes_unchanged": true,
+  "only_shadow_installed": true,
+  "fast_path_64741_installed": false,
+  "activation_70148_installed": false,
+  "cron_job": 24,
+  "cron_schedule": "* * * * *",
+  "initial_cron_ms": [
+    64.603,
+    63.913,
+    69.043,
+    78.021
+  ],
+  "without_fastpath_local_regression": "passed (1 test, 7.447s)",
+  "rollback": "supabase/rollback/20261022_orders_projection_shadow_pause.sql",
+  "approval_first_attempt": "invalid/expired requestState; verified schema absent; second attempt succeeded"
+}

@@ -1,0 +1,120 @@
+{
+  "measurement": "Worker-observed PostgREST fulfillment_orders write requests; includes network, pool and DB until headers. RPC-internal writes are not instrumented.",
+  "production_worker_version": 44,
+  "original_worker_unchanged": true,
+  "probe": "temporary authenticated clone; now replaced with410 DIAGNOSTIC_FINISHED",
+  "responses": [
+    {
+      "id": 11248,
+      "status_code": 200,
+      "timed_out": false,
+      "error_msg": null,
+      "result": {
+        "ok": true,
+        "status": "completed",
+        "profile": {
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "mean_ms": null,
+          "samples": [],
+          "includes": "network_pool_and_database_until_response_headers",
+          "sampling": "first_1000_completed_matching_requests",
+          "total_ms": 0,
+          "http_errors": 0,
+          "measurement": "worker_observed_postgrest_write_elapsed_ms",
+          "by_operation": {
+            "POST": {
+              "count": 0,
+              "total_ms": 0,
+              "http_errors": 0,
+              "transport_errors": 0
+            },
+            "PATCH": {
+              "count": 0,
+              "total_ms": 0,
+              "http_errors": 0,
+              "transport_errors": 0
+            },
+            "DELETE": {
+              "count": 0,
+              "total_ms": 0,
+              "http_errors": 0,
+              "transport_errors": 0
+            }
+          },
+          "observed_writes": 0,
+          "omitted_samples": 0,
+          "transport_errors": 0,
+          "percentiles_sample_count": 0
+        },
+        "producer": {
+          "jobs": 1,
+          "status": 200,
+          "accounts": 1,
+          "transport_error": false
+        }
+      }
+    },
+    {
+      "id": 11267,
+      "status_code": 200,
+      "timed_out": false,
+      "error_msg": null,
+      "result": {
+        "ok": true,
+        "status": "completed",
+        "profile": {
+          "p50_ms": null,
+          "p95_ms": null,
+          "p99_ms": null,
+          "mean_ms": null,
+          "samples": [],
+          "includes": "network_pool_and_database_until_response_headers",
+          "sampling": "first_1000_completed_matching_requests",
+          "total_ms": 0,
+          "http_errors": 0,
+          "measurement": "worker_observed_postgrest_write_elapsed_ms",
+          "by_operation": {
+            "POST": {
+              "count": 0,
+              "total_ms": 0,
+              "http_errors": 0,
+              "transport_errors": 0
+            },
+            "PATCH": {
+              "count": 0,
+              "total_ms": 0,
+              "http_errors": 0,
+              "transport_errors": 0
+            },
+            "DELETE": {
+              "count": 0,
+              "total_ms": 0,
+              "http_errors": 0,
+              "transport_errors": 0
+            }
+          },
+          "observed_writes": 0,
+          "omitted_samples": 0,
+          "transport_errors": 0,
+          "percentiles_sample_count": 0
+        },
+        "producer": {
+          "jobs": 1,
+          "status": 200,
+          "accounts": 1,
+          "transport_error": false
+        }
+      }
+    }
+  ],
+  "confirmed_real_job": {
+    "started_at": "2026-10-22T08:15:40.084540Z",
+    "finished_at": "2026-10-22T08:15:43.099Z",
+    "rows_processed": 122,
+    "duration_ms": 3015,
+    "status": "success"
+  },
+  "conclusion": "Real job processed122 orders but emitted0 observed fulfillment_orders write requests. p95 is not estimable; no claim of zero write overhead or passed write contention. No artificial source writes were made."
+}

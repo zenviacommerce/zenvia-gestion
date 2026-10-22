@@ -1,0 +1,21 @@
+{
+  "samples": 50,
+  "started_at": "2026-10-22T08:16:41.608184+00:00",
+  "duration_ms": 9907.334,
+  "finished_at": "2026-10-22T08:16:51.515518+00:00",
+  "limitations": "Point sampling may miss sub-200ms writes or waits; zero writer samples means concurrency was unobserved, not a passed load test; no business writes or forced locks were generated.",
+  "max_advisory_waiters": 0,
+  "max_active_source_writers": 0,
+  "max_worker_advisory_locks": 0,
+  "samples_with_worker_locks": 0,
+  "max_active_worker_sessions": 0,
+  "nominal_sample_interval_ms": 200,
+  "samples_with_source_writers": 0,
+  "max_source_write_advisory_waiters": 0,
+  "max_source_write_other_lock_waiters": 0,
+  "max_active_sessions_query_unavailable": 0,
+  "samples_with_source_writers_and_worker_locks": 0,
+  "observation_kind": "immediate_watch_after_delayed_probe_request",
+  "project_ref": "sjkxxbedkkmgmqnvaqjh",
+  "coverage_conclusion": "No source writer or worker advisory lock observed; sample started at08:16:41UTC, after requested expected08:15:35 dispatch, so overlap with actual dispatch is not established."
+}

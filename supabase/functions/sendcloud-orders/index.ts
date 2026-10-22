@@ -2,7 +2,7 @@ import {resolveOrderPackageWeight,assertQuotedPackageWeight} from '../_shared/or
 import {loadDirectCarrierIds,filterAggregatorOptions} from '../_shared/carrierPolicy.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
 import {withAmazonBuyerRead,withOrderQuote,withOrderLabelCreation} from '../_shared/amazonPiiRead.ts';
-import {assertAmazonOrderShippable} from '../_shared/amazonShippingEligibility.ts';
+import {assertAmazonOrderShippable,canRelabelCancelledShipment} from '../_shared/amazonShippingEligibility.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
 
 const corsHeaders={
@@ -237,19 +237,22 @@ Deno.serve(async(req:Request)=>{
     if(['shipping_options','create_label'].includes(action))await resolveOrderPackageWeight(admin,order,shippingConfig);
     if(action==='create_label')assertQuotedPackageWeight(order,body?.shippingOption);
     if(action==='shipping_options'||action==='create_label')assertAmazonOrderShippable(order);
-    const orderSendcloudAccount=await loadSendcloudAccount(admin,caller.data_owner_id,order.shipping_integration_account_id||null);
+    const replacement=canRelabelCancelledShipment(order);
+    const replacementAccount=replacement&&action==='create_label'?clean(body?.shippingOption?.integrationAccountId):'';
+    const priorAccount=replacement&&order.shipping_provider&&order.shipping_provider!=='sendcloud'?null:order.shipping_integration_account_id||null;
+    const orderSendcloudAccount=await loadSendcloudAccount(admin,caller.data_owner_id,replacementAccount||priorAccount);
     const orderCredentials=orderSendcloudAccount.credentials;
 
     if(action==='shipping_options'){
       const direct=await loadDirectCarrierIds(admin,caller.data_owner_id);
-      if(nonActionable(order.source_status))return fail('Este pedido ya no admite preparación de etiqueta por su estado actual.',409);
+      if(nonActionable(order.source_status)&&!canRelabelCancelledShipment(order))return fail('Este pedido ya no admite preparación de etiqueta por su estado actual.',409);
       const address=order.shipping_address||{},requestBody:any={calculate_quotes:false};if(address.country_code||address.postal_code||address.city)requestBody.to_address={country_code:address.country_code||undefined,postal_code:address.postal_code||undefined,city:address.city||undefined,address_line_1:address.address_line_1||undefined,house_number:address.house_number||undefined};
       const weight=order?.raw_payload?.shipping_details?.measurement?.weight;if(weight?.value)requestBody.weight={value:Number(weight.value),unit:weight.unit||'kg'};
       const {data}=await sendcloudJson(orderCredentials,'/shipping-options',{method:'POST',body:JSON.stringify(requestBody)});return response({options:filterAggregatorOptions((data?.data||[]).map(normalizeShippingOption).filter((i:any)=>i.code),direct,'sendcloud')});
     }
 
     if(action==='create_label'){
-      if(order.sendcloud_parcel_id)return fail('Este pedido ya tiene una etiqueta creada.',409);if(nonActionable(order.source_status))return fail('No se puede crear una etiqueta para un pedido cancelado o ya procesado.',409);
+      if(order.sendcloud_parcel_id)return fail('Este pedido ya tiene una etiqueta creada.',409);if(nonActionable(order.source_status)&&!canRelabelCancelledShipment(order))return fail('No se puede crear una etiqueta para un pedido cancelado o ya procesado.',409);
       const selected=body?.shippingOption||null;
       const direct=await loadDirectCarrierIds(admin,caller.data_owner_id);
       if(!selected&&direct.size)return fail('Selecciona un servicio para comprobar los contratos directos activos.',409);
@@ -259,7 +262,7 @@ Deno.serve(async(req:Request)=>{
 
       // ZENVIA is the source of truth. A Sendcloud order is created lazily only
       // when Sendcloud is actually chosen for the label.
-      let remoteOrderId=clean(order.sendcloud_remote_id);
+      let remoteOrderId=replacement&&order.shipping_integration_account_id!==orderSendcloudAccount.id?'':clean(order.sendcloud_remote_id);
       let labelIntegrationId=Number(order.integration_id)||0;
       if(!remoteOrderId){
         const linked=await integrations(orderCredentials);
@@ -333,7 +336,7 @@ Deno.serve(async(req:Request)=>{
       const shouldMarkSent=automation.markSent&&markSentAfterLabel&&confirmShipmentAfterLabel;
       const costPatch=persistShippingCost&&Number.isFinite(selectedPrice)?{shipping_cost_amount:selectedPrice,shipping_cost_currency:selectedCurrency||'EUR',shipping_cost_source:'sendcloud_quote',shipping_cost_net_amount:selectedPrice,shipping_cost_tax_amount:0,shipping_cost_recorded_at:now}:{};
       const trackingPatch=automation.saveTracking?{tracking_number:created.tracking_number||null,tracking_url:created.tracking_url||null,tracking_status_code:'READY_TO_SEND',tracking_status_message:'Ready to send',tracking_updated_at:now}:{};
-      const shipmentPatch:any={raw_payload:order.raw_payload,sendcloud_parcel_id:Number(created.parcel_id),sendcloud_shipment_id:created.shipment_id==null?null:String(created.shipment_id),shipping_option_code:optionCode,contract_id:ship.contract_id??selected?.contractId??null,carrier_code:code,carrier_name:selected?.carrierName||friendlyCarrier(code),shipping_service_name:selected?.name||optionCode,label_created_at:now,...trackingPatch,...costPatch};
+      const shipmentPatch:any={raw_payload:order.raw_payload,shipping_provider:'sendcloud',shipping_integration_account_id:orderSendcloudAccount.id,shipping_remote_id:null,shipping_label_url:null,label_cancelled_at:null,tracking_number:null,tracking_url:null,tracking_status_code:null,tracking_status_message:null,tracking_updated_at:null,sendcloud_parcel_id:Number(created.parcel_id),sendcloud_shipment_id:created.shipment_id==null?null:String(created.shipment_id),shipping_option_code:optionCode,contract_id:ship.contract_id??selected?.contractId??null,carrier_code:code,carrier_name:selected?.carrierName||friendlyCarrier(code),shipping_service_name:selected?.name||optionCode,label_created_at:now,...trackingPatch,...costPatch};
       if(shouldMarkSent){shipmentPatch.fulfilled_at=now;shipmentPatch.source_status='shipped';}
       const {error:updateError}=await admin.from('fulfillment_orders').update(shipmentPatch).eq('id',order.id).eq('owner_id',caller.data_owner_id);if(updateError)throw updateError;
       return response({parcelId:Number(created.parcel_id),shipmentId:created.shipment_id==null?null:String(created.shipment_id),trackingNumber:created.tracking_number||null,trackingUrl:created.tracking_url||null,shippingOptionCode:optionCode,contractId:ship.contract_id??selected?.contractId??null,carrierCode:code,carrierName:selected?.carrierName||friendlyCarrier(code),shippingServiceName:selected?.name||optionCode,mimeType:created.label.mime_type||'application/pdf',base64:String(created.label.file)});

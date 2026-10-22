@@ -41,6 +41,7 @@ it('preserves complete RPC results while avoiding singleton JSON array merges, i
  await db.exec(`CREATE SCHEMA cron;CREATE TABLE cron.job(jobid bigint GENERATED ALWAYS AS IDENTITY,jobname text,schedule text,command text);
  CREATE FUNCTION cron.schedule(text,text,text) RETURNS bigint LANGUAGE sql AS $$INSERT INTO cron.job(jobname,schedule,command) VALUES($1,$2,$3) RETURNING jobid$$;`);
  await db.exec(readFileSync('supabase/migrations/20261022065250_orders_incremental_classified_projection.sql','utf8'));
+ await db.exec(readFileSync('supabase/migrations/20261022085809_orders_projection_single_enqueue.sql','utf8'));
  const job=(await db.query<any>(`SELECT * FROM cron.job`)).rows[0];expect(job.jobname).toBe('orders-dashboard-projection');expect(job.schedule).toBe('* * * * *');
  expect(job.command).toContain('orders_dashboard_projection_cleanup(100); COMMIT; BEGIN;');expect(job.command).toContain('orders_dashboard_projection_reconcile(100)');
  expect((await db.query<any>(`select prosrc from pg_proc where oid='public.orders_dashboard_page_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[])'::regprocedure`)).rows[0].prosrc).toBe(source);

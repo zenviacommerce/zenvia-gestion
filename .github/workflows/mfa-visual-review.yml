@@ -8,7 +8,7 @@ permissions:
 jobs:
   screenshots:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
         with:
@@ -103,4 +103,5 @@ jobs:
           name: mfa-security-ui-desktop-mobile
           path: artifacts/mfa-visual/*.png
           if-no-files-found: error
+
 

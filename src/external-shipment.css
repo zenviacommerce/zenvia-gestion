@@ -1,0 +1,7 @@
+.externalShipmentModal .formGrid label{display:flex;flex-direction:column;gap:6px;min-width:0}
+.externalShipmentModal .formGrid input{width:100%;min-width:0}
+.externalShipmentModal small,.externalShipmentHint{color:var(--text-muted,#64748b);font-size:13px}
+.externalShipmentNotify{display:flex;align-items:flex-start;gap:10px;margin-top:20px}
+.externalShipmentNotify input{flex:none;width:18px;height:18px;margin-top:2px}
+.externalShipmentModal .formModalBody{max-height:65vh;overflow:auto}
+@media(max-width:767px){.externalShipmentModal .formGrid{grid-template-columns:minmax(0,1fr)}.externalShipmentModal .formSpan2{grid-column:1}.externalShipmentModal input{font-size:16px}.externalShipmentModal .formModalActions button{min-height:48px}}

@@ -1,0 +1,50 @@
+// @vitest-environment node
+import {it,expect} from 'vitest';
+import {PGlite} from '@electric-sql/pglite';
+import {readFileSync} from 'node:fs';
+const migration=readFileSync('supabase/migrations/20261022150219_register_external_shipment.sql','utf8');
+const owner='00000000-0000-4000-8000-000000000001',actor='00000000-0000-4000-8000-000000000002',order='00000000-0000-4000-8000-000000000003',account='00000000-0000-4000-8000-000000000004',request='00000000-0000-4000-8000-000000000005';
+async function setup(){const db=new PGlite();await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;create schema private;
+create table app_users(user_id uuid,data_owner_id uuid,role text,active boolean,permissions text[]);
+create table workspaces(id uuid,status text);create table integration_accounts(id uuid,owner_id uuid,provider text,enabled boolean,status text);
+create table order_cancellation_operations(order_id uuid,owner_id uuid,status text,kind text);
+create table audit_logs(workspace_owner_id uuid,actor_user_id uuid,module text,action text,entity_type text,entity_id text,entity_label text,summary text,details jsonb);
+`+readFileSync('tests/fixtures/orders-table-schema.sql','utf8')+`alter table fulfillment_orders add primary key(id);
+create table shipment_tracking_state(order_id uuid primary key,owner_id uuid,account_id uuid,provider text,tracking_number text,identity_key text,label_created_at timestamptz);
+create function private.shipment_tracking_identity(o fulfillment_orders) returns text language sql as $$select md5(jsonb_build_array(o.owner_id,o.shipping_integration_account_id,o.shipping_provider,o.tracking_number,o.shipping_remote_id,o.sendcloud_parcel_id,o.label_created_at,o.label_cancelled_at)::text)$$;
+insert into app_users values('${actor}','${owner}','admin',true,'{}');insert into workspaces values('${owner}','active');
+insert into integration_accounts values('${account}','${owner}','mrw',true,'connected');
+insert into fulfillment_orders(id,owner_id,source_channel,source_status,order_number,items,shipping_address,raw_payload) values('${order}','${owner}','shopify','unshipped','DEMO-1','[]','{}','{}');`);await db.exec(readFileSync('tests/fixtures/external-shipment-shopify-rpcs.sql','utf8'));await db.exec(migration);return db}
+const input={carrier:'MRW',trackingNumber:'SYNTHETIC-123',accountId:account,notifySource:false};
+const register=(db:PGlite,p:any=input,r=request)=>db.query<any>('select public.register_external_shipment($1,$2,$3,$4,$5::jsonb) result',[order,owner,actor,r,JSON.stringify(p)]);
+const snapshot=async(db:PGlite)=>(await db.query('select to_jsonb(o) value from fulfillment_orders o')).rows;
+it('registers Shopify + direct MRW, seeds tracking and audits the authenticated actor atomically',async()=>{const db=await setup();try{
+ await register(db);const row:any=(await snapshot(db))[0].value;
+ expect(row.tracking_number).toBe('SYNTHETIC-123');expect(row.source_status).toBe('shipped');expect(row.shipping_integration_account_id).toBe(account);expect(row.fulfilled_at).toBeTruthy();expect(row.label_created_at).toBeNull();expect(row.external_shipment.notifySource).toBe(false);
+ expect((await db.query<any>('select * from shipment_tracking_state')).rows[0]).toMatchObject({order_id:order,account_id:account,provider:'mrw'});
+ expect((await db.query<any>('select * from audit_logs')).rows[0]).toMatchObject({actor_user_id:actor,workspace_owner_id:owner,action:'register_external_shipment'});
+ const before=await snapshot(db);await register(db);expect(await snapshot(db)).toEqual(before);expect((await db.query('select * from audit_logs')).rows).toHaveLength(1);
+ await expect(register(db,{...input,trackingNumber:'OTHER'})).rejects.toThrow();
+ }finally{await db.close()}},20000);
+it.each([
+ ['foreign account',`update integration_accounts set owner_id=md5('foreign')::uuid`],
+ ['disabled account',`update integration_accounts set enabled=false`],
+ ['suspended workspace',`update workspaces set status='disabled'`],
+ ['wrong actor',`update app_users set data_owner_id=md5('foreign')::uuid`],
+ ['missing permission',`update app_users set role='member',permissions='{}'`],
+ ['existing label',`update fulfillment_orders set label_created_at=now()`],
+ ['cancelled prior label',`update fulfillment_orders set label_cancelled_at=now()`],
+ ['existing tracking',`update fulfillment_orders set tracking_number='EXISTING'`],
+ ['shipping lease',`update fulfillment_orders set order_action_lease_until=now()+interval '8 minutes'`],
+ ['cancelled',`update fulfillment_orders set source_status='cancelled'`],
+ ['purged',`update fulfillment_orders set pii_purged_at=now()`],
+])('rejects %s without partial writes',async(_name,change)=>{const db=await setup();try{await db.exec(change);const before=await snapshot(db);await expect(register(db)).rejects.toThrow();expect(await snapshot(db)).toEqual(before);expect((await db.query('select * from audit_logs')).rows).toHaveLength(0);expect((await db.query('select * from shipment_tracking_state')).rows).toHaveLength(0)}finally{await db.close()}},20000);
+it.each([{carrier:'',trackingNumber:'X'},{carrier:'MRW',trackingNumber:''},{...input,cost:-1},{...input,url:'javascript:alert(1)'},{...input,shippedAt:'not-a-date'}])('rejects invalid registration %j',async p=>{const db=await setup();try{await expect(register(db,p)).rejects.toThrow();expect((await db.query('select * from audit_logs')).rows).toHaveLength(0)}finally{await db.close()}},20000);
+it('supports no integration, zero cost and an explicit source notification request',async()=>{const db=await setup();try{await register(db,{carrier:'Otro transportista',trackingNumber:'SYNTHETIC',cost:0,notifySource:true});const row:any=(await snapshot(db))[0].value;expect(row.shipping_cost_amount).toBe(0);expect(row.shipping_provider).toBeNull();expect(row.external_shipment.notifySource).toBe(true);expect((await db.query('select * from shipment_tracking_state')).rows).toHaveLength(0)}finally{await db.close()}},20000);
+it('blocks source confirmation attempts when notification was not selected',async()=>{const db=await setup();try{await register(db);await expect(db.exec(`update fulfillment_orders set amazon_tracking_sync_attempts=1`)).rejects.toThrow('notificación');await expect(db.exec(`update fulfillment_orders set shopify_tracking_lease=md5('lease')::uuid`)).rejects.toThrow('notificación')}finally{await db.close()}},20000);
+it.each([false,true])('Shopify retry/claim honors notifySource=%s without requiring a fake label',async notifySource=>{const db=await setup();try{await register(db,{...input,notifySource});expect((await db.query(`select * from integration_shopify_pending_shipments($1)`,[owner])).rows).toHaveLength(notifySource?1:0);expect((await db.query(`select * from integration_shopify_claim_shipment($1,$2,md5('lease')::uuid)`,[order,owner])).rows).toHaveLength(notifySource?1:0);if(notifySource)await db.exec(`update fulfillment_orders set amazon_tracking_sync_attempts=1`)}finally{await db.close()}},20000);
+it('keeps external shipping data through a sales-channel import',async()=>{const db=await setup();try{await register(db);await db.exec(`update fulfillment_orders set last_synced_at=now(),tracking_number=null,shipping_integration_account_id=null,shipping_provider=null,fulfilled_at=null,shipping_cost_source=null`);const row:any=(await snapshot(db))[0].value;expect(row.tracking_number).toBe(input.trackingNumber);expect(row.shipping_integration_account_id).toBe(account);expect(row.shipping_cost_source).toBe('external_manual');expect(row.fulfilled_at).toBeTruthy()}finally{await db.close()}},20000);
+it('rolls back the order and tracking when audit persistence fails',async()=>{const db=await setup();try{await db.exec(`create function fail_audit() returns trigger language plpgsql as $$begin raise exception 'audit failed';end$$;create trigger reject_audit before insert on audit_logs for each row execute function fail_audit();`);const before=await snapshot(db);await expect(register(db)).rejects.toThrow('audit failed');expect(await snapshot(db)).toEqual(before);expect((await db.query('select * from shipment_tracking_state')).rows).toHaveLength(0)}finally{await db.close()}},20000);
+it('cannot be invoked by an authenticated client bypassing the Edge authorization',async()=>{const db=await setup();try{await db.exec('set role authenticated');await expect(register(db)).rejects.toThrow('permission denied')}finally{await db.close()}},20000);
+it('rolls back the additive schema exactly while there are no registrations',async()=>{const db=await setup();try{await db.exec(readFileSync('supabase/rollback/20261022_external_shipment.sql','utf8'));expect((await db.query(`select column_name from information_schema.columns where table_name='fulfillment_orders' and column_name='external_shipment'`)).rows).toHaveLength(0);expect((await db.query(`select to_regprocedure('public.register_external_shipment(uuid,uuid,uuid,uuid,jsonb)') fn`)).rows[0]).toEqual({fn:null})}finally{await db.close()}},20000);
+it('refuses a schema rollback that would discard a registered shipment',async()=>{const db=await setup();try{await register(db);const before=await snapshot(db);await expect(db.exec(readFileSync('supabase/rollback/20261022_external_shipment.sql','utf8'))).rejects.toThrow('registrations exist');await db.exec('rollback');expect(await snapshot(db)).toEqual(before);expect((await db.query('select * from shipment_tracking_state')).rows).toHaveLength(1)}finally{await db.close()}},20000);

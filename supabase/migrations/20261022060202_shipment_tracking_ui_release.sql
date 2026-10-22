@@ -23,6 +23,21 @@ $$;
 revoke all on function private.tracking_legacy_state(text,text) from public,anon;
 grant execute on function private.tracking_legacy_state(text,text) to authenticated,service_role;
 
+-- Performance may already have moved classification into its private cache.
+-- Restore the preserved classifiers only inside this atomic UI transaction.
+do $projection_ui_prepare$
+declare f record;
+begin
+ if to_regclass('private.orders_dashboard_projection') is not null then
+  lock table public.fulfillment_orders in share row exclusive mode;
+  lock table public.shipment_tracking_state in share row exclusive mode;
+  for f in select * from private.orders_projection_rpc_backup loop
+   if md5(pg_get_functiondef(to_regprocedure(f.signature)))<>f.optimized_hash then raise exception 'TRACKING_PROJECTION_CALLER_CHANGED: %',f.signature;end if;
+   execute f.original_definition;
+  end loop;
+ end if;
+end $projection_ui_prepare$;
+
 do $patch$
 declare fn record; src text; before_src text; anchor text; pos_start integer;pos_end integer;patched integer:=0;
 begin
@@ -45,3 +60,62 @@ begin
  end loop;
  if patched<>3 then raise exception 'TRACKING_DASHBOARD_FUNCTIONS_MISSING';end if;
 end $patch$;
+
+-- Extend a legacy cache in place and rebuild the same exact classifier after
+-- the UI transform. Explicit column mapping accommodates added tracking fields.
+do $projection_ui_upgrade$
+declare source text;prefix text;scoped text;boundary integer;a record;cols text;select_cols text;assignments text;f record;original text;newdef text;source_prefix text;was_active boolean;
+begin
+ if to_regclass('private.orders_dashboard_projection') is null then return;end if;
+ select exists(select 1 from private.orders_projection_rpc_backup) into was_active;
+ select prosrc into strict source from pg_proc where oid='private.mfa_impl_orders_dashboard_pickup_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[],text,boolean)'::regprocedure;
+ boundary:=position(E',\nmatched AS (' in source);
+ if boundary=0 then raise exception 'TRACKING_PROJECTION_CLASSIFIER_CHANGED';end if;
+ prefix:=left(source,boundary-1);
+ scoped:=replace(prefix,'FROM public.fulfillment_orders o WHERE o.owner_id=private.app_workspace_owner_id()',
+ 'FROM public.fulfillment_orders o WHERE o.owner_id=p_owner AND private.orders_dashboard_group_key(o.source_channel,o.order_number,o.id)=p_key');
+ execute 'CREATE TEMP TABLE orders_projection_ui_shape ON COMMIT DROP AS '||replace(prefix,'FROM public.fulfillment_orders o WHERE o.owner_id=private.app_workspace_owner_id()','FROM public.fulfillment_orders o WHERE false')||' SELECT * FROM classified WITH NO DATA';
+ for a in select attname,format_type(atttypid,atttypmod) column_type from pg_attribute where attrelid='pg_temp.orders_projection_ui_shape'::regclass and attnum>0 and not attisdropped loop
+  if not exists(select 1 from pg_attribute where attrelid='private.orders_dashboard_projection'::regclass and attname=a.attname and attnum>0 and not attisdropped) then execute format('ALTER TABLE private.orders_dashboard_projection ADD COLUMN %I %s',a.attname,a.column_type);end if;
+ end loop;
+ select string_agg(format('%I',attname),',' order by attnum),
+ string_agg(case when attname='projection_group_key' then 'p_key AS projection_group_key' else format('c.%I',attname) end,',' order by attnum),
+ string_agg(format('%1$I=excluded.%1$I',attname),',' order by attnum)
+ into cols,select_cols,assignments from pg_attribute where attrelid='private.orders_dashboard_projection'::regclass and attnum>0 and not attisdropped;
+ execute format('CREATE OR REPLACE FUNCTION private.orders_dashboard_projection_refresh(p_owner uuid,p_key text) RETURNS void LANGUAGE plpgsql SECURITY DEFINER SET search_path='''' AS %L',
+ 'BEGIN WITH refreshed AS MATERIALIZED ('||scoped||' SELECT '||select_cols||' FROM classified c),
+ upserted AS (INSERT INTO private.orders_dashboard_projection('||cols||') SELECT * FROM refreshed WHERE true ON CONFLICT(owner_id,projection_group_key) DO UPDATE SET '||assignments||' RETURNING 1)
+ DELETE FROM private.orders_dashboard_projection p WHERE p.owner_id=p_owner AND p.projection_group_key=p_key AND NOT EXISTS(SELECT 1 FROM refreshed);END');
+ update private.orders_projection_classifier set source_prefix=prefix where singleton;
+ for f in select distinct owner_id,private.orders_dashboard_group_key(source_channel,order_number,id) group_key from public.fulfillment_orders loop perform private.orders_dashboard_projection_refresh(f.owner_id,f.group_key);end loop;
+ -- Source purges first lock/delete tracking rows; provider updates do the same
+ -- before taking group/cache locks. Preserve this order in both release paths.
+ if exists(select 1 from pg_trigger where tgrelid='public.fulfillment_orders'::regclass and tgname='orders_dashboard_projection_changed') then alter trigger orders_dashboard_projection_changed on public.fulfillment_orders rename to zzzz_orders_dashboard_projection_changed;end if;
+ if was_active then
+  for f in select p.oid,p.oid::regprocedure::text signature,p.prosrc from pg_proc p join pg_namespace n on n.oid=p.pronamespace
+  where (n.nspname='public' and p.proname='orders_dashboard_page_v1') or (n.nspname='private' and p.proname in('pickup_report_dashboard_scope','mfa_impl_orders_dashboard_pickup_v1')) loop
+   original:=pg_get_functiondef(f.oid);boundary:=position(E',\nmatched AS (' in f.prosrc);source_prefix:=left(f.prosrc,boundary-1);
+   if boundary=0 or replace(source_prefix,'FROM public.fulfillment_orders o WHERE o.owner_id=private.app_workspace_owner_id()','FROM public.fulfillment_orders o')<>replace(prefix,'FROM public.fulfillment_orders o WHERE o.owner_id=private.app_workspace_owner_id()','FROM public.fulfillment_orders o') then raise exception 'TRACKING_PROJECTION_CLASSIFIER_MISMATCH';end if;
+   select string_agg(format('p.%I',attname),',' order by attnum) into cols from pg_attribute where attrelid='private.orders_dashboard_projection'::regclass and attnum>0 and not attisdropped and attname<>'projection_group_key';
+   newdef:=replace(original,source_prefix,'WITH classified AS MATERIALIZED (SELECT '||cols||' FROM private.orders_dashboard_projection p WHERE p.owner_id=(SELECT private.app_workspace_owner_id()))');execute newdef;
+   update private.orders_projection_rpc_backup set original_definition=original,optimized_hash=md5(pg_get_functiondef(f.oid)) where signature=f.signature;
+  end loop;
+ end if;
+end $projection_ui_upgrade$;
+
+do $projection_ui_dependency$
+begin
+ if to_regclass('private.orders_dashboard_projection') is null then return;end if;
+ execute $function$CREATE OR REPLACE FUNCTION private.orders_dashboard_projection_tracking_changed() RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $body$
+ declare o record;old_id uuid;new_id uuid;
+ begin
+  if TG_OP='UPDATE' and NEW is not distinct from OLD then return null;end if;
+  if TG_OP<>'INSERT' then old_id:=OLD.order_id;end if;
+  if TG_OP<>'DELETE' then new_id:=NEW.order_id;end if;
+  for o in select f.owner_id,private.orders_dashboard_group_key(f.source_channel,f.order_number,f.id) group_key from public.fulfillment_orders f where f.id in(old_id,new_id) order by f.id loop
+   perform pg_advisory_xact_lock(hashtextextended(o.owner_id::text||':'||o.group_key,719));perform private.orders_dashboard_projection_refresh(o.owner_id,o.group_key);
+  end loop;return null;
+ end $body$ $function$;
+ execute 'REVOKE ALL ON FUNCTION private.orders_dashboard_projection_tracking_changed() FROM PUBLIC,anon,authenticated';
+ if not exists(select 1 from pg_trigger where tgrelid='public.shipment_tracking_state'::regclass and tgname='orders_dashboard_projection_tracking_changed') then execute 'CREATE TRIGGER orders_dashboard_projection_tracking_changed AFTER INSERT OR UPDATE OR DELETE ON public.shipment_tracking_state FOR EACH ROW EXECUTE FUNCTION private.orders_dashboard_projection_tracking_changed()';end if;
+end $projection_ui_dependency$;

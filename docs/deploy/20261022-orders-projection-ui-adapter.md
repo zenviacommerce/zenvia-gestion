@@ -1,0 +1,11 @@
+# Held tracking UI adapter after performance deployment
+
+This change belongs only to the separately approved tracking UI release. It is not part of performance PR #280 and does not require publishing that UI before the performance optimization.
+
+The existing UI migration keeps its original path when no classified projection exists. If performance is already active, the adapter takes source-order and tracking-state table locks, verifies live RPC hashes, restores the preserved original classifiers temporarily, applies the same UI classifier transform, adds the new typed tracking columns, regenerates refresh SQL with explicit column-name mapping, rebuilds derived groups, and restores cached RPC reads in the same transaction. Backups then contain the new UI classifier so a later read rollback preserves UI semantics. Shadow-only performance installs are rebuilt but remain inactive.
+
+Provider state INSERT/UPDATE/DELETE now invalidates the corresponding derived group. Source maintenance runs after `zz_shipment_tracking_pii_purge`; both provider polling and privacy cleanup therefore acquire tracking-row locks before group/cache locks. This addresses the reviewed lock inversion. The change preserves RLS, restrictive MFA policies, public-wrapper hashes, grant restrictions and source-order contents.
+
+Derived data writes: initial rebuild UPSERTs current classified groups; metadata and RPC definition backups update; the existing derived-group DELETE body removes groups that classify to no row. No source business rows are updated/deleted. One temporary shape table has `ON COMMIT DROP`, contains zero rows and is used only to infer new column types. No persistent table or source data is dropped. Review the full held UI SQL before deployment under the user's approval rule.
+
+Verification: tests execute both UI→performance and performance→UI with populated orders/state, compare full JSON for page/pickup, all/issues/search/pagination/sort/selection, confirm later normalized-state changes refresh the cache, and retain tenant isolation, purge protection, MFA errors and unchanged wrapper hashes. The existing UI-only path also passes. Real PostgreSQL multi-session concurrency and production timing remain pending; PGlite verifies SQL semantics in one session.

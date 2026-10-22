@@ -1,4 +1,5 @@
 import {runMrwDiagnostic} from '../_shared/tracking/mrwDiagnostic.ts';
+import {runProviderDiagnostic} from '../_shared/tracking/providerDiagnostic.ts';
 import {previewTrackingReprocess,applyTrackingReprocess} from '../_shared/tracking/reprocess.ts';
 import {configureSendcloudWebhook} from '../_shared/tracking/setup-webhook.ts';
 import {createClient} from 'npm:@supabase/supabase-js@2.105.0';
@@ -11,6 +12,7 @@ Deno.serve(async(req:Request)=>{
  const environmentCredentials={sendcloud:{publicKey:Deno.env.get('SENDCLOUD_PUBLIC_KEY')||Deno.env.get('SENDCLOUD_API_KEY'),secretKey:Deno.env.get('SENDCLOUD_SECRET_KEY')||Deno.env.get('SENDCLOUD_API_SECRET')}};
  try{
   const body=await req.json().catch(()=>({}));
+  if(body.action==='provider_diagnostic')return Response.json({diagnostic:await runProviderDiagnostic(admin,fetch,environmentCredentials)});
   if(body.action==='mrw_diagnostic')return Response.json({diagnostic:await runMrwDiagnostic(admin,fetch,body.batchOnly===true)});
   if(body.action==='preview_reprocess')return Response.json({preview:await previewTrackingReprocess(admin,fetch,environmentCredentials)});
   if(body.action==='apply_reprocess')return Response.json({apply:await applyTrackingReprocess(admin,body.approvedCandidates,body.limit??25)});

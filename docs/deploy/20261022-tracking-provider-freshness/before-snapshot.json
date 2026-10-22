@@ -1,0 +1,372 @@
+{
+  "settings": {
+    "mode": "active",
+    "enabled": true,
+    "singleton": true
+  },
+  "functions": [
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "tracking_seed_shadow()",
+      "definition": "CREATE OR REPLACE FUNCTION public.tracking_seed_shadow()\n RETURNS integer\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare n integer;\nbegin\n insert into public.shipment_tracking_state(order_id,owner_id,account_id,provider,tracking_number,identity_key,label_created_at)\n select o.id,o.owner_id,a.id,a.provider,o.tracking_number,private.shipment_tracking_identity(o),o.label_created_at\n from public.fulfillment_orders o join public.integration_accounts a on a.id=o.shipping_integration_account_id and a.owner_id=o.owner_id\n join public.workspaces w on w.id=o.owner_id and w.status in('active','trialing')\n where a.enabled and a.status<>'disabled' and a.provider in('mrw','sendcloud','envia')\n and (o.shipping_provider=a.provider or (o.shipping_provider is null and a.provider='sendcloud' and o.sendcloud_parcel_id is not null))\n and o.pii_purged_at is null and nullif(o.tracking_number,'') is not null and o.label_cancelled_at is null\n and not private.shipment_tracking_terminal(a.provider,o.tracking_status_code)\n and not exists(select 1 from public.shipment_tracking_state existing where existing.order_id=o.id and existing.identity_key=private.shipment_tracking_identity(o)) order by o.label_created_at desc nulls last limit 1000\n on conflict(order_id) do update set owner_id=excluded.owner_id,account_id=excluded.account_id,provider=excluded.provider,tracking_number=excluded.tracking_number,identity_key=excluded.identity_key,label_created_at=excluded.label_created_at,\n normalized_state=null,raw_event_time=null,raw_code=null,raw_message=null,event_at=null,observed_at=null,movement_at=null,last_checked_at=null,next_poll_at=now(),failures=0,last_error=null,lease_id=null,lease_until=null\n where shipment_tracking_state.identity_key<>excluded.identity_key;\n get diagnostics n=row_count;return n;\nend;$function$\n",
+      "security_definer": false
+    },
+    {
+      "acl": "{postgres=X/postgres,service_role=X/postgres}",
+      "config": [
+        "search_path=\"\""
+      ],
+      "signature": "tracking_reprocess_candidates()",
+      "definition": "CREATE OR REPLACE FUNCTION public.tracking_reprocess_candidates()\n RETURNS TABLE(order_id uuid, owner_id uuid, account_id uuid, provider text, tracking_number text, normalized_state text, raw_code text, raw_message text, event_at timestamp with time zone, raw_event_time text, observed_at timestamp with time zone, movement_at timestamp with time zone, failures integer, next_poll_at timestamp with time zone, paused_until timestamp with time zone, version text)\n LANGUAGE sql\n STABLE\n SET search_path TO ''\nAS $function$\n select s.order_id,s.owner_id,s.account_id,s.provider,s.tracking_number,\n s.normalized_state,s.raw_code,s.raw_message,s.event_at,s.raw_event_time,\n s.observed_at,s.movement_at,s.failures,s.next_poll_at,h.paused_until,md5(to_jsonb(s)::text)\n from public.shipment_tracking_state s\n join public.fulfillment_orders o on o.id=s.order_id and o.owner_id=s.owner_id\n join public.integration_accounts a on a.id=s.account_id and a.owner_id=s.owner_id and a.provider=s.provider\n join public.workspaces w on w.id=s.owner_id and w.status in('active','trialing')\n left join public.shipment_tracking_account_health h on h.account_id=s.account_id and h.owner_id=s.owner_id and h.provider=s.provider\n where a.enabled and a.status<>'disabled'\n and o.shipping_integration_account_id=s.account_id\n and (o.shipping_provider=s.provider or (o.shipping_provider is null and s.provider='sendcloud' and o.sendcloud_parcel_id is not null))\n and o.pii_purged_at is null and o.label_cancelled_at is null\n and nullif(trim(o.tracking_number),'') is not null\n and private.shipment_tracking_identity(o)=s.identity_key\n and coalesce(s.normalized_state,'') not in('delivered','returned','cancelled')\n and not private.shipment_tracking_terminal(s.provider,o.tracking_status_code)\n order by s.provider,s.order_id limit 1001;\n$function$\n",
+      "security_definer": false
+    }
+  ],
+  "projection": {
+    "singleton": true,
+    "read_enabled": true,
+    "maintenance_enabled": true
+  },
+  "captured_at": "2026-10-22T11:19:01.54571+00:00",
+  "terminal_rows": [
+    {
+      "hash": "f7af893664ab101e6260bbc110db706e",
+      "order_id": "0e20c180-9bb9-4fd6-9f79-e87909ac7cbb"
+    },
+    {
+      "hash": "bb78877af307d3952a19a4a4ab91d6dc",
+      "order_id": "dcd2b6a9-70c8-470c-91ff-4dda6d7e9578"
+    },
+    {
+      "hash": "8a453236c88e57b2642894ddd9618e76",
+      "order_id": "e68ef379-c636-4db7-a148-77b18b6ae00b"
+    },
+    {
+      "hash": "b191c011460b10aa20ce21aef130ee29",
+      "order_id": "e756d1ab-9406-49c3-8a23-5dfc63bd9b9e"
+    },
+    {
+      "hash": "89e55e2fb1c53d382534296b69cfbb99",
+      "order_id": "fd11de8d-6bee-43b6-9c19-5d35f4128bb8"
+    },
+    {
+      "hash": "a023ae67fefe67d1d51b07911f027ff5",
+      "order_id": "95175d02-e269-477a-91e2-1a071b5f218d"
+    },
+    {
+      "hash": "b5849300b398820a013dfb376153cddb",
+      "order_id": "932782ee-1ff7-4f8a-ac6f-3158635a5e08"
+    },
+    {
+      "hash": "5771f41e82a4bce4308fe61e47b14b2f",
+      "order_id": "425e04c0-eaa4-4374-96ce-690928180006"
+    },
+    {
+      "hash": "1d27fbece84e4d0b472ccadd22978756",
+      "order_id": "490921f4-3fc6-4aeb-8f16-fb8378c97cbd"
+    },
+    {
+      "hash": "313b81d188fe84d3d6c622f8be3478c3",
+      "order_id": "4a614023-4c72-4d26-9599-049f6e437f21"
+    },
+    {
+      "hash": "2c4ee56e4d4b305375dc328fb638a65c",
+      "order_id": "50ddae57-0256-4bd2-82cc-1c2fdc9e602b"
+    },
+    {
+      "hash": "b107c501a4af922cdce5eb6c3b04d9a9",
+      "order_id": "c9a7ec02-7e1d-44b4-8d28-d547d65a5bb2"
+    },
+    {
+      "hash": "2ae5f91d87de8093d162589e8f601ce0",
+      "order_id": "d012b651-9549-4825-97b5-b29108f733a5"
+    },
+    {
+      "hash": "df314d378fcea6817d4a3ae73d0b3ddc",
+      "order_id": "c83ee365-e865-422b-8a3b-18774393f650"
+    },
+    {
+      "hash": "8a0b76f170f8fc7db0fb461fef694ee2",
+      "order_id": "cc47eca9-1aad-43e9-b078-5bcd3626acd0"
+    },
+    {
+      "hash": "4c7f90f217d9980e975291da44ea1ebd",
+      "order_id": "d32bb6d5-5919-4c11-8ded-99585af395d2"
+    },
+    {
+      "hash": "cbe3f7bcc223445df2668908e740e48d",
+      "order_id": "e06f3527-940e-40af-b753-51acf9c6fcb4"
+    },
+    {
+      "hash": "be17c131a4c80d69907c291969c14f32",
+      "order_id": "e086ae62-d687-43b2-9fbf-95c8341d1530"
+    },
+    {
+      "hash": "858386869bdb43efa46bf1d445fd1123",
+      "order_id": "e1591b4a-b348-4687-a3ca-7b1ae156ffbd"
+    },
+    {
+      "hash": "c24105fa791660e1538a72505de51d50",
+      "order_id": "e54d28d7-ff40-40ed-be90-e9265b97af20"
+    },
+    {
+      "hash": "b8dd5f44946523492ad0b02d6823bf03",
+      "order_id": "f5da1421-c475-43af-8a9a-596989a79941"
+    },
+    {
+      "hash": "8dc9ae3ecf72fb67860fb19324e25e5f",
+      "order_id": "fe9dc869-6686-49f6-8598-368e883d6d9a"
+    },
+    {
+      "hash": "3d48500a5b7bda54db9051074d9d1bad",
+      "order_id": "29724bfa-c4b9-4986-add7-bbab3d24924c"
+    },
+    {
+      "hash": "86a88538955d526db74648e857e14621",
+      "order_id": "af829ef9-af8d-4d16-8898-b1fbb58cd19a"
+    },
+    {
+      "hash": "25d4db5b8ae0160015821efcb4ffc198",
+      "order_id": "bb4afb78-01a3-450f-9d87-4dcf90da6b2b"
+    },
+    {
+      "hash": "c559aa132c61483edb41f6e363b1a59a",
+      "order_id": "d2424b8b-275a-4efc-a643-637189490a4a"
+    },
+    {
+      "hash": "a47efa9b926e76b9ad9699e498aca2c2",
+      "order_id": "41485e18-8d78-47df-808a-996b848b010f"
+    },
+    {
+      "hash": "112eb429c748781b24b5204f33b15d38",
+      "order_id": "2f5886ad-c549-4496-8943-4e90a31837d9"
+    },
+    {
+      "hash": "321f2a6c848865d3744a95eed66f1067",
+      "order_id": "3ce57499-3792-4932-8aae-60430b6d3d80"
+    },
+    {
+      "hash": "b10d9b4057a538332df7f81273884b92",
+      "order_id": "3fd2228c-5db4-4f3a-9c33-e6af6a811d0a"
+    },
+    {
+      "hash": "3f69af8a25c0f764ba9bbdadef81024f",
+      "order_id": "4580805b-cf3c-4f88-a82d-e55c32e7d117"
+    },
+    {
+      "hash": "4ed9871a303cecb82c0229de0d8d66e9",
+      "order_id": "0ea88fa6-07b3-41fb-bd8a-53fa0eea2534"
+    },
+    {
+      "hash": "997f31759a4dc536b2fb2cb436faece1",
+      "order_id": "10a5445c-f0e8-4773-a8cd-34045bd78a01"
+    },
+    {
+      "hash": "33c61f9ed7c3243fa0498088de6fa46f",
+      "order_id": "160ccdf9-f095-4de3-ad09-cf7724fd662d"
+    },
+    {
+      "hash": "f09c38abeace6ffe91ee642da890a9e0",
+      "order_id": "16de5ec6-2285-4fed-877c-daff49093bb7"
+    },
+    {
+      "hash": "72bcc4e88d7f9e69d49504d98ce0e4fd",
+      "order_id": "c76629ab-9d84-48d1-9eb8-a4b3c63eb154"
+    },
+    {
+      "hash": "1a74ad8cc450325b84ce490062791606",
+      "order_id": "0c68d21d-5d80-45b8-a297-83396034ceeb"
+    },
+    {
+      "hash": "94adcbd57f8f558f4ef90c584f3b065c",
+      "order_id": "1ee2a70b-96b6-4960-ba85-93dd7523d620"
+    },
+    {
+      "hash": "675d64e0adaf6a619ed12e61348061bf",
+      "order_id": "269d7a11-015f-4dc0-80a9-8c953638a206"
+    },
+    {
+      "hash": "8278490d8a6321365c41807370145572",
+      "order_id": "3132d94b-06d7-43f0-a98b-d303fe7561c3"
+    },
+    {
+      "hash": "f375129a540e9f51647132e3de5b6a5b",
+      "order_id": "6f034744-cea5-4e5f-b9c0-2c18706ac7bb"
+    },
+    {
+      "hash": "8124a31c73ae361c0a654a58d321e992",
+      "order_id": "f78bc2cf-3cff-4f06-ad3a-261dd4e04828"
+    },
+    {
+      "hash": "475d0edecd93c497e9b2d7af4bf85d7b",
+      "order_id": "61950056-94ee-49e2-90cf-a1ecb3aeaed4"
+    },
+    {
+      "hash": "ac2cfe7a618c1e3dd8e37e5a17f2d7ee",
+      "order_id": "64c6864f-e93b-4391-bd37-4ebb25fd5e44"
+    },
+    {
+      "hash": "5b06301392f4fc71948ba76642d6091c",
+      "order_id": "6525fa2e-1ac4-4521-895a-e6b534983cc0"
+    },
+    {
+      "hash": "339544e92937f59cd97174c1c39e41ec",
+      "order_id": "69eb6677-ca33-4904-86b1-04f473824f8b"
+    },
+    {
+      "hash": "6397eb9e002231e799ea87719635ec1f",
+      "order_id": "6a7b0bae-542e-4788-b2f3-7c6884ae8cfa"
+    },
+    {
+      "hash": "5cd1c7835a269dae1f57f020ad0075a5",
+      "order_id": "6bffe7a4-51bd-4d5d-a579-e2222a79e57d"
+    },
+    {
+      "hash": "5bdddac8b90ba1f6851da8ccf0b28b43",
+      "order_id": "6d8259c0-9c99-44a1-a065-e58dbc567c26"
+    },
+    {
+      "hash": "6ceb676703bfdeda05aea7d27a78449f",
+      "order_id": "6e3d6378-c50c-412d-8962-7b1717115c60"
+    },
+    {
+      "hash": "a585b5f6acf35c2bf1d1906eb21149f2",
+      "order_id": "71bd9db5-dfdf-4cf7-8504-b53524f19412"
+    },
+    {
+      "hash": "c84bb9c73118dbcc6972d7d82ee697f1",
+      "order_id": "7717f8d6-57ee-4b53-8cf2-fdd639c59ac3"
+    },
+    {
+      "hash": "f273a23d6049377fb789bba369b696a7",
+      "order_id": "77d4d3f9-33d1-43b0-9a4d-1ed7a7b6eaf6"
+    },
+    {
+      "hash": "5fac85d8aca38c33ccb27aed521e1305",
+      "order_id": "7b974677-94bb-4f37-81b8-9fcca69aa279"
+    },
+    {
+      "hash": "87268886ca413e41e25df48cbaa6433c",
+      "order_id": "7c450c96-2e01-41de-8863-2def3110a849"
+    },
+    {
+      "hash": "82ba6c56d4dec9a89112b70bd93fc0a6",
+      "order_id": "7c7bf11d-acfa-4d6f-aee2-7cc1848ad554"
+    },
+    {
+      "hash": "fc7f344b081351a5a3193991d483c1c4",
+      "order_id": "7f126034-f2df-49b3-9463-069a327bdabd"
+    },
+    {
+      "hash": "1b0aec4a69663f444d3cc3e119e5b6d4",
+      "order_id": "8877c9c9-0cad-4ac4-94c9-f134e1a08d6f"
+    },
+    {
+      "hash": "e1f5c01eae801dd028023c27ccbcb199",
+      "order_id": "89b0418b-5a78-477d-99a5-717dfd4decf5"
+    },
+    {
+      "hash": "a12d573964495c2a664afb5a98156a3c",
+      "order_id": "8c549a5a-06f5-40af-8ec1-18afec8ef4ac"
+    },
+    {
+      "hash": "78c6d957d45826adcfbfe0e6dcf22ab1",
+      "order_id": "8f1aa233-36cd-4156-b4d9-96ddde477d9e"
+    },
+    {
+      "hash": "0abfcb5f601ba9de68b2165c83cd3800",
+      "order_id": "9802d8c5-b5cf-4470-80ea-2a4868fed6d0"
+    },
+    {
+      "hash": "c4e46bb87fe964d23f0f97449f728469",
+      "order_id": "992189f4-5389-43c1-9c3a-69b5b69730ba"
+    },
+    {
+      "hash": "1d60b5eb57c45e0339c873c760757c69",
+      "order_id": "b53f6ef6-40c5-4fcb-8c52-c0ba5083c975"
+    },
+    {
+      "hash": "39c1101db2797449098e9f54e0f690d1",
+      "order_id": "b7ddcd1e-7d29-47e6-b3f0-daf1b25ca5e6"
+    },
+    {
+      "hash": "6421e9721501eeba4384409458737f46",
+      "order_id": "bbe50043-57b3-4f0f-bd0b-3f1c6a9dd00a"
+    },
+    {
+      "hash": "cc38e34027d314356d486a8811dd5c68",
+      "order_id": "793b4334-41e9-410d-8270-09b37829023d"
+    },
+    {
+      "hash": "f52e10ef6d755c66b5eccdcf6b683019",
+      "order_id": "7a6bb932-fa35-4323-8b32-36f9c388b115"
+    },
+    {
+      "hash": "1c38928ef2d949164a97a4504cdccd40",
+      "order_id": "7b925760-4f31-4fe1-901f-2259dafab30e"
+    },
+    {
+      "hash": "dfe132cd11ebc196e34b671ec2200153",
+      "order_id": "c08f9ec8-1a95-4dbf-a4f7-99d6d6f47e72"
+    },
+    {
+      "hash": "e9c5ac0a88bd0623c02cd46927017a52",
+      "order_id": "c7bc28ba-826d-4ae5-b1dd-ad82a1bd4f0d"
+    },
+    {
+      "hash": "59cd21f7ce7ef2af7ea3ed74ca48ab5e",
+      "order_id": "ba46f663-cb40-420f-86e6-8cebbd408380"
+    },
+    {
+      "hash": "8a1b06ea5156b8a32b6c7ebc1de03645",
+      "order_id": "abeb1408-931b-4ab9-a927-362dde67fe84"
+    },
+    {
+      "hash": "f9b2921505dd63e3568bdbf0bce13814",
+      "order_id": "c6e841fa-6ddc-4faf-9b27-fbec43384746"
+    },
+    {
+      "hash": "ea5f63f51787ed012f8c44769280e16a",
+      "order_id": "589764f2-4da5-4502-b8dc-0e9f5300a56f"
+    }
+  ],
+  "worker": {
+    "version": 10,
+    "files": [
+      {
+        "name": "shipment-tracking-worker/index.ts",
+        "content": "import {runMrwDiagnostic} from '../_shared/tracking/mrwDiagnostic.ts';\nimport {previewTrackingReprocess,applyTrackingReprocess} from '../_shared/tracking/reprocess.ts';\nimport {configureSendcloudWebhook} from '../_shared/tracking/setup-webhook.ts';\nimport {createClient} from 'npm:@supabase/supabase-js@2.105.0';\nimport {runTrackingWorker} from '../_shared/tracking/worker.ts';\nfunction key(){try{const keys=JSON.parse(Deno.env.get('SUPABASE_SECRET_KEYS')||'{}');if(keys.default)return keys.default}catch{}return Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||''}\nDeno.serve(async(req:Request)=>{\n const secret=key();if(req.method!=='POST')return Response.json({error:'METHOD_NOT_ALLOWED'},{status:405});\n if(!secret||req.headers.get('apikey')!==secret)return Response.json({error:'UNAUTHORIZED'},{status:401});\n const admin=createClient(Deno.env.get('SUPABASE_URL')||'',secret,{auth:{persistSession:false,autoRefreshToken:false}});\n const environmentCredentials={sendcloud:{publicKey:Deno.env.get('SENDCLOUD_PUBLIC_KEY')||Deno.env.get('SENDCLOUD_API_KEY'),secretKey:Deno.env.get('SENDCLOUD_SECRET_KEY')||Deno.env.get('SENDCLOUD_API_SECRET')}};\n try{\n  const body=await req.json().catch(()=>({}));\n  if(body.action==='mrw_diagnostic')return Response.json({diagnostic:await runMrwDiagnostic(admin,fetch,body.batchOnly===true)});\n  if(body.action==='preview_reprocess')return Response.json({preview:await previewTrackingReprocess(admin,fetch,environmentCredentials)});\n  if(body.action==='apply_reprocess')return Response.json({apply:await applyTrackingReprocess(admin,body.approvedCandidates,body.limit??25)});\n  if(body.action&&!['run','webhook_availability','configure_sendcloud_webhook'].includes(body.action))return Response.json({error:'UNKNOWN_ACTION'},{status:400});\n  if(body.action==='webhook_availability'||body.action==='configure_sendcloud_webhook'){\n   const {data:accounts,error}=await admin.from('integration_accounts').select('id,owner_id,provider,secret_id,credential_source').eq('provider','sendcloud').eq('enabled',true).neq('status','disabled');if(error)throw error;\n   const results=[];\n   for(const account of (accounts||[]).slice(0,10)){\n    let stored:any={};if(account.secret_id){const {data,error}=await admin.rpc('integration_read_secret',{p_secret_id:account.secret_id});if(error)throw error;stored=JSON.parse(String(data||'{}'))}\n    const c={...(account.credential_source==='environment'?environmentCredentials.sendcloud:{}),...stored};\n    const r=await fetch('https://panel.sendcloud.sc/api/v3/event-subscriptions/connections',{headers:{Authorization:'Basic '+btoa((c.publicKey||c.public_key||'')+':'+(c.secretKey||c.secret_key||''))},signal:AbortSignal.timeout(12000),redirect:'error'});\n    const available=r.ok;await r.body?.cancel();\n    if(body.action==='configure_sendcloud_webhook'&&available){const configured=await configureSendcloudWebhook(account,c,Deno.env.get('SUPABASE_URL')||'');const saved=await admin.from('shipment_tracking_account_health').update({webhook_status:JSON.stringify(configured)}).eq('account_id',account.id);if(saved.error)throw saved.error;results.push({account:account.id,...configured})}\n    else results.push({account:account.id,status:r.status,available});\n   }\n   return Response.json({accounts:results});\n  }\n  return Response.json(await runTrackingWorker(admin,fetch,environmentCredentials));\n }catch{return Response.json({error:'TRACKING_WORKER_FAILED'},{status:503})}\n});\n"
+      },
+      {
+        "name": "_shared/tracking/mrwDiagnostic.ts",
+        "content": "// Temporary service-key-only diagnostic. No persistence, provider mutations or logs.\nconst ENDPOINT='https://trackingservice.mrw.es/TrackingService.svc/TrackingServices';\nconst ACTION='http://tempuri.org/ITrackingService/GetEnvios';\nconst clean=(v:unknown)=>typeof v==='string'?v.trim():'';\nconst escapeXml=(v:string)=>v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&apos;');\nconst xmlField=(xml:string,name:string)=>{\n const match=xml.match(new RegExp(`<(?:(?:\\\\w+):)?${name}(?:\\\\s[^>]*)?>([\\\\s\\\\S]*?)<\\\\/(?:(?:\\\\w+):)?${name}>`,'i'));\n return clean(match?.[1]).replace(/<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>/g,'$1').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'\"').replace(/&apos;/g,\"'\").replace(/&amp;/g,'&');\n};\ntype Shipment={NumAlbaran:string;Estado:string;EstadoDescripcion:string;Publicado:string;FechaEntrega:string;HoraEntrega:string;Intentos:number};\ntype Probe={mode:'exact'|'range';tipoInformacion:'0'|'1';httpStatus:number;MensajeSeguimiento:'OK'|'NO_DATA'|'REJECTED'|'HTTP_ERROR'|'INVALID_RESPONSE'|'UNAVAILABLE';historyCount:number;matchedHistoryCount:number;batchDistinctCount:number;matchedDistinctCount:number;FaultCode:null|'SOAP_FAULT'|'SOAP_CLIENT'|'SOAP_SERVER';shipments:Shipment[]};\nexport type MrwDiagnosticResult={code:'MRW_DIAGNOSTIC_COMPLETE'|'MRW_DIAGNOSTIC_UNAVAILABLE';results:Probe[]};\nfunction records(xml:string){\n const stack:number[]=[],rows:string[]=[];const tags=/<(\\/?)(?:\\w+:)?Seguimiento(?:\\s[^>]*)?>/gi;let match:RegExpExecArray|null;\n while((match=tags.exec(xml))){\n  if(!match[1])stack.push(tags.lastIndex);\n  else {const start=stack.pop();if(start===undefined)continue;const body=xml.slice(start,match.index);\n   if(!/<(?:\\w+:)?Seguimiento(?:\\s|>)/i.test(body)&&xmlField(body,'NumAlbaran'))rows.push(body);\n  }\n }\n return rows;\n}\nexport async function runMrwDiagnostic(admin:any,request:typeof fetch=fetch,batchOnly=false):Promise<MrwDiagnosticResult>{\n const started=Date.now();\n const unavailable:MrwDiagnosticResult={code:'MRW_DIAGNOSTIC_UNAVAILABLE',results:[]};\n try{\n  const selected=await admin.from('integration_accounts').select('id,owner_id,provider,secret_id,config').eq('provider','mrw').eq('enabled',true).neq('status','disabled').not('secret_id','is',null).limit(1).maybeSingle();\n  const account=selected.data;if(selected.error||!account?.secret_id||account.config?.archivedAt)return unavailable;\n  const workspace=await admin.from('workspaces').select('id').eq('id',account.owner_id).in('status',['active','trialing']).maybeSingle();\n  if(workspace.error||!workspace.data)return unavailable;\n  const query=()=>admin.from('fulfillment_orders').select('id,tracking_number,tracking_status_code').eq('owner_id',account.owner_id).eq('shipping_integration_account_id',account.id).eq('shipping_provider','mrw').is('pii_purged_at',null).is('label_cancelled_at',null).not('tracking_number','is',null).neq('tracking_number','');\n  const exact=await query().eq('tracking_number','01009F045714').limit(1).maybeSingle();\n  const sample=await query().order('label_created_at',{ascending:false}).limit(20);\n  if(exact.error||sample.error)return unavailable;\n  const orders=sample.data||[];\n  const states=orders.length?await admin.from('shipment_tracking_state').select('order_id,normalized_state').eq('owner_id',account.owner_id).eq('account_id',account.id).eq('provider','mrw').in('order_id',orders.map((o:any)=>o.id)):{data:[],error:null};\n  if(states.error)return unavailable;\n  const terminal=(value:unknown)=>['DELIVERED','RETURNED','CANCELLED','CANCELED','ENTREGADO','ENTREGADA','DEVUELTO','ANULADO'].includes(String(value||'').trim().toUpperCase().replace(/ /g,'_'));\n  const active=orders.filter((o:any)=>!terminal(o.tracking_status_code)&&!(states.data||[]).some((s:any)=>s.order_id===o.id&&terminal(s.normalized_state)));\n  const numbers=[...new Set<string>([clean(exact.data?.tracking_number),...active.slice(0,3).map((o:any)=>clean(o.tracking_number))].filter(Boolean))].slice(0,4);\n  if(!numbers.length)return unavailable;\n  const secret=await admin.rpc('integration_read_secret',{p_secret_id:account.secret_id});if(secret.error)return unavailable;\n  let c:any;try{c=JSON.parse(String(secret.data||'{}'))}catch{return unavailable}\n  const login=clean(c.username)||clean(c.userName)||clean(c.usuario),password=clean(c.password);\n  if(!login||!password)return unavailable;\n  const subscriber=clean(c.subscriberCode)||clean(c.codigoAbonado),franchise=clean(c.franchiseCode)||clean(c.codigoFranquicia);\n  const safe=(value:string,max=100)=>[login,password].reduce((text,credential)=>text.split(credential).join('[REDACTED]'),value).replace(/<[^>]*>/g,'').replace(/[\\u0000-\\u001f]/g,' ').slice(0,max);\n  const temporal=(value:string)=>/^[0-9T:./ +Z-]{0,40}$/.test(value)?safe(value,40):'';\n  const probes:Array<{mode:'exact'|'range';from:string;to:string;info:'0'|'1'}>=batchOnly?[]:numbers.flatMap(number=>(['0','1'] as const).map(info=>({mode:'exact' as const,from:number,to:info==='0'?'':number,info})));\n  // Batch evidence must concern two selected owned numbers. Never synthesize\n  // an adjacent number which may belong to an unrelated shipment.\n  const sorted=[...numbers].sort();\n  for(let i=0;i<sorted.length-1;i++){\n   const from=sorted[i].match(/^(.*?)(\\d{1,12})$/),to=sorted[i+1].match(/^(.*?)(\\d{1,12})$/);\n   if(from&&to&&from[1]===to[1]&&from[2].length===to[2].length&&Number(to[2])-Number(from[2])===1){probes.push({mode:'range',from:sorted[i],to:sorted[i+1],info:'1'});break}\n  }\n  const results:Probe[]=[];\n  for(const probe of probes){\n   const remaining=100000-(Date.now()-started);if(remaining<1000)break;\n   const output:Probe={mode:probe.mode,tipoInformacion:probe.info,httpStatus:0,MensajeSeguimiento:'UNAVAILABLE',historyCount:0,matchedHistoryCount:0,batchDistinctCount:0,matchedDistinctCount:0,FaultCode:null,shipments:[]};\n   try{\n    const params={login,pass:password,codigoIdioma:'3082',tipoFiltro:'0',valorFiltroDesde:probe.from,valorFiltroHasta:probe.to,fechaDesde:'',fechaHasta:'',tipoInformacion:probe.info,codigoAbonado:subscriber,codigoFranquicia:franchise};\n    const body='<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><GetEnvios xmlns=\"http://tempuri.org/\">'+Object.entries(params).map(([name,value])=>`<${name}>${escapeXml(value)}</${name}>`).join('')+'</GetEnvios></soap:Body></soap:Envelope>';\n    const response=await request(ENDPOINT,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8',SOAPAction:'\"'+ACTION+'\"'},body,signal:AbortSignal.timeout(Math.min(10000,remaining)),redirect:'error'});\n    output.httpStatus=response.status;\n    {\n     const xml=await response.text();\n     if(/<(?:\\w+:)?Fault(?:\\s|>)/i.test(xml)){output.MensajeSeguimiento='REJECTED';const fault=xmlField(xml,'faultcode').split(':').pop();output.FaultCode=fault==='Client'?'SOAP_CLIENT':fault==='Server'?'SOAP_SERVER':'SOAP_FAULT'}\n     else if(!response.ok)output.MensajeSeguimiento='HTTP_ERROR';\n     else if(xml.length>1000000||!/<(?:\\w+:)?GetEnviosResult(?:\\s|>)/i.test(xml))output.MensajeSeguimiento='INVALID_RESPONSE';\n     else{\n      const allRows=records(xml);\n      const rows=allRows.filter(row=>probe.mode==='range'?numbers.includes(xmlField(row,'NumAlbaran')):xmlField(row,'NumAlbaran')===probe.from);\n      output.historyCount=allRows.length;output.matchedHistoryCount=rows.length;\n      output.batchDistinctCount=new Set(allRows.map(row=>xmlField(row,'NumAlbaran')).filter(Boolean)).size;\n      output.matchedDistinctCount=new Set(rows.map(row=>xmlField(row,'NumAlbaran')).filter(Boolean)).size;output.MensajeSeguimiento=rows.length?'OK':'NO_DATA';\n      output.shipments=rows.slice(0,40).map(row=>({NumAlbaran:safe(xmlField(row,'NumAlbaran'),40),Estado:safe(xmlField(row,'Estado'),40),EstadoDescripcion:safe(xmlField(row,'EstadoDescripcion')),Publicado:temporal(xmlField(row,'Publicado')),FechaEntrega:temporal(xmlField(row,'FechaEntrega')),HoraEntrega:temporal(xmlField(row,'HoraEntrega')),Intentos:Math.max(0,Math.min(10000,Number(xmlField(row,'Intentos'))||0))}));\n     }\n    }\n   }catch{/* Fixed UNAVAILABLE result; never expose exception/provider text. */}\n   results.push(output);\n  }\n  return {code:'MRW_DIAGNOSTIC_COMPLETE',results};\n }catch{return unavailable}\n}\n"
+      },
+      {
+        "name": "_shared/tracking/reprocess.ts",
+        "content": "import {pollShipment,TrackingError} from './adapters.ts';\nimport {isTerminal,reduceMovement,type Movement,type TrackingState} from './policy.ts';\n\nexport type TrackingReprocessApproval={orderId:string;version:string};\ntype Outcome='changes'|'nochange'|'errors'|'unavailable';\nexport type TrackingReprocessPreview={\n counts:{candidates:number;changes:number;nochange:number;errors:number;unavailable:number};\n truncated:boolean;\n groups:Array<{provider:string;previous:TrackingState|null;next:TrackingState|null;outcome:Outcome;count:number}>;\n approvedCandidates:TrackingReprocessApproval[];\n};\n// Read-only: neither seeding nor claiming is allowed during a preview. The RPC\n// verifies the current order/account/workspace identity without exposing it here.\nexport async function previewTrackingReprocess(admin:any,request:typeof fetch=fetch,environmentCredentials:Record<string,any>={}):Promise<TrackingReprocessPreview>{\n const selected=await admin.rpc('tracking_reprocess_preview_candidates');\n if(selected.error||!Array.isArray(selected.data?.rows)||typeof selected.data?.truncated!=='boolean')throw Error('TRACKING_REPROCESS_PREVIEW_FAILED');\n const selectedRows=selected.data.rows;\n const rows=selectedRows.slice(0,1000).filter((row:any)=>!isTerminal(row.normalized_state));\n const result:TrackingReprocessPreview={counts:{candidates:rows.length,changes:0,nochange:0,errors:0,unavailable:0},truncated:selected.data.truncated,groups:[],approvedCandidates:[]};\n const accounts=new Map<string,{account:any;credentials:any}>(),paused=new Set<string>();\n const started=Date.now();\n for(const row of rows){\n  let outcome:Outcome='unavailable',next:TrackingState|null=row.normalized_state;\n  try{\n   if(Date.now()-started>100000||paused.has(row.account_id)||(row.paused_until&&Date.parse(row.paused_until)>Date.now())||(row.failures>0&&row.next_poll_at&&Date.parse(row.next_poll_at)>Date.now()))throw new TrackingError('ACCOUNT_PAUSED');\n   if(!accounts.has(row.account_id)){\n    const account=await admin.from('integration_accounts').select('id,owner_id,provider,enabled,status,secret_id,credential_source,config').eq('id',row.account_id).eq('owner_id',row.owner_id).eq('provider',row.provider).eq('enabled',true).neq('status','disabled').single();\n    if(account.error||!account.data)throw new TrackingError('ACCOUNT_UNAVAILABLE');\n    const a=account.data;let credentials:any={...(a.credential_source==='environment'?environmentCredentials[row.provider]||{}:{})};\n    if(a.secret_id){\n     const stored=await admin.rpc('integration_read_secret',{p_secret_id:a.secret_id});\n     if(stored.error)throw new TrackingError('ACCOUNT_CREDENTIALS_REQUIRED');\n     try{credentials={...credentials,...JSON.parse(String(stored.data||'{}'))}}catch{throw new TrackingError('ACCOUNT_CREDENTIALS_INVALID')}\n    }\n    accounts.set(row.account_id,{account:{...a,provider:row.provider},credentials});\n   }\n   const {account,credentials}=accounts.get(row.account_id)!;\n   const incoming=await pollShipment(account,credentials,row.tracking_number,request);\n   const previous:Movement|null=row.observed_at?{state:row.normalized_state,code:row.raw_code||'',message:row.raw_message||'',eventAt:row.event_at,eventTimeRaw:row.raw_event_time,observedAt:row.observed_at,movementAt:row.movement_at}:null;\n   const reduced=reduceMovement(previous,incoming,new Date().toISOString());\n   next=reduced.state;\n   // Observation/check timestamps are bookkeeping. Only provider movement\n   // information determines whether an approved refresh would change tracking.\n   const instant=(value:string|null|undefined)=>value&&Number.isFinite(Date.parse(value))?new Date(value).toISOString():value||null;\n   const values=(movement:Movement)=>[movement.state,movement.code||'',movement.message||'',instant(movement.eventAt),movement.eventTimeRaw||null,instant(movement.movementAt)];\n   const stored:Movement={state:row.normalized_state,code:row.raw_code||'',message:row.raw_message||'',eventAt:row.event_at,eventTimeRaw:row.raw_event_time,movementAt:row.movement_at};\n   outcome=JSON.stringify(values(reduced))===JSON.stringify(values(stored))?'nochange':'changes';\n   if(outcome==='changes')result.approvedCandidates.push({orderId:row.order_id,version:row.version});\n  }catch(error){\n   const unavailable=error instanceof TrackingError&&(/CREDENTIALS|PASSWORD_REQUIRED|ACCOUNT_|UNSUPPORTED/.test(error.code)||[401,403,429].includes(error.status));\n   outcome=unavailable?'unavailable':'errors';\n   // Stop this account immediately on authentication/rate-limit/configuration\n   // failure, without writing its health or disclosing provider response text.\n   if(unavailable||error instanceof Error&&/^MRW_TRACKING_(ACCESS_DENIED|REJECTED)$/.test(error.message))paused.add(row.account_id);\n  }\n  result.counts[outcome]++;\n  const group=result.groups.find(g=>g.provider===row.provider&&g.previous===row.normalized_state&&g.next===next&&g.outcome===outcome);\n  if(group)group.count++;else result.groups.push({provider:row.provider,previous:row.normalized_state,next,outcome,count:1});\n }\n return result;\n}\n// The caller keeps the preview approvals for the review step. This function\n// never selects replacement IDs if concurrent changes invalidate an approval.\nexport async function applyTrackingReprocess(admin:any,approvedCandidates:TrackingReprocessApproval[],limit=25):Promise<{requested:number;enqueued:number}>{\n if(!Array.isArray(approvedCandidates)||!Number.isFinite(limit)||approvedCandidates.some(c=>!c||typeof c.orderId!=='string'||!c.orderId||typeof c.version!=='string'||!c.version))throw Error('TRACKING_REPROCESS_INVALID_APPROVAL');\n const bounded=Math.max(0,Math.min(25,Math.floor(limit)));\n const seen=new Set<string>();const selected=approvedCandidates.filter(c=>{if(seen.has(c.orderId))return false;seen.add(c.orderId);return true}).slice(0,bounded);\n if(!selected.length)return {requested:0,enqueued:0};\n const applied=await admin.rpc('tracking_reprocess_enqueue',{p_candidates:selected.map(c=>({order_id:c.orderId,version:c.version})),p_limit:bounded});\n if(applied.error)throw Error('TRACKING_REPROCESS_APPLY_FAILED');\n return {requested:selected.length,enqueued:Number(applied.data)||0};\n}\n"
+      },
+      {
+        "name": "_shared/tracking/adapters.ts",
+        "content": "import {normalizeStatus,type Movement} from './policy.ts';\nconst clean=(v:unknown)=>typeof v==='string'||typeof v==='number'?String(v).trim():'';\nconst dated=(v:unknown)=>typeof v==='string'&&/(Z|[+-]\\d{2}:?\\d{2})$/i.test(v)&&Number.isFinite(Date.parse(v))?new Date(v).toISOString():null;\nexport function parseSendcloud(payload:any):Movement{\n const p=payload?.data||payload;\n const events=(Array.isArray(p?.events)?p.events:[]).filter((e:any)=>e.event_type==='carrier');\n events.sort((a:any,b:any)=>(Date.parse(b.event_at)||0)-(Date.parse(a.event_at)||0));\n const e=events[0];if(!e)throw Error('TRACKING_NO_CARRIER_EVENTS');\n return {state:normalizeStatus('sendcloud',e.phase,e.exception,e.event_type),code:[e.phase,e.exception,e.sub_status].map(clean).filter(Boolean).join(':'),message:clean(e.description).slice(0,500),eventAt:dated(e.event_at)};\n}\nexport function parseEnvia(payload:any,tracking:string):Movement{\n const source=payload?.data??payload;\n const rows=Array.isArray(source)?source:Array.isArray(source?.shipments)?source.shipments:[source];\n const row=rows.find((r:any)=>clean(r?.trackingNumber||r?.tracking_number||r?.tracking||r?.guide)===tracking);\n if(!row)throw Error('TRACKING_RESPONSE_MISMATCH');\n const history=Array.isArray(row.eventHistory)?row.eventHistory:Array.isArray(row.history)?row.history:Array.isArray(row.events)?row.events:Array.isArray(row.trackingHistory)?row.trackingHistory:[];\n const civil=(v:unknown)=>typeof v==='string'&&/^\\d{4}-\\d{2}-\\d{2}[ T]\\d{2}:\\d{2}:\\d{2}$/.test(v)?v.replace('T',' '):null;\n const all=history.map((e:any)=>{const raw=e.date||e.eventDate||e.timestamp||e.event_at;return {e,at:dated(raw),civil:civil(raw)}});\n all.sort((a:any,b:any)=>String(b.at||b.civil||'').localeCompare(String(a.at||a.civil||'')));\n const h=all.find((v:any)=>v.at||v.civil),e=h?.e||row;\n const eventCode=clean(e.status?.id??e.statusId??e.status_id??e.status?.code??e.statusCode??(h?null:e.status));\n const parentCode=clean(row.content?.status_parent_id??row.status?.id??row.statusId??row.status_id??row.status?.code??row.statusCode??row.status);\n const code=eventCode||parentCode;\n const message=clean(e.status?.name||e.status?.description||e.description||e.status||e.message||e.event||row.status).slice(0,500);\n return {state:normalizeStatus('envia',code)||normalizeStatus('envia',parentCode),code,message,eventAt:h?.at||dated(e.eventDate||e.event_at||e.statusDate),eventTimeRaw:h?.civil||null};\n}\n// WSDL retrieved without credentials on 2026-10-22. The advertised SOAP address\n// differs from the former /TrackingServices/TrackingService.svc URL (HTTP 404).\nexport const MRW_TRACKING_ENDPOINT='https://trackingservice.mrw.es/TrackingService.svc/TrackingServices';\nexport function buildMrwTrackingEnvelope(credentials:any,tracking:string,tipoInformacion='1'){\n const esc=(v:unknown)=>clean(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&apos;');\n const username=clean(credentials?.username)||clean(credentials?.userName)||clean(credentials?.usuario);\n if(!username||!clean(credentials?.password))throw new TrackingError('MRW_CREDENTIALS_REQUIRED');\n if(!['0','1'].includes(tipoInformacion))throw new TrackingError('MRW_TRACKING_INVALID_INFORMATION_TYPE');\n // Exact-number filtering has no date window. WSDL declares both dates as\n // optional nullable strings; leaving them empty avoids excluding older labels.\n return `<soap:Envelope xmlns:soap=\"http://schemas.xmlsoap.org/soap/envelope/\"><soap:Body><GetEnvios xmlns=\"http://tempuri.org/\"><login>${esc(username)}</login><pass>${esc(credentials.password)}</pass><codigoIdioma>3082</codigoIdioma><tipoFiltro>0</tipoFiltro><valorFiltroDesde>${esc(tracking)}</valorFiltroDesde><valorFiltroHasta></valorFiltroHasta><fechaDesde></fechaDesde><fechaHasta></fechaHasta><tipoInformacion>${tipoInformacion}</tipoInformacion><codigoAbonado>${esc(credentials.subscriberCode||credentials.codigoAbonado)}</codigoAbonado><codigoFranquicia>${esc(credentials.franchiseCode||credentials.codigoFranquicia)}</codigoFranquicia></GetEnvios></soap:Body></soap:Envelope>`;\n}\ntype XmlNode={name:string;qualified:string;text:string;children:XmlNode[]};\nfunction xmlTree(xml:string):XmlNode{\n if(xml.length>1000000||/<!DOCTYPE|<!ENTITY/i.test(xml))throw Error('TRACKING_INVALID_XML');\n const root:XmlNode={name:'',qualified:'',text:'',children:[]},stack=[root];let end=0;\n const decode=(value:string)=>value.replace(/&(?:lt|gt|quot|apos|amp|#\\d+|#x[\\da-f]+);/gi,entity=>{\n  const known:Record<string,string>={'&lt;':'<','&gt;':'>','&quot;':'\"','&apos;':\"'\",'&amp;':'&'};if(known[entity])return known[entity];\n  const n=entity[2].toLowerCase()==='x'?parseInt(entity.slice(3,-1),16):Number(entity.slice(2,-1));return n>0&&n<=0x10ffff?String.fromCodePoint(n):'';\n });\n for(const match of xml.matchAll(/<!--[\\s\\S]*?-->|<\\?[\\s\\S]*?\\?>|<!\\[CDATA\\[[\\s\\S]*?\\]\\]>|<[^>]+>|[^<]+/g)){\n  if(match.index!==end)throw Error('TRACKING_INVALID_XML');end=match.index+match[0].length;const token=match[0];\n  if(token.startsWith('<!--')||token.startsWith('<?'))continue;\n  if(token.startsWith('<![CDATA[')){stack.at(-1)!.text+=token.slice(9,-3);continue;}\n  if(token.startsWith('</')){const name=token.match(/^<\\/([\\w.:-]+)\\s*>$/)?.[1];if(stack.length===1||name!==stack.at(-1)!.qualified)throw Error('TRACKING_INVALID_XML');stack.pop();continue;}\n  if(token.startsWith('<')){const name=token.match(/^<([\\w.:-]+)(?:\\s[^<>]*|\\s*\\/?)>$/)?.[1];if(!name||stack.length>64)throw Error('TRACKING_INVALID_XML');const node:XmlNode={name:name.split(':').pop()!,qualified:name,text:'',children:[]};stack.at(-1)!.children.push(node);if(!/\\/\\s*>$/.test(token))stack.push(node);continue;}\n  stack.at(-1)!.text+=decode(token);\n }\n if(end!==xml.length||stack.length!==1||root.children.length!==1||root.text.trim())throw Error('TRACKING_INVALID_XML');return root.children[0];\n}\nconst child=(node:XmlNode,name:string)=>node.children.find(value=>value.name===name);\nconst value=(node:XmlNode,name:string)=>clean(child(node,name)?.text);\nfunction descendants(node:XmlNode,name:string):XmlNode[]{return [...(node.name===name?[node]:[]),...node.children.flatMap(item=>descendants(item,name))]}\nfunction madridDate(day:string,hour:string){\n const d=day.match(/^(\\d{2})(\\d{2})(\\d{4})$/),t=hour.match(/^(\\d{2})(\\d{2})$/);if(!d||!t)return null;\n const local=Date.UTC(+d[3],+d[2]-1,+d[1],+t[1],+t[2]);\n const expected=`${d[3]}-${d[2]}-${d[1]} ${t[1]}:${t[2]}`;\n const fmt=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Madrid',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});\n // Both possible Madrid offsets are checked. Zero matches is an invalid or DST\n // missing time; two matches is ambiguous. Neither permits an invented instant.\n const candidates=[local-3600000,local-7200000].filter(utc=>fmt.format(utc)===expected);\n return candidates.length===1?new Date(candidates[0]).toISOString():null;\n}\nexport function parseMrw(xml:string,tracking:string):Movement{\n const root=xmlTree(xml);\n if(descendants(root,'Fault').length)throw Error('MRW_TRACKING_REJECTED');\n const result=descendants(root,'GetEnviosResult')[0];if(!result)throw Error('TRACKING_RESPONSE_MISMATCH');\n const notice=value(result,'MensajeSeguimiento');\n if(/acceso|credencial|login|password|contrase[nñ]a|usuario/i.test(notice))throw Error('MRW_TRACKING_ACCESS_DENIED');\n const matching=descendants(result,'Seguimiento').filter(node=>value(node,'NumAlbaran')===tracking);\n if(!matching.length)throw Error(notice?'MRW_TRACKING_REJECTED':'TRACKING_RESPONSE_MISMATCH');\n const events=matching.map(row=>{\n  // Restrict machine codes before they reach warning logs or persisted errors.\n  const raw=value(row,'Estado'),code=/^\\d{1,4}$/.test(raw)?raw:'UNKNOWN';\n  const message=value(row,'EstadoDescripcion').slice(0,500);\n  let state=normalizeStatus('mrw',code,message);\n  const attempts=value(row,'Intentos');if(state!=='delivered'&&/^\\d+$/.test(attempts)&&Number(attempts)>0)state='exception';\n  const eventAt=dated(value(row,'Publicado'))||(state==='delivered'?madridDate(value(row,'FechaEntrega'),value(row,'HoraEntrega')):null);\n  return {state,code,message,eventAt,...(!state?{warningCode:'MRW_UNKNOWN_STATUS_'+code}:{})};\n });\n events.sort((a,b)=>(Date.parse(b.eventAt||'')||0)-(Date.parse(a.eventAt||'')||0));\n // Only state, machine code, description and event time leave this parser.\n // PersonaEntrega, Referencia and subscriber fields are intentionally discarded.\n return {...events[0],history:[...events].sort((a,b)=>(Date.parse(a.eventAt||'')||0)-(Date.parse(b.eventAt||'')||0)).slice(-200)};\n}\nexport class TrackingError extends Error {constructor(public code:string,public status=0,public retryAfterSeconds=0){super(code)}}\nexport async function pollShipment(account:any,credentials:any,tracking:string,request:typeof fetch=fetch):Promise<Movement>{\n const options:RequestInit={signal:AbortSignal.timeout(12000),redirect:'error'};\n let url:string;\n if(account.provider==='sendcloud'){\n  const publicKey=clean(credentials.publicKey||credentials.public_key),secretKey=clean(credentials.secretKey||credentials.secret_key);\n  if(!publicKey||!secretKey)throw new TrackingError('SENDCLOUD_CREDENTIALS_REQUIRED');\n  url='https://panel.sendcloud.sc/api/v3/parcels/tracking/'+encodeURIComponent(tracking);options.headers={Authorization:'Basic '+btoa(publicKey+':'+secretKey)};\n }else if(account.provider==='envia'){\n  const token=clean(credentials.token||credentials.apiToken||credentials.api_token);if(!token)throw new TrackingError('ENVIA_CREDENTIALS_REQUIRED');\n  url=(account.config?.environment==='production'?'https://api.envia.com':'https://api-test.envia.com')+'/ship/generaltrack/';\n  options.method='POST';options.headers={Authorization:'Bearer '+token,'Content-Type':'application/json'};options.body=JSON.stringify({trackingNumbers:[tracking]});\n }else if(account.provider==='mrw'){\n  url=MRW_TRACKING_ENDPOINT;options.method='POST';\n  options.headers={'Content-Type':'text/xml; charset=utf-8',SOAPAction:'\"http://tempuri.org/ITrackingService/GetEnvios\"'};\n  options.body=buildMrwTrackingEnvelope(credentials,tracking);\n }else throw new TrackingError('UNSUPPORTED_PROVIDER');\n const r=await request(url,options);\n if(!r.ok){const retry=r.headers.get('Retry-After')||'';const seconds=/^\\d+$/.test(retry)?Number(retry):Math.max(0,(Date.parse(retry)-Date.now())/1000);throw new TrackingError('PROVIDER_HTTP_'+r.status,r.status,Number.isFinite(seconds)?seconds:0)}\n const body=await r.text();if(body.length>1000000)throw new TrackingError('TRACKING_RESPONSE_TOO_LARGE');\n if(account.provider==='mrw')return parseMrw(body,tracking);\n let json;try{json=JSON.parse(body)}catch{throw new TrackingError('TRACKING_INVALID_JSON')}\n return account.provider==='sendcloud'?parseSendcloud(json):parseEnvia(json,tracking);\n}\n"
+      },
+      {
+        "name": "_shared/tracking/policy.ts",
+        "content": "export type TrackingState='pre_transit'|'in_transit'|'out_for_delivery'|'delivered'|'exception'|'returned'|'cancelled';\nexport type Movement={state:TrackingState|null;code:string;message:string;eventAt:string|null;eventTimeRaw?:string|null;history?:Movement[];warningCode?:string;observedAt?:string;movementAt?:string|null};\nconst key=(v:unknown)=>String(v??'').trim().normalize('NFD').replace(/[\\u0300-\\u036f]/g,'').toLowerCase().replace(/[ -]+/g,'_');\nconst envio:Record<string,TrackingState>={1:'pre_transit',2:'in_transit',3:'delivered',4:'cancelled',7:'pre_transit',8:'in_transit',9:'out_for_delivery',10:'exception',11:'returned',12:'exception',13:'returned',14:'exception',15:'in_transit',16:'pre_transit',17:'exception',18:'exception',19:'exception',20:'exception',21:'exception',22:'exception',23:'exception',24:'exception',25:'exception',26:'in_transit',27:'in_transit',28:'exception',created:'pre_transit',shipped:'in_transit',delivered:'delivered',canceled:'cancelled',cancelled:'cancelled',returned:'returned',delivered_at_origin:'returned',out_for_delivery:'out_for_delivery',picked_up:'in_transit',pickup_at_office:'exception'};\nconst phases:Record<string,TrackingState>={no_label:'pre_transit',announcing:'pre_transit',announced:'pre_transit',ready_to_send:'pre_transit',labelled:'pre_transit',dropped:'in_transit',accepted:'in_transit',sorted:'in_transit',in_transit:'in_transit',customs:'in_transit',in_delivery:'out_for_delivery',attempted:'exception',pup:'exception',delivered:'delivered'};\nconst legacy:Record<string,TrackingState>={...envio,driver_on_route:'out_for_delivery',driver_en_route:'out_for_delivery',delivery_failed:'exception',awaiting_customer_pickup:'exception',delivery_date_changed:'exception',returned_to_sender:'returned',ready_to_send:'pre_transit',announced:'pre_transit',parcel_en_route:'in_transit',shipment_collected_by_customer:'delivered',address_invalid:'exception',delivery_delayed:'exception'};\nconst mrw:Record<string,TrackingState>={entregado:'delivered',entregada:'delivered',en_reparto:'out_for_delivery',en_transito:'in_transit',recogido:'in_transit',pendiente_de_recoger:'pre_transit',en_oficina:'exception',incidencia:'exception',ausente:'exception',devuelto:'returned',anulado:'cancelled'};\n// Observed on the authenticated TrackingService GetEnvios diagnostic (2026-10-22).\nconst mrwCodes:Record<string,TrackingState>={'00':'delivered','16':'out_for_delivery','79':'in_transit','57':'in_transit','17':'in_transit','47':'pre_transit','48':'pre_transit'};\nconst lookup=(map:Record<string,TrackingState>,value:string)=>Object.prototype.hasOwnProperty.call(map,value)?map[value]:null;\nexport function normalizeStatus(provider:string,code:unknown,detail:unknown='',eventType='carrier'):TrackingState|null{\n if(eventType==='claim')return null;\n const c=key(code),d=key(detail);\n if(provider==='envia')return lookup(envio,c);\n if(provider==='mrw')return lookup(mrwCodes,c)||lookup(mrw,d);\n if(provider==='sendcloud'){\n  if(c==='delivery_forced')return null;\n  if(d==='cancelled'||d==='cancelled_upstream')return 'cancelled';\n  if(d&&d!=='none'&&d!=='unknown')return 'exception';\n  return lookup(phases,c);\n }\n return lookup(legacy,c);\n}\nconst validDate=(value:string|null|undefined)=>value&&Number.isFinite(Date.parse(value))?new Date(value).toISOString():null;\nexport function reduceMovement(previous:Movement|null,event:Movement,now:string):Movement{\n const eventAt=validDate(event.eventAt);\n const retainHistory=(base:Movement)=>event.history?{...base,history:event.history}:base;\n if(previous?.eventAt&&eventAt&&Date.parse(eventAt)<Date.parse(previous.eventAt))return retainHistory(previous);\n if(previous?.eventTimeRaw&&event.eventTimeRaw&&event.eventTimeRaw<previous.eventTimeRaw)return retainHistory(previous);\n // A timestamp-free response may add information but cannot undo a terminal.\n if(previous?.state&&isTerminal(previous.state)&&(!eventAt||!event.state))return retainHistory(previous);\n const changed=!previous||previous.code!==event.code||previous.message!==event.message||(previous.eventTimeRaw||null)!==(event.eventTimeRaw||null)||Boolean(event.state&&previous.state!==event.state);\n return {...event,eventAt,state:event.state||previous?.state||null,\n  observedAt:changed?now:previous?.observedAt||now,\n  movementAt:event.state?(eventAt||(event.eventTimeRaw?null:(changed?now:previous?.movementAt||now))):previous?.movementAt||null};\n}\nexport const isTerminal=(state:TrackingState|null)=>state==='delivered'||state==='returned'||state==='cancelled';\nexport function nextPoll(state:TrackingState|null,failures:number,now:number,ageDays:number,jitter=Math.random()):number|null{\n if(isTerminal(state))return null;\n if(failures>0)return now+Math.min(21600000,300000*2**Math.min(failures-1,7))*(0.9+Math.max(0,Math.min(jitter,1))*0.1);\n return now+(ageDays>45?86400000:state==='out_for_delivery'?1800000:7200000);\n}\n"
+      },
+      {
+        "name": "_shared/tracking/setup-webhook.ts",
+        "content": "import {webhookToken} from './webhook.ts';\nexport async function configureSendcloudWebhook(account:any,credentials:any,supabaseUrl:string,request:typeof fetch=fetch){\n const publicKey=credentials.publicKey||credentials.public_key,secret=credentials.secretKey||credentials.secret_key;\n if(!publicKey||!secret)throw Error('SENDCLOUD_CREDENTIALS_REQUIRED');\n const endpoint=new URL('/functions/v1/shipment-tracking-webhook',supabaseUrl);endpoint.searchParams.set('account',account.id);\n const base='https://panel.sendcloud.sc/api/v3/event-subscriptions';\n async function api(path:string,method='GET',body?:any){const r=await request(base+path,{method,headers:{Authorization:'Basic '+btoa(publicKey+':'+secret),'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(15000),redirect:'error'});if(!r.ok)throw Error('SENDCLOUD_WEBHOOK_HTTP_'+r.status);return r.json()}\n const existing=await api('/connections');if(!Array.isArray(existing.data))throw Error('SENDCLOUD_CONNECTION_SCHEMA_CHANGED');\n let connection=existing.data.find((c:any)=>c.type==='webhook'&&c.configuration?.url===endpoint.href);\n if(!connection){connection=(await api('/connections','POST',{type:'webhook',configuration:{url:endpoint.href,auth_type:'bearer',auth_config:{token:await webhookToken(secret,account.owner_id,account.id)}}})).data}\n if(!Number.isSafeInteger(connection?.id)||connection.id<=0)throw Error('SENDCLOUD_CONNECTION_SCHEMA_CHANGED');\n const subscriptions=await api('/subscriptions');if(!Array.isArray(subscriptions.data))throw Error('SENDCLOUD_SUBSCRIPTION_SCHEMA_CHANGED');\n let subscription=subscriptions.data.find((s:any)=>s.connection_id===connection.id&&s.event_type==='parcels.event.created');\n if(!subscription)subscription=(await api('/subscriptions','POST',{connection_id:connection.id,event_type:'parcels.event.created',is_active:true})).data;\n else if(!subscription.is_active)subscription=(await api('/subscriptions/'+subscription.id,'PATCH',{is_active:true})).data;\n if(!Number.isSafeInteger(subscription?.id)||subscription.id<=0)throw Error('SENDCLOUD_SUBSCRIPTION_SCHEMA_CHANGED');\n const test=(await api('/broadcast/test/'+subscription.id,'POST')).data;\n const verified=test?.success===true&&Number(test?.status_code)>=200&&Number(test?.status_code)<300;\n if(!verified)await api('/subscriptions/'+subscription.id,'PATCH',{is_active:false});\n return {connectionId:connection.id,subscriptionId:subscription.id,verified,statusCode:Number(test?.status_code)||null};\n}\n"
+      },
+      {
+        "name": "_shared/tracking/webhook.ts",
+        "content": "export async function webhookToken(secret:string,owner:string,account:string){const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(secret),{name:'HMAC',hash:'SHA-256'},false,['sign']);return [...new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode('zenvia:shipment-tracking:'+owner+':'+account)))].map(n=>n.toString(16).padStart(2,'0')).join('')}\nfunction equal(a:string,b:string){if(a.length!==b.length)return false;let diff=0;for(let i=0;i<a.length;i++)diff|=a.charCodeAt(i)^b.charCodeAt(i);return diff===0}\nexport async function handleTrackingWebhook(req:Request,admin:any,environmentCredentials:any){\n if(req.method!=='POST')return Response.json({error:'METHOD_NOT_ALLOWED'},{status:405});\n if(Number(req.headers.get('Content-Length')||0)>65536)return Response.json({error:'TOO_LARGE'},{status:413});\n const accountId=new URL(req.url).searchParams.get('account')||'';\n if(!/^[0-9a-f-]{36}$/i.test(accountId))return Response.json({error:'UNAUTHORIZED'},{status:401});\n const {data:account,error}=await admin.from('integration_accounts').select('id,owner_id,provider,secret_id,credential_source').eq('id',accountId).eq('provider','sendcloud').eq('enabled',true).neq('status','disabled').maybeSingle();\n if(error||!account)return Response.json({error:'UNAUTHORIZED'},{status:401});\n let stored:any={};if(account.secret_id){const {data,error}=await admin.rpc('integration_read_secret',{p_secret_id:account.secret_id});if(error)return Response.json({error:'UNAUTHORIZED'},{status:401});try{stored=JSON.parse(String(data||'{}'))}catch{return Response.json({error:'UNAUTHORIZED'},{status:401})}}\n const c={...(account.credential_source==='environment'?environmentCredentials:{}),...stored};const secret=c.secretKey||c.secret_key;\n if(!secret)return Response.json({error:'UNAUTHORIZED'},{status:401});\n const expected=await webhookToken(secret,account.owner_id,account.id),provided=(req.headers.get('Authorization')||'').replace(/^Bearer /,'');\n if(!equal(expected,provided))return Response.json({error:'UNAUTHORIZED'},{status:401});\n const reader=req.body?.getReader();let total=0;const chunks:Uint8Array[]=[];\n if(reader)while(true){const {done,value}=await reader.read();if(done)break;total+=value.length;if(total>65536){await reader.cancel();return Response.json({error:'TOO_LARGE'},{status:413})}chunks.push(value)}\n const bytes=new Uint8Array(total);let offset=0;for(const c of chunks){bytes.set(c,offset);offset+=c.length}\n let body:any;try{body=JSON.parse(new TextDecoder().decode(bytes))}catch{return Response.json({error:'INVALID_JSON'},{status:400})}\n // Never trust pushed states; just wake authenticated polling for a known active parcel.\n if(body.event_type!=='parcels.event.created'||!['carrier','internal','calculated'].includes(body.data?.event?.event_type))return Response.json({ignored:true});\n const tracking=body.data?.parcel?.tracking_number;if(typeof tracking!=='string'||tracking.length>100)return Response.json({ignored:true});\n const fingerprint=[body.data?.event?.id||'',body.data?.event?.timestamp||'',body.data?.event?.phase||'',body.data?.event?.exception||'',tracking].join('|');\n const hash=[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(fingerprint)))].map(n=>n.toString(16).padStart(2,'0')).join('');\n const result=await admin.rpc('tracking_webhook_wake',{p_account:account.id,p_owner:account.owner_id,p_tracking:tracking,p_event_key:hash});\n if(result.error)return Response.json({error:'TRACKING_WAKE_FAILED'},{status:503});return Response.json({accepted:true});\n}\n"
+      },
+      {
+        "name": "_shared/tracking/worker.ts",
+        "content": "import {pollShipment,TrackingError} from './adapters.ts';\nimport {reduceMovement,nextPoll,type Movement} from './policy.ts';\nexport async function runTrackingWorker(admin:any,request:typeof fetch=fetch,environmentCredentials:Record<string,any>={}){\n const {data:settings,error:settingsError}=await admin.from('shipment_tracking_settings').select('enabled,mode').eq('singleton',true).single();\n if(settingsError)throw Error('TRACKING_SETTINGS_UNAVAILABLE');\n if(!settings?.enabled)return {skipped:true};\n if(settings.mode!=='shadow'&&settings.mode!=='active')throw Error('TRACKING_MODE_NOT_APPROVED');\n const run=crypto.randomUUID(),start=Date.now();\n const checked=async(result:any)=>{if(result.error)throw Error('TRACKING_PERSIST_FAILED');return result.data};\n await checked(await admin.from('shipment_tracking_runs').insert({id:run}));\n let claimed=0,succeeded=0,failed=0;\n try{\n  await checked(await admin.rpc('tracking_seed_shadow'));\n  const jobs=await checked(await admin.rpc('tracking_claim',{p_run:run,p_limit:25}));claimed=jobs?.length||0;\n  const accounts=new Map<string,any>();const paused=new Set<string>();\n  // One queue per account is sequential: 401/403 immediately stops that account.\n  for(const job of jobs||[]){if(!accounts.has(job.account_id))accounts.set(job.account_id,{jobs:[],account:null,credentials:null});accounts.get(job.account_id).jobs.push(job)}\n  const entries=[...accounts.entries()];let cursor=0;\n  async function lane(){while(cursor<entries.length){const [accountId,group]=entries[cursor++];\n   for(const job of group.jobs){\n    if(Date.now()-start>100000)break;\n    let event:Movement|null=null,errorCode:string|null=null,warningCode:string|null=null,providerStatus=0,retryAfter=0;\n    try{\n     if(paused.has(accountId))throw new TrackingError('ACCOUNT_PAUSED');\n     if(!group.account){\n      group.account=await checked(await admin.from('integration_accounts').select('id,owner_id,provider,enabled,status,secret_id,credential_source,config').eq('id',accountId).eq('owner_id',job.owner_id).eq('provider',job.provider).eq('enabled',true).neq('status','disabled').single());\n      if(!group.account?.secret_id&&group.account.credential_source!=='environment')throw new TrackingError('ACCOUNT_CREDENTIALS_REQUIRED');\n      const stored=group.account.secret_id?await checked(await admin.rpc('integration_read_secret',{p_secret_id:group.account.secret_id})):'{}';\n      try{group.credentials={...(group.account.credential_source==='environment'?environmentCredentials[job.provider]||{}:{}),...JSON.parse(String(stored||'{}'))}}catch{throw new TrackingError('ACCOUNT_CREDENTIALS_INVALID')}\n     }\n     const incoming=await pollShipment(group.account,group.credentials,job.tracking_number,request);\n     const warnings=[...new Set([incoming.warningCode,...(incoming.history||[]).map(item=>item.warningCode)].filter((code):code is string=>Boolean(code&&/^MRW_UNKNOWN_STATUS_(?:\\d{1,4}|UNKNOWN)$/.test(code))))];\n     warningCode=warnings[0]||null;\n     for(const code of warnings)console.warn('shipment_tracking_warning',{provider:job.provider,code});\n     const previous=job.observed_at?{state:job.normalized_state,code:job.raw_code||'',message:job.raw_message||'',eventAt:job.event_at,eventTimeRaw:job.raw_event_time,observedAt:job.observed_at,movementAt:job.movement_at}:null;\n     event=reduceMovement(previous,incoming,new Date().toISOString());\n     await checked(await admin.from('shipment_tracking_account_health').upsert({account_id:accountId,owner_id:job.owner_id,provider:job.provider,last_success_at:new Date().toISOString(),last_error:warningCode,paused_until:null}));\n    }catch(error){\n     failed++;errorCode=error instanceof TrackingError?error.code:error instanceof Error&&/^(TRACKING_|MRW_)/.test(error.message)?error.message:'TRACKING_PROVIDER_UNAVAILABLE';\n     if(error instanceof TrackingError){providerStatus=error.status;retryAfter=error.retryAfterSeconds;}\n     if(providerStatus===401||providerStatus===403||providerStatus===429||/CREDENTIALS|PASSWORD_REQUIRED|REJECTED|ACCESS_DENIED/.test(errorCode)){\n      paused.add(accountId);\n      await checked(await admin.from('shipment_tracking_account_health').upsert({account_id:accountId,owner_id:job.owner_id,provider:job.provider,last_error:errorCode,paused_until:new Date(Date.now()+(providerStatus===429?Math.max(300000,Math.min(86400000,retryAfter*1000)):6*3600000)).toISOString()}));\n     }\n    }\n    const age=(Date.now()-Date.parse(job.label_created_at||new Date().toISOString()))/86400000;\n    let next=nextPoll(event?.state||job.normalized_state,errorCode?job.failures+1:0,Date.now(),age);\n    if(next&&retryAfter)next=Math.max(next,Date.now()+Math.min(86400,retryAfter)*1000);\n    const applied=await checked(await admin.rpc('tracking_finish',{p_order:job.order_id,p_run:run,p_identity:job.identity_key,p_event:event,p_next:next?new Date(next).toISOString():null,p_error:errorCode||warningCode}));\n    if(!errorCode&&applied)succeeded++;\n    console.info('shipment_tracking',{run,provider:job.provider,account:accountId,owner:job.owner_id,result:errorCode||'OK',http:providerStatus,applied});\n   }\n  }}\n  await Promise.all(Array.from({length:Math.min(3,entries.length)},()=>lane()));\n  await checked(await admin.from('shipment_tracking_runs').update({completed_at:new Date().toISOString(),claimed,succeeded,failed}).eq('id',run));\n  return {run,mode:settings.mode,claimed,succeeded,failed};\n }catch{\n  await admin.from('shipment_tracking_runs').update({completed_at:new Date().toISOString(),claimed,succeeded,failed,error:'TRACKING_WORKER_FAILED'}).eq('id',run);\n  throw Error('TRACKING_WORKER_FAILED');\n }\n}\n"
+      }
+    ]
+  }
+}

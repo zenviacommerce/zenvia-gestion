@@ -1,0 +1,38 @@
+{
+  "url": "https://gestion.zenviacommerce.com",
+  "status": 200,
+  "commit": "b22007380156cd9bb48b8b339285f7b948acc19d",
+  "deployment": "dpl_ARszgxbcbkUNxvcv4QUFbrMuk1Bh",
+  "assets": [
+    {
+      "path": "/assets/index-DTy5QYEU.js",
+      "sha256": "130df299edf2d460c9008aaee826b3a747354903bbc39d1ba25d7d2affa1f538",
+      "sharedTabs": true,
+      "secondarySummary": false
+    },
+    {
+      "path": "/assets/index-CghuFEuU.css",
+      "sha256": "44b4a51185443cfc2993198b967daeb1cab68120fe61daed4a25adc24279da51",
+      "sharedTabs": true,
+      "secondarySummary": true
+    }
+  ],
+  "uiReadOnly": {
+    "desktop": {
+      "newOrderHeight": 43,
+      "moreHeight": 43,
+      "sameFont": true,
+      "icons": true
+    },
+    "mobile": {
+      "viewportWidth": 390,
+      "viewportHeight": 844,
+      "newOrderHeight": 48,
+      "moreHeight": 48,
+      "sameFont": true,
+      "fontPx": 13,
+      "nowrap": true
+    },
+    "tabs": 6
+  }
+}

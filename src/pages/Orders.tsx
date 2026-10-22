@@ -1,14 +1,17 @@
+import {PageTabs} from '../components/PageTabs';
+import {OrdersWorkbenchFilters,type OrdersWorkbenchFilterValues} from '../components/OrdersWorkbenchFilters';
+import {TransportTariffsPanel} from '../components/TransportTariffsPanel';
+import {ORDERS_TABS,isOrdersTab,parseOrdersTab,ordersTabUrl,ordersTabUsesPeriod,ordersTabActions,type OrdersTab} from '../services/ordersWorkbench';
+import {readViewCache,writeViewCache} from '../services/viewCache';
+import '../orders-workbench.css';
 import {ShipmentTrackingHistory} from '../components/ShipmentTrackingHistory';
 import {loadShipmentTrackingEvents} from '../services/shipmentTrackingHistory';
 import {trackingPresentation} from '../services/shipmentTracking';
 import {ShipmentTrackingStatus} from '../components/ShipmentTrackingStatus';
 import {countLabel} from '../services/pluralization';
-import {KpiGrid} from '../components/KpiGrid';
 import {PageHeader} from '../components/PageHeader';
-import {StatCard} from '../components/StatCard';
 import {OrderProductLines} from '../components/OrderProductLines';
 import {PickupReportModal,PickupReportHistory,PickupOrderMembership} from '../components/PickupReports';
-import {selectPickupOrderIds} from '../services/pickupReports';
 import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import {ShippingProviderStatus} from '../components/ShippingProviderStatus';
 import { isAmazonAwaitingPayment } from '../services/orderStatus';
@@ -71,7 +74,7 @@ function downloadLabel(blob:Blob,fileName:string){
   downloadBlob(blob,clean.toLowerCase().endsWith('.pdf')?clean:`${clean}.pdf`);
 }
 
-type OrderFilter='pending'|'labelled'|'shipped'|'cancelled'|'all';
+type OrderFilter='pending'|'labelled'|'shipped'|'issues'|'cancelled'|'all';
 type TrackingFilter='all'|'none'|'ready'|'transit'|'route'|'pickup'|'delivered'|'issue'|'cancelled'|'returned';
 
 function timestampDateKey(value?:string|null){
@@ -384,19 +387,39 @@ function ManualOrderModal({saving,defaultCountryCode,fallbackWeightKg,weightUnit
     <div className="modalActions"><button className="secondary" onClick={onClose}>Cancelar</button><button className="primary" disabled={saving} onClick={()=>onSave({orderNumber,customerName,companyName,email,phone,address,houseNumber,postalCode,city,countryCode,weightKg:weightUnit==='g'?weightValue/1000:weightValue,items})}>{saving?<LoaderCircle className="spin" size={16}/>:<Plus size={16}/>} Crear pedido</button></div>
   </section></div>;
 }
-export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
+export function Orders({pendingOnly=false,active=true}:{pendingOnly?:boolean;active?:boolean}={}){
   const {settings,preferences,patchPreferences,updateSection}=useSettings();
   const remembered=rememberedFilter<{
     query:string;state:OrderFilter;trackingFilter:TrackingFilter;countryFilter:string;carrierFilter:string;pickupReportFilter:'all'|'none'|'in';dateFilter:ReturnType<typeof defaultDateFilter>;
   }>(preferences,'orders.filters',{query:'',state:'pending',trackingFilter:'all',countryFilter:'all',carrierFilter:'all',pickupReportFilter:'all',dateFilter:defaultDateFilter(preferences.defaultPeriod)});
+  const [activeTab,setActiveTab]=useState<OrdersTab>(()=>{
+    if(pendingOnly)return 'pending';
+    const urlTab=parseOrdersTab(window.location.search),cached=readViewCache<string>('orders:workbench:last-tab');
+    return urlTab||(isOrdersTab(cached)?cached:isOrdersTab(remembered.state)?remembered.state:'pending');
+  });
+  const state:OrderFilter=activeTab==='reports'?'all':activeTab;
+  const actionsForTab=ordersTabActions(activeTab);
+  const [workbenchCounters,setWorkbenchCounters]=useState<Partial<Record<OrdersTab,number>>|null>(null);
+  const [tariffsOpen,setTariffsOpen]=useState(false);
+  const [compactHeader,setCompactHeader]=useState(()=>window.innerWidth<768);
+  useEffect(()=>{const resize=()=>setCompactHeader(window.innerWidth<768);window.addEventListener('resize',resize);return()=>window.removeEventListener('resize',resize)},[]);
+  useEffect(()=>{
+    writeViewCache('orders:workbench:last-tab',activeTab);
+    if(active&&parseOrdersTab(window.location.search)!==activeTab)window.history.replaceState(window.history.state,'',ordersTabUrl(window.location.href,activeTab));
+  },[activeTab]);
+  useEffect(()=>{const pop=()=>{const tab=parseOrdersTab(window.location.search);if(tab)setActiveTab(tab)};window.addEventListener('popstate',pop);return()=>window.removeEventListener('popstate',pop)},[]);
+  const changeTab=(tab:OrdersTab)=>{
+    if(tab===activeTab)return;
+    window.history.pushState({...window.history.state,ordersTab:tab},'',ordersTabUrl(window.location.href,tab));
+    setActiveTab(tab);
+  };
   const [orders,setOrders]=useState<FulfillmentOrder[]>([]),[status,setStatus]=useState<SendcloudStatus|null>(null),[enviaStatus,setEnviaStatus]=useState<{configured:boolean;accounts:Array<{id:string;displayName:string;environment:string;isDefault:boolean}>}|null>(null);
   const [loading,setLoading]=useState(true),[syncing,setSyncing]=useState(false),[error,setError]=useState('');
   const [page,setPage]=useState(0),[matchingTotal,setMatchingTotal]=useState(0),[selectableTotal,setSelectableTotal]=useState(0);
-  const [tariffCandidates,setTariffCandidates]=useState<Array<FulfillmentOrder & {kpiCarrierLabel:string}>>([]);
   const [dashboardKpis,setDashboardKpis]=useState<OrdersDashboardKpis|null>(null);
   const [dashboardFacets,setDashboardFacets]=useState<{countries:string[];carriers:string[]}|null>(null);
   const syncingRef=useRef(false);
-  const [query,setQuery]=useState(pendingOnly?'':remembered.query),[channel,setChannel]=useState<'all'|OrderChannel>('all'),[state,setState]=useState<OrderFilter>(pendingOnly?'pending':remembered.state),[trackingFilter,setTrackingFilter]=useState<TrackingFilter>(pendingOnly?'all':remembered.trackingFilter),[countryFilter,setCountryFilter]=useState(pendingOnly?'all':remembered.countryFilter),[carrierFilter,setCarrierFilter]=useState(pendingOnly?'all':remembered.carrierFilter);
+  const [query,setQuery]=useState(pendingOnly?'':remembered.query),[channel,setChannel]=useState<'all'|OrderChannel>('all'),[trackingFilter,setTrackingFilter]=useState<TrackingFilter>(pendingOnly?'all':remembered.trackingFilter),[countryFilter,setCountryFilter]=useState(pendingOnly?'all':remembered.countryFilter),[carrierFilter,setCarrierFilter]=useState(pendingOnly?'all':remembered.carrierFilter);
   const [providerStates,setProviderStates]=useState<ProviderQuotes<ShippingOption>>({});
   const quoteGeneration=useRef(0),quoteStates=useRef<ProviderQuotes<ShippingOption>>({});
   useEffect(()=>{const reset=()=>{quoteGeneration.current++;setLabelOrder(null);setPreparingOrder(null)};window.addEventListener('zenvia:tenant-changed',reset);return()=>{quoteGeneration.current++;window.removeEventListener('zenvia:tenant-changed',reset)}},[]);
@@ -421,6 +444,14 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const [invoiceSelectionOpen,setInvoiceSelectionOpen]=useState(false);
   const [invoiceSelection,setInvoiceSelection]=useState<Set<string>>(()=>new Set());
   const [pickupReportFilter,setPickupReportFilter]=useState<'all'|'none'|'in'>(pendingOnly?'all':remembered.pickupReportFilter||'all');
+  // Retained pages stay mounted: synchronize a newly accepted App navigation.
+  useEffect(()=>{
+    if(!active)return;
+    const requested=parseOrdersTab(window.location.search);
+    if(requested)setActiveTab(requested);
+    else if(!pendingOnly)window.history.replaceState(window.history.state,'',ordersTabUrl(window.location.href,activeTab));
+    if(pendingOnly){setActiveTab('pending');setQuery('');setChannel('all');setTrackingFilter('all');setCountryFilter('all');setCarrierFilter('all');setPickupReportFilter('all');}
+  },[active,pendingOnly]);
   const [checkedIds,setCheckedIds]=useState<Set<string>>(()=>new Set());
   const checkedIdsRef=useRef(checkedIds);checkedIdsRef.current=checkedIds;
   const selectionCache=useRef(new Map<string,FulfillmentOrder>());
@@ -446,8 +477,8 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   // A stable refresher prevents filter edits / realtime events from restarting
   // the Amazon/Shopify synchronization effect. Ignore out-of-order page results.
   const pageParamsRef=useRef<OrdersDashboardFilters>({
-    from:dateFilter.from,to:dateFilter.to,state,channel,query,tracking:trackingFilter,
-    country:countryFilter,carrier:carrierFilter,pickupReport:pickupReportFilter,page,pageSize:preferences.pageSize,
+    from:ordersTabUsesPeriod(activeTab)?dateFilter.from:'',to:ordersTabUsesPeriod(activeTab)?dateFilter.to:'',state,channel,query,tracking:trackingFilter,workbench:true,trackingStaleDays:settings.orders.trackingStaleDays,
+    country:countryFilter,carrier:carrierFilter,pickupReport:pickupReportFilter,page,pageSize:activeTab==='reports'?1:preferences.pageSize,
     overdueHours:settings.orders.overdueHours,sortKey:'orderDate',sortDirection:'desc',
   });
   const refreshRequest=useRef<{key:string;request:Promise<FulfillmentOrder[]>}|null>(null);
@@ -465,7 +496,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
           setMatchingTotal(result.total);
           setSelectableTotal(result.selectableTotal);
           setDashboardKpis(result.kpis);
-          setTariffCandidates(result.tariffCandidates||[]);
+          setWorkbenchCounters(result.counters||{pending:result.kpis.pending,labelled:result.kpis.labelled,shipped:result.kpis.shipped,cancelled:result.kpis.cancelled});
           setDashboardFacets(result.facets);
           setError('');
         }
@@ -539,7 +570,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   },[refresh,settings.integrations.amazonEnabled,settings.integrations.sendcloudEnabled,settings.integrations.enviaEnabled,settings.integrations.shopifyEnabled,settings.orders.retryTrackingConfirmation,status?.configured,enviaStatus?.configured]);
 
 
-  const dateFrom=dateFilter.from,dateTo=dateFilter.to;
+  const dateFrom=ordersTabUsesPeriod(activeTab)?dateFilter.from:'',dateTo=ordersTabUsesPeriod(activeTab)?dateFilter.to:'';
   const selectedPeriod=periodLabel(dateFilter);
   const orderPeriodOrders=useMemo(()=>orders.filter(order=>inPeriod(orderDateKey(order),dateFrom,dateTo)),[orders,dateFrom,dateTo]);
   const shippedPeriodOrders=useMemo(()=>orders.filter(order=>isProcessedOrder(order)&&inPeriod(shippedDateKey(order),dateFrom,dateTo)),[orders,dateFrom,dateTo]);
@@ -551,29 +582,6 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const shippedContextOrders=useMemo(()=>shippedPeriodOrders.filter(order=>matchesOrderContext(order,query,channel,trackingFilter,countryFilter,carrierFilter)),[shippedPeriodOrders,query,channel,trackingFilter,countryFilter,carrierFilter,pickupReportFilter]);
   const pendingOrders=useMemo(()=>operationalContextOrders.filter(isPendingOrder),[operationalContextOrders]);
   const tariffPreviews=useMemo(()=>{const map:Record<string,ShippingPricePreview>={};for(const order of orders){const configuredCarrier=firstMatchingShippingRule(order,shippingRules)?.action.carrierContains||settings.orders.defaultCarrier||'';const preview=calculateDefaultShippingPreview(order,tariffs,configuredCarrier);if(preview)map[order.id]=preview}return map},[orders,tariffs,shippingRules,settings.orders.defaultCarrier]);
-  const transportKpisFromPage=useMemo(()=>{
-    let total=0,net=0,tax=0,valued=0,missing=0,mrw=0,correos=0,other=0;
-    const shipments=orders.filter(order=>hasShippingLabel(order)&&inPeriod(timestampDateKey(order.shippingCostRecordedAt||order.fulfilledAt||order.labelCreatedAt||order.trackingUpdatedAt||order.orderCreatedAt),dateFrom,dateTo)&&matchesOrderContext(order,query,channel,trackingFilter,countryFilter,carrierFilter));
-    for(const order of shipments){
-      const shipping=shippingPriceForOrder(order,tariffPreviews[order.id]);
-      if(!shipping||shipping.totalAmount==null||!Number.isFinite(shipping.totalAmount)||shipping.currency.toUpperCase()!=='EUR'){missing+=1;continue}
-      total+=shipping.totalAmount;net+=shipping.netAmount??shipping.totalAmount;tax+=shipping.taxAmount??0;valued+=1;
-      const carrier=carrierLabel(order).toLowerCase();
-      if(carrier.includes('mrw'))mrw+=shipping.totalAmount;else if(carrier.includes('correos'))correos+=shipping.totalAmount;else other+=shipping.totalAmount;
-    }
-    return {total,net,tax,valued,missing,mrw,correos,other,shipments:shipments.length};
-  },[orders,dateFrom,dateTo,query,channel,trackingFilter,countryFilter,carrierFilter,tariffPreviews]);
-  // Do not ask all three remote carriers for rates on every orders refresh.
-  // The list uses stored contract tariffs; live quotations are fetched only
-  // when the user explicitly prepares a label or requests a bulk preview.
-  // Previously this effect invoked up to 90 Edge Functions per refresh and
-  // amplified expired-session errors into an authentication request storm.
-
-  const salesKpisFromPage=useMemo(()=>{const sales=orderContextOrders.filter(order=>!isCancelledOrder(order)&&order.totalAmount!=null&&(order.currency==null||order.currency==='EUR'));let gross=0,net=0,vat=0;for(const order of sales){const parts=taxParts(order);gross+=parts.gross;net+=parts.net;vat+=parts.vat}return {gross,net,vat,count:sales.length,average:sales.length?gross/sales.length:0}},[orderContextOrders]);
-  // RPC aggregations are over the full RLS-visible scope, not the selected
-  // 25/50/100 list rows. Never derive global dashboard numbers from a page.
-  const salesKpis=dashboardKpis?.sales||salesKpisFromPage;
-  const transportKpis=useMemo(()=>dashboardKpis?transportKpisWithTariffs(dashboardKpis.transport,tariffCandidates,tariffs):transportKpisFromPage,[dashboardKpis,tariffCandidates,tariffs,transportKpisFromPage]);
   const overduePending=dashboardKpis?.overduePending??pendingOrders.filter(order=>orderAgeHours(order)>=settings.orders.overdueHours).length;
   const pending=dashboardKpis?.pending??pendingOrders.length,
     amazon=dashboardKpis?.amazon??pendingOrders.filter(o=>o.sourceChannel==='amazon').length,
@@ -582,7 +590,9 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     labelled=dashboardKpis?.labelled??labelContextOrders.length,
     shipped=dashboardKpis?.shipped??shippedContextOrders.length,
     cancelled=dashboardKpis?.cancelled??orderContextOrders.filter(isCancelledOrder).length;
-  const filtered=useMemo(()=>{const base=state==='pending'?pendingOrders:state==='labelled'?labelContextOrders:state==='shipped'?shippedContextOrders:orderContextOrders;return base.filter(order=>{if(state==='pending'&&!isPendingOrder(order))return false;if(state==='labelled'&&!isLabelledOrder(order))return false;if(state==='shipped'&&!isProcessedOrder(order))return false;if(state==='cancelled'&&!isCancelledOrder(order))return false;return true})},[orderContextOrders,pendingOrders,labelContextOrders,shippedContextOrders,state]);
+  // The paginated RPC owns row eligibility, date policy and search semantics.
+  // Filtering again here can hide valid matches while retaining their server total.
+  const filtered=orders;
   const sorting=useSortableTable('orders',filtered,{
     channel:order=>channelLabel(order),
     order:order=>order.orderNumber||order.orderId||order.sendcloudId||'',
@@ -602,8 +612,8 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     pickupReport:order=>order.pickupReports?.[0]?.number||null,
   },{key:'orderDate',direction:'desc'});
   pageParamsRef.current={
-    from:dateFrom,to:dateTo,state,channel,query,tracking:trackingFilter,
-    country:countryFilter,carrier:carrierFilter,pickupReport:pickupReportFilter,page,pageSize:preferences.pageSize,
+    from:dateFrom,to:dateTo,state,channel,query,tracking:trackingFilter,workbench:true,trackingStaleDays:settings.orders.trackingStaleDays,
+    country:countryFilter,carrier:carrierFilter,pickupReport:pickupReportFilter,page,pageSize:activeTab==='reports'?1:preferences.pageSize,
     overdueHours:settings.orders.overdueHours,
     sortKey:sorting.sort.key,sortDirection:sorting.sort.direction,
   };
@@ -615,7 +625,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
       void refresh().finally(()=>{if(active)setLoading(false)});
     },query.trim()?300:0);
     return()=>{active=false;window.clearTimeout(delay)};
-  },[refresh,query,state,channel,trackingFilter,countryFilter,carrierFilter,pickupReportFilter,dateFrom,dateTo,sorting.sort.key,sorting.sort.direction,page,preferences.pageSize,settings.orders.overdueHours]);
+  },[refresh,query,state,channel,trackingFilter,countryFilter,carrierFilter,pickupReportFilter,dateFrom,dateTo,sorting.sort.key,sorting.sort.direction,page,preferences.pageSize,settings.orders.overdueHours,settings.orders.trackingStaleDays,activeTab]);
   const totalPages=Math.max(1,Math.ceil(matchingTotal/preferences.pageSize));
   const pager=<div className="ordersPager" role="navigation" aria-label="Paginación de pedidos">
     <span>{matchingTotal} pedidos · Página {Math.min(page+1,totalPages)} de {totalPages}</span>
@@ -630,7 +640,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   for(const item of orders)if(checkedIds.has(item.id))selectionCache.current.set(item.id,item);
   const labelSelectionAllowed=[...checkedIds].every(id=>{const item=orders.find(o=>o.id===id)||selectionCache.current.get(id);return !item||canPrepareOrder(item)});
   const selectedCount=checkedIds.size;
-  const selectionFilterKey=JSON.stringify([dateFrom,dateTo,state,channel,query,trackingFilter,countryFilter,carrierFilter,pickupReportFilter]);
+  const selectionFilterKey=JSON.stringify([dateFrom,dateTo,state,channel,query,trackingFilter,countryFilter,carrierFilter,pickupReportFilter,settings.orders.trackingStaleDays]);
   const currentSelectionFilterKey=useRef(selectionFilterKey);currentSelectionFilterKey.current=selectionFilterKey;
   const allSelectableSelected=selectableOrders.length>0&&selectableOrders.every(order=>checkedIds.has(order.id));
   const toggleOrder=(id:string,checked:boolean)=>{if(checked&&!checkedIds.has(id)&&checkedIds.size>=2000){setSelectionError('La selección completa supera 2.000 pedidos.');return}setCheckedIds(current=>{const next=new Set(current);if(checked)next.add(id);else next.delete(id);return next;});};
@@ -648,7 +658,7 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     const revision=++selectionRevision.current,key=selectionFilterKey;
     setSelectionBusy(true);setSelectionError('');
     try{
-      const ids=await (state==='pending'?fetchMatchingOrderIds({...pageParamsRef.current}):selectPickupOrderIds({...pageParamsRef.current}));
+      const ids=await fetchMatchingOrderIds({...pageParamsRef.current},state!=='pending');
       if(revision!==selectionRevision.current||key!==currentSelectionFilterKey.current)return;
       const combined=new Set([...checkedIdsRef.current,...ids]);if(combined.size>2000)throw new Error('La selección completa supera 2.000 pedidos. Quita pedidos antes de añadir más.');
       setCheckedIds(combined);setSelectionScope('all');
@@ -907,8 +917,8 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
     setBulkPreview(null);
     await generateLabels(snapshot.targets,snapshot.scope,{provider:selectedSummary.provider,carrierCode:selectedSummary.carrierCode,optionsByOrder:snapshot.optionsByOrder});
   };
-  const generateConfiguredLabels=async()=>{
-    if(settings.orders.bulkScope==='selected')return generateSelectedLabels();
+  const generateConfiguredLabels=async(forcePending=false)=>{
+    if(!forcePending&&settings.orders.bulkScope==='selected')return generateSelectedLabels();
     try{
       // Deliberate user action: load every matching pending order lazily.
       // Never restrict "Generar etiquetas pendientes" to the current 25 rows.
@@ -955,78 +965,93 @@ export function Orders({pendingOnly=false}:{pendingOnly?:boolean}={}){
   const saveManual=async(value:any)=>{setManualSaving(true);try{const result=await createManualOrder(value);await refresh();setManualOpen(false);showSuccess(`Pedido ${result.orderNumber} creado en ZENVIA.`)}catch(e){showError(errorMessage(e,'No se pudo crear el pedido manual.'))}finally{setManualSaving(false)}};
   const saveEdit=async(value:OrderUpdateInput)=>{if(!editOrder)return;setEditSaving(true);try{await updateFulfillmentOrder(editOrder.id,value);const freshOrders=await refresh();const fresh=freshOrders.find(item=>item.id===editOrder.id)||editOrder;setSelected(fresh);setEditValidationCarrier('');setEditOrder(null);showSuccess('Pedido actualizado en ZENVIA.')}catch(e){showError(errorMessage(e,'No se pudo actualizar el pedido.'))}finally{setEditSaving(false)}};
 
-  return <div className="page ordersPage designSystemPage">
-    <PageHeader title="Pedidos" eyebrow="LOGÍSTICA" description="Amazon, Shopify y pedidos manuales, etiquetas y seguimiento desde un único sitio." actions={<><button className="secondary" onClick={()=>setPickupHistory('all')}><FileText size={16}/> Informes de recogida</button><button className="secondary" onClick={detectPrinters} disabled={printerChecking} title="Opcional: usa ZENVIA Print Agent para imprimir directamente en una impresora instalada en este equipo. No es necesario para generar ni descargar etiquetas.">{printerChecking?<LoaderCircle className="spin" size={16}/>:<Printer size={16}/>} Impresión directa</button><label className="ordersQuickLabelFormat"><span>Formato</span><SelectField value={settings.shipping.labelSize} onChange={value=>void changeLabelSize(value as ShippingSettings['labelSize'])} ariaLabel="Formato rápido de etiqueta" options={[{value:'AUTO',label:'Original'},{value:'A6',label:'A6'},{value:'10x15',label:'10 × 15'},{value:'A5',label:'A5'},{value:'A4',label:'A4'}]}/></label><button className="secondary" onClick={()=>setManualOpen(true)}><Plus size={16}/> Nuevo pedido</button><button className="secondary" onClick={()=>void generateConfiguredLabels()} disabled={bulkGenerating||selectionBusy||bulkPreview?.loading||(settings.orders.bulkScope==='selected'?selectedCount===0||!labelSelectionAllowed||selectionBusy:(dashboardKpis?.preparablePending??pendingOrders.filter(canPrepareOrder).length)===0)}>{bulkGenerating?<LoaderCircle className="spin" size={16}/>:<Download size={16}/>} {bulkGenerating?`Generando ${bulkProgress}`:settings.orders.bulkScope==='selected'?`Generar etiquetas seleccionadas (${selectedCount})`:`Generar etiquetas pendientes (${pending})`}</button><button className="primary" onClick={()=>sync(false,false)} disabled={syncing||bulkGenerating||!(settings.integrations.amazonEnabled||settings.integrations.shopifyEnabled||enviaStatus?.configured)}>{syncing?<LoaderCircle className="spin" size={16}/>:<RefreshCw size={16}/>} Actualizar pedidos</button></>}/>
+  const openQuickTracking=async(order:FulfillmentOrder)=>{
+    const popup=window.open('about:blank','_blank');
+    if(popup)popup.opener=null;
+    try{
+      const result=await getOrderTrackingLink(order.id);
+      const url=trackingUrlForOrder({...order,carrierTrackingUrl:result.url});
+      if(!url)throw new Error('El transportista todavía no ha facilitado un enlace de seguimiento.');
+      if(popup)popup.location.href=url;
+      else showInfo('Permite las ventanas emergentes para abrir el seguimiento del transportista.');
+    }catch(error){popup?.close();showError(errorMessage(error,'No se pudo abrir el seguimiento.'));}
+  };
+  const trackingFirst=activeTab==='issues'||activeTab==='shipped';
+  const carrierCell=(order:FulfillmentOrder)=><><strong className="ordersCarrierText">{carrierLabel(order)}</strong>{order.shippingProvider&&<small className={"ordersShippingProvider "+order.shippingProvider}>{order.shippingProvider==='envia'?'Envia.com':order.shippingProvider==='mrw'?'MRW directo':'Sendcloud'}</small>}</>;
+  const trackingCell=(order:FulfillmentOrder)=><><ShipmentTrackingStatus order={order} staleDays={settings.orders.trackingStaleDays} operational/>{trackingUrlForOrder(order)&&<a className="ordersQuickTracking" href={trackingUrlForOrder(order)!} target="_blank" rel="noreferrer" aria-label={`Abrir seguimiento de ${order.orderNumber||order.orderId} en ${carrierLabel(order)}`} onClick={event=>event.stopPropagation()}>Abrir seguimiento <ExternalLink size={14}/></a>}{!trackingUrlForOrder(order)&&order.trackingNumber&&!order.piiPurgedAt&&<button type="button" className="link ordersQuickTracking" onClick={event=>{event.stopPropagation();void openQuickTracking(order)}} aria-label={`Abrir seguimiento de ${order.orderNumber||order.orderId} en ${carrierLabel(order)}`}>Abrir seguimiento <ExternalLink size={14}/></button>}</>;
+  const headerUtilities=<>
+    <button type="button" className="secondary zenviaTransportTariffsButton" aria-label="Abrir tarifas de transporte" onClick={()=>setTariffsOpen(true)}><Truck size={16}/> Tarifas de transporte</button>
+    <button className="secondary" onClick={detectPrinters} disabled={printerChecking} title="Impresión opcional con ZENVIA Print Agent; las etiquetas también se pueden descargar.">{printerChecking?<LoaderCircle className="spin" size={16}/>:<Printer size={16}/>} Impresión directa</button>
+    <label className="ordersQuickLabelFormat"><span>Formato</span><SelectField value={settings.shipping.labelSize} onChange={value=>void changeLabelSize(value as ShippingSettings['labelSize'])} ariaLabel="Formato rápido de etiqueta" options={[{value:'AUTO',label:'Original'},{value:'A6',label:'A6'},{value:'10x15',label:'10 × 15'},{value:'A5',label:'A5'},{value:'A4',label:'A4'}]}/></label>
+    <button className="secondary" onClick={()=>void openShopifyInvoiceSelection()} disabled={bulkGenerating||selectionBusy}><FileText size={16}/> Facturación manual de Shopify</button>
+  </>;
+  const changeWorkbenchFilter=(patch:Partial<OrdersWorkbenchFilterValues>)=>{
+    if(patch.query!==undefined)setQuery(patch.query);
+    if(patch.channel!==undefined)setChannel(patch.channel as 'all'|OrderChannel);
+    if(patch.country!==undefined)setCountryFilter(patch.country);
+    if(patch.carrier!==undefined)setCarrierFilter(patch.carrier);
+    if(patch.pickupReport!==undefined)setPickupReportFilter(patch.pickupReport);
+    if(patch.tracking!==undefined)setTrackingFilter(patch.tracking as TrackingFilter);
+  };
+  return <div className="page ordersPage designSystemPage ordersWorkbench">
+    <PageHeader title="Pedidos" eyebrow="LOGÍSTICA" description="Tu bandeja de trabajo de pedidos y envíos." actions={<>
+      <button className="secondary" onClick={()=>setManualOpen(true)}><Plus size={16}/> Nuevo pedido</button>
+      <button className="primary" aria-label="Actualizar pedidos" onClick={()=>sync(false,false)} disabled={syncing||bulkGenerating}>{syncing?<LoaderCircle className="spin" size={16}/>:<RefreshCw size={16}/>} {compactHeader?'Actualizar':'Actualizar pedidos'}</button>
+      <details className="ordersHeaderMore"><summary>Más acciones</summary><div className="ordersHeaderMenu">{headerUtilities}</div></details>
+    </>}/>
+    <PageTabs label="Bandejas de pedidos" value={activeTab==='all'?'pending':activeTab} onChange={changeTab} variant="workbench" panelId="orders-workbench-panel" items={ORDERS_TABS.map(tab=>({...tab,badge:tab.id==='reports'?undefined:<span className="ordersTabCount">{workbenchCounters?.[tab.id]==null?'—':workbenchCounters[tab.id]?.toLocaleString('es-ES')}</span>}))}/>
+    <div id="orders-workbench-panel" role="tabpanel" aria-labelledby={'orders-workbench-panel-tab-'+(activeTab==='all'?'pending':activeTab)}>
+    {activeTab==='all'&&<div className="ordersAllView"><strong>Todos los pedidos</strong><button className="link" onClick={()=>changeTab('pending')}>Volver a Pendientes</button></div>}
+
     {(status?.configured||enviaStatus?.configured)&&<section className="ordersConnection"><CheckCircle2 size={16}/><span>Logística conectada</span><small>{[status?.configured?'Sendcloud':null,enviaStatus?.configured?'Envia.com · '+(enviaStatus.accounts.map(account=>account.displayName).join(', ')||'conectado'):null].filter(Boolean).join(' · ')}</small></section>}
     {status&&!status.configured&&!enviaStatus?.configured&&<section className="card ordersSetup"><AlertCircle/><div><h3>Falta conectar un proveedor logístico</h3><p>Conecta Sendcloud o Envia.com para sincronizar envíos y generar etiquetas.</p></div></section>}{error&&<div className="errorBox"><AlertCircle size={17}/>{error}</div>}
 
-    <PeriodFilterPanel filter={dateFilter} onChange={setDateFilter} title="Periodo global" className="ordersPeriodPanel" note="Ventas, enviados, cancelados y costes respetan el periodo. Pendientes y etiquetados son colas operativas reales y no desaparecen al cambiar de mes o trimestre."/>
-
-    <KpiGrid label="Ventas, costes y estado de pedidos" dense>
-      <StatCard label="Total vendido" value={money(salesKpis.gross)} sub={`${salesKpis.count} pedidos · ${selectedPeriod}`} icon={<Euro/>}/>
-      <StatCard label="IVA estimado" value={money(salesKpis.vat)} sub={selectedPeriod} icon={<Percent/>}/>
-      <StatCard label="Neto sin IVA" value={money(salesKpis.net)} sub={selectedPeriod} icon={<Calculator/>}/>
-      <StatCard label="Ticket medio" value={money(salesKpis.average)} sub={selectedPeriod} icon={<ShoppingBag/>}/>
-      <StatCard label="Coste transportistas (IVA incl.)" value={money(transportKpis.total)} sub={<>{`MRW ${money(transportKpis.mrw)} · Correos ${money(transportKpis.correos)}`}<br/>{`${transportKpis.valued}/${transportKpis.shipments} envíos con coste${transportKpis.missing?` · ${transportKpis.missing} sin valorar`:``}`}<br/>Costes registrados y estimaciones por tarifa</>} icon={<Truck/>}/>
-
-      <StatCard variant={pending>0?'warning':'default'} label="Pendientes" value={String(pending)} sub={overduePending>0?`${overduePending} con más de ${settings.orders.overdueHours} h`:selectedPeriod} icon={<ShoppingBag/>}/>
-      <StatCard label="Amazon pendientes" value={String(amazon)} sub={selectedPeriod} icon={<Store/>}/>
-      <StatCard label="Shopify pendientes" value={String(shopify)} sub={selectedPeriod} icon={<ShoppingBag/>}/>
-      <StatCard label="Manual / API pendientes" value={String(manual)} sub={selectedPeriod} icon={<ShoppingBag/>}/>
-      <StatCard label="Etiquetados" value={String(labelled)} sub="Etiquetas listas · sin limitar por periodo" icon={<PackageCheck/>}/>
-      <StatCard label="Enviados" value={String(shipped)} sub={`Fecha expedición · ${selectedPeriod}`} icon={<Truck/>}/>
-      <StatCard label="Cancelados" value={String(cancelled)} sub={selectedPeriod} icon={<AlertCircle/>}/>
-    </KpiGrid>
-
-    <div className="ordersToolbar businessFilterBar">
-      <div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar pedido, cliente, producto, tracking o transportista…"/></div>
-      <div className="ordersFilterGroup"><button className={state==='pending'?'active':''} onClick={()=>setState('pending')}>Pendientes</button><button className={state==='labelled'?'active':''} onClick={()=>setState('labelled')}>Etiquetados</button><button className={state==='shipped'?'active':''} onClick={()=>setState('shipped')}>Enviados</button><button className={state==='cancelled'?'active':''} onClick={()=>setState('cancelled')}>Cancelados</button><button className={state==='all'?'active':''} onClick={()=>setState('all')}>Todos</button></div>
-      <div className="businessFilterFields">
-        <label className="filterField"><span>Canal</span><SelectField value={channel} onChange={value=>setChannel(value as 'all'|OrderChannel)} ariaLabel="Filtrar por canal" options={[{value:'all',label:'Todos los canales'},{value:'amazon',label:'Amazon'},{value:'shopify',label:'Shopify'},{value:'other',label:'Manual / API'}]}/></label>
-        <label className="filterField"><span>Destino</span><SelectField value={countryFilter} onChange={setCountryFilter} ariaLabel="Filtrar por país de destino" options={[{value:'all',label:'Todos los países'},...countryOptions]}/></label>
-        <label className="filterField"><span>Transportista</span><SelectField value={carrierFilter} onChange={setCarrierFilter} ariaLabel="Filtrar por transportista" options={[{value:'all',label:'Todos los transportistas'},...carrierOptions]}/></label>
-        <label className="filterField"><span>Informe de recogida</span><SelectField value={pickupReportFilter} onChange={value=>setPickupReportFilter(value as typeof pickupReportFilter)} ariaLabel="Filtrar por informe de recogida" options={[{value:'all',label:'Todos'},{value:'none',label:'Sin informe'},{value:'in',label:'En informe'}]}/></label>
-        <label className="filterField"><span>Seguimiento</span><SelectField value={trackingFilter} onChange={value=>setTrackingFilter(value as TrackingFilter)} ariaLabel="Filtrar por seguimiento" options={[{value:'all',label:'Todos'},{value:'none',label:'Sin etiqueta / pendiente'},{value:'ready',label:'Preparado'},{value:'transit',label:'En tránsito'},{value:'route',label:'En reparto'},{value:'pickup',label:'Punto de recogida'},{value:'delivered',label:'Entregado'},{value:'issue',label:'Incidencias'},{value:'returned',label:'Devuelto'},{value:'cancelled',label:'Cancelado'}]}/></label>
-      </div>
-    </div>
+    {activeTab==='reports'?<PickupReportHistory embedded onClose={()=>changeTab('labelled')}/>:<>
+    {ordersTabUsesPeriod(activeTab)&&<PeriodFilterPanel filter={dateFilter} onChange={setDateFilter} title={activeTab==='shipped'?'Fecha de expedición':'Fecha del pedido'} className="ordersPeriodPanel"/>}
+    <OrdersWorkbenchFilters tab={activeTab} values={{query,channel,country:countryFilter,carrier:carrierFilter,pickupReport:pickupReportFilter,tracking:trackingFilter}} onChange={changeWorkbenchFilter} countries={countryOptions} carriers={carrierOptions} channelCounts={activeTab==='pending'&&dashboardKpis?{amazon:dashboardKpis.amazon,shopify:dashboardKpis.shopify,manual:dashboardKpis.manual}:undefined} onShowAll={()=>changeTab('all')}/>
+    {activeTab==='pending'&&overduePending>0&&<p className="ordersQueueNotice">{overduePending} pendientes con más de {settings.orders.overdueHours} h</p>}
     <BulkSelectionToolbar alwaysVisible disabled={selectionBusy||bulkGenerating||loading||!selectableOrders.length} selectedCount={selectedCount} totalCount={selectableOrders.length} allSelected={allSelectableSelected} indeterminate={visibleSelectedCount>0&&!allSelectableSelected} onToggleAll={toggleAllOrders} scopeLabel="esta página" countLabel={`${selectedCount} seleccionados · ${visibleSelectedCount} de ${selectableOrders.length} en esta página`}>
       <button type="button" className="link" disabled={!selectedCount||selectionBusy||bulkGenerating} onClick={()=>void viewSelection()}>Ver selección</button>
       <button type="button" className="link" disabled={!selectedCount||bulkGenerating} onClick={clearSelection}>Quitar selección</button>
-      <button className="primary" type="button" disabled={!selectedCount||!labelSelectionAllowed||bulkGenerating||selectionBusy||loading} onClick={()=>void generateSelectedLabels()}><Download size={15}/> {selectionBusy?'Recuperando selección…':bulkGenerating&&selectedCount?`Generando ${bulkProgress}`:`Generar etiquetas seleccionadas (${selectedCount})`}</button>
-      <button className="secondary" type="button" disabled={!selectedCount||bulkGenerating||selectionBusy||loading} onClick={()=>void openPickupSelection()}><FileText size={15}/> Generar informe de recogida ({selectedCount})</button>
+      {actionsForTab.labels&&<button className="primary" type="button" disabled={!selectedCount||!labelSelectionAllowed||bulkGenerating||selectionBusy||loading} onClick={()=>void generateSelectedLabels()}><Download size={15}/> {selectionBusy?'Recuperando selección…':bulkGenerating&&selectedCount?`Generando ${bulkProgress}`:`Generar etiquetas seleccionadas (${selectedCount})`}</button>}
+      {activeTab==='pending'&&<button className="secondary" type="button" onClick={()=>void generateConfiguredLabels(true)} disabled={bulkGenerating||selectionBusy||loading||(dashboardKpis?.preparablePending??pendingOrders.filter(canPrepareOrder).length)===0}><Download size={15}/> Generar etiquetas pendientes ({pending})</button>}
+      {actionsForTab.pickup&&<button className="secondary" type="button" disabled={!selectedCount||bulkGenerating||selectionBusy||loading} onClick={()=>void openPickupSelection()}><FileText size={15}/> Generar informe de recogida ({selectedCount})</button>}
     </BulkSelectionToolbar>
-    <div className="ordersSelectionScope" role="note">
+    {(selectedCount>0||selectionError||allSelectableSelected)&&<div className="ordersSelectionScope" role="note">
       <p className="muted">{selectionScope==='all'?`Seleccionados ${selectedCount} pedidos, incluyendo todos los resultados del último filtro.`:`Seleccionados ${selectedCount} pedidos. La selección se conserva al buscar, filtrar, cambiar de página o de pestaña.`}</p>
       {allSelectableSelected&&selectionTotal>selectableOrders.length&&<button type="button" className="link" disabled={selectionBusy||bulkGenerating||loading} onClick={()=>void selectAllMatching()}>{selectionBusy?'Seleccionando todos…':`Seleccionar los ${selectionTotal} pedidos que coinciden con los filtros`}</button>}
       {selectionScope==='all'&&<button type="button" className="link" disabled={selectionBusy||bulkGenerating} onClick={clearSelection}>Borrar selección completa</button>}
       {!labelSelectionAllowed&&<p className="muted">La selección contiene pedidos que ya no admiten una nueva etiqueta. Revisa «Ver selección» antes de generar etiquetas.</p>}
       {selectionError&&<p className="errorText" role="alert">{selectionError}</p>}
-    </div>
+    </div>}
     {printer&&<div className="ordersPrinterBar"><Printer size={15}/><span>Impresora directa:</span>{printers.length?<SearchableSelect value={printer} options={printers.map(item=>({value:item.id,label:`${item.name}${item.default?' · predeterminada':''}`,searchText:item.name}))} onChange={value=>{setPrinter(value);void patchPreferences({labelPrinterId:value})}} searchPlaceholder="Buscar impresora…" ariaLabel="Impresora directa"/>:<strong>{printer}</strong>}<button className="link" onClick={()=>{setPrinter('');void patchPreferences({labelPrinterId:null})}}>Usar PDF</button></div>}
 
-    {(selectedCount>0||filtered.some(order=>order.sourceChannel==='shopify'))&&<div className="ordersPrinterBar"><FileText size={16}/><span>Facturación manual de Shopify</span><button className="secondary" onClick={()=>void openShopifyInvoiceSelection()}>Seleccionar pedidos para facturar</button></div>}
+
     <TableSortReset sorting={sorting}/>
     {pager}
-    <section className="card tableCard ordersTableCard">{loading?<div className="emptyState large"><LoaderCircle className="spin"/> Cargando pedidos…</div>:filtered.length?<table className="ordersTable"><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allSelectableSelected} indeterminate={visibleSelectedCount>0&&!allSelectableSelected} disabled={selectionBusy||bulkGenerating||!selectableOrders.length} onChange={toggleVisiblePage} label={allSelectableSelected?(state==='pending'?'Deseleccionar pedidos pendientes de esta página':'Deseleccionar pedidos de esta página'):(state==='pending'?'Seleccionar pedidos pendientes de esta página':'Seleccionar pedidos de esta página')}/></th>
-      <SortableTableHeader label="Canal" sortKey="channel" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
+    <section className="card tableCard ordersTableCard">{loading?<div className="emptyState large"><LoaderCircle className="spin"/> Cargando pedidos…</div>:filtered.length?<table className={`ordersTable ${trackingFirst?'ordersTrackingFirst':''}`}><thead><tr><th className="bulkSelectionCell"><BulkSelectCheckbox checked={allSelectableSelected} indeterminate={visibleSelectedCount>0&&!allSelectableSelected} disabled={selectionBusy||bulkGenerating||!selectableOrders.length} onChange={toggleVisiblePage} label={allSelectableSelected?(state==='pending'?'Deseleccionar pedidos pendientes de esta página':'Deseleccionar pedidos de esta página'):(state==='pending'?'Seleccionar pedidos pendientes de esta página':'Seleccionar pedidos de esta página')}/></th>
+      {!trackingFirst&&<SortableTableHeader label="Canal" sortKey="channel" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>}
       <SortableTableHeader label="Pedido" sortKey="order" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
-      <SortableTableHeader label="Cliente" sortKey="customer" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
+      <SortableTableHeader label="Cliente" sortKey="customer" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>{trackingFirst&&<><SortableTableHeader label="Transportista" sortKey="carrier" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/><SortableTableHeader label="Seguimiento" sortKey="tracking" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/><SortableTableHeader label="Canal" sortKey="channel" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/></>}
       <SortableTableHeader label="Productos" sortKey="products" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Destino" sortKey="destination" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
-      <SortableTableHeader label="Transportista" sortKey="carrier" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
+      {!trackingFirst&&<SortableTableHeader label="Transportista" sortKey="carrier" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>}
       <SortableTableHeader label="Envío" sortKey="shipping" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Peso" sortKey="weight" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Unidades" sortKey="units" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className="right"/>
       <SortableTableHeader label="Total" sortKey="total" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className="right"/>
       <SortableTableHeader label="Estado" sortKey="state" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
-      <SortableTableHeader label="Seguimiento" sortKey="tracking" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
+      {!trackingFirst&&<SortableTableHeader label="Seguimiento" sortKey="tracking" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>}
       <SortableTableHeader label="Fecha pedido" sortKey="orderDate" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Fecha etiqueta" sortKey="labelDate" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
       <SortableTableHeader label="Impresión" sortKey="printStatus" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
-      <SortableTableHeader label="Informe de recogida" sortKey="pickupReport" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/><th></th></tr></thead><tbody>{sortedOrders.map(order=>{const stateInfo=orderState(order),tracking=trackingState(order),validation=canPrepareOrder(order)?validateOrderForCarrier(order,undefined,settings.shipping):{blocking:false,issues:[] as OrderValidationIssue[]},shipping=shippingPriceForOrder(order,tariffPreviews[order.id]),first=order.items[0];return <tr key={order.id} className={`clickableRow ${checkedIds.has(order.id)?'bulkSelectedRow':''}`} onClick={()=>setSelected(order)}><td className="bulkSelectionCell" onClick={e=>e.stopPropagation()}><BulkSelectCheckbox checked={checkedIds.has(order.id)} disabled={selectionBusy||bulkGenerating||(state==='pending'&&!canPrepareOrder(order))} onChange={checked=>toggleOrder(order.id,checked)} label={state!=='pending'||canPrepareOrder(order)?`Seleccionar pedido ${order.orderNumber||order.orderId}`:'Este pedido ya no admite una nueva etiqueta'}/></td><td><span className={`ordersChannel ${order.sourceChannel}`}>{channelLabel(order)}</span></td><td className="ordersOrderCell"><strong>{order.orderNumber||order.orderId||order.sendcloudId}</strong><small>{order.integrationName||''}</small></td><td>{customerWithCountry(order)}{validation.blocking&&<small className="ordersValidationWarn"><AlertCircle size={12}/> Revisar</small>}</td><td className="ordersProductsCell" aria-label={productsText(order)}>{first?<div className="ordersProductIdentity">{(order.sourceChannel==='amazon'||order.sourceChannel==='shopify')&&(itemImageUrl(first,amazonImages)?<img className="ordersProductThumb" src={itemImageUrl(first,amazonImages)} alt="" loading="lazy" referrerPolicy="no-referrer"/>:<span className="ordersProductThumb ordersProductThumbPlaceholder"><ImageOff size={16}/></span>)}<div><OrderProductLines lines={order.items.map(item=>({name:itemLabel(item),quantity:itemQty(item)}))}/></div></div>:'—'}</td><td>{text(order.shippingAddress.country_code)||'—'} · {text(order.shippingAddress.postal_code)||''}</td><td><strong className="ordersCarrierText">{carrierLabel(order)}</strong>{order.shippingProvider&&<small className={"ordersShippingProvider "+order.shippingProvider}>{order.shippingProvider==='envia'?'Envia.com':order.shippingProvider==='mrw'?'MRW directo':'Sendcloud'}</small>}</td><td><strong className="ordersShippingPrice">{shipping?money(shipping.totalAmount,shipping.currency):'—'}</strong>{shipping&&shipping.source!=='recorded'&&<small>estimado</small>}</td><td><strong>{weightLabel(order,settings.shipping.weightUnit)}</strong></td><td className="right"><strong>{order.items.reduce((sum,item)=>sum+itemQty(item),0)}</strong></td><td className="right"><strong>{money(order.totalAmount,order.currency||'EUR')}</strong></td><td><span className={`ordersState ${stateInfo.className}`}>{stateInfo.className==='ready'?<PackageCheck size={13}/>:stateInfo.className==='pending'?<Truck size={13}/>:<AlertCircle size={13}/>} {stateInfo.label}</span></td><td><ShipmentTrackingStatus order={order} staleDays={settings.orders.trackingStaleDays}/></td><td>{dateLabel(order.orderCreatedAt,settings.general)}</td><td>{dateLabel(labelTimestamp(order),settings.general)}</td><td>{hasShippingLabel(order)&&(()=>{const print=labelPrintState(order);return <span className={`ordersPrintState ${print.className}`}>{print.label}</span>})()}</td><td onClick={e=>e.stopPropagation()}>{order.pickupReports?.length?order.pickupReports.map(r=><button type="button" className="link ordersPickupLink" key={r.id} aria-label={`Abrir informe ${r.number}`} onClick={()=>setPickupHistory(order.id)}>{r.number}</button>):<span className="muted">Sin informe</span>}</td><td className="right"><ChevronRight size={17}/></td></tr>})}</tbody></table>:<div className="emptyState large">No hay pedidos para estos filtros y fechas.</div>}</section>
-    <div className="ordersMobileList">{sortedOrders.map(order=>{const stateInfo=orderState(order),tracking=trackingState(order),validation=canPrepareOrder(order)?validateOrderForCarrier(order,undefined,settings.shipping):{blocking:false,issues:[] as OrderValidationIssue[]},shipping=shippingPriceForOrder(order,tariffPreviews[order.id]);return <div className={`bulkMobileSelectableRow ${checkedIds.has(order.id)?'selected':''}`} key={order.id}><BulkSelectCheckbox checked={checkedIds.has(order.id)} disabled={selectionBusy||bulkGenerating||(state==='pending'&&!canPrepareOrder(order))} onChange={checked=>toggleOrder(order.id,checked)} label={state!=='pending'||canPrepareOrder(order)?`Seleccionar pedido ${order.orderNumber||order.orderId}`:'Este pedido ya no admite una nueva etiqueta'}/><button className="card ordersMobileRow" onClick={()=>setSelected(order)}><div><span className={`ordersChannel ${order.sourceChannel}`}>{channelLabel(order)}</span><strong>{order.orderNumber||order.orderId}</strong><small className="ordersMobileCustomer"><CountryFlag code={order.shippingAddress.country_code}/>{order.customerName||'Cliente'} · {weightLabel(order,settings.shipping.weightUnit)} · {carrierLabel(order)} · Envío {shipping?money(shipping.totalAmount,shipping.currency):'—'}</small>{validation.blocking&&<small className="ordersValidationWarn"><AlertCircle size={12}/> Revisar pedido</small>}<small>Pedido {dateLabel(order.orderCreatedAt,settings.general)} · Etiqueta {dateLabel(labelTimestamp(order),settings.general)}{hasShippingLabel(order)?` · ${labelPrintState(order).label}`:''}</small>{order.items[0]&&<div className="ordersMobileProductRow">{(order.sourceChannel==='amazon'||order.sourceChannel==='shopify')&&(itemImageUrl(order.items[0],amazonImages)?<img className="ordersProductThumb" src={itemImageUrl(order.items[0],amazonImages)} alt="" loading="lazy" referrerPolicy="no-referrer"/>:<span className="ordersProductThumb ordersProductThumbPlaceholder"><ImageOff size={15}/></span>)}<OrderProductLines lines={order.items.map(item=>({name:itemLabel(item),quantity:itemQty(item)}))}/></div>}</div><div><b>{money(order.totalAmount,order.currency||'EUR')}</b><span className={`ordersState ${stateInfo.className}`}>{stateInfo.label}</span><ShipmentTrackingStatus order={order} staleDays={settings.orders.trackingStaleDays}/></div><ChevronRight size={18}/></button><div className="ordersMobilePickup">{order.pickupReports?.length?order.pickupReports.map(r=><button type="button" className="link ordersPickupLink" key={r.id} aria-label={`Abrir informe ${r.number}`} onClick={()=>setPickupHistory(order.id)}>{r.number}</button>):<span className="muted">Sin informe de recogida</span>}</div></div>})}</div>
+      <SortableTableHeader label="Informe de recogida" sortKey="pickupReport" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/><th></th></tr></thead><tbody>{sortedOrders.map(order=>{const stateInfo=orderState(order),tracking=trackingState(order),validation=canPrepareOrder(order)?validateOrderForCarrier(order,undefined,settings.shipping):{blocking:false,issues:[] as OrderValidationIssue[]},shipping=shippingPriceForOrder(order,tariffPreviews[order.id]),first=order.items[0];return <tr key={order.id} className={`clickableRow ${checkedIds.has(order.id)?'bulkSelectedRow':''}`} onClick={()=>setSelected(order)}><td className="bulkSelectionCell" onClick={e=>e.stopPropagation()}><BulkSelectCheckbox checked={checkedIds.has(order.id)} disabled={selectionBusy||bulkGenerating||(state==='pending'&&!canPrepareOrder(order))} onChange={checked=>toggleOrder(order.id,checked)} label={state!=='pending'||canPrepareOrder(order)?`Seleccionar pedido ${order.orderNumber||order.orderId}`:'Este pedido ya no admite una nueva etiqueta'}/></td>{!trackingFirst&&<td><span className={`ordersChannel ${order.sourceChannel}`}>{channelLabel(order)}</span></td>}<td className="ordersOrderCell"><strong>{order.orderNumber||order.orderId||order.sendcloudId}</strong><small>{order.integrationName||''}</small></td><td>{customerWithCountry(order)}{validation.blocking&&<small className="ordersValidationWarn"><AlertCircle size={12}/> Revisar</small>}</td>{trackingFirst&&<><td>{carrierCell(order)}</td><td className="ordersPriorityTracking">{trackingCell(order)}</td><td><span className={`ordersChannel ${order.sourceChannel}`}>{channelLabel(order)}</span></td></>}<td className="ordersProductsCell" aria-label={productsText(order)}>{first?<div className="ordersProductIdentity">{(order.sourceChannel==='amazon'||order.sourceChannel==='shopify')&&(itemImageUrl(first,amazonImages)?<img className="ordersProductThumb" src={itemImageUrl(first,amazonImages)} alt="" loading="lazy" referrerPolicy="no-referrer"/>:<span className="ordersProductThumb ordersProductThumbPlaceholder"><ImageOff size={16}/></span>)}<div><OrderProductLines lines={order.items.map(item=>({name:itemLabel(item),quantity:itemQty(item)}))}/></div></div>:'—'}</td><td>{text(order.shippingAddress.country_code)||'—'} · {text(order.shippingAddress.postal_code)||''}</td>{!trackingFirst&&<td>{carrierCell(order)}</td>}<td><strong className="ordersShippingPrice">{shipping?money(shipping.totalAmount,shipping.currency):'—'}</strong>{shipping&&shipping.source!=='recorded'&&<small>estimado</small>}</td><td><strong>{weightLabel(order,settings.shipping.weightUnit)}</strong></td><td className="right"><strong>{order.items.reduce((sum,item)=>sum+itemQty(item),0)}</strong></td><td className="right"><strong>{money(order.totalAmount,order.currency||'EUR')}</strong></td><td><span className={`ordersState ${stateInfo.className}`}>{stateInfo.className==='ready'?<PackageCheck size={13}/>:stateInfo.className==='pending'?<Truck size={13}/>:<AlertCircle size={13}/>} {stateInfo.label}</span></td>{!trackingFirst&&<td><ShipmentTrackingStatus order={order} staleDays={settings.orders.trackingStaleDays}/></td>}<td>{dateLabel(order.orderCreatedAt,settings.general)}</td><td>{dateLabel(labelTimestamp(order),settings.general)}</td><td>{hasShippingLabel(order)&&(()=>{const print=labelPrintState(order);return <span className={`ordersPrintState ${print.className}`}>{print.label}</span>})()}</td><td onClick={e=>e.stopPropagation()}>{order.pickupReports?.length?order.pickupReports.map(r=><button type="button" className="link ordersPickupLink" key={r.id} aria-label={`Abrir informe ${r.number}`} onClick={()=>setPickupHistory(order.id)}>{r.number}</button>):<span className="muted">Sin informe</span>}</td><td className="right"><ChevronRight size={17}/></td></tr>})}</tbody></table>:<div className="emptyState large">No hay pedidos para estos filtros y fechas.</div>}</section>
+    <div className="ordersMobileList">{sortedOrders.map(order=>{const stateInfo=orderState(order),tracking=trackingState(order),validation=canPrepareOrder(order)?validateOrderForCarrier(order,undefined,settings.shipping):{blocking:false,issues:[] as OrderValidationIssue[]},shipping=shippingPriceForOrder(order,tariffPreviews[order.id]);return <div className={`bulkMobileSelectableRow ${checkedIds.has(order.id)?'selected':''}`} key={order.id}><BulkSelectCheckbox checked={checkedIds.has(order.id)} disabled={selectionBusy||bulkGenerating||(state==='pending'&&!canPrepareOrder(order))} onChange={checked=>toggleOrder(order.id,checked)} label={state!=='pending'||canPrepareOrder(order)?`Seleccionar pedido ${order.orderNumber||order.orderId}`:'Este pedido ya no admite una nueva etiqueta'}/><button className="card ordersMobileRow" onClick={()=>setSelected(order)}><div><span className={`ordersChannel ${order.sourceChannel}`}>{channelLabel(order)}</span><strong>{order.orderNumber||order.orderId}</strong><small className="ordersMobileCustomer"><CountryFlag code={order.shippingAddress.country_code}/>{order.customerName||'Cliente'} · {weightLabel(order,settings.shipping.weightUnit)} · {carrierLabel(order)} · Envío {shipping?money(shipping.totalAmount,shipping.currency):'—'}</small>{validation.blocking&&<small className="ordersValidationWarn"><AlertCircle size={12}/> Revisar pedido</small>}<small>Pedido {dateLabel(order.orderCreatedAt,settings.general)} · Etiqueta {dateLabel(labelTimestamp(order),settings.general)}{hasShippingLabel(order)?` · ${labelPrintState(order).label}`:''}</small>{order.items[0]&&<div className="ordersMobileProductRow">{(order.sourceChannel==='amazon'||order.sourceChannel==='shopify')&&(itemImageUrl(order.items[0],amazonImages)?<img className="ordersProductThumb" src={itemImageUrl(order.items[0],amazonImages)} alt="" loading="lazy" referrerPolicy="no-referrer"/>:<span className="ordersProductThumb ordersProductThumbPlaceholder"><ImageOff size={15}/></span>)}<OrderProductLines lines={order.items.map(item=>({name:itemLabel(item),quantity:itemQty(item)}))}/></div>}</div><div><b>{money(order.totalAmount,order.currency||'EUR')}</b><span className={`ordersState ${stateInfo.className}`}>{stateInfo.label}</span>{!trackingFirst&&<ShipmentTrackingStatus order={order} staleDays={settings.orders.trackingStaleDays}/>}</div><ChevronRight size={18}/></button>{trackingFirst&&<div className="ordersMobileTracking">{trackingCell(order)}</div>}<div className="ordersMobilePickup">{order.pickupReports?.length?order.pickupReports.map(r=><button type="button" className="link ordersPickupLink" key={r.id} aria-label={`Abrir informe ${r.number}`} onClick={()=>setPickupHistory(order.id)}>{r.number}</button>):<span className="muted">Sin informe de recogida</span>}</div></div>})}</div>
     {pager}
 
+    </>}
+    </div>
+    <TransportTariffsPanel open={tariffsOpen} onClose={()=>setTariffsOpen(false)}/>
     {bulkPreview&&<div className="modalBackdrop" onMouseDown={e=>{if(e.target===e.currentTarget&&!bulkPreview.loading)setBulkPreview(null)}}><section className="modal ordersLabelModal">
       <div className="modalHead"><div><h3>Generar etiquetas en bloque</h3><p>Compara los transportistas disponibles para los {bulkPreview.targets.length} pedidos y elige con cuál generar todas las etiquetas.</p></div><button disabled={bulkPreview.loading||bulkGenerating} onClick={()=>setBulkPreview(null)}><X size={18}/></button></div>
       <div className="ordersLabelBody">

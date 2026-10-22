@@ -1,4 +1,4 @@
-import type { ThemePreference, UserPreferences } from './settingsSchema';
+import { ORDER_FINANCIAL_KPI_KEYS, type ThemePreference, type UserPreferences } from './settingsSchema';
 
 export type ResolvedTheme='light'|'dark';
 
@@ -54,7 +54,7 @@ export function selectedPreferenceKeys(configured:string[],defaults:readonly str
 
 export const DASHBOARD_KPI_DEFAULTS=[
   'sales','expenses','result','vatBalance','receivable','pendingExpenses',
-  'orders','orderValue','pendingOrders','shippedOrders','cancelledOrders',
+  'orders','orderValue',...ORDER_FINANCIAL_KPI_KEYS,'pendingOrders','shippedOrders','cancelledOrders',
 ] as const;
 
 export const TABLE_COLUMN_DEFAULTS={

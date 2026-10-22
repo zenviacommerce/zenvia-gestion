@@ -42,6 +42,7 @@ export function OrderLabelDefaults(){
       button=document.createElement('button');
       button.type='button';
       button.className='secondary zenviaTransportTariffsButton';
+      button.dataset.injected='true';
       button.textContent='Tarifas de transporte';
       button.setAttribute('aria-label','Abrir tarifas de transporte');
       button.onclick=()=>setTariffsOpen(true);
@@ -52,7 +53,7 @@ export function OrderLabelDefaults(){
     observer.observe(document.body,{childList:true,subtree:true,characterData:true});
     return()=>{
       observer.disconnect();
-      document.querySelector('.zenviaTransportTariffsButton')?.remove();
+      document.querySelector('.zenviaTransportTariffsButton[data-injected="true"]')?.remove();
     };
   },[]);
   return <TransportTariffsPanel open={tariffsOpen} onClose={()=>setTariffsOpen(false)}/>;

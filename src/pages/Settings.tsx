@@ -2252,7 +2252,7 @@ function PreferencesSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void
 
   const dashboardLabels:Record<string,string>={
     sales:'Facturación',expenses:'Gastos',result:'Resultado',vatBalance:'IVA neto',receivable:'Pendiente de cobro',
-    pendingExpenses:'Gastos por revisar',orders:'Pedidos',orderValue:'Valor de pedidos',pendingOrders:'Pedidos pendientes',
+    pendingExpenses:'Gastos por revisar',orders:'Pedidos',orderValue:'Total vendido',orderVat:'IVA estimado',orderNet:'Neto sin IVA',orderAverage:'Ticket medio',orderTransport:'Coste transportistas',pendingOrders:'Pedidos pendientes',
     shippedOrders:'Pedidos enviados',cancelledOrders:'Pedidos cancelados',
   };
   const tableLabels:Record<PreferenceTableKey,string>={expenses:'Gastos',suppliers:'Proveedores',clients:'Clientes',products:'Productos'};

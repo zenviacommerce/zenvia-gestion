@@ -1,0 +1,6 @@
+{
+  "phase": "before",
+  "synthetic": true,
+  "networkBlocked": true,
+  "checks": []
+}

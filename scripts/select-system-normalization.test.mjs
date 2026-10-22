@@ -41,10 +41,15 @@ test('orders use the global tooltip instead of duplicate native title tooltips',
 
 test('orders use searchable selects for growing catalogs and SelectField for tracking enum',async()=>{
   const orders=await source('src/pages/Orders.tsx');
+  const filters=await source('src/components/OrdersWorkbenchFilters.tsx');
   assert.doesNotMatch(orders,/Integración Sendcloud<\/span>/);
-  assert.match(orders,/Canal<\/span><SelectField/);
+  assert.match(orders,/<OrdersWorkbenchFilters/);
+  assert.match(filters,/channel:'Filtrar por canal'/);
+  assert.match(filters,/tracking:'Filtrar por seguimiento'/);
+  assert.match(filters,/<SelectField ariaLabel=\{ariaLabels\[editing\]\} value=\{values\[editing\]\} options=\{options\[editing\]\}/);
   assert.match(orders,/Impresora directa:<\/span>\{printers\.length\?<SearchableSelect/);
-  assert.match(orders,/Seguimiento<\/span><SelectField[^]*ariaLabel="Filtrar por seguimiento"/);
+  assert.match(filters,/country:\[\{value:'all',label:'Todos los países'\},\.\.\.countries/);
+  assert.match(filters,/carrier:\[\{value:'all',label:'Todos los transportistas'\},\.\.\.carriers/);
 });
 
 test('unified select system exposes simple and searchable sibling controls',async()=>{

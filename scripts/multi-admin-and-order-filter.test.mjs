@@ -10,7 +10,12 @@ test('orders always open on all channels and do not persist the channel filter',
   assert.doesNotMatch(orders,/const\s+initialChannel\s*=/);
   assert.doesNotMatch(orders,/const value=\{query,channel,state/);
   assert.match(orders,/const value=\{query,state,trackingFilter,countryFilter,carrierFilter,pickupReportFilter,dateFilter\}/);
-  assert.match(orders,/value:'all',label:'Todos los canales'/);
+  const filters=await read('src/components/OrdersWorkbenchFilters.tsx');
+  assert.match(orders,/<OrdersWorkbenchFilters/);
+  assert.match(filters,/channel:\[\{value:'all',label:'Todos los canales'/);
+  assert.match(filters,/value:'amazon'/);
+  assert.match(filters,/value:'shopify'/);
+  assert.match(filters,/value:'other'/);
 });
 
 test('managed users support multiple administrators through the existing role model',async()=>{

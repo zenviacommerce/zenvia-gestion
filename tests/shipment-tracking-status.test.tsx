@@ -16,3 +16,16 @@ it('keeps missing MRW observations unavailable with manual consultation',()=>{
  render(<ShipmentTrackingStatus order={{shippingProvider:'mrw',trackingNumber:'synthetic',trackingNormalizedState:null,trackingError:'MRW_UNKNOWN_STATUS_999'}}/>);
  expect(screen.getByText('Sin seguimiento disponible')).toBeTruthy();expect(screen.getByText('Consulta manual disponible en el detalle')).toBeTruthy();
 });
+
+it('shows every carrier description and recent movement age in the operational list',()=>{
+ const now=Date.now();
+ render(<ShipmentTrackingStatus operational order={{trackingNormalizedState:'exception',trackingStatusMessage:'Destinatario ausente',trackingMovementAt:new Date(now-86400000).toISOString(),trackingEventAt:new Date(now-86400000).toISOString()}}/>);
+ expect(screen.getByText('Destinatario ausente')).toBeTruthy();
+ expect(screen.getByText('Sin movimiento registrado en 1 día')).toBeTruthy();
+});
+
+it('keeps inferred movement as detected rather than inventing a carrier timestamp',()=>{
+ render(<ShipmentTrackingStatus operational order={{trackingNormalizedState:'in_transit',trackingMovementAt:'2026-10-22T08:00:00Z',trackingObservedAt:'2026-10-22T08:00:00Z'}}/>);
+ expect(screen.getByText('Detectado: 22/10/2026, 10:00')).toBeTruthy();
+ expect(screen.queryByText(/Último movimiento:/)).toBeNull();
+});

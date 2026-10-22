@@ -6,16 +6,24 @@ const read=path=>readFile(new URL(path,import.meta.url),'utf8');
 
 test('bulk label generation is not disabled by background sync or status health checks',async()=>{
   const source=await read('../src/pages/Orders.tsx');
-  assert.match(source,/disabled=\{bulkGenerating\|\|selectionBusy\|\|bulkPreview\?\.loading\|\|\(settings\.orders\.bulkScope/);
+  const pendingAction=source.match(/<button[^>]*onClick=\{\(\)=>void generateConfiguredLabels\(true\)\}[^>]*>/)?.[0];
+  const selectedAction=source.match(/<button[^>]*onClick=\{\(\)=>void generateSelectedLabels\(\)\}[^>]*>/)?.[0];
+  assert.ok(pendingAction,'Pending workbench keeps its all-pending label action');
+  assert.ok(selectedAction,'Selection toolbar keeps its selected-label action');
+  assert.match(pendingAction,/disabled=\{bulkGenerating\|\|selectionBusy\|\|loading\|\|\(dashboardKpis\?\.preparablePending/);
+  assert.match(selectedAction,/!selectedCount\|\|!labelSelectionAllowed\|\|bulkGenerating\|\|selectionBusy\|\|loading/);
+  for(const action of [pendingAction,selectedAction])assert.doesNotMatch(action,/syncing|status\?\.configured|enviaStatus/);
   assert.match(source,/disabled=\{!selectedCount\|\|bulkGenerating\|\|selectionBusy\|\|loading\}/);
   assert.doesNotMatch(source,/disabled=\{bulkGenerating\|\|syncing\|\|!status\?\.configured\|\|configuredBulkTargets\.length===0\}/);
   assert.doesNotMatch(source,/disabled=\{!selectedOrders\.length\|\|bulkGenerating\|\|syncing\|\|!status\?\.configured\}/);
 });
 
-test('direct printing is presented as optional Sendcloud Print Client functionality',async()=>{
+test('direct printing remains optional with ZENVIA Print Agent and PDF fallback',async()=>{
   const source=await read('../src/pages/Orders.tsx');
   assert.match(source,/Impresión directa/);
-  assert.match(source,/ZENVIA Print Agent para imprimir directamente/);
+  assert.match(source,/Impresión opcional con ZENVIA Print Agent; las etiquetas también se pueden descargar/);
+  assert.match(source,/onClick=\{detectPrinters\}/);
+  assert.match(source,/Usar PDF/);
   assert.match(source,/showInfo\('La impresión directa requiere ZENVIA Print Agent/);
 });
 
@@ -44,7 +52,9 @@ test('pending and labelled order queues are operational and ignore global period
   assert.match(source,/const operationalContextOrders=useMemo\(\(\)=>orders\.filter/);
   assert.match(source,/const labelContextOrders=useMemo\(\(\)=>operationalContextOrders\.filter\(isLabelledOrder\)/);
   assert.match(source,/const pendingOrders=useMemo\(\(\)=>operationalContextOrders\.filter\(isPendingOrder\)/);
-  assert.match(source,/Etiquetas listas · sin limitar por periodo/);
+  assert.match(source,/const dateFrom=ordersTabUsesPeriod\(activeTab\)\?dateFilter\.from:'',dateTo=ordersTabUsesPeriod\(activeTab\)\?dateFilter\.to:''/);
+  const routing=await read('../src/services/ordersWorkbench.ts');
+  assert.match(routing,/ordersTabUsesPeriod\(tab:OrdersTab\)\{return tab==='shipped'\|\|tab==='cancelled'\}/);
   assert.doesNotMatch(source,/labelPeriodOrders/);
 });
 

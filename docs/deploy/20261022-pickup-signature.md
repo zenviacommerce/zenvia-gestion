@@ -48,3 +48,7 @@ A: seis comprobaciones de Gestión y una de Platform en verde; recibo de heads y
 ## Corrección final del rol de diálogo detectada por CI visual
 
 CI 39860351677 completó las capturas de Pedidos sin pérdidas, pero el test de abrir/cancelar informe encontró el role=dialog en un wrapper sin área visible alrededor del FormModal fijo. Se coloca el rol y su nombre accesible en la superficie .modal real mediante el hook de formulario, manteniendo foco, Escape y trapping. Prueba roja/verdes de host de rol y 12/12 UI focalizadas; galería completa regenerada con aserción de diálogo visible en navegador (62 capturas/68 checks). No se relajó la comprobación de CI ni se publicó nada.
+
+## Estabilización de fecha del fixture de bandeja
+
+CI 39862334103 ejecutó 624 pruebas y falló solo en cuatro modos del fixture antiguo de bandeja: a las 22:07 UTC ya era el día siguiente en Madrid, pero p_from/p_to usaban current_date de la sesión UTC. Los envíos se clasifican por día de Madrid. El fixture pasa esa fecha explícita; se conservan las aserciones de 8 enviados, 3 incidencias, permisos y todos los modos. 4/4 focalizadas correctas. No se cambia SQL ni comportamiento del producto. La revisión visual del head anterior ya ha superado abrir/cancelar informes y continúa con las demás pantallas.

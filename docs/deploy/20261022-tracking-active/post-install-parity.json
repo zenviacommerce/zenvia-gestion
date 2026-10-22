@@ -1,0 +1,153 @@
+{
+  "at": "2026-10-22T10:29:25.163773+00:00",
+  "cases": [
+    {
+      "fn": "orders_dashboard_page_v1",
+      "equal": true,
+      "total": 1002,
+      "filter": "all",
+      "fallback_ms": 827.606,
+      "optimized_ms": 145.679
+    },
+    {
+      "fn": "orders_dashboard_page_v1",
+      "equal": true,
+      "total": 1,
+      "filter": "cancelled",
+      "fallback_ms": 668.439,
+      "optimized_ms": 54.977
+    },
+    {
+      "fn": "orders_dashboard_page_v1",
+      "equal": true,
+      "total": 748,
+      "filter": "delivered",
+      "fallback_ms": 723.384,
+      "optimized_ms": 100.109
+    },
+    {
+      "fn": "orders_dashboard_page_v1",
+      "equal": true,
+      "total": 4,
+      "filter": "issue",
+      "fallback_ms": 731.753,
+      "optimized_ms": 57.369
+    },
+    {
+      "fn": "orders_dashboard_page_v1",
+      "equal": true,
+      "total": 175,
+      "filter": "none",
+      "fallback_ms": 721.552,
+      "optimized_ms": 96.526
+    },
+    {
+      "fn": "orders_dashboard_page_v1",
+      "equal": true,
+      "total": 1,
+      "filter": "ready",
+      "fallback_ms": 668.849,
+      "optimized_ms": 65.467
+    },
+    {
+      "fn": "orders_dashboard_page_v1",
+      "equal": true,
+      "total": 1,
+      "filter": "returned",
+      "fallback_ms": 744.123,
+      "optimized_ms": 43.459
+    },
+    {
+      "fn": "orders_dashboard_page_v1",
+      "equal": true,
+      "total": 1,
+      "filter": "route",
+      "fallback_ms": 695.978,
+      "optimized_ms": 63.237
+    },
+    {
+      "fn": "orders_dashboard_page_v1",
+      "equal": true,
+      "total": 71,
+      "filter": "transit",
+      "fallback_ms": 707.089,
+      "optimized_ms": 80.944
+    },
+    {
+      "fn": "orders_dashboard_pickup_v1",
+      "equal": true,
+      "total": 1002,
+      "filter": "all",
+      "fallback_ms": 817.512,
+      "optimized_ms": 101.108
+    },
+    {
+      "fn": "orders_dashboard_pickup_v1",
+      "equal": true,
+      "total": 1,
+      "filter": "cancelled",
+      "fallback_ms": 732.544,
+      "optimized_ms": 30.677
+    },
+    {
+      "fn": "orders_dashboard_pickup_v1",
+      "equal": true,
+      "total": 748,
+      "filter": "delivered",
+      "fallback_ms": 768.7,
+      "optimized_ms": 79.844
+    },
+    {
+      "fn": "orders_dashboard_pickup_v1",
+      "equal": true,
+      "total": 4,
+      "filter": "issue",
+      "fallback_ms": 682.74,
+      "optimized_ms": 35.688
+    },
+    {
+      "fn": "orders_dashboard_pickup_v1",
+      "equal": true,
+      "total": 175,
+      "filter": "none",
+      "fallback_ms": 787.602,
+      "optimized_ms": 55.457
+    },
+    {
+      "fn": "orders_dashboard_pickup_v1",
+      "equal": true,
+      "total": 1,
+      "filter": "ready",
+      "fallback_ms": 693.255,
+      "optimized_ms": 31.93
+    },
+    {
+      "fn": "orders_dashboard_pickup_v1",
+      "equal": true,
+      "total": 1,
+      "filter": "returned",
+      "fallback_ms": 765.779,
+      "optimized_ms": 29.28
+    },
+    {
+      "fn": "orders_dashboard_pickup_v1",
+      "equal": true,
+      "total": 1,
+      "filter": "route",
+      "fallback_ms": 699.126,
+      "optimized_ms": 32.966
+    },
+    {
+      "fn": "orders_dashboard_pickup_v1",
+      "equal": true,
+      "total": 71,
+      "filter": "transit",
+      "fallback_ms": 733.656,
+      "optimized_ms": 45.386
+    }
+  ],
+  "all_equal": true,
+  "wrapper_hash": "4a5d7ee5c3d93eb71e22f4b51f7a2e63",
+  "projection_usable": true,
+  "source_trigger_hash": "0dc05711e36f5599371517d0a448010d"
+}

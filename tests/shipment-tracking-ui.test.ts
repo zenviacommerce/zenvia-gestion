@@ -28,3 +28,8 @@ it('does not suppress actual MRW access failures or unknown current observations
  expect(trackingPresentation({shippingProvider:'mrw',trackingNumber:'synthetic',trackingNormalizedState:'delivered',trackingError:'MRW_TRACKING_ACCESS_DENIED'}).unavailable).toBe(true);
  expect(trackingPresentation({shippingProvider:'mrw',trackingNumber:'synthetic',trackingNormalizedState:null,trackingError:'MRW_UNKNOWN_STATUS_999'}).unavailable).toBe(true);
 });
+
+it('shows a real MRW observation with an unknown code as unclassified without inventing a legacy transit state',()=>{
+ const p=trackingPresentation({shippingProvider:'mrw',trackingNumber:'synthetic',trackingNormalizedState:null,trackingStatusCode:'SHIPPED',trackingStatusMessage:'Código nuevo del transportista',trackingObservedAt:'2026-10-22T10:00:00Z',trackingError:'MRW_UNKNOWN_STATUS_999'});
+ expect(p.label).toBe('Estado sin clasificar');expect(p.className).toBe('none');expect(p.state).toBeNull();expect(p.unavailable).toBe(false);expect(p.dateKind).toBe('Detectado');
+});

@@ -10,6 +10,6 @@ export function ShipmentTrackingStatus({order,staleDays=3}:{order:TrackingFields
   {!formatted&&!t.eventTimeRaw&&order.trackingNumber&&<small>Fecha de movimiento no disponible</small>}
   {t.staleLabel&&<small className="ordersValidationWarn">{t.staleLabel}</small>}
   {t.unavailable&&<small className="ordersValidationWarn">{t.state?'Seguimiento automático no disponible · último estado conocido':'Consulta manual disponible en el detalle'}</small>}
-  {t.error&&!t.unavailable&&<small className="ordersValidationWarn">Comprobación pendiente</small>}
+  {t.error&&!t.unavailable&&!t.softWarning&&<small className="ordersValidationWarn">Comprobación pendiente</small>}
  </span>;
 }

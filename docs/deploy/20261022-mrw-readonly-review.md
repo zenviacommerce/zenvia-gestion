@@ -10,7 +10,7 @@ Endpoint: https://seguimiento.mrw.es/swc/wssgmntnvs.asmx
 Método: POST SOAP 1.1, SeguimientoNumeroEnvioMRWNacional.
 SOAPAction: http://www.mrw.es/webservices/seguimiento/SeguimientoNumeroEnvioMRWNacional
 Campos: Franquicia, Cliente, Password, NumeroMRW, Referencia vacía, Agrupado=N.
-Se usaron franchiseCode/subscriberCode/password existentes de SAGEC, sin trackingPassword configurada. El contrato de este método NO tiene campo UserName; no se inventó uno.
+Se usaron franchiseCode/subscriberCode/password existentes de SAGEC. El contrato de este método NO tiene campo UserName; no se inventó uno.
 
 | Muestra | HTTP | Estado de la respuesta | SOAP Fault | Resultado |
 |---|---:|---|---|---|

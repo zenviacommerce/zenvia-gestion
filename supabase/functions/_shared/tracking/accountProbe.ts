@@ -1,3 +1,4 @@
+import {normalizeMrwCredentials} from './credentialResume.ts';
 import {pollShipment} from './adapters.ts';
 
 export type MrwTrackingProbeCode=
@@ -28,11 +29,11 @@ export async function probeMrwTrackingAccount(admin:any,ownerId:string,accountId
   if(!account.secret_id)return result('MRW_CREDENTIALS_REQUIRED');
   const secret=await admin.rpc('integration_read_secret',{p_secret_id:account.secret_id});
   if(secret.error)return result('MRW_TRACKING_FAILED');
-  const stored=JSON.parse(String(secret.data||'{}'));
-  const username=clean(stored?.username)||clean(stored?.userName)||clean(stored?.usuario),password=clean(stored?.password);
+  const stored=normalizeMrwCredentials(JSON.parse(String(secret.data||'{}')));
+  const username=clean(stored?.username),password=clean(stored?.password);
   if(!username||!password)return result('MRW_CREDENTIALS_REQUIRED');
   // TrackingService shares this account's saved SAGEC username/password.
-  // Do not pass retired overrides or unrelated stored secrets to the adapter.
+  // Pass only the canonical authentication pair to the adapter.
   await pollShipment(account,{username,password},tracking,request);
   return result('MRW_TRACKING_OK');
  }catch(error){

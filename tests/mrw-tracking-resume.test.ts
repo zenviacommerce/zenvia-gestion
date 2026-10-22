@@ -24,7 +24,7 @@ it.each([{password:'new-password'},{username:'new-user'}])('uses the saved merge
 it.each(['userName','usuario'])('supports a saved SAGEC %s alias when updating the password',async(key)=>{
  const db=fixture();await resumeMrwTrackingAfterCredentialSave(db,account,{password:'new'},'now',{[key]:'saved-user',password:'new'});expect(db.rows.shipment_tracking_state[0].next_poll_at).toBe('now');
 });
-it.each([{trackingPassword:'old-override'},{tracking_password:'old-override'},{password:' '},{franchiseCode:'123'},null,{}])('unrelated or blank edits cannot resume tracking even with a saved pair',async(edit)=>{
+it.each([{irrelevant:'unused'},{password:' '},{franchiseCode:'123'},null,{}])('unrelated or blank edits cannot resume tracking even with a saved pair',async(edit)=>{
  const db=fixture();await resumeMrwTrackingAfterCredentialSave(db,account,edit,'now',sagec);expect(db.rows.shipment_tracking_account_health[0].paused_until).toBe('later');
 });
 it.each([{username:'user'},{password:'password'},{}])('incomplete saved credentials keep the pause',async(saved)=>{
@@ -37,10 +37,4 @@ it('does not resume terminal shipments or rate limit pauses',async()=>{
 it('keeps the safety pause if waking states fails',async()=>{
  const db=fixture(),from=db.from.bind(db);db.from=(table:string)=>table==='shipment_tracking_state'?{update:()=>{const q:any={eq:()=>q,not:()=>q,or:()=>q,in:async()=>({error:Error('db unavailable')})};return q}}:from(table);
  await expect(resumeMrwTrackingAfterCredentialSave(db,account,sagec)).rejects.toThrow('MRW_TRACKING_RESUME_FAILED');expect(db.rows.shipment_tracking_account_health[0].paused_until).toBe('later');
-});
-it('SAGEC credential edits invalidate connection health while retired tracking-only edits do not',async()=>{
- const {credentialSaveConnectionPatch}=await import('../supabase/functions/_shared/tracking/credentialResume');
- expect(credentialSaveConnectionPatch('mrw',{password:'new-password'})).toEqual({status:'pending',last_error:null});
- expect(credentialSaveConnectionPatch('mrw',{trackingPassword:'old'})).toEqual({});
- expect(credentialSaveConnectionPatch('sendcloud',{secretKey:'test-only'})).toEqual({status:'pending',last_error:null});
 });

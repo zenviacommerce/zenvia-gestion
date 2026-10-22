@@ -8,9 +8,9 @@ TrackingService utiliza el mismo usuario y contraseña SAGEC de la cuenta MRW di
 2. Guardar el usuario y contraseña SAGEC por los campos seguros existentes. Dejar un campo vacío conserva el valor guardado. No crear otra cuenta para las mismas expediciones ni compartir secretos por chat.
 3. **Probar SAGEC** comprueba la conexión de etiquetas; **Probar seguimiento** consulta TrackingService con las mismas credenciales guardadas y una expedición propia.
 
-Los antiguos campos `trackingPassword` y `tracking_password` no participan en TrackingService. Sin usuario o contraseña SAGEC completos no se hace una petición al proveedor. El código `MRW_CREDENTIALS_REQUIRED` informa de la pareja SAGEC incompleta; la interfaz sigue interpretando el código histórico `MRW_TRACKING_PASSWORD_REQUIRED`.
+Sin usuario o contraseña SAGEC completos no se hace una petición al proveedor. El código `MRW_CREDENTIALS_REQUIRED` informa de la pareja SAGEC incompleta; la interfaz sigue interpretando el código histórico `MRW_TRACKING_PASSWORD_REQUIRED`.
 
-Guardar explícitamente usuario o contraseña SAGEC, con la pareja completa ya fusionada y persistida en Vault, libera las pausas recuperables `MRW_CREDENTIALS_REQUIRED`, `MRW_TRACKING_PASSWORD_REQUIRED`, `MRW_TRACKING_ACCESS_DENIED` y `MRW_CREDENTIALS_REJECTED` de esa cuenta. Adelanta el siguiente intento de sus envíos activos afectados; no cambia terminales, otras cuentas, límites de frecuencia ni otras pausas. Cambiar esas credenciales invalida la prueba de conexión anterior. Guardar únicamente un antiguo campo de seguimiento no despierta la cuenta.
+Guardar explícitamente usuario o contraseña SAGEC, con la pareja completa ya fusionada y persistida en Vault, libera las pausas recuperables `MRW_CREDENTIALS_REQUIRED`, `MRW_TRACKING_PASSWORD_REQUIRED`, `MRW_TRACKING_ACCESS_DENIED` y `MRW_CREDENTIALS_REJECTED` de esa cuenta. Adelanta el siguiente intento de sus envíos activos afectados; no cambia terminales, otras cuentas, límites de frecuencia ni otras pausas. Cambiar esas credenciales invalida la prueba de conexión anterior.
 
 Los envíos MRW gestionados por Sendcloud conservan su adaptador y cuenta Sendcloud. No reutilizar credenciales de una plataforma intermediaria para MRW directo.
 

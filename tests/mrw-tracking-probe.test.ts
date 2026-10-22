@@ -5,7 +5,7 @@ import {probeMrwTrackingAccount} from '../supabase/functions/_shared/tracking/ac
 const account={id:'account',owner_id:'owner',provider:'mrw',secret_id:'vault-secret',config:{}};
 const shipment={id:'order',owner_id:'owner',shipping_provider:'mrw',shipping_integration_account_id:'account',pii_purged_at:null,tracking_number:'PRIVATE-TRACKING'};
 const now='2026-10-22T10:00:00.000Z';
-function database(accounts:any[]=[account],shipments:any[]=[shipment],credentials:any={trackingPassword:'IGNORED-OLD-SECRET',username:'PRIVATE-SAGEC-USER',password:'PRIVATE-SAGEC-PASSWORD',franchiseCode:'0000',subscriberCode:'000001'}){
+function database(accounts:any[]=[account],shipments:any[]=[shipment],credentials:any={username:'PRIVATE-SAGEC-USER',password:'PRIVATE-SAGEC-PASSWORD',franchiseCode:'0000',subscriberCode:'000001'}){
  const reads:string[]=[]; const rpc=vi.fn(async(name:string)=>{if(name!=='integration_read_secret')throw Error('Write forbidden');return {data:JSON.stringify(credentials),error:null}});
  const admin={rpc,from(table:string){reads.push(table);let rows=table==='integration_accounts'?accounts:shipments;const query:any={
  select(){return query},eq(key:string,value:any){rows=rows.filter(row=>row[key]===value);return query},is(key:string,value:any){rows=rows.filter(row=>row[key]===value);return query},
@@ -21,7 +21,7 @@ describe('read-only MRW account tracking probe',()=>{
  it('selects one owned, account-scoped, MRW nonpurged shipment and returns no provider or shipment data',async()=>{
   const db=database([account],[{...shipment,id:'foreign',owner_id:'foreign',tracking_number:'FOREIGN'}, {...shipment,id:'other-account',shipping_integration_account_id:'other',tracking_number:'OTHER'}, {...shipment,id:'other-provider',shipping_provider:'sendcloud',tracking_number:'SENDCLOUD'}, {...shipment,id:'purged',pii_purged_at:now,tracking_number:'PURGED'}, {...shipment,id:'empty',tracking_number:''},{...shipment,id:'null',tracking_number:null},shipment]);
   const request=successfulRequest();expect(await probeMrwTrackingAccount(db.admin,'owner','account',request,now)).toEqual(result('MRW_TRACKING_OK',true));
-  expect(request).toHaveBeenCalledTimes(1);const body=String(request.mock.calls[0]?.[1]?.body);expect(body).toContain('PRIVATE-TRACKING');expect(body).toContain('PRIVATE-SAGEC-USER');expect(body).toContain('PRIVATE-SAGEC-PASSWORD');expect(body).not.toContain('IGNORED-OLD-SECRET');
+  expect(request).toHaveBeenCalledTimes(1);const body=String(request.mock.calls[0]?.[1]?.body);expect(body).toContain('PRIVATE-TRACKING');expect(body).toContain('PRIVATE-SAGEC-USER');expect(body).toContain('PRIVATE-SAGEC-PASSWORD');
   expect(db.rpc).toHaveBeenCalledExactlyOnceWith('integration_read_secret',{p_secret_id:'vault-secret'});
  });
  it.each(['userName','usuario'])('supports the existing SAGEC %s username alias',async(key)=>{
@@ -35,9 +35,6 @@ describe('read-only MRW account tracking probe',()=>{
  });
  it('does not fetch when only SAGEC password exists',async()=>{
   const db=database(undefined,undefined,{password:'PRIVATE-SAGEC-PASSWORD'});const request=successfulRequest();expect(await probeMrwTrackingAccount(db.admin,'owner','account',request,now)).toEqual(result('MRW_CREDENTIALS_REQUIRED'));expect(request).not.toHaveBeenCalled();
- });
- it('ignores the retired tracking password without complete SAGEC credentials',async()=>{
-  const db=database(undefined,undefined,{tracking_password:'ALIAS-SECRET'}),request=successfulRequest();expect(await probeMrwTrackingAccount(db.admin,'owner','account',request,now)).toEqual(result('MRW_CREDENTIALS_REQUIRED'));expect(request).not.toHaveBeenCalled();
  });
  it('returns a safe code without Vault/provider when no eligible shipment exists',async()=>{
   const db=database(undefined,[]);const request=successfulRequest();expect(await probeMrwTrackingAccount(db.admin,'owner','account',request,now)).toEqual(result('MRW_TRACKING_NO_SHIPMENT'));expect(db.rpc).not.toHaveBeenCalled();expect(request).not.toHaveBeenCalled();

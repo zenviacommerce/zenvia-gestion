@@ -23,10 +23,15 @@ export async function resumeMrwTrackingAfterCredentialSave(admin:any,account:any
  if(resumed.error)throw Error('MRW_TRACKING_RESUME_FAILED');
 }
 
-// Ignore retired tracking-only credential fields. SAGEC changes invalidate the
-// connection health shared by label creation and TrackingService.
-export function credentialSaveConnectionPatch(provider:string,credentials:Record<string,unknown>){
- const keys=Object.entries(credentials).filter(([,value])=>String(value??'').trim()).map(([key])=>key);
- if(provider==='mrw'&&keys.every(key=>['trackingPassword','tracking_password'].includes(key)))return {};
- return {status:'pending',last_error:null};
+// Canonical SAGEC fields are the entire stored MRW credential contract.
+export function normalizeMrwCredentials(value:unknown):Record<string,string>{
+ const input=value&&typeof value==='object'&&!Array.isArray(value)?value as Record<string,unknown>:{};
+ const fields:Record<string,string[]>={franchiseCode:['franchiseCode','codigoFranquicia'],subscriberCode:['subscriberCode','codigoAbonado'],departmentCode:['departmentCode','codigoDepartamento'],username:['username','userName','usuario'],password:['password']};
+ return Object.fromEntries(Object.entries(fields).flatMap(([key,aliases])=>{
+  const text=aliases.map(alias=>typeof input[alias]==='string'?input[alias].trim():'').find(Boolean);
+  return text?[[key,text]]:[];
+ }));
+}
+export function mergeMrwCredentials(saved:unknown,edits:unknown){
+ return {...normalizeMrwCredentials(saved),...normalizeMrwCredentials(edits)};
 }

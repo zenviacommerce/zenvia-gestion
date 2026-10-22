@@ -26,3 +26,5 @@ Los avisos de tamaño de bundle de Vite permanecen; no son errores de compilaci�
 - Introducir una versión de preferencias que haga visibles los cuatro KPI nuevos en selecciones antiguas, sin restaurar tarjetas antiguas ocultas ni sobrescribir elecciones posteriores.
 
 La antigua captura de fase 1 esperaba las tarjetas KPI en Pedidos. El flujo visual de CI pasa a ejecutar las 42 capturas del workbench y sus pruebas de acciones/selección/finanzas; conserva MFA y las fases del resto de pantallas. El navegador utiliza Playwright instalado en CI y una ruta local opcional mediante `WORKBENCH_CHROMIUM_ROOT`.
+
+El generador congela solo `src/` y `packages/ui/` desde Git. Una reproducción con dependencias dentro de `node_modules` falló antes de acotar ese origen y pasó después (capturas base/actual a 390 px); las dependencias instaladas se cargan del sistema de archivos.

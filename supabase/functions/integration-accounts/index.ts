@@ -1,4 +1,5 @@
-import {resumeMrwTrackingAfterCredentialSave} from '../_shared/tracking/credentialResume.ts';
+import {probeMrwTrackingAccount} from '../_shared/tracking/accountProbe.ts';
+import {resumeMrwTrackingAfterCredentialSave,credentialSaveConnectionPatch} from '../_shared/tracking/credentialResume.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
 import {loadAmazonSpApiCredentials} from '../_shared/amazon/config.ts';
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -433,6 +434,9 @@ Deno.serve(async(req:Request)=>{
     const body=await req.json().catch(()=>({}));
     const action=clean(body?.action||'list');
     const caller=await authenticate(req,admin,action);
+    if(action==='test_tracking'){
+      return response(await probeMrwTrackingAccount(admin,caller.data_owner_id,clean(body?.id)));
+    }
     if(['shopify_client_connect','shopify_install_connect','shopify_oauth_start','shopify_oauth_exchange'].includes(action)){
       await requireWorkspaceEntitlement(admin,caller.data_owner_id,'integration.shopify','Tu plan no incluye la integración con Shopify.');
     }
@@ -750,7 +754,7 @@ Deno.serve(async(req:Request)=>{
           ?shopifyLegacyCredentials((credentials as any).shopDomain||account.external_account_id,(credentials as any).accessToken)
           :{...existing,...Object.fromEntries(Object.entries(credentials).filter(([,v])=>clean(v)))};
         patch.secret_id=await writeVault(admin,account.id,account.provider,merged,account.secret_id);
-        patch.status='pending';patch.last_error=null;
+        Object.assign(patch,credentialSaveConnectionPatch(account.provider,credentials));
         if(account.provider==='shopify'){
           const shopDomain=normalizeShopifyDomain((merged as any).shopDomain||(merged as any).shop_domain||body?.config?.shopDomain||account.external_account_id);
           const accessToken=clean((merged as any).accessToken||(merged as any).access_token);

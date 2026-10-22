@@ -1,3 +1,4 @@
+import {MrwTrackingPasswordField,MrwTrackingTestButton} from '../components/MrwTrackingConnection';
 import {BusinessBankAccountsPanel} from '../components/BusinessBankAccountsPanel';
 import {PageHeader} from '../components/PageHeader';
 import {PageTabs} from '../components/PageTabs';
@@ -1680,7 +1681,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
                 </div>
                 <div className="integrationAccountActions">
                   {account.provider==='gmail'&&!account.legacy&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void renewGmailAccount(account)}>{busy==='renew:'+account.id?'Autorizando…':'Renovar autorización'}</button>}
-                  <button type="button" className="secondary" disabled={busy!==null||account.status==='disabled'} onClick={()=>void testAccount(account)}>{busy==='test:'+account.id?'Probando…':'Probar'}</button>
+                  <button type="button" className="secondary" disabled={busy!==null||account.status==='disabled'} onClick={()=>void testAccount(account)}>{busy==='test:'+account.id?'Probando…':account.provider==='mrw'?'Probar SAGEC':'Probar'}</button>
+                  {account.provider==='mrw'&&!account.legacy&&<MrwTrackingTestButton accountId={account.id} disabled={busy!==null||account.status==='disabled'} onResult={(message,ok)=>ok?showSuccess(message):showError(message)}/>}
                   {(account.provider==='amazon'||account.provider==='sendcloud'||account.provider==='shopify')&&<button type="button" className="secondary" disabled={busy!==null||account.status!=='connected'} onClick={()=>void syncAccount(account)}>{busy==='sync:'+account.id?'Sincronizando…':'Sincronizar'}</button>}
                   <button type="button" className="secondary" disabled={busy!==null} onClick={()=>resetEditor(account.provider,account)}>Configurar</button>
                   {!account.isDefault&&account.status!=='disabled'&&<button type="button" className="secondary" disabled={busy!==null} onClick={()=>void makeDefault(account)}>Predeterminada</button>}
@@ -1770,7 +1772,8 @@ function IntegrationsSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>voi
               <label className="settingsField"><span>{editing?'Nuevo departamento (opcional)':'Departamento (opcional)'}</span><input autoComplete="off" value={mrwDepartmentCode} onChange={e=>setMrwDepartmentCode(e.target.value)} placeholder={editing?'Sin cambios':'Departamento (si aplica)'}/></label>
               <label className="settingsField"><span>{editing?'Nuevo usuario (opcional)':'Nombre de usuario'}</span><input autoComplete="username" value={mrwUsername} onChange={e=>setMrwUsername(e.target.value)} placeholder={editing?'Sin cambios':'Usuario MRW'}/></label>
               <label className="settingsField"><span>{editing?'Nueva contraseña (opcional)':'Contraseña'}</span><input type="password" autoComplete="new-password" value={mrwPassword} onChange={e=>setMrwPassword(e.target.value)} placeholder={editing?'Sin cambios':'Contraseña MRW'}/></label>
-              <label className="settingsField"><span>{editing?'Nueva contraseña de seguimiento (opcional)':'Contraseña de seguimiento (opcional)'}</span><input type="password" autoComplete="new-password" value={mrwTrackingPassword} onChange={e=>setMrwTrackingPassword(e.target.value)} placeholder={editing?'Sin cambios':'Contraseña del servicio de seguimiento'}/><small>Contraseña opcional del servicio de seguimiento si MRW facilita una específica. Déjala vacía para conservar la actual.</small></label>
+              <MrwTrackingPasswordField value={mrwTrackingPassword} onChange={setMrwTrackingPassword} editing={!!editing}/>
+
               <label className="settingsField"><span>Entorno</span><SelectField ariaLabel="Entorno MRW" value={mrwEnvironment} options={[{value:'test',label:'Pruebas MRW'},{value:'production',label:'Producción MRW'}]} onChange={value=>setMrwEnvironment(value as 'test'|'production')}/></label>
               <label className="settingsField settingsFieldWide"><span>Servicio MRW predeterminado</span><SelectField ariaLabel="Servicio MRW predeterminado" allowEmpty emptyLabel="Selecciona el servicio asignado por MRW" value={mrwServiceCode} options={[
                 ...MRW_SERVICE_OPTIONS.map(item=>({value:item.code,label:`${item.code} · ${item.name}`})),

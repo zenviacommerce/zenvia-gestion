@@ -21,3 +21,11 @@ export async function resumeMrwTrackingAfterCredentialSave(admin:any,account:any
   .in('last_error',['MRW_TRACKING_PASSWORD_REQUIRED','MRW_TRACKING_ACCESS_DENIED']);
  if(resumed.error)throw Error('MRW_TRACKING_RESUME_FAILED');
 }
+
+// Tracking has its own authentication. Editing it must not invalidate the
+// independently tested SAGEC connection used to create labels.
+export function credentialSaveConnectionPatch(provider:string,credentials:Record<string,unknown>){
+ const keys=Object.entries(credentials).filter(([,value])=>String(value??'').trim()).map(([key])=>key);
+ if(provider==='mrw'&&keys.every(key=>['trackingPassword','tracking_password'].includes(key)))return {};
+ return {status:'pending',last_error:null};
+}

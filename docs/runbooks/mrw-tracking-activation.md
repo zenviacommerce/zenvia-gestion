@@ -1,60 +1,63 @@
-# Activación del seguimiento MRW
+# Activación del seguimiento MRW por cuenta
 
-El servicio de seguimiento es **SeguimientoNumeroEnvioMRWNacional** (`https://seguimiento.mrw.es/swc/wssgmntnvs.asmx`). La prueba autorizada de tres envíos MRW directos devolvió HTTP 200 con `Estado=false` y el mensaje «Error de acceso al seguimiento de envíos.» usando la combinación almacenada de franquicia, abonado y contraseña SAGEC. Esto acredita un rechazo de esa combinación en ese endpoint; no demuestra que todas las contraseñas SAGEC sean incompatibles. No solicites otra contraseña sin confirmar antes con MRW los permisos y el contrato de acceso. El campo de seguimiento permite un override opcional si MRW proporciona uno.
+## Contrato confirmado y alcance
 
-## Dónde introducirla
+El propietario ha confirmado a partir del dosier MRW 2.3 que el seguimiento requiere una **contraseña independiente**, facilitada por la franquicia, y el alta del Web Service mediante la **opción 4**. La solicitud prevista corresponde a la franquicia **01009**, abonado **011125**. No se solicita ninguna contraseña por chat ni se deben copiar credenciales al repositorio, documentación, capturas o logs.
 
-1. En Zenvia Gestión, entra con la cuenta propietaria/administradora y completa MFA.
-2. Abre **Configuración → Integraciones** y localiza la cuenta **MRW** existente que utiliza los envíos.
-3. Pulsa **Configurar** en esa cuenta. No crees una segunda cuenta MRW para los mismos envíos.
-4. Si MRW proporciona una contraseña específica para seguimiento, introdúcela en **Nueva contraseña de seguimiento (opcional)**. Deja vacíos los demás campos de credenciales para conservarlos; no reemplaces **Nueva contraseña** (SAGEC).
-5. Pulsa **Guardar cuenta**. El formulario envía `credentials.trackingPassword` exclusivamente al backend autenticado de `integration-accounts`; este combina los campos no vacíos con las credenciales existentes y guarda el JSON en Supabase Vault. La interfaz no recupera el secreto almacenado.
+`SAGEC01009SC` es específico de Sendcloud. Los envíos MRW gestionados por Sendcloud reciben sus estados mediante la plataforma Sendcloud: no deben utilizar la cuenta ni la contraseña de seguimiento MRW directo.
 
-El backend acepta también `tracking_password` para compatibilidad. No existe una variable `MRW_TRACKING_PASSWORD` configurada para este worker: añadir un secreto de Edge con ese nombre no activa esta cuenta. La ruta soportada es la cuenta MRW y su secreto de Vault, a través del formulario.
+Servicio directo: **SeguimientoNumeroEnvioMRWNacional**, `https://seguimiento.mrw.es/swc/wssgmntnvs.asmx`. La prueba histórica de tres expediciones, realizada con la combinación SAGEC almacenada, respondió HTTP 200, `Estado=false`, «Error de acceso al seguimiento de envíos.». Ese resultado queda documentado como diagnóstico histórico; no autoriza reutilizar SAGEC tras confirmarse el contrato independiente.
 
-## Qué ocurre al guardar
+## Configuración segura cuando MRW habilite el acceso
 
-Una vez desplegado el cambio de `integration-accounts` que acompaña a este documento, guardar una contraseña de seguimiento no vacía libera únicamente las pausas `MRW_TRACKING_PASSWORD_REQUIRED` o `MRW_TRACKING_ACCESS_DENIED` de esa cuenta, y adelanta el próximo intento de sus envíos activos que quedaron pendientes por esa falta de contraseña o denegación de acceso. Los envíos entregados, devueltos, cancelados, otras cuentas y las pausas genéricas `MRW_CREDENTIALS_REJECTED` o por límites del proveedor conservan su estado. Cambiar solo las credenciales SAGEC o dejar vacío el campo de seguimiento no libera la denegación de acceso.
+1. Solicitar a la franquicia el alta del Web Service de seguimiento (opción 4) y la contraseña independiente por su canal seguro. No compartirla por chat.
+2. En **Configuración → Integraciones**, abrir **Configurar** en la cuenta MRW directo existente.
+3. Introducir la contraseña en **Contraseña de seguimiento**. Se guarda como `trackingPassword` en el secreto cifrado de Vault de esa cuenta; `password` sigue siendo la contraseña SAGEC. No crear una segunda cuenta para las mismas expediciones. Al editar, dejar el campo vacío conserva la contraseña de seguimiento almacenada. Cambiar solo esta contraseña mantiene el estado de conexión y el error SAGEC existentes; no requiere revalidar la conexión de etiquetas.
+4. Guardar. **Probar SAGEC** valida únicamente la conexión para crear envíos y etiquetas. **Probar seguimiento** comprueba el servicio independiente con una expedición real de esa cuenta.
 
-El cron de seguimiento existente ejecuta el worker cada cinco minutos. Por tanto, el primer intento normalmente llegará en la siguiente ejecución, sujeto a la cola y los leases. **Probar** en la cuenta MRW valida la conexión SAGEC y no acredita que el servicio de seguimiento acepte su contraseña.
+El backend admite `tracking_password` como alias. No utiliza `password` de SAGEC como respaldo, ni una variable global `MRW_TRACKING_PASSWORD`. Sin contraseña de seguimiento no envía ninguna solicitud a MRW: devuelve `MRW_TRACKING_PASSWORD_REQUIRED`, no crea observaciones y pausa esa cuenta durante seis horas.
 
-El modo **shadow** sigue guardando observaciones en `shipment_tracking_state`; no habilita por sí solo escrituras de estados operativos ni cambia el modo aprobado. El worker utiliza `trackingPassword` (o `tracking_password`) si existe y, en su ausencia, la contraseña SAGEC almacenada (`password`). Solo si faltan ambas devuelve `MRW_TRACKING_PASSWORD_REQUIRED` sin llamar al proveedor. Una respuesta exterior `Estado=false` produce `MRW_TRACKING_ACCESS_DENIED`, ninguna observación normalizada y una pausa de seis horas para esa cuenta.
+Guardar una contraseña de seguimiento no vacía libera únicamente las pausas recuperables `MRW_TRACKING_PASSWORD_REQUIRED`/`MRW_TRACKING_ACCESS_DENIED` de esa cuenta y adelanta el próximo intento de sus envíos activos afectados. No altera terminales, otras cuentas ni pausas por otras causas. El cron existente ejecuta el worker cada cinco minutos; la cola y los leases pueden retrasar el primer intento.
 
-Si el cambio de backend aún no está desplegado, el formulario ya guarda el secreto de forma segura, pero la pausa previa puede durar hasta seis horas antes de reintentarse. No es necesario editar SQL ni revelar la contraseña para eliminarla; despliega el backend actualizado y vuelve a guardar el campo.
+## Prueba de seguimiento, solo lectura
 
-## Comprobación administrativa sin leer secretos
+`integration-accounts`, acción `test_tracking`, exige la autenticación administrativa y MFA existentes. El cliente envía únicamente el identificador de cuenta; no aporta contraseña ni número de expedición. El servidor verifica la propiedad de la cuenta antes de leer Vault y selecciona una expedición propia no purgada, `shipping_provider=mrw`, enlazada a esa cuenta.
 
-Comprueba únicamente `last_success_at`, `last_error` y `paused_until` de `shipment_tracking_account_health`, y el resultado del worker en `shipment_tracking_runs`. Una observación con `last_checked_at` nuevo verifica que hubo intento; `last_success_at` nuevo sin error verifica respuesta válida del proveedor. No abras `vault.decrypted_secrets`, no pegues la contraseña en SQL, terminal, chat o tickets, ni registres el cuerpo SOAP.
+La respuesta contiene únicamente `ok`, un código fijo y `checkedAt`. Nunca contiene credenciales, números de expedición, XML, mensajes originales del proveedor ni movimientos. No escribe estados de pedido, eventos, salud de cuenta, ni el resultado SAGEC. Si aún no existe expedición propia, explica el paso pendiente; la creación de etiquetas sigue disponible con SAGEC.
 
+El worker permanece en **shadow** y guarda observaciones sin cambiar estados operativos. Una denegación produce `MRW_TRACKING_ACCESS_DENIED`, ninguna observación normalizada y una pausa de seis horas.
 
-## Presentación mientras el servicio no está disponible
+## Pedidos sin seguimiento
 
-Solo para `shippingProvider=mrw` (MRW directo): si hay número de expedición pero no existe una observación normalizada, Pedidos y el detalle muestran **Sin seguimiento disponible**. El estado heredado `SHIPPED` de la creación de etiqueta no demuestra un movimiento y no se convierte en «En tránsito». Si ya existe una observación normalizada válida, se conserva su estado y fecha; ante un error de consulta se indica **Seguimiento automático no disponible · último estado conocido**. Una denegación no borra movimientos históricos ni genera un evento de transporte.
+Solo para MRW directo: si hay número pero no observación normalizada, Pedidos y el detalle muestran **Sin seguimiento disponible**. `SHIPPED` heredado de la etiqueta no demuestra movimiento. Si existe una observación normalizada válida, se conserva su estado y fecha; un error posterior añade **Seguimiento automático no disponible · último estado conocido**.
 
-El detalle ofrece **Consultar manualmente en MRW**: usa el enlace registrado si existe o la página pública `https://www.mrw.es/seguimiento/`, donde el usuario puede introducir el número mostrado en el pedido. Este enlace no envía consultas ni copia datos automáticamente. MRW a través de Sendcloud conserva su seguimiento Sendcloud y no adopta este comportamiento.
+El detalle ofrece **Consultar manualmente en MRW**: enlace registrado o `https://www.mrw.es/seguimiento/`. El usuario introduce el número del pedido. El enlace no consulta ni copia datos automáticamente. Sendcloud conserva su adaptador.
 
-**La extracción automática de la web pública queda descartada sin autorización expresa de MRW.** No se implementa un scraper ni se utiliza como respaldo de la API.
+**La extracción automática de la web pública queda descartada sin autorización expresa de MRW.** No se implementa scraping ni respaldo automático desde esa web.
 
-Estos cambios de interfaz permanecen **sin publicar**, pendientes de aprobación del propietario. Esta implementación no despliega la interfaz ni aplica migraciones.
+Interfaz y backend preparados en código, **sin publicar ni desplegar** desde esta tarea. No se aplican migraciones; cualquier publicación de interfaz requiere la aprobación pendiente del propietario.
 
-## Borrador para el propietario — solicitud a MRW
+## Borrador para el propietario — solicitud a la franquicia
 
-Asunto: Habilitación y confirmación de acceso al seguimiento de envíos
+Asunto: Alta del Web Service de seguimiento — franquicia 01009, abonado 011125
 
 Buenos días:
 
-Queremos consultar el seguimiento de nuestras expediciones mediante `SeguimientoNumeroEnvioMRWNacional` en `https://seguimiento.mrw.es/swc/wssgmntnvs.asmx`.
+Solicitamos el alta del Web Service de seguimiento (opción 4 del dosier MRW 2.3) para la franquicia 01009, abonado 011125, y la contraseña independiente de seguimiento por vuestro canal seguro.
 
-¿Podéis habilitar este servicio para nuestro abonado y confirmar qué valores debemos utilizar en los campos `Franquicia`, `Cliente` y `Password`, incluida la correspondencia de `Cliente` con nuestro abonado? En una prueba de tres expediciones propias, usando la combinación que tenemos configurada para SAGEC, el servicio respondió HTTP 200 con `Estado=false` y «Error de acceso al seguimiento de envíos.».
+Queremos utilizar `SeguimientoNumeroEnvioMRWNacional` en `https://seguimiento.mrw.es/swc/wssgmntnvs.asmx`. Por favor, confirmad los valores que corresponden a `Franquicia` y `Cliente`, y el canal seguro para facilitar `Password` de seguimiento. No enviéis la contraseña en esta conversación.
 
-Necesitamos confirmar si falta habilitación o si corresponde otra combinación de acceso. No damos por hecho que sea necesaria una contraseña diferente. Por favor, indicadnos el canal seguro para confirmar o facilitar esos datos.
+La prueba histórica con la combinación SAGEC respondió HTTP 200 con `Estado=false` y «Error de acceso al seguimiento de envíos.». Mantendremos separadas las credenciales de etiquetas SAGEC y las de seguimiento.
 
 Gracias.
 
+## Validación visual previa
 
-## Verificación de este cambio
+Las capturas sintéticas del estado sin seguimiento están en `docs/deploy/20261022-mrw-unavailable-review/mrw-unavailable-{light,dark}-{390,1280,1440}.png`. El modo opcional `TRACKING_MRW_UNAVAILABLE=1 node scripts/shipment-tracking-screenshots.mjs` conserva los siete estados predeterminados y comprueba el texto y el enlace manual sin consultar MRW.
 
-- `npm test`: 73 archivos y 351 pruebas correctas.
-- `node --test scripts/shipped-order-cost-tracking.test.mjs scripts/shipment-tracking-worker.test.mjs scripts/shipment-tracking-adapters.test.mjs`: 23 pruebas correctas.
-- `npm run build`: correcto; persiste el aviso de tamaño del bundle.
-- `TRACKING_MRW_UNAVAILABLE=1 node scripts/shipment-tracking-screenshots.mjs`: revisión sintética en claro/oscuro, anchos 390/1280/1440, sin errores de página, solicitudes externas ni desbordamiento. El modo predeterminado y sus siete estados permanecen intactos; el modo opcional sustituye solo una fila redundante. Capturas nuevas: `docs/deploy/20261022-mrw-unavailable-review/mrw-unavailable-{light,dark}-{390,1280,1440}.png`. Se comprueban el texto de disponibilidad y el enlace manual; no se consulta MRW.
+## Verificación de la preparación por cuenta
+
+- `npm test`: 75 archivos, 367 pruebas correctas, incluidas 11 del probe y 4 del campo/acción de seguimiento.
+- Adaptadores, worker y enlaces: 24 pruebas correctas con `node --test scripts/shipment-tracking-adapters.test.mjs scripts/shipment-tracking-worker.test.mjs scripts/shipped-order-cost-tracking.test.mjs`.
+- `npm run build`: correcto; permanece el aviso previo del tamaño de bundle. El bundle de `integration-accounts` también se ha compilado en memoria para verificar sus imports y sintaxis.
+- Pruebas sintéticas: no se han leído secretos reales ni consultado MRW. La validación real de la nueva contraseña queda pendiente de su alta y guardado seguros.

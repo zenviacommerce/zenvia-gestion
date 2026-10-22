@@ -27,3 +27,12 @@ it('blank or unrelated edits preserve access denial and an explicit override pre
   const db=fixture();db.rows.shipment_tracking_account_health[0].last_error=error;await resumeMrwTrackingAfterCredentialSave(db,{id:'mrw',owner_id:'owner',provider:'mrw'},{trackingPassword:'new-override-test-only'});expect(db.rows.shipment_tracking_account_health[0].paused_until).toBe('later');expect(db.rows.shipment_tracking_state[0].next_poll_at).toBe('later');
  }
 });
+
+it('keeps SAGEC connection health when saving only independent tracking credentials',async()=>{
+ const {credentialSaveConnectionPatch}=await import('../supabase/functions/_shared/tracking/credentialResume');
+ expect(credentialSaveConnectionPatch('mrw',{trackingPassword:'test-only'})).toEqual({});
+ expect(credentialSaveConnectionPatch('mrw',{tracking_password:'test-only'})).toEqual({});
+ expect(credentialSaveConnectionPatch('mrw',{trackingPassword:' '})).toEqual({});
+ expect(credentialSaveConnectionPatch('mrw',{password:'sagec-test-only',trackingPassword:'tracking-test-only'})).toEqual({status:'pending',last_error:null});
+ expect(credentialSaveConnectionPatch('sendcloud',{secretKey:'test-only'})).toEqual({status:'pending',last_error:null});
+});

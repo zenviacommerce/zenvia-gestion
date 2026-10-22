@@ -57,7 +57,7 @@ export async function pollShipment(account:any,credentials:any,tracking:string,r
   url=(account.config?.environment==='production'?'https://api.envia.com':'https://api-test.envia.com')+'/ship/generaltrack/';
   options.method='POST';options.headers={Authorization:'Bearer '+token,'Content-Type':'application/json'};options.body=JSON.stringify({trackingNumbers:[tracking]});
  }else if(account.provider==='mrw'){
-  const password=clean(credentials.trackingPassword)||clean(credentials.tracking_password)||clean(credentials.password);
+  const password=clean(credentials.trackingPassword)||clean(credentials.tracking_password);
   if(!password)throw new TrackingError('MRW_TRACKING_PASSWORD_REQUIRED');
   const esc=(v:unknown)=>clean(v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
   url='https://seguimiento.mrw.es/swc/wssgmntnvs.asmx';options.method='POST';

@@ -12,8 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 35
     env:
-      # Use the CLI default official mirror; GHCR throttles shared runners.
-      SUPABASE_INTERNAL_IMAGE_REGISTRY: public.ecr.aws
+      # Use upstream images directly; GHCR/ECR throttle shared runners.
+      SUPABASE_INTERNAL_IMAGE_REGISTRY: docker.io
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

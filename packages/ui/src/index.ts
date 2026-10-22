@@ -2,6 +2,7 @@ export * from './PageHeader';
 export * from './KpiGrid';
 export * from './StatCard';
 export * from './FilterBar';
+export * from './Tabs';
 export * from './PageTabs';
 export * from './DataTable';
 export * from './SortableTableHeader';

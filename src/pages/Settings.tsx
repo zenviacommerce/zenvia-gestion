@@ -1,7 +1,7 @@
 import {MrwTrackingCredentialsNotice,MrwTrackingTestButton} from '../components/MrwTrackingConnection';
 import {BusinessBankAccountsPanel} from '../components/BusinessBankAccountsPanel';
 import {PageHeader} from '../components/PageHeader';
-import {PageTabs} from '../components/PageTabs';
+import {Tabs} from '@zenvia/ui';
 import {SessionSecurity} from '../components/SessionSecurity';
 import {MfaDevices} from '../components/MfaDevices';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -2709,12 +2709,13 @@ export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;ac
       <div><strong>{error?'Configuración temporal':'Revisión de configuración'}</strong><span>{error||`${warnings.length} ajuste${warnings.length===1?'':'s'} ha${warnings.length===1?'':'n'} usado un valor seguro por defecto.`}</span></div>
     </div>}
 
-    <div className="settingsLayout">
-      <PageTabs className="settingsNav finalSettingsTabs" label="Secciones de configuración" panelId="settings-section-panel" value={activeSection} onChange={requestSection} verticalAbove={768} items={visibleSections.map(section=>({id:section.id,label:section.label,description:section.description,icon:<section.icon size={18}/>}))}/>
+    <div className="settingsTabsLayout">
+      <Tabs label="Secciones de configuración" panelId="settings-section-panel" value={activeSection} onChange={requestSection} items={visibleSections.map(section=>({id:section.id,label:section.label,description:section.description,icon:<section.icon size={18}/>}))}>
 
       <div className="settingsContent" role="tabpanel" id="settings-section-panel" aria-labelledby={'settings-section-panel-tab-'+activeSection} onChangeCapture={active?.id==="security"?undefined:event=>{if(!(event.target as HTMLElement).closest('[data-independent-settings]'))setDirty(true)}}>
         {active&&active.id==='security'?<><MfaDevices/><SessionSecurity/></>:active.id==='preferences'?<PreferencesSection onDirtyChange={setDirty}/>:active&&active.id==='general'?<GeneralSection onDirtyChange={setDirty}/>:active&&active.id==='billing'?<BillingSection access={access}/>:active&&active.id==='sales'?<SalesSection onDirtyChange={setDirty}/>:active&&active.id==='orders'?<OrdersSection onDirtyChange={setDirty}/>:active&&active.id==='shipping'?<ShippingSection onDirtyChange={setDirty}/>:active&&active.id==='integrations'?<IntegrationsSection onDirtyChange={setDirty}/>:active&&active.id==='automations'?<AlertsSection onDirtyChange={setDirty}/>:active&&active.id==='expenses'?<ExpensesSection onDirtyChange={setDirty}/>:active&&active.id==='products'?<ProductsSection onDirtyChange={setDirty}/>:active&&active.id==='clients'?<ClientsSection onDirtyChange={setDirty}/>:active&&active.id==='suppliers'?<SuppliersSection onDirtyChange={setDirty}/>:active&&active.id==='maintenance'?<MaintenanceSection onDirtyChange={setDirty}/>:active&&<SectionPlaceholder section={active}/>}
       </div>
+</Tabs>
     </div>
   </div>;
 }

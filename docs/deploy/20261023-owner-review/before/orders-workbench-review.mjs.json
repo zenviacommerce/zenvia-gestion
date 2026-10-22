@@ -1,0 +1,134 @@
+[
+  {
+    "screen": "orders",
+    "width": 390,
+    "theme": "light",
+    "file": "orders-390-light.png",
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 1280,
+    "theme": "light",
+    "file": "orders-1280-light.png",
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 1440,
+    "theme": "light",
+    "file": "orders-1440-light.png",
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 390,
+    "theme": "dark",
+    "file": "orders-390-dark.png",
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 1280,
+    "theme": "dark",
+    "file": "orders-1280-dark.png",
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 1440,
+    "theme": "dark",
+    "file": "orders-1440-dark.png",
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  }
+]

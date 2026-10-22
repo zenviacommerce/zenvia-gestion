@@ -1,5 +1,5 @@
 import {PageHeader} from '../components/PageHeader';
-import {PageTabs} from '../components/PageTabs';
+import {Tabs} from '@zenvia/ui';
 import {KpiGrid} from '../components/KpiGrid';
 import {StatCard} from '../components/StatCard';
 import {FilterBar} from '../components/FilterBar';
@@ -68,13 +68,14 @@ export function SupportPage({isAdmin,currentUserId}:{isAdmin:boolean;currentUser
     <PageHeader title="Soporte" eyebrow="SOPORTE" description="Reporta incidencias, solicita mejoras y sigue cada conversación sin salir de ZENVIA Gestión." actions={<button className="primary" onClick={()=>setCreating(true)}><FilePlus2 size={17}/> Nuevo ticket</button>}/>
 
 
-    {isAdmin&&<PageTabs className="finalPageTabs" panelId="support-list-panel" label="Tickets visibles" value={scope} onChange={setScope} items={[{id:'all',label:'Tickets de la empresa',icon:<LifeBuoy size={16}/>},{id:'mine',label:'Mis tickets',icon:<MessageCircle size={16}/>} ]}/>}
+
     <KpiGrid label="Estado de soporte">
       <StatCard label="Abiertos" value={openCount} icon={<AlertCircle/>}/>
       <StatCard label="Esperando usuario" value={waitingCount} icon={<Clock3/>}/>
       <StatCard label="Resueltos" value={resolvedCount} icon={<CheckCircle2/>}/>
     </KpiGrid>
 
+    <Tabs hidden={!isAdmin} panelId="support-list-panel" label="Tickets visibles" value={scope} onChange={setScope} items={[{id:'all',label:'Tickets de la empresa',icon:<LifeBuoy size={16}/>},{id:'mine',label:'Mis tickets',icon:<MessageCircle size={16}/>} ]}>
     <section className="card supportListCard" id="support-list-panel" role={isAdmin?'tabpanel':undefined} aria-labelledby={isAdmin?'support-list-panel-tab-'+scope:undefined}>
       <div className="supportListHead">
         <div><strong>{scope==='all'?'Todos los tickets':'Mis tickets'}</strong><span>{shown.length} visibles</span></div>
@@ -99,6 +100,7 @@ export function SupportPage({isAdmin,currentUserId}:{isAdmin:boolean;currentUser
         {loading&&!tickets.length&&<div className="emptyState large">Cargando soporte…</div>}
       </div>
     </section>
+</Tabs>
 
     {creating&&<NewTicketModal onClose={()=>setCreating(false)} onCreated={async ticket=>{setCreating(false);await refresh();setSelectedId(ticket.id)}}/>}
     {selectedId&&<TicketDrawer ticketId={selectedId} isAdmin={isAdmin} currentUserId={currentUserId} onClose={()=>setSelectedId(null)} onChanged={refresh}/>}

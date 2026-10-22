@@ -9,10 +9,9 @@
 .ordersWorkbench .ordersSelectionScope{margin:6px 0;font-size:12px}
 .ordersWorkbench .ordersSelectionScope p{margin:4px 0}
 .ordersWorkbench .ordersPager{margin:8px 0;font-size:12px;min-height:40px}
-.ordersWorkbench .ordersTabCount{display:inline-flex;justify-content:center;min-width:23px;margin-left:6px;padding:1px 6px;border-radius:6px;background:var(--surface-soft,#e8eef0);font-size:12px;font-variant-numeric:tabular-nums}
 .ordersWorkbench .ordersAllView{display:flex;align-items:center;justify-content:space-between;padding:10px 0}
 .ordersHeaderMore{position:relative;align-self:center}
-.ordersHeaderMore>summary,.pickupHistoryFilters details>summary{cursor:pointer;list-style:none;padding:10px;border:1px solid var(--border,#dbe2ea);border-radius:9px;white-space:nowrap;font-size:12px;min-height:42px;box-sizing:border-box}
+.pickupHistoryFilters details>summary{cursor:pointer;list-style:none;padding:10px;border:1px solid var(--border,#dbe2ea);border-radius:9px;white-space:nowrap;font-size:12px;min-height:42px;box-sizing:border-box}
 .ordersHeaderMore>summary::-webkit-details-marker{display:none}
 .ordersHeaderMenu{position:absolute;top:calc(100% + 8px);right:0;z-index:40;width:260px;max-width:calc(100vw - 32px);padding:12px;display:flex;flex-direction:column;gap:8px;border:1px solid var(--border,#dbe2ea);border-radius:12px;background:var(--surface,#fff);box-shadow:0 12px 32px #0002}
 .ordersHeaderMenu>button{width:100%;justify-content:flex-start}
@@ -57,3 +56,8 @@
 .ordersQuickTracking{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;color:var(--accent,#0f766e)}
 .ordersMobileTracking{grid-column:2/-1;padding:10px 12px;border:1px solid var(--border,#dbe2ea);background:var(--surface,#fff);border-radius:10px}
 .ordersMobileTracking .shipmentTrackingSummary{max-width:100%}
+
+/* Secondary disclosure uses the same control geometry as Nuevo pedido. */
+.ordersHeaderMore>summary.secondary{list-style:none;font:inherit;font-weight:700;white-space:nowrap}
+.ordersHeaderMore>summary.secondary svg{flex-shrink:0}
+@media(max-width:767px){.ordersHeaderMore>summary.secondary{font-size:13px;min-height:48px;padding:10px 12px;border-radius:var(--ds-control-radius)}}

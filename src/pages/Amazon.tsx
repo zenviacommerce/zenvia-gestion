@@ -1,5 +1,5 @@
 import {PageHeader} from '../components/PageHeader';
-import {PageTabs} from '../components/PageTabs';
+import {Tabs} from '@zenvia/ui';
 import { AmazonLoading } from '../components/amazon/AmazonLoading';
 import {amazonCalendarDate,amazonCalendarDay,watchAmazonCalendarDay} from '../services/amazonCalendar';
 import { useCallback, useEffect, useRef, useState } from 'react';
@@ -143,9 +143,10 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
     {connected?<>
       <div className="amazonToolbar">
       <AmazonFilters calendarDay={calendarDay} filters={filters} marketplaces={marketplaces} initialPreset={defaultPreset} onChange={setFilters}/>
-      <PageTabs panelId="amazon-tab-panel" className="commerceTabs" label="Secciones de Amazon Analytics" value={activeTab} onChange={setActiveTab} items={tabs.map(([id,label])=>({id,label,badge:id==='unmapped'&&summaryMeta?.unmappedSkuCount?<span className="commerceTabBadge">{summaryMeta.unmappedSkuCount}</span>:undefined}))}/>
+
 
       </div>
+<Tabs panelId="amazon-tab-panel" label="Secciones de Amazon Analytics" value={activeTab} onChange={setActiveTab} items={tabs.map(([id,label])=>({id,label,badge:id==='unmapped'&&summaryMeta?.unmappedSkuCount?summaryMeta.unmappedSkuCount:undefined}))}>
       <div className="commerceTabPanel" role="tabpanel" id="amazon-tab-panel" aria-labelledby={'amazon-tab-panel-tab-'+activeTab} tabIndex={0}>
       {activeTab==='summary'&&<AmazonSummary calendarDay={calendarDay} filters={filters} onLoaded={handleSummary} refreshToken={analyticsRefresh} visibleKpis={visibleKpis} onPeriodChange={setFilters}/>}
       {activeTab==='products'&&<AmazonProducts filters={filters} refreshToken={analyticsRefresh}/>}
@@ -154,6 +155,7 @@ export function AmazonPage({isAdmin}:{isAdmin:boolean}){
       {activeTab==='inventory'&&<AmazonInventory filters={filters} marketplaces={marketplaces} refreshToken={analyticsRefresh}/>}
       {activeTab==='unmapped'&&<AmazonUnmapped onChanged={()=>setSummaryMeta(null)} refreshToken={analyticsRefresh} defaultConsumptionFactor={amazonSettings.defaultConsumptionFactor}/>}
       </div>
+</Tabs>
     </>:<section className="card amazonDisconnected"><strong>Amazon Analytics todavía no está disponible.</strong><p>{loading?'Comprobando la conexión segura con Amazon SP-API…':status?.configured?'Las credenciales están configuradas, pero la conexión no está operativa.':isAdmin?'Completa la configuración segura de Amazon SP-API en el backend.':'El administrador debe completar la conexión con Amazon.'}</p></section>}
   </div>;
 }

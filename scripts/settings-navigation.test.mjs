@@ -41,10 +41,8 @@ test('settings navigation protects unsaved changes before switching sections',as
   assert.match(page,/cambios sin guardar/i);
 });
 
-test('settings layout has responsive desktop and narrow-screen navigation',async()=>{
-  const css=await read('../src/settings.css');
-  assert.match(css,/settingsLayout/);
-  assert.match(css,/settingsNav/);
-  assert.match(css,/@media\s*\(max-width:/);
-  assert.match(css,/overflow-x\s*:\s*auto/);
+test('settings uses the shared card rail at every breakpoint',async()=>{
+ const css=await read('../packages/ui/src/styles.css');
+ assert.match(css,/\.dsTabs\{[^}]*overflow-x:auto/);assert.match(css,/white-space:nowrap/);
+ const page=await read('../src/pages/Settings.tsx');assert.match(page,/<Tabs label="Secciones de configuración"/);assert.doesNotMatch(page,/verticalAbove|settingsNav/);
 });

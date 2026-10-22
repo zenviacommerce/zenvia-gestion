@@ -1,5 +1,5 @@
 import {PageHeader} from '../components/PageHeader';
-import {PageTabs} from '../components/PageTabs';
+import {Tabs} from '@zenvia/ui';
 import {KpiGrid} from '../components/KpiGrid';
 import {StatCard} from '../components/StatCard';
 import {FilterBar} from '../components/FilterBar';
@@ -77,7 +77,7 @@ export function AdminPage({ currentUserId, workspaceName }: { currentUserId: str
   const activeCount = users.filter(user => user.active).length;
   return <div className="page adminPage finalDesignPage designSystemPage">
     <PageHeader title="Administración" eyebrow="ADMINISTRACIÓN" description="Gestiona usuarios, permisos y revisa la actividad realizada dentro de ZENVIA Gestión." actions={tab==='users'?<button className="primary" onClick={() => setEditor({ user: null })}><UserRoundPlus size={17}/> Nuevo usuario</button>:undefined}/>
-    <PageTabs className="finalPageTabs" panelId="admin-tab-panel" label="Secciones de administración" value={tab} onChange={setTab} items={[{id:'users',label:'Usuarios y accesos',icon:<Users size={16}/>},{id:'audit',label:'Auditoría',icon:<History size={16}/>} ]}/>
+    <Tabs panelId="admin-tab-panel" label="Secciones de administración" value={tab} onChange={setTab} items={[{id:'users',label:'Usuarios y accesos',icon:<Users size={16}/>},{id:'audit',label:'Auditoría',icon:<History size={16}/>} ]}>
     <div role="tabpanel" id="admin-tab-panel" aria-labelledby={'admin-tab-panel-tab-'+tab}>
     {tab==='users'?<>
       <KpiGrid label="Usuarios y accesos">
@@ -112,6 +112,7 @@ export function AdminPage({ currentUserId, workspaceName }: { currentUserId: str
       </section>
     </>:<AuditPanel users={users} currentUserId={currentUserId}/>}
     </div>
+</Tabs>
 
     {editor && <UserEditor user={editor.user} currentUserId={currentUserId} onClose={() => setEditor(null)} onSaved={async () => { setEditor(null); await refresh(); }}/>} 
   </div>;

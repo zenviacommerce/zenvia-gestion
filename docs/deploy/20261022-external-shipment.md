@@ -36,7 +36,7 @@ No se ejecuta registro, reproceso ni DML sobre producción durante la preparaci�
 
 **No autorizada todavía.** Revisar primero la galería y CI. Antes de aplicar, volver a comparar cada fuente/ACL con producción y capturar sus snapshots actuales.
 
-1. Migración aditiva `20261022150219_register_external_shipment.sql`; no registra ni reprocesa datos existentes. Afecta esquema, dos RPC Shopify mediante sustitución comprobada y una guardia nueva.
+1. Migración aditiva `20261022192947_register_external_shipment.sql` (versión MCP; preparada inicialmente con sufijo 20261022150219); no registra ni reprocesa datos existentes. Afecta esquema, dos RPC Shopify mediante sustitución comprobada y una guardia nueva.
 2. Nueva Edge `register-external-shipment`, JWT y autenticación humana existentes. Actor/owner proceden de autenticación, nunca del cuerpo del cliente.
 3. Adaptación mínima de `shopify-confirm-shipment`: **preservar todos los archivos de dependencia del bundle v6 capturado**, cambiando solo el entrypoint revisado. El helper local `amazon/supabase.ts` contiene MFA y `shopifyShipment.ts` contiene otras diferencias: NO desplegarlos bajo esta tarea. Snapshot: `supabase/snapshots/20261022-external-shipment/shopify-confirm-shipment-v6.json`.
 4. Protección contra comprar otra etiqueta: comprobar snapshots y aplicar únicamente la guardia `external_shipment` en `_shared/amazonPiiRead.ts` a los bundles de MRW, Envia, sendcloud-orders y sendcloud-order-tools que lo consumen. No reemplazar otras dependencias ni modificar autenticación.
@@ -116,3 +116,29 @@ El segundo intento (job 120026818322) repite GHCR toomanyrequests. La acción se
 El mirror ECR también rechaza la descarga antes de migraciones: job 120028003912, `toomanyrequests: Data limit exceeded`. Se usa docker.io, tercer origen oficial admitido explícitamente por GetRegistryImageUrl de CLI 2.45.5, que conserva los nombres originales de las imágenes y sus etiquetas. El bloqueo sigue siendo infraestructura, sin modificar ninguna prueba ni versión.
 
 El run 39837402762 ya pasa la integración real GoTrue/Vault con Docker Hub; los cinco flujos funcionales/build están verdes. El visual 39837402453 agotó su límite total de 15 min: la instalación de paquetes Linux de Chromium duró casi 12 min, luego MFA, Pedidos e imágenes pasaron sin fallos de aserción. La siguiente fase fue cancelada automáticamente a las 19:23:06 UTC. Se amplía solo el límite del job visual a 35 min, conservando todos sus pasos, verificaciones y artefactos. No se toca MFA en producción ni se omiten pruebas.
+
+## Publicación autorizada — migración
+
+Head aprobado 44eba8a88d2fd8829668e28da5070ef9a6160e62: seis flujos CI completados success (build 39839758752, visual 39839758784, integración real 39839758808, auth 39839758767, build check 39839758827, shared UI 39839758844). PR287 ready/mergeable/clean sobre base 0ae9622b.
+
+Se aplica mediante apply_migration register_external_shipment el SQL versionado 20261022150219 sin cambios: success=true. No se registra ningún envío de prueba ni se reprocesan datos. Continúa verificación de ACL/metadatos y despliegue mínimo de Edge con bundles capturados.
+
+## Publicación autorizada — backend verificado
+
+Migración registrada por MCP con versión real 20261022192947, nombre register_external_shipment (el archivo fuente de preparación se generó como 20261022150219). Verificación: external_rows=0, authenticated sin EXECUTE, service_role con EXECUTE, dependencia Shopify parcheada.
+
+Edge ACTIVE y verify_jwt=true: mrw-shipping v25, envia-shipping v45, sendcloud-orders v35, sendcloud-order-tools v37, shopify-confirm-shipment v7 y nueva register-external-shipment v1. Se vuelve a descargar cada bundle y se comprueba igualdad exacta por nombre y contenido con el plan: todos los ficheros coinciden, incluidas auth/MFA y helpers anteriores. No se ha desplegado código 2b.
+
+La PR288 alinea el nombre del archivo de migración con la versión real 20261022192947 asignada por MCP y actualiza el lector del test. SQL idéntico byte a byte; no se ejecuta otra migración ni se repara/modifica el historial de producción. Evita que un db push posterior intente aplicar de nuevo el archivo con el timestamp de preparación.
+
+## Publicación autorizada — frontend y comprobaciones finales
+
+PR287 fusionada con expected_head_sha 44eba8a88d2fd8829668e28da5070ef9a6160e62. Merge main 036c49b78362a67921ffcffea522a4ad81e67a79. Vercel producción dpl_BU2EGbbPrHvenTxGPeXAANoovFDN, READY; alias gestion.zenviacommerce.com asignado al despliegue zenvia-gestion-b2efydlj0-sergiorojasdiaz-7097.vercel.app. Construcción Vercel: 55,41 s.
+
+Dominio público sirve /assets/index-CHhzOa5O.js, SHA256 46ef34d496a73108363d012eaf6cb58afa19d3f6ee1c585cf8f06c87b1d18dcf. Comprobados en el bundle servido: Pendiente de la primera consulta, Copiar tracking, dd/mm/aaaa, Correos Express y Registrar envío externo. El POST sin Authorization al nuevo endpoint devuelve 401 UNAUTHORIZED_NO_AUTH_HEADER; no llega a registrar un envío.
+
+Advisors de seguridad antes/después: cinco avisos existentes, sin cache_key nuevo ni retirado. No se afirma ausencia de todos los avisos previos del proyecto. Se conservan el tracking activo y el cron existente; no se emiten etiquetas, facturas ni confirmaciones comerciales reales para probar.
+
+Rollback operativo preparado antes de publicar: restaurar frontend dpl_3mGW3zL16KPAMf99gM93HhRGzYyb y desactivar nuevas altas revocando ejecución del RPC, preservando registros/auditoría/guardias. Los snapshots completos anteriores siguen en 20261022-external-shipment/. Los cuatro bundles vigentes de 2a se capturan también en 20261022-relabel-base/ para el rollback futuro de 2b, sin perder la guardia de expedición externa.
+
+2b se entrega por separado en PR288 como borrador, pendiente de revisión visual; no se ha desplegado su frontend ni sus cambios de Edge. La galería y la implementación publicadas de 2a son las aprobadas más los cuatro ajustes solicitados.

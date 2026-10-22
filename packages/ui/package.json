@@ -1,11 +1,12 @@
 {
   "name": "@zenvia/ui",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "private": true,
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "tab-contract.mjs"
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -15,7 +16,8 @@
       "import": "./dist/index.js"
     },
     "./styles.css": "./dist/styles.css",
-    "./forms.css": "./dist/forms.css"
+    "./forms.css": "./dist/forms.css",
+    "./tab-contract": "./tab-contract.mjs"
   },
   "sideEffects": [
     "**/*.css"

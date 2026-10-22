@@ -44,20 +44,6 @@ html[data-theme='dark'] .expenseInvoicesHub{
 }
 
 html[data-theme='dark'] :where(
-  .card,.stat,.modal,.authPanel,.tableCard,.masterTableCard,
-  .masterDrawer,.ordersDrawer,.salesInvoiceMobileCard,.masterMobileRow,.ordersMobileRow,
-  .gmailImportRow,.zenviaUnifiedMobileRow,.settingsSectionCard,.settingsNav,
-  .settingsAlertCard,.settingsMaintenanceGroups>div,.settingsMaintenanceCandidate,
-  .settingsResetPreview,.settingsToggleField,.settingsLogoPreview,.settingsPreviewCounts span,
-  .businessFilterBar,.salesImportedClientEditor,.invoiceSupplierEditor,.invoiceCategoryEditor
-){
-  background:var(--surface)!important;
-  border-color:var(--border)!important;
-  color:var(--text)!important;
-  box-shadow:none;
-}
-
-html[data-theme='dark'] :where(
   .settingsSectionActions,.settingsSubsection,.salesInvoiceMobileActions,
   .salesInvoiceMobileAmounts>div,.masterDrawerSection,.ordersDrawerSection,
   .settingsDiagnosticResult,.settingsEmptySection,.aiNote,.uploadChoice,
@@ -99,21 +85,6 @@ html[data-theme='dark'] :where(
 html[data-theme='dark'] :where(input,textarea)::placeholder{color:#64748b!important}
 
 html[data-theme='dark'] :where(
-  .secondary,.iconBtn,.statusBtn,.settingsNav button,
-  .mobileMenuButton,.mobileMenuClose,.alertCenterTrigger,
-  .alertCenterHeaderActions button,.alertCenterFooter button
-){
-  background:var(--surface-raised)!important;
-  border-color:var(--border)!important;
-  color:#d7deea!important;
-}
-
-html[data-theme='dark'] :where(.secondary,.iconBtn,.settingsNav button):hover{
-  background:#1e293b!important;
-  color:#5eead4!important;
-}
-
-html[data-theme='dark'] :where(
   table,.masterTable,.ordersTable,
   .tableCard table,.masterTableCard table
 ){
@@ -147,11 +118,6 @@ html[data-theme='dark'] :where(
 html[data-theme='dark'] .modalActions{
   background:var(--surface)!important;
   border-color:var(--border)!important;
-}
-
-html[data-theme='dark'] .settingsNav button.active{
-  background:#123b35!important;
-  color:#5eead4!important;
 }
 
 html[data-theme='dark'] .settingsSectionIcon{
@@ -332,12 +298,6 @@ html[data-theme='dark'] .gmailImportActions .link{
 
 
 /* Sales and AI semantic states. */
-html[data-theme='dark'] .expenseHubNav button.active{
-  background:#0b2f2b!important;
-  color:#5eead4!important;
-  box-shadow:inset 0 0 0 1px #115e59!important;
-}
-html[data-theme='dark'] .expenseHubNav button.active .expenseHubTabIcon{background:#123b35!important}
 html[data-theme='dark'] .salesStatus.draft{background:#1e293b!important;color:#cbd5e1!important}
 html[data-theme='dark'] .salesStatus.issued{background:#172554!important;color:#93c5fd!important}
 html[data-theme='dark'] .salesStatus.sent{background:#27205a!important;color:#c4b5fd!important}
@@ -383,17 +343,6 @@ html[data-theme='dark'] .aiNote.done{
 @media (max-width:900px), (max-height:600px) and (max-width:1100px){
   .expenseHubNavShell{
     padding:calc(92px + env(safe-area-inset-top)) 15px 0!important;
-  }
-  .expenseHubNav:not(.dsPageTabs){
-    display:flex!important;
-    width:100%;
-    max-width:100%;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
-    overscroll-behavior-x:contain;
-  }
-  .expenseHubNav:not(.dsPageTabs) button{
-    flex:1 0 220px;
   }
   .expenseInvoicesHub>.page{
     padding-top:18px!important;

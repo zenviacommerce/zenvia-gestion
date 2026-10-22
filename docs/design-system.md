@@ -1,5 +1,28 @@
 # Sistema de diseño y consistencia de layout — propuesta para revisión
 
+## Tabs compartidas — 0.2.0 (22/10/2026, pendiente de publicación)
+
+Todas las pestañas de Gestión y Platform usan `Tabs` de `@zenvia/ui`. `PageTabs` queda como alias de compatibilidad del mismo componente; no tiene implementación ni variantes visuales propias. No se crean roles o barras de pestañas en las aplicaciones, ni se sobrescriben `.dsTabs`/`.dsTab*` desde CSS del host.
+
+Tarjetas horizontales con superficie activa unida al contenido, título de marca y mayor peso; inactivas suaves con hover. `badge` conserva cero y `badgeTone` admite `neutral` y `danger`; Pedidos usa peligro para Incidencias cuando el contador supera cero. Las descripciones pueden ajustarse en varias líneas; los títulos nunca se truncan. La fila se desplaza con el dedo a cualquier ancho, mantiene visible la activa y usa flechas izquierda/derecha, Inicio/Fin y foco móvil entre pestañas. `onChange` puede vetar un cambio de forma síncrona o asíncrona; al cancelar, el foco vuelve a la activa.
+
+```tsx
+import {Tabs} from '@zenvia/ui';
+<Tabs label="Secciones" panelId="example-panel" value={section} onChange={setSection}
+  items={[{id:'summary',label:'Resumen'},{id:'issues',label:'Incidencias',badge:2,badgeTone:'danger'}]}>
+  <div role="tabpanel" id="example-panel" aria-labelledby={'example-panel-tab-'+section}>
+    {content}
+  </div>
+</Tabs>
+```
+
+El componente posee el rail y la superficie; la pantalla conserva contenido, estado, permisos y handlers. El panel usa `role="tabpanel"`, el mismo `panelId` y el `aria-labelledby` indicado. Configuración pasa de sidebar vertical a fila horizontal también en escritorio; conserva su guardia de cambios. Gastos conserva Gmail montado tras la primera visita. Soporte conserva sus KPI encima de las pestañas; las pestañas siguen siendo exclusivas de administradores.
+
+CI ejecuta `shared-tabs-contract.test.mjs`, incluido en las suites de ambos repositorios. Detecta roles, `aria-selected` (salvo opciones/filas), clases de pestañas y CSS propio; el checker se distribuye en `@zenvia/ui/tab-contract`. Nuevas pestañas se implementan únicamente con este componente y se añaden al inventario/capturas.
+
+Evidencia: [diario](deploy/20261022-shared-tabs.md) y [galería de 54 pares](deploy/20261022-shared-tabs-review/README.md). El resto de este documento conserva el historial de implantación del sistema.
+
+
 Fecha: 20 de octubre de 2026. **Fase 1: análisis; no aplicada a la interfaz.**
 
 ## Objetivo y alcance
@@ -248,3 +271,7 @@ Implementación preparada para revisión; **sin publicar**. La especificación d
 ### Revisión autorizada de Pedidos — 22/10/2026
 
 La cabecera mantiene Nuevo pedido, Actualizar y Más acciones en una fila también en escritorio. Tarifas, impresión directa, formato y facturación Shopify se conservan en el menú. Incidencias y Enviados adelantan Pedido, Cliente, Transportista y Seguimiento, manteniendo el inventario completo de columnas. El seguimiento muestra texto, último movimiento y antigüedad; el acceso externo queda fuera del botón de la tarjeta móvil. La prueba de geometría exige que el motivo sea visible sin scroll horizontal a 1280/1440 px.
+
+
+## Ajustes aprobados23/10/2026
+Las cabeceras de menú «Más acciones» conservan secondary, tipografía y altura de los botones hermanos, icono y texto sin salto. Los disclosures nativos mantienen su semántica de teclado. La etiqueta superior de FormModal usa --primary (verde de marca), como PageHeader.

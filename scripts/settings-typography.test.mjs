@@ -15,7 +15,7 @@ test('Configuration consumes shared typography tokens instead of its old undersi
   const css=await read('../src/settings.css');
   assert.match(css,/Settings uses the same readability scale/);
   assert.match(css,/\.settingsPage\{font-size:var\(--ui-font-md,14px\)\}/);
-  assert.match(css,/\.settingsNav button strong\{font-size:var\(--ui-font-sm,13px\)\}/);
+  assert.match(await read('../packages/ui/src/styles.css'),/\.dsTabTitle\{[^}]*font-size:var\(--ui-font-sm,13px\)/);
   assert.match(css,/font-size:var\(--ui-font-xs,12px\)/);
   assert.match(css,/font-size:var\(--ui-font-md,14px\)/);
   assert.match(css,/font-size:var\(--ui-font-control,13.5px\)/);

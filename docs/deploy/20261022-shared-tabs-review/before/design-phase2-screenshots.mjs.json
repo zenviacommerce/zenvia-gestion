@@ -1,0 +1,206 @@
+[
+  {
+    "screen": "billing",
+    "width": 390,
+    "theme": "light",
+    "file": "billing-390-light.png",
+    "tabs": [
+      "FacturasEmitidas, cobros y rectificativas",
+      "RecibosPendiente de facturar"
+    ],
+    "actions": [
+      "Series",
+      "Datos fiscales",
+      "+ Nueva factura",
+      "Exportar (32)",
+      "Importar facturas"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "billing",
+    "width": 1280,
+    "theme": "light",
+    "file": "billing-1280-light.png",
+    "tabs": [
+      "FacturasEmitidas, cobros y rectificativas",
+      "RecibosPendiente de facturar"
+    ],
+    "actions": [
+      "Series",
+      "Datos fiscales",
+      "+ Nueva factura",
+      "Exportar (32)",
+      "Importar facturas"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "billing",
+    "width": 1440,
+    "theme": "light",
+    "file": "billing-1440-light.png",
+    "tabs": [
+      "FacturasEmitidas, cobros y rectificativas",
+      "RecibosPendiente de facturar"
+    ],
+    "actions": [
+      "Series",
+      "Datos fiscales",
+      "+ Nueva factura",
+      "Exportar (32)",
+      "Importar facturas"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "billing",
+    "width": 390,
+    "theme": "dark",
+    "file": "billing-390-dark.png",
+    "tabs": [
+      "FacturasEmitidas, cobros y rectificativas",
+      "RecibosPendiente de facturar"
+    ],
+    "actions": [
+      "Series",
+      "Datos fiscales",
+      "+ Nueva factura",
+      "Exportar (32)",
+      "Importar facturas"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "billing",
+    "width": 1280,
+    "theme": "dark",
+    "file": "billing-1280-dark.png",
+    "tabs": [
+      "FacturasEmitidas, cobros y rectificativas",
+      "RecibosPendiente de facturar"
+    ],
+    "actions": [
+      "Series",
+      "Datos fiscales",
+      "+ Nueva factura",
+      "Exportar (32)",
+      "Importar facturas"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "billing",
+    "width": 1440,
+    "theme": "dark",
+    "file": "billing-1440-dark.png",
+    "tabs": [
+      "FacturasEmitidas, cobros y rectificativas",
+      "RecibosPendiente de facturar"
+    ],
+    "actions": [
+      "Series",
+      "Datos fiscales",
+      "+ Nueva factura",
+      "Exportar (32)",
+      "Importar facturas"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "expenses",
+    "width": 390,
+    "theme": "light",
+    "file": "expenses-390-light.png",
+    "tabs": [
+      "Facturas de gastoHistórico, filtros y exportación",
+      "Importar desde GmailBuscar y añadir facturas recibidas"
+    ],
+    "actions": [
+      "Exportar (32)",
+      "Importar facturas de gasto",
+      "+ Añadir factura de gasto"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "expenses",
+    "width": 1280,
+    "theme": "light",
+    "file": "expenses-1280-light.png",
+    "tabs": [
+      "Facturas de gastoHistórico, filtros y exportación",
+      "Importar desde GmailBuscar y añadir facturas recibidas"
+    ],
+    "actions": [
+      "Exportar (32)",
+      "Importar facturas de gasto",
+      "+ Añadir factura de gasto"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "expenses",
+    "width": 1440,
+    "theme": "light",
+    "file": "expenses-1440-light.png",
+    "tabs": [
+      "Facturas de gastoHistórico, filtros y exportación",
+      "Importar desde GmailBuscar y añadir facturas recibidas"
+    ],
+    "actions": [
+      "Exportar (32)",
+      "Importar facturas de gasto",
+      "+ Añadir factura de gasto"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "expenses",
+    "width": 390,
+    "theme": "dark",
+    "file": "expenses-390-dark.png",
+    "tabs": [
+      "Facturas de gastoHistórico, filtros y exportación",
+      "Importar desde GmailBuscar y añadir facturas recibidas"
+    ],
+    "actions": [
+      "Exportar (32)",
+      "Importar facturas de gasto",
+      "+ Añadir factura de gasto"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "expenses",
+    "width": 1280,
+    "theme": "dark",
+    "file": "expenses-1280-dark.png",
+    "tabs": [
+      "Facturas de gastoHistórico, filtros y exportación",
+      "Importar desde GmailBuscar y añadir facturas recibidas"
+    ],
+    "actions": [
+      "Exportar (32)",
+      "Importar facturas de gasto",
+      "+ Añadir factura de gasto"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "expenses",
+    "width": 1440,
+    "theme": "dark",
+    "file": "expenses-1440-dark.png",
+    "tabs": [
+      "Facturas de gastoHistórico, filtros y exportación",
+      "Importar desde GmailBuscar y añadir facturas recibidas"
+    ],
+    "actions": [
+      "Exportar (32)",
+      "Importar facturas de gasto",
+      "+ Añadir factura de gasto"
+    ],
+    "overflow": false
+  }
+]

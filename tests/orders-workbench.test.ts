@@ -32,13 +32,14 @@ update shipment_tracking_state set movement_at=null,raw_event_time='2026-02-31T1
 update shipment_tracking_state set movement_at=now()-interval '2 days' where order_id=md5('9')::uuid;
 update shipment_tracking_state set normalized_state=null,movement_at=null where order_id=md5('10')::uuid;`);
 const call=async(args="")=>{await d.exec('set role authenticated');try{return (await d.query<any>('select orders_workbench_v1('+args+') data')).rows[0].data}finally{await d.exec('reset role')}};
-const issues=await call("p_state=>'issues',p_from=>current_date,p_to=>current_date,p_page_size=>1");expect(issues.total).toBe(3);expect(issues.rows).toHaveLength(1);expect(issues.rows[0].is_attention).toBeUndefined();expect(issues.counters.issues).toBe(3);expect(issues.counters.pending).toBe(1);expect(issues.counters.shipped).toBe(8);
-expect((await call("p_state=>'pending',p_from=>current_date,p_to=>current_date")).total).toBe(1);
+// The business day is Madrid; UTC current_date diverges after Madrid midnight.
+const issues=await call("p_state=>'issues',p_from=>(now() at time zone 'Europe/Madrid')::date,p_to=>(now() at time zone 'Europe/Madrid')::date,p_page_size=>1");expect(issues.total).toBe(3);expect(issues.rows).toHaveLength(1);expect(issues.rows[0].is_attention).toBeUndefined();expect(issues.counters.issues).toBe(3);expect(issues.counters.pending).toBe(1);expect(issues.counters.shipped).toBe(8);
+expect((await call("p_state=>'pending',p_from=>(now() at time zone 'Europe/Madrid')::date,p_to=>(now() at time zone 'Europe/Madrid')::date")).total).toBe(1);
 expect((await call("p_state=>'issues',p_tracking_stale_days=>5")).total).toBe(1);
 expect((await call("p_state=>'issues',p_selection_ids_only=>true,p_selection_all=>true")).total).toBe(3);
 expect((await call("p_state=>'issues',p_country=>'ES'")).facets.countries).toEqual(['ES','FR']);
 expect((await call("p_state=>'issues',p_query=>'FR'")).facets.countries).toEqual(['FR']);
-expect((await call("p_state=>'issues',p_from=>current_date,p_to=>current_date,p_page=>1,p_page_size=>1")).counters).toEqual(issues.counters);
+expect((await call("p_state=>'issues',p_from=>(now() at time zone 'Europe/Madrid')::date,p_to=>(now() at time zone 'Europe/Madrid')::date,p_page=>1,p_page_size=>1")).counters).toEqual(issues.counters);
 await d.exec("update fulfillment_orders set source_status='cancelled' where id=md5('6')::uuid");expect((await call("p_state=>'issues'")).total).toBe(2);
 await d.exec("update fulfillment_orders set source_status='SHIPPED' where id=md5('6')::uuid");
 await d.exec("update shipment_tracking_state set movement_at=now()-interval '3 days' where order_id=md5('9')::uuid");expect((await call("p_state=>'issues'")).total).toBe(4);

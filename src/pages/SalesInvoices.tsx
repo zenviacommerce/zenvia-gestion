@@ -1,4 +1,4 @@
-import {PageTabs} from '../components/PageTabs';
+import {Tabs} from '@zenvia/ui';
 import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -156,7 +156,8 @@ export function SalesInvoices(){
   const exportLabel=selectedInvoiceIds.length?`Exportar seleccionadas (${selectedInvoiceIds.length})`:`Exportar (${listFilteredCount})`;
 
   return <div className="salesBillingHub">
-    <div className="expenseHubNavShell"><PageTabs label="Facturación" value={section} onChange={setSection} items={[{id:'invoices',label:'Facturas',description:'Emitidas, cobros y rectificativas',icon:<FileText size={18}/>},{id:'receipts',label:'Recibos',description:'Pendiente de facturar',icon:<ReceiptText size={18}/>}]} /></div>
+    <div className="expenseHubNavShell"><Tabs panelId="sales-hub-panel" label="Facturación" value={section} onChange={setSection} items={[{id:'invoices',label:'Facturas',description:'Emitidas, cobros y rectificativas',icon:<FileText size={18}/>},{id:'receipts',label:'Recibos',description:'Pendiente de facturar',icon:<ReceiptText size={18}/>}]} >
+    <div role="tabpanel" id="sales-hub-panel" aria-labelledby={'sales-hub-panel-tab-'+section}>
     {section==='receipts'?<SalesReceipts/>:<>
     <div className="salesInvoicesTransferHost"><SalesInvoicesCore key={epoch} selectedIds={selectedInvoiceIds} onSelectedIdsChange={setSelectedInvoiceIds} onExportSelected={ids=>void openSelectedExport(ids)} onFiltersChange={setListFilters}/></div>
     {headerActionsHost&&createPortal(<>
@@ -187,5 +188,8 @@ export function SalesInvoices(){
 
     <SalesInvoiceImportModal open={importOpen} onClose={()=>setImportOpen(false)} clients={clients} existingInvoices={invoices} onFinished={importFinished}/>
     </>}
-  </div>;
+    </div>
+</Tabs>
+ </div>
+ </div>;
 }

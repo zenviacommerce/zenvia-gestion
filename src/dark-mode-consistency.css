@@ -12,37 +12,6 @@ html[data-theme='dark'] .expenseInvoicesHub .expenseHubNavShell{
   border-color:transparent!important;
   box-shadow:none!important;
 }
-html[data-theme='dark'] .expenseInvoicesHub .expenseHubNav{
-  background:#111827!important;
-  border:1px solid #263244!important;
-  box-shadow:0 1px 2px rgba(0,0,0,.25)!important;
-}
-html[data-theme='dark'] .expenseInvoicesHub .expenseHubNav>button{
-  background:#111827!important;
-  color:#cbd5e1!important;
-  border-color:transparent!important;
-}
-html[data-theme='dark'] .expenseInvoicesHub .expenseHubNav>button:hover{
-  background:#172033!important;
-  color:#f8fafc!important;
-}
-html[data-theme='dark'] .expenseInvoicesHub .expenseHubNav>button.active{
-  background:#0b2f2b!important;
-  border-color:#0f766e!important;
-  color:#5eead4!important;
-  box-shadow:inset 0 0 0 1px rgba(45,212,191,.08)!important;
-}
-html[data-theme='dark'] .expenseInvoicesHub .expenseHubTabIcon{
-  background:#172033!important;
-  color:#94a3b8!important;
-}
-html[data-theme='dark'] .expenseInvoicesHub .expenseHubNav>button.active .expenseHubTabIcon{
-  background:#123f39!important;
-  color:#5eead4!important;
-}
-html[data-theme='dark'] .expenseInvoicesHub .expenseHubTabText strong{color:#e5e7eb!important}
-html[data-theme='dark'] .expenseInvoicesHub .expenseHubNav>button.active .expenseHubTabText strong{color:#5eead4!important}
-html[data-theme='dark'] .expenseInvoicesHub .expenseHubTabText small{color:#94a3b8!important}
 
 /* All list/table surfaces must be readable in dark mode. */
 html[data-theme='dark'] .page .tableCard,
@@ -199,7 +168,5 @@ html[data-theme='dark'] .gmailStatus.found{background:#3a2812!important;color:#f
 html[data-theme='dark'] .gmailStatus.error{background:#3f171b!important;color:#fca5a5!important}
 
 @media(max-width:760px){
-  html[data-theme='dark'] .expenseInvoicesHub .expenseHubNav{background:#111827!important}
-  html[data-theme='dark'] .expenseInvoicesHub .expenseHubNav>button{min-width:0}
   html[data-theme='dark'] .expenseInvoicesHub .tableCard{background:transparent!important;border-color:transparent!important}
 }

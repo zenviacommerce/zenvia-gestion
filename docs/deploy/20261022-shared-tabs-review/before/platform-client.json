@@ -1,0 +1,125 @@
+{
+  "baseline": "7552bd7cf0b3c9712a0a706741e93875099dc774",
+  "checks": [
+    {
+      "width": 390,
+      "theme": "light",
+      "file": "platform-client-390-light.png",
+      "tabs": [
+        "Resumen",
+        "Identidad visual",
+        "Usuarios",
+        "Plan",
+        "Integraciones",
+        "Infraestructura"
+      ],
+      "actions": [
+        "",
+        "Editar",
+        "Eliminar cliente"
+      ],
+      "overflow": false,
+      "networkBlocked": true
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "file": "platform-client-390-dark.png",
+      "tabs": [
+        "Resumen",
+        "Identidad visual",
+        "Usuarios",
+        "Plan",
+        "Integraciones",
+        "Infraestructura"
+      ],
+      "actions": [
+        "",
+        "Editar",
+        "Eliminar cliente"
+      ],
+      "overflow": false,
+      "networkBlocked": true
+    },
+    {
+      "width": 1280,
+      "theme": "light",
+      "file": "platform-client-1280-light.png",
+      "tabs": [
+        "Resumen",
+        "Identidad visual",
+        "Usuarios",
+        "Plan",
+        "Integraciones",
+        "Infraestructura"
+      ],
+      "actions": [
+        "",
+        "Editar",
+        "Eliminar cliente"
+      ],
+      "overflow": false,
+      "networkBlocked": true
+    },
+    {
+      "width": 1280,
+      "theme": "dark",
+      "file": "platform-client-1280-dark.png",
+      "tabs": [
+        "Resumen",
+        "Identidad visual",
+        "Usuarios",
+        "Plan",
+        "Integraciones",
+        "Infraestructura"
+      ],
+      "actions": [
+        "",
+        "Editar",
+        "Eliminar cliente"
+      ],
+      "overflow": false,
+      "networkBlocked": true
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "file": "platform-client-1440-light.png",
+      "tabs": [
+        "Resumen",
+        "Identidad visual",
+        "Usuarios",
+        "Plan",
+        "Integraciones",
+        "Infraestructura"
+      ],
+      "actions": [
+        "",
+        "Editar",
+        "Eliminar cliente"
+      ],
+      "overflow": false,
+      "networkBlocked": true
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "file": "platform-client-1440-dark.png",
+      "tabs": [
+        "Resumen",
+        "Identidad visual",
+        "Usuarios",
+        "Plan",
+        "Integraciones",
+        "Infraestructura"
+      ],
+      "actions": [
+        "",
+        "Editar",
+        "Eliminar cliente"
+      ],
+      "overflow": false,
+      "networkBlocked": true
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "project": "sjkxxbedkkmgmqnvaqjh",
+  "frontendRelease": "8069361a870595dd7eac8f496fd9d7f131479262",
+  "migrations": [
+    {
+      "original": "20261022203000_pickup_report_signatures.sql",
+      "applied": "20261022230518_pickup_report_signatures.sql"
+    },
+    {
+      "original": "20261022203050_pickup_report_batches.sql",
+      "applied": "20261022230532_pickup_report_batches.sql"
+    },
+    {
+      "original": "20261022203100_pickup_report_mail.sql",
+      "applied": "20261022230533_pickup_report_mail.sql"
+    },
+    {
+      "original": "20261022203200_pickup_report_pii_retention.sql",
+      "applied": "20261022230550_pickup_report_pii_retention.sql"
+    },
+    {
+      "original": "20261022203300_pickup_report_retention_cron.sql",
+      "applied": "20261022230551_pickup_report_retention_cron.sql"
+    },
+    {
+      "original": "20261022203400_pickup_document_membership.sql",
+      "applied": "20261022230552_pickup_document_membership.sql"
+    }
+  ],
+  "sqlContentsChanged": false,
+  "purgeEnabled": false
+}

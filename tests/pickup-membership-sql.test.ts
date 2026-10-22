@@ -60,7 +60,7 @@ it('filters pickup membership before pagination and IDs with tenant/MFA isolatio
  expect((await db.query<any>(`SELECT md5(pg_get_functiondef('private.mfa_impl_orders_dashboard_pickup_v1(date,date,text,text,text,text,text,text,integer,integer,integer,text,text,boolean,integer,uuid[],text,boolean)'::regprocedure)) hash`)).rows[0].hash).toBe(beforeSort);
  const guard=await db.query<any>(`SELECT wrapper_hash=md5(pg_get_functiondef(function_oid)) ok FROM private.mfa_function_manifest WHERE signature LIKE '%orders_dashboard_pickup_v1%'`);expect(guard.rows).toEqual([{ok:true}]);
  await db.exec('CREATE TABLE private.pickup_document_state(report_id uuid primary key,status text)');
- await db.exec(readFileSync('supabase/migrations/20261022203400_pickup_document_membership.sql','utf8'));
+ await db.exec(readFileSync('supabase/migrations/20261022230552_pickup_document_membership.sql','utf8'));
  await db.exec(`INSERT INTO private.pickup_document_state VALUES('${id(900)}','void'),('${id(910)}','signed');SET test.owner='${owner}';SET ROLE authenticated;`);
  expect((await page('void')).rows[0].pickup_reports[0]).toMatchObject({number:'REC-2026-0001',status:'void'});
  expect((await page('signed')).rows[0].pickup_reports[0]).toMatchObject({number:'REC-2026-10000',status:'signed'});

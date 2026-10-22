@@ -11,12 +11,13 @@ BEGIN
  WHERE order_number='407-0024766-5208363' AND tracking_number='01009F045746'
  AND shipping_provider='sendcloud' AND pii_purged_at IS NULL AND label_cancelled_at IS NULL
  FOR UPDATE;
- IF NOT EXISTS(SELECT 1 FROM public.integration_accounts a
-  WHERE a.id=shipment.shipping_integration_account_id AND a.owner_id=shipment.owner_id AND a.provider='envia')
-  OR EXISTS(SELECT 1 FROM public.shipment_tracking_state s WHERE s.order_id=shipment.id)
+ PERFORM 1 FROM public.integration_accounts a
+ WHERE a.id=shipment.shipping_integration_account_id AND a.owner_id=shipment.owner_id AND a.provider='envia'
+ FOR SHARE;
+ IF NOT FOUND OR EXISTS(SELECT 1 FROM public.shipment_tracking_state s WHERE s.order_id=shipment.id)
   THEN RAISE EXCEPTION 'SENDCLOUD_REPAIR_PRECONDITION_CHANGED';END IF;
  SELECT id INTO STRICT correct_account FROM public.integration_accounts
- WHERE owner_id=shipment.owner_id AND provider='sendcloud' AND enabled AND status<>'disabled';
+ WHERE owner_id=shipment.owner_id AND provider='sendcloud' AND enabled AND status<>'disabled' FOR SHARE;
  before_row:=to_jsonb(shipment);
  UPDATE public.fulfillment_orders SET shipping_integration_account_id=correct_account
  WHERE id=shipment.id AND shipping_integration_account_id=shipment.shipping_integration_account_id;

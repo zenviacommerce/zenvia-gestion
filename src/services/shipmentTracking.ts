@@ -24,7 +24,7 @@ export function trackingPresentation(order:TrackingFields,now=Date.now(),staleDa
  const civilAge=providerDay==null?null:Math.floor((Date.parse(madridDay.format(now)+'T00:00:00Z')-providerDay)/86400000);
  const age=civilAge??(movement&&Number.isFinite(Date.parse(movement))?Math.floor((now-Date.parse(movement))/86400000):null);
  const threshold=Math.min(90,Math.max(1,Number.isFinite(staleDays)?Math.trunc(staleDays):3));
- return {...base,state,unavailable,softWarning,eventTimeRaw:rawTime,eventAt:event,observedAt:observed,checkedAt:order.trackingCheckedAt||null,
+ return {...base,movementAgeDays:age,state,unavailable,softWarning,eventTimeRaw:rawTime,eventAt:event,observedAt:observed,checkedAt:order.trackingCheckedAt||null,
   dateKind:event?'Último movimiento':observed?'Detectado':null,date:event||observed,
   staleLabel:state&&!isTerminal(state)&&age!=null&&age>=threshold?`Sin movimiento registrado en ${age} días`:null,
   error:order.trackingError||null};

@@ -3,7 +3,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -11,8 +11,8 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "pending",
     "width": 390,
     "documentWidth": 390,
@@ -572,7 +572,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -580,8 +580,8 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "labelled",
     "width": 390,
     "documentWidth": 390,
@@ -1259,7 +1259,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -1267,8 +1267,8 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "shipped",
     "width": 390,
     "documentWidth": 390,
@@ -1406,10 +1406,6 @@
         "disabled": true
       },
       {
-        "name": "Canal",
-        "disabled": false
-      },
-      {
         "name": "Pedido",
         "disabled": false
       },
@@ -1418,15 +1414,23 @@
         "disabled": false
       },
       {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
         "name": "Productos",
         "disabled": false
       },
       {
         "name": "Destino",
-        "disabled": false
-      },
-      {
-        "name": "Transportista",
         "disabled": false
       },
       {
@@ -1450,10 +1454,6 @@
         "disabled": false
       },
       {
-        "name": "Seguimiento",
-        "disabled": false
-      },
-      {
         "name": "Fecha pedido",
         "disabled": false
       },
@@ -1470,7 +1470,15 @@
         "disabled": false
       },
       {
-        "name": "Abrir informe REC-2026-0042",
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-028 en MRW",
         "disabled": false
       },
       {
@@ -1478,7 +1486,15 @@
         "disabled": false
       },
       {
-        "name": "Abrir informe REC-2026-0042",
+        "name": "Abrir seguimiento de DEMO-029 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-030 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-031 en Correos Express",
         "disabled": false
       },
       {
@@ -1486,31 +1502,15 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €EnviadoIncidenciaÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-032 en MRW",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €EnviadoEn tránsitoÚltimo movimiento: 01/10/2026, 10:00Sin movimiento registrado en 21 días",
+        "name": "Abrir seguimiento de DEMO-033 en Correos Express",
         "disabled": false
       },
       {
-        "name": "AmazonDEMO-028Cliente demostración 28 · 1 kg · MRW · Envío 5,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más153,67 €EnviadoEntregadoÚltimo movimiento: 01/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "Abrir informe REC-2026-0042",
-        "disabled": false
-      },
-      {
-        "name": "ShopifyDEMO-029Cliente demostración 29 · 1 kg · Correos Express · Envío 5,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más154,88 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "OtroDEMO-030Cliente demostración 30 · 1 kg · MRW · Envío 5,90 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más156,09 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "AmazonDEMO-031Cliente demostración 31 · 1 kg · Correos Express · Envío 6,00 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más157,30 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-034 en MRW",
         "disabled": false
       },
       {
@@ -1518,31 +1518,15 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-032Cliente demostración 32 · 1 kg · MRW · Envío 6,10 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más158,51 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-035 en Correos Express",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-033Cliente demostración 33 · 1 kg · Correos Express · Envío 6,20 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más159,72 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-036 en MRW",
         "disabled": false
       },
       {
-        "name": "AmazonDEMO-034Cliente demostración 34 · 1 kg · MRW · Envío 6,30 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más160,93 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "Abrir informe REC-2026-0042",
-        "disabled": false
-      },
-      {
-        "name": "ShopifyDEMO-035Cliente demostración 35 · 1 kg · Correos Express · Envío 6,40 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más162,14 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "OtroDEMO-036Cliente demostración 36 · 1 kg · MRW · Envío 6,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más163,35 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "AmazonDEMO-037Cliente demostración 37 · 1 kg · Correos Express · Envío 6,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más164,56 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-037 en Correos Express",
         "disabled": false
       },
       {
@@ -1550,11 +1534,139 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-038Cliente demostración 38 · 1 kg · MRW · Envío 6,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más165,77 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-038 en MRW",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-039Cliente demostración 39 · 1 kg · Correos Express · Envío 6,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más166,98 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-039 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-028Cliente demostración 28 · 1 kg · MRW · Envío 5,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más153,67 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-028 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-029Cliente demostración 29 · 1 kg · Correos Express · Envío 5,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más154,88 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-029 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-030Cliente demostración 30 · 1 kg · MRW · Envío 5,90 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más156,09 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-030 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-031Cliente demostración 31 · 1 kg · Correos Express · Envío 6,00 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más157,30 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-031 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-032Cliente demostración 32 · 1 kg · MRW · Envío 6,10 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más158,51 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-032 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-033Cliente demostración 33 · 1 kg · Correos Express · Envío 6,20 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más159,72 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-033 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-034Cliente demostración 34 · 1 kg · MRW · Envío 6,30 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más160,93 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-034 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-035Cliente demostración 35 · 1 kg · Correos Express · Envío 6,40 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más162,14 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-035 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-036Cliente demostración 36 · 1 kg · MRW · Envío 6,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más163,35 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-036 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-037Cliente demostración 37 · 1 kg · Correos Express · Envío 6,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más164,56 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-037 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-038Cliente demostración 38 · 1 kg · MRW · Envío 6,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más165,77 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-038 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-039Cliente demostración 39 · 1 kg · Correos Express · Envío 6,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más166,98 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-039 en Correos Express",
         "disabled": false
       },
       {
@@ -1568,18 +1680,18 @@
     ],
     "columns": [
       "",
-      "Canal",
       "Pedido",
       "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
       "Productos",
       "Destino",
-      "Transportista",
       "Envío",
       "Peso",
       "Unidades",
       "Total",
       "Estado",
-      "Seguimiento",
       "Fecha pedido",
       "Fecha etiqueta",
       "Impresión",
@@ -1593,11 +1705,6 @@
         "left": "0px"
       },
       {
-        "text": "Canal",
-        "position": "static",
-        "left": "auto"
-      },
-      {
         "text": "Pedido",
         "position": "static",
         "left": "auto"
@@ -1608,17 +1715,27 @@
         "left": "auto"
       },
       {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
         "text": "Productos",
         "position": "static",
         "left": "auto"
       },
       {
         "text": "Destino",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Transportista",
         "position": "static",
         "left": "auto"
       },
@@ -1644,11 +1761,6 @@
       },
       {
         "text": "Estado",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Seguimiento",
         "position": "static",
         "left": "auto"
       },
@@ -1994,7 +2106,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -2002,8 +2114,8 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "issues",
     "width": 390,
     "documentWidth": 390,
@@ -2109,10 +2221,6 @@
         "disabled": true
       },
       {
-        "name": "Canal",
-        "disabled": false
-      },
-      {
         "name": "Pedido",
         "disabled": false
       },
@@ -2121,15 +2229,23 @@
         "disabled": false
       },
       {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
         "name": "Productos",
         "disabled": false
       },
       {
         "name": "Destino",
-        "disabled": false
-      },
-      {
-        "name": "Transportista",
         "disabled": false
       },
       {
@@ -2153,10 +2269,6 @@
         "disabled": false
       },
       {
-        "name": "Seguimiento",
-        "disabled": false
-      },
-      {
         "name": "Fecha pedido",
         "disabled": false
       },
@@ -2173,11 +2285,27 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €EnviadoIncidenciaÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €EnviadoEn tránsitoÚltimo movimiento: 01/10/2026, 10:00Sin movimiento registrado en 21 días",
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
         "disabled": false
       },
       {
@@ -2191,18 +2319,18 @@
     ],
     "columns": [
       "",
-      "Canal",
       "Pedido",
       "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
       "Productos",
       "Destino",
-      "Transportista",
       "Envío",
       "Peso",
       "Unidades",
       "Total",
       "Estado",
-      "Seguimiento",
       "Fecha pedido",
       "Fecha etiqueta",
       "Impresión",
@@ -2216,11 +2344,6 @@
         "left": "0px"
       },
       {
-        "text": "Canal",
-        "position": "static",
-        "left": "auto"
-      },
-      {
         "text": "Pedido",
         "position": "static",
         "left": "auto"
@@ -2231,17 +2354,27 @@
         "left": "auto"
       },
       {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
         "text": "Productos",
         "position": "static",
         "left": "auto"
       },
       {
         "text": "Destino",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Transportista",
         "position": "static",
         "left": "auto"
       },
@@ -2267,11 +2400,6 @@
       },
       {
         "text": "Estado",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Seguimiento",
         "position": "static",
         "left": "auto"
       },
@@ -2605,7 +2733,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -2613,8 +2741,8 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "cancelled",
     "width": 390,
     "documentWidth": 390,
@@ -3254,7 +3382,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -3262,8 +3390,8 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "reports",
     "width": 390,
     "documentWidth": 390,
@@ -3700,7 +3828,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -3708,8 +3836,8 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "dashboard",
     "width": 390,
     "documentWidth": 390,
@@ -4113,7 +4241,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -4121,13 +4249,13 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "pending",
     "width": 1280,
     "documentWidth": 1280,
     "horizontalOverflow": 0,
-    "firstRowTop": 667,
+    "firstRowTop": 562,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -4732,7 +4860,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -4740,13 +4868,13 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "labelled",
     "width": 1280,
     "documentWidth": 1280,
     "horizontalOverflow": 0,
-    "firstRowTop": 594,
+    "firstRowTop": 489,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -5488,7 +5616,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -5496,13 +5624,13 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "shipped",
     "width": 1280,
     "documentWidth": 1280,
     "horizontalOverflow": 0,
-    "firstRowTop": 743,
+    "firstRowTop": 638,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -5635,10 +5763,6 @@
         "disabled": true
       },
       {
-        "name": "Canal",
-        "disabled": false
-      },
-      {
         "name": "Pedido",
         "disabled": false
       },
@@ -5647,15 +5771,23 @@
         "disabled": false
       },
       {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
         "name": "Productos",
         "disabled": false
       },
       {
         "name": "Destino",
-        "disabled": false
-      },
-      {
-        "name": "Transportista",
         "disabled": false
       },
       {
@@ -5679,10 +5811,6 @@
         "disabled": false
       },
       {
-        "name": "Seguimiento",
-        "disabled": false
-      },
-      {
         "name": "Fecha pedido",
         "disabled": false
       },
@@ -5699,7 +5827,15 @@
         "disabled": false
       },
       {
-        "name": "Abrir informe REC-2026-0042",
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-028 en MRW",
         "disabled": false
       },
       {
@@ -5707,7 +5843,15 @@
         "disabled": false
       },
       {
-        "name": "Abrir informe REC-2026-0042",
+        "name": "Abrir seguimiento de DEMO-029 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-030 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-031 en Correos Express",
         "disabled": false
       },
       {
@@ -5715,31 +5859,15 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €EnviadoIncidenciaÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-032 en MRW",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €EnviadoEn tránsitoÚltimo movimiento: 01/10/2026, 10:00Sin movimiento registrado en 21 días",
+        "name": "Abrir seguimiento de DEMO-033 en Correos Express",
         "disabled": false
       },
       {
-        "name": "AmazonDEMO-028Cliente demostración 28 · 1 kg · MRW · Envío 5,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más153,67 €EnviadoEntregadoÚltimo movimiento: 01/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "Abrir informe REC-2026-0042",
-        "disabled": false
-      },
-      {
-        "name": "ShopifyDEMO-029Cliente demostración 29 · 1 kg · Correos Express · Envío 5,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más154,88 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "OtroDEMO-030Cliente demostración 30 · 1 kg · MRW · Envío 5,90 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más156,09 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "AmazonDEMO-031Cliente demostración 31 · 1 kg · Correos Express · Envío 6,00 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más157,30 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-034 en MRW",
         "disabled": false
       },
       {
@@ -5747,31 +5875,15 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-032Cliente demostración 32 · 1 kg · MRW · Envío 6,10 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más158,51 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-035 en Correos Express",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-033Cliente demostración 33 · 1 kg · Correos Express · Envío 6,20 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más159,72 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-036 en MRW",
         "disabled": false
       },
       {
-        "name": "AmazonDEMO-034Cliente demostración 34 · 1 kg · MRW · Envío 6,30 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más160,93 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "Abrir informe REC-2026-0042",
-        "disabled": false
-      },
-      {
-        "name": "ShopifyDEMO-035Cliente demostración 35 · 1 kg · Correos Express · Envío 6,40 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más162,14 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "OtroDEMO-036Cliente demostración 36 · 1 kg · MRW · Envío 6,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más163,35 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "AmazonDEMO-037Cliente demostración 37 · 1 kg · Correos Express · Envío 6,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más164,56 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-037 en Correos Express",
         "disabled": false
       },
       {
@@ -5779,11 +5891,139 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-038Cliente demostración 38 · 1 kg · MRW · Envío 6,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más165,77 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-038 en MRW",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-039Cliente demostración 39 · 1 kg · Correos Express · Envío 6,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más166,98 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-039 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-028Cliente demostración 28 · 1 kg · MRW · Envío 5,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más153,67 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-028 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-029Cliente demostración 29 · 1 kg · Correos Express · Envío 5,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más154,88 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-029 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-030Cliente demostración 30 · 1 kg · MRW · Envío 5,90 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más156,09 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-030 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-031Cliente demostración 31 · 1 kg · Correos Express · Envío 6,00 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más157,30 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-031 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-032Cliente demostración 32 · 1 kg · MRW · Envío 6,10 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más158,51 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-032 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-033Cliente demostración 33 · 1 kg · Correos Express · Envío 6,20 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más159,72 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-033 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-034Cliente demostración 34 · 1 kg · MRW · Envío 6,30 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más160,93 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-034 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-035Cliente demostración 35 · 1 kg · Correos Express · Envío 6,40 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más162,14 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-035 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-036Cliente demostración 36 · 1 kg · MRW · Envío 6,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más163,35 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-036 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-037Cliente demostración 37 · 1 kg · Correos Express · Envío 6,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más164,56 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-037 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-038Cliente demostración 38 · 1 kg · MRW · Envío 6,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más165,77 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-038 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-039Cliente demostración 39 · 1 kg · Correos Express · Envío 6,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más166,98 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-039 en Correos Express",
         "disabled": false
       },
       {
@@ -5797,18 +6037,18 @@
     ],
     "columns": [
       "",
-      "Canal",
       "Pedido",
       "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
       "Productos",
       "Destino",
-      "Transportista",
       "Envío",
       "Peso",
       "Unidades",
       "Total",
       "Estado",
-      "Seguimiento",
       "Fecha pedido",
       "Fecha etiqueta",
       "Impresión",
@@ -5822,11 +6062,6 @@
         "left": "0px"
       },
       {
-        "text": "Canal",
-        "position": "static",
-        "left": "auto"
-      },
-      {
         "text": "Pedido",
         "position": "static",
         "left": "auto"
@@ -5837,17 +6072,27 @@
         "left": "auto"
       },
       {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
         "text": "Productos",
         "position": "static",
         "left": "auto"
       },
       {
         "text": "Destino",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Transportista",
         "position": "static",
         "left": "auto"
       },
@@ -5873,11 +6118,6 @@
       },
       {
         "text": "Estado",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Seguimiento",
         "position": "static",
         "left": "auto"
       },
@@ -6214,6 +6454,12 @@
     },
     "dangerous": [],
     "pdfDownloads": [],
+    "priorityTracking": {
+      "visibleWithoutScroll": true,
+      "text": "Incidencia\nDestinatario ausente\nÚltimo movimiento: 21/10/2026, 10:00\nSin movimiento registrado en 1 día\nAbrir seguimiento",
+      "right": 1047.15625,
+      "viewportRight": 1242
+    },
     "drawerInventory": [
       {
         "order": "Pedido DEMO-026",
@@ -6283,7 +6529,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -6291,13 +6537,13 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "issues",
     "width": 1280,
     "documentWidth": 1280,
     "horizontalOverflow": 0,
-    "firstRowTop": 545,
+    "firstRowTop": 440,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -6398,10 +6644,6 @@
         "disabled": true
       },
       {
-        "name": "Canal",
-        "disabled": false
-      },
-      {
         "name": "Pedido",
         "disabled": false
       },
@@ -6410,15 +6652,23 @@
         "disabled": false
       },
       {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
         "name": "Productos",
         "disabled": false
       },
       {
         "name": "Destino",
-        "disabled": false
-      },
-      {
-        "name": "Transportista",
         "disabled": false
       },
       {
@@ -6442,10 +6692,6 @@
         "disabled": false
       },
       {
-        "name": "Seguimiento",
-        "disabled": false
-      },
-      {
         "name": "Fecha pedido",
         "disabled": false
       },
@@ -6462,11 +6708,27 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €EnviadoIncidenciaÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €EnviadoEn tránsitoÚltimo movimiento: 01/10/2026, 10:00Sin movimiento registrado en 21 días",
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
         "disabled": false
       },
       {
@@ -6480,18 +6742,18 @@
     ],
     "columns": [
       "",
-      "Canal",
       "Pedido",
       "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
       "Productos",
       "Destino",
-      "Transportista",
       "Envío",
       "Peso",
       "Unidades",
       "Total",
       "Estado",
-      "Seguimiento",
       "Fecha pedido",
       "Fecha etiqueta",
       "Impresión",
@@ -6505,11 +6767,6 @@
         "left": "0px"
       },
       {
-        "text": "Canal",
-        "position": "static",
-        "left": "auto"
-      },
-      {
         "text": "Pedido",
         "position": "static",
         "left": "auto"
@@ -6520,17 +6777,27 @@
         "left": "auto"
       },
       {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
         "text": "Productos",
         "position": "static",
         "left": "auto"
       },
       {
         "text": "Destino",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Transportista",
         "position": "static",
         "left": "auto"
       },
@@ -6556,11 +6823,6 @@
       },
       {
         "text": "Estado",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Seguimiento",
         "position": "static",
         "left": "auto"
       },
@@ -6885,6 +7147,12 @@
     },
     "dangerous": [],
     "pdfDownloads": [],
+    "priorityTracking": {
+      "visibleWithoutScroll": true,
+      "text": "Incidencia\nDestinatario ausente\nÚltimo movimiento: 21/10/2026, 10:00\nSin movimiento registrado en 1 día\nAbrir seguimiento",
+      "right": 1047.15625,
+      "viewportRight": 1242
+    },
     "drawerInventory": [
       {
         "order": "Pedido DEMO-026",
@@ -6954,7 +7222,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -6962,13 +7230,13 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "cancelled",
     "width": 1280,
     "documentWidth": 1280,
     "horizontalOverflow": 0,
-    "firstRowTop": 694,
+    "firstRowTop": 589,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -7668,7 +7936,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -7676,8 +7944,8 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "reports",
     "width": 1280,
     "documentWidth": 1280,
@@ -8114,7 +8382,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -8122,8 +8390,8 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "dashboard",
     "width": 1280,
     "documentWidth": 1280,
@@ -8527,7 +8795,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -8535,13 +8803,13 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "pending",
     "width": 1440,
     "documentWidth": 1440,
     "horizontalOverflow": 0,
-    "firstRowTop": 626,
+    "firstRowTop": 521,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -9096,7 +9364,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -9104,13 +9372,13 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "labelled",
     "width": 1440,
     "documentWidth": 1440,
     "horizontalOverflow": 0,
-    "firstRowTop": 594,
+    "firstRowTop": 489,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -9783,7 +10051,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -9791,13 +10059,13 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "shipped",
     "width": 1440,
     "documentWidth": 1440,
     "horizontalOverflow": 0,
-    "firstRowTop": 743,
+    "firstRowTop": 638,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -9930,10 +10198,6 @@
         "disabled": true
       },
       {
-        "name": "Canal",
-        "disabled": false
-      },
-      {
         "name": "Pedido",
         "disabled": false
       },
@@ -9942,15 +10206,23 @@
         "disabled": false
       },
       {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
         "name": "Productos",
         "disabled": false
       },
       {
         "name": "Destino",
-        "disabled": false
-      },
-      {
-        "name": "Transportista",
         "disabled": false
       },
       {
@@ -9974,10 +10246,6 @@
         "disabled": false
       },
       {
-        "name": "Seguimiento",
-        "disabled": false
-      },
-      {
         "name": "Fecha pedido",
         "disabled": false
       },
@@ -9994,7 +10262,15 @@
         "disabled": false
       },
       {
-        "name": "Abrir informe REC-2026-0042",
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-028 en MRW",
         "disabled": false
       },
       {
@@ -10002,7 +10278,15 @@
         "disabled": false
       },
       {
-        "name": "Abrir informe REC-2026-0042",
+        "name": "Abrir seguimiento de DEMO-029 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-030 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-031 en Correos Express",
         "disabled": false
       },
       {
@@ -10010,31 +10294,15 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €EnviadoIncidenciaÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-032 en MRW",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €EnviadoEn tránsitoÚltimo movimiento: 01/10/2026, 10:00Sin movimiento registrado en 21 días",
+        "name": "Abrir seguimiento de DEMO-033 en Correos Express",
         "disabled": false
       },
       {
-        "name": "AmazonDEMO-028Cliente demostración 28 · 1 kg · MRW · Envío 5,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más153,67 €EnviadoEntregadoÚltimo movimiento: 01/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "Abrir informe REC-2026-0042",
-        "disabled": false
-      },
-      {
-        "name": "ShopifyDEMO-029Cliente demostración 29 · 1 kg · Correos Express · Envío 5,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más154,88 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "OtroDEMO-030Cliente demostración 30 · 1 kg · MRW · Envío 5,90 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más156,09 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "AmazonDEMO-031Cliente demostración 31 · 1 kg · Correos Express · Envío 6,00 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más157,30 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-034 en MRW",
         "disabled": false
       },
       {
@@ -10042,31 +10310,15 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-032Cliente demostración 32 · 1 kg · MRW · Envío 6,10 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más158,51 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-035 en Correos Express",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-033Cliente demostración 33 · 1 kg · Correos Express · Envío 6,20 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más159,72 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-036 en MRW",
         "disabled": false
       },
       {
-        "name": "AmazonDEMO-034Cliente demostración 34 · 1 kg · MRW · Envío 6,30 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más160,93 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "Abrir informe REC-2026-0042",
-        "disabled": false
-      },
-      {
-        "name": "ShopifyDEMO-035Cliente demostración 35 · 1 kg · Correos Express · Envío 6,40 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más162,14 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "OtroDEMO-036Cliente demostración 36 · 1 kg · MRW · Envío 6,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más163,35 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
-        "disabled": false
-      },
-      {
-        "name": "AmazonDEMO-037Cliente demostración 37 · 1 kg · Correos Express · Envío 6,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más164,56 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-037 en Correos Express",
         "disabled": false
       },
       {
@@ -10074,11 +10326,139 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-038Cliente demostración 38 · 1 kg · MRW · Envío 6,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más165,77 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-038 en MRW",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-039Cliente demostración 39 · 1 kg · Correos Express · Envío 6,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más166,98 €EnviadoEn tránsitoÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-039 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-028Cliente demostración 28 · 1 kg · MRW · Envío 5,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más153,67 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-028 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-029Cliente demostración 29 · 1 kg · Correos Express · Envío 5,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más154,88 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-029 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-030Cliente demostración 30 · 1 kg · MRW · Envío 5,90 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más156,09 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-030 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-031Cliente demostración 31 · 1 kg · Correos Express · Envío 6,00 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más157,30 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-031 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-032Cliente demostración 32 · 1 kg · MRW · Envío 6,10 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más158,51 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-032 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-033Cliente demostración 33 · 1 kg · Correos Express · Envío 6,20 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más159,72 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-033 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-034Cliente demostración 34 · 1 kg · MRW · Envío 6,30 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más160,93 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-034 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-035Cliente demostración 35 · 1 kg · Correos Express · Envío 6,40 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más162,14 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-035 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-036Cliente demostración 36 · 1 kg · MRW · Envío 6,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más163,35 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-036 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "AmazonDEMO-037Cliente demostración 37 · 1 kg · Correos Express · Envío 6,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más164,56 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-037 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "Abrir informe REC-2026-0042",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-038Cliente demostración 38 · 1 kg · MRW · Envío 6,70 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más165,77 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-038 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-039Cliente demostración 39 · 1 kg · Correos Express · Envío 6,80 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más166,98 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-039 en Correos Express",
         "disabled": false
       },
       {
@@ -10092,18 +10472,18 @@
     ],
     "columns": [
       "",
-      "Canal",
       "Pedido",
       "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
       "Productos",
       "Destino",
-      "Transportista",
       "Envío",
       "Peso",
       "Unidades",
       "Total",
       "Estado",
-      "Seguimiento",
       "Fecha pedido",
       "Fecha etiqueta",
       "Impresión",
@@ -10117,11 +10497,6 @@
         "left": "0px"
       },
       {
-        "text": "Canal",
-        "position": "static",
-        "left": "auto"
-      },
-      {
         "text": "Pedido",
         "position": "static",
         "left": "auto"
@@ -10132,17 +10507,27 @@
         "left": "auto"
       },
       {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
         "text": "Productos",
         "position": "static",
         "left": "auto"
       },
       {
         "text": "Destino",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Transportista",
         "position": "static",
         "left": "auto"
       },
@@ -10168,11 +10553,6 @@
       },
       {
         "text": "Estado",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Seguimiento",
         "position": "static",
         "left": "auto"
       },
@@ -10509,6 +10889,12 @@
     },
     "dangerous": [],
     "pdfDownloads": [],
+    "priorityTracking": {
+      "visibleWithoutScroll": true,
+      "text": "Incidencia\nDestinatario ausente\nÚltimo movimiento: 21/10/2026, 10:00\nSin movimiento registrado en 1 día\nAbrir seguimiento",
+      "right": 1047.15625,
+      "viewportRight": 1402
+    },
     "drawerInventory": [],
     "networkBlocked": 4,
     "errors": [],
@@ -10518,7 +10904,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -10526,13 +10912,13 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "issues",
     "width": 1440,
     "documentWidth": 1440,
     "horizontalOverflow": 0,
-    "firstRowTop": 545,
+    "firstRowTop": 440,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -10633,10 +11019,6 @@
         "disabled": true
       },
       {
-        "name": "Canal",
-        "disabled": false
-      },
-      {
         "name": "Pedido",
         "disabled": false
       },
@@ -10645,15 +11027,23 @@
         "disabled": false
       },
       {
+        "name": "Transportista",
+        "disabled": false
+      },
+      {
+        "name": "Seguimiento",
+        "disabled": false
+      },
+      {
+        "name": "Canal",
+        "disabled": false
+      },
+      {
         "name": "Productos",
         "disabled": false
       },
       {
         "name": "Destino",
-        "disabled": false
-      },
-      {
-        "name": "Transportista",
         "disabled": false
       },
       {
@@ -10677,10 +11067,6 @@
         "disabled": false
       },
       {
-        "name": "Seguimiento",
-        "disabled": false
-      },
-      {
         "name": "Fecha pedido",
         "disabled": false
       },
@@ -10697,11 +11083,27 @@
         "disabled": false
       },
       {
-        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €EnviadoIncidenciaÚltimo movimiento: 21/10/2026, 10:00",
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
         "disabled": false
       },
       {
-        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €EnviadoEn tránsitoÚltimo movimiento: 01/10/2026, 10:00Sin movimiento registrado en 21 días",
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
+        "disabled": false
+      },
+      {
+        "name": "ShopifyDEMO-026Cliente demostración 26 · 1 kg · MRW · Envío 5,50 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más151,25 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-026 en MRW",
+        "disabled": false
+      },
+      {
+        "name": "OtroDEMO-027Cliente demostración 27 · 1 kg · Correos Express · Envío 5,60 €Pedido 19/10/2026 11:00 · Etiqueta 20/10/2026 09:00 · Sin informaciónAceite esencial de lavanda×3Jabón de manos cítrico×4Crema facial hidratante×1+2 más152,46 €Enviado",
+        "disabled": false
+      },
+      {
+        "name": "Abrir seguimiento de DEMO-027 en Correos Express",
         "disabled": false
       },
       {
@@ -10715,18 +11117,18 @@
     ],
     "columns": [
       "",
-      "Canal",
       "Pedido",
       "Cliente",
+      "Transportista",
+      "Seguimiento",
+      "Canal",
       "Productos",
       "Destino",
-      "Transportista",
       "Envío",
       "Peso",
       "Unidades",
       "Total",
       "Estado",
-      "Seguimiento",
       "Fecha pedido",
       "Fecha etiqueta",
       "Impresión",
@@ -10740,11 +11142,6 @@
         "left": "0px"
       },
       {
-        "text": "Canal",
-        "position": "static",
-        "left": "auto"
-      },
-      {
         "text": "Pedido",
         "position": "static",
         "left": "auto"
@@ -10755,17 +11152,27 @@
         "left": "auto"
       },
       {
+        "text": "Transportista",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Seguimiento",
+        "position": "static",
+        "left": "auto"
+      },
+      {
+        "text": "Canal",
+        "position": "static",
+        "left": "auto"
+      },
+      {
         "text": "Productos",
         "position": "static",
         "left": "auto"
       },
       {
         "text": "Destino",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Transportista",
         "position": "static",
         "left": "auto"
       },
@@ -10791,11 +11198,6 @@
       },
       {
         "text": "Estado",
-        "position": "static",
-        "left": "auto"
-      },
-      {
-        "text": "Seguimiento",
         "position": "static",
         "left": "auto"
       },
@@ -11120,6 +11522,12 @@
     },
     "dangerous": [],
     "pdfDownloads": [],
+    "priorityTracking": {
+      "visibleWithoutScroll": true,
+      "text": "Incidencia\nDestinatario ausente\nÚltimo movimiento: 21/10/2026, 10:00\nSin movimiento registrado en 1 día\nAbrir seguimiento",
+      "right": 1047.15625,
+      "viewportRight": 1402
+    },
     "drawerInventory": [],
     "networkBlocked": 3,
     "errors": [],
@@ -11129,7 +11537,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -11137,13 +11545,13 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "cancelled",
     "width": 1440,
     "documentWidth": 1440,
     "horizontalOverflow": 0,
-    "firstRowTop": 694,
+    "firstRowTop": 589,
     "headerActions": [
       {
         "name": " Nuevo pedido",
@@ -11778,7 +12186,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -11786,8 +12194,8 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "reports",
     "width": 1440,
     "documentWidth": 1440,
@@ -12224,7 +12632,7 @@
     "phase": "after",
     "baselineRevision": "21622348044745dd54978f69ac80f39321f39533",
     "reviewSourceHashes": {
-      "src/pages/Orders.tsx": "ef2306b19b3fc9843381f57ed3c5316559df2bccf9be579b4f70a0317e0b7fbc",
+      "src/pages/Orders.tsx": "39164526c21d80c8775066427f66b8c768303449c2867d0acb68adf482675034",
       "src/pages/Dashboard.tsx": "2146aa82610eaa64109bb0d704a34f4233bc66584796b5d09711f85da9b560da",
       "src/components/PickupReports.tsx": "b9cd0c8a76e9f82d4f18aff8269e57d61e155783f322e2f7e38126eec8e0c7b1",
       "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
@@ -12232,8 +12640,8 @@
       "packages/ui/src/styles.css": "0e96e51edb323688a8a738f11d93e6a1f84f0b629957c8edd7b348d8072e92c7",
       "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
     },
-    "productSourceSha256": "5cd821623a152546dc74d5d5c679246441f0842b6545a0f615f1ac4a58e7123b",
-    "cssSha256": "531b7c3e491f3381aa0c240f8eb0e18f49d9116870a69201dd21d94cf4258fae",
+    "productSourceSha256": "2a70807be94fa43514d1d9ba4fa63501edbd73dada15108e70a369ce6f8ecac7",
+    "cssSha256": "8945339c24eec17ecbc0ca275bbc3ffdcc9b56cb7269ca8e1742f74bcd37144e",
     "context": "dashboard",
     "width": 1440,
     "documentWidth": 1440,

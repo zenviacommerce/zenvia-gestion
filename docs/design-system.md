@@ -244,3 +244,7 @@ Implementación preparada para revisión; **sin publicar**. La especificación d
 - Los cinco KPI de pedidos pasan a Resumen y comparten su periodo: Total vendido, IVA estimado, Neto sin IVA, Ticket medio y Coste transportistas con desglose. Las métricas fiscales de facturas siguen diferenciadas; la agregación actual de pedidos es en EUR.
 - Informes de recogida muestra el historial en línea y reutiliza la reimpresión; el historial por pedido sigue disponible como modal.
 - En esta revisión la lista debe comenzar en el primer viewport móvil con los datos de referencia. Evidencias: [capturas e inventario](deploy/20261022-orders-workbench-review/README.md).
+
+### Revisión autorizada de Pedidos — 22/10/2026
+
+La cabecera mantiene Nuevo pedido, Actualizar y Más acciones en una fila también en escritorio. Tarifas, impresión directa, formato y facturación Shopify se conservan en el menú. Incidencias y Enviados adelantan Pedido, Cliente, Transportista y Seguimiento, manteniendo el inventario completo de columnas. El seguimiento muestra texto, último movimiento y antigüedad; el acceso externo queda fuera del botón de la tarjeta móvil. La prueba de geometría exige que el motivo sea visible sin scroll horizontal a 1280/1440 px.

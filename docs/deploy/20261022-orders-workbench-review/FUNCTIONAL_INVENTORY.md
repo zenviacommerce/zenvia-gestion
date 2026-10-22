@@ -11,10 +11,10 @@ Revisión del 22/10/2026. Base: `21622348044745dd54978f69ac80f39321f39533`. Impl
 | Total vendido, IVA estimado, Neto sin IVA, Ticket medio | Resumen → Ventas y costes de pedidos | Un único juego de métricas; mismo periodo de Resumen; EUR; país fiscal conservado tras purga; preferencias antiguas reciben las cuatro opciones nuevas sin restaurar tarjetas antiguas ocultas |
 | Coste transportistas y desglose | Misma sección de Resumen | Agregados completos más candidatos de tarifa fuera de página; costes sin valorar visibles; no presentar errores como cero |
 | Métricas fiscales de facturas | Resumen, sección fiscal existente | Separadas de importes de pedidos; no se sustituyen ni se suman dos veces |
-| Tarifas de transporte | Cabecera; Más acciones en móvil | Botón React nativo abre el panel existente; inyector antiguo no lo duplica ni elimina |
-| Impresión directa y formato AUTO/A6/10×15/A5/A4 | Cabecera; Más acciones en móvil | Cliente de impresión opcional; descarga PDF y preferencias conservadas |
+| Tarifas de transporte | Más acciones en cabecera, móvil y escritorio | Botón React nativo abre el panel existente; inyector antiguo no lo duplica ni elimina |
+| Impresión directa y formato AUTO/A6/10×15/A5/A4 | Más acciones en cabecera, móvil y escritorio | Cliente de impresión opcional; descarga PDF y preferencias conservadas |
 | Nuevo pedido y Actualizar pedidos | Cabecera siempre visible | Modal y sincronización existentes; pruebas abren/cancelan sin escribir |
-| Facturación manual de Shopify | Cabecera; Más acciones en móvil | Selección y relectura existentes; sin facturar documentos reales en capturas |
+| Facturación manual de Shopify | Más acciones en cabecera, móvil y escritorio | Selección y relectura existentes; sin facturar documentos reales en capturas |
 | Generar etiquetas seleccionadas/pendientes | Pendientes | Comprobación de elegibilidad, purga PII, relectura y confirmación de selección oculta conservadas |
 | Cotización y comparación por proveedor | Flujo de preparación existente | Aislamiento de respuestas, reintentos, reglas, pesos y validación existentes |
 | Exportación ZIP, nombres de etiqueta y errores parciales | Flujo de generación existente | Prueba con PDF/ZIP sintético; ninguna compra real |
@@ -43,3 +43,7 @@ La galería aporta 42 capturas completas antes/después a 390, 1280 y 1440 px, m
 4. Reversión: restaurar el despliegue anterior del frontend. El RPC previo sigue intacto; la RPC nueva puede quedar sin uso sin borrar nada. No cambiar interruptores, cron ni datos de pedidos para revertir la interfaz.
 
 Registrar envío externo queda pendiente después de este rediseño: diseño aprobado con transportista/tracking obligatorios, cuenta o integración seleccionable, auditoría de quién lo registra y protección contra sobrescritura. No se implementa en esta rama.
+
+## Ajustes de revisión autorizados
+
+En Incidencias y Enviados las columnas Pedido, Cliente, Transportista y Seguimiento aparecen primero; el resto permanece accesible. Seguimiento añade el texto visible del transportista, antigüedad del movimiento y una acción externa, sin abrir simultáneamente el detalle. En móvil el acceso externo queda fuera del botón de detalle. Cuando falta URL, se resuelve a demanda mediante el servicio existente, respetando la purga PII. Prueba React de columnas, motivo y acceso a demanda, más comprobación geométrica en el harness.

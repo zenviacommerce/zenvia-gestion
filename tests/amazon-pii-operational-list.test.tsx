@@ -6,9 +6,9 @@ import {jsPDF} from 'jspdf';
 import {Orders} from '../src/pages/Orders';
 import {OrderFinancialSummary} from '../src/components/OrderFinancialSummary';
 import type {FulfillmentOrder} from '../src/services/orders';
-const boundary=vi.hoisted(()=>({rows:[] as FulfillmentOrder[],pageCalls:vi.fn(),selection:vi.fn(),selectedRows:vi.fn(),quotes:vi.fn(async()=>({options:[] as any[],weightKg:null,message:null,diagnostics:[]})),createLabel:vi.fn(),pickupSelection:vi.fn(),pickupPreview:vi.fn(),confirm:vi.fn(async()=>true)}));
+const boundary=vi.hoisted(()=>({rows:[] as FulfillmentOrder[],pageCalls:vi.fn(),trackingLink:vi.fn(),selection:vi.fn(),selectedRows:vi.fn(),quotes:vi.fn(async()=>({options:[] as any[],weightKg:null,message:null,diagnostics:[]})),createLabel:vi.fn(),pickupSelection:vi.fn(),pickupPreview:vi.fn(),confirm:vi.fn(async()=>true)}));
 vi.mock('../src/context/SettingsContext',()=>({useSettings:()=>({settings:{...DEFAULT_APP_SETTINGS,integrations:{...DEFAULT_APP_SETTINGS.integrations,amazonEnabled:false,shopifyEnabled:false,enviaEnabled:false},shipping:{...DEFAULT_APP_SETTINGS.shipping,labelSize:'AUTO',copies:1,enabledCarriers:[]},orders:{...DEFAULT_APP_SETTINGS.orders,bulkScope:'pending',retryTrackingConfirmation:false}},preferences:DEFAULT_USER_PREFERENCES,patchPreferences:async()=>{},updateSection:async()=>{}})}));
-vi.mock('../src/services/orders',async original=>({...await original<typeof import('../src/services/orders')>(),listFulfillmentOrders:async()=>boundary.rows,
+vi.mock('../src/services/orders',async original=>({...await original<typeof import('../src/services/orders')>(),listFulfillmentOrders:async()=>boundary.rows,getOrderTrackingLink:(id:string)=>boundary.trackingLink(id),
  fetchOrdersDashboardPage:async(filters:any)=>{boundary.pageCalls(filters);const gross=boundary.rows.reduce((n,o)=>n+(o.totalAmount||0),0),net=boundary.rows.reduce((n,o)=>n+(o.totalAmount||0)/((o.shippingAddress.country_code||o.destinationCountryCode)==='ES'?1.21:1),0);return {tariffCandidates:[],orders:boundary.rows.slice(filters.page*filters.pageSize,(filters.page+1)*filters.pageSize),total:boundary.rows.length,selectableTotal:boundary.rows.filter(o=>!o.piiPurgedAt).length,page:filters.page,pageSize:filters.pageSize,kpis:{pending:boundary.rows.length,preparablePending:boundary.rows.filter(o=>!o.piiPurgedAt).length,amazon:boundary.rows.length,shopify:0,manual:0,labelled:0,shipped:0,cancelled:0,overduePending:0,sales:{gross,net,vat:gross-net,count:boundary.rows.length,average:gross/boundary.rows.length},transport:{total:0,net:0,tax:0,mrw:0,correos:0,other:0,shipments:0,valued:0,missing:0,basis:'recorded_only'}},facets:{countries:[],carriers:[]}}},
  fetchMatchingOrderIds:(filters:any)=>boundary.selection(filters),listSelectedOrdersForBulk:(filters:any,ids:string[])=>boundary.selectedRows(filters,ids),
  listMatchingOrdersForAction:async()=>boundary.rows,listMatchingPendingOrdersForBulk:async()=>boundary.rows,getSendcloudStatus:async()=>({configured:false,integrations:[]}),getEnviaStatus:async()=>({configured:false,accounts:[]}),getShippingOptions:boundary.quotes,createOrderLabel:boundary.createLabel}));
@@ -199,4 +199,20 @@ it('renders server-matched rows with a missing order date and a retained product
  await waitFor(()=>expect(boundary.pageCalls).toHaveBeenLastCalledWith(expect.objectContaining({query:'retained-id-only'})));
  expect(within(container.querySelector('.ordersTable tbody') as HTMLElement).getByText('SERVER-MATCHED')).toBeTruthy();
  expect(within(container.querySelector('.ordersMobileList') as HTMLElement).getByText('SERVER-MATCHED')).toBeTruthy();
+});
+
+it('prioritizes operational columns, shows the carrier reason and resolves a missing link only on demand',async()=>{
+ boundary.rows=[{...order,id:'issue-test',orderNumber:'ISSUE-TEST',piiPurgedAt:null,shippingProvider:'envia',trackingNumber:'SYNTHETIC',trackingNormalizedState:'exception',trackingStatusMessage:'Destinatario ausente',trackingEventAt:'2026-10-21T08:00:00Z'} as FulfillmentOrder];
+ boundary.trackingLink.mockReset();boundary.trackingLink.mockResolvedValue({url:'https://carrier.example.test/track'});
+ const popup={opener:{},location:{href:''},close:vi.fn()};const open=vi.spyOn(window,'open').mockReturnValue(popup as unknown as Window);
+ try{
+  const {container}=render(<Orders/>);fireEvent.click(screen.getByRole('tab',{name:/^Incidencias/}));
+  await waitFor(()=>expect(container.querySelector('.ordersPriorityTracking')).toBeTruthy());
+  const columns=[...container.querySelectorAll('.ordersTable th')].map(e=>e.textContent?.trim());expect(columns.slice(1,5)).toEqual(['Pedido','Cliente','Transportista','Seguimiento']);
+  const cell=container.querySelector('.ordersPriorityTracking') as HTMLElement;
+  expect(within(cell).getByText('Destinatario ausente')).toBeTruthy();expect(boundary.trackingLink).not.toHaveBeenCalled();
+  fireEvent.click(within(cell).getByRole('button',{name:/Abrir seguimiento/}));
+  await waitFor(()=>expect(popup.location.href).toBe('https://carrier.example.test/track'));
+  expect(boundary.trackingLink).toHaveBeenCalledWith('issue-test');expect(popup.opener).toBeNull();expect(container.querySelector('.ordersDrawer')).toBeNull();
+ }finally{open.mockRestore()}
 });

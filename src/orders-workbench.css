@@ -1,6 +1,6 @@
 .ordersPage.ordersWorkbench{min-width:0}
 .ordersWorkbench .dsPageHeader{margin-bottom:14px;gap:12px;align-items:flex-start}
-.ordersWorkbench .dsPageHeaderActions{flex-wrap:wrap;overflow:visible;gap:8px}
+.ordersWorkbench .dsPageHeaderActions{flex-wrap:nowrap;overflow:visible;gap:8px}
 .ordersWorkbench .dsPageHeaderActionsFrame{min-width:0;max-width:100%}
 .ordersWorkbench .ordersConnection{padding:5px 0;margin:8px 0;font-size:12px;background:transparent;border:0}
 .ordersWorkbench .ordersConnection small{font-size:11px}
@@ -45,3 +45,15 @@
 .ordersWorkbench .bulkSelectionTextButton{color:var(--text,#172033)}
 [data-theme='dark'] .ordersWorkbench .ordersWorkbenchFilters .ordersWorkbenchShowAll,
 [data-theme='dark'] .ordersWorkbench .bulkSelectionActions>.link{color:#5eead4}
+
+/* Operational queues put the reason in the first visible table viewport. */
+.ordersTrackingFirst th:nth-child(-n+6),.ordersTrackingFirst td:nth-child(-n+6){width:auto;min-width:0;white-space:normal}
+.ordersTrackingFirst th:nth-child(2),.ordersTrackingFirst td:nth-child(2){width:145px;min-width:145px}
+.ordersTrackingFirst th:nth-child(3),.ordersTrackingFirst td:nth-child(3){width:175px;min-width:175px}
+.ordersTrackingFirst th:nth-child(4),.ordersTrackingFirst td:nth-child(4){width:120px;min-width:120px}
+.ordersTrackingFirst th:nth-child(5),.ordersTrackingFirst td:nth-child(5){width:270px;min-width:270px}
+.ordersTrackingFirst th:nth-child(7),.ordersTrackingFirst td.ordersProductsCell{width:340px;min-width:340px}
+.ordersPriorityTracking .shipmentTrackingSummary{max-width:260px;overflow-wrap:anywhere}
+.ordersQuickTracking{display:inline-flex;align-items:center;gap:5px;margin-top:6px;font-size:12px;color:var(--accent,#0f766e)}
+.ordersMobileTracking{grid-column:2/-1;padding:10px 12px;border:1px solid var(--border,#dbe2ea);background:var(--surface,#fff);border-radius:10px}
+.ordersMobileTracking .shipmentTrackingSummary{max-width:100%}

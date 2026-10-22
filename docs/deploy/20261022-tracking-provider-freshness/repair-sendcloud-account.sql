@@ -1,7 +1,8 @@
 -- Operational repair, NOT an automatic migration. Run only after the read-only
 -- same-owner Sendcloud API probe confirms this exact parcel and the preview
 -- count is shown. Expected affected fulfillment_orders rows: exactly one.
--- Change only its incorrect shipping account; no state/status/label/PII changes.
+-- Change its incorrect shipping account plus the existing updated_at audit trigger.
+-- No state/status/label/PII changes.
 BEGIN;
 SET LOCAL lock_timeout='25ms';
 DO $repair$
@@ -24,7 +25,7 @@ BEGIN
  GET DIAGNOSTICS n=ROW_COUNT;
  IF n<>1 THEN RAISE EXCEPTION 'SENDCLOUD_REPAIR_ROW_COUNT_CHANGED';END IF;
  SELECT to_jsonb(o) INTO after_row FROM public.fulfillment_orders o WHERE o.id=shipment.id;
- IF before_row-'shipping_integration_account_id' IS DISTINCT FROM after_row-'shipping_integration_account_id'
+ IF before_row-ARRAY['shipping_integration_account_id','updated_at'] IS DISTINCT FROM after_row-ARRAY['shipping_integration_account_id','updated_at']
  THEN RAISE EXCEPTION 'SENDCLOUD_REPAIR_UNRELATED_FIELD_CHANGED';END IF;
 END $repair$;
 SELECT 1 AS repaired_account_associations;

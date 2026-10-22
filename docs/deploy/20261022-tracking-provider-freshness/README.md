@@ -22,8 +22,8 @@ only and performs no existing-row DML.
 Order 407-0024766-5208363 / 01009F045746 is explicitly Sendcloud but linked to an
 Envia account. The unique enabled Sendcloud account in that same workspace
 returns this parcel as delivered at 2026-10-22T09:50:22Z. The operational SQL
-repairs exactly one account association after preview; every other order field
-must remain byte-identical or the transaction rolls back.
+repairs exactly one account association after preview; every other business order field
+must remain byte-identical (the existing updated_at audit trigger may run) or the transaction rolls back.
 
 Envia has fourteen tracked shipments in source orders: twelve already delivered
 or returned at origin intentionally excluded from polling; the remaining two

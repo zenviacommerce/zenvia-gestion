@@ -77,3 +77,7 @@ CI remota en curso al escribir este recibo; consultar los checks de la PR para s
 El run `39804687217` falló al arrancar Supabase **desechable**, antes de ejecutar las pruebas reales: las funciones `integration_shopify_pending_shipments` y `integration_shopify_claim_shipment` existen en producción, pero no en el historial de migraciones. La nueva migración fallaba correctamente al no encontrarlas; no se suaviza esa comprobación ni se modifica SQL/auth/MFA de producción.
 
 El runner ya reconstruye dependencias históricas ausentes a partir de fixtures. Se añade a ese mismo paso la fixture capturada de ambas funciones, con sus ACL reales (`postgres` y `service_role`, sin anon/authenticated). Cambio de cuatro líneas en el montaje de CI, sin alterar pruebas ni lógica MFA. Una regresión consulta `has_function_privilege` para comprobar que la migración conserva esas ACL. La suite SQL pasa a **27 pruebas**. Repetición remota pendiente de este recibo.
+
+### Coherencia de importes y servicio
+
+La revisión final añade un caso con una cotización preparada pero sin expedición. Al registrar el envío externo se retiran el desglose neto/IVA, código de opción y contrato de esa cotización: no describen el nuevo envío y no se inventa IVA a partir del total introducido. Regresión observada en rojo y corregida; se mantiene el coste total opcional y su moneda visible. Suite SQL ampliada a 28 casos.

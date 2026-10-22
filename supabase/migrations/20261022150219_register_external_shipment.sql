@@ -38,11 +38,12 @@ begin
   if a.provider='mrw' and lower(carrier) not like '%mrw%' then raise exception 'La cuenta MRW requiere el transportista MRW.'; end if;
  end if;
  update public.fulfillment_orders set carrier_name=carrier,carrier_code=case when a.provider='mrw' then 'mrw' else null end,
-  tracking_number=tracking,tracking_url=link,shipping_service_name=nullif(trim(p_input->>'service'),''),
+  tracking_number=tracking,tracking_url=link,shipping_service_name=nullif(trim(p_input->>'service'),''),shipping_option_code=null,contract_id=null,
   shipping_integration_account_id=account,shipping_provider=a.provider,fulfilled_at=shipped,source_status='shipped',
   tracking_status_code=null,tracking_status_message=null,tracking_updated_at=null,
   shipping_cost_amount=cost,shipping_cost_currency=case when cost is not null then coalesce(o.currency,'EUR') end,
   shipping_cost_source='external_manual',shipping_cost_recorded_at=case when cost is not null then stamp end,
+  shipping_cost_net_amount=null,shipping_cost_tax_amount=null,
   external_shipment=jsonb_build_object('registeredAt',stamp,'actorId',p_actor,'requestId',p_request,'notifySource',notify,'input',p_input)
  where id=o.id and owner_id=p_owner returning * into o;
  if account is not null then

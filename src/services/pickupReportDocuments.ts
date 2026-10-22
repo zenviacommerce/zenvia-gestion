@@ -25,3 +25,5 @@ export async function sendPickupReportEmail(input:PickupMailInput){
  if(result.code==='GMAIL_DENIED'){const {clearGmailSendAuthorization}=await import('./gmailSender');clearGmailSendAuthorization()}
  return result;
 }
+
+export async function getPickupDocumentOwnerEmail(reportId:string){return (await invoke<{ok:true;email:string}>({action:'owner_email',reportId})).email}

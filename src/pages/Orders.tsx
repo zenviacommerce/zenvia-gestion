@@ -24,7 +24,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import JSZip from 'jszip';
 import { requestAmazonSync } from '../services/amazon';
 import {
-  AlertCircle, Calculator, CheckCircle2, ChevronRight, Download, Euro,
+  AlertCircle, Calculator, CheckCircle2, MoreHorizontal, ChevronRight, Download, Euro,
   ExternalLink, ImageOff, LoaderCircle, MapPin, PackageCheck, Percent, Pencil, FileText, Plus, Printer, RefreshCw,
   Search, Settings2, ShoppingBag, Store, Trash2, Truck, X,
 } from 'lucide-react';
@@ -1001,7 +1001,7 @@ export function Orders({pendingOnly=false,active=true}:{pendingOnly?:boolean;act
     <PageHeader title="Pedidos" eyebrow="LOGÍSTICA" description="Tu bandeja de trabajo de pedidos y envíos." actions={<>
       <button className="secondary" onClick={()=>setManualOpen(true)}><Plus size={16}/> Nuevo pedido</button>
       <button className="primary" aria-label="Actualizar pedidos" onClick={()=>sync(false,false)} disabled={syncing||bulkGenerating}>{syncing?<LoaderCircle className="spin" size={16}/>:<RefreshCw size={16}/>} {compactHeader?'Actualizar':'Actualizar pedidos'}</button>
-      <details className="ordersHeaderMore"><summary>Más acciones</summary><div className="ordersHeaderMenu">{headerUtilities}</div></details>
+      <details className="ordersHeaderMore"><summary className="secondary"><MoreHorizontal size={16} aria-hidden="true"/> Más acciones</summary><div className="ordersHeaderMenu">{headerUtilities}</div></details>
     </>}/>
     <Tabs label="Bandejas de pedidos" value={activeTab==='all'?'pending':activeTab} onChange={changeTab} panelId="orders-workbench-panel" items={ORDERS_TABS.map(tab=>({...tab,badge:tab.id==='reports'?undefined:workbenchCounters?.[tab.id]==null?'—':workbenchCounters[tab.id]?.toLocaleString('es-ES'),badgeTone:tab.id==='issues'&&(workbenchCounters?.issues||0)>0?'danger':'neutral'}))}>
     <div id="orders-workbench-panel" role="tabpanel" aria-labelledby={'orders-workbench-panel-tab-'+(activeTab==='all'?'pending':activeTab)}>

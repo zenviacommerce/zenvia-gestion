@@ -94,6 +94,7 @@ export function createPickupDocumentHandler(deps:Dependencies){
     const state=await rpc('pickup_document_complete',{...scope,p_report:body.reportId,p_request:body.requestId,p_lease:lease,p_artifact:{pdfHash:await pickupDigest(pdf),stampPath:brand.stampPath,logoPath:brand.logoPath}});signing=null;return json({ok:true,state});
    }
    if(body.action==='void'){const state=await rpc('pickup_document_void',{...scope,p_report:body.reportId,p_reason:String(body.reason||'')});return json({ok:true,state})}
+   if(body.action==='owner_email'){await rpc('pickup_document_read',{...scope,p_report:body.reportId});const {data,error}=await admin.auth.admin.getUserById(caller.data_owner_id);if(error||!validMailAddress(data?.user?.email||''))throw new PickupError('PICKUP_OWNER_EMAIL_UNAVAILABLE');return json({ok:true,email:data.user.email})}
    if(body.action==='mail_history')return json({ok:true,entries:await rpc('pickup_document_mail_list',{...scope,p_report:body.reportId})});
    if(body.action==='pdf'){
     const pdf=await pdfFor(caller,body.reportId,crypto.randomUUID());return new Response(new Uint8Array(pdf.bytes),{headers:{...cors,'Content-Type':'application/pdf','Cache-Control':'private, no-store','Content-Disposition':`attachment; filename="${String(pdf.number).replace(/[^A-Za-z0-9_-]+/g,'_')}.pdf"`}});

@@ -1,0 +1,90 @@
+{
+  "context": "Public RPCs, existing verified MFA context reconstructed inside local SQL settings; no auth/session/config change and no result data printed.",
+  "samples": [
+    {
+      "measured_at": "2026-10-23 13:19:13.384063+00",
+      "samples": [
+        {
+          "rpc": "workbench",
+          "cache": true,
+          "state": "pending",
+          "total": 1,
+          "elapsed_ms": 2526.271,
+          "result_hash": "36ae647f86a7682698c61a3a2b7ae933"
+        },
+        {
+          "rpc": "workbench",
+          "cache": true,
+          "state": "labelled",
+          "total": 5,
+          "elapsed_ms": 2586.551,
+          "result_hash": "dbbbd145a3f97daee5e2d6e851f2d17d"
+        },
+        {
+          "rpc": "workbench",
+          "cache": true,
+          "state": "shipped",
+          "total": 938,
+          "elapsed_ms": 2740.095,
+          "result_hash": "3ed5d2b89fe11cede2cf9be9108b62bf"
+        },
+        {
+          "rpc": "workbench",
+          "cache": true,
+          "state": "all",
+          "total": 1008,
+          "elapsed_ms": 2603.281,
+          "result_hash": "236b8240edf376ee6f5b8d7961e53abc"
+        },
+        {
+          "rpc": "workbench",
+          "cache": true,
+          "state": "issues",
+          "total": 8,
+          "elapsed_ms": 2499.52,
+          "result_hash": "3eee73ca86a8458df6881ff4d60aa078"
+        },
+        {
+          "rpc": "pickup",
+          "cache": true,
+          "state": "pending",
+          "total": 1,
+          "elapsed_ms": 2475.834,
+          "result_hash": "fa6f487cca2620ea6d4eee03c3824eb4"
+        },
+        {
+          "rpc": "pickup",
+          "cache": true,
+          "state": "labelled",
+          "total": 5,
+          "elapsed_ms": 2479.436,
+          "result_hash": "2d7e404fa3bc54156afb5239cd189799"
+        },
+        {
+          "rpc": "pickup",
+          "cache": true,
+          "state": "shipped",
+          "total": 938,
+          "elapsed_ms": 2582.707,
+          "result_hash": "5803f6bed8af7a0a039196c791e98b63"
+        },
+        {
+          "rpc": "pickup",
+          "cache": true,
+          "state": "all",
+          "total": 1008,
+          "elapsed_ms": 2545.466,
+          "result_hash": "3f5081ae7b88fc83f4d642e6cfb6515b"
+        },
+        {
+          "rpc": "pickup",
+          "cache": true,
+          "state": "issues",
+          "total": 0,
+          "elapsed_ms": 2478.687,
+          "result_hash": "8dbda48ad3d93b67e8034bb77ef03a7d"
+        }
+      ]
+    }
+  ]
+}

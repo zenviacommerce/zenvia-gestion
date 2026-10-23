@@ -15,7 +15,7 @@ import { PeriodFilterPanel } from '../components/PeriodFilterPanel';
 import { defaultDateFilter, periodLabel } from '../services/filters';
 import { loadSalesInvoices, type SalesInvoice } from '../services/sales';
 import { listFulfillmentOrders, type FulfillmentOrder } from '../services/orders';
-import { isCancelledOrder, isPendingOrder, orderStatusCode } from '../services/orderStatus';
+import { isCancelledOrder, isPendingOrder, isProcessedOrder } from '../services/orderStatus';
 import { readViewCache, writeViewCache } from '../services/viewCache';
 import { useSettings } from '../context/SettingsContext';
 import { DASHBOARD_KPI_DEFAULTS, persistRememberedFilter, rememberedFilter, selectedPreferenceKeys } from '../services/uiPreferences';
@@ -25,10 +25,6 @@ const colors = ['#0f766e','#2563eb','#7c3aed','#d97706','#64748b','#dc2626','#08
 const DASHBOARD_SALES_CACHE='dashboard:sales';
 
 function orderDate(order:FulfillmentOrder){return order.orderCreatedAt?.slice(0,10)||'';}
-function isShippedOrder(order:FulfillmentOrder){
-  const status=orderStatusCode(order);
-  return ['shipped','fulfilled','delivered','processed','completed'].includes(status);
-}
 
 export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrders}:{invoices:Invoice[];products:Product[];suppliers:Supplier[];onUpload?:()=>void;onProducts?:()=>void;onOrders?:()=>void}){
   const {settings,preferences,patchPreferences}=useSettings();
@@ -101,7 +97,7 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
   // reflect every order that is still genuinely pending even across month /
   // quarter boundaries. Period filters continue to apply to the remaining KPIs.
   const pendingOrders=allValidOrders.filter(isPendingOrder).length;
-  const shippedOrders=validOrders.filter(isShippedOrder).length;
+  const shippedOrders=validOrders.filter(isProcessedOrder).length;
   const cancelledOrders=selectedOrders.filter(isCancelledOrder).length;
   const amazonOrders=validOrders.filter(order=>order.sourceChannel==='amazon').length;
   const shopifyOrders=validOrders.filter(order=>order.sourceChannel==='shopify').length;

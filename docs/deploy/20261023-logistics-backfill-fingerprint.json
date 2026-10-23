@@ -1,0 +1,13 @@
+{
+  "readOnly": true,
+  "executedProductionWrites": 0,
+  "capturedOn": "2026-10-23",
+  "rows": [
+    {
+      "candidates": 947,
+      "dispatch": 356,
+      "historical": 591,
+      "fingerprint": "f28630ac6598c7f4c37562b2de4f37b9"
+    }
+  ]
+}

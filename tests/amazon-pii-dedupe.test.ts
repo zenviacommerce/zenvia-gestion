@@ -1,7 +1,7 @@
 import {afterEach,expect,it,vi} from 'vitest';
 const network=vi.hoisted(()=>({rows:[] as Record<string,unknown>[]}));
 vi.mock('../src/services/supabase',()=>{
- const client={auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},from:()=>({select(){return this},order(){return this},limit(){return this},abortSignal:async()=>({data:network.rows,error:null})})};
+ const client={rpc:(name:string)=>{if(name!=='order_logistics_read')throw Error('Unexpected RPC');return {abortSignal:async()=>({data:network.rows.map(row=>({id:row.id,logistics_identity:'synthetic-identity',logistics:row.pii_purged_at?{historical:true}:null,logistics_state:row.pii_purged_at?'shipped':'labelled'})),error:null})}},auth:{onAuthStateChange:()=>({data:{subscription:{unsubscribe(){}}}})},from:()=>({select(){return this},order(){return this},limit(){return this},abortSignal:async()=>({data:network.rows,error:null})})};
  return {supabase:client,getActiveSupabase:()=>client};
 });
 import {listFulfillmentOrders} from '../src/services/orders';

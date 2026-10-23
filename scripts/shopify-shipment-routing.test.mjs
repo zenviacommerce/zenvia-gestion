@@ -3,9 +3,10 @@ import test from 'node:test';
 import {readFile} from 'node:fs/promises';
 import vm from 'node:vm';
 import ts from 'typescript';
+import {build} from 'esbuild';
 async function service(channel='shopify',fail=false){
  const source=await readFile('src/services/orders.ts','utf8');const calls=[];
- const statusExports={};vm.runInNewContext(ts.transpileModule(await readFile('src/services/orderStatus.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:statusExports});
+ const statusExports=await import('data:text/javascript;base64,'+Buffer.from((await build({entryPoints:['src/services/orderStatus.ts'],bundle:true,write:false,format:'esm',platform:'node'})).outputFiles[0].text).toString('base64'));
  const supabase={from(){return {select(){return this},eq(){return this},async single(){return {data:{source_channel:channel},error:null}}}},functions:{async invoke(name,{body}){calls.push({name,body});if(name==='mrw-shipping')return {data:{trackingNumber:'MRW1',base64:'',mimeType:'application/pdf'},error:null};if(fail)return {data:{error:'Shopify rechazó el envío'},error:null};return {data:{ok:true},error:null}}}};
  const cacheExports={},snapshotExports={};
  vm.runInNewContext(ts.transpileModule(await readFile('src/services/viewCache.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2022}}).outputText,{exports:cacheExports});

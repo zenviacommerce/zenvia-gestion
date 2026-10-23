@@ -1,0 +1,37 @@
+{
+  "readOnly": true,
+  "executedProductionWrites": 0,
+  "capturedOn": "2026-10-23",
+  "rows": [
+    {
+      "source_channel": "amazon",
+      "before_state": "cancelled",
+      "after_state": "cancelled",
+      "orders": 64
+    },
+    {
+      "source_channel": "amazon",
+      "before_state": "shipped",
+      "after_state": "labelled",
+      "orders": 8
+    },
+    {
+      "source_channel": "amazon",
+      "before_state": "shipped",
+      "after_state": "shipped",
+      "orders": 919
+    },
+    {
+      "source_channel": "shopify",
+      "before_state": "shipped",
+      "after_state": "labelled",
+      "orders": 2
+    },
+    {
+      "source_channel": "shopify",
+      "before_state": "shipped",
+      "after_state": "shipped",
+      "orders": 14
+    }
+  ]
+}

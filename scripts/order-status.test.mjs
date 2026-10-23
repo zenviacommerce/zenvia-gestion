@@ -1,17 +1,11 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
-import ts from 'typescript';
+import {build} from 'esbuild';
 
 async function loadOrderStatusModule() {
-  const source = await readFile(new URL('../src/services/orderStatus.ts', import.meta.url), 'utf8');
-  const transpiled = ts.transpileModule(source, {
-    compilerOptions: {
-      module: ts.ModuleKind.ES2022,
-      target: ts.ScriptTarget.ES2022,
-    },
-  }).outputText;
-  return import(`data:text/javascript;base64,${Buffer.from(transpiled).toString('base64')}`);
+  const result=await build({entryPoints:['src/services/orderStatus.ts'],bundle:true,write:false,format:'esm',platform:'node'});
+  return import(`data:text/javascript;base64,${Buffer.from(result.outputFiles[0].text).toString('base64')}`);
 }
 
 test('a source-pending order with a Sendcloud parcel is not operationally pending', async () => {
@@ -38,17 +32,15 @@ test('a generic Envia label also removes an order from operational pending state
   assert.equal(isPendingOrder(order),false);
 });
 
-test('marketplace confirmation wins over carrier pre-dispatch status',async()=>{
+test('marketplace confirmation leaves a label pending physical pickup',async()=>{
  const {isProcessedOrder,isLabelledOrder}=await loadOrderStatusModule();
  const order={sourceStatus:'shipped',labelCreatedAt:'2026-10-12T19:26:58Z',trackingStatusMessage:'ready to send'};
- assert.equal(isProcessedOrder(order),true);assert.equal(isLabelledOrder(order),false);
+ assert.equal(isProcessedOrder(order),false);assert.equal(isLabelledOrder(order),true);
 });
-test('Orders screen recognises a confirmed Shopify shipment before carrier pickup',async()=>{
+test('Orders screen uses the common physical-dispatch classifier',async()=>{
  const source=await readFile(new URL('../src/pages/Orders.tsx',import.meta.url),'utf8');
- const helper=source.slice(source.indexOf('function isProcessedOrder('),source.indexOf('function isLabelledOrder('));
- const {default:vm}=await import('node:vm');
- const context=vm.createContext({hasShippingLabel:()=>true,isCancelledOrder:()=>false,orderStatusCode:order=>order.sourceStatus});
- vm.runInContext(ts.transpile(helper)+';globalThis.processed=isProcessedOrder;',context);
- assert.equal(context.processed({sourceStatus:'shipped',trackingStatusMessage:'ready to send'}),true);
- assert.equal(context.processed({sourceStatus:'pending',trackingStatusMessage:'ready to send'}),false);
+ assert.match(source,/import \{[^}]*isProcessedOrder[^}]*\} from ['"]\.\.\/services\/orderStatus['"]/);
+ const {isProcessedOrder}=await loadOrderStatusModule();
+ assert.equal(isProcessedOrder({sourceStatus:'shipped',labelCreatedAt:'2026-10-23T08:00:00Z'}),false);
+ assert.equal(isProcessedOrder({sourceStatus:'shipped',labelCreatedAt:'2026-10-23T08:00:00Z',logisticsDispatchedAt:'2026-10-23T09:00:00Z'}),true);
 });

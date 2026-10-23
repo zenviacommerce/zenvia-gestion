@@ -1,6 +1,6 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import {transform} from 'esbuild';
+import test from 'node:test';import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';import {transform,build} from 'esbuild';
 const source=await readFile(new URL('../src/services/orderStatus.ts',import.meta.url),'utf8');
-const code=(await transform(source,{loader:'ts',format:'esm'})).code;
+const code=(await build({entryPoints:['src/services/orderStatus.ts'],bundle:true,write:false,format:'esm',platform:'node'})).outputFiles[0].text;
 const status=await import('data:text/javascript;base64,'+Buffer.from(code).toString('base64'));
 const order=(sourceStatus,sourceChannel='amazon')=>({sourceStatus,sourceChannel});
 test('Amazon Pending and PendingAvailability never count as orders awaiting shipment',()=>{assert.equal(status.isPendingOrder(order('PENDING')),false);assert.equal(status.isPendingOrder(order('PendingAvailability')),false);assert.equal(status.isPendingOrder(order('InvoiceUnconfirmed')),false);});

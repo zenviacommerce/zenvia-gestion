@@ -1,0 +1,65 @@
+{
+  "synthetic": true,
+  "checks": [
+    {
+      "width": 390,
+      "theme": "light",
+      "file": "summary-390-light.png",
+      "overflow": false,
+      "shipped": "Enviados14Todo el histórico",
+      "actions": [
+        "+ Factura de gasto"
+      ]
+    },
+    {
+      "width": 390,
+      "theme": "dark",
+      "file": "summary-390-dark.png",
+      "overflow": false,
+      "shipped": "Enviados14Todo el histórico",
+      "actions": [
+        "+ Factura de gasto"
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "light",
+      "file": "summary-1440-light.png",
+      "overflow": false,
+      "shipped": "Enviados14Todo el histórico",
+      "actions": [
+        "+ Factura de gasto"
+      ]
+    },
+    {
+      "width": 1440,
+      "theme": "dark",
+      "file": "summary-1440-dark.png",
+      "overflow": false,
+      "shipped": "Enviados14Todo el histórico",
+      "actions": [
+        "+ Factura de gasto"
+      ]
+    },
+    {
+      "width": 2560,
+      "theme": "light",
+      "file": "summary-2560-light.png",
+      "overflow": false,
+      "shipped": "Enviados14Todo el histórico",
+      "actions": [
+        "+ Factura de gasto"
+      ]
+    },
+    {
+      "width": 2560,
+      "theme": "dark",
+      "file": "summary-2560-dark.png",
+      "overflow": false,
+      "shipped": "Enviados14Todo el histórico",
+      "actions": [
+        "+ Factura de gasto"
+      ]
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+{
+  "deployments": [
+    {
+      "name": "mrw-shipping",
+      "result": {
+        "id": "6c243fb2-a29f-42ff-8481-7702e2fce51d",
+        "slug": "mrw-shipping",
+        "name": "mrw-shipping",
+        "status": "ACTIVE",
+        "version": 26,
+        "created_at": 1790851351922,
+        "updated_at": 1792729444733,
+        "verify_jwt": true,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_sjkxxbedkkmgmqnvaqjh_6c243fb2-a29f-42ff-8481-7702e2fce51d_26/source/mrw-shipping/index.ts",
+        "ezbr_sha256": "0960d663f566ec3faa01ab52fd89bda041849308274d91c15abadb2c140fffde"
+      }
+    },
+    {
+      "name": "envia-shipping",
+      "result": {
+        "id": "a54d8da5-3e8c-4cb5-8719-84b91982ff84",
+        "slug": "envia-shipping",
+        "name": "envia-shipping",
+        "status": "ACTIVE",
+        "version": 46,
+        "created_at": 1790687018593,
+        "updated_at": 1792729446463,
+        "verify_jwt": true,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_sjkxxbedkkmgmqnvaqjh_a54d8da5-3e8c-4cb5-8719-84b91982ff84_46/source/envia-shipping/index.ts",
+        "ezbr_sha256": "d9d742aa8716507e9e88d1b3a52fd7e27095b4f56bd01f7823fabf63c68059d1"
+      }
+    },
+    {
+      "name": "sendcloud-orders",
+      "result": {
+        "id": "d12c2a42-7686-4df1-a660-c084ea9bb364",
+        "slug": "sendcloud-orders",
+        "name": "sendcloud-orders",
+        "status": "ACTIVE",
+        "version": 36,
+        "created_at": 1789461955218,
+        "updated_at": 1792729447572,
+        "verify_jwt": true,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_sjkxxbedkkmgmqnvaqjh_d12c2a42-7686-4df1-a660-c084ea9bb364_36/source/sendcloud-orders/index.ts",
+        "ezbr_sha256": "b54dc0dd96a6e31e9c94402bb8726ccd7867c69fdef5b69888c52c3246eda57d"
+      }
+    },
+    {
+      "name": "sendcloud-order-tools",
+      "result": {
+        "id": "d554160f-768f-43c4-8a9a-7d0fd39749b0",
+        "slug": "sendcloud-order-tools",
+        "name": "sendcloud-order-tools",
+        "status": "ACTIVE",
+        "version": 38,
+        "created_at": 1789467057964,
+        "updated_at": 1792729448931,
+        "verify_jwt": true,
+        "import_map": false,
+        "entrypoint_path": "file:///tmp/user_fn_sjkxxbedkkmgmqnvaqjh_d554160f-768f-43c4-8a9a-7d0fd39749b0_38/source/sendcloud-order-tools/index.ts",
+        "ezbr_sha256": "c7a385c024cdb9e76600b754359a8e93c90652a3bb9ece1e104ac287257f0e8a"
+      }
+    }
+  ],
+  "verified": [
+    {
+      "name": "mrw-shipping",
+      "version": 26,
+      "jwt": true,
+      "filesMatched": 9
+    },
+    {
+      "name": "envia-shipping",
+      "version": 46,
+      "jwt": true,
+      "filesMatched": 10
+    },
+    {
+      "name": "sendcloud-orders",
+      "version": 36,
+      "jwt": true,
+      "filesMatched": 10
+    },
+    {
+      "name": "sendcloud-order-tools",
+      "version": 38,
+      "jwt": true,
+      "filesMatched": 10
+    }
+  ]
+}

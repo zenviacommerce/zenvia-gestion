@@ -1,0 +1,34 @@
+{
+  "main": "64a09358e253bfb6c44e8de73cd8b01c117d4e57",
+  "orders": 1023,
+  "cancelled_orders": 0,
+  "new_history_rows": 0,
+  "mfaHash": "33c89c211446450e2dadbe7e5b5760cf",
+  "orderFingerprint": "8e2b6bf3a0fab2a4599b4fec670457c0",
+  "functions": [
+    {
+      "slug": "envia-shipping",
+      "version": 45,
+      "jwt": true,
+      "sha256": "1b74569ee0d1a0bce00536a8750b78961756ed1225e5fbb37134028146ccddd7"
+    },
+    {
+      "slug": "sendcloud-orders",
+      "version": 35,
+      "jwt": true,
+      "sha256": "824035165e267a7f583650dd570b6babcd7632fd4cd8d49e2b67648bd3f04e18"
+    },
+    {
+      "slug": "sendcloud-order-tools",
+      "version": 37,
+      "jwt": true,
+      "sha256": "65df51c6ccaa963f94ff86a2782466381fbf6e761d1108149c9edbec966188b8"
+    },
+    {
+      "slug": "mrw-shipping",
+      "version": 25,
+      "jwt": true,
+      "sha256": "3914d18fa0c98381c35ff6f2159c3840b17f5305d617ca889be0bec1dcc1d1af"
+    }
+  ]
+}

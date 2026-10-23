@@ -1,0 +1,18 @@
+[
+  {
+    "slug": "mrw-shipping",
+    "unauthenticatedStatus": 401
+  },
+  {
+    "slug": "envia-shipping",
+    "unauthenticatedStatus": 401
+  },
+  {
+    "slug": "sendcloud-orders",
+    "unauthenticatedStatus": 401
+  },
+  {
+    "slug": "sendcloud-order-tools",
+    "unauthenticatedStatus": 401
+  }
+]

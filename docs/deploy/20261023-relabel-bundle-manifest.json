@@ -1,0 +1,182 @@
+[
+  {
+    "name": "mrw-shipping",
+    "jwt": true,
+    "files": [
+      {
+        "name": "mrw-shipping/index.ts",
+        "sha256": "5ef00a767344533b9d1e7a18609bce4537abc714f66971ae50d40e33cca1bd8f"
+      },
+      {
+        "name": "_shared/orderPackageWeight.ts",
+        "sha256": "65912cc168203981574e876c514c413040bad11bee56c93a52b23f48c9c9eaec"
+      },
+      {
+        "name": "_shared/amazon/config.ts",
+        "sha256": "b97812286be5ef03a611ad547170c515f30ee2278722026fd108aaeddb431cb2"
+      },
+      {
+        "name": "_shared/amazon/sp-api.ts",
+        "sha256": "a522fb054ca6e4f6825b20409ecb593b5f8b676f59342342699141b81edc3098"
+      },
+      {
+        "name": "_shared/amazon/http.ts",
+        "sha256": "7d911129559f50ac1a7105f585381274246896339a85ea4bb5b1a554db89a30e"
+      },
+      {
+        "name": "_shared/mfa.ts",
+        "sha256": "1da4d61cbfe1f034f5fdacb8dbe9db5762d260deb93d66a32692bab5e378c354"
+      },
+      {
+        "name": "_shared/mfa-policy.ts",
+        "sha256": "00dfe08fc80e6b41b9bd2490c6c768330e6971defa72f68e899e710fdd039b4d"
+      },
+      {
+        "name": "_shared/amazonPiiRead.ts",
+        "sha256": "17cffaba0f689afaf9ab8b6c91b92ac944ec10143ad337371b33273248015243"
+      },
+      {
+        "name": "_shared/amazonShippingEligibility.ts",
+        "sha256": "6ec62e6838f51bd73faf6b690e6a12dcc25c616124767547d3b95b39eb7ef3ea"
+      }
+    ]
+  },
+  {
+    "name": "envia-shipping",
+    "jwt": true,
+    "files": [
+      {
+        "name": "envia-shipping/index.ts",
+        "sha256": "0fbf613c02e3e0b78d1fb0b663e7b6ac41adf5324ea939f3647e4353483d00c8"
+      },
+      {
+        "name": "_shared/orderPackageWeight.ts",
+        "sha256": "65912cc168203981574e876c514c413040bad11bee56c93a52b23f48c9c9eaec"
+      },
+      {
+        "name": "_shared/amazon/config.ts",
+        "sha256": "b97812286be5ef03a611ad547170c515f30ee2278722026fd108aaeddb431cb2"
+      },
+      {
+        "name": "_shared/amazon/sp-api.ts",
+        "sha256": "a522fb054ca6e4f6825b20409ecb593b5f8b676f59342342699141b81edc3098"
+      },
+      {
+        "name": "_shared/amazon/http.ts",
+        "sha256": "7d911129559f50ac1a7105f585381274246896339a85ea4bb5b1a554db89a30e"
+      },
+      {
+        "name": "_shared/carrierPolicy.ts",
+        "sha256": "fdb13442df2279db195067902b36938500215a158ff1b225173354331f691a40"
+      },
+      {
+        "name": "_shared/mfa.ts",
+        "sha256": "1da4d61cbfe1f034f5fdacb8dbe9db5762d260deb93d66a32692bab5e378c354"
+      },
+      {
+        "name": "_shared/mfa-policy.ts",
+        "sha256": "00dfe08fc80e6b41b9bd2490c6c768330e6971defa72f68e899e710fdd039b4d"
+      },
+      {
+        "name": "_shared/amazonPiiRead.ts",
+        "sha256": "17cffaba0f689afaf9ab8b6c91b92ac944ec10143ad337371b33273248015243"
+      },
+      {
+        "name": "_shared/amazonShippingEligibility.ts",
+        "sha256": "6ec62e6838f51bd73faf6b690e6a12dcc25c616124767547d3b95b39eb7ef3ea"
+      }
+    ]
+  },
+  {
+    "name": "sendcloud-orders",
+    "jwt": true,
+    "files": [
+      {
+        "name": "sendcloud-orders/index.ts",
+        "sha256": "c974a06cf60d69888006d6ef87c9f907a917c2860f233c295c42841406ba3aa3"
+      },
+      {
+        "name": "_shared/orderPackageWeight.ts",
+        "sha256": "65912cc168203981574e876c514c413040bad11bee56c93a52b23f48c9c9eaec"
+      },
+      {
+        "name": "_shared/amazon/config.ts",
+        "sha256": "b97812286be5ef03a611ad547170c515f30ee2278722026fd108aaeddb431cb2"
+      },
+      {
+        "name": "_shared/amazon/sp-api.ts",
+        "sha256": "a522fb054ca6e4f6825b20409ecb593b5f8b676f59342342699141b81edc3098"
+      },
+      {
+        "name": "_shared/amazon/http.ts",
+        "sha256": "7d911129559f50ac1a7105f585381274246896339a85ea4bb5b1a554db89a30e"
+      },
+      {
+        "name": "_shared/carrierPolicy.ts",
+        "sha256": "fdb13442df2279db195067902b36938500215a158ff1b225173354331f691a40"
+      },
+      {
+        "name": "_shared/mfa.ts",
+        "sha256": "1da4d61cbfe1f034f5fdacb8dbe9db5762d260deb93d66a32692bab5e378c354"
+      },
+      {
+        "name": "_shared/mfa-policy.ts",
+        "sha256": "00dfe08fc80e6b41b9bd2490c6c768330e6971defa72f68e899e710fdd039b4d"
+      },
+      {
+        "name": "_shared/amazonPiiRead.ts",
+        "sha256": "17cffaba0f689afaf9ab8b6c91b92ac944ec10143ad337371b33273248015243"
+      },
+      {
+        "name": "_shared/amazonShippingEligibility.ts",
+        "sha256": "6ec62e6838f51bd73faf6b690e6a12dcc25c616124767547d3b95b39eb7ef3ea"
+      }
+    ]
+  },
+  {
+    "name": "sendcloud-order-tools",
+    "jwt": true,
+    "files": [
+      {
+        "name": "sendcloud-order-tools/index.ts",
+        "sha256": "7f20e0a7d86613ceed0ce61aa74addbe9b0e46d15b7081004e8f455bc342bd14"
+      },
+      {
+        "name": "_shared/orderPackageWeight.ts",
+        "sha256": "65912cc168203981574e876c514c413040bad11bee56c93a52b23f48c9c9eaec"
+      },
+      {
+        "name": "_shared/amazon/config.ts",
+        "sha256": "b97812286be5ef03a611ad547170c515f30ee2278722026fd108aaeddb431cb2"
+      },
+      {
+        "name": "_shared/amazon/sp-api.ts",
+        "sha256": "a522fb054ca6e4f6825b20409ecb593b5f8b676f59342342699141b81edc3098"
+      },
+      {
+        "name": "_shared/amazon/http.ts",
+        "sha256": "7d911129559f50ac1a7105f585381274246896339a85ea4bb5b1a554db89a30e"
+      },
+      {
+        "name": "_shared/carrierPolicy.ts",
+        "sha256": "fdb13442df2279db195067902b36938500215a158ff1b225173354331f691a40"
+      },
+      {
+        "name": "_shared/mfa.ts",
+        "sha256": "1da4d61cbfe1f034f5fdacb8dbe9db5762d260deb93d66a32692bab5e378c354"
+      },
+      {
+        "name": "_shared/mfa-policy.ts",
+        "sha256": "00dfe08fc80e6b41b9bd2490c6c768330e6971defa72f68e899e710fdd039b4d"
+      },
+      {
+        "name": "_shared/amazonPiiRead.ts",
+        "sha256": "17cffaba0f689afaf9ab8b6c91b92ac944ec10143ad337371b33273248015243"
+      },
+      {
+        "name": "_shared/amazonShippingEligibility.ts",
+        "sha256": "6ec62e6838f51bd73faf6b690e6a12dcc25c616124767547d3b95b39eb7ef3ea"
+      }
+    ]
+  }
+]

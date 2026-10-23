@@ -732,7 +732,7 @@ Deno.serve(async(req:Request)=>{
       const quotedPrice=option?.price==null?NaN:number(option.price,NaN);
       const price=Number.isFinite(generatedPrice)?generatedPrice:(Number.isFinite(quotedPrice)?quotedPrice:null);
       const currency=clean(data?.currency||option?.currency)||'EUR';
-      const patch:any={raw_payload:order.raw_payload,
+      const patch:any={raw_payload:order.raw_payload,label_cancelled_at:null,tracking_status_code:'READY_TO_SEND',tracking_status_message:'Ready to send',tracking_updated_at:now,
         shipping_provider:'envia',
         shipping_remote_id:tracking,
         shipping_label_url:labelUrl,

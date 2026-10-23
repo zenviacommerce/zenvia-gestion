@@ -1,0 +1,1298 @@
+[
+  {
+    "phase": "before",
+    "width": 390,
+    "theme": "light",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 390,
+    "theme": "light",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 390,
+    "theme": "light",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 390,
+    "theme": "light",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 390,
+    "theme": "dark",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 390,
+    "theme": "dark",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 390,
+    "theme": "dark",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 390,
+    "theme": "dark",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1280,
+    "theme": "light",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1280,
+    "theme": "light",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1280,
+    "theme": "light",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1280,
+    "theme": "light",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1280,
+    "theme": "dark",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1280,
+    "theme": "dark",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1280,
+    "theme": "dark",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1280,
+    "theme": "dark",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1440,
+    "theme": "light",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1440,
+    "theme": "light",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1440,
+    "theme": "light",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1440,
+    "theme": "light",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1440,
+    "theme": "dark",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1440,
+    "theme": "dark",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1440,
+    "theme": "dark",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "before",
+    "width": 1440,
+    "theme": "dark",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 390,
+    "theme": "light",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 390,
+    "theme": "light",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 390,
+    "theme": "light",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 390,
+    "theme": "light",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 390,
+    "theme": "dark",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 390,
+    "theme": "dark",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 390,
+    "theme": "dark",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 390,
+    "theme": "dark",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1280,
+    "theme": "light",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1280,
+    "theme": "light",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1280,
+    "theme": "light",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1280,
+    "theme": "light",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1280,
+    "theme": "dark",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1280,
+    "theme": "dark",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1280,
+    "theme": "dark",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1280,
+    "theme": "dark",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "theme": "light",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "theme": "light",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "theme": "light",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "theme": "light",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "theme": "dark",
+    "kind": "pending",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Registrar envío externo",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "theme": "dark",
+    "kind": "labelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Confirmar envío en Shopify",
+        "disabled": false
+      },
+      {
+        "name": "Generar / ver factura",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "theme": "dark",
+    "kind": "cancelled-label",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Editar pedido",
+        "disabled": false
+      },
+      {
+        "name": "Preparar nueva etiqueta",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  },
+  {
+    "phase": "after",
+    "width": 1440,
+    "theme": "dark",
+    "kind": "relabelled",
+    "actions": [
+      {
+        "name": "",
+        "disabled": false
+      },
+      {
+        "name": "Copiar tracking",
+        "disabled": false
+      },
+      {
+        "name": "Descargar",
+        "disabled": false
+      },
+      {
+        "name": "Imprimir",
+        "disabled": false
+      }
+    ],
+    "errors": []
+  }
+]

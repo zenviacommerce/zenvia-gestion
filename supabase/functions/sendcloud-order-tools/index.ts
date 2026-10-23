@@ -1,3 +1,4 @@
+import {canRelabelCancelledShipment} from '../_shared/amazonShippingEligibility.ts';
 import {resolveOrderPackageWeight} from '../_shared/orderPackageWeight.ts';
 import {loadDirectCarrierIds,filterAggregatorOptions} from '../_shared/carrierPolicy.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
@@ -319,7 +320,9 @@ Deno.serve(async(req:Request)=>{
     if(order.pii_purged_at)return fail('Los datos personales de este pedido se han eliminado por retención.',410);
     return await (action==='shipping_options'?withOrderQuote:action==='create_label'?withOrderLabelCreation:withAmazonBuyerRead)(admin,order,async()=>{
     if(['shipping_options','create_label'].includes(action))await resolveOrderPackageWeight(admin,order,shippingConfig);
-    const orderCredentials=await credentialsForOrder(admin,caller.data_owner_id,order.shipping_integration_account_id||null);
+    const replacement=canRelabelCancelledShipment(order);
+    const accountId=replacement&&order.shipping_provider&&order.shipping_provider!=='sendcloud'?null:order.shipping_integration_account_id||null;
+    const orderCredentials=await credentialsForOrder(admin,caller.data_owner_id,accountId);
     const sendcloudOrderId=remoteSendcloudId(order);
 
     if(action==='validate_address'){
@@ -363,7 +366,7 @@ Deno.serve(async(req:Request)=>{
 
     if(action==='shipping_options'){
       const direct=await loadDirectCarrierIds(admin,caller.data_owner_id);
-      if(!canEdit(order.source_status)||order.sendcloud_parcel_id)return fail('Este pedido ya no admite una nueva etiqueta.',409);
+      if((!canEdit(order.source_status)&&!canRelabelCancelledShipment(order))||order.sendcloud_parcel_id)return fail('Este pedido ya no admite una nueva etiqueta.',409);
       let address=order.shipping_address||{};
       // For zonal carriers (Correos / Correos Express), Sendcloud v2 requires
       // sender_address=<ID>. Our configured sender object has no Sendcloud ID,
@@ -460,7 +463,7 @@ Deno.serve(async(req:Request)=>{
 
     if(action==='update_order'){
       if(!sendcloudOrderId)return fail('El pedido no tiene identificador remoto de Sendcloud.',409);
-      if(!canEdit(order.source_status)||order.sendcloud_parcel_id)return fail('Solo puedes editar pedidos pendientes antes de crear la etiqueta.',409);
+      if((!canEdit(order.source_status)&&!canRelabelCancelledShipment(order))||order.sendcloud_parcel_id)return fail('Solo puedes editar pedidos pendientes antes de crear la etiqueta.',409);
       const input=body?.order||{},current=order.shipping_address||{};
       const name=clean(input.customerName||current.name||order.customer_name),companyName=clean(input.companyName??current.company_name),email=clean(input.email??current.email??order.customer_email),phone=clean(input.phone??current.phone_number??order.customer_phone);
       const address1=clean(input.address??current.address_line_1),houseNumber=clean(input.houseNumber??current.house_number),address2=clean(input.address2??current.address_line_2),postalCode=clean(input.postalCode??current.postal_code),city=clean(input.city??current.city),countryCode=clean(input.countryCode??current.country_code).toUpperCase();

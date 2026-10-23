@@ -1,0 +1,482 @@
+[
+  {
+    "phase": "before",
+    "name": "pending-mrw",
+    "theme": "light",
+    "width": 390,
+    "sourceSHA256": "33942ab90313176b07169e17762c75d7b623c504793af8d7fd323d7876ff8834",
+    "actions": [
+      "",
+      " Registrar envío externo",
+      " Generar / ver factura",
+      " Editar pedido",
+      " Preparar etiqueta"
+    ]
+  },
+  {
+    "phase": "before",
+    "name": "pending-mrw",
+    "theme": "dark",
+    "width": 390,
+    "sourceSHA256": "33942ab90313176b07169e17762c75d7b623c504793af8d7fd323d7876ff8834",
+    "actions": [
+      "",
+      " Registrar envío externo",
+      " Generar / ver factura",
+      " Editar pedido",
+      " Preparar etiqueta"
+    ]
+  },
+  {
+    "phase": "before",
+    "name": "pending-mrw",
+    "theme": "light",
+    "width": 1440,
+    "sourceSHA256": "33942ab90313176b07169e17762c75d7b623c504793af8d7fd323d7876ff8834",
+    "actions": [
+      "",
+      " Registrar envío externo",
+      " Generar / ver factura",
+      " Editar pedido",
+      " Preparar etiqueta"
+    ]
+  },
+  {
+    "phase": "before",
+    "name": "pending-mrw",
+    "theme": "dark",
+    "width": 1440,
+    "sourceSHA256": "33942ab90313176b07169e17762c75d7b623c504793af8d7fd323d7876ff8834",
+    "actions": [
+      "",
+      " Registrar envío externo",
+      " Generar / ver factura",
+      " Editar pedido",
+      " Preparar etiqueta"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "pending-mrw",
+    "theme": "light",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "pending",
+    "theme": "light",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "error",
+    "theme": "light",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "recovered",
+    "theme": "light",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      "Copiar",
+      " Confirmar envío en Shopify",
+      " Generar / ver factura",
+      "Marcar como enviado",
+      " Descargar",
+      " Imprimir"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "recovered-actions",
+    "theme": "light",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      "Copiar",
+      " Confirmar envío en Shopify",
+      " Generar / ver factura",
+      "Marcar como enviado",
+      " Descargar",
+      " Imprimir"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "released",
+    "theme": "light",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Registrar envío externo",
+      " Generar / ver factura",
+      " Editar pedido",
+      " Preparar etiqueta"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "sendcloud",
+    "theme": "light",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con Sendcloud",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "envia",
+    "theme": "light",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con Envia",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "pending-mrw",
+    "theme": "dark",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "pending",
+    "theme": "dark",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "error",
+    "theme": "dark",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "recovered",
+    "theme": "dark",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      "Copiar",
+      " Confirmar envío en Shopify",
+      " Generar / ver factura",
+      "Marcar como enviado",
+      " Descargar",
+      " Imprimir"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "recovered-actions",
+    "theme": "dark",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      "Copiar",
+      " Confirmar envío en Shopify",
+      " Generar / ver factura",
+      "Marcar como enviado",
+      " Descargar",
+      " Imprimir"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "released",
+    "theme": "dark",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Registrar envío externo",
+      " Generar / ver factura",
+      " Editar pedido",
+      " Preparar etiqueta"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "sendcloud",
+    "theme": "dark",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con Sendcloud",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "envia",
+    "theme": "dark",
+    "width": 390,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con Envia",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "pending-mrw",
+    "theme": "light",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "pending",
+    "theme": "light",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "error",
+    "theme": "light",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "recovered",
+    "theme": "light",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      "Copiar",
+      " Confirmar envío en Shopify",
+      " Generar / ver factura",
+      "Marcar como enviado",
+      " Descargar",
+      " Imprimir"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "recovered-actions",
+    "theme": "light",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      "Copiar",
+      " Confirmar envío en Shopify",
+      " Generar / ver factura",
+      "Marcar como enviado",
+      " Descargar",
+      " Imprimir"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "released",
+    "theme": "light",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Registrar envío externo",
+      " Generar / ver factura",
+      " Editar pedido",
+      " Preparar etiqueta"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "sendcloud",
+    "theme": "light",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con Sendcloud",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "envia",
+    "theme": "light",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con Envia",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "pending-mrw",
+    "theme": "dark",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "pending",
+    "theme": "dark",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "error",
+    "theme": "dark",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con MRW",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "recovered",
+    "theme": "dark",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      "Copiar",
+      " Confirmar envío en Shopify",
+      " Generar / ver factura",
+      "Marcar como enviado",
+      " Descargar",
+      " Imprimir"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "recovered-actions",
+    "theme": "dark",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      "Copiar",
+      " Confirmar envío en Shopify",
+      " Generar / ver factura",
+      "Marcar como enviado",
+      " Descargar",
+      " Imprimir"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "released",
+    "theme": "dark",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Registrar envío externo",
+      " Generar / ver factura",
+      " Editar pedido",
+      " Preparar etiqueta"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "sendcloud",
+    "theme": "dark",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con Sendcloud",
+      " Generar / ver factura"
+    ]
+  },
+  {
+    "phase": "after",
+    "name": "envia",
+    "theme": "dark",
+    "width": 1440,
+    "sourceSHA256": "166b568e8517a371b5a5a787cce1b563dc229eb883efccf0b34148317f1800d4",
+    "actions": [
+      "",
+      " Comprobar con Envia",
+      " Generar / ver factura"
+    ]
+  }
+]

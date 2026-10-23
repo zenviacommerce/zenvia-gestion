@@ -1,3 +1,4 @@
+import {withCarrierCreation} from '../_shared/shippingCreation.ts';
 import {resolveOrderPackageWeight,assertQuotedPackageWeight} from '../_shared/orderPackageWeight.ts';
 import {loadDirectCarrierIds,filterAggregatorOptions} from '../_shared/carrierPolicy.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
@@ -684,6 +685,7 @@ Deno.serve(async(req:Request)=>{
       const correosExpressEpaq24=normalizedCarrier==='correosexpress'&&normalizedService==='epaq_24';
       const generateWeight=correosExpressEpaq24&&realWeight<1?1:realWeight;
       const generatePackage={...pkg,weight:generateWeight};
+      return await withCarrierCreation(admin,order,{provider:'envia',accountId:account.id,credentials:{token:c.token},environment:c.environment==='production'?'production':'test',actorId:caller.user_id,context:{serviceCode:service,serviceName:option?.name||service,carrierCode:carrier,carrierName:clean(option?.carrierName)||humanCarrier(carrier)}},async()=>{
       let payload:any;
       try{
         const generatePayload={
@@ -714,8 +716,7 @@ Deno.serve(async(req:Request)=>{
         if(/KILOS BULTO.*FORMATO INCORRECTO|99999\.999/i.test(detail)){
           console.error('ENVIA_CARRIER_WEIGHT_REJECTION',JSON.stringify({
             carrier,service,realWeight,generateWeight,weightUnit:pkg.weightUnit,
-            destinationCountry:dest.country,destinationPostalCode:dest.postalCode,
-            detail,
+            destinationCountry:dest.country,
           }));
           throw new Error(`Envia.com / ${carrier}: Correos Express rechazó el peso enviado (${generateWeight} kg) para epaq_24.`);
         }
@@ -726,7 +727,6 @@ Deno.serve(async(req:Request)=>{
       const tracking=clean(data?.trackingNumber||data?.tracking_number||data?.tracking);
       const labelUrl=clean(data?.label||data?.labelUrl||data?.label_url||data?.url);
       if(!tracking||!labelUrl)throw new Error('Envia.com no devolvió tracking o PDF de etiqueta.');
-      const pdf=await labelPdf(labelUrl);
       const now=new Date().toISOString();
       const generatedPrice=number(data?.totalPrice??data?.total_price,NaN);
       const quotedPrice=option?.price==null?NaN:number(option.price,NaN);
@@ -752,11 +752,13 @@ Deno.serve(async(req:Request)=>{
       };
       const {error:updateError}=await admin.from('fulfillment_orders').update(patch).eq('id',order.id).eq('owner_id',caller.data_owner_id);
       if(updateError)throw updateError;
+      const pdf=await labelPdf(labelUrl);
       return response({
         parcelId:0,shipmentId:clean(data?.shipmentId)||tracking,trackingNumber:tracking,trackingUrl:patch.tracking_url,
         shippingOptionCode:service,contractId:null,carrierCode:carrier,carrierName:patch.carrier_name,
         shippingServiceName:patch.shipping_service_name,mimeType:pdf.mimeType,base64:pdf.base64,
         provider:'envia',integrationAccountId:String(account.id),labelUrl,
+      });
       });
     }
 
@@ -779,7 +781,7 @@ Deno.serve(async(req:Request)=>{
     if(/not enough money|insufficient (?:balance|funds)|saldo insuficiente/i.test(message)){
       message='Saldo insuficiente en Envia.com. Recarga saldo o revisa el crédito disponible en tu cuenta antes de generar la etiqueta.';
     }
-    console.error('ENVIA_OPERATION_FAILED',JSON.stringify({action:operation,orderReference,error:message}));
+    console.error('ENVIA_OPERATION_FAILED',JSON.stringify({action:operation,errorCode:'ENVIA_REQUEST_FAILED'}));
     const status=/Sesión no válida/.test(message)?401:/permiso|desactivado/.test(message)?403:/peso ha cambiado|ya tiene una etiqueta/.test(message)?409:/Saldo insuficiente en Envia\.com/.test(message)?402:500;
     return fail(message,status);
   }

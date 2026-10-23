@@ -33,7 +33,7 @@ export function createPickupReportDocument(report: PickupDocument, createDocumen
           const image = pickupPdfImage(doc,options.logoDataUrl);
           const scale = Math.min(30 / image.width, 12 / image.height);
           const width=image.width*scale,height=image.height*scale;
-          doc.addImage(image.data, image.format, left+(30-width)/2, 9+(12-height)/2, width, height);
+          doc.addImage(image.data, image.format, left+(30-width)/2, 9+(12-height)/2, width, height, image.alias, 'FAST');
         } catch { /* A damaged optional logo must not prevent printing the saved receipt. */ }
       }
       const senderX = options.logoDataUrl ? 46 : left;
@@ -115,9 +115,9 @@ export function createPickupReportDocument(report: PickupDocument, createDocumen
     y += 2; doc.setDrawColor(100); doc.setLineWidth(0.2);
     doc.rect(left, y, 60, 25); doc.rect(110, y, 60, 25);
     if (signature?.signatureDataUrl) {
-      const image=doc.getImageProperties(signature.signatureDataUrl);
+      const image=pickupPdfImage(doc,signature.signatureDataUrl);
       const scale=Math.min(56/image.width,21/image.height),width=image.width*scale,height=image.height*scale;
-      doc.addImage(signature.signatureDataUrl,'PNG',left+(60-width)/2,y+(25-height)/2,width,height);
+      doc.addImage(image.data,image.format,left+(60-width)/2,y+(25-height)/2,width,height,image.alias,'FAST');
     }
     if (signature?.redacted) { doc.setFontSize(7); doc.text('Firma retirada por retención',left+3,y+13); }
     if (options.stampDataUrl) {
@@ -125,7 +125,7 @@ export function createPickupReportDocument(report: PickupDocument, createDocumen
         const image = pickupPdfImage(doc,options.stampDataUrl);
         const scale = Math.min(56 / image.width, 21 / image.height);
         const width = image.width * scale, height = image.height * scale;
-        doc.addImage(image.data, image.format, 110 + (60 - width) / 2, y + (25 - height) / 2, width, height);
+        doc.addImage(image.data, image.format, 110 + (60 - width) / 2, y + (25 - height) / 2, width, height, image.alias, 'FAST');
       } catch { if(options.requireStamp)throw new Error('PICKUP_STAMP_REQUIRED'); /* Unsigned print remains tolerant. */ }
     }
     lastBodyY=y+32;

@@ -1,0 +1,76 @@
+{
+  "networkBlocked": true,
+  "synthetic": true,
+  "checks": [
+    {
+      "phase": "before",
+      "width": 390,
+      "ownerCopyChecked": false,
+      "providerSendCalls": 1,
+      "errors": []
+    },
+    {
+      "phase": "before",
+      "width": 1440,
+      "ownerCopyChecked": false,
+      "providerSendCalls": 1,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "ownerCopyChecked": true,
+      "providerSendCalls": 1,
+      "errors": []
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "ownerCopyChecked": true,
+      "providerSendCalls": 1,
+      "errors": []
+    }
+  ],
+  "files": [
+    {
+      "name": "before-copy-390.png",
+      "sha256": "9e47b748c05558a4da2cec918746b8c5b913fb2851924e4bcad10046a7be602c"
+    },
+    {
+      "name": "before-result-390.png",
+      "sha256": "807cdb5bc6e6b49cbc133c5ebbba98297a2889c08471a6225e947b89b3159b8c"
+    },
+    {
+      "name": "before-copy-1440.png",
+      "sha256": "78c9a1e4070cfb0a4bd314344e144220b3d22a948b58413164b53a7ee9cd8098"
+    },
+    {
+      "name": "before-result-1440.png",
+      "sha256": "3c421f426891124b63f250aa9120c5f54fdf487792282c6f7f7f4522b0dfbb5d"
+    },
+    {
+      "name": "after-copy-390.png",
+      "sha256": "4b64d7453f195c7f9d9ceddab288eec2a2811ad6ab14f36611d53d48f0c96000"
+    },
+    {
+      "name": "after-result-390.png",
+      "sha256": "69aa9fa5e1549f62a631c79f6da1827229a4f408e47112df63eda9b3853dc98e"
+    },
+    {
+      "name": "after-reconciled-390.png",
+      "sha256": "462e6d1af6c760058dae7aece108c8628e7e96d25846b341bf040f86dfbf5cdd"
+    },
+    {
+      "name": "after-copy-1440.png",
+      "sha256": "c124215b03f309a6c15ddb1818d44ea0d2ade4d55604ef204a3ad19f5d92564a"
+    },
+    {
+      "name": "after-result-1440.png",
+      "sha256": "b2a8b12d0c2ae44e0a79ab1cc23e03f0c713d0bc9a4b8ce5c6ea074f93f408c9"
+    },
+    {
+      "name": "after-reconciled-1440.png",
+      "sha256": "f77346743d9daf70867a432b9eacbb452719fc235a0fdfc6111346bbd6b0fa0f"
+    }
+  ]
+}

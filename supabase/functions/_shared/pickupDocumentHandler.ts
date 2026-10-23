@@ -1,10 +1,11 @@
+import {pickupGmailProfile,reconcilePickupGmail} from './pickupMailRecovery.ts';
 import {createPickupReportDocument,type PickupPdfSignature} from './pickupReportDocument.ts';
 import {buildGmailPdfMessage,validMailAddress} from './gmailPdfMessage.ts';
 type Caller={user_id:string;data_owner_id:string;role:string;active:boolean;permissions:string[]|null};
 type Dependencies={admin:any;authenticate:(request:Request,admin:any)=>Promise<Caller>;makeDocument:(created:Date,fileId:string)=>any;fetch?:typeof fetch};
 const bucket='pickup-report-documents',cors={'Access-Control-Allow-Origin':'*','Access-Control-Allow-Headers':'authorization, apikey, x-client-info, content-type','Access-Control-Allow-Methods':'POST, OPTIONS'};
 const uuid=/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const messages:Record<string,string>={PICKUP_VERIFICATION_REQUIRED:'Comprueba todos los envíos antes de firmar.',PICKUP_VERIFICATION_STALE:'La lista de envíos ha cambiado. Cierra y vuelve a abrir el informe para comprobarla de nuevo.',PICKUP_REMOVAL_REASON_REQUIRED:'Indica un motivo de retirada de entre 3 y 300 caracteres.',PICKUP_REPORT_LOCKED:'El informe ya tiene firma o está anulado. No se pueden retirar envíos.',PICKUP_INVALID_PACKAGES:'Los bultos deben coincidir exactamente con los envíos entregados.',PICKUP_SIGNATURE_REBASE_REQUIRED:'Otro conductor ha firmado desde el intento anterior. Inicia una firma nueva para incorporar el informe actualizado.',PICKUP_ACCESS_DENIED:'No tienes permiso para gestionar estos informes.',PICKUP_REPORT_NOT_FOUND:'No se encuentra el informe en esta empresa.',PICKUP_BUSY:'El informe tiene una operación en curso. Vuelve a intentarlo en un momento.',PICKUP_CARRIER_ALREADY_SIGNED:'Este transportista ya tiene una firma registrada.',PICKUP_REPORT_VOID:'El informe está anulado. Crea uno nuevo.',PICKUP_PII_PURGED:'Los datos de firma han vencido o se han eliminado por retención.',PICKUP_REQUEST_REUSED:'El intento anterior contiene otros datos. Cierra y vuelve a abrir el formulario.',PICKUP_STAMP_REQUIRED:'Configura el sello del remitente en Configuración → General antes de firmar.',PICKUP_STORAGE_UNAVAILABLE:'No se pudo guardar o recuperar el documento. Puedes reintentar la misma solicitud.',PICKUP_ARTIFACT_MISMATCH:'El archivo guardado no coincide con este intento. No se ha sobrescrito.',PICKUP_INVALID_SIGNATURE:'Revisa conductor, DNI o matrícula, fecha, bultos y firma.',PICKUP_INVALID_MAIL:'Revisa destinatario, asunto y mensaje.',PICKUP_MAIL_RATE_LIMIT:'Has alcanzado el límite de correos. Inténtalo más tarde.',PICKUP_MAIL_UNCERTAIN:'Gmail no confirmó el resultado. Revisa Enviados antes de volver a enviar.',PICKUP_GMAIL_DENIED:'Gmail no autorizó el envío. Renueva el permiso de Google.',PICKUP_OWNER_EMAIL_UNAVAILABLE:'No se pudo resolver el correo del propietario. Revisa sus datos o desmarca la copia.',PICKUP_VOID_REASON_REQUIRED:'Indica el motivo de anulación.',PICKUP_FAILED:'No se pudo completar la operación del informe.'};
+const messages:Record<string,string>={PICKUP_VERIFICATION_REQUIRED:'Comprueba todos los envíos antes de firmar.',PICKUP_VERIFICATION_STALE:'La lista de envíos ha cambiado. Cierra y vuelve a abrir el informe para comprobarla de nuevo.',PICKUP_REMOVAL_REASON_REQUIRED:'Indica un motivo de retirada de entre 3 y 300 caracteres.',PICKUP_REPORT_LOCKED:'El informe ya tiene firma o está anulado. No se pueden retirar envíos.',PICKUP_INVALID_PACKAGES:'Los bultos deben coincidir exactamente con los envíos entregados.',PICKUP_SIGNATURE_REBASE_REQUIRED:'Otro conductor ha firmado desde el intento anterior. Inicia una firma nueva para incorporar el informe actualizado.',PICKUP_ACCESS_DENIED:'No tienes permiso para gestionar estos informes.',PICKUP_REPORT_NOT_FOUND:'No se encuentra el informe en esta empresa.',PICKUP_BUSY:'El informe tiene una operación en curso. Vuelve a intentarlo en un momento.',PICKUP_CARRIER_ALREADY_SIGNED:'Este transportista ya tiene una firma registrada.',PICKUP_REPORT_VOID:'El informe está anulado. Crea uno nuevo.',PICKUP_PII_PURGED:'Los datos de firma han vencido o se han eliminado por retención.',PICKUP_REQUEST_REUSED:'El intento anterior contiene otros datos. Cierra y vuelve a abrir el formulario.',PICKUP_STAMP_REQUIRED:'Configura el sello del remitente en Configuración → General antes de firmar.',PICKUP_STORAGE_UNAVAILABLE:'No se pudo guardar o recuperar el documento. Puedes reintentar la misma solicitud.',PICKUP_ARTIFACT_MISMATCH:'El archivo guardado no coincide con este intento. No se ha sobrescrito.',PICKUP_INVALID_SIGNATURE:'Revisa conductor, DNI o matrícula, fecha, bultos y firma.',PICKUP_INVALID_MAIL:'Revisa destinatario, asunto y mensaje.',PICKUP_MAIL_RATE_LIMIT:'Has alcanzado el límite de correos. Inténtalo más tarde.',PICKUP_MAIL_UNCERTAIN:'Gmail no confirmó el resultado. Revisa Enviados antes de volver a enviar.',PICKUP_GMAIL_DENIED:'Gmail no autorizó el envío. Renueva el permiso de Google.',PICKUP_OWNER_EMAIL_UNAVAILABLE:'No se pudo resolver el correo del propietario. Revisa sus datos o desmarca la copia.',PICKUP_VOID_REASON_REQUIRED:'Indica el motivo de anulación.',PICKUP_MAIL_RECONCILE_REQUIRED:'Comprueba el envío pendiente en Gmail antes de preparar otro correo.',PICKUP_MAIL_NOT_ACTIVE:'El intento ha caducado. Consulta el historial antes de reintentar.',PICKUP_FAILED:'No se pudo completar la operación del informe.'};
 class PickupError extends Error{constructor(readonly code:string,readonly status=409){super(code)}}
 const json=(data:unknown,status=200)=>new Response(JSON.stringify(data),{status,headers:{...cors,'Content-Type':'application/json','Cache-Control':'private, no-store'}});
 const validId=(value:unknown)=>typeof value==='string'&&uuid.test(value);
@@ -102,7 +103,23 @@ export function createPickupDocumentHandler(deps:Dependencies){
    }
    if(body.action==='void'){const state=await rpc('pickup_document_void',{...scope,p_report:body.reportId,p_reason:String(body.reason||'')});return json({ok:true,state})}
    if(body.action==='owner_email'){await rpc('pickup_document_read',{...scope,p_report:body.reportId});const {data,error}=await admin.auth.admin.getUserById(caller.data_owner_id);if(error||!validMailAddress(data?.user?.email||''))throw new PickupError('PICKUP_OWNER_EMAIL_UNAVAILABLE');return json({ok:true,email:data.user.email})}
-   if(body.action==='mail_history')return json({ok:true,entries:await rpc('pickup_document_mail_list',{...scope,p_report:body.reportId})});
+   const reconcile=async(requestId:string,token:string)=>{
+    const entry=await rpc('pickup_document_mail_context',{...scope,p_request:requestId});
+    if(entry.reportId!==body.reportId)throw new PickupError('PICKUP_ACCESS_DENIED',403);
+    if(!entry.reconcileRequired)return entry;
+    const observed=await reconcilePickupGmail(fetcher,token,entry);
+    if(observed.status==='unconfirmed')return {...entry,code:observed.code};
+    return rpc('pickup_document_mail_reconcile',{...scope,p_request:requestId,p_result:observed.status,p_message_id:observed.status==='sent'?observed.messageId:null});
+   };
+   if(body.action==='reconcile_mail'){
+    if(!validId(body.requestId)||typeof body.gmailToken!=='string'||body.gmailToken.length<10||body.gmailToken.length>4000)throw new PickupError('PICKUP_INVALID_MAIL',400);
+    return json({ok:true,...await reconcile(body.requestId,body.gmailToken)});
+   }
+   if(body.action==='mail_history'){
+    let entries=await rpc('pickup_document_mail_list',{...scope,p_report:body.reportId});
+    if(typeof body.gmailToken==='string'&&body.gmailToken.length>=10&&body.gmailToken.length<=4000){for(const e of entries.filter((e:any)=>e.reconcileRequired).slice(0,3))await reconcile(e.requestId,body.gmailToken);entries=await rpc('pickup_document_mail_list',{...scope,p_report:body.reportId})}
+    return json({ok:true,entries});
+   }
    if(body.action==='pdf'){
     const pdf=await pdfFor(caller,body.reportId,crypto.randomUUID());return new Response(new Uint8Array(pdf.bytes),{headers:{...cors,'Content-Type':'application/pdf','Cache-Control':'private, no-store','Content-Disposition':`attachment; filename="${String(pdf.number).replace(/[^A-Za-z0-9_-]+/g,'_')}.pdf"`}});
    }
@@ -112,16 +129,20 @@ export function createPickupDocumentHandler(deps:Dependencies){
     let cc:string|undefined;if(body.ccOwner===true){const {data,error}=await admin.auth.admin.getUserById(caller.data_owner_id);if(error||!validMailAddress(data?.user?.email||''))throw new PickupError('PICKUP_OWNER_EMAIL_UNAVAILABLE');cc=data.user.email}
     const reservation=await rpc('pickup_document_mail_prepare',{...scope,p_report:body.reportId,p_request:body.requestId,p_to:to,p_input_hash:await textDigest({to,subject,text,cc:cc||null}),p_cc_owner:body.ccOwner===true,p_subject:subject});
     if(!reservation.retry)return json({ok:true,...reservation});
-    let outcome='failed',messageId:string|null=null,errorCode='GMAIL_FAILED',providerStarted=false;
+    let outcome='failed',messageId:string|null=null,errorCode='GMAIL_FAILED',providerStarted=false,phase='profile';
     try{
+     const sender=await pickupGmailProfile(fetcher,token),rfcMessageId='<zenvia.pickup.'+caller.data_owner_id+'.'+body.requestId+'@zenviacommerce.com>';
+     await rpc('pickup_document_mail_stage',{...scope,p_request:body.requestId,p_stage:'prepared',p_sender:sender,p_rfc:rfcMessageId});phase='pdf';
      const pdf=await pdfFor(caller,body.reportId,body.requestId);if(pdf.bytes.length>5*1024*1024)throw new PickupError('PICKUP_INVALID_MAIL',413);
-     const raw=buildGmailPdfMessage({to,cc,subject,body:text,pdf:pdf.bytes,filename:String(pdf.number).replace(/[^A-Za-z0-9_-]+/g,'_')+'.pdf'});
-     providerStarted=true;const response=await fetcher('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({raw}),signal:AbortSignal.timeout(30000)});
-     if(response.ok){const result=await response.json();if(typeof result.id==='string'&&result.id.length<=200){outcome='sent';messageId=result.id;errorCode=''}else{outcome='unknown';errorCode='NETWORK_UNCERTAIN'}}
-     else if(response.status>=500){outcome='unknown';errorCode='NETWORK_UNCERTAIN'}else{outcome='failed';errorCode=response.status===401||response.status===403?'GMAIL_DENIED':'GMAIL_FAILED'}
-    }catch{outcome=providerStarted?'unknown':'failed';errorCode=providerStarted?'NETWORK_UNCERTAIN':'GMAIL_FAILED'}
-    try{await rpc('pickup_document_mail_finish',{...scope,p_request:body.requestId,p_status:outcome,p_message_id:messageId,p_error_code:errorCode})}catch{throw new PickupError('PICKUP_MAIL_UNCERTAIN')}
-    return json({ok:true,status:outcome,messageId,code:errorCode});
+     const raw=buildGmailPdfMessage({to,cc,subject,body:text,pdf:pdf.bytes,filename:String(pdf.number).replace(/[^A-Za-z0-9_-]+/g,'_')+'.pdf',messageId:rfcMessageId,pickupRequestId:body.requestId});
+     phase='checkpoint';await rpc('pickup_document_mail_stage',{...scope,p_request:body.requestId,p_stage:'provider',p_sender:sender,p_rfc:rfcMessageId});
+     providerStarted=true;phase='provider';const response=await fetcher('https://gmail.googleapis.com/gmail/v1/users/me/messages/send',{method:'POST',headers:{Authorization:`Bearer ${token}`,'Content-Type':'application/json'},body:JSON.stringify({raw}),signal:AbortSignal.timeout(20000)});
+     if(response.ok){const result=await response.json();if(typeof result.id==='string'&&/^[A-Za-z0-9_-]{1,200}$/.test(result.id)){outcome='sent';messageId=result.id;errorCode=''}else errorCode='PROVIDER_UNCONFIRMED'}
+     else if(response.status>=500)errorCode='PROVIDER_UNCONFIRMED';else errorCode=response.status===401||response.status===403?'GMAIL_DENIED':'GMAIL_FAILED';
+    }catch(error){errorCode=providerStarted?'PROVIDER_UNCONFIRMED':phase==='profile'?'GMAIL_DENIED':phase==='pdf'?error instanceof PickupError&&error.code==='PICKUP_STORAGE_UNAVAILABLE'?'STORAGE_FAILED':'PDF_FAILED':'PRE_SEND_ABORTED'}
+    let final:any;for(let attempt=0;attempt<3;attempt++){try{final=await rpc('pickup_document_mail_finish',{...scope,p_request:body.requestId,p_status:outcome,p_message_id:messageId,p_error_code:errorCode});break}catch{/* Same durable request; never repeat provider send. */}}
+    if(!final)throw new PickupError('PICKUP_MAIL_UNCERTAIN');
+    return json({ok:true,status:final.status||outcome,messageId:final.messageId||messageId,code:final.code??errorCode,reconcileRequired:final.reconcileRequired??errorCode==='PROVIDER_UNCONFIRMED'});
    }
    throw new PickupError('PICKUP_INVALID_SIGNATURE',400);
   }catch(error){

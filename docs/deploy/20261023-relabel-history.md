@@ -23,3 +23,9 @@ No se invocan operaciones comerciales reales en pruebas. No se cambia MFA, PayPa
 Validación final local:661/661 Vitest (118archivos),1284/1284Node, build correcto y Deno sobre bundles reales correcto. React: carga solo al abrir el detalle, dependencias primitivas, descarte de respuestas obsoletas y guardia PII; no se añaden listeners ni librerías.
 
 CI detectó una incompatibilidad con el contrato de activación MFA existente: toda tabla pública expuesta debe tener las cuatro políticas restrictivas mfa_select/insert/update/delete_gate. La primera versión solo incluía comprobación MFA en la política SELECT. Se añade una regresión roja (0políticas frente a4), se adoptan los cuatro gates estándar en la tabla nueva, sin modificar ninguna función, configuración ni cohorte MFA existente. No se rebajan tests ni el scanner. Regresión focal posterior9/9.
+
+Suite final tras adoptar gates estándar:662/662 Vitest en118archivos. La integración MFA real del nuevo head90af4f38 también termina con success; se espera el resto de CI antes de publicar. Producción sigue sin cambios.
+
+Historial aplicado con versión real20261023042324: RLS activa,4gates restrictivos,0filas históricas,0hallazgos de activación MFA. Los1023pedidos y su fingerprint8e2b6bf3a0fab2a4599b4fec670457c0 permanecen idénticos antes/después; guard MFA33c89c211446450e2dadbe7e5b5760cf intacto. Se alinea el nombre de migración y su prueba con la versión asignada, sin cambiar un byte SQL. La galería sintética conserva el mismo origen Amazon Shipped después de reetiquetar, sin modificar el estado del canal.
+
+Backend publicado: MRW26,Envia46,Sendcloud-orders36,tools38. Verificados todos los ficheros contra los payloads revisados, incluidas dependencias MFA de producción; verify_jwt=true. Probes sin autenticación:401enloscuatro endpoints, sin llamadas al proveedor. Frontend aún en B mientras pasa CI de la alineación de nombre de migración y las referencias de prueba.

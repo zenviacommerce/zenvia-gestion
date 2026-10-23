@@ -10,7 +10,7 @@ async function fixture(){
  create function private.mfa_allowed() returns boolean language sql as $$select true$$;
  create table fulfillment_orders(id uuid primary key,order_id text,owner_id uuid,pii_purged_at timestamptz,shipping_provider text,shipping_integration_account_id uuid,carrier_name text,carrier_code text,tracking_number text,shipping_remote_id text,sendcloud_parcel_id bigint,label_created_at timestamptz,label_cancelled_at timestamptz,tracking_status_code text,tracking_updated_at timestamptz);
  insert into fulfillment_orders(id,owner_id,shipping_provider,carrier_name,tracking_number,shipping_remote_id,label_created_at) values('${id}','${owner}','mrw','MRW','OLD-TRACK','OLD-REF','2026-10-22T09:00:00Z');`);
- await db.exec(readFileSync('supabase/migrations/20261023020000_order_shipment_history.sql','utf8'));
+ await db.exec(readFileSync('supabase/migrations/20261023042324_order_shipment_history.sql','utf8'));
  return db;
 }
 it('captures the previous shipment before clearing and keeps it after relabelling and import',async()=>{const db=await fixture();try{

@@ -297,3 +297,8 @@ export function transportKpisWithTariffs(
   }
   return result;
 }
+
+export function pendingShipmentCreationProvider(order:Pick<FulfillmentOrder,'trackingStatusCode'>):'mrw'|'sendcloud'|'envia'|null{
+ const match=/^(MRW|SENDCLOUD|ENVIA)_CREATING$/.exec(String(order.trackingStatusCode||'').trim().toUpperCase());
+ return match?match[1].toLowerCase() as 'mrw'|'sendcloud'|'envia':null;
+}

@@ -312,3 +312,7 @@ Evidencia de revisión en `deploy/20261023-internal-logistics-review/`: pantalla
 Firma de recogida: la comprobación de envíos abre el cuerpo del modal, antes de datos y firma. Un único scroll contiene la lista completa. Bultos recogidos suma las líneas comprobadas y se recalcula al cambiar o retirar líneas; una edición distinta muestra aviso accesible y conserva ambos totales en el PDF.
 
 Estado logístico histórico: mostrar «Enviado (histórico, sin evidencia)» cuando el estado anterior se conserva sin acreditar salida física. Si el transportista acredita posesión pero no fecha del movimiento, distinguir «Evidencia observada el…» de la fecha real, que debe indicarse como no disponible. No deducir fecha física de la antigüedad de etiqueta.
+
+## Creación de envío pendiente de confirmar
+
+En el detalle de Pedidos, `ShipmentCreationRecovery` utiliza `FormSection` de `@zenvia/ui`, inmediatamente después del título. Muestra «Comprobar con MRW / Sendcloud / Envia», estado ocupado accesible y resultado de recuperación, ausencia confirmada o respuesta pendiente. Durante una creación pendiente se ocultan Preparar etiqueta y Registrar envío externo; una comprobación jamás crea otra expedición. El resto de acciones del detalle se conserva. Botón con altura mínima44px y ancho completo a390; errores con role=alert y resultados con role=status. Capturas antes/después y flujo sintético en deploy/20261023-shipping-reconciliation-review.

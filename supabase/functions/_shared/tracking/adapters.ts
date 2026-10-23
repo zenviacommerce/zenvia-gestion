@@ -36,8 +36,8 @@ export function buildMrwTrackingEnvelope(credentials:any,tracking:string,tipoInf
  // optional nullable strings; leaving them empty avoids excluding older labels.
  return `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><GetEnvios xmlns="http://tempuri.org/"><login>${esc(username)}</login><pass>${esc(credentials.password)}</pass><codigoIdioma>3082</codigoIdioma><tipoFiltro>0</tipoFiltro><valorFiltroDesde>${esc(tracking)}</valorFiltroDesde><valorFiltroHasta></valorFiltroHasta><fechaDesde></fechaDesde><fechaHasta></fechaHasta><tipoInformacion>${tipoInformacion}</tipoInformacion><codigoAbonado>${esc(credentials.subscriberCode||credentials.codigoAbonado)}</codigoAbonado><codigoFranquicia>${esc(credentials.franchiseCode||credentials.codigoFranquicia)}</codigoFranquicia></GetEnvios></soap:Body></soap:Envelope>`;
 }
-type XmlNode={name:string;qualified:string;text:string;children:XmlNode[]};
-function xmlTree(xml:string):XmlNode{
+export type XmlNode={name:string;qualified:string;text:string;children:XmlNode[]};
+export function xmlTree(xml:string):XmlNode{
  if(xml.length>1000000||/<!DOCTYPE|<!ENTITY/i.test(xml))throw Error('TRACKING_INVALID_XML');
  const root:XmlNode={name:'',qualified:'',text:'',children:[]},stack=[root];let end=0;
  const decode=(value:string)=>value.replace(/&(?:lt|gt|quot|apos|amp|#\d+|#x[\da-f]+);/gi,entity=>{
@@ -55,8 +55,8 @@ function xmlTree(xml:string):XmlNode{
  if(end!==xml.length||stack.length!==1||root.children.length!==1||root.text.trim())throw Error('TRACKING_INVALID_XML');return root.children[0];
 }
 const child=(node:XmlNode,name:string)=>node.children.find(value=>value.name===name);
-const value=(node:XmlNode,name:string)=>clean(child(node,name)?.text);
-function descendants(node:XmlNode,name:string):XmlNode[]{return [...(node.name===name?[node]:[]),...node.children.flatMap(item=>descendants(item,name))]}
+export const value=(node:XmlNode,name:string)=>clean(child(node,name)?.text);
+export function descendants(node:XmlNode,name:string):XmlNode[]{return [...(node.name===name?[node]:[]),...node.children.flatMap(item=>descendants(item,name))]}
 function madridDate(day:string,hour:string){
  const d=day.match(/^(\d{2})(\d{2})(\d{4})$/),t=hour.match(/^(\d{2})(\d{2})$/);if(!d||!t)return null;
  const local=Date.UTC(+d[3],+d[2]-1,+d[1],+t[1],+t[2]);

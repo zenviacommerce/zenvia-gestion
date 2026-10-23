@@ -1,3 +1,4 @@
+import {withCarrierCreation} from '../_shared/shippingCreation.ts';
 import {resolveOrderPackageWeight,assertQuotedPackageWeight} from '../_shared/orderPackageWeight.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
 import {withAmazonBuyerRead,withOrderQuote,withOrderLabelCreation} from '../_shared/amazonPiiRead.ts';
@@ -97,7 +98,7 @@ async function soapAttempt(base:string,c:any,action:string,body:string,protocol:
   const xml=await res.text();
   return {res,xml,fault:soapError(xml),protocol};
 }
-class MrwRejectedError extends Error {}
+class MrwRejectedError extends Error {readonly definitiveShipmentRejection=true}
 async function soapCall(base:string,c:any,action:string,body:string){
   const diagnostics:string[]=[];
   for(const protocol of ['1.1','1.2'] as const){
@@ -205,21 +206,14 @@ Deno.serve(async(req:Request)=>{
       if(!/^(DOC|IMP|MCV|MSV|ATV|BJV|MUE)$/.test(merchandiseCode))return response({error:'El código de mercancía MRW no es válido.'},409);
       const dimensionsXml=length&&width&&height?`<Alto>${height}</Alto><Largo>${length}</Largo><Ancho>${width}</Ancho><Dimension>cm</Dimension>`:'';
       const request=`<TransmEnvio xmlns="http://www.mrw.es/"><request><DatosRecogida><Direccion><Via>${esc(from.address)}</Via><CodigoPostal>${esc(from.postalCode)}</CodigoPostal><Poblacion>${esc(from.city)}</Poblacion><CodigoPais>${esc(from.countryCode)}</CodigoPais></Direccion><Nombre>${esc(from.name)}</Nombre><Telefono>${esc(from.phone)}</Telefono></DatosRecogida><DatosEntrega><Direccion><Via>${esc(address.address_line_1)}</Via><Numero>${esc(address.house_number)}</Numero><Resto>${esc(address.address_line_2)}</Resto><CodigoPostal>${esc(address.postal_code)}</CodigoPostal><Poblacion>${esc(address.city)}</Poblacion><Provincia>${esc(address.state_province_code)}</Provincia><CodigoPais>${esc(address.country_code||'ES')}</CodigoPais></Direccion><Nombre>${esc(address.name||order.customer_name)}</Nombre><Telefono>${esc(address.phone_number||order.customer_phone)}</Telefono><ALaAtencionDe>${esc(address.company_name)}</ALaAtencionDe></DatosEntrega><DatosServicio><Fecha>${todayMrw()}</Fecha><Referencia>${esc(order.order_number||order.order_id||order.id)}</Referencia><CodigoServicio>${esc(serviceCode)}</CodigoServicio><Bultos><BultoRequest>${dimensionsXml}<Referencia>${esc(order.order_number||'')}</Referencia><Peso>${weight.toFixed(3).replace('.',',')}</Peso><NumeroBulto>1</NumeroBulto></BultoRequest></Bultos><NumeroBultos>1</NumeroBultos><Peso>${weight.toFixed(3).replace('.',',')}</Peso><TipoMercancia>${esc(merchandiseCode)}</TipoMercancia><CodigoMoneda>EUR</CodigoMoneda></DatosServicio></request></TransmEnvio>`;
-      const {data:claimed,error:claimError}=await admin.from('fulfillment_orders').update({tracking_status_code:'MRW_CREATING'}).eq('owner_id',caller.data_owner_id).eq('id',order.id).is('shipping_remote_id',null).or('tracking_status_code.is.null,tracking_status_code.neq.MRW_CREATING').select('id').maybeSingle();
-      if(claimError)throw claimError;
-      if(!claimed)return response({error:'La creación de este envío MRW ya está en curso o pendiente de comprobar. No se ha creado otro envío.'},409);
+      return await withCarrierCreation(admin,order,{provider:'mrw',accountId:account.row.id,credentials:account.credentials,environment:account.config?.environment==='test'?'test':'production',actorId:caller.user_id,context:{serviceCode,serviceName,carrierCode:'mrw',carrierName:'MRW'}},async()=>{
       let transmit:string;
       try{transmit=await soapCall(base,account.credentials,'TransmEnvio',request)}
       catch(error){
-        if(error instanceof MrwRejectedError){
-          const {error:releaseError}=await admin.from('fulfillment_orders').update({tracking_status_code:null})
-            .eq('owner_id',caller.data_owner_id).eq('id',order.id).eq('tracking_status_code','MRW_CREATING').is('shipping_remote_id',null).is('tracking_number',null).is('label_created_at',null);
-          if(releaseError)throw new Error('MRW rechazó el envío. No se pudo liberar el intento; comprueba la expedición antes de repetir.');
-        }
         const detail=error instanceof Error?error.message:'Error al transmitir el envío.';
-        const diagnostic={event:'mrw_transmit_failed',orderId:order.id,weightKg:weight,weightXml:weight.toFixed(3),lengthCm:length,widthCm:width,heightCm:height,serviceCode,error:detail};
+        const diagnostic={event:'mrw_transmit_failed',orderId:order.id,weightKg:weight,weightXml:weight.toFixed(3),lengthCm:length,widthCm:width,heightCm:height,serviceCode,errorCode:error instanceof MrwRejectedError?'MRW_REJECTED':'MRW_UNCERTAIN'};
         console.error(JSON.stringify(diagnostic));
-        throw new Error(`${detail} · Datos enviados: ${weight} kg; ${length||'?'} × ${width||'?'} × ${height||'?'} cm; servicio ${serviceCode}.`);
+        throw new Error(`${detail} · Datos enviados: ${weight} kg; ${length||'?'} × ${width||'?'} × ${height||'?'} cm; servicio ${serviceCode}.`,{cause:error});
       }
       const shipment=xmlValue(transmit,'NumeroEnvio');if(!shipment)throw new Error('MRW no devolvió número de envío.');
       const now=new Date().toISOString();
@@ -241,6 +235,7 @@ Deno.serve(async(req:Request)=>{
       const {error:labelError}=await admin.from('fulfillment_orders').update({label_created_at:now}).eq('owner_id',caller.data_owner_id).eq('id',order.id);
       if(labelError)throw labelError;
       return response({parcelId:0,shipmentId:shipment,trackingNumber:shipment,trackingUrl:null,shippingOptionCode:serviceCode,contractId:null,carrierCode:'mrw',carrierName:'MRW',shippingServiceName:serviceName,mimeType:'application/pdf',base64});
+      });
     }
 
     if(action==='fetch_label'){

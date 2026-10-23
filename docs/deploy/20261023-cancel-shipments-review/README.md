@@ -11,7 +11,7 @@ Los envíos registrados como externos se remiten a la agencia: su protección co
 ## Rollback preparado para la eventual publicación
 
 1. Volver al frontend 2b, Vercel `dpl_9ZwSUSkgztVrf39oc42KM15Jg6Vx`, commit `6ead7df805ab4a975697d057242b2843e1ae8688`.
-2. Si todavía no hay operaciones, restaurar las definiciones de RPC y del trigger desde `tests/fixtures/cancellation-rpcs-before.sql` y `tests/fixtures/cancellation-preserve-trigger.sql`. Son CREATE OR REPLACE: conservan firmas y permisos; el helper privado puede quedar sin uso. No borrar tablas ni historial.
+2. Si todavía no hay operaciones, ejecutar el rollback exacto `supabase/rollbacks/20261023070000_cancellation_identity.sql` (comprueba primero que no existe ninguna solicitud). Son CREATE OR REPLACE: conservan firmas y permisos; el helper privado puede quedar sin uso. No borrar tablas ni historial.
 3. Si hay operaciones pendientes/desconocidas, desactivar la entrada nueva del frontend y conservar el backend de consulta y sus protecciones hasta resolverlas. No restaurar el trigger antiguo sobre expediciones nuevas ni reenviar solicitudes.
 4. El snapshot de `order-cancellation` v3 es evidencia del punto de partida, **no un bundle de rollback seguro**: contiene un helper antiguo sin la protección MFA vigente. Cualquier rollback de Edge debe conservar los helpers actuales de autenticación/MFA y retirar solo la capacidad nueva. No cambiar configuración ni cohorte MFA.
 5. Antes de cualquier cambio de producción, volver a capturar versiones, hashes y recuentos y comprobar que la CI final está verde. Esta revisión no autoriza SQL ni despliegues.

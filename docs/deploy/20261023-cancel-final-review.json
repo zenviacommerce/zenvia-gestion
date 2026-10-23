@@ -1,0 +1,121 @@
+{
+  "checkedAt": "2026-10-23T05:40:07.420Z",
+  "pullRequest": "https://github.com/zenviacommerce/zenvia-gestion/pull/292",
+  "head": "9bb8122a6a225bc640db4302a487ac20c5bb7d2b",
+  "published": false,
+  "productionWrites": 0,
+  "realCarrierMutations": 0,
+  "production": {
+    "main": "6ead7df805ab4a975697d057242b2843e1ae8688",
+    "function": {
+      "name": "order-cancellation",
+      "version": 3,
+      "sha256": "4425134b43456c8c9582759c06a72209671b6127ae993e930a38faa5e064b550",
+      "verifyJwt": true
+    },
+    "counts": {
+      "orders": 1023,
+      "history": 0,
+      "operations": 0,
+      "proposed_helper_exists": false
+    }
+  },
+  "verification": {
+    "vitest": {
+      "files": 123,
+      "passed": 719
+    },
+    "node": {
+      "passed": 1284
+    },
+    "carrierRegressions": 57,
+    "build": "passed",
+    "deno": [
+      "supabase/functions/order-cancellation/index.ts",
+      "supabase/rollbacks/order-cancellation-paused.ts"
+    ],
+    "ciAuthSummary": [
+      "2026-10-23T05:36:10.4428933Z  Test Files  123 passed (123)",
+      "2026-10-23T05:36:10.4430226Z       Tests  719 passed (719)",
+      "2026-10-23T05:36:10.4432775Z    Duration  184.84s (transform 5.68s, setup 0ms, collect 24.69s, tests 434.69s, environment 55.54s, prepare 14.48s)"
+    ],
+    "ciBuildSummary": [
+      "2026-10-23T05:33:34.5657946Z # tests 1284",
+      "2026-10-23T05:33:34.5658372Z # pass 1284",
+      "2026-10-23T05:36:41.5334135Z       Tests  57 passed (57)",
+      "2026-10-23T05:36:43.5356274Z Check supabase/functions/order-cancellation/index.ts",
+      "2026-10-23T05:36:43.5357095Z Check supabase/rollbacks/order-cancellation-paused.ts"
+    ],
+    "ci": [
+      {
+        "id": 39906291981,
+        "name": "Build ZENVIA Gestión",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39906291981"
+      },
+      {
+        "id": 39906292042,
+        "name": "Auth resilience tests",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39906292042"
+      },
+      {
+        "id": 39906291954,
+        "name": "MFA real integration (disposable Supabase)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39906291954"
+      },
+      {
+        "id": 39906292056,
+        "name": "Shared UI package and tab contracts",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39906292056"
+      },
+      {
+        "id": 39906291995,
+        "name": "Build check",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39906291995"
+      },
+      {
+        "id": 39906291934,
+        "name": "MFA visual review (Playwright)",
+        "status": "completed",
+        "conclusion": "success",
+        "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39906291934"
+      }
+    ],
+    "vercelPreview": "success",
+    "review": "No unresolved findings; rollback race fixed with table lock and endpoint pause/drain."
+  },
+  "gallery": {
+    "captures": 102,
+    "widths": [
+      390,
+      1280,
+      1440
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "synthetic": true,
+    "path": "docs/deploy/20261023-cancel-shipments-review/index.html"
+  },
+  "rollback": {
+    "sql": "supabase/rollbacks/20261023070000_cancellation_identity.sql",
+    "pause": "supabase/rollbacks/order-cancellation-paused.ts",
+    "requires": "Pause and drain endpoint before guarded SQL; retain the new query backend if any request exists."
+  },
+  "consumptionAutomation": {
+    "id": "6ada0435d7d081918b634b4fe22aa88e",
+    "enabled": true,
+    "schedule": "BEGIN:VEVENT\nDTSTART;TZID=Europe/Madrid:20261023T112000\nEND:VEVENT"
+  }
+}
+

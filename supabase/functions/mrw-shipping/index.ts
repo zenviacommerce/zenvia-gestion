@@ -83,7 +83,7 @@ async function soapAttempt(base:string,c:any,action:string,body:string,protocol:
   const gatewayUrl=clean(Deno.env.get('MRW_GATEWAY_URL')),gatewaySecret=clean(Deno.env.get('MRW_GATEWAY_SECRET'));
   if(gatewayUrl&&gatewaySecret){
     const environment=base.includes('sagec-test')?'test':'production';
-    const gatewayRes=await fetch(gatewayUrl,{method:'POST',headers:{'Content-Type':'application/json','X-Zenvia-Gateway-Key':gatewaySecret},body:JSON.stringify({environment,method:'POST',operation:action,soapVersion:protocol,body:xmlBody})});
+    const gatewayRes=await fetch(gatewayUrl,{method:'POST',signal:globalThis.AbortSignal?.timeout(45000),headers:{'Content-Type':'application/json','X-Zenvia-Gateway-Key':gatewaySecret},body:JSON.stringify({environment,method:'POST',operation:action,soapVersion:protocol,body:xmlBody})});
     const payload=await gatewayRes.json().catch(()=>({}));
     if(!gatewayRes.ok)throw new Error(`MRW gateway HTTP ${gatewayRes.status}: ${clean((payload as any)?.error)||'respuesta no válida'}`);
     const status=Number((payload as any)?.status||0),contentType=clean((payload as any)?.contentType),bodyBase64=clean((payload as any)?.bodyBase64);
@@ -93,17 +93,25 @@ async function soapAttempt(base:string,c:any,action:string,body:string,protocol:
   const headers:Record<string,string>=protocol==='1.2'
     ?{'Content-Type':`application/soap+xml; charset=utf-8; action="${actionUri}"`,Accept:'application/soap+xml,text/xml'}
     :{'Content-Type':'text/xml; charset=utf-8','SOAPAction':`"${actionUri}"`,Accept:'text/xml'};
-  const res=await fetch(base,{method:'POST',headers,body:xmlBody});
+  const res=await fetch(base,{method:'POST',headers,body:xmlBody,signal:globalThis.AbortSignal?.timeout(45000)});
   const xml=await res.text();
   return {res,xml,fault:soapError(xml),protocol};
 }
+class MrwRejectedError extends Error {}
 async function soapCall(base:string,c:any,action:string,body:string){
   const diagnostics:string[]=[];
   for(const protocol of ['1.1','1.2'] as const){
     const {res,xml,fault}=await soapAttempt(base,c,action,body,protocol);
-    if(fault)throw new Error(`MRW: ${fault.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,800)}`);
+    if(fault){
+      const message=`MRW: ${fault.replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim().slice(0,800)}`;
+      // Only an explicit business rejection proves no consignment was accepted.
+      // Transport errors, SOAP server faults and malformed successes remain locked.
+      if(action==='TransmEnvio'&&!/<(?:\w+:)?Fault(?:\s|>)/i.test(xml)&&!xmlValue(xml,'NumeroEnvio')&&xmlValue(xml,'Estado')==='0'&&/no es v[áaÃ]|no es v|permitidos|obligatorio|incorrecto/i.test(fault))throw new MrwRejectedError(message);
+      throw new Error(message);
+    }
     if(res.ok)return xml;
     diagnostics.push(`SOAP ${protocol}: HTTP ${res.status} ${res.headers.get('content-type')||''}`.trim());
+    if(action==='TransmEnvio')break; // An ambiguous POST must never be retried with another SOAP version.
   }
   throw new Error(`MRW no ha procesado la solicitud. ${diagnostics.join(' · ')}. Revisa que la cuenta MRW esté habilitada para Web Services.`);
 }
@@ -193,14 +201,21 @@ Deno.serve(async(req:Request)=>{
       if(!serviceCode)return response({error:'Selecciona el servicio MRW predeterminado en Configuración > Integraciones antes de generar etiquetas.'},409);
       const requiresDimensions=/^(0200|0205|0220)$/.test(serviceCode)||/urgente\s*19/i.test(serviceName);
       if(requiresDimensions&&(!length||!width||!height))return response({error:'MRW requiere largo, ancho y alto para Urgente 19. Otros servicios pueden generarse solo con el peso.',code:'missing_dimensions'},409);
+      const merchandiseCode=clean(account.config?.merchandiseCode||'MCV').toUpperCase();
+      if(!/^(DOC|IMP|MCV|MSV|ATV|BJV|MUE)$/.test(merchandiseCode))return response({error:'El código de mercancía MRW no es válido.'},409);
       const dimensionsXml=length&&width&&height?`<Alto>${height}</Alto><Largo>${length}</Largo><Ancho>${width}</Ancho><Dimension>cm</Dimension>`:'';
-      const request=`<TransmEnvio xmlns="http://www.mrw.es/"><request><DatosRecogida><Direccion><Via>${esc(from.address)}</Via><CodigoPostal>${esc(from.postalCode)}</CodigoPostal><Poblacion>${esc(from.city)}</Poblacion><CodigoPais>${esc(from.countryCode)}</CodigoPais></Direccion><Nombre>${esc(from.name)}</Nombre><Telefono>${esc(from.phone)}</Telefono></DatosRecogida><DatosEntrega><Direccion><Via>${esc(address.address_line_1)}</Via><Numero>${esc(address.house_number)}</Numero><Resto>${esc(address.address_line_2)}</Resto><CodigoPostal>${esc(address.postal_code)}</CodigoPostal><Poblacion>${esc(address.city)}</Poblacion><Provincia>${esc(address.state_province_code)}</Provincia><CodigoPais>${esc(address.country_code||'ES')}</CodigoPais></Direccion><Nombre>${esc(address.name||order.customer_name)}</Nombre><Telefono>${esc(address.phone_number||order.customer_phone)}</Telefono><ALaAtencionDe>${esc(address.company_name)}</ALaAtencionDe></DatosEntrega><DatosServicio><Fecha>${todayMrw()}</Fecha><Referencia>${esc(order.order_number||order.order_id||order.id)}</Referencia><CodigoServicio>${esc(serviceCode)}</CodigoServicio><Bultos><BultoRequest>${dimensionsXml}<Referencia>${esc(order.order_number||'')}</Referencia><Peso>${weight.toFixed(3).replace('.',',')}</Peso><NumeroBulto>1</NumeroBulto></BultoRequest></Bultos><NumeroBultos>1</NumeroBultos><Peso>${weight.toFixed(3).replace('.',',')}</Peso><TipoMercancia>Documentos y mercancía</TipoMercancia><CodigoMoneda>EUR</CodigoMoneda></DatosServicio></request></TransmEnvio>`;
+      const request=`<TransmEnvio xmlns="http://www.mrw.es/"><request><DatosRecogida><Direccion><Via>${esc(from.address)}</Via><CodigoPostal>${esc(from.postalCode)}</CodigoPostal><Poblacion>${esc(from.city)}</Poblacion><CodigoPais>${esc(from.countryCode)}</CodigoPais></Direccion><Nombre>${esc(from.name)}</Nombre><Telefono>${esc(from.phone)}</Telefono></DatosRecogida><DatosEntrega><Direccion><Via>${esc(address.address_line_1)}</Via><Numero>${esc(address.house_number)}</Numero><Resto>${esc(address.address_line_2)}</Resto><CodigoPostal>${esc(address.postal_code)}</CodigoPostal><Poblacion>${esc(address.city)}</Poblacion><Provincia>${esc(address.state_province_code)}</Provincia><CodigoPais>${esc(address.country_code||'ES')}</CodigoPais></Direccion><Nombre>${esc(address.name||order.customer_name)}</Nombre><Telefono>${esc(address.phone_number||order.customer_phone)}</Telefono><ALaAtencionDe>${esc(address.company_name)}</ALaAtencionDe></DatosEntrega><DatosServicio><Fecha>${todayMrw()}</Fecha><Referencia>${esc(order.order_number||order.order_id||order.id)}</Referencia><CodigoServicio>${esc(serviceCode)}</CodigoServicio><Bultos><BultoRequest>${dimensionsXml}<Referencia>${esc(order.order_number||'')}</Referencia><Peso>${weight.toFixed(3).replace('.',',')}</Peso><NumeroBulto>1</NumeroBulto></BultoRequest></Bultos><NumeroBultos>1</NumeroBultos><Peso>${weight.toFixed(3).replace('.',',')}</Peso><TipoMercancia>${esc(merchandiseCode)}</TipoMercancia><CodigoMoneda>EUR</CodigoMoneda></DatosServicio></request></TransmEnvio>`;
       const {data:claimed,error:claimError}=await admin.from('fulfillment_orders').update({tracking_status_code:'MRW_CREATING'}).eq('owner_id',caller.data_owner_id).eq('id',order.id).is('shipping_remote_id',null).or('tracking_status_code.is.null,tracking_status_code.neq.MRW_CREATING').select('id').maybeSingle();
       if(claimError)throw claimError;
       if(!claimed)return response({error:'La creación de este envío MRW ya está en curso o pendiente de comprobar. No se ha creado otro envío.'},409);
       let transmit:string;
       try{transmit=await soapCall(base,account.credentials,'TransmEnvio',request)}
       catch(error){
+        if(error instanceof MrwRejectedError){
+          const {error:releaseError}=await admin.from('fulfillment_orders').update({tracking_status_code:null})
+            .eq('owner_id',caller.data_owner_id).eq('id',order.id).eq('tracking_status_code','MRW_CREATING').is('shipping_remote_id',null).is('tracking_number',null).is('label_created_at',null);
+          if(releaseError)throw new Error('MRW rechazó el envío. No se pudo liberar el intento; comprueba la expedición antes de repetir.');
+        }
         const detail=error instanceof Error?error.message:'Error al transmitir el envío.';
         const diagnostic={event:'mrw_transmit_failed',orderId:order.id,weightKg:weight,weightXml:weight.toFixed(3),lengthCm:length,widthCm:width,heightCm:height,serviceCode,error:detail};
         console.error(JSON.stringify(diagnostic));

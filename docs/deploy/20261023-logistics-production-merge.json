@@ -1,0 +1,82 @@
+{
+  "codeHead": "21b3eb6a2cea5d3b3f55b9aae18507e8bfe6891d",
+  "ci": [
+    {
+      "id": 39955829678,
+      "name": "Auth resilience tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 388,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829678/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829678/logs",
+      "workflow_id": 385998318
+    },
+    {
+      "id": 39955829762,
+      "name": "MFA real integration (disposable Supabase)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 427,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829762/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829762/logs",
+      "workflow_id": 387906946
+    },
+    {
+      "id": 39955829493,
+      "name": "Shared UI package and tab contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 93,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829493/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829493/logs",
+      "workflow_id": 391756951
+    },
+    {
+      "id": 39955829470,
+      "name": "Build check",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 719,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829470/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829470/logs",
+      "workflow_id": 361316263
+    },
+    {
+      "id": 39955829457,
+      "name": "Build ZENVIA Gestión",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2430,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829457/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829457/logs",
+      "workflow_id": 354706666
+    },
+    {
+      "id": 39955829612,
+      "name": "MFA visual review (Playwright)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 242,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829612/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39955829612/logs",
+      "workflow_id": 388829843
+    }
+  ],
+  "applicationTests": {
+    "files": 127,
+    "passed": 736
+  },
+  "realIntegration": {
+    "tests": 11,
+    "pass": 11,
+    "fail": 0,
+    "skipped": 0
+  },
+  "merge": {
+    "sha": "ca8a595c6558356e766168fd51dd0ef78ef3ae66",
+    "merged": true,
+    "message": "Pull Request successfully merged"
+  },
+  "previousMain": "d3ddb4af4443f6c8f7a395181bf3b1e755b0379e",
+  "productionDeploymentVerified": false
+}

@@ -27,13 +27,17 @@ jobs:
       - name: Tracking release regressions
         run: npx vitest run tests/orders-tracking-projection-compatibility.test.ts tests/tracking-*.test.ts tests/shipment-tracking-*.test.ts tests/shipment-tracking-*.test.tsx tests/mrw-*.test.ts tests/mrw-*.test.tsx
       - name: Orders workbench and Summary regressions
-        run: npx vitest run tests/orders-workbench*.test.ts tests/orders-workbench*.test.tsx tests/workbench-tabs.test.tsx tests/pickup-history-embedded.test.tsx tests/dashboard-order-finance*.test.tsx tests/amazon-pii-operational-list.test.tsx tests/orders-pagination-service.test.ts
+        run: npx vitest run tests/orders-workbench*.test.ts tests/orders-workbench*.test.tsx tests/workbench-tabs.test.tsx tests/pickup-history-embedded.test.tsx tests/dashboard-order-finance*.test.tsx tests/amazon-pii-operational-list.test.tsx tests/orders-pagination-service.test.ts tests/order-logistics-summary.test.ts tests/orders-logistics-rpc-performance.test.ts
       - name: External shipment regressions
         run: npx vitest run tests/external-shipment*.test.ts tests/external-shipment*.test.tsx tests/shipping-quote-isolation.test.ts
       - name: Pickup signatures, carrier batches and disabled retention regressions
         run: npx vitest run tests/pickup-*.test.ts tests/pickup-*.test.tsx tests/signature-pad.test.tsx --maxWorkers=2
       - name: Typecheck pickup Edge Functions with Deno
         run: npx --yes deno@2.9.6 check --no-lock supabase/functions/pickup-report-documents/index.ts supabase/functions/pickup-report-purge/index.ts
+      - name: Durable shipment creation reconciliation regressions
+        run: npx vitest run tests/shipping-creation-*.test.ts tests/shipping-reconciliation*.test.ts tests/shipping-reference-lookup.test.ts tests/shipment-creation-recovery.test.tsx
+      - name: Typecheck carrier creation and reconciliation with Deno
+        run: npx --yes deno@2.9.6 check --no-lock supabase/functions/shipping-creation-reconcile/index.ts supabase/functions/shipping-creation-worker/index.ts supabase/functions/mrw-shipping/index.ts supabase/functions/envia-shipping/index.ts supabase/functions/sendcloud-orders/index.ts
       - name: Build production bundle
         run: npm run build
       - name: Upload dist artifact

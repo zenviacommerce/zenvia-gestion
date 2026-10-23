@@ -1,36 +1,35 @@
 {
   "readOnly": true,
-  "executedProductionWrites": 0,
-  "capturedOn": "2026-10-23",
+  "productionWrites": 0,
   "rows": [
     {
       "candidate_type": "dispatch",
       "cause": "tracking",
-      "basis": "legacy_carrier_status",
+      "basis": "legacy_carrier_status_observed",
       "source_channel": "amazon",
-      "rows": 246,
-      "identities": 246
+      "rows": 247,
+      "identities": 247
     },
     {
       "candidate_type": "dispatch",
       "cause": "tracking",
-      "basis": "legacy_carrier_status",
+      "basis": "legacy_carrier_status_observed",
       "source_channel": "shopify",
-      "rows": 3,
-      "identities": 3
+      "rows": 4,
+      "identities": 4
     },
     {
       "candidate_type": "dispatch",
       "cause": "tracking",
       "basis": "normalized_current",
       "source_channel": "amazon",
-      "rows": 43,
-      "identities": 43
+      "rows": 47,
+      "identities": 47
     },
     {
       "candidate_type": "dispatch",
       "cause": "tracking",
-      "basis": "normalized_current",
+      "basis": "normalized_current_observed",
       "source_channel": "shopify",
       "rows": 1,
       "identities": 1

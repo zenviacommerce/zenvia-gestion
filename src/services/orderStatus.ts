@@ -23,7 +23,8 @@ export function isReadyForDispatch(order:FulfillmentOrder){
 export function isProcessedOrder(order:FulfillmentOrder){
   if(isCancelledOrder(order))return false;
   if(order.labelCancelledAt)return false;
-  if(!hasShippingLabel(order))return order.logisticsHistorical===true;
+  if(order.logisticsHistorical===true)return true;
+  if(!hasShippingLabel(order))return false;
   return Boolean(order.logisticsDispatchedAt);
 }
 

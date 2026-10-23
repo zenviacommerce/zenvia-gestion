@@ -103,6 +103,8 @@
       "before_state": "shipped",
       "after_state": "labelled"
     }
-  ]
+  ],
+  "superseded": true,
+  "rejectedByOwner": true,
+  "currentList": "20261023-logistics-affected-orders.json"
 }
-

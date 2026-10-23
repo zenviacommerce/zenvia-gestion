@@ -59,3 +59,17 @@ La lista de envíos aparece primero, antes de los datos y firma, con un solo des
 | 2560 oscuro | [Antes](driver-review-before/03-verification-2560-dark.png) | [Después](flow/03-verification-2560-dark.png) | [Aviso](flow/05b-declared-discrepancy-2560-dark.png) |
 
 El flujo completo se repite a 390/1440/2560, claro y oscuro, con 72 capturas actuales más las 18 anteriores preservadas para comparar el modal. Datos sintéticos; red externa bloqueada.
+
+## Regla de posesión corregida tras rechazo del recuento
+
+La propuesta anterior de diez transiciones queda invalidada. La nueva deja cinco READY_TO_SEND en Etiquetados. exception/returned acreditan posesión; los códigos raw inequívocos sirven cuando normalized_state es null, incluidos MRW DELIVERED y eventos sin fecha. SHIPPED ambiguo exige movimiento posterior a la etiqueta. El baseline conserva por identidad los antiguos sin evidencia tras7d; la edad nunca se presenta como prueba física.
+
+Comparación de presentación sobre la misma metadata sintética: pantalla Orders anterior bd185ce frente a la actual, usando servicios sintéticos y clasificador compartido actual en ambos. La paridad funcional del clasificador, triggers y backfill se prueba por separado en SQL; estas imágenes comparan el texto que distingue histórico/observación de fecha real. No se usa transportista ni red real.
+
+| Vista | Histórico anterior | Histórico actual | Observación anterior | Observación actual |
+| --- | --- | --- | --- | --- |
+| 390 claro | [Antes](possession/before-historical-390-light.png) | [Después](possession/after-historical-390-light.png) | [Antes](possession/before-observed-390-light.png) | [Después](possession/after-observed-390-light.png) |
+| 1440 claro | [Antes](possession/before-historical-1440-light.png) | [Después](possession/after-historical-1440-light.png) | [Antes](possession/before-observed-1440-light.png) | [Después](possession/after-observed-1440-light.png) |
+| 2560 oscuro | [Antes](possession/before-historical-2560-dark.png) | [Después](possession/after-historical-2560-dark.png) | [Antes](possession/before-observed-2560-dark.png) | [Después](possession/after-observed-2560-dark.png) |
+
+24 capturas nuevas: tres anchos, dos temas, dos casos y dos versiones de presentación. Sin nuevos documentos, firmas, envíos ni correos reales.

@@ -1,13 +1,9 @@
 {
   "readOnly": true,
-  "executedProductionWrites": 0,
-  "capturedOn": "2026-10-23",
-  "rows": [
-    {
-      "candidates": 947,
-      "dispatch": 356,
-      "historical": 591,
-      "fingerprint": "f28630ac6598c7f4c37562b2de4f37b9"
-    }
-  ]
+  "productionWrites": 0,
+  "total": 953,
+  "dispatch": 362,
+  "historical": 591,
+  "fingerprint": "a97d5e1170f91c358cda01e4327a2f46",
+  "affectedOrdersFingerprint": "2bf159987fcade696a4dfdaa77c94ede"
 }

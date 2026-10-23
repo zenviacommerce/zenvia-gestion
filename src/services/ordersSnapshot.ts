@@ -20,7 +20,7 @@ export function publishOrdersSnapshot(orders:FulfillmentOrder[],expectedRevision
 export function markOrderLabelCreated(orderId:string,result:Partial<LabelResult>){
   const now=new Date().toISOString();
   publishOrdersSnapshot(readOrdersSnapshot().map(order=>order.id!==orderId?order:{...order,
-    labelCreatedAt:now,logisticsState:'labelled',logisticsHistorical:false,logisticsHistoricalDate:null,logisticsDispatchedAt:null,logisticsDispatchCause:null,logisticsIdentity:null,labelCancelledAt:null,
+    labelCreatedAt:now,logisticsDispatchObservedOnly:false,logisticsState:'labelled',logisticsHistorical:false,logisticsHistoricalDate:null,logisticsDispatchedAt:null,logisticsDispatchCause:null,logisticsIdentity:null,labelCancelledAt:null,
     shippingProvider:result.provider||order.shippingProvider,
     shippingRemoteId:result.shipmentId||result.trackingNumber||order.shippingRemoteId,
     sendcloudParcelId:result.parcelId||order.sendcloudParcelId,

@@ -310,3 +310,5 @@ Los avisos de recogida y el histórico importado usan `StatusBadge`; el aviso co
 Evidencia de revisión en `deploy/20261023-internal-logistics-review/`: pantallas reales con servicios sintéticos y red bloqueada, pruebas SQL separadas. Sin publicación.
 
 Firma de recogida: la comprobación de envíos abre el cuerpo del modal, antes de datos y firma. Un único scroll contiene la lista completa. Bultos recogidos suma las líneas comprobadas y se recalcula al cambiar o retirar líneas; una edición distinta muestra aviso accesible y conserva ambos totales en el PDF.
+
+Estado logístico histórico: mostrar «Enviado (histórico, sin evidencia)» cuando el estado anterior se conserva sin acreditar salida física. Si el transportista acredita posesión pero no fecha del movimiento, distinguir «Evidencia observada el…» de la fecha real, que debe indicarse como no disponible. No deducir fecha física de la antigüedad de etiqueta.

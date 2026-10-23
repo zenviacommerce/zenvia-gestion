@@ -1,37 +1,47 @@
 {
   "readOnly": true,
-  "executedProductionWrites": 0,
-  "capturedOn": "2026-10-23",
+  "productionWrites": 0,
+  "supersedes": "original ten-order count",
+  "cutover": "2026-10-23T12:00:00Z",
+  "historicalNoTrackingDays": 7,
+  "totalOrders": 1008,
+  "canonicalHistory": 577,
   "rows": [
     {
-      "source_channel": "amazon",
-      "before_state": "cancelled",
+      "orders": 64,
       "after_state": "cancelled",
-      "orders": 64
+      "before_state": "cancelled",
+      "source_channel": "amazon"
     },
     {
-      "source_channel": "amazon",
-      "before_state": "shipped",
+      "orders": 1,
+      "after_state": "pending",
+      "before_state": "pending",
+      "source_channel": "amazon"
+    },
+    {
+      "orders": 4,
       "after_state": "labelled",
-      "orders": 8
+      "before_state": "shipped",
+      "source_channel": "amazon"
     },
     {
-      "source_channel": "amazon",
-      "before_state": "shipped",
+      "orders": 923,
       "after_state": "shipped",
-      "orders": 919
+      "before_state": "shipped",
+      "source_channel": "amazon"
     },
     {
-      "source_channel": "shopify",
-      "before_state": "shipped",
+      "orders": 1,
       "after_state": "labelled",
-      "orders": 2
+      "before_state": "shipped",
+      "source_channel": "shopify"
     },
     {
-      "source_channel": "shopify",
-      "before_state": "shipped",
+      "orders": 15,
       "after_state": "shipped",
-      "orders": 14
+      "before_state": "shipped",
+      "source_channel": "shopify"
     }
   ]
 }

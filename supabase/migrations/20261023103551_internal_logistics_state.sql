@@ -16,25 +16,39 @@ create trigger order_dispatch_immutable before update or delete on private.order
 -- This is deliberately not physical dispatch evidence.
 create table private.order_logistics_legacy(
  owner_id uuid not null references public.workspaces(id),identity_key text not null,
- order_id uuid not null,historical_date timestamptz,recorded_at timestamptz not null default now(),primary key(owner_id,order_id)
+ order_id uuid not null,historical_date timestamptz,basis text not null default 'pre_cutover_channel_history' check(basis in ('pre_cutover_channel_history','pre_cutover_label_without_evidence')),recorded_at timestamptz not null default now(),primary key(owner_id,order_id)
 );
 alter table private.order_logistics_legacy enable row level security;
 revoke all on private.order_logistics_legacy from public,anon,authenticated;
 create trigger order_logistics_legacy_immutable before update or delete on private.order_logistics_legacy for each row execute function private.pickup_report_immutable();
 
+-- Evidence-only events/manual actions must invalidate cached classification too.
+create function private.order_logistics_projection_changed() returns trigger language plpgsql security definer set search_path='' as $$
+begin
+ if to_regclass('private.orders_projection_dirty') is not null then
+ insert into private.orders_projection_dirty(owner_id,group_key)
+ select new.owner_id,private.orders_dashboard_group_key(o.source_channel,o.order_number,o.id) from public.fulfillment_orders o where o.id=new.order_id and o.owner_id=new.owner_id;
+ end if;
+ return new;
+end$$;
+create trigger order_dispatch_projection_changed after insert on private.order_dispatch_evidence for each row execute function private.order_logistics_projection_changed();
+create trigger order_legacy_projection_changed after insert on private.order_logistics_legacy for each row execute function private.order_logistics_projection_changed();
+revoke all on function private.order_logistics_projection_changed() from public,anon,authenticated;
+
 create function private.order_logistics_identity(p_row jsonb) returns text language sql immutable set search_path='' as $$
  select private.shipment_tracking_identity(jsonb_populate_record(null::public.fulfillment_orders,p_row));
 $$;
 create function private.order_logistics_evidence(p_row jsonb) returns jsonb language sql stable security definer set search_path='' as $$
- select jsonb_build_object('dispatchedAt',d.dispatched_at,'cause',d.cause,'actorId',d.actor_id,'reportId',d.report_id,'basis',d.evidence_basis)
+ select jsonb_build_object('dispatchedAt',d.dispatched_at,'cause',d.cause,'actorId',d.actor_id,'reportId',d.report_id,'basis',d.evidence_basis,'observedOnly',d.evidence_basis like '%_observed')
  from private.order_dispatch_evidence d where d.owner_id=(p_row->>'owner_id')::uuid
  and d.identity_key=private.order_logistics_identity(p_row)
  and p_row->>'label_cancelled_at' is null and p_row->>'pii_purged_at' is null
  and (p_row->>'label_created_at' is not null or p_row->>'sendcloud_parcel_id' is not null or nullif(p_row->>'shipping_remote_id','') is not null)
  union all
- select jsonb_build_object('historical',true,'historicalDate',h.historical_date) from private.order_logistics_legacy h
+ select jsonb_build_object('historical',true,'historicalDate',h.historical_date,'basis',h.basis) from private.order_logistics_legacy h
  where h.owner_id=(p_row->>'owner_id')::uuid and h.order_id=(p_row->>'id')::uuid and h.identity_key=private.order_logistics_identity(p_row)
- and p_row->>'label_created_at' is null and p_row->>'sendcloud_parcel_id' is null and nullif(p_row->>'shipping_remote_id','') is null;
+ and (h.basis='pre_cutover_label_without_evidence' or (p_row->>'label_created_at' is null and p_row->>'sendcloud_parcel_id' is null and nullif(p_row->>'shipping_remote_id','') is null))
+ and not exists(select 1 from private.order_dispatch_evidence d where d.owner_id=h.owner_id and d.identity_key=h.identity_key);
 $$;
 create function private.order_logistics_state(p_row jsonb) returns text language sql stable security definer set search_path='' as $$
  select case
@@ -59,16 +73,44 @@ create function private.order_report_identity(p_owner uuid,p_order uuid,p_tracki
  order by o.label_created_at desc nulls last,o.id limit 1;
 $$;
 
+-- An identity-scoped physical event proves carrier possession, including exceptions/returns.
+-- Raw SHIPPED is ambiguous at label creation: require a later movement timestamp.
+create function private.order_tracking_possession(p_state text,p_provider text,p_code text,p_label timestamptz,p_tracking timestamptz,p_carrier_event boolean default false)
+returns boolean language sql immutable set search_path='' as $$
+ select coalesce(case when p_state is not null then p_state in ('in_transit','out_for_delivery','delivered','exception','returned')
+ when p_label is not null and p_tracking<p_label then false
+ when lower(trim(coalesce(p_code,'')))='shipped' and (not p_carrier_event or p_label is null or p_tracking is null or p_tracking<=p_label) then false
+ else private.tracking_legacy_state(p_provider,p_code) in ('in_transit','out_for_delivery','delivered','exception','returned') end,false);
+$$;
 create function private.order_dispatch_from_tracking() returns trigger language plpgsql security definer set search_path='' as $$
-declare o public.fulfillment_orders;begin
- if new.normalized_state not in ('in_transit','out_for_delivery','delivered') or new.normalized_state is null then return new;end if;
+declare o public.fulfillment_orders;v_at timestamptz;v_basis text;begin
  select * into o from public.fulfillment_orders where id=new.order_id and owner_id=new.owner_id for update;
  if not found or (o.label_created_at is null and o.sendcloud_parcel_id is null and nullif(o.shipping_remote_id,'') is null) or o.label_cancelled_at is not null or o.pii_purged_at is not null or private.shipment_tracking_identity(o)<>new.identity_key then return new;end if;
- insert into private.order_dispatch_evidence(owner_id,identity_key,order_id,dispatched_at,cause)
- values(o.owner_id,new.identity_key,o.id,coalesce(new.event_at,new.observed_at,now()),'tracking') on conflict do nothing;
+ if not private.order_tracking_possession(new.normalized_state,o.shipping_provider,coalesce(nullif(new.raw_code,''),o.tracking_status_code),o.label_created_at,case when nullif(new.raw_code,'') is null then o.tracking_updated_at else new.event_at end,nullif(new.raw_code,'') is not null) then return new;end if;
+ v_at:=case when new.normalized_state is null and nullif(new.raw_code,'') is null then o.tracking_updated_at else new.event_at end;
+ v_basis:=case when new.normalized_state is null then 'legacy_carrier_status' when TG_TABLE_NAME='shipment_tracking_events' then 'normalized_history' else 'normalized_current' end;
+ if v_at is null or (new.normalized_state is null and nullif(new.raw_code,'') is null) then v_basis:=v_basis||'_observed';end if;
+ insert into private.order_dispatch_evidence(owner_id,identity_key,order_id,dispatched_at,cause,evidence_basis)
+ values(o.owner_id,new.identity_key,o.id,coalesce(v_at,new.observed_at,now()),'tracking',v_basis) on conflict do nothing;
  return new;
 end$$;
 create trigger order_dispatch_tracking after insert or update on public.shipment_tracking_state for each row execute function private.order_dispatch_from_tracking();
+create trigger order_dispatch_tracking_event after insert on public.shipment_tracking_events for each row execute function private.order_dispatch_from_tracking();
+
+-- Legacy imports/terminal MRW updates may have no normalized row yet.
+create function private.order_dispatch_from_legacy_tracking() returns trigger language plpgsql security definer set search_path='' as $$
+declare normalized text;begin
+ if (new.label_created_at is null and new.sendcloud_parcel_id is null and nullif(new.shipping_remote_id,'') is null) or new.label_cancelled_at is not null or new.pii_purged_at is not null then return new;end if;
+ if TG_OP='UPDATE' and private.shipment_tracking_identity(new) is distinct from private.shipment_tracking_identity(old)
+ and new.tracking_status_code is not distinct from old.tracking_status_code and new.tracking_updated_at is not distinct from old.tracking_updated_at then return new;end if;
+ select normalized_state into normalized from public.shipment_tracking_state where order_id=new.id and owner_id=new.owner_id and identity_key=private.shipment_tracking_identity(new);
+ if normalized is not null or not private.order_tracking_possession(null,new.shipping_provider,new.tracking_status_code,new.label_created_at,new.tracking_updated_at) then return new;end if;
+ insert into private.order_dispatch_evidence(owner_id,identity_key,order_id,dispatched_at,cause,evidence_basis)
+ values(new.owner_id,private.shipment_tracking_identity(new),new.id,coalesce(new.tracking_updated_at,now()),'tracking','legacy_carrier_status_observed') on conflict do nothing;
+ return new;
+end$$;
+create trigger order_dispatch_legacy_tracking after insert or update of tracking_status_code,tracking_updated_at,label_created_at,label_cancelled_at,shipping_remote_id,sendcloud_parcel_id,shipping_provider,shipping_integration_account_id,tracking_number on public.fulfillment_orders for each row execute function private.order_dispatch_from_legacy_tracking();
+revoke all on function private.order_tracking_possession(text,text,text,timestamptz,timestamptz,boolean),private.order_dispatch_from_legacy_tracking() from public,anon,authenticated;
 
 create function private.order_dispatch_from_signature() returns trigger language plpgsql security definer set search_path='' as $$
 declare o public.fulfillment_orders;item jsonb;v_expected jsonb;begin

@@ -1,3 +1,4 @@
+-- REJECTED SNAPSHOT. Superseded by 20261023-logistics-affected-orders.sql; do not use for release.
 WITH ranked AS (
  SELECT o.*, o.owner_id::text||':'||CASE WHEN o.source_channel IN ('amazon','shopify') AND trim(coalesce(o.order_number,''))<>'' THEN o.source_channel||':'||trim(o.order_number) ELSE o.id::text END AS dedupe_key,
   row_number() OVER (

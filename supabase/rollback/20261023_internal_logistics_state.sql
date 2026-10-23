@@ -7,7 +7,11 @@ revoke execute on function public.order_logistics_mark_sent(jsonb),public.order_
 -- re-enable projection reads only after a separately checked rebuild and full parity.
 update private.orders_projection_control set read_enabled=false where singleton;
 alter table public.shipment_tracking_state disable trigger order_dispatch_tracking;
+alter table public.shipment_tracking_events disable trigger order_dispatch_tracking_event;
+alter table public.fulfillment_orders disable trigger order_dispatch_legacy_tracking;
 alter table private.pickup_document_signatures disable trigger order_dispatch_signature;
+alter table private.order_dispatch_evidence disable trigger order_dispatch_projection_changed;
+alter table private.order_logistics_legacy disable trigger order_legacy_projection_changed;
 CREATE OR REPLACE FUNCTION public.pickup_document_prepare(p_owner uuid, p_actor uuid, p_report uuid, p_request uuid, p_lease uuid, p_input jsonb)
  RETURNS jsonb
  LANGUAGE plpgsql

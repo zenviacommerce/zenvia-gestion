@@ -10,7 +10,7 @@ export type {ProviderQuotes,QuoteProvider} from './providerQuotes';
 export type OrderChannel = 'amazon' | 'shopify' | 'other';
 
 export interface FulfillmentOrder extends TrackingFields {
-  logisticsState?:'pending'|'labelled'|'shipped'|'cancelled'; logisticsHistorical?:boolean; logisticsHistoricalDate?:string|null; logisticsDispatchedAt?:string|null; logisticsDispatchCause?:'tracking'|'signed_report'|'manual'|null; logisticsIdentity?:string|null;
+  logisticsDispatchObservedOnly?:boolean; logisticsState?:'pending'|'labelled'|'shipped'|'cancelled'; logisticsHistorical?:boolean; logisticsHistoricalDate?:string|null; logisticsDispatchedAt?:string|null; logisticsDispatchCause?:'tracking'|'signed_report'|'manual'|null; logisticsIdentity?:string|null;
   id:string; sendcloudId:string; orderId:string|null; orderNumber:string|null;
   sourceIntegrationAccountId:string|null; shippingIntegrationAccountId:string|null;
   integrationId:number; integrationName:string|null; integrationType:string|null; sourceChannel:OrderChannel;
@@ -128,7 +128,7 @@ function mapRow(row:any):FulfillmentOrder{
     carrierCode:row.carrier_code||null, carrierName:row.carrier_name||(balearicPending?'🏝 Baleares · usar Correos':null), shippingServiceName:row.shipping_service_name||null,
     shippingCostAmount:row.shipping_cost_amount==null?null:Number(row.shipping_cost_amount), shippingCostCurrency:row.shipping_cost_currency||null, shippingCostSource:row.shipping_cost_source||null,
     shippingCostNetAmount:row.shipping_cost_net_amount==null?null:Number(row.shipping_cost_net_amount), shippingCostTaxAmount:row.shipping_cost_tax_amount==null?null:Number(row.shipping_cost_tax_amount), shippingCostRecordedAt:row.shipping_cost_recorded_at||null,
-    logisticsState:row.logistics_state||undefined,logisticsHistorical:row.logistics?.historical===true,logisticsHistoricalDate:row.logistics?.historicalDate||null,logisticsDispatchedAt:row.logistics?.dispatchedAt||null,logisticsDispatchCause:row.logistics?.cause||null,logisticsIdentity:row.logistics_identity||null,labelCancelledAt:row.label_cancelled_at||null,labelCreatedAt:row.label_created_at||null, labelPrintedAt:row.label_printed_at||null, labelPrintCount:Number(row.label_print_count||0), labelPrintStateKnown:row.label_print_state_known!==false, fulfilledAt:row.fulfilled_at||null, lastSyncedAt:row.last_synced_at,
+    logisticsDispatchObservedOnly:row.logistics?.observedOnly===true,logisticsState:row.logistics_state||undefined,logisticsHistorical:row.logistics?.historical===true,logisticsHistoricalDate:row.logistics?.historicalDate||null,logisticsDispatchedAt:row.logistics?.dispatchedAt||null,logisticsDispatchCause:row.logistics?.cause||null,logisticsIdentity:row.logistics_identity||null,labelCancelledAt:row.label_cancelled_at||null,labelCreatedAt:row.label_created_at||null, labelPrintedAt:row.label_printed_at||null, labelPrintCount:Number(row.label_print_count||0), labelPrintStateKnown:row.label_print_state_known!==false, fulfilledAt:row.fulfilled_at||null, lastSyncedAt:row.last_synced_at,
   });
 }
 

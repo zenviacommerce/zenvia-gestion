@@ -12,3 +12,5 @@ it('dispatch evidence belongs to the current active label',()=>{
  expect(isProcessedOrder({...label,labelCancelledAt:'2026-10-23T09:30:00Z',logisticsDispatchedAt:'2026-10-23T09:00:00Z'} as FulfillmentOrder)).toBe(false);
 });
 it('a legacy carrier cancellation is not in the warehouse queue',()=>expect(isLabelledOrder({...label,trackingStatusCode:'CANCELLED'})).toBe(false));
+
+it('an old labelled history stays shipped without inventing dispatch evidence',()=>{expect(isProcessedOrder({...label,logisticsHistorical:true})).toBe(true);expect(isLabelledOrder({...label,logisticsHistorical:true})).toBe(false)});

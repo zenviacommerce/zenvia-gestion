@@ -1,0 +1,110 @@
+{
+  "readOnly": true,
+  "project": "sjkxxbedkkmgmqnvaqjh",
+  "productionWrites": 0,
+  "rows": [
+    {
+      "id": "eb805c33-7133-4441-a00b-5ae041997d79",
+      "order_number": "171-1931838-4192365",
+      "source_channel": "amazon",
+      "tracking_number": "01009F045767",
+      "shipping_provider": "mrw",
+      "label_created_at": "2026-10-23 07:21:37.317+00",
+      "before_state": "shipped",
+      "after_state": "labelled"
+    },
+    {
+      "id": "3a2ed5c9-0413-4d45-90e1-880483fa59fe",
+      "order_number": "405-2267980-0898749",
+      "source_channel": "amazon",
+      "tracking_number": "01009F045283",
+      "shipping_provider": "sendcloud",
+      "label_created_at": "2026-09-22 07:58:33.565+00",
+      "before_state": "shipped",
+      "after_state": "labelled"
+    },
+    {
+      "id": "96280e27-e38c-4726-a604-68fbb4dbc641",
+      "order_number": "405-8653611-5071509",
+      "source_channel": "amazon",
+      "tracking_number": "01009F045768",
+      "shipping_provider": "mrw",
+      "label_created_at": "2026-10-23 07:24:10.228+00",
+      "before_state": "shipped",
+      "after_state": "labelled"
+    },
+    {
+      "id": "24d23f35-fc1f-4496-8fae-839e451676eb",
+      "order_number": "405-9438103-0776336",
+      "source_channel": "amazon",
+      "tracking_number": "01009F045046",
+      "shipping_provider": "sendcloud",
+      "label_created_at": null,
+      "before_state": "shipped",
+      "after_state": "labelled"
+    },
+    {
+      "id": "9c10e411-7cd1-42fd-b8e5-aabad923cfab",
+      "order_number": "406-5011260-4807511",
+      "source_channel": "amazon",
+      "tracking_number": "01009F045766",
+      "shipping_provider": "mrw",
+      "label_created_at": "2026-10-23 07:20:58.645+00",
+      "before_state": "shipped",
+      "after_state": "labelled"
+    },
+    {
+      "id": "e9fe54e4-101b-44ce-aef7-ff3195d149d9",
+      "order_number": "406-9615891-5475566",
+      "source_channel": "amazon",
+      "tracking_number": "01009F045774",
+      "shipping_provider": "mrw",
+      "label_created_at": "2026-10-23 08:49:25.096+00",
+      "before_state": "shipped",
+      "after_state": "labelled"
+    },
+    {
+      "id": "3b73b09a-bec2-452c-a1e3-ab27bb5789e9",
+      "order_number": "407-3816282-3253169",
+      "source_channel": "amazon",
+      "tracking_number": "01009F045035",
+      "shipping_provider": "sendcloud",
+      "label_created_at": null,
+      "before_state": "shipped",
+      "after_state": "labelled"
+    },
+    {
+      "id": "f4f8c754-a0ba-4b75-959c-671a4db30a7d",
+      "order_number": "407-8998792-9639500",
+      "source_channel": "amazon",
+      "tracking_number": "01009F045286",
+      "shipping_provider": "sendcloud",
+      "label_created_at": "2026-09-22 08:04:30.146+00",
+      "before_state": "shipped",
+      "after_state": "labelled"
+    },
+    {
+      "id": "59c505d7-c611-4d1e-9879-a01cef43a7fa",
+      "order_number": "#1016",
+      "source_channel": "shopify",
+      "tracking_number": "01009F045534",
+      "shipping_provider": "mrw",
+      "label_created_at": "2026-10-08 08:53:04.096+00",
+      "before_state": "shipped",
+      "after_state": "labelled"
+    },
+    {
+      "id": "b3bc1225-4df6-4323-bbf0-f8f7171b882a",
+      "order_number": "#1026",
+      "source_channel": "shopify",
+      "tracking_number": "01009F045775",
+      "shipping_provider": "mrw",
+      "label_created_at": "2026-10-23 10:04:15.884+00",
+      "before_state": "shipped",
+      "after_state": "labelled"
+    }
+  ],
+  "superseded": true,
+  "rejectedByOwner": true,
+  "currentList": "20261023-logistics-affected-orders.json"
+}

@@ -1,0 +1,70 @@
+{
+  "readOnly": true,
+  "productionWrites": 0,
+  "rows": [
+    {
+      "candidate_type": "dispatch",
+      "cause": "tracking",
+      "basis": "legacy_carrier_status_observed",
+      "source_channel": "amazon",
+      "rows": 247,
+      "identities": 247
+    },
+    {
+      "candidate_type": "dispatch",
+      "cause": "tracking",
+      "basis": "legacy_carrier_status_observed",
+      "source_channel": "shopify",
+      "rows": 4,
+      "identities": 4
+    },
+    {
+      "candidate_type": "dispatch",
+      "cause": "tracking",
+      "basis": "normalized_current",
+      "source_channel": "amazon",
+      "rows": 47,
+      "identities": 47
+    },
+    {
+      "candidate_type": "dispatch",
+      "cause": "tracking",
+      "basis": "normalized_current_observed",
+      "source_channel": "shopify",
+      "rows": 1,
+      "identities": 1
+    },
+    {
+      "candidate_type": "dispatch",
+      "cause": "tracking",
+      "basis": "normalized_history",
+      "source_channel": "amazon",
+      "rows": 56,
+      "identities": 56
+    },
+    {
+      "candidate_type": "dispatch",
+      "cause": "tracking",
+      "basis": "normalized_history",
+      "source_channel": "shopify",
+      "rows": 7,
+      "identities": 7
+    },
+    {
+      "candidate_type": "historical",
+      "cause": null,
+      "basis": "pre_cutover_channel_history",
+      "source_channel": "amazon",
+      "rows": 588,
+      "identities": 85
+    },
+    {
+      "candidate_type": "historical",
+      "cause": null,
+      "basis": "pre_cutover_channel_history",
+      "source_channel": "shopify",
+      "rows": 3,
+      "identities": 3
+    }
+  ]
+}

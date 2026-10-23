@@ -1,0 +1,16 @@
+{
+  "screens": 16,
+  "headerActionsPreserved": true,
+  "tabInventoryPreserved": true,
+  "sharedSearchAndFilterGeometry": true,
+  "widths": [
+    390,
+    1440,
+    1920,
+    2560
+  ],
+  "themes": [
+    "light",
+    "dark"
+  ]
+}

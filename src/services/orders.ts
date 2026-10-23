@@ -10,6 +10,7 @@ export type {ProviderQuotes,QuoteProvider} from './providerQuotes';
 export type OrderChannel = 'amazon' | 'shopify' | 'other';
 
 export interface FulfillmentOrder extends TrackingFields {
+  logisticsDispatchObservedOnly?:boolean; logisticsState?:'pending'|'labelled'|'shipped'|'cancelled'; logisticsHistorical?:boolean; logisticsHistoricalDate?:string|null; logisticsDispatchedAt?:string|null; logisticsDispatchCause?:'tracking'|'signed_report'|'manual'|null; logisticsIdentity?:string|null;
   id:string; sendcloudId:string; orderId:string|null; orderNumber:string|null;
   sourceIntegrationAccountId:string|null; shippingIntegrationAccountId:string|null;
   integrationId:number; integrationName:string|null; integrationType:string|null; sourceChannel:OrderChannel;
@@ -127,7 +128,7 @@ function mapRow(row:any):FulfillmentOrder{
     carrierCode:row.carrier_code||null, carrierName:row.carrier_name||(balearicPending?'🏝 Baleares · usar Correos':null), shippingServiceName:row.shipping_service_name||null,
     shippingCostAmount:row.shipping_cost_amount==null?null:Number(row.shipping_cost_amount), shippingCostCurrency:row.shipping_cost_currency||null, shippingCostSource:row.shipping_cost_source||null,
     shippingCostNetAmount:row.shipping_cost_net_amount==null?null:Number(row.shipping_cost_net_amount), shippingCostTaxAmount:row.shipping_cost_tax_amount==null?null:Number(row.shipping_cost_tax_amount), shippingCostRecordedAt:row.shipping_cost_recorded_at||null,
-    labelCancelledAt:row.label_cancelled_at||null,labelCreatedAt:row.label_created_at||null, labelPrintedAt:row.label_printed_at||null, labelPrintCount:Number(row.label_print_count||0), labelPrintStateKnown:row.label_print_state_known!==false, fulfilledAt:row.fulfilled_at||null, lastSyncedAt:row.last_synced_at,
+    logisticsDispatchObservedOnly:row.logistics?.observedOnly===true,logisticsState:row.logistics_state||undefined,logisticsHistorical:row.logistics?.historical===true,logisticsHistoricalDate:row.logistics?.historicalDate||null,logisticsDispatchedAt:row.logistics?.dispatchedAt||null,logisticsDispatchCause:row.logistics?.cause||null,logisticsIdentity:row.logistics_identity||null,labelCancelledAt:row.label_cancelled_at||null,labelCreatedAt:row.label_created_at||null, labelPrintedAt:row.label_printed_at||null, labelPrintCount:Number(row.label_print_count||0), labelPrintStateKnown:row.label_print_state_known!==false, fulfilledAt:row.fulfilled_at||null, lastSyncedAt:row.last_synced_at,
   });
 }
 
@@ -223,14 +224,20 @@ async function readFulfillmentOrders(client:ReturnType<typeof getActiveSupabase>
   const snapshotVersion=ordersSnapshotVersion();
   const {data,error}=await client.from('fulfillment_orders').select('id,sendcloud_id,sendcloud_remote_id,order_id,order_number,source_integration_account_id,shipping_integration_account_id,integration_id,integration_name,integration_type,source_channel,source_status,order_created_at,order_updated_at,pii_purged_at,destination_country_code,customer_name,customer_email,customer_phone,shipping_address,billing_address,items,total_amount,currency,shipping_measurement:raw_payload->shipping_details->measurement,tracking_metadata:raw_payload->_zenvia_tracking,package_length_cm,package_width_cm,package_height_cm,sendcloud_parcel_id,sendcloud_shipment_id,shipping_provider,shipping_remote_id,shipping_label_url,tracking_number,tracking_url,tracking_status_code,tracking_status_message,tracking_updated_at,shipping_option_code,contract_id,carrier_code,carrier_name,shipping_service_name,shipping_cost_amount,shipping_cost_currency,shipping_cost_source,shipping_cost_net_amount,shipping_cost_tax_amount,shipping_cost_recorded_at,label_created_at,label_cancelled_at,label_printed_at,label_print_count,label_print_state_known,fulfilled_at,last_synced_at').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000).abortSignal(AbortSignal.timeout(15000));
   if(error)throw error;
-  const orders=dedupeMarketplaceOrders((data||[]).map(mapRow)).filter(order=>!isAmazonAwaitingPayment(order));
+  const rawRows=data||[];
+  const metadata=rawRows.length?await client.rpc('order_logistics_read',{p_ids:rawRows.map((o:any)=>o.id)}).abortSignal(AbortSignal.timeout(15000)):{data:[],error:null};
+  if(metadata.error)throw metadata.error;
+  if(!Array.isArray(metadata.data))throw Error('La respuesta de estado logístico no es válida.');
+  if(metadata.data.length!==rawRows.length)throw Error('Los pedidos han cambiado. Actualiza para comprobar su estado logístico.');
+  const facts=new Map(metadata.data.map((o:any)=>[o.id,o]));
+  const orders=dedupeMarketplaceOrders(rawRows.map((o:any)=>mapRow({...o,...(facts.get(o.id)||{})}))).filter(order=>!isAmazonAwaitingPayment(order));
   // Synchronization and the database identity trigger persist the account name.
   if(getActiveSupabase()!==client)return readOrdersSnapshot();
   return publishOrdersSnapshot(orders,snapshotVersion);
 }
 export type OrdersDashboardFilters={
   from:string;to:string;state:'pending'|'labelled'|'shipped'|'issues'|'cancelled'|'all';
-  workbench?:boolean;trackingStaleDays?:number;
+  workbench?:boolean;trackingStaleDays?:number;selectionAll?:boolean;
   channel:'all'|OrderChannel;query:string;tracking:string;country:string;carrier:string;
   pickupReport?:'all'|'none'|'in'|'pending'|'signed'|'void';selectedIds?:string[];page:number;pageSize:number;overdueHours:number;sortKey:string;sortDirection:'asc'|'desc';
 };
@@ -268,7 +275,7 @@ export async function fetchOrdersDashboardPage(filters:OrdersDashboardFilters):P
     p_page_size:Math.min(100,Math.max(1,filters.pageSize)),
     p_overdue_hours:filters.overdueHours,
     p_sort_key:filters.sortKey,p_sort_direction:filters.sortDirection,
-    ...(filters.selectedIds?{p_selected_ids:filters.selectedIds}:{}),
+    ...(filters.selectedIds?{p_selected_ids:filters.selectedIds,p_selection_all:filters.selectionAll??false}:{}),
   }).abortSignal(AbortSignal.timeout(15000));
   if(error)throw error;
   if(!data||!Array.isArray(data.rows)||!data.kpis)throw new Error('La respuesta de estadísticas de pedidos no es válida.');
@@ -302,10 +309,10 @@ export async function fetchMatchingOrderIds(filters:OrdersDashboardFilters,allEl
   return data.ids;
 }
 /** Re-read only the saved IDs; never silently add new arrivals or omit changed orders. */
-export async function listSelectedOrdersForBulk(filters:OrdersDashboardFilters,ids:string[]):Promise<FulfillmentOrder[]>{
+export async function listSelectedOrdersForBulk(filters:OrdersDashboardFilters,ids:string[],allEligible=false):Promise<FulfillmentOrder[]>{
   if(!ids.length)return [];
   if(ids.length>2000||new Set(ids).size!==ids.length)throw new Error('La selección no es válida. Reduce los filtros y vuelve a seleccionar.');
-  const result=await listMatchingOrdersForAction({...filters,from:'',to:'',state:'all',channel:'all',query:'',tracking:'all',country:'all',carrier:'all',pickupReport:'all',selectedIds:ids});
+  const result=await listMatchingOrdersForAction({...filters,from:'',to:'',state:'all',channel:'all',query:'',tracking:'all',country:'all',carrier:'all',pickupReport:'all',selectedIds:ids,selectionAll:allEligible});
   const actual=new Set(result.map(order=>order.id));
   if(actual.size!==ids.length||ids.some(id=>!actual.has(id)))throw new Error('El conjunto de pedidos ha cambiado. Actualiza y vuelve a seleccionar antes de generar etiquetas.');
   return result;

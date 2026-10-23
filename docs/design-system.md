@@ -299,3 +299,16 @@ El diálogo de firma utiliza `FormModal`, `FormSection` y `FormGrid`. `PickupShi
 Toda búsqueda de listas usa `SearchField`: icono dentro del campo, alineación central y estilo independiente de la página que se haya visitado antes. `FilterBar` es layout y no autoriza inputs de búsqueda nativos. `SearchFilters` posee sus estilos en el paquete compartido; Soporte e Informes usan Añadir filtro y chips quitables. En tarjetas sin padding usar `inset`; dentro de un panel ya acolchado no duplicarlo. Las pruebas comprueban la geometría del icono, el margen interior y la ausencia de filtros desplegados fuera de Añadir filtro. Los FilterBar analíticos estructurados existentes conservan sus controles de rango.
 
 `StatusBadge` admite `neutral`, `warning` y `success`. Informes: Pendiente/Histórico parcial en ámbar, Firmado en verde, Anulado en neutro gris. El texto identifica siempre el estado además del color.
+
+
+## Salida física del almacén · revisión del 23/10/2026
+
+La acción individual y masiva «Marcar como enviado» usa `FormModal` de `@zenvia/ui`, la misma lista de seguimiento monoespaciado y una confirmación explícita de salida. Se muestran todos los envíos seleccionados; el servidor comprueba el workspace y la identidad de cada etiqueta de forma atómica. Los errores conservan la selección revisada y el cambio de workspace descarta tanto el modal como respuestas tardías.
+
+Los avisos de recogida y el histórico importado usan `StatusBadge`; el aviso comparte el umbral configurable `orders.overdueHours`. Un histórico del canal sin etiqueta local no se presenta como salida física acreditada. El detalle muestra fecha y causa cuando existe esa evidencia. Se conservan `Tabs`, `SearchField`, «Añadir filtro», selección y paginación existentes.
+
+Evidencia de revisión en `deploy/20261023-internal-logistics-review/`: pantallas reales con servicios sintéticos y red bloqueada, pruebas SQL separadas. Sin publicación.
+
+Firma de recogida: la comprobación de envíos abre el cuerpo del modal, antes de datos y firma. Un único scroll contiene la lista completa. Bultos recogidos suma las líneas comprobadas y se recalcula al cambiar o retirar líneas; una edición distinta muestra aviso accesible y conserva ambos totales en el PDF.
+
+Estado logístico histórico: mostrar «Enviado (histórico, sin evidencia)» cuando el estado anterior se conserva sin acreditar salida física. Si el transportista acredita posesión pero no fecha del movimiento, distinguir «Evidencia observada el…» de la fecha real, que debe indicarse como no disponible. No deducir fecha física de la antigüedad de etiqueta.

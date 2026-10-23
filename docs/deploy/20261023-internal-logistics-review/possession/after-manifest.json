@@ -1,0 +1,76 @@
+{
+  "synthetic": true,
+  "networkBlocked": true,
+  "presentationBaseline": null,
+  "sourceHashes": {
+    "src/pages/Orders.tsx": "33942ab90313176b07169e17762c75d7b623c504793af8d7fd323d7876ff8834",
+    "src/pages/Dashboard.tsx": "7318d1bcc39c1cbc9b9ab6881e31e4603c723d0761b995bcce6c89724ff9d3f0",
+    "src/components/PickupReports.tsx": "ef2deb796378daddb6e2133872c29864e5ea6f121d447c7be34e649d47fa4d93",
+    "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
+    "packages/ui/src/PageTabs.tsx": "bf71a9e55c43282d0c87eb7a9b3be9360c1a47e8ccfe6103c2bba97e17892da3",
+    "packages/ui/src/styles.css": "8fbccce55729b9282f3112e15d93de1913bbb5f69b8658293298bd436014a1f9",
+    "src/components/OrderFinancialSummary.tsx": "e774b1343a687fbb0a8b572fc77486ad865b9a2ccce984cca83019d8c1eac454"
+  },
+  "checks": [
+    {
+      "file": "after-historical-390-light.png",
+      "width": 390,
+      "theme": "light"
+    },
+    {
+      "file": "after-observed-390-light.png",
+      "width": 390,
+      "theme": "light"
+    },
+    {
+      "file": "after-historical-390-dark.png",
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "file": "after-observed-390-dark.png",
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "file": "after-historical-1440-light.png",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "file": "after-observed-1440-light.png",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "file": "after-historical-1440-dark.png",
+      "width": 1440,
+      "theme": "dark"
+    },
+    {
+      "file": "after-observed-1440-dark.png",
+      "width": 1440,
+      "theme": "dark"
+    },
+    {
+      "file": "after-historical-2560-light.png",
+      "width": 2560,
+      "theme": "light"
+    },
+    {
+      "file": "after-observed-2560-light.png",
+      "width": 2560,
+      "theme": "light"
+    },
+    {
+      "file": "after-historical-2560-dark.png",
+      "width": 2560,
+      "theme": "dark"
+    },
+    {
+      "file": "after-observed-2560-dark.png",
+      "width": 2560,
+      "theme": "dark"
+    }
+  ]
+}

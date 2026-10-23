@@ -1,0 +1,75 @@
+{
+  "synthetic": true,
+  "networkBlocked": true,
+  "presentationBaseline": "bd185ce",
+  "sourceHashes": {
+    "src/pages/Orders.tsx": "8c7d609b409b034a08a038a8bf72417362953453890a115426cae88a8bb64f81",
+    "src/pages/Dashboard.tsx": "7318d1bcc39c1cbc9b9ab6881e31e4603c723d0761b995bcce6c89724ff9d3f0",
+    "src/components/PickupReports.tsx": "ef2deb796378daddb6e2133872c29864e5ea6f121d447c7be34e649d47fa4d93",
+    "src/components/OrderLabelDefaults.tsx": "6fa3044f8342e94a44e1411853fac6d277e74171ea519606afde09b6070bf3a0",
+    "packages/ui/src/PageTabs.tsx": "bf71a9e55c43282d0c87eb7a9b3be9360c1a47e8ccfe6103c2bba97e17892da3",
+    "packages/ui/src/styles.css": "8fbccce55729b9282f3112e15d93de1913bbb5f69b8658293298bd436014a1f9"
+  },
+  "checks": [
+    {
+      "file": "before-historical-390-light.png",
+      "width": 390,
+      "theme": "light"
+    },
+    {
+      "file": "before-observed-390-light.png",
+      "width": 390,
+      "theme": "light"
+    },
+    {
+      "file": "before-historical-390-dark.png",
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "file": "before-observed-390-dark.png",
+      "width": 390,
+      "theme": "dark"
+    },
+    {
+      "file": "before-historical-1440-light.png",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "file": "before-observed-1440-light.png",
+      "width": 1440,
+      "theme": "light"
+    },
+    {
+      "file": "before-historical-1440-dark.png",
+      "width": 1440,
+      "theme": "dark"
+    },
+    {
+      "file": "before-observed-1440-dark.png",
+      "width": 1440,
+      "theme": "dark"
+    },
+    {
+      "file": "before-historical-2560-light.png",
+      "width": 2560,
+      "theme": "light"
+    },
+    {
+      "file": "before-observed-2560-light.png",
+      "width": 2560,
+      "theme": "light"
+    },
+    {
+      "file": "before-historical-2560-dark.png",
+      "width": 2560,
+      "theme": "dark"
+    },
+    {
+      "file": "before-observed-2560-dark.png",
+      "width": 2560,
+      "theme": "dark"
+    }
+  ]
+}

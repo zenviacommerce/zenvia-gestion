@@ -20,6 +20,15 @@ beforeEach(()=>{
  mocks.sales.mockReset().mockResolvedValue([{id:'issued',status:'issued',issueDate:'2026-10-01',totalAmount:121,taxAmount:21,paidAmount:121,clientName:'Cliente'}, {id:'draft',status:'draft',issueDate:'2026-10-01',totalAmount:999,taxAmount:99,paidAmount:0,clientName:'Borrador'}]);
  mocks.fetch.mockReset().mockResolvedValue({orders:[],tariffCandidates:[],kpis:{sales:{gross:242,net:200,vat:42,count:2,average:121},transport:{total:10,net:8,tax:2,mrw:3,correos:4,other:3,shipments:4,valued:3,missing:1,basis:'recorded_only'}}});
 });
+it('counts physical dispatches independently of marketplace confirmation in Summary',async()=>{
+ mocks.preferences=['shippedOrders'];mocks.list.mockResolvedValue([
+ {id:'label1',sourceStatus:'shipped',labelCreatedAt:'2026-10-23T08:00:00Z',orderCreatedAt:'2026-10-23T07:00:00Z',logisticsState:'labelled'},
+ {id:'label2',sourceStatus:'shipped',labelCreatedAt:'2026-10-23T08:00:00Z',orderCreatedAt:'2026-10-23T07:00:00Z',logisticsState:'labelled'},
+ {id:'sent',sourceStatus:'unfulfilled',labelCreatedAt:'2026-10-23T08:00:00Z',orderCreatedAt:'2026-10-23T07:00:00Z',logisticsState:'shipped',logisticsDispatchedAt:'2026-10-23T09:00:00Z',logisticsDispatchCause:'manual'},
+ ] as FulfillmentOrder[]);
+ render(<Dashboard invoices={[]} products={[]} suppliers={[]}/>);
+ await waitFor(()=>expect(within(card('Enviados') as HTMLElement).getByText('1')).toBeTruthy());
+});
 function card(label:string){return screen.getByText(label).closest('.stat')!;}
 it('keeps issued invoice finances distinct while displaying all five order amounts once',async()=>{
  render(<Dashboard invoices={[{id:'expense',invoiceDate:'2026-10-01',total:60.5,vat:10.5,status:'paid',category:'Servicios',supplierName:'Proveedor'} as Invoice]} products={[]} suppliers={[]}/>);

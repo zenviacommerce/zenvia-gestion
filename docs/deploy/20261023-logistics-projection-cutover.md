@@ -1,0 +1,9 @@
+# Producción #297: invalidación de caché posterior al corte
+
+El propietario autorizó la versión corregida. Preflight inmediato sin variaciones: cinco cambios,953 candidatos y ambas huellas aprobadas. Se aplicó la transacción exacta SHA256 03c1c2d513b9d9f4b914ac9d909315d77596a53641e263d97f21cfadefb88c2d, journal Supabase20261023123736/internal_logistics_state_atomic_release. Resultado:362 evidencias,591 históricos físicos,1008 canónicos con5 Etiquetados/938 Enviados/64 Cancelados/1 Pendiente.0 discrepancias del clasificador,0 hallazgos MFA, cohorte intacta. No se publicó frontend todavía.
+
+La comprobación de caché descubrió cinco proyecciones shipped frente a labelled correcto; cuatro sin cola. Los triggers de hechos no invalidan grupos que no reciben hechos nuevos. Contención reversible prevista en rollback aplicada: read_enabled=false (1fila); maintenance_enabled=true. El fallback usa la regla correcta.
+
+Regresión sintética primero roja: caché previa considerada usable=true; nueva migración de mantenimiento encola la unión de grupos existentes y claves fuente, incluyendo tombstones. No cambia pedidos, hechos, generaciones ni switches. Precuento de solo lectura:1011 grupos,771 sin cola en ese instante (cron concurrente). Reparación por lotes existentes; mantener lectura desactivada hasta comprobar paridad y cola vacía.39/39 pruebas SQL/posesión locales, incluida regresión ahora verde.
+
+Rollback: SQL supabase/rollback/20261023_internal_logistics_state.sql (SHA256 ecf59286d8c90c58749f2281357e7b519ad3549c9e7926a9f38dc5dd8a2964f1), conserva evidencias y deja fallback. La reparación solo encola; no se borran tareas de mantenimiento al revertir. Frontend: restaurar árbol main anterior d3ddb4af4443f6c8f7a395181bf3b1e755b0379e mediante commit de reversión y verificar Vercel. El estado previo de lectura era true; restablecer únicamente después de paridad. Recibos de publicación y hoja de ruta en rama docs/logistics-297-production-20261023.

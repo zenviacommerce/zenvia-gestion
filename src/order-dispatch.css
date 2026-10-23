@@ -1,0 +1,8 @@
+.orderDispatchModal{max-width:640px;width:calc(100vw - 32px)}
+.orderDispatchBody{padding:20px;min-width:0}
+.orderDispatchList{list-style:none;margin:16px 0;padding:0;max-height:40vh;overflow:auto}
+.orderDispatchList li{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid var(--border)}
+.orderDispatchTracking{font-family:monospace;font-size:16px;overflow-wrap:anywhere}
+.orderDispatchConfirm{display:flex;align-items:flex-start;gap:10px;line-height:1.5}
+.orderDispatchConfirm input{width:20px;height:20px;flex-shrink:0}
+.orderDispatchWaiting{display:block;margin-top:6px;color:var(--warning,#936400);font-size:12px;white-space:normal}

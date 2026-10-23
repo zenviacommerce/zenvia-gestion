@@ -1,3 +1,4 @@
+import {normalizeStatus} from '../../supabase/functions/_shared/tracking/policy';
 import type { FulfillmentOrder } from './orders';
 
 export function orderStatusCode(order:FulfillmentOrder){
@@ -5,7 +6,8 @@ export function orderStatusCode(order:FulfillmentOrder){
 }
 
 export function isCancelledOrder(order:FulfillmentOrder){
-  return orderStatusCode(order).includes('cancel');
+  if(order.logisticsState)return order.logisticsState==='cancelled';
+  return ['cancelled','canceled','cancelled_by_customer','cancelled_by_seller'].includes(orderStatusCode(order))||Boolean(order.labelCancelledAt)||(order.trackingNormalizedState||normalizeStatus(order.shippingProvider==='envia'?'envia':'legacy',order.trackingStatusCode))==='cancelled';
 }
 
 export function hasShippingLabel(order:FulfillmentOrder){
@@ -20,12 +22,10 @@ export function isReadyForDispatch(order:FulfillmentOrder){
 
 export function isProcessedOrder(order:FulfillmentOrder){
   if(isCancelledOrder(order))return false;
-  // Marketplace fulfillment confirms dispatch independently of carrier pickup.
-  const confirmedStatus=orderStatusCode(order);
-  if(['fulfilled','shipped','delivered'].includes(confirmedStatus))return true;
-  if(isReadyForDispatch(order))return false;
-  const status=orderStatusCode(order);
-  return status==='fulfilled'||status==='shipped'||status==='delivered';
+  if(order.labelCancelledAt)return false;
+  if(order.logisticsHistorical===true)return true;
+  if(!hasShippingLabel(order))return false;
+  return Boolean(order.logisticsDispatchedAt);
 }
 
 export function isLabelledOrder(order:FulfillmentOrder){

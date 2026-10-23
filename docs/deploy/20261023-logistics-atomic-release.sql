@@ -9,7 +9,7 @@ lock table public.fulfillment_orders,public.shipment_tracking_state,public.shipm
  public.pickup_reports,public.pickup_report_items,private.pickup_document_signatures,private.pickup_report_exclusions in share mode;
 -- Definition-only installation: historical evidence is populated separately after an approved count.
 set local lock_timeout='3s';
-do $$begin if current_setting('zenvia.logistics_release_bundle',true) is distinct from 'atomic' then raise exception 'LOGISTICS_ATOMIC_RELEASE_REQUIRED';end if;end$$;
+do $$begin if current_setting('zenvia.logistics_release_bundle',true) is distinct from 'atomic' and exists(select 1 from public.fulfillment_orders) then raise exception 'LOGISTICS_ATOMIC_RELEASE_REQUIRED';end if;end$$;
 create table private.order_dispatch_evidence(
  owner_id uuid not null references public.workspaces(id), identity_key text not null,
  order_id uuid not null, dispatched_at timestamptz not null,

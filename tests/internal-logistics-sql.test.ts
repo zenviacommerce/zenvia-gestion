@@ -6,6 +6,9 @@ const signatureInput=(ids:string[],revision=0,packages=ids.length)=>({carrier:'M
 it('rejects a standalone schema installation without the atomic release bundle',async()=>{
  const {db}=await verificationFixture();try{await expect(db.exec(readFileSync(migration,'utf8'))).rejects.toThrow('LOGISTICS_ATOMIC_RELEASE_REQUIRED');expect((await db.query<any>("select to_regclass('private.order_dispatch_evidence')::text name")).rows[0].name).toBeNull()}finally{await db.close()}
 },20000);
+it('can replay the schema on an empty new tenant without a historical data migration',async()=>{
+ const {db}=await verificationFixture();try{await db.exec('truncate fulfillment_orders cascade');await db.exec(readFileSync(migration,'utf8'));expect((await db.query('select * from private.order_dispatch_evidence')).rows).toHaveLength(0)}finally{await db.close()}
+},20000);
 it('the exact release bundle aborts safely when the approved data count has changed',async()=>{
  const {db}=await verificationFixture('active');try{await expect(db.exec(readFileSync('docs/deploy/20261023-logistics-atomic-release.sql','utf8'))).rejects.toThrow('LOGISTICS_BACKFILL_CHANGED_RECOUNT_REQUIRED');await db.exec('rollback');expect((await db.query<any>("select to_regclass('private.order_dispatch_evidence')::text name")).rows[0].name).toBeNull();expect((await db.query('select * from fulfillment_orders')).rows).toHaveLength(3)}finally{await db.close()}
 },20000);

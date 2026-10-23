@@ -10,13 +10,14 @@ async function source(path){
 test('Dashboard reads persisted KPIs without browser-driven carrier synchronization',async()=>{
   const dashboard=await source('src/pages/Dashboard.tsx');
   assert.doesNotMatch(dashboard,/syncSendcloudOrders\(/);
-  assert.match(dashboard,/await\s+listFulfillmentOrders\(\)/);
+  assert.match(dashboard,/await\s+fetchOrdersOperationalSummary\(/);
+  assert.doesNotMatch(dashboard,/listFulfillmentOrders|order_logistics_read/);
 });
 
 test('Dashboard uses the configured order refresh interval',async()=>{
   const dashboard=await source('src/pages/Dashboard.tsx');
   assert.match(dashboard,/settings\.orders\.refreshSeconds/);
-  assert.match(dashboard,/watchFulfillmentOrders\(refreshOrders,Math\.max\(60,settings\.orders\.refreshSeconds\)\*1000\)/);
+  assert.match(dashboard,/watchFulfillmentOrders\(\(\)=>refreshOrders\(true\),Math\.max\(60,settings\.orders\.refreshSeconds\)\*1000\)/);
   assert.doesNotMatch(dashboard,/setInterval/);
 });
 
@@ -37,8 +38,11 @@ test('Orders manual sync uses a stable in-flight guard instead of depending on s
 
 test('Dashboard pending orders KPI ignores period boundaries and reflects the real operational backlog',async()=>{
   const dashboard=await source('src/pages/Dashboard.tsx');
-  assert.match(dashboard,/const allValidOrders=orders\.filter\(order=>!isCancelledOrder\(order\)\)/);
-  assert.match(dashboard,/const pendingOrders=allValidOrders\.filter\(isPendingOrder\)\.length/);
+  const migration=await source('supabase/migrations/20261023132255_orders_cached_logistics_read.sql');
+  const summary=migration.split('-- Aggregate-only Summary API:')[1];
+  assert.ok(summary,'Aggregate contract must exist; SQL behavior is covered by the PGlite regression suite');
+  assert.match(summary,/'pending',count\(\*\) FILTER\(WHERE order_state='pending'\)/);
+  assert.doesNotMatch(summary,/'pending',count\(\*\) FILTER\(WHERE in_period/);
   assert.match(dashboard,/Pendientes reales · sin limitar por periodo/);
   assert.doesNotMatch(dashboard,/const pendingOrders=validOrders\.filter\(isPendingOrder\)\.length/);
 });

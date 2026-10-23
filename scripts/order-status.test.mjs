@@ -18,9 +18,10 @@ test('an unlabelled, non-cancelled, non-processed order remains pending', async 
   assert.equal(isPendingOrder({ sourceStatus: 'Pending', sendcloudParcelId: null }), true);
 });
 
-test('Dashboard uses the operational pending-order predicate', async () => {
+test('Dashboard delegates operational classification to the aggregate server API', async () => {
   const source = await readFile(new URL('../src/pages/Dashboard.tsx', import.meta.url), 'utf8');
-  assert.match(source, /from ['"]\.\.\/services\/orderStatus['"]/);
+  assert.match(source, /fetchOrdersOperationalSummary/);
+  assert.doesNotMatch(source, /listFulfillmentOrders/);
   assert.doesNotMatch(source, /function\s+isPendingOrder\s*\(/);
 });
 

@@ -1,0 +1,100 @@
+{
+  "pr": 297,
+  "commit": "9f4b648eb18396f8183ef94f6818a133cf573585",
+  "productionWrites": 0,
+  "published": false,
+  "tests": {
+    "ciComplete": 735,
+    "possession": 18,
+    "sql": 20,
+    "state": 4,
+    "realIntegrationPassed": 11,
+    "realIntegrationFailed": 0,
+    "realIntegrationSkipped": 0
+  },
+  "workflows": [
+    {
+      "name": "Shared UI package and tab contracts",
+      "id": 39952359759,
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39952359759"
+    },
+    {
+      "name": "Build check",
+      "id": 39952359792,
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39952359792"
+    },
+    {
+      "name": "MFA real integration (disposable Supabase)",
+      "id": 39952359709,
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39952359709"
+    },
+    {
+      "name": "Auth resilience tests",
+      "id": 39952359723,
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39952359723"
+    },
+    {
+      "name": "Build ZENVIA Gestión",
+      "id": 39952359842,
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39952359842"
+    },
+    {
+      "name": "MFA visual review (Playwright)",
+      "id": 39952359706,
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39952359706"
+    }
+  ],
+  "vercel": "success",
+  "finalReadOnlyPreflight": {
+    "counts": [
+      {
+        "orders": 64,
+        "after_state": "cancelled",
+        "before_state": "cancelled",
+        "source_channel": "amazon"
+      },
+      {
+        "orders": 1,
+        "after_state": "pending",
+        "before_state": "pending",
+        "source_channel": "amazon"
+      },
+      {
+        "orders": 4,
+        "after_state": "labelled",
+        "before_state": "shipped",
+        "source_channel": "amazon"
+      },
+      {
+        "orders": 923,
+        "after_state": "shipped",
+        "before_state": "shipped",
+        "source_channel": "amazon"
+      },
+      {
+        "orders": 1,
+        "after_state": "labelled",
+        "before_state": "shipped",
+        "source_channel": "shopify"
+      },
+      {
+        "orders": 15,
+        "after_state": "shipped",
+        "before_state": "shipped",
+        "source_channel": "shopify"
+      }
+    ],
+    "readAt": "2026-10-23T12:25:36.099711+00:00",
+    "affectedCount": 5,
+    "candidateCount": 953,
+    "affectedFingerprint": "2bf159987fcade696a4dfdaa77c94ede",
+    "backfillFingerprint": "a97d5e1170f91c358cda01e4327a2f46"
+  },
+  "pending": "Owner approval of corrected SQL and five-order list. No migration or publication authorized."
+}

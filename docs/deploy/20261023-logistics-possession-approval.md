@@ -32,7 +32,7 @@ Los cuatro casos rechazados permanecen Enviados: DELIVERY_FAILED, AWAITING_CUSTO
 
 [Rollback completo](../../supabase/rollback/20261023_internal_logistics_state.sql): conserva hechos e históricos, revoca acciones nuevas y deshabilita triggers, fuerza fallback y restaura prepare/complete y clasificadores originales. Revertir frontend al main anterior y drenar operaciones antes del SQL. No habilitar caché hasta reconstrucción/paridad. No DROP/DELETE de hechos.
 
-734/734 en suite completa más regresión adicional de rollback tardío;18 pruebas de posesión,20 SQL y4 de estado, build/TypeScript y contratos6/6. Revisión independiente: drifts detectados y corregidos con pruebas de paridad. Capturas24 de presentación antes/después a390/1440/2560, claro/oscuro; fuente y límites documentados en la galería. CI del nuevo commit pendiente.
+734/734 en suite completa más regresión adicional de rollback tardío;18 pruebas de posesión,20 SQL y4 de estado, build/TypeScript y contratos6/6. Revisión independiente: drifts detectados y corregidos con pruebas de paridad. Capturas24 de presentación antes/después a390/1440/2560, claro/oscuro; fuente y límites documentados en la galería. CI del código9f4b648eb18396f8183ef94f6818a133cf573585:6/6 workflows verdes,735/735 pruebas completas, integración real11/11 sin omisiones y Vercel correcto. [Recibo de CI y último preflight](20261023-logistics-possession-ci-receipt.json).
 
 Pendiente revisión del propietario del SQL y lista corregidos. No hay autorización para ejecutar ni publicar.
 

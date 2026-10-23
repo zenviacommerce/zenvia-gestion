@@ -1,3 +1,4 @@
+import {SearchField} from '@zenvia/ui';
 import {PageHeader} from '../components/PageHeader';
 import {KpiGrid} from '../components/KpiGrid';
 import {FilterBar} from '../components/FilterBar';
@@ -5,7 +6,7 @@ import {DataTable,MobileList} from '../components/DataTable';
 import {RowActions} from '../components/RowActions';
 import {useListSelection,toggleListScope,SelectionReview} from '../components/ListSelection';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Building2, CalendarDays, Calculator, ChevronRight, CircleDollarSign, FileText, Mail, MapPin, Pencil, Phone, Search, Trash2, UserRound, WalletCards, X } from 'lucide-react';
+import { Building2, CalendarDays, Calculator, ChevronRight, CircleDollarSign, FileText, Mail, MapPin, Pencil, Phone, Trash2, UserRound, WalletCards, X } from 'lucide-react';
 import { addClient, deleteClient, loadClients, loadSalesInvoices, updateClient, type Client, type ClientInput, type SalesInvoice } from '../services/sales';
 import { emailError, nameError, normalizeEmail, normalizePhone, normalizeTaxId, phoneError, taxIdError } from '../services/validation';
 import { errorMessage, showError, showSuccess } from '../services/toast';
@@ -275,7 +276,7 @@ export function Clients(){
       <StatCard label="Ticket medio" value={money(totals.average)} sub="Media por factura emitida" icon={<Calculator/>}/>
     </KpiGrid>
     <FilterBar label="Filtros de clientes" className="businessFilterBar">
-      <div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar cliente, CIF, email, teléfono o ciudad…"/></div>
+      <SearchField value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar cliente, CIF, email, teléfono o ciudad…"/>
       <div className="businessFilterFields">
         <label className="filterField"><span>País</span><SelectField value={countryFilter} onChange={setCountryFilter} ariaLabel="Filtrar clientes por país" options={[{value:'all',label:'Todos los países'},...countryOptions]}/></label>
         <label className="filterField"><span>Situación</span><SelectField value={balanceFilter} onChange={value=>setBalanceFilter(value as ClientBalanceFilter)} ariaLabel="Filtrar clientes por situación" options={[{value:'all',label:'Todos los clientes'},{value:'pending',label:'Con saldo pendiente'},{value:'settled',label:'Sin saldo pendiente'},{value:'active',label:'Con actividad en el periodo'},{value:'inactive',label:'Sin actividad en el periodo'}]}/></label>

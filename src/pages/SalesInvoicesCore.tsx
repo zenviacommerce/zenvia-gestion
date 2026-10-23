@@ -1,3 +1,4 @@
+import {SearchField} from '@zenvia/ui';
 import {BankAccountSelect,BankAccountSnapshotView,BankSettingsLink,documentPaymentMethodId,useBankAccountChoice} from '../components/BankAccountSelect';
 import {PageHeader} from '../components/PageHeader';
 import {KpiGrid} from '../components/KpiGrid';
@@ -7,7 +8,7 @@ import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BadgeEuro, Banknote, Calculator, CalendarDays, CheckCircle2, Download, Eye, FileCheck2, FilePenLine,
-  ImagePlus, ListOrdered, Mail, PackageSearch, Pencil, Plus, Printer, ReceiptText, RotateCcw, Search, Settings2,
+  ImagePlus, ListOrdered, Mail, PackageSearch, Pencil, Plus, Printer, ReceiptText, RotateCcw, Settings2,
   Trash2, UserRound, WalletCards, X,
 } from 'lucide-react';
 import {
@@ -557,7 +558,7 @@ export function SalesInvoices({
       <StatCard label="Ticket medio" value={money(totals.average)} sub="Sobre facturas emitidas" icon={<Calculator/>}/>
     </KpiGrid>
     <FilterBar label="Filtros de facturación" className="businessFilterBar salesBusinessFilters">
-      <div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar cliente, CIF, VAT o nº factura…"/></div>
+      <SearchField value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar cliente, CIF, VAT o nº factura…"/>
       <div className="businessFilterFields">
         <label className="filterField"><span>Cliente</span><SearchableSelect value={clientId==='all'?'':clientId} options={clientOptions} onChange={value=>setClientId(value||'all')} allowEmpty emptyLabel="Todos los clientes" searchPlaceholder="Buscar cliente…" ariaLabel="Filtrar por cliente"/></label>
         <label className="filterField"><span>País</span><SelectField value={countryFilter} onChange={setCountryFilter} ariaLabel="Filtrar facturas por país" options={[{value:'all',label:'Todos los países'},...countryOptions]}/></label>

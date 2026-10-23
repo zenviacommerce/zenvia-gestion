@@ -1,3 +1,4 @@
+import {SearchField} from '@zenvia/ui';
 import {StatCard} from '../components/StatCard';
 import {PageHeader} from '../components/PageHeader';
 import {KpiGrid} from '../components/KpiGrid';
@@ -6,7 +7,7 @@ import {DataTable,MobileList} from '../components/DataTable';
 import {RowActions} from '../components/RowActions';
 import {useListSelection,toggleListScope,SelectionReview} from '../components/ListSelection';
 import { useEffect, useMemo, useState } from 'react';
-import { Building2, CalendarDays, ChevronRight, FileText, Globe, Mail, MapPin, Package, Pencil, Phone, Search, ShoppingCart, Trash2, X } from 'lucide-react';
+import { Building2, CalendarDays, ChevronRight, FileText, Globe, Mail, MapPin, Package, Pencil, Phone, ShoppingCart, Trash2, X } from 'lucide-react';
 import { loadAppData } from '../services/repository';
 import { showError, showSuccess } from '../services/toast';
 import { confirmAction, openActionProcess } from '../services/actionDialog';
@@ -188,7 +189,7 @@ export function Suppliers({suppliers,onAdd,onEdit,onDelete}:{suppliers:Supplier[
     </KpiGrid>
 
     <FilterBar label="Filtros de proveedores" className="businessFilterBar">
-      <div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar proveedor, CIF, email, teléfono o dirección…"/></div>
+      <SearchField value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar proveedor, CIF, email, teléfono o dirección…"/>
       <div className="businessFilterFields">
         <label className="filterField"><span>Tipo</span><SelectField value={typeFilter} onChange={value=>setTypeFilter(value as SupplierTypeFilter)} ariaLabel="Filtrar por tipo de proveedor" options={[{value:'all',label:'Todos los tipos'},{value:'goods',label:'Mercancía'},{value:'service',label:'Servicios'},{value:'both',label:'Mercancía y servicios'},{value:'unclassified',label:'Sin clasificar'}]}/></label>
         <label className="filterField"><span>Categoría habitual</span><SelectField value={categoryFilter} onChange={setCategoryFilter} ariaLabel="Filtrar por categoría habitual" options={[{value:'all',label:'Todas las categorías'},{value:'__none__',label:'Sin categoría habitual'},...categories.map(category=>({value:category.id,label:category.name}))]}/></label>

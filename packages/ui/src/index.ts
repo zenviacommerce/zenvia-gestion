@@ -9,3 +9,4 @@ export * from './SortableTableHeader';
 export * from './forms/FormPrimitives';
 
 export * from './SearchFilters';
+export * from './StatusBadge';

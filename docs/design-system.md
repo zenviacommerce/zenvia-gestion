@@ -290,3 +290,12 @@ Las barras existentes que ya usan `FilterBar` y su campo `.search` siguen dentro
 ### Comprobación de recogida antes de firmar
 
 El diálogo de firma utiliza `FormModal`, `FormSection` y `FormGrid`. `PickupShipmentVerification` muestra todos los seguimientos completos en monoespaciado, pedido y bultos, con lista de desplazamiento interno. El contador y los totales quedan fuera de ese scroll y se repiten en el pie fijo junto a Firmar. Cada envío se comprueba con casilla accesible; «Marcar todos» es una acción explícita. Retirar requiere motivo y confirmación; no se ofrece después de la primera firma. Los bultos son la suma de las líneas entregadas. La vista previa PDF mantiene el diálogo padre inerte y devuelve el foco al cerrar. El canvas conserva pointer events, resolución retina y bloqueo de desplazamiento al firmar.
+
+
+### Hotfix de ancho, búsquedas y estados (23/10/2026)
+
+`Tabs` y su panel ocupan el 100 % del ancho interior del padre, también dentro de flex. Evitar contenedores que limiten artificialmente su ancho. La prueba de navegador mide píxeles del panel frente al ancho útil del padre a 390/1440/1920/2560, claro y oscuro.
+
+Toda búsqueda de listas usa `SearchField`: icono dentro del campo, alineación central y estilo independiente de la página que se haya visitado antes. `FilterBar` es layout y no autoriza inputs de búsqueda nativos. `SearchFilters` posee sus estilos en el paquete compartido; Soporte e Informes usan Añadir filtro y chips quitables. En tarjetas sin padding usar `inset`; dentro de un panel ya acolchado no duplicarlo. Las pruebas comprueban la geometría del icono, el margen interior y la ausencia de filtros desplegados fuera de Añadir filtro. Los FilterBar analíticos estructurados existentes conservan sus controles de rango.
+
+`StatusBadge` admite `neutral`, `warning` y `success`. Informes: Pendiente/Histórico parcial en ámbar, Firmado en verde, Anulado en neutro gris. El texto identifica siempre el estado además del color.

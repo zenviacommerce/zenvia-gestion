@@ -1,10 +1,9 @@
 import {PageHeader} from '../components/PageHeader';
-import {Tabs} from '@zenvia/ui';
+import {Tabs,SearchFilters} from '@zenvia/ui';
 import {KpiGrid} from '../components/KpiGrid';
 import {StatCard} from '../components/StatCard';
-import {FilterBar} from '../components/FilterBar';
 import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { AlertCircle, Bug, CheckCircle2, Clock3, FilePlus2, Lightbulb, LifeBuoy, MessageCircle, Paperclip, RefreshCw, Search, Send, X } from 'lucide-react';
+import { AlertCircle, Bug, CheckCircle2, Clock3, FilePlus2, Lightbulb, LifeBuoy, MessageCircle, Paperclip, RefreshCw, Send, X } from 'lucide-react';
 import { SelectField } from '../components/forms/SelectField';
 import { createSupportTicket, listSupportTickets, loadSupportTicket, replySupportTicket, supportAttachmentUrl, type SupportAttachment, type SupportTicket, type SupportTicketDetail, type SupportTicketPriority, type SupportTicketStatus, type SupportTicketType } from '../services/support';
 import { errorMessage, showError, showSuccess } from '../services/toast';
@@ -76,17 +75,16 @@ export function SupportPage({isAdmin,currentUserId}:{isAdmin:boolean;currentUser
     </KpiGrid>
 
     <Tabs hidden={!isAdmin} panelId="support-list-panel" label="Tickets visibles" value={scope} onChange={setScope} items={[{id:'all',label:'Tickets de la empresa',icon:<LifeBuoy size={16}/>},{id:'mine',label:'Mis tickets',icon:<MessageCircle size={16}/>} ]}>
-    <section className="card supportListCard" id="support-list-panel" role={isAdmin?'tabpanel':undefined} aria-labelledby={isAdmin?'support-list-panel-tab-'+scope:undefined}>
+    <section className="supportListCard" id="support-list-panel" role={isAdmin?'tabpanel':undefined} aria-labelledby={isAdmin?'support-list-panel-tab-'+scope:undefined}>
       <div className="supportListHead">
         <div><strong>{scope==='all'?'Todos los tickets':'Mis tickets'}</strong><span>{shown.length} visibles</span></div>
         <button className="secondary" onClick={()=>void refresh()} disabled={loading}><RefreshCw size={15} className={loading?'spin':''}/> Actualizar</button>
       </div>
-      <FilterBar className="businessFilterBar finalFilters" label="Filtros de tickets">
-        <label className="search supportSearch"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar nº, asunto o usuario…"/></label>
-        <div className="businessFilterFields"><label>Estado<SelectField ariaLabel="Estado del ticket" value={status} onChange={setStatus} options={[{value:'',label:'Todos los estados'},...Object.entries(statusLabels).map(([value,label])=>({value,label}))]}/>
-        </label><label>Tipo<SelectField ariaLabel="Tipo de ticket" value={type} onChange={setType} options={[{value:'',label:'Todos los tipos'},...Object.entries(typeLabels).map(([value,label])=>({value,label}))]}/>
-        </label></div>
-      </FilterBar>
+      <SearchFilters inset label="Filtros de tickets" query={query} onQueryChange={setQuery} searchLabel="Buscar tickets" placeholder="Buscar nº, asunto o usuario…" filters={[
+        {id:'status',label:'Estado',value:status||'all',valueLabel:statusLabels[status as SupportTicketStatus]||'Todos los estados',control:<SelectField ariaLabel="Estado del ticket" value={status} onChange={setStatus} options={[{value:'',label:'Todos los estados'},...Object.entries(statusLabels).map(([value,label])=>({value,label}))]}/>},
+        {id:'type',label:'Tipo',value:type||'all',valueLabel:typeLabels[type as SupportTicketType]||'Todos los tipos',control:<SelectField ariaLabel="Tipo de ticket" value={type} onChange={setType} options={[{value:'',label:'Todos los tipos'},...Object.entries(typeLabels).map(([value,label])=>({value,label}))]}/>}
+      ]} onRemove={key=>key==='status'?setStatus(''):setType('')} onReset={()=>{setQuery('');setStatus('');setType('')}}/>
+
       {error&&<div className="errorBox">{error}</div>}
       <div className="supportTicketList">
         {shown.map(ticket=><button className="supportTicketRow" key={ticket.id} onClick={()=>setSelectedId(ticket.id)}>

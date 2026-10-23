@@ -1,0 +1,586 @@
+[
+  {
+    "screen": "support",
+    "width": 390,
+    "theme": "light",
+    "file": "support-390-light.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Tickets de la empresa",
+      "Mis tickets"
+    ],
+    "actions": [
+      "Nuevo ticket"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "support",
+    "width": 1440,
+    "theme": "light",
+    "file": "support-1440-light.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Tickets de la empresa",
+      "Mis tickets"
+    ],
+    "actions": [
+      "Nuevo ticket"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "support",
+    "width": 1920,
+    "theme": "light",
+    "file": "support-1920-light.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Tickets de la empresa",
+      "Mis tickets"
+    ],
+    "actions": [
+      "Nuevo ticket"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "support",
+    "width": 2560,
+    "theme": "light",
+    "file": "support-2560-light.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Tickets de la empresa",
+      "Mis tickets"
+    ],
+    "actions": [
+      "Nuevo ticket"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "support",
+    "width": 390,
+    "theme": "dark",
+    "file": "support-390-dark.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Tickets de la empresa",
+      "Mis tickets"
+    ],
+    "actions": [
+      "Nuevo ticket"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "support",
+    "width": 1440,
+    "theme": "dark",
+    "file": "support-1440-dark.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Tickets de la empresa",
+      "Mis tickets"
+    ],
+    "actions": [
+      "Nuevo ticket"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "support",
+    "width": 1920,
+    "theme": "dark",
+    "file": "support-1920-dark.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Tickets de la empresa",
+      "Mis tickets"
+    ],
+    "actions": [
+      "Nuevo ticket"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "support",
+    "width": 2560,
+    "theme": "dark",
+    "file": "support-2560-dark.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Tickets de la empresa",
+      "Mis tickets"
+    ],
+    "actions": [
+      "Nuevo ticket"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "admin",
+    "width": 390,
+    "theme": "light",
+    "file": "admin-390-light.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Usuarios y accesos",
+      "Auditoría"
+    ],
+    "actions": [
+      "Nuevo usuario"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "admin",
+    "width": 1440,
+    "theme": "light",
+    "file": "admin-1440-light.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Usuarios y accesos",
+      "Auditoría"
+    ],
+    "actions": [
+      "Nuevo usuario"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "admin",
+    "width": 1920,
+    "theme": "light",
+    "file": "admin-1920-light.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Usuarios y accesos",
+      "Auditoría"
+    ],
+    "actions": [
+      "Nuevo usuario"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "admin",
+    "width": 2560,
+    "theme": "light",
+    "file": "admin-2560-light.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Usuarios y accesos",
+      "Auditoría"
+    ],
+    "actions": [
+      "Nuevo usuario"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "admin",
+    "width": 390,
+    "theme": "dark",
+    "file": "admin-390-dark.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Usuarios y accesos",
+      "Auditoría"
+    ],
+    "actions": [
+      "Nuevo usuario"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "admin",
+    "width": 1440,
+    "theme": "dark",
+    "file": "admin-1440-dark.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Usuarios y accesos",
+      "Auditoría"
+    ],
+    "actions": [
+      "Nuevo usuario"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "admin",
+    "width": 1920,
+    "theme": "dark",
+    "file": "admin-1920-dark.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Usuarios y accesos",
+      "Auditoría"
+    ],
+    "actions": [
+      "Nuevo usuario"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "admin",
+    "width": 2560,
+    "theme": "dark",
+    "file": "admin-2560-dark.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Usuarios y accesos",
+      "Auditoría"
+    ],
+    "actions": [
+      "Nuevo usuario"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "settings",
+    "width": 390,
+    "theme": "light",
+    "file": "settings-390-light.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "GeneralIdentidad, moneda y comportamiento general de la empresa.",
+      "Plan y facturaciónPlan contratado, consumo, límites y cambios de suscripción.",
+      "FacturaciónValores predeterminados, cobros y documentos de venta.",
+      "Gastos e importaciónImportación, duplicados y reglas de facturas recibidas.",
+      "PedidosComportamiento general de pedidos, etiquetas y tracking.",
+      "EnvíosTransportistas, servicios y preferencias logísticas.",
+      "ProductosIVA, costes, márgenes y creación automática.",
+      "ClientesDefaults, identidad y enriquecimiento de clientes.",
+      "ProveedoresDefaults, alias, identidad y categorización.",
+      "SeguridadAutenticadores y verificación de acceso.",
+      "IntegracionesEstado y comportamiento de servicios conectados.",
+      "Alertas y automatizacionesAlertas de negocio y acciones automáticas controladas.",
+      "Mis preferenciasPreferencias de interfaz exclusivas de tu usuario.",
+      "MantenimientoDiagnóstico, duplicados, reconstrucciones y exportación."
+    ],
+    "actions": [],
+    "overflow": false
+  },
+  {
+    "screen": "settings",
+    "width": 1440,
+    "theme": "light",
+    "file": "settings-1440-light.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "GeneralIdentidad, moneda y comportamiento general de la empresa.",
+      "Plan y facturaciónPlan contratado, consumo, límites y cambios de suscripción.",
+      "FacturaciónValores predeterminados, cobros y documentos de venta.",
+      "Gastos e importaciónImportación, duplicados y reglas de facturas recibidas.",
+      "PedidosComportamiento general de pedidos, etiquetas y tracking.",
+      "EnvíosTransportistas, servicios y preferencias logísticas.",
+      "ProductosIVA, costes, márgenes y creación automática.",
+      "ClientesDefaults, identidad y enriquecimiento de clientes.",
+      "ProveedoresDefaults, alias, identidad y categorización.",
+      "SeguridadAutenticadores y verificación de acceso.",
+      "IntegracionesEstado y comportamiento de servicios conectados.",
+      "Alertas y automatizacionesAlertas de negocio y acciones automáticas controladas.",
+      "Mis preferenciasPreferencias de interfaz exclusivas de tu usuario.",
+      "MantenimientoDiagnóstico, duplicados, reconstrucciones y exportación."
+    ],
+    "actions": [],
+    "overflow": false
+  },
+  {
+    "screen": "settings",
+    "width": 1920,
+    "theme": "light",
+    "file": "settings-1920-light.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "GeneralIdentidad, moneda y comportamiento general de la empresa.",
+      "Plan y facturaciónPlan contratado, consumo, límites y cambios de suscripción.",
+      "FacturaciónValores predeterminados, cobros y documentos de venta.",
+      "Gastos e importaciónImportación, duplicados y reglas de facturas recibidas.",
+      "PedidosComportamiento general de pedidos, etiquetas y tracking.",
+      "EnvíosTransportistas, servicios y preferencias logísticas.",
+      "ProductosIVA, costes, márgenes y creación automática.",
+      "ClientesDefaults, identidad y enriquecimiento de clientes.",
+      "ProveedoresDefaults, alias, identidad y categorización.",
+      "SeguridadAutenticadores y verificación de acceso.",
+      "IntegracionesEstado y comportamiento de servicios conectados.",
+      "Alertas y automatizacionesAlertas de negocio y acciones automáticas controladas.",
+      "Mis preferenciasPreferencias de interfaz exclusivas de tu usuario.",
+      "MantenimientoDiagnóstico, duplicados, reconstrucciones y exportación."
+    ],
+    "actions": [],
+    "overflow": false
+  },
+  {
+    "screen": "settings",
+    "width": 2560,
+    "theme": "light",
+    "file": "settings-2560-light.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "GeneralIdentidad, moneda y comportamiento general de la empresa.",
+      "Plan y facturaciónPlan contratado, consumo, límites y cambios de suscripción.",
+      "FacturaciónValores predeterminados, cobros y documentos de venta.",
+      "Gastos e importaciónImportación, duplicados y reglas de facturas recibidas.",
+      "PedidosComportamiento general de pedidos, etiquetas y tracking.",
+      "EnvíosTransportistas, servicios y preferencias logísticas.",
+      "ProductosIVA, costes, márgenes y creación automática.",
+      "ClientesDefaults, identidad y enriquecimiento de clientes.",
+      "ProveedoresDefaults, alias, identidad y categorización.",
+      "SeguridadAutenticadores y verificación de acceso.",
+      "IntegracionesEstado y comportamiento de servicios conectados.",
+      "Alertas y automatizacionesAlertas de negocio y acciones automáticas controladas.",
+      "Mis preferenciasPreferencias de interfaz exclusivas de tu usuario.",
+      "MantenimientoDiagnóstico, duplicados, reconstrucciones y exportación."
+    ],
+    "actions": [],
+    "overflow": false
+  },
+  {
+    "screen": "settings",
+    "width": 390,
+    "theme": "dark",
+    "file": "settings-390-dark.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "GeneralIdentidad, moneda y comportamiento general de la empresa.",
+      "Plan y facturaciónPlan contratado, consumo, límites y cambios de suscripción.",
+      "FacturaciónValores predeterminados, cobros y documentos de venta.",
+      "Gastos e importaciónImportación, duplicados y reglas de facturas recibidas.",
+      "PedidosComportamiento general de pedidos, etiquetas y tracking.",
+      "EnvíosTransportistas, servicios y preferencias logísticas.",
+      "ProductosIVA, costes, márgenes y creación automática.",
+      "ClientesDefaults, identidad y enriquecimiento de clientes.",
+      "ProveedoresDefaults, alias, identidad y categorización.",
+      "SeguridadAutenticadores y verificación de acceso.",
+      "IntegracionesEstado y comportamiento de servicios conectados.",
+      "Alertas y automatizacionesAlertas de negocio y acciones automáticas controladas.",
+      "Mis preferenciasPreferencias de interfaz exclusivas de tu usuario.",
+      "MantenimientoDiagnóstico, duplicados, reconstrucciones y exportación."
+    ],
+    "actions": [],
+    "overflow": false
+  },
+  {
+    "screen": "settings",
+    "width": 1440,
+    "theme": "dark",
+    "file": "settings-1440-dark.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "GeneralIdentidad, moneda y comportamiento general de la empresa.",
+      "Plan y facturaciónPlan contratado, consumo, límites y cambios de suscripción.",
+      "FacturaciónValores predeterminados, cobros y documentos de venta.",
+      "Gastos e importaciónImportación, duplicados y reglas de facturas recibidas.",
+      "PedidosComportamiento general de pedidos, etiquetas y tracking.",
+      "EnvíosTransportistas, servicios y preferencias logísticas.",
+      "ProductosIVA, costes, márgenes y creación automática.",
+      "ClientesDefaults, identidad y enriquecimiento de clientes.",
+      "ProveedoresDefaults, alias, identidad y categorización.",
+      "SeguridadAutenticadores y verificación de acceso.",
+      "IntegracionesEstado y comportamiento de servicios conectados.",
+      "Alertas y automatizacionesAlertas de negocio y acciones automáticas controladas.",
+      "Mis preferenciasPreferencias de interfaz exclusivas de tu usuario.",
+      "MantenimientoDiagnóstico, duplicados, reconstrucciones y exportación."
+    ],
+    "actions": [],
+    "overflow": false
+  },
+  {
+    "screen": "settings",
+    "width": 1920,
+    "theme": "dark",
+    "file": "settings-1920-dark.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "GeneralIdentidad, moneda y comportamiento general de la empresa.",
+      "Plan y facturaciónPlan contratado, consumo, límites y cambios de suscripción.",
+      "FacturaciónValores predeterminados, cobros y documentos de venta.",
+      "Gastos e importaciónImportación, duplicados y reglas de facturas recibidas.",
+      "PedidosComportamiento general de pedidos, etiquetas y tracking.",
+      "EnvíosTransportistas, servicios y preferencias logísticas.",
+      "ProductosIVA, costes, márgenes y creación automática.",
+      "ClientesDefaults, identidad y enriquecimiento de clientes.",
+      "ProveedoresDefaults, alias, identidad y categorización.",
+      "SeguridadAutenticadores y verificación de acceso.",
+      "IntegracionesEstado y comportamiento de servicios conectados.",
+      "Alertas y automatizacionesAlertas de negocio y acciones automáticas controladas.",
+      "Mis preferenciasPreferencias de interfaz exclusivas de tu usuario.",
+      "MantenimientoDiagnóstico, duplicados, reconstrucciones y exportación."
+    ],
+    "actions": [],
+    "overflow": false
+  },
+  {
+    "screen": "settings",
+    "width": 2560,
+    "theme": "dark",
+    "file": "settings-2560-dark.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "GeneralIdentidad, moneda y comportamiento general de la empresa.",
+      "Plan y facturaciónPlan contratado, consumo, límites y cambios de suscripción.",
+      "FacturaciónValores predeterminados, cobros y documentos de venta.",
+      "Gastos e importaciónImportación, duplicados y reglas de facturas recibidas.",
+      "PedidosComportamiento general de pedidos, etiquetas y tracking.",
+      "EnvíosTransportistas, servicios y preferencias logísticas.",
+      "ProductosIVA, costes, márgenes y creación automática.",
+      "ClientesDefaults, identidad y enriquecimiento de clientes.",
+      "ProveedoresDefaults, alias, identidad y categorización.",
+      "SeguridadAutenticadores y verificación de acceso.",
+      "IntegracionesEstado y comportamiento de servicios conectados.",
+      "Alertas y automatizacionesAlertas de negocio y acciones automáticas controladas.",
+      "Mis preferenciasPreferencias de interfaz exclusivas de tu usuario.",
+      "MantenimientoDiagnóstico, duplicados, reconstrucciones y exportación."
+    ],
+    "actions": [],
+    "overflow": false
+  }
+]

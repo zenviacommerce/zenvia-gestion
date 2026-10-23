@@ -21,7 +21,7 @@ export function Tabs<T extends string>({label,value,onChange,items,panelId,class
   const next=event.key==='Home'?0:event.key==='End'?items.length-1:event.key==='ArrowRight'?(index+1)%items.length:event.key==='ArrowLeft'?(index-1+items.length)%items.length:null;
   if(next===null)return;event.preventDefault();void select(next,index,true);
  };
- return <div className={children?'dsTabsSection':undefined}><div ref={rail} hidden={hidden} className={`dsTabs ${className}`.trim()} role="tablist" aria-label={label} aria-orientation="horizontal">
+ return <div className="dsTabsSection"><div ref={rail} hidden={hidden} className={`dsTabs ${className}`.trim()} role="tablist" aria-label={label} aria-orientation="horizontal">
   {items.map((item,index)=><button key={item.id} type="button" role="tab" id={`${id}-tab-${item.id}`} aria-controls={panelId} aria-selected={value===item.id} tabIndex={value===item.id?0:-1} onClick={()=>void select(index,items.findIndex(item=>item.id===value),false)} onKeyDown={event=>move(event,index)}>
    {item.icon&&<span className="dsTabIcon" aria-hidden="true">{item.icon}</span>}
    <span className="dsTabText"><span className="dsTabTitle">{item.label}{item.badge!==undefined&&<span className="dsTabBadge" data-tone={item.badgeTone||'neutral'}>{item.badge}</span>}</span>{item.description&&<span className="dsTabDescription">{item.description}</span>}</span>

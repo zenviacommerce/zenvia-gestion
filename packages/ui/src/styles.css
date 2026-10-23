@@ -161,8 +161,8 @@ html[data-theme='dark'] .masterDesignPage .bulkSelectionTextButton{color:#d7deea
 /* Workbench tabs: one compact horizontal rail at every viewport width. */
 
 /* Tabs owns its entire appearance. Applications may lay out panels, never restyle tabs. */
-.dsTabsSection{min-width:0;max-width:100%}
-.dsTabsContent{background:var(--surface,#fff);border:1px solid var(--border,#dbe3ea);border-top:0;border-radius:0 0 14px 14px;padding:16px;min-width:0;max-width:100%}
+.dsTabsSection{width:100%;min-width:0;max-width:100%;box-sizing:border-box;align-self:stretch}
+.dsTabsContent{width:100%;box-sizing:border-box;background:var(--surface,#fff);border:1px solid var(--border,#dbe3ea);border-top:0;border-radius:0 0 14px 14px;padding:16px;min-width:0;max-width:100%}
 .dsTabs[hidden]{display:none}
 @media(max-width:767px){.dsTabsContent{padding:10px}}
 .dsTabs{display:flex;flex-direction:row;flex-wrap:nowrap;align-items:stretch;gap:6px;isolation:isolate;width:100%;min-width:0;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;touch-action:pan-x pan-y;scrollbar-width:thin;border:0;padding:6px 2px 0;margin:0;background:linear-gradient(var(--border,#dbe3ea),var(--border,#dbe3ea)) left bottom/100% 1px no-repeat}
@@ -187,33 +187,39 @@ html[data-theme='dark'] .masterDesignPage .bulkSelectionTextButton{color:#d7deea
 [data-theme='dark'] .dsTabDescription{color:#94a3b8}
 @media(max-width:767px){.dsTabs{gap:5px}.dsTabs>[role='tab']{min-height:48px;padding:11px 13px}}
 
-/* Shared search/filter controls; legacy class aliases preserve existing contracts. */
-.ordersWorkbenchFilters{position:relative;min-width:0;max-width:100%;padding:12px 0}
-.ordersWorkbenchFilters .ordersWorkbenchFilterLine{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
-.ordersWorkbenchFilters .ordersWorkbenchSearch{display:flex;align-items:center;gap:8px;flex:1 1 320px;min-width:180px;max-width:580px;margin:0;padding:0 10px;height:40px;border:1px solid var(--border,#e2e8f0);border-radius:8px;background:var(--surface,#fff)}
-.ordersWorkbenchFilters .ordersWorkbenchSearch>svg{flex-shrink:0;color:var(--muted,#64748b)}
-.ordersWorkbenchFilters .ordersWorkbenchSearch input{flex:1;min-width:0;width:100%;border:0;background:transparent;outline:none;font:inherit;font-size:13px;color:inherit;padding:8px 0}
-.ordersWorkbenchFilters .ordersWorkbenchSearch:focus-within{outline:2px solid var(--accent,#0f766e);outline-offset:1px}
-.ordersWorkbenchFilters .ordersWorkbenchClearSearch{display:inline-flex;align-items:center;justify-content:center;flex:0 0 28px;min-height:28px;width:28px;padding:0;border:0;background:transparent;color:var(--muted,#64748b)}
-.ordersWorkbenchFilters .ordersWorkbenchAddFilter{display:inline-flex;gap:6px;align-items:center;min-height:40px;padding:8px 12px;margin:0;white-space:nowrap;font-size:12px}
-.ordersWorkbenchFilters .ordersWorkbenchReset{min-height:40px;padding:6px 8px;background:transparent;border:0;color:var(--muted,#64748b);font-size:12px;text-decoration:underline;text-underline-offset:3px}
-.ordersWorkbenchFilters .ordersWorkbenchFilterChips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.ordersWorkbenchFilters .ordersWorkbenchFilterChip{display:inline-flex;align-items:center;max-width:100%;border:1px solid var(--border,#dbe2ea);border-radius:16px;background:var(--surface-soft,#f8fafc);overflow:hidden}
-.ordersWorkbenchFilters .ordersWorkbenchFilterChip button{border:0;background:transparent;min-height:30px;padding:4px 8px;color:inherit;font-size:11px}
-.ordersWorkbenchFilters .ordersWorkbenchFilterChip button:first-child{min-width:0;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
-.ordersWorkbenchFilters .ordersWorkbenchFilterChip button:last-child{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding-left:4px}
-.ordersWorkbenchFilters .ordersWorkbenchFilterPopover{position:absolute;top:58px;right:0;z-index:40;width:300px;max-width:calc(100vw - 40px);box-sizing:border-box;border:1px solid var(--border,#dbe2ea);border-radius:12px;padding:12px;background:var(--surface,#fff);box-shadow:0 12px 36px #0f172a20}
-.ordersWorkbenchFilters .ordersWorkbenchFilterPopoverHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:13px}
-.ordersWorkbenchFilters .ordersWorkbenchFilterPopoverHead>button{display:inline-flex;align-items:center;justify-content:center;width:32px;min-height:32px;padding:4px;border:0;background:transparent;color:inherit}
-.ordersWorkbenchFilters .ordersWorkbenchFilterMenu{display:flex;flex-direction:column;gap:2px}
-.ordersWorkbenchFilters .ordersWorkbenchFilterMenu>button{display:flex;align-items:center;justify-content:space-between;text-align:left;min-height:38px;padding:8px;border:0;border-radius:6px;background:transparent;color:inherit;font-size:13px}
-.ordersWorkbenchFilters .ordersWorkbenchFilterMenu>button:hover{background:var(--surface-soft,#f1f5f9)}
-.ordersWorkbenchFilters .ordersWorkbenchFilterMenu>button>span{color:var(--muted,#64748b);font-size:11px}
-.ordersWorkbenchFilters .ordersWorkbenchFilterMenu>.ordersWorkbenchShowAll{margin-top:6px;border-top:1px solid var(--border,#e2e8f0);border-radius:0;color:var(--accent,#0f766e)}
-.ordersWorkbenchFilters .ordersWorkbenchFilterPopover .formGrid{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
-.ordersWorkbenchFilters .ordersWorkbenchFilterPopover .filterField{display:grid;gap:6px;min-width:0;font-size:12px}
-.ordersWorkbenchFilters .ordersWorkbenchFilterDone{display:block;margin:12px 0 0 auto;min-height:36px;padding:6px 12px;border:1px solid var(--border,#dbe2ea);border-radius:7px;background:var(--surface-soft,#f8fafc);color:inherit;font-size:12px}
-.ordersWorkbenchFilters button:focus-visible{outline:2px solid var(--accent,#0f766e);outline-offset:2px}
-@media(max-width:767px){.ordersWorkbenchFilters{padding:8px 0}.ordersWorkbenchFilters .ordersWorkbenchSearch{max-width:none;flex-basis:100%;height:42px}.ordersWorkbenchFilters .ordersWorkbenchAddFilter,.ordersWorkbenchFilters .ordersWorkbenchReset{min-height:40px}.ordersWorkbenchFilters .ordersWorkbenchFilterPopover{top:98px;left:0;right:auto}.ordersWorkbenchFilters .ordersWorkbenchFilterChip button{min-height:36px}}
-
 .dsSearchField{display:flex;align-items:center;gap:8px;min-width:0;min-height:40px;border:1px solid var(--border,#e2e8f0);border-radius:8px;background:var(--surface,#fff);padding:0 10px;box-sizing:border-box}.dsSearchField>svg{flex-shrink:0;color:var(--muted,#64748b)}.dsSearchField input{min-width:0;flex:1;width:100%;border:0!important;outline:none;background:transparent;color:inherit;font:inherit;font-size:13px;padding:8px 0}.dsSearchField:focus-within{outline:2px solid var(--accent,#0f766e);outline-offset:1px}.dsSearchField>button{display:inline-flex;align-items:center;justify-content:center;flex:0 0 28px;min-height:28px;width:28px;padding:0;border:0;background:transparent;color:var(--muted,#64748b)}
+
+/* Search/filter layout belongs to the shared component in both applications. */
+.dsSearchFilters{position:relative;min-width:0;max-width:100%;padding:12px 0}
+.dsSearchFilters .ordersWorkbenchFilterLine{display:flex;align-items:center;gap:8px;min-width:0;flex-wrap:wrap}
+.dsSearchFilters .ordersWorkbenchSearch{display:flex;align-items:center;gap:8px;flex:1 1 320px;min-width:180px;max-width:580px;margin:0;padding:0 10px;height:40px;border:1px solid var(--border,#e2e8f0);border-radius:8px;background:var(--surface,#fff)}
+.dsSearchFilters .ordersWorkbenchSearch>svg{flex-shrink:0;color:var(--muted,#64748b)}
+.dsSearchFilters .ordersWorkbenchSearch input{flex:1;min-width:0;width:100%;border:0;background:transparent;outline:none;font:inherit;font-size:13px;color:inherit;padding:8px 0}
+.dsSearchFilters .ordersWorkbenchSearch:focus-within{outline:2px solid var(--accent,#0f766e);outline-offset:1px}
+.dsSearchFilters .ordersWorkbenchClearSearch{display:inline-flex;align-items:center;justify-content:center;flex:0 0 28px;min-height:28px;width:28px;padding:0;border:0;background:transparent;color:var(--muted,#64748b)}
+.dsSearchFilters .ordersWorkbenchAddFilter{display:inline-flex;gap:6px;align-items:center;min-height:40px;padding:8px 12px;margin:0;white-space:nowrap;font-size:12px}
+.dsSearchFilters .ordersWorkbenchReset{min-height:40px;padding:6px 8px;background:transparent;border:0;color:var(--muted,#64748b);font-size:12px;text-decoration:underline;text-underline-offset:3px}
+.dsSearchFilters .ordersWorkbenchFilterChips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.dsSearchFilters .ordersWorkbenchFilterChip{display:inline-flex;align-items:center;max-width:100%;border:1px solid var(--border,#dbe2ea);border-radius:16px;background:var(--surface-soft,#f8fafc);overflow:hidden}
+.dsSearchFilters .ordersWorkbenchFilterChip button{border:0;background:transparent;min-height:30px;padding:4px 8px;color:inherit;font-size:11px}
+.dsSearchFilters .ordersWorkbenchFilterChip button:first-child{min-width:0;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}
+.dsSearchFilters .ordersWorkbenchFilterChip button:last-child{display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;padding-left:4px}
+.dsSearchFilters .ordersWorkbenchFilterPopover{position:absolute;top:58px;right:0;z-index:40;width:300px;max-width:calc(100vw - 40px);box-sizing:border-box;border:1px solid var(--border,#dbe2ea);border-radius:12px;padding:12px;background:var(--surface,#fff);box-shadow:0 12px 36px #0f172a20}
+.dsSearchFilters .ordersWorkbenchFilterPopoverHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px;font-size:13px}
+.dsSearchFilters .ordersWorkbenchFilterPopoverHead>button{display:inline-flex;align-items:center;justify-content:center;width:32px;min-height:32px;padding:4px;border:0;background:transparent;color:inherit}
+.dsSearchFilters .ordersWorkbenchFilterMenu{display:flex;flex-direction:column;gap:2px}
+.dsSearchFilters .ordersWorkbenchFilterMenu>button{display:flex;align-items:center;justify-content:space-between;text-align:left;min-height:38px;padding:8px;border:0;border-radius:6px;background:transparent;color:inherit;font-size:13px}
+.dsSearchFilters .ordersWorkbenchFilterMenu>button:hover{background:var(--surface-soft,#f1f5f9)}
+.dsSearchFilters .ordersWorkbenchFilterMenu>button>span{color:var(--muted,#64748b);font-size:11px}
+.dsSearchFilters .ordersWorkbenchFilterMenu>.ordersWorkbenchShowAll{margin-top:6px;border-top:1px solid var(--border,#e2e8f0);border-radius:0;color:var(--accent,#0f766e)}
+.dsSearchFilters .ordersWorkbenchFilterPopover .formGrid{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.dsSearchFilters .ordersWorkbenchFilterPopover .filterField{display:grid;gap:6px;min-width:0;font-size:12px}
+.dsSearchFilters .ordersWorkbenchFilterDone{display:block;margin:12px 0 0 auto;min-height:36px;padding:6px 12px;border:1px solid var(--border,#dbe2ea);border-radius:7px;background:var(--surface-soft,#f8fafc);color:inherit;font-size:12px}
+.dsSearchFilters button:focus-visible{outline:2px solid var(--accent,#0f766e);outline-offset:2px}
+@media(max-width:767px){.dsSearchFilters{padding:8px 0}.dsSearchFilters .ordersWorkbenchSearch{max-width:none;flex-basis:100%;height:42px}.dsSearchFilters .ordersWorkbenchAddFilter,.dsSearchFilters .ordersWorkbenchReset{min-height:40px}.dsSearchFilters .ordersWorkbenchFilterPopover{top:98px;left:0;right:auto}.dsSearchFilters .ordersWorkbenchFilterChip button{min-height:36px}}
+
+.dsSearchFilters{box-sizing:border-box}.dsSearchFiltersInset{padding:12px 16px}@media(max-width:767px){.dsSearchFiltersInset{padding:8px 16px}}
+.dsStatusBadge{display:inline-flex;align-items:center;width:fit-content;max-width:100%;padding:4px 9px;border-radius:999px;font-size:12px;font-weight:600;line-height:1.3;background:var(--surface-soft,#f1f5f9);color:var(--muted,#64748b)}
+.dsStatusBadge[data-tone="warning"]{background:#fef3c7;color:#92400e}.dsStatusBadge[data-tone="success"]{background:#dcfce7;color:#166534}
+[data-theme="dark"] .dsStatusBadge[data-tone="warning"],.dark .dsStatusBadge[data-tone="warning"]{background:#78350f;color:#fde68a}
+[data-theme="dark"] .dsStatusBadge[data-tone="success"],.dark .dsStatusBadge[data-tone="success"]{background:#14532d;color:#bbf7d0}

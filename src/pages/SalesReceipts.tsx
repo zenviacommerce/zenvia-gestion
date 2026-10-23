@@ -1,3 +1,4 @@
+import {SearchField} from '@zenvia/ui';
 import {BankAccountSelect,BankAccountSnapshotView,MISSING_BANK_ACCOUNT,useBankAccountChoice} from '../components/BankAccountSelect';
 import {PageHeader} from '../components/PageHeader';
 import {KpiGrid} from '../components/KpiGrid';
@@ -7,7 +8,7 @@ import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Banknote, CheckCircle2, Download, Eye, FileCheck2, PackageSearch, Pencil, Plus, Printer,
-  ReceiptText, Search, Trash2, UserRound, X,
+  ReceiptText, Trash2, UserRound, X,
 } from 'lucide-react';
 import { ProductCatalogPicker } from '../components/ProductCatalogPicker';
 import { SearchableSelect } from '../components/forms/SearchableSelect';
@@ -356,7 +357,7 @@ export function SalesReceipts(){
     <div className="salesReceiptNotice"><strong>Recibos y facturas son independientes:</strong> cobrar un recibo no lo factura y generar una factura desde varios recibos no los vincula ni altera su estado. El IVA solo se aplica en la factura.</div>
     <PeriodFilterPanel filter={dateFilter} onChange={setDateFilter} title="Periodo de recibos"/>
     <FilterBar label="Filtros de recibos" className="toolbar salesToolbar businessFilterBar">
-      <div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar recibo o cliente…"/></div>
+      <SearchField value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar recibo o cliente…"/>
       <div className="businessFilterFields">
         <label className="filterField"><span>Cliente</span><SearchableSelect value={clientId==='all'?'':clientId} options={clientOptions} onChange={value=>setClientId(value||'all')} allowEmpty emptyLabel="Todos los clientes" searchPlaceholder="Buscar cliente…" ariaLabel="Filtrar recibos por cliente"/></label>
         <label className="filterField"><span>País</span><SelectField value={country} onChange={setCountry} ariaLabel="Filtrar recibos por país" options={[{value:'all',label:'Todos los países'},...countryOptions]}/></label>

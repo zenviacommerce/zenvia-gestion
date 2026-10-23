@@ -1,0 +1,466 @@
+[
+  {
+    "screen": "orders",
+    "width": 390,
+    "theme": "light",
+    "file": "orders-390-light.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 1440,
+    "theme": "light",
+    "file": "orders-1440-light.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 1920,
+    "theme": "light",
+    "file": "orders-1920-light.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 2560,
+    "theme": "light",
+    "file": "orders-2560-light.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 390,
+    "theme": "dark",
+    "file": "orders-390-dark.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 1440,
+    "theme": "dark",
+    "file": "orders-1440-dark.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 1920,
+    "theme": "dark",
+    "file": "orders-1920-dark.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "orders",
+    "width": 2560,
+    "theme": "dark",
+    "file": "orders-2560-dark.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "reports",
+    "width": 390,
+    "theme": "light",
+    "file": "reports-390-light.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "reports",
+    "width": 1440,
+    "theme": "light",
+    "file": "reports-1440-light.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "reports",
+    "width": 1920,
+    "theme": "light",
+    "file": "reports-1920-light.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "reports",
+    "width": 2560,
+    "theme": "light",
+    "file": "reports-2560-light.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "reports",
+    "width": 390,
+    "theme": "dark",
+    "file": "reports-390-dark.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "reports",
+    "width": 1440,
+    "theme": "dark",
+    "file": "reports-1440-dark.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "reports",
+    "width": 1920,
+    "theme": "dark",
+    "file": "reports-1920-dark.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "reports",
+    "width": 2560,
+    "theme": "dark",
+    "file": "reports-2560-dark.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false
+  }
+]

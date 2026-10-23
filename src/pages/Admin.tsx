@@ -1,10 +1,11 @@
+import {SearchField} from '@zenvia/ui';
 import {PageHeader} from '../components/PageHeader';
 import {Tabs} from '@zenvia/ui';
 import {KpiGrid} from '../components/KpiGrid';
 import {StatCard} from '../components/StatCard';
 import {FilterBar} from '../components/FilterBar';
 import { FormEvent, useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, Clock3, History, KeyRound, Pencil, RefreshCw, Search, ShieldCheck, Trash2, UserRoundPlus, Users, X } from 'lucide-react';
+import { Check, Clock3, History, KeyRound, Pencil, RefreshCw, ShieldCheck, Trash2, UserRoundPlus, Users, X } from 'lucide-react';
 import { createManagedUser, deleteManagedUser, listManagedUsers, permissionOptions, updateManagedUser, type AppRole, type ManagedUser, type MenuPermission } from '../services/access';
 import { listAuditLogs, type AuditEntry } from '../services/audit';
 import { errorMessage, showError, showSuccess } from '../services/toast';
@@ -179,7 +180,7 @@ function AuditPanel({users,currentUserId}:{users:ManagedUser[];currentUserId:str
     <section className="card adminAuditCard">
       <div className="adminUsersHead"><div><h3>Registro de actividad</h3><p>Acciones realizadas por los usuarios desde que se activó la auditoría.</p></div><button className="secondary" onClick={refresh} disabled={loading}><RefreshCw size={15} className={loading?'spin':''}/> Actualizar</button></div>
       <FilterBar className="businessFilterBar finalFilters" label="Filtros de auditoría">
-        <div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar acción, elemento o usuario…"/></div>
+        <SearchField value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar acción, elemento o usuario…"/>
         <div className="businessFilterFields"><label>Usuario<SearchableSelect value={actor} options={actorOptions.map(([value,label])=>({value,label}))} onChange={setActor} allowEmpty emptyLabel="Todos los usuarios" searchPlaceholder="Buscar usuario…" ariaLabel="Filtrar auditoría por usuario"/>
         </label><label>Módulo<SelectField value={module} options={[{value:'',label:'Todos los módulos'},...modules.map(value=>({value,label:moduleLabels[value]||value}))]} onChange={setModule} ariaLabel="Filtrar auditoría por módulo"/>
         </label><label>Acción<SelectField value={action} options={[{value:'',label:'Todas las acciones'},...actions.map(value=>({value,label:actionLabels[value]||value}))]} onChange={setAction} ariaLabel="Filtrar auditoría por acción"/>

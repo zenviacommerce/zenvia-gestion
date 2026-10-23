@@ -18,7 +18,7 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - run: node --test scripts/shared-ui-package.test.mjs scripts/shared-tabs-contract.test.mjs
+      - run: node --test scripts/shared-ui-package.test.mjs scripts/shared-tabs-contract.test.mjs scripts/shared-search-filters-contract.test.mjs
       - name: Determine extraction parity scope
         id: parity
         env:
@@ -42,10 +42,13 @@ jobs:
         run: |
           node scripts/shared-tabs-capture.mjs after
           node scripts/shared-tabs-gallery.mjs
+          node scripts/visual-tabs-filters-review.mjs after
       - uses: actions/upload-artifact@v4
         if: always() && steps.parity.outputs.required == 'true'
         with:
           name: shared-ui-before-after-and-comparison
-          path: docs/deploy/20261022-shared-tabs-review/
+          path: |
+            docs/deploy/20261022-shared-tabs-review/
+            docs/deploy/20261023-visual-tabs-filters/
           if-no-files-found: error
 

@@ -1,6 +1,6 @@
 // Real billing/expense/receipt components + production list adapters/CSS; offline synthetic data.
 import {build} from 'esbuild';
-import {assertHeaderActionsPreserved} from './header-actions-contract.mjs';
+import {assertHeaderActionsPreserved,normalizeListSearchControls} from './header-actions-contract.mjs';
 import {writeFile,mkdir,mkdtemp,chmod} from 'node:fs/promises';
 import {readReviewFile as readFile,captureReviewScreenshot,reviewCaptureStyles} from './review-file-loader.mjs';
 import {execFileSync} from 'node:child_process';
@@ -52,7 +52,7 @@ if(width===390){await page.evaluate(()=>scrollTo(0,1000));await captureReviewScr
    const reset=bar.querySelector('.filterReset,.filterResetCompact'),search=bar.querySelector('.search');
    return {fields:fields.map(rect),triggers:triggers.filter(Boolean).map(rect),textNodes,reset:reset?rect(reset):null,search:search?rect(search):null};
   });
-  return {gridLayouts:[...document.querySelectorAll('.kpiGrid,.stats')].map(el=>({count:el.children.length,columns:getComputedStyle(el).gridTemplateColumns.split(' ').length})),filterGeometry,tabOverflow:[...document.querySelectorAll('[role=tablist]')].some(el=>{const r=el.getBoundingClientRect();return r.left < -1 || r.right > innerWidth+1}),tabs:[...document.querySelectorAll('[role=tablist] [role=tab],.expenseHubNav button')].map(el=>el.textContent),tabRoles:document.querySelectorAll('[role=tablist] [role="tab"]').length,firstList:rows[0]?rect(rows[0]):null,firstListScreens:rows[0]?(rows[0].getBoundingClientRect().top+scrollY)/innerHeight:null,cards:cards.map(el=>({text:el.textContent,...rect(el),overflow:el.scrollWidth>el.clientWidth+1})),columns:[...document.querySelectorAll('.kpiGrid,.stats')].map(el=>getComputedStyle(el).gridTemplateColumns),documentOverflow:document.documentElement.scrollWidth>innerWidth,controls:[...document.querySelectorAll('.pageHead button,.pageHead label,.sharedPeriodPanel input,.sharedPeriodPanel button,.businessFilterBar button,.businessFilterBar input,.invoiceFilterPanel button')].map(el=>({text:el.textContent,label:el.getAttribute('aria-label'),type:el.getAttribute('type'),disabled:el.disabled??false})),headerActions:[...document.querySelectorAll('.pageHead button')].map(b=>b.textContent)};
+  return {gridLayouts:[...document.querySelectorAll('.kpiGrid,.stats')].map(el=>({count:el.children.length,columns:getComputedStyle(el).gridTemplateColumns.split(' ').length})),filterGeometry,tabOverflow:[...document.querySelectorAll('[role=tablist]')].some(el=>{const r=el.getBoundingClientRect();return r.left < -1 || r.right > innerWidth+1}),tabs:[...document.querySelectorAll('[role=tablist] [role=tab],.expenseHubNav button')].map(el=>el.textContent),tabRoles:document.querySelectorAll('[role=tablist] [role="tab"]').length,firstList:rows[0]?rect(rows[0]):null,firstListScreens:rows[0]?(rows[0].getBoundingClientRect().top+scrollY)/innerHeight:null,cards:cards.map(el=>({text:el.textContent,...rect(el),overflow:el.scrollWidth>el.clientWidth+1})),columns:[...document.querySelectorAll('.kpiGrid,.stats')].map(el=>getComputedStyle(el).gridTemplateColumns),documentOverflow:document.documentElement.scrollWidth>innerWidth,controls:[...document.querySelectorAll('.pageHead button,.pageHead label,.sharedPeriodPanel input,.sharedPeriodPanel button,.businessFilterBar button,.businessFilterBar input,.invoiceFilterPanel button')].map(el=>({tag:el.tagName,placeholder:el.getAttribute('placeholder'),text:el.textContent,label:el.getAttribute('aria-label'),type:el.getAttribute('type'),disabled:el.disabled??false})),headerActions:[...document.querySelectorAll('.pageHead button')].map(b=>b.textContent)};
  });
  const failures=[...errors];if(phase==='after'){
   if(width===390&&(!proof.firstList||proof.firstList.y>=1800))failures.push('First data item must start before1800px');
@@ -73,7 +73,7 @@ if(width===390){await page.evaluate(()=>scrollTo(0,1000));await captureReviewScr
   if(JSON.stringify(before.tabs)!==JSON.stringify(proof.tabs)||proof.tabRoles!==2)failures.push('Sibling tabs lost labels, descriptions or accessible roles');
   try{assertHeaderActionsPreserved(before.headerActions,proof.headerActions,screen+' '+width);}catch(error){failures.push(error.message);}
   if(JSON.stringify(before.headerActions)!==JSON.stringify(proof.headerActions))failures.push('Header actions changed or portal missing');
-  if(JSON.stringify(before.controls)!==JSON.stringify(proof.controls))failures.push('Filter/header controls or disabled state changed');
+  if(JSON.stringify(normalizeListSearchControls(before.controls))!==JSON.stringify(normalizeListSearchControls(proof.controls)))failures.push('Filter/header controls or disabled state changed');
  }
  if(width===390){
   if(phase==='after'&&screen==='billing'){

@@ -1,3 +1,4 @@
+import {SearchField} from '@zenvia/ui';
 import {PageHeader} from '../components/PageHeader';
 import {KpiGrid} from '../components/KpiGrid';
 import {FilterBar} from '../components/FilterBar';
@@ -5,7 +6,7 @@ import {DataTable,MobileList} from '../components/DataTable';
 import {RowActions} from '../components/RowActions';
 import {useListSelection,toggleListScope,SelectionReview} from '../components/ListSelection';
 import { useEffect, useMemo, useState } from 'react';
-import { Barcode, Building2, Calculator, ChevronRight, Euro, Package, Percent, Search, Tag, Trash2, TrendingDown, TrendingUp, X, Pencil } from 'lucide-react';
+import { Barcode, Building2, Calculator, ChevronRight, Euro, Package, Percent, Tag, Trash2, TrendingDown, TrendingUp, X, Pencil } from 'lucide-react';
 import type { Product } from '../types';
 import { Pagination } from '../components/Pagination';
 import { BulkSelectCheckbox, BulkSelectionToolbar } from '../components/BulkSelectionToolbar';
@@ -232,7 +233,7 @@ export function Products({products,onAdd,onEdit,onDelete}:{products:Product[];on
       {error&&<div className="errorBox supplierPageError">{error}</div>}
 
       <FilterBar label="Filtros de productos" className="businessFilterBar productFilterToolbar">
-        <div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar producto, SKU, EAN o proveedor…"/></div>
+        <SearchField value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar producto, SKU, EAN o proveedor…"/>
         <div className="businessFilterFields">
           <label className="filterField"><span>Categoría</span><SelectField value={categoryFilter} onChange={setCategoryFilter} ariaLabel="Filtrar por categoría" options={[{value:'all',label:'Todas las categorías'},...categoryOptions]}/></label>
           <label className="filterField"><span>Proveedor</span><SelectField value={supplierFilter} onChange={setSupplierFilter} ariaLabel="Filtrar por proveedor" options={[{value:'all',label:'Todos los proveedores'},...supplierOptions]}/></label>

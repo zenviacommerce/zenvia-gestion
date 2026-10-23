@@ -1,0 +1,33 @@
+{
+  "productionCommit": "6ead7df805ab4a975697d057242b2843e1ae8688",
+  "deployment": "dpl_9ZwSUSkgztVrf39oc42KM15Jg6Vx",
+  "status": 200,
+  "assets": [
+    {
+      "path": "/assets/index-CH0PVdtx.js",
+      "sha256": "98110ed78563563be1b7057b2c251927eefc1b37f476bad619cd2b29d24c67ad",
+      "matchesLocalBuild": false,
+      "historyComponent": true,
+      "historyTable": true,
+      "relabelAction": true
+    },
+    {
+      "path": "/assets/index-TKiegU48.css",
+      "sha256": "1d8486aac28204a71993fdf6880bf0ac4768ec423a638b9020b1eec3f962f211",
+      "matchesLocalBuild": true
+    }
+  ],
+  "readOnlyUi": {
+    "authenticated": true,
+    "ordersLoaded": true,
+    "historyError": false,
+    "actions": [
+      "Editar pedido",
+      "Preparar etiqueta"
+    ]
+  },
+  "publicBuildEnvironmentVerification": {
+    "productionHasPublicGoogleClientId": true,
+    "matchingBuildWithPublicGoogleClientId": false
+  }
+}

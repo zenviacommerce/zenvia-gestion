@@ -29,3 +29,13 @@ Suite final tras adoptar gates estándar:662/662 Vitest en118archivos. La integr
 Historial aplicado con versión real20261023042324: RLS activa,4gates restrictivos,0filas históricas,0hallazgos de activación MFA. Los1023pedidos y su fingerprint8e2b6bf3a0fab2a4599b4fec670457c0 permanecen idénticos antes/después; guard MFA33c89c211446450e2dadbe7e5b5760cf intacto. Se alinea el nombre de migración y su prueba con la versión asignada, sin cambiar un byte SQL. La galería sintética conserva el mismo origen Amazon Shipped después de reetiquetar, sin modificar el estado del canal.
 
 Backend publicado: MRW26,Envia46,Sendcloud-orders36,tools38. Verificados todos los ficheros contra los payloads revisados, incluidas dependencias MFA de producción; verify_jwt=true. Probes sin autenticación:401enloscuatro endpoints, sin llamadas al proveedor. Frontend aún en B mientras pasa CI de la alineación de nombre de migración y las referencias de prueba.
+
+## Publicación final completada
+
+Headed3457f0149cec6610569fba4a99bf9ecb6f41bd, seis checks finales verdes:39900305968,39900305978,39900306246,39900305949,39900305986,39900305945. PR288 merge6ead7df805ab4a975697d057242b2843e1ae8688. Vercel READY dpl_9ZwSUSkgztVrf39oc42KM15Jg6Vx y dominio gestion.zenviacommerce.com HTTP200. JS servido index-CH0PVdtx.js SHA25698110ed78563563be1b7057b2c251927eefc1b37f476bad619cd2b29d24c67ad; CSS previo B intacto SHA2561d8486aac28204a71993fdf6880bf0ac4768ec423a638b9020b1eec3f962f211.
+
+Verificación real de solo lectura: sesión autenticada, Pedidos carga y detalle conserva Editar pedido/Preparar etiqueta, sin error de carga del historial. No se crea ni cancela ningún envío real. Historial y cancelaciones0; pedidos1023; informes3 y firmas0; purga de informesfalse. Guard MFA mismo hash y0hallazgos.
+
+El build local no reproduce el hash JS servido: se observa el identificador OAuth público de Google en producción, ausente del entorno local; replicarlo solo no iguala todo el entorno. Se registra esta comparación sin presentarla como igualdad byte a byte. La procedencia se verifica con el SHA del despliegue Vercel y la comprobación funcional de la versión publicada; los cuatro bundles Edge sí se han contrastado byte a byte con sus payloads exactos.
+
+Se mantiene el rollback operativo documentado antes del despliegue, conservando el lector B y la tabla de historial con su limpieza PII. Continúa2c por separado, sin autorización para publicar2c. La tarea de consumo sigue habilitada para23/10/2026a11:20Europe/Madrid.

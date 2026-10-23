@@ -1,0 +1,142 @@
+{
+  "approvedCode": "9f4b648eb18396f8183ef94f6818a133cf573585",
+  "cacheFixCode": "21b3eb6a2cea5d3b3f55b9aae18507e8bfe6891d",
+  "atomicSQLSha256": "03c1c2d513b9d9f4b914ac9d909315d77596a53641e263d97f21cfadefb88c2d",
+  "rollbackSQLSha256": "ecf59286d8c90c58749f2281357e7b519ad3549c9e7926a9f38dc5dd8a2964f1",
+  "cacheSQLSha256": "886ea93a10633d1a6b4c86f10c70f3553477e5ef03b5f9e77591bb5b07fcd827",
+  "migrations": [
+    {
+      "version": "20261023074743",
+      "name": "pickup_verification"
+    },
+    {
+      "version": "20261023123736",
+      "name": "internal_logistics_state_atomic_release"
+    },
+    {
+      "version": "20261023124613",
+      "name": "logistics_projection_cutover"
+    }
+  ],
+  "backend": {
+    "mfaCohort": [
+      "7461b2b7-f383-460d-b1c7-6ccbb52e42b2"
+    ],
+    "mfaEnabled": true,
+    "mismatches": 0,
+    "mfaFindings": 0,
+    "actualCounts": [
+      {
+        "state": "cancelled",
+        "orders": 64,
+        "source_channel": "amazon"
+      },
+      {
+        "state": "labelled",
+        "orders": 4,
+        "source_channel": "amazon"
+      },
+      {
+        "state": "pending",
+        "orders": 1,
+        "source_channel": "amazon"
+      },
+      {
+        "state": "shipped",
+        "orders": 923,
+        "source_channel": "amazon"
+      },
+      {
+        "state": "labelled",
+        "orders": 1,
+        "source_channel": "shopify"
+      },
+      {
+        "state": "shipped",
+        "orders": 15,
+        "source_channel": "shopify"
+      }
+    ],
+    "dispatchRows": 362,
+    "historicalRows": 591
+  },
+  "cache": {
+    "checked_at": "2026-10-23 12:47:43.571353+00",
+    "dirty_rows": 0,
+    "mismatches": 0,
+    "verified_orders": [
+      {
+        "order": "#1016",
+        "state": "shipped",
+        "tracking": "01009F045534"
+      },
+      {
+        "order": "405-2267980-0898749",
+        "state": "shipped",
+        "tracking": "01009F045283"
+      },
+      {
+        "order": "407-3816282-3253169",
+        "state": "shipped",
+        "tracking": "01009F045035"
+      },
+      {
+        "order": "171-1931838-4192365",
+        "state": "labelled",
+        "tracking": "01009F045767"
+      },
+      {
+        "order": "406-9615891-5475566",
+        "state": "labelled",
+        "tracking": "01009F045774"
+      },
+      {
+        "order": "405-8653611-5071509",
+        "state": "labelled",
+        "tracking": "01009F045768"
+      },
+      {
+        "order": "#1026",
+        "state": "labelled",
+        "tracking": "01009F045775"
+      },
+      {
+        "order": "405-9438103-0776336",
+        "state": "shipped",
+        "tracking": "01009F045046"
+      },
+      {
+        "order": "406-5011260-4807511",
+        "state": "labelled",
+        "tracking": "01009F045766"
+      },
+      {
+        "order": "407-8998792-9639500",
+        "state": "shipped",
+        "tracking": "01009F045286"
+      }
+    ],
+    "read_enabled": true,
+    "evidence_rows": 362,
+    "history_rows": 591
+  },
+  "maintenance": {
+    "precountGroups": 1011,
+    "notQueuedImmediatelyBeforeApply": 971,
+    "manualBatches": [
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      100,
+      11
+    ],
+    "operatorReadSwitchRestored": true
+  },
+  "frontendPublished": false
+}

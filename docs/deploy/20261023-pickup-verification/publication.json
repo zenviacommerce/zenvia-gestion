@@ -1,0 +1,205 @@
+{
+  "pr": 294,
+  "head": "5bf63e948ec1d4726b0d829a9d42f1e254dfa8f6",
+  "merge": "3dfd5f37433958bfe739c7232212dcbb38b6c179",
+  "deployment": {
+    "id": "dpl_3doLvnXwT5fdfnxnyZsqcbGhMCDo",
+    "name": "zenvia-gestion",
+    "url": "zenvia-gestion-mdejrbhy5-sergiorojasdiaz-7097.vercel.app",
+    "type": "LAMBDAS",
+    "state": "READY",
+    "createdAt": 1792741703206,
+    "creator": {
+      "uid": "keRvz2tE1X4xxwH9EndG7Krd",
+      "username": "sergiorojasdiaz-7097"
+    },
+    "project": {
+      "id": "prj_L6nGgpq78QTEnZByUNtjtmF5rGkv",
+      "name": "zenvia-gestion",
+      "framework": null
+    },
+    "meta": {
+      "githubCommitRef": "main",
+      "githubCommitSha": "3dfd5f37433958bfe739c7232212dcbb38b6c179",
+      "githubCommitMessage": "fix: comprobar envíos antes de firmar y auditar las retiradas (#294)\n\nfix: comprobar los envíos que firma el conductor y retirar los no entregados",
+      "githubRepo": "zenvia-gestion",
+      "githubOrg": "zenviacommerce"
+    },
+    "alias": [
+      "gestionzenvia.vercel.app",
+      "gestion.zenviacommerce.com",
+      "zenvia-gestion-sergiorojasdiaz-7097.vercel.app",
+      "zenvia-gestion-git-main-sergiorojasdiaz-7097.vercel.app"
+    ],
+    "target": "production",
+    "regions": [
+      "iad1"
+    ],
+    "buildingAt": 1792741704166,
+    "ready": 1792741767880,
+    "readyState": "READY",
+    "source": "git",
+    "aliasError": null
+  },
+  "ci": [
+    {
+      "id": 39919382508,
+      "name": "Shared UI package and tab contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 83,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382508/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382508/logs",
+      "workflow_id": 391756951
+    },
+    {
+      "id": 39919382514,
+      "name": "Build check",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 709,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382514/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382514/logs",
+      "workflow_id": 361316263
+    },
+    {
+      "id": 39919382529,
+      "name": "MFA real integration (disposable Supabase)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 417,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382529/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382529/logs",
+      "workflow_id": 387906946
+    },
+    {
+      "id": 39919382510,
+      "name": "Auth resilience tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 378,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382510/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382510/logs",
+      "workflow_id": 385998318
+    },
+    {
+      "id": 39919382495,
+      "name": "Build ZENVIA Gestión",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2417,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382495/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382495/logs",
+      "workflow_id": 354706666
+    },
+    {
+      "id": 39919382511,
+      "name": "MFA visual review (Playwright)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 232,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382511/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39919382511/logs",
+      "workflow_id": 388829843
+    }
+  ],
+  "migration": {
+    "version": "20261023074743",
+    "name": "pickup_verification",
+    "source": "supabase/migrations/20261023091500_pickup_verification.sql",
+    "installed": true,
+    "businessRowsModifiedAtInstall": 0
+  },
+  "edges": [
+    {
+      "slug": "pickup-report-documents",
+      "version": 3,
+      "verify_jwt": true,
+      "hash": "22ca15f6ce7bc95fdd80f7f81a4ebc9c45042b09351ec54bc9ddef947bed3c19",
+      "exactRuntimeMatch": true,
+      "authMfaHelpersUnchanged": true
+    },
+    {
+      "slug": "pickup-report-purge",
+      "version": 3,
+      "verify_jwt": false,
+      "hash": "98540a57cf606467e7eea3ceb8c7f902b2d3cf5985ab2f4465e2209212e53399",
+      "exactRuntimeMatch": true,
+      "authMfaHelpersUnchanged": true
+    }
+  ],
+  "postSQL": {
+    "reports": 3,
+    "signatures": 0,
+    "exclusions": 0,
+    "purge_enabled": false,
+    "retention_days": 365,
+    "mfa_wrappers_unchanged": true,
+    "anon_execute": false,
+    "authenticated_execute": false,
+    "service_execute": true,
+    "exclusions_rls": true
+  },
+  "securityComparison": [
+    {
+      "name": "rls_enabled_no_policy",
+      "before": 36,
+      "after": 36,
+      "newFindings": 0
+    },
+    {
+      "name": "extension_in_public",
+      "before": 1,
+      "after": 1,
+      "newFindings": 0
+    },
+    {
+      "name": "unsupported_reg_types",
+      "before": 1,
+      "after": 1,
+      "newFindings": 0
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "before": 51,
+      "after": 51,
+      "newFindings": 0
+    },
+    {
+      "name": "auth_leaked_password_protection",
+      "before": 1,
+      "after": 1,
+      "newFindings": 0
+    }
+  ],
+  "productionUI": {
+    "checked": 0,
+    "fixedSummary": "0 de 9 comprobados · 9 envíos · 9 bultos",
+    "monospace": true,
+    "pdfPreviewAction": true,
+    "signDisabled": true,
+    "trackingLengths": [
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12,
+      12
+    ],
+    "verificationRows": 9
+  },
+  "realSignaturesByAgent": 0,
+  "realWithdrawalsByAgent": 0,
+  "realEmailsByAgent": 0,
+  "rollback": {
+    "frontend": "dpl_FMcC6nhtC4wyKS6xPadvThREDSPP",
+    "edge": "supabase/snapshots/20261023-pickup-verification-before",
+    "sql": "supabase/snapshots/20261023-pickup-verification-before*.sql",
+    "containment": "Keep exclusions and server verification if any withdrawals exist; no DROP/DELETE or historical report rewrite."
+  },
+  "camera": "backlog phase 2; not implemented",
+  "remaining": "2b published; resume unpublished 2c PR292, owner review required before publish"
+}

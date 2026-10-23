@@ -13,7 +13,8 @@ test('accepts only the approved native-text to accessible shared-search migratio
  const old={tag:'INPUT',placeholder:'Buscar cliente…',type:null,label:null,text:'',disabled:false};
  const shared={...old,type:'search',label:'Buscar cliente…'};
  assert.deepEqual(normalizeListSearchControls([old]),normalizeListSearchControls([shared]));
- for(const changed of [{...shared,disabled:true},{...shared,label:'Otra acción'},{...shared,type:'password'}])assert.notDeepEqual(normalizeListSearchControls([old]),normalizeListSearchControls([changed]));
+ for(const changed of [{...shared,disabled:true},{...shared,label:'Otra acción'},{...shared,type:'password'},{...shared,placeholder:'Buscar factura…'},{...shared,tag:'BUTTON'}])assert.notDeepEqual(normalizeListSearchControls([old]),normalizeListSearchControls([changed]));
  assert.notDeepEqual(normalizeListSearchControls([old]),normalizeListSearchControls([]));
+ const button={tag:'BUTTON',placeholder:null,type:'button',label:'Abrir calendario',text:'',disabled:false};assert.notDeepEqual(normalizeListSearchControls([button]),normalizeListSearchControls([{...button,tag:'INPUT'}]));
  const date={tag:'INPUT',placeholder:'',type:'date',label:'Desde',text:'',disabled:false};assert.notDeepEqual(normalizeListSearchControls([date]),normalizeListSearchControls([{...date,type:'search'}]));
 });

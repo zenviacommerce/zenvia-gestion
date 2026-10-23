@@ -36,3 +36,5 @@ Capturas y geometría final: 72 pares antes/después en Gestión, incluidas las 
 ## CI: inventario de búsqueda accesible
 
 El primer pase remoto falló en la comparación histórica de controles de Facturación: SearchField convierte el input text sin nombre accesible en type=search con aria-label derivado de su mismo placeholder. No faltaba ninguna acción. El inventario normaliza exclusivamente esa transición aprobada de búsqueda, conservando número de controles, textos, nombres explícitos, fechas y estados disabled. Prueba roja/verde cubre pérdida de control, cambio de nombre, cambio de disabled y cambio indebido de tipo. Se repite el flujo visual completo; no se omite ningún check.
+
+La revisión independiente del ajuste de inventario exigió conservar también tag y placeholder, además del resto de atributos. Se añadieron casos rojos/verde para cambio de placeholder y sustitución de botón por input; normalización limitada a type y nombre accesible añadido. Los 9 inventarios reales de financiación/gastos/recibos antes/después siguen coincidiendo.

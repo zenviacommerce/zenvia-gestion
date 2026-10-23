@@ -1,3 +1,4 @@
+SET LOCAL application_name='orders_299_cache_approved_20261023';
 -- Preserve public wrappers/OIDs/ACLs and the cache validity guard. Only reuse
 -- the classifier fields already maintained by the projection refresh function.
 SET LOCAL lock_timeout='3s';
@@ -130,7 +131,7 @@ BEGIN
 END $parser$;
 
 DO $payloads$
-DECLARE src text;fields text;fallback text;fallback_old text;tariff text;remove_keys text;identity_expr text;
+DECLARE backfill_started timestamptz;backfill_ms numeric;backfill_rows bigint; src text;fields text;fallback text;fallback_old text;tariff text;remove_keys text;identity_expr text;
  insert_sql text;cache_cte text;page_joins text;tariff_join text;evidence text;logistics text;pickup text;
  a integer;b integer;c integer;d integer;start_at integer;end_at integer;f record;args text;body text;
 BEGIN
@@ -174,7 +175,10 @@ BEGIN
  CREATE TRIGGER orders_projection_payload_changed AFTER INSERT OR UPDATE ON private.orders_dashboard_projection FOR EACH ROW EXECUTE FUNCTION private.orders_projection_payload_changed();
  -- Derived fragments only: business orders and immutable facts are untouched.
  -- Deployment preflight records the projected-row count before this backfill.
+ backfill_started:=clock_timestamp();
  EXECUTE replace(insert_sql,' WHERE p.owner_id=p_owner AND p.projection_group_key=p_key','');
+ GET DIAGNOSTICS backfill_rows=ROW_COUNT;
+ backfill_ms:=extract(epoch FROM clock_timestamp()-backfill_started)*1000;
 
  -- Cached identity is valid only for this exact projection tuple and format.
  SELECT p.prosrc INTO STRICT body FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='private' AND p.proname='orders_projection_stale_keys';
@@ -223,39 +227,8 @@ BEGIN
   src:=replace(src,'FROM scope s WHERE s.has_label',tariff_join);
   EXECUTE format('CREATE OR REPLACE FUNCTION private.%I(%s) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='''' SET plan_cache_mode=force_generic_plan AS %L',f.proname,args,'BEGIN RETURN ('||regexp_replace(src,'[;[:space:]]+$','')||');END;');
  END LOOP;
+ EXECUTE format('COMMENT ON TABLE private.orders_projection_payloads IS %L',jsonb_build_object('deployment','orders_299_cache','backfill_rows',backfill_rows,'backfill_ms',backfill_ms,'server_elapsed_ms',extract(epoch FROM clock_timestamp()-transaction_timestamp())*1000,'finished_at',clock_timestamp(),'lock_timeout','3s','statement_timeout','15s','summary_api_deferred',true)::text);
 END $payloads$;
 
 
--- Aggregate-only Summary API: no unpaged order JSON or logistics metadata.
-CREATE FUNCTION public.orders_operational_summary_v1(p_from date DEFAULT NULL,p_to date DEFAULT NULL)
-RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
-AS $summary$
-DECLARE own uuid:=private.pickup_report_owner();
-BEGIN
- RETURN (
- WITH gate AS MATERIALIZED (SELECT private.orders_dashboard_hybrid_read_enabled() usable),
- stale AS MATERIALIZED (SELECT group_key FROM private.orders_projection_stale_keys() WHERE (SELECT usable FROM gate)),
- classified AS MATERIALIZED (
-  SELECT p.order_state,p.source_channel,(p.order_created_at AT TIME ZONE 'UTC')::date created_day
-  FROM private.orders_dashboard_projection p
-  WHERE p.owner_id=own AND (SELECT usable FROM gate)
-   AND NOT EXISTS(SELECT 1 FROM stale s WHERE s.group_key=p.projection_group_key)
-  UNION ALL
-  SELECT f.order_state,f.source_channel,(f.order_created_at AT TIME ZONE 'UTC')::date
-  FROM private.orders_classified_fallback(CASE WHEN (SELECT usable FROM gate) THEN ARRAY(SELECT group_key FROM stale) ELSE NULL END) f
-  WHERE NOT (SELECT usable FROM gate) OR EXISTS(SELECT 1 FROM stale)
- ), scoped AS (
-  SELECT *,created_day IS NOT NULL AND (p_from IS NULL OR created_day>=p_from) AND (p_to IS NULL OR created_day<=p_to) in_period FROM classified
- )
- SELECT jsonb_build_object(
-  'orders',count(*) FILTER(WHERE in_period AND order_state<>'cancelled'),
-  'pending',count(*) FILTER(WHERE order_state='pending'),
-  'shipped',count(*) FILTER(WHERE in_period AND order_state='shipped'),
-  'cancelled',count(*) FILTER(WHERE in_period AND order_state='cancelled'),
-  'amazon',count(*) FILTER(WHERE in_period AND order_state<>'cancelled' AND source_channel='amazon'),
-  'shopify',count(*) FILTER(WHERE in_period AND order_state<>'cancelled' AND source_channel='shopify')
- ) FROM scoped);
-END $summary$;
-REVOKE ALL ON FUNCTION public.orders_operational_summary_v1(date,date) FROM PUBLIC,anon;
-GRANT EXECUTE ON FUNCTION public.orders_operational_summary_v1(date,date) TO authenticated;
 

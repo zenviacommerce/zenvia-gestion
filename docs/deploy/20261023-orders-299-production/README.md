@@ -21,3 +21,17 @@ Navegador real recargado tras SQL: Pendientes carga 2 pedidos. Enviados conserva
 **Aceptación de <300 ms pendiente del propietario con las llamadas concurrentes reales.** Nunca sustituir esa medida por consultas separadas. Frontend #299 sin publicar, a la espera de esta aceptación, capturas y autorización de publicación.
 
 Rollback exacto preparado: `supabase/rollback/20261023_orders_cached_logistics_read.sql`. Restaura las dos RPC al estado recuperado; conserva logistics set-based y datos derivados, deshabilita el nuevo trigger. No se ejecutó porque las verificaciones posteriores fueron correctas.
+
+## Cierre MFA y publicación autorizada
+
+El propietario autoriza publicar #299 tras cerrar MFA y CI, sin autenticar en preview. Migración aditiva `20261023214651_orders_operational_summary_mfa` aplicada: wrapper público registrado y hash vigente, implementación privada sin EXECUTE de authenticated y endpoint público sin EXECUTE de anon; 0 hallazgos MFA. La configuración del piloto no se modifica. Validación autenticada/AAL2 del propietario: orders=945, pending=2, shipped=943, cancelled=64, amazon=929, shopify=16. Las pruebas locales de SQL/frontend pasan 38/38; contratos Node 11/11. Los nombres del repositorio se alinean con el historial real de producción: el relleno ya aplicado no debe repetirse.
+
+### Rollback operativo
+
+- Frontend: Vercel > despliegue `6No63ukSk9iouYZtXh1UTDA2xuNC` > Deployment Actions > Instant Rollback. SHA `6ef863cf69a8e570a195d6438f8c07d8eff97e52`, dominio inmutable `zenvia-gestion-4ycn7ykvo-sergiorojasdiaz-7097.vercel.app`. Acceso confirmado en la sesión existente; actualmente figura Current y por eso Instant Rollback está deshabilitado. Tras publicar el nuevo despliegue, este será el destino anterior, sin reconstruir assets.
+- RPC: ejecutar `supabase/rollback/20261023_orders_cached_logistics_read.sql` en producción. Restaura las funciones recuperadas y desactiva el trigger de caché sin borrar datos; mantiene la logística set-based y la nueva API de resumen para compatibilidad. Archivo completo preparado para ejecución directa.
+- Si falla únicamente la instalación de la API antes de publicar frontend: `rollback-summary-api.sql` revierte solo sus dos funciones y su entrada de manifiesto. No usar con el frontend nuevo activo.
+- Disparador autorizado: cualquier llamada sostenida >300 ms en las tres pestañas reales, o regresión de contadores, filas o selección. Ejecutar rollback de frontend y RPC inmediatamente.
+- La aceptación de rendimiento requiere el navegador real del propietario y llamadas concurrentes; tiempos SQL aislados no demuestran ese objetivo.
+
+Frontend todavía sin publicar en este punto del diario; pendiente CI final y despliegue main.

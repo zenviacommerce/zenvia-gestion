@@ -38,7 +38,7 @@ test('Orders manual sync uses a stable in-flight guard instead of depending on s
 
 test('Dashboard pending orders KPI ignores period boundaries and reflects the real operational backlog',async()=>{
   const dashboard=await source('src/pages/Dashboard.tsx');
-  const migration=await source('supabase/migrations/20261023132255_orders_cached_logistics_read.sql');
+  const migration=await source('supabase/migrations/20261023214651_orders_operational_summary_mfa.sql');
   const summary=migration.split('-- Aggregate-only Summary API:')[1];
   assert.ok(summary,'Aggregate contract must exist; SQL behavior is covered by the PGlite regression suite');
   assert.match(summary,/'pending',count\(\*\) FILTER\(WHERE order_state='pending'\)/);
@@ -48,3 +48,4 @@ test('Dashboard pending orders KPI ignores period boundaries and reflects the re
 });
 
 test('Orders has one visible persisted-data watcher and keeps carrier tracking on the server',async()=>{const orders=await source('src/pages/Orders.tsx');assert.doesNotMatch(orders,/setInterval/);assert.match(orders,/watchFulfillmentOrders\(refresh,Math\.max\(60,settings\.orders\.refreshSeconds\)\*1000\)/);assert.doesNotMatch(orders,/syncEnviaShipments\(/);});
+

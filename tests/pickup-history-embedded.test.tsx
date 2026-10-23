@@ -13,3 +13,11 @@ it('embeds the existing history as a region and reprints the saved report withou
 it('keeps the original order-specific history modal available',async()=>{
  render(<PickupReportHistory orderId="order" onClose={()=>{}}/>);await screen.findByText('REC-1');expect(screen.getByRole('dialog',{name:'Informes de recogida'})).toBeTruthy();
 });
+it('uses the shared search and keeps Estado inside Añadir filtro with a removable chip',async()=>{
+ render(<PickupReportHistory embedded onClose={()=>{}}/>);await screen.findByText('REC-1');
+ expect(screen.getByRole('searchbox',{name:'Buscar informes de recogida'}).closest('.dsSearchField')).toBeTruthy();expect(screen.queryByRole('combobox',{name:'Estado del informe'})).toBeNull();
+ fireEvent.click(screen.getByRole('button',{name:'Añadir filtro'}));fireEvent.click(screen.getByRole('button',{name:'Estado',exact:true}));fireEvent.click(screen.getByRole('combobox',{name:'Estado del informe'}));fireEvent.click(await screen.findByRole('option',{name:'Firmado',exact:true}));fireEvent.click(screen.getByRole('button',{name:'Aplicar filtro'}));
+ expect(screen.getByRole('button',{name:'Quitar filtro Estado: Firmado'})).toBeTruthy();expect(screen.queryByText('REC-1')).toBeNull();fireEvent.click(screen.getByRole('button',{name:'Quitar filtro Estado: Firmado'}));expect(await screen.findByText('REC-1')).toBeTruthy();
+ fireEvent.change(screen.getByRole('searchbox'),{target:{value:'NO-EXISTE'}});expect(screen.queryByText('REC-1')).toBeNull();fireEvent.click(screen.getByRole('button',{name:'Borrar búsqueda'}));expect(await screen.findByText('REC-1')).toBeTruthy();
+ fireEvent.click(screen.getByRole('button',{name:'Añadir filtro'}));fireEvent.click(screen.getByRole('button',{name:'Transportista',exact:true}));fireEvent.click(screen.getByRole('combobox',{name:'Transportista del informe'}));fireEvent.click(await screen.findByRole('option',{name:'MRW',exact:true}));fireEvent.click(screen.getByRole('button',{name:'Aplicar filtro'}));expect(screen.getByRole('button',{name:'Quitar filtro Transportista: MRW'})).toBeTruthy();expect(screen.getByText('REC-1')).toBeTruthy();
+});

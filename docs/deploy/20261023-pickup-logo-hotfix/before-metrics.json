@@ -1,0 +1,127 @@
+{
+  "phase": "before",
+  "results": [
+    {
+      "file": "before-png-pending.pdf",
+      "pages": 1,
+      "logoBoxMm": [
+        12.0,
+        9.0,
+        34.5,
+        24.0
+      ],
+      "titleBoxMm": [
+        12.0,
+        21.848,
+        198.343,
+        27.191
+      ],
+      "overlap": true,
+      "logoBackground": [
+        255,
+        255,
+        255
+      ],
+      "stampBackground": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "before-png-signed.pdf",
+      "pages": 1,
+      "logoBoxMm": [
+        12.0,
+        9.0,
+        34.5,
+        24.0
+      ],
+      "titleBoxMm": [
+        12.0,
+        21.848,
+        198.343,
+        27.191
+      ],
+      "overlap": true,
+      "logoBackground": [
+        255,
+        255,
+        255
+      ],
+      "stampBackground": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "before-webp-pending.pdf",
+      "pages": 1,
+      "logoBoxMm": [
+        12.0,
+        9.0,
+        34.5,
+        24.0
+      ],
+      "titleBoxMm": [
+        12.0,
+        21.848,
+        198.343,
+        27.191
+      ],
+      "overlap": true,
+      "logoBackground": [
+        0,
+        0,
+        0
+      ],
+      "stampBackground": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "file": "before-webp-signed.pdf",
+      "pages": 1,
+      "logoBoxMm": [
+        12.0,
+        9.0,
+        34.5,
+        24.0
+      ],
+      "titleBoxMm": [
+        12.0,
+        21.848,
+        198.343,
+        27.191
+      ],
+      "overlap": true,
+      "logoBackground": [
+        0,
+        0,
+        0
+      ],
+      "stampBackground": [
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "failures": [
+    "before-png-pending.pdf: logo overlaps title",
+    "before-png-pending.pdf: logo exceeds fixed contain box",
+    "before-png-signed.pdf: logo overlaps title",
+    "before-png-signed.pdf: logo exceeds fixed contain box",
+    "before-webp-pending.pdf: logo overlaps title",
+    "before-webp-pending.pdf: logo exceeds fixed contain box",
+    "before-webp-pending.pdf: transparent logo background is not white (0, 0, 0)",
+    "before-webp-pending.pdf: transparent stamp background is not white (0, 0, 0)",
+    "before-webp-signed.pdf: logo overlaps title",
+    "before-webp-signed.pdf: logo exceeds fixed contain box",
+    "before-webp-signed.pdf: transparent logo background is not white (0, 0, 0)",
+    "before-webp-signed.pdf: transparent stamp background is not white (0, 0, 0)"
+  ]
+}

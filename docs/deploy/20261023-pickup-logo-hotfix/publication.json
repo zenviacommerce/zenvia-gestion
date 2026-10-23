@@ -1,0 +1,143 @@
+{
+  "pr": 293,
+  "head": "559d986ed9a117cb2b5e36032f2aa85c65d297dd",
+  "merge": "488641de1ae0382ebbbf420959274d686019c85f",
+  "deployment": {
+    "id": "dpl_FMcC6nhtC4wyKS6xPadvThREDSPP",
+    "name": "zenvia-gestion",
+    "url": "zenvia-gestion-g7ykn08m5-sergiorojasdiaz-7097.vercel.app",
+    "type": "LAMBDAS",
+    "state": "READY",
+    "createdAt": 1792739658310,
+    "creator": {
+      "uid": "keRvz2tE1X4xxwH9EndG7Krd",
+      "username": "sergiorojasdiaz-7097"
+    },
+    "project": {
+      "id": "prj_L6nGgpq78QTEnZByUNtjtmF5rGkv",
+      "name": "zenvia-gestion",
+      "framework": null
+    },
+    "meta": {
+      "githubCommitRef": "main",
+      "githubCommitSha": "488641de1ae0382ebbbf420959274d686019c85f",
+      "githubCommitMessage": "fix: PDF de recogida sin fondo negro y filtros compartidos (#293)\n\nfix: PDF de recogida sin fondo negro y filtros compartidos",
+      "githubRepo": "zenvia-gestion",
+      "githubOrg": "zenviacommerce"
+    },
+    "alias": [
+      "gestionzenvia.vercel.app",
+      "gestion.zenviacommerce.com",
+      "zenvia-gestion-sergiorojasdiaz-7097.vercel.app",
+      "zenvia-gestion-git-main-sergiorojasdiaz-7097.vercel.app"
+    ],
+    "target": "production",
+    "regions": [
+      "iad1"
+    ],
+    "buildingAt": 1792739659284,
+    "ready": 1792739724328,
+    "readyState": "READY",
+    "source": "git",
+    "aliasError": null
+  },
+  "ci": [
+    {
+      "id": 39915551027,
+      "name": "Shared UI package and tab contracts",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 82,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915551027/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915551027/logs",
+      "workflow_id": 391756951
+    },
+    {
+      "id": 39915551012,
+      "name": "Build check",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 708,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915551012/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915551012/logs",
+      "workflow_id": 361316263
+    },
+    {
+      "id": 39915550931,
+      "name": "Auth resilience tests",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 377,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915550931/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915550931/logs",
+      "workflow_id": 385998318
+    },
+    {
+      "id": 39915551167,
+      "name": "MFA real integration (disposable Supabase)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 416,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915551167/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915551167/logs",
+      "workflow_id": 387906946
+    },
+    {
+      "id": 39915550973,
+      "name": "MFA visual review (Playwright)",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 231,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915550973/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915550973/logs",
+      "workflow_id": 388829843
+    },
+    {
+      "id": 39915550955,
+      "name": "Build ZENVIA Gestión",
+      "status": "completed",
+      "conclusion": "success",
+      "run_number": 2415,
+      "jobs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915550955/jobs",
+      "logs_url": "https://api.github.com/repos/zenviacommerce/zenvia-gestion/actions/runs/39915550955/logs",
+      "workflow_id": 354706666
+    }
+  ],
+  "edges": [
+    {
+      "slug": "pickup-report-documents",
+      "version": 2,
+      "verify_jwt": true,
+      "hash": "894284bbc28ae692b5fddbf1ddbff1923a7f3f2c75e1660ec8e1569a1c98564d",
+      "exactRuntimeMatch": true,
+      "typeDeclarationsOmittedByBundler": true
+    },
+    {
+      "slug": "pickup-report-purge",
+      "version": 2,
+      "verify_jwt": false,
+      "hash": "3e65a764c951939333eeac99a04cc5364e73632b10a2331519d568d8d1f2a9f0",
+      "exactRuntimeMatch": true,
+      "typeDeclarationsOmittedByBundler": true
+    }
+  ],
+  "rollback": {
+    "frontend": "dpl_9ZwSUSkgztVrf39oc42KM15Jg6Vx",
+    "edgeSnapshots": "supabase/snapshots/20261023-pickup-logo-before"
+  },
+  "counts": {
+    "reports": 3,
+    "signatures": 0,
+    "purge_enabled": false
+  },
+  "productionChecks": {
+    "search": "shared SearchFilters rendered",
+    "state": "inside Añadir filtro; Pending chip applied and removed",
+    "pdfActions": true,
+    "realDocumentsCreated": 0,
+    "realEmailsSent": 0,
+    "realSignatures": 0
+  },
+  "pdfValidation": "Synthetic report with real owner logo; PNG/WebP lossless/lossy pixels white and no title intersection. Real PDF download browser timed out; no repeated blocking downloads.",
+  "secondDeployment": "Shipment verification excluded from this deployment."
+}

@@ -1,6 +1,7 @@
+import {SearchField} from '@zenvia/ui';
 import { AmazonLoading } from './AmazonLoading';
 import { useEffect, useRef, useState } from 'react';
-import { RefreshCw, Search } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { isAmazonConnectivityError, loadAmazonOrders, type AmazonAnalyticsFilters, type AmazonMarketplaceStatus, type AmazonOrderAnalytics, type AmazonPageResult } from '../../services/amazon';
 import { errorMessage } from '../../services/toast';
 import { formatAmazonMarketplace } from './marketplaceLabel';
@@ -21,7 +22,7 @@ export function AmazonOrders({filters,marketplaces,refreshToken=0}:{filters:Amaz
  },{key:'date',direction:'desc'});
  useEffect(()=>{setPage(1)},[sorting.sort.key,sorting.sort.direction]);
  const rows=sorting.rows;
- return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">PEDIDOS</span><strong>Detalle de pedidos</strong></div><label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar pedido"/></label></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}{loading&&<AmazonLoading>Cargando pedidos de Amazon…</AmazonLoading>}<TableSortReset sorting={sorting}/><div className="amazonTableScroll"><table className="amazonTable"><thead><tr>
+ return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">PEDIDOS</span><strong>Detalle de pedidos</strong></div><SearchField className="amazonSearch" value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar pedido"/></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}{loading&&<AmazonLoading>Cargando pedidos de Amazon…</AmazonLoading>}<TableSortReset sorting={sorting}/><div className="amazonTableScroll"><table className="amazonTable"><thead><tr>
 <SortableTableHeader label="Pedido" sortKey="order" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Fecha" sortKey="date" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Marketplace" sortKey="marketplace" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>

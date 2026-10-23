@@ -1,5 +1,6 @@
+import {pickupPdfImage} from './pickupPdfImage.js';
 /** Pure shared renderer: browser and Edge generate the same allowlisted document. */
-export type PickupDocument={id:string;number:string;createdAt:string;createdBy:string;sender:{legalName:string;taxId:string;address:string;email:string;phone:string};items:Array<{orderId:string;orderNumber:string;channel:string;carrier:string;trackingNumber:string;packages:number}>;totalPackages:number};
+export type PickupDocument={id:string;number:string;createdAt:string;createdBy:string;sender:{legalName:string;taxId:string;address:string;email:string;phone:string};items:Array<{orderId:string;orderNumber:string;channel:string;carrier:string;trackingNumber:string;packages:number}>;totalPackages:number;removedItems?:Array<{orderId:string;orderNumber:string;carrier:string;trackingNumber:string;packages:number;reason:string}>};
 export type PickupPdfSignature={carrier:string;driverName:string;identifier:string;receivedAt:string;packages:number;signatureDataUrl:string|null;redacted?:boolean};
 export type PickupPdfOptions={logoDataUrl?:string|null;stampDataUrl?:string|null;generatedAt?:Date;requireStamp?:boolean;signatures?:PickupPdfSignature[]};
 
@@ -16,7 +17,7 @@ export function createPickupReportDocument(report: PickupDocument, createDocumen
   const generated = `${date.format(options.generatedAt ?? new Date())} (Europe/Madrid)`;
   const created = date.format(new Date(report.createdAt));
   const lines = (value: unknown, width: number): string[] => doc.splitTextToSize(String(value ?? ''), width);
-  let first = true;
+  let first = true,lastBodyY=0;
   for (const [carrier, items] of groups) {
     const parcels = items.reduce((sum, item) => sum + item.packages, 0);
     const signature = options.signatures?.find(item => item.carrier === carrier);
@@ -29,12 +30,13 @@ export function createPickupReportDocument(report: PickupDocument, createDocumen
       doc.setTextColor(32, 41, 55);
       if (options.logoDataUrl) {
         try {
-          const image = doc.getImageProperties(options.logoDataUrl);
-          const scale = Math.min(23 / image.width, 15 / image.height);
-          doc.addImage(options.logoDataUrl, undefined as any, left, 9, image.width * scale, image.height * scale);
+          const image = pickupPdfImage(doc,options.logoDataUrl);
+          const scale = Math.min(30 / image.width, 12 / image.height);
+          const width=image.width*scale,height=image.height*scale;
+          doc.addImage(image.data, image.format, left+(30-width)/2, 9+(12-height)/2, width, height);
         } catch { /* A damaged optional logo must not prevent printing the saved receipt. */ }
       }
-      const senderX = options.logoDataUrl ? 40 : left;
+      const senderX = options.logoDataUrl ? 46 : left;
       doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
       const nameLines = lines(`${report.sender.legalName} · NIF: ${report.sender.taxId}`, right - senderX);
       doc.text(nameLines, senderX, 12);
@@ -120,11 +122,23 @@ export function createPickupReportDocument(report: PickupDocument, createDocumen
     if (signature?.redacted) { doc.setFontSize(7); doc.text('Firma retirada por retención',left+3,y+13); }
     if (options.stampDataUrl) {
       try {
-        const image = doc.getImageProperties(options.stampDataUrl);
+        const image = pickupPdfImage(doc,options.stampDataUrl);
         const scale = Math.min(56 / image.width, 21 / image.height);
         const width = image.width * scale, height = image.height * scale;
-        doc.addImage(options.stampDataUrl, undefined as any, 110 + (60 - width) / 2, y + (25 - height) / 2, width, height);
+        doc.addImage(image.data, image.format, 110 + (60 - width) / 2, y + (25 - height) / 2, width, height);
       } catch { if(options.requireStamp)throw new Error('PICKUP_STAMP_REQUIRED'); /* Unsigned print remains tolerant. */ }
+    }
+    lastBodyY=y+32;
+  }
+  if(report.removedItems?.length){
+    let noteY=lastBodyY;
+    const notePage=()=>{doc.addPage();noteY=18;doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text(`Informe ${report.number} · Notas de recogida`,12,noteY);noteY+=7;};
+    if(noteY+14>274)notePage();
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text('Envíos retirados · no recogidos',12,noteY);noteY+=5;
+    doc.setFont('helvetica','normal');doc.setFontSize(8);
+    for(const item of report.removedItems){
+      const note=lines(`${item.carrier} · Pedido ${item.orderNumber} · ${item.trackingNumber} · ${item.packages} ${item.packages===1?'bulto':'bultos'} · Motivo: ${item.reason}`,186);
+      for(const line of note){if(noteY+4>274){notePage();doc.setFont('helvetica','normal');doc.setFontSize(8);}doc.text(line,12,noteY);noteY+=3.8;}noteY+=2;
     }
   }
   const total = doc.getNumberOfPages();

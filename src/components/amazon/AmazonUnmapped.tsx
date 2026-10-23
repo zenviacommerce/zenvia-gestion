@@ -1,7 +1,8 @@
+import {SearchField} from '@zenvia/ui';
 import { ProductMappingAction } from '../ProductMappingAction';
 import { AmazonLoading } from './AmazonLoading';
 import { useEffect, useRef, useState } from 'react';
-import { ImageOff, RefreshCw, Search } from 'lucide-react';
+import { ImageOff, RefreshCw } from 'lucide-react';
 import { amazonMarketplaceCode, isAmazonConnectivityError, loadAmazonProductMetadata, loadAmazonUnmapped, type AmazonPageResult, type AmazonProductMetadata, type AmazonUnmappedSku } from '../../services/amazon';
 import { errorMessage } from '../../services/toast';
 import { AmazonMappingModal } from './AmazonMappingModal';
@@ -24,7 +25,7 @@ export function AmazonUnmapped({onChanged,refreshToken=0,defaultConsumptionFacto
  useEffect(()=>{setPage(1)},[sorting.sort.key,sorting.sort.direction]);
  const rows=sorting.rows;
  const editingRow=editing?data.items.find(row=>row.sellerSku===editing):undefined;
- return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">CALIDAD DE DATOS</span><strong>Sin vincular</strong><p>Relaciona cada SKU de Amazon con uno o varios productos internos y define el factor de consumo de cada componente.</p></div><label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU o ASIN"/></label></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}{loading&&<AmazonLoading>Cargando SKU sin vincular de Amazon…</AmazonLoading>}<TableSortReset sorting={sorting}/><div className="amazonTableScroll"><table className="amazonTable amazonUnmappedTable"><thead><tr>
+ return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">CALIDAD DE DATOS</span><strong>Sin vincular</strong><p>Relaciona cada SKU de Amazon con uno o varios productos internos y define el factor de consumo de cada componente.</p></div><SearchField className="amazonSearch" value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU o ASIN"/></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}{loading&&<AmazonLoading>Cargando SKU sin vincular de Amazon…</AmazonLoading>}<TableSortReset sorting={sorting}/><div className="amazonTableScroll"><table className="amazonTable amazonUnmappedTable"><thead><tr>
 <SortableTableHeader label="Producto Amazon" sortKey="product" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Marketplaces" sortKey="marketplaces" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Pedidos" sortKey="orders" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>

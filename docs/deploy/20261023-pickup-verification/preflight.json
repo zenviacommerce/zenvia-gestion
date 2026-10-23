@@ -1,0 +1,84 @@
+{
+  "pr": 294,
+  "head": "5bf63e948ec1d4726b0d829a9d42f1e254dfa8f6",
+  "before": {
+    "reports": 3,
+    "signatures": 0,
+    "liveSigningLeases": 0,
+    "purgeEnabled": false
+  },
+  "inspectedTables": [
+    "public.pickup_reports",
+    "public.pickup_report_items",
+    "private.pickup_document_state",
+    "private.pickup_document_operations"
+  ],
+  "columnsInspected": 44,
+  "priorFunctionHashes": [
+    {
+      "name": "pickup_report_preview_items",
+      "md5": "2835c6405f57e0a27716c4fb7e64fbee"
+    },
+    {
+      "name": "mfa_impl_pickup_report_get",
+      "md5": "2dfb284719a8da70f40b93c00dd1a908"
+    },
+    {
+      "name": "mfa_impl_pickup_report_list",
+      "md5": "7bd75f93587af087caf44acc706fe9ae"
+    },
+    {
+      "name": "mfa_impl_orders_workbench_v1",
+      "md5": "b0b4539edab6c346afe9840b3b9c8fe2"
+    },
+    {
+      "name": "pickup_document_json",
+      "md5": "850e4642376dcb18544274b3fa60835d"
+    },
+    {
+      "name": "pickup_document_complete",
+      "md5": "8e4d6bb4f2a010bf65dd385c1555a874"
+    },
+    {
+      "name": "pickup_document_prepare",
+      "md5": "42652bb05aa804fbcd90439206dc9f58"
+    },
+    {
+      "name": "pickup_document_read",
+      "md5": "bb01925766b723f8a9d4054c3b21a90d"
+    },
+    {
+      "name": "pickup_document_purge_read",
+      "md5": "e61cd977c8224c91aa0775aa8fe756bf"
+    },
+    {
+      "name": "mfa_impl_orders_dashboard_pickup_v1",
+      "md5": "b3fc044a16ab3315b5a02f30929ab423"
+    }
+  ],
+  "productionSourceMatchesSnapshots": true,
+  "localVerification": {
+    "vitest": 683,
+    "node": 1286,
+    "denoExactBundles": true,
+    "build": true,
+    "independentReview": "approved; minor partial-signature removal control corrected"
+  },
+  "migration": {
+    "path": "supabase/migrations/20261023091500_pickup_verification.sql",
+    "businessRowsModifiedAtInstall": 0,
+    "massReprocessing": false,
+    "purgeEnabled": false
+  },
+  "rollback": {
+    "frontend": "dpl_FMcC6nhtC4wyKS6xPadvThREDSPP",
+    "sqlSnapshots": "supabase/snapshots/20261023-pickup-verification-before*.sql",
+    "edgeBundles": "supabase/snapshots/20261023-pickup-verification-before",
+    "containment": "Keep exclusions and SQL verification if any withdrawals exist. Never restore old report membership reads or DROP audit data."
+  },
+  "consumptionAutomation": {
+    "id": "6ada0435d7d081918b634b4fe22aa88e",
+    "enabled": true,
+    "time": "2026-10-23 11:20 Europe/Madrid"
+  }
+}

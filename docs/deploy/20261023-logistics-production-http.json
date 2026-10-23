@@ -1,0 +1,54 @@
+{
+  "url": "https://gestion.zenviacommerce.com",
+  "checkedAt": "2026-10-23T12:54:14.285488+00:00",
+  "htmlStatus": 200,
+  "assets": [
+    {
+      "path": "/assets/index-Tks_kq9P.js",
+      "status": 200,
+      "bytes": 2916883,
+      "contentType": "application/javascript; charset=utf-8",
+      "sha256": "73a50790c57f13fcb85cd1f93e752ae85e4b7d013f981eb198cd85bf9422e676",
+      "markers": {
+        "order_logistics_read": true,
+        "order_logistics_mark_sent": true
+      }
+    },
+    {
+      "path": "/assets/index-Bnvel_gU.css",
+      "status": 200,
+      "bytes": 400655,
+      "contentType": "text/css; charset=utf-8",
+      "sha256": "1dd45421a9b2c77fa67aaca6e2ac22d6ad8ee218babf25662930e06cca74934e",
+      "markers": {}
+    },
+    {
+      "path": "/assets/PickupDocumentDialog-7kLMExTL.js",
+      "status": 200,
+      "bytes": 20652,
+      "sha256": "3918201905d49b34b94dc0a8dd47dc2da898970af25e357e4960cdf66575dde0",
+      "markers": {
+        "Envíos que recibe el conductor": true,
+        "Has indicado": true,
+        "Ver PDF": true,
+        "Marcar todos": true
+      }
+    },
+    {
+      "path": "/assets/pickupReportDocuments-B_yxaWnG.js",
+      "status": 200,
+      "bytes": 2277,
+      "sha256": "e4ce587c296d82674f90848ce69f27f62fd407ea9120bc407cb49d4a07c6a7b9",
+      "markers": {}
+    }
+  ],
+  "previousAssets": [
+    "/assets/index-CqJZVsNs.js",
+    "/assets/index-ULcAbvFp.css"
+  ],
+  "productionCommit": "ca8a595c6558356e766168fd51dd0ef78ef3ae66",
+  "vercelState": "success",
+  "vercelDeployment": "https://vercel.com/sergiorojasdiaz-7097/zenvia-gestion/6QnGEy8hmRSpfnh7Z3BijStzdMse",
+  "signedInBrowserChecked": false,
+  "verification": "HTTP200 main/CSS/lazy signature+PDF chunks; required API and signature UI markers present. No authenticated business action."
+}

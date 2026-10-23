@@ -301,7 +301,7 @@ export default function App(){
      setStartPageReady(true);
      return;
    }
-   if(!allowedPages.includes(page))setPage(allowedPages[0]);
+   if(startPageReady&&!allowedPages.includes(page))setPage(allowedPages[0]);
  },[mfaAccess.ready,accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading,startPageReady]);
 
  useEffect(()=>{
@@ -389,10 +389,6 @@ export default function App(){
  if(!accessReady) return <><ToastHost/><div className="fullLoader"><LoaderCircle className="spin"/> Comprobando acceso…</div></>;
  if(access&&!['active','trialing'].includes(access.workspaceStatus)) return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>{access.workspaceStatus==='suspended'?'Empresa suspendida':'Servicio cancelado'}</h1><p>{access.workspaceStatus==='suspended'?'El acceso de tu empresa a ZENVIA Gestión está suspendido temporalmente. Contacta con soporte para reactivarlo.':'La suscripción de tu empresa ya no está activa. Contacta con soporte si necesitas recuperar el acceso.'}</p><div className="actions"><button className="secondary" onClick={()=>supabase.auth.signOut({scope:'local'})}>Cerrar sesión</button></div></div></div></>;
  if(!access||!access.active||!allowedPages.length) return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>{error?'No se pudo cargar el acceso':'Acceso no autorizado'}</h1><p>{error?error:access&&!access.active?'Tu acceso a ZENVIA Gestión está desactivado.':'Esta cuenta no está autorizada para utilizar ZENVIA Gestión. Contacta con el administrador.'}</p><div className="actions">{error&&<button className="primary" onClick={()=>{setAccessReady(false);setError('');withTimeout(loadAccessAndBranding(session.user.id),90000,'El servicio de datos sigue recuperándose. Vuelve a intentarlo en unos segundos.').then(({profile,workspaceLogo:nextLogo})=>{setAccess(profile);setWorkspaceLogo(nextLogo);setAccessReady(true)}).catch(e=>{setAccess(null);setWorkspaceLogo(null);setAccessReady(true);setError(errorMessage(e,'No se pudo comprobar tu acceso.'))})}}>Reintentar</button>}<button className="secondary" onClick={()=>supabase.auth.signOut({scope:'local'})}>Cerrar sesión</button></div></div></div></>;
-
- // Resolve the permitted entry page before mounting children: Dashboard's
- // effects otherwise start financial and operational RPCs on Orders deep links.
- if(!startPageReady) return <><ToastHost/><div className="fullLoader"><LoaderCircle className="spin"/> Preparando tu vista…</div></>;
 
  const navigate=async(next:Page,options?:{pendingOrders?:boolean})=>{
    if(!allowedPages.includes(next))return;
@@ -687,7 +683,10 @@ export default function App(){
    <button className="mobileThemeToggle" onClick={toggleTheme} title={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'} aria-label={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'}>{theme==='dark'?<Sun size={19}/>:<Moon size={19}/>}</button>
    <PasskeySetup userId={session.user.id} onVisibilityChange={setPasskeySetupVisible}/>
    {error&&<div className="globalError">{error}<button onClick={refresh}>Reintentar</button></div>}
-   {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders',{pendingOrders:true}):undefined}/>}
+   {/* Keep navigation available while resolving preferences, without starting
+       Dashboard's financial/operational RPCs for an Orders entry. */}
+   {!startPageReady&&<div className="fullLoader" role="status"><LoaderCircle className="spin"/><span>Preparando tu vista…</span><span>Puedes abrir una sección desde el menú mientras cargan tus preferencias.</span></div>}
+   {startPageReady&&page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders',{pendingOrders:true}):undefined}/>}
    {can('sales')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':sales'} active={page==='sales'}><SalesInvoices/></RetainedImportPage>}
    {can('orders')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':orders'} active={page==='orders'}><Orders pendingOnly={ordersPendingEntry} active={page==='orders'}/></RetainedImportPage>}
    {can('invoices')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':invoices'} active={page==='invoices'}><ExpenseInvoicesHub invoices={data.invoices} suppliers={data.suppliers} categories={data.categories} onUpload={()=>setUpload(true)} onBulkUpload={()=>setBulkUpload(true)} onStatusChange={changeStatus} onPaymentStatusChange={changePaymentStatus} onBulkPaymentStatusChange={changePaymentStatuses} onOpenFile={openInvoice} onDelete={removeInvoice} onSupplierChange={changeInvoiceSupplier} onCategoryChange={changeInvoiceCategory} onImported={refresh} canManageAccounts={access.role==='admin'} onManageAccounts={()=>{setSettingsInitialSection('integrations');void navigate('settings');}}/></RetainedImportPage>}

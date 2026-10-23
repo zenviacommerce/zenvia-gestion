@@ -1,4 +1,4 @@
-import {act,cleanup,render,screen,waitFor} from '@testing-library/react';
+import {act,cleanup,fireEvent,render,screen,waitFor} from '@testing-library/react';
 import {afterEach,beforeEach,expect,it,vi} from 'vitest';
 import {DEFAULT_APP_SETTINGS,DEFAULT_USER_PREFERENCES} from '../src/services/settingsSchema';
 import App from '../src/App';
@@ -61,5 +61,13 @@ it('can finish entry through browser history while preferences are still loading
  state.settingsLoading=true;render(<App/>);await screen.findByText('Preparando tu vista…');
  await act(async()=>{window.history.pushState({},'','/?page=orders&tab=pending');window.dispatchEvent(new PopStateEvent('popstate'));});
  await screen.findByRole('heading',{name:'Pedidos de prueba'});
+ expect(state.summary).not.toHaveBeenCalled();expect(state.financial).not.toHaveBeenCalled();
+});
+it('keeps navigation and sign-out available if loading preferences never finishes',async()=>{
+ state.settingsLoading=true;render(<App/>);
+ const orders=await screen.findByRole('button',{name:'Pedidos',exact:true});
+ expect(screen.getAllByRole('button',{name:'Cerrar sesión'}).length).toBeGreaterThan(0);
+ expect(state.summary).not.toHaveBeenCalled();expect(state.financial).not.toHaveBeenCalled();
+ fireEvent.click(orders);await screen.findByRole('heading',{name:'Pedidos de prueba'});
  expect(state.summary).not.toHaveBeenCalled();expect(state.financial).not.toHaveBeenCalled();
 });

@@ -1,0 +1,10 @@
+// @vitest-environment node
+import {it,expect,vi} from 'vitest';
+const decode=vi.hoisted(()=>vi.fn());vi.mock('../supabase/functions/_shared/vendor/WebPDecoder.js',()=>({WebPDecoder:decode}));
+import{pickupPdfImage}from'../supabase/functions/_shared/pickupPdfImage.js';
+function webp(kind:string,w:number,h:number){const b=Buffer.alloc(30);b.write('RIFF',0);b.writeUInt32LE(22,4);b.write('WEBP',8);b.write(kind,12);b.writeUInt32LE(10,16);if(kind==='VP8X'){b.writeUIntLE(w-1,24,3);b.writeUIntLE(h-1,27,3)}else if(kind==='VP8L'){b[20]=0x2f;const bits=(w-1)|((h-1)<<14);b.writeUInt32LE(bits>>>0,21)}else{b.set([0x9d,1,0x2a],23);b.writeUInt16LE(w,26);b.writeUInt16LE(h,28)}return 'data:image/webp;base64,'+b.toString('base64')}
+it.each(['VP8X','VP8L','VP8 '])('rejects huge %s before constructing the decoder',kind=>{decode.mockClear();expect(()=>pickupPdfImage({},webp(kind,4000,3000))).toThrow('PICKUP_IMAGE_TOO_LARGE');expect(decode).not.toHaveBeenCalled()});
+it('rejects unsupported WebP before decoding',()=>{decode.mockClear();expect(()=>pickupPdfImage({},webp('JUNK',1,1))).toThrow('PICKUP_INVALID_IMAGE');expect(decode).not.toHaveBeenCalled()});
+it('reads PNG dimensions once without invoking costly getImageProperties',()=>{const b=Buffer.alloc(33);b.set([137,80,78,71,13,10,26,10]);b.write('IHDR',12);b.writeUInt32BE(100,16);b.writeUInt32BE(50,20);const doc={getImageProperties:vi.fn(()=>{throw Error('unexpected decode')})},url='data:image/png;base64,'+b.toString('base64');const first=pickupPdfImage(doc,url);expect(pickupPdfImage(doc,url)).toBe(first);expect(first).toMatchObject({width:100,height:50,alias:'pickup-image-0'});expect(doc.getImageProperties).not.toHaveBeenCalled()});
+
+it('validates frame dimensions hidden behind a small VP8X canvas before decoding',()=>{decode.mockClear();const small=Buffer.from(webp('VP8X',1,1).split(',')[1],'base64'),huge=Buffer.from(webp('VP8L',4000,3000).split(',')[1],'base64');const b=Buffer.concat([small,huge.subarray(12)]);b.writeUInt32LE(b.length-8,4);expect(()=>pickupPdfImage({},'data:image/webp;base64,'+b.toString('base64'))).toThrow('PICKUP_IMAGE_TOO_LARGE');expect(decode).not.toHaveBeenCalled()});

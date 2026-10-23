@@ -1,0 +1,44 @@
+# Durable label creation and reconciliation
+
+Scope requested by owner: prevent permanent *_CREATING locks for MRW, Sendcloud and Envia; never repeat a provider creation to discover its outcome. This follows the immediate single-order recovery and MRW input correction in PR295.
+
+## Design choices
+
+Use a private durable operation per owner/order, recording selected provider/account, exact client reference, start time and non-PII service metadata before outbound creation. A unique open operation prevents cross-provider duplication. A ten-minute default grace exceeds the existing eight-minute order lease and Edge maximum 400s. Preserve existing MFA, owner checks, RLS and Amazon retention gates. No secrets, recipient address, DNI or signature in operation context or logs.
+
+Use a dedicated authenticated reconcile endpoint plus an internal worker calling the same implementation. Queries are read only at the carrier. Exact account and exact reference matching are mandatory; ambiguous matches, HTTP errors, partial/paginated/incomplete responses, invalid credentials and missing label identities fail closed. A successful empty lookup may release only after the grace period; an existing unique shipment is persisted before PDF retrieval. No marketplace confirmation as a side effect. No blind TransmEnvio/create-label/ship-generate calls from reconciliation.
+
+Alternatives considered: clearing locks by age is unsafe (duplicates); browser retry cannot cover closed sessions; durable server reconciliation covers both. Selected approach is an engineering choice within the owner's explicit requested behavior.
+
+## Implementation sequence
+
+- [ ] TDD: PostgreSQL operation claim/resolve with owner/account validation, uniqueness, expired worker claim, live-order-lease rejection and stale-token CAS. Add private table and service-only RPCs in a new migration, with rollback preservation of pending operations.
+- [ ] TDD: provider reference lookups. MRW TrackingService tipoFiltro=1 and attempted date window; Sendcloud exact source order plus parcel lookup; Envia complete monthly guide list and exact reference then guide detail. Reject multiple active matches, malformed success and incomplete pagination. Use documented existing API contracts, never guess search endpoints.
+- [ ] Wrap each provider's outbound creation in durable operation lifecycle. Preserve accepted identity before PDF retrieval (fix Envia's current PDF-before-persist order). Unknown outcomes remain pending for worker. Explicit rejection can release only when proven.
+- [ ] Add endpoint and bounded worker (max five candidates/run, ten-minute stale threshold, one-minute schedule); preactivation count and exact mutation SQL shown before any data repair. No initial bulk reprocessing: current stuck count is zero.
+- [ ] UI: shared Button in order drawer with Comprobar con MRW / Sendcloud / Envia, pending state and explicit recovered/released/unknown results. Refresh drawer after errors so stale snapshot does not hide the button. Do not offer a new label while creation is pending.
+- [ ] Run PostgreSQL and fake-provider concurrency/unknown/PII tests, full Node/Vitest/build/Deno, independent review. Action inventory and before/after390/1280/1440 screenshots, light/dark. Journal each stage and stop before publishing visible UI per standing instruction; no real shipments in tests.
+
+## Review focus
+
+Provider indexing delay must not cause a duplicate; a service error must not be read as no shipments. A carrier account disabled/replaced after attempt must not silently switch account. An old cancelled shipment with the same business reference must not replace the current attempt. Recovery cannot overwrite a later accepted consignment. Removing/rolling back UI must preserve pending durable operations and reconciliation capability.
+
+
+## Safe interruption — owner priority change 23 October 2026 08:54 UTC
+
+Production incident confirmed resolved by owner: MRW 01009F045774 READY_TO_SEND; zero other *_CREATING. Immediate hotfix PR295 main5adf2c8a / MRWv27 remains production. Durable reconciliation in this branch is NOT deployed; no migration applied, no cron enabled, UI NOT published.
+
+Implemented draft: durable owner/account operation lifecycle in three providers; provider reference lookup + bounded pagination; service/worker/human MFA endpoint; owner-scoped SQL claims/resolution/candidates/legacy adoption; shared-form UI recovery panel. Legacy attempts with unknown original creation time never release on absence. Review's five issues fixed with red/green regressions: legacy lookup window, invalid-account substitution, provider environment changes, Sendcloud ENV merge, candidate starvation. Added account/Vault metadata revision guard during lookup→resolve; never decrypts credentials in SQL. PII trigger follows canonical order purge and is not a scheduled purge.
+
+Verification before pause: full suite earlier 712 Vitest/1291 Node/build passed, then review and credential identity changes added targeted tests. Latest targeted checkpoint suites and all five Deno entrypoints passed; final complete suite/build still required after later edits. Independent review approved five corrections, account revision guard added after review. Never claim draft ready.
+
+Outstanding before completion: real-handler auth tests already written; add tests of candidate already-persisted cleanup and Sendcloud partial ENV merge; lifecycle regression VM fixtures updated TextEncoder; check legacy Sendcloud no account-id behavior (must bind explicit integration account, fail closed). Configure worker cron only after pre-count and review; rollback must preserve/resolve open operations or pause create_label across providers before any downgrade. No old bundle rollback while open operations could bypass durable guard. Capture before/after390/1280/1440 and action inventory for recovery UI, docs/design-system.md, final suites and independent review. User's standing visible-change gate still applies.
+
+New priority: visual Tabs/filter/report hotfix in separate ../zenvia-visual-regressions (base local4bb0906, frontend equals productionmain5adf2c8a). After publish and verifying production signature shipment checklist (#294 already published), resume this draft, then cancellation PR292 (not published).
+
+## Reanudación tras #297 publicada y comprobada por el propietario
+Estimaciones comunicadas: reconciliación2–4h; RPC3–6h; diseño fiscal3–5h. Se retoma este worktree/branch, sin recrear el trabajo. Baseline42/42 pruebas específicas. Integrado código de #297 con conservación de ambas acciones de detalle (reconciliar y marcar salida), estado logístico y firma aprobados. Base de despliegue remoto ca8a595c6558356e766168fd51dd0ef78ef3ae66; el upload debe partir de su árbol, sin arrastrar snapshots/documentos locales ausentes en main. Sin cambios de producción. Recuento de solo lectura12:58:31Z:0 *_CREATING,0 leases vivos y tabla de operaciones todavía ausente. Pruebas pendientes del checkpoint (aceptación ya persistida y Sendcloud ENV parcial) pasan; nuevas regresiones MRW incompleto y Sendcloud cancelado fallaron primero y ahora se corrigen. La UI y la activación permanecen sin publicar.
+
+Cierre incremental:50/50 pruebas específicas, cinco entrypoints Deno correctos. Nuevas regresiones rojas→verdes: XML MRW sin contenedor de resultados, Sendcloud cancelado, HTTP200 con errors y data vacía, worker con interruptor desactivado y posición del bloque antes de Entrega. Se añade instalación pausada, SQL separado de programación/activación con guard0 pendientes y rollback que impide degradar handlers con operaciones abiertas.32 capturas offline390/1440 claro/oscuro, inventario de acciones pendiente normal/etiquetado conservado, recuperación/ausencia/pendiente/error y tres proveedores. La primera suite completa falló8 pruebas por resolver @zenvia/ui desde un worktree antiguo compartido; aislamiento de dependencias local corregido (sin cambio de dependencias/lockfile), repetir suite/build antes de declarar listo.
+
+Revisión independiente final: dos bloqueos reproducidos (MRW fila parcial sin NumAlbaran interpretada como ausencia; MRW/Envia cancelado recuperado como activo). Corregidos con regresiones primero rojas; además MRW requiere Publicado con zona y no anterior al intento para no asociar una expedición antigua desconocida. Respuestas sin fecha quedan inconclusas.25/25 lookup/reconcile tras corrección. Suite completa previa786/786 y build correctos después de aislar @zenvia/ui; repetir completa por cambios de revisión. Node invocado inicialmente con el runner de integración real falló su guard RUN_LOCAL_AUTH_VAULT_TESTS ausente (no se intentó autenticación/HTTP); ejecutar comando CI que separa ese runner y comprobar integración real en Supabase desechable vía CI. Sin cambios en producción.

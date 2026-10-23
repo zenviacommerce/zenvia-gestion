@@ -1,0 +1,67 @@
+{
+  "runtime": "v24.19.0",
+  "jspdf": "2.5.1",
+  "synthetic": "RGBA geometric seal, no external assets",
+  "runs": [
+    {
+      "w": 2400,
+      "h": 1000,
+      "mode": "original_props_compress_default",
+      "pngBytes": 30267,
+      "pdfBytes": 21805,
+      "wallMs": 653,
+      "cpuUserMs": 726,
+      "cpuSystemMs": 52
+    },
+    {
+      "w": 2400,
+      "h": 1000,
+      "mode": "header_compress_FAST",
+      "pngBytes": 30267,
+      "pdfBytes": 31588,
+      "wallMs": 259,
+      "cpuUserMs": 293,
+      "cpuSystemMs": 15
+    },
+    {
+      "w": 2400,
+      "h": 1000,
+      "mode": "header_no_compress_NONE",
+      "pngBytes": 30267,
+      "pdfBytes": 9601743,
+      "wallMs": 132,
+      "cpuUserMs": 156,
+      "cpuSystemMs": 13
+    },
+    {
+      "w": 4000,
+      "h": 1600,
+      "mode": "original_props_compress_default",
+      "pngBytes": 67850,
+      "pdfBytes": 43822,
+      "wallMs": 1479,
+      "cpuUserMs": 1566,
+      "cpuSystemMs": 72
+    },
+    {
+      "w": 4000,
+      "h": 1600,
+      "mode": "header_compress_FAST",
+      "pngBytes": 67850,
+      "pdfBytes": 63206,
+      "wallMs": 826,
+      "cpuUserMs": 872,
+      "cpuSystemMs": 30
+    },
+    {
+      "w": 4000,
+      "h": 1600,
+      "mode": "header_no_compress_NONE",
+      "pngBytes": 67850,
+      "pdfBytes": 25601746,
+      "wallMs": 337,
+      "cpuUserMs": 338,
+      "cpuSystemMs": 58
+    }
+  ]
+}

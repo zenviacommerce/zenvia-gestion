@@ -1,3 +1,4 @@
+import {withCarrierCreation} from '../_shared/shippingCreation.ts';
 import {resolveOrderPackageWeight,assertQuotedPackageWeight} from '../_shared/orderPackageWeight.ts';
 import {loadDirectCarrierIds,filterAggregatorOptions} from '../_shared/carrierPolicy.ts';
 import {assertHumanMfa} from '../_shared/mfa.ts';
@@ -326,6 +327,7 @@ Deno.serve(async(req:Request)=>{
       const payload:any={integration_id:labelIntegrationId,label_details:{mime_type:'application/pdf',dpi:72},order:{apply_shipping_rules:!selected}};
       if(order.order_id)payload.order.order_id=order.order_id;else if(order.order_number)payload.order.order_number=order.order_number;else return fail('El pedido no tiene identificador de origen.');
       if(selected?.code){payload.ship_with={type:'shipping_option_code',properties:{shipping_option_code:String(selected.code)}};if(selected.contractId!=null)payload.ship_with.properties.contract_id=Number(selected.contractId)}
+      return await withCarrierCreation(admin,order,{provider:'sendcloud',accountId:orderSendcloudAccount.id!,credentials:orderCredentials,environment:'production',actorId:caller.user_id,context:{integrationId:labelIntegrationId,externalOrderId:order.order_id,serviceCode:selected?.code,serviceName:selected?.name,carrierCode:selected?.carrierCode,carrierName:selected?.carrierName}},async()=>{
       const {data}=await sendcloudJson(orderCredentials,'/orders/create-label-sync',{method:'POST',body:JSON.stringify(payload)}),created=Array.isArray(data?.data)?data.data[0]:null;if(!created?.parcel_id||!created?.label?.file)throw new Error('Sendcloud no devolvió la etiqueta creada.');
       const ship=created.ship_with?.properties||{},optionCode=ship.shipping_option_code||selected?.code||null,code=carrierCode(optionCode,created.tracking_url),now=new Date().toISOString();
       const selectedPrice=selected?.price==null?null:Number(selected.price),selectedCurrency=clean(selected?.currency).toUpperCase()||null;
@@ -340,6 +342,7 @@ Deno.serve(async(req:Request)=>{
       if(shouldMarkSent){shipmentPatch.fulfilled_at=now;shipmentPatch.source_status='shipped';}
       const {error:updateError}=await admin.from('fulfillment_orders').update(shipmentPatch).eq('id',order.id).eq('owner_id',caller.data_owner_id);if(updateError)throw updateError;
       return response({parcelId:Number(created.parcel_id),shipmentId:created.shipment_id==null?null:String(created.shipment_id),trackingNumber:created.tracking_number||null,trackingUrl:created.tracking_url||null,shippingOptionCode:optionCode,contractId:ship.contract_id??selected?.contractId??null,carrierCode:code,carrierName:selected?.carrierName||friendlyCarrier(code),shippingServiceName:selected?.name||optionCode,mimeType:created.label.mime_type||'application/pdf',base64:String(created.label.file)});
+      });
     }
 
     if(action==='fetch_label'){

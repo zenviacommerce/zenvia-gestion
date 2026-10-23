@@ -7,3 +7,11 @@ verify_jwt = false
 
 [functions.pickup-report-purge]
 verify_jwt = false
+
+# Both handlers enforce authentication themselves: verified user + MFA/Orders,
+# or internal apikey respectively. Never expose the service key to the frontend.
+[functions.shipping-creation-reconcile]
+verify_jwt = false
+
+[functions.shipping-creation-worker]
+verify_jwt = false

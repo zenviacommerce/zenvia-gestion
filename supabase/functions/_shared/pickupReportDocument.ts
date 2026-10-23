@@ -1,3 +1,4 @@
+import {pickupPdfImage} from './pickupPdfImage.js';
 /** Pure shared renderer: browser and Edge generate the same allowlisted document. */
 export type PickupDocument={id:string;number:string;createdAt:string;createdBy:string;sender:{legalName:string;taxId:string;address:string;email:string;phone:string};items:Array<{orderId:string;orderNumber:string;channel:string;carrier:string;trackingNumber:string;packages:number}>;totalPackages:number};
 export type PickupPdfSignature={carrier:string;driverName:string;identifier:string;receivedAt:string;packages:number;signatureDataUrl:string|null;redacted?:boolean};
@@ -29,12 +30,13 @@ export function createPickupReportDocument(report: PickupDocument, createDocumen
       doc.setTextColor(32, 41, 55);
       if (options.logoDataUrl) {
         try {
-          const image = doc.getImageProperties(options.logoDataUrl);
-          const scale = Math.min(23 / image.width, 15 / image.height);
-          doc.addImage(options.logoDataUrl, undefined as any, left, 9, image.width * scale, image.height * scale);
+          const image = pickupPdfImage(doc,options.logoDataUrl);
+          const scale = Math.min(30 / image.width, 12 / image.height);
+          const width=image.width*scale,height=image.height*scale;
+          doc.addImage(image.data, image.format, left+(30-width)/2, 9+(12-height)/2, width, height);
         } catch { /* A damaged optional logo must not prevent printing the saved receipt. */ }
       }
-      const senderX = options.logoDataUrl ? 40 : left;
+      const senderX = options.logoDataUrl ? 46 : left;
       doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
       const nameLines = lines(`${report.sender.legalName} · NIF: ${report.sender.taxId}`, right - senderX);
       doc.text(nameLines, senderX, 12);
@@ -120,10 +122,10 @@ export function createPickupReportDocument(report: PickupDocument, createDocumen
     if (signature?.redacted) { doc.setFontSize(7); doc.text('Firma retirada por retención',left+3,y+13); }
     if (options.stampDataUrl) {
       try {
-        const image = doc.getImageProperties(options.stampDataUrl);
+        const image = pickupPdfImage(doc,options.stampDataUrl);
         const scale = Math.min(56 / image.width, 21 / image.height);
         const width = image.width * scale, height = image.height * scale;
-        doc.addImage(options.stampDataUrl, undefined as any, 110 + (60 - width) / 2, y + (25 - height) / 2, width, height);
+        doc.addImage(image.data, image.format, 110 + (60 - width) / 2, y + (25 - height) / 2, width, height);
       } catch { if(options.requireStamp)throw new Error('PICKUP_STAMP_REQUIRED'); /* Unsigned print remains tolerant. */ }
     }
   }

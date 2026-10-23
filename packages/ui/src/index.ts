@@ -7,3 +7,5 @@ export * from './PageTabs';
 export * from './DataTable';
 export * from './SortableTableHeader';
 export * from './forms/FormPrimitives';
+
+export * from './SearchFilters';

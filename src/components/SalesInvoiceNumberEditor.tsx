@@ -1,6 +1,7 @@
+import {SearchField} from '@zenvia/ui';
 import { useEffect, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Hash, Pencil, Search, X } from 'lucide-react';
+import { Hash, Pencil, X } from 'lucide-react';
 import { ensureSalesSeries, loadSalesInvoices, type SalesInvoice } from '../services/sales';
 import { updateSalesInvoiceNumber } from '../services/salesInvoiceNumber';
 import { errorMessage, showSuccess } from '../services/toast';
@@ -70,7 +71,7 @@ export function SalesInvoiceNumberEditor(){
   return <>
     {createPortal(<button className="secondary" type="button" onClick={show} title="Modificar la numeración de facturas"><Hash size={17}/> Numeración</button>,host)}
     {open&&createPortal(<div className="modalBackdrop"><div className="modal polishedModal salesNumberModal"><div className="modalHead salesModalHead"><div><div className="eyebrow">FACTURACIÓN</div><h3>Numeración de facturas</h3><p>Puedes modificar el número también en facturas ya emitidas. La serie seguirá avanzando desde el número más alto confirmado.</p></div><button onClick={close}><X/></button></div>
-      <div className="salesFormSection"><div className="search"><Search size={16}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar número, cliente, CIF o estado…"/></div></div>
+      <div className="salesFormSection"><SearchField className="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar número, cliente, CIF o estado…"/></div>
       {error&&<div className="errorBox">{error}</div>}
       <div className="salesNumberList">{loading?<div className="emptyState">Cargando facturas…</div>:filtered.length?filtered.map(invoice=><div className="salesNumberRow" key={invoice.id}><div><strong>{invoice.invoiceNumber||'Sin número'}</strong><span>{invoice.clientName} · {statusLabel(invoice.status)} · {invoice.seriesName}</span></div><button className="secondary" type="button" onClick={()=>void beginEdit(invoice)}><Pencil size={15}/> Editar</button></div>):<div className="emptyState">No hay facturas para esta búsqueda.</div>}</div>
       {editing&&<div className="salesNumberEditor"><div><strong>Número de factura</strong><span>{editing.clientName} · {statusLabel(editing.status)}</span></div><label>Número de factura<input autoFocus value={number} onChange={e=>setNumber(e.target.value)} onKeyDown={e=>{if(e.key==='Enter')void save();}} placeholder="F-2026-0187"/></label><small>Debe respetar el prefijo de la serie. Si introduces un número superior, el siguiente automático continuará a partir de él.</small><div className="modalActions"><button className="secondary" type="button" onClick={()=>{setEditing(null);setNumber('');}} disabled={saving}>Cancelar</button><button className="primary" type="button" onClick={()=>void save()} disabled={saving}>{saving?'Guardando…':'Guardar número'}</button></div></div>}

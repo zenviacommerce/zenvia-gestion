@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-23",
+  "gestion": [],
+  "platform": [],
+  "platformSearches": [
+    "PlatformClients",
+    "PlatformTickets",
+    "App movements"
+  ],
+  "writes": false
+}

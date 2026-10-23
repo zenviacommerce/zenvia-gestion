@@ -1,6 +1,7 @@
+import {SearchField} from '@zenvia/ui';
 import { AmazonLoading } from './AmazonLoading';
 import { useEffect, useRef, useState } from 'react';
-import { ImageOff, RefreshCw, Search } from 'lucide-react';
+import { ImageOff, RefreshCw } from 'lucide-react';
 import { isAmazonConnectivityError, loadAmazonInventory, loadAmazonProductImages, type AmazonAnalyticsFilters, type AmazonInventoryAnalytics, type AmazonMarketplaceStatus, type AmazonPageResult } from '../../services/amazon';
 import { errorMessage } from '../../services/toast';
 import { formatAmazonMarketplace } from './marketplaceLabel';
@@ -19,7 +20,7 @@ export function AmazonInventory({filters,marketplaces,refreshToken=0}:{filters:A
  },{key:'sku',direction:'asc'});
  useEffect(()=>{setPage(1)},[sorting.sort.key,sorting.sort.direction]);
  const rows=sorting.rows;
- return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">FBA</span><strong>Inventario</strong></div><label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU o ASIN"/></label></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}{loading&&<AmazonLoading>Cargando inventario de Amazon…</AmazonLoading>}<TableSortReset sorting={sorting}/><div className="amazonTableScroll"><table className="amazonTable"><thead><tr>
+ return <section className="card amazonTableCard"><div className="amazonTableToolbar"><div><span className="amazonSectionLabel">FBA</span><strong>Inventario</strong></div><SearchField className="amazonSearch" value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU o ASIN"/></div>{error&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}{loading&&<AmazonLoading>Cargando inventario de Amazon…</AmazonLoading>}<TableSortReset sorting={sorting}/><div className="amazonTableScroll"><table className="amazonTable"><thead><tr>
 <SortableTableHeader label="SKU" sortKey="sku" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Marketplace" sortKey="marketplace" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>
 <SortableTableHeader label="Disponible" sortKey="fulfillable" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort}/>

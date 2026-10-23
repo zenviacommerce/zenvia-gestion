@@ -1,7 +1,8 @@
+import {SearchField} from '@zenvia/ui';
 import {notifyEntityChanged} from '../services/entityChanges';
 import {useEntityRefresh} from '../hooks/useEntityRefresh';
 import { useEffect, useMemo, useState } from 'react';
-import { Check, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Check, Pencil, Plus, Trash2 } from 'lucide-react';
 import { errorMessage, showError, showSuccess } from '../services/toast';
 import { confirmAction } from '../services/actionDialog';
 
@@ -135,7 +136,7 @@ export function ProductMappingEditor({sellerSku,productName,defaultFactor=1,cale
       <div className="amazonMappingActions"><button type="submit" className="primary" disabled={loading}>{loading?'Creando…':'Crear y vincular'}</button>{onCancel&&<button type="button" className="secondary" disabled={loading} onClick={onCancel}>Cerrar</button>}</div>
     </form>:<section className="amazonMappingAdd">
       <div className="amazonMappingPicker">
-        <label><span>{editingMapping?'Producto a actualizar':'Añadir producto interno'}</span><div className="amazonMappingSearch"><Search size={15}/><input type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nombre o SKU"/></div></label>
+        <label><span>{editingMapping?'Producto a actualizar':'Añadir producto interno'}</span><SearchField className="amazonMappingSearch" type="search" value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por nombre o SKU"/></label>
         <div className="amazonMappingResults" role="listbox" aria-label="Productos internos">
           {options.map(option=><button type="button" role="option" aria-selected={productId===option.id} className={productId===option.id?'isSelected':''} key={option.id} onClick={()=>choose(option)}><span><strong data-zenvia-tooltip={option.name}>{option.name}</strong><small data-zenvia-tooltip={`${option.sku||'Sin SKU'} · ${option.supplierName||'Sin proveedor'}`} >{option.sku||'Sin SKU'} · {option.supplierName?`Proveedor: ${option.supplierName}`:'Sin proveedor'}</small><small>Precio: {costLabel(option.unitCost,option.costUnit)}</small></span>{productId===option.id&&<Check size={15}/>}</button>)}
           {loadingOptions&&<span className="amazonMappingEmpty" role="status">Cargando productos internos…</span>}{!loadingOptions&&!options.length&&<span className="amazonMappingEmpty">No hay productos que coincidan.</span>}

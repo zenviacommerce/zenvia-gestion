@@ -1,0 +1,70 @@
+{
+  "approval": "Owner explicitly approved corrected PR297, exact atomic transaction and publication; stop if preflight changes.",
+  "project": "sjkxxbedkkmgmqnvaqjh",
+  "codeCommit": "9f4b648eb18396f8183ef94f6818a133cf573585",
+  "mainBefore": "d3ddb4af4443f6c8f7a395181bf3b1e755b0379e",
+  "preflight": {
+    "counts": [
+      {
+        "orders": 64,
+        "after_state": "cancelled",
+        "before_state": "cancelled",
+        "source_channel": "amazon"
+      },
+      {
+        "orders": 1,
+        "after_state": "pending",
+        "before_state": "pending",
+        "source_channel": "amazon"
+      },
+      {
+        "orders": 4,
+        "after_state": "labelled",
+        "before_state": "shipped",
+        "source_channel": "amazon"
+      },
+      {
+        "orders": 923,
+        "after_state": "shipped",
+        "before_state": "shipped",
+        "source_channel": "amazon"
+      },
+      {
+        "orders": 1,
+        "after_state": "labelled",
+        "before_state": "shipped",
+        "source_channel": "shopify"
+      },
+      {
+        "orders": 15,
+        "after_state": "shipped",
+        "before_state": "shipped",
+        "source_channel": "shopify"
+      }
+    ],
+    "readAt": "2026-10-23T12:31:29.585231+00:00",
+    "affectedCount": 5,
+    "candidateCount": 953,
+    "affectedFingerprint": "2bf159987fcade696a4dfdaa77c94ede",
+    "backfillFingerprint": "a97d5e1170f91c358cda01e4327a2f46"
+  },
+  "rollback": {
+    "sql": "supabase/rollback/20261023_internal_logistics_state.sql",
+    "sha256": "ecf59286d8c90c58749f2281357e7b519ad3549c9e7926a9f38dc5dd8a2964f1",
+    "functionsVerified": 7,
+    "mismatches": [],
+    "frontend": "Revert main to its pre-release tree; Vercel redeploys main. Drain operations before SQL containment rollback."
+  },
+  "atomicSQLSha256": "03c1c2d513b9d9f4b914ac9d909315d77596a53641e263d97f21cfadefb88c2d",
+  "mfaBefore": {
+    "enabled": true,
+    "cohortSize": 1
+  },
+  "production": {
+    "statusBefore": 200,
+    "jsBefore": "/assets/index-CqJZVsNs.js",
+    "cssBefore": "/assets/index-ULcAbvFp.css"
+  },
+  "applied": false,
+  "published": false
+}

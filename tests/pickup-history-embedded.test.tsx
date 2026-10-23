@@ -21,3 +21,11 @@ it('uses the shared search and keeps Estado inside Añadir filtro with a removab
  fireEvent.change(screen.getByRole('searchbox'),{target:{value:'NO-EXISTE'}});expect(screen.queryByText('REC-1')).toBeNull();fireEvent.click(screen.getByRole('button',{name:'Borrar búsqueda'}));expect(await screen.findByText('REC-1')).toBeTruthy();
  fireEvent.click(screen.getByRole('button',{name:'Añadir filtro'}));fireEvent.click(screen.getByRole('button',{name:'Transportista',exact:true}));fireEvent.click(screen.getByRole('combobox',{name:'Transportista del informe'}));fireEvent.click(await screen.findByRole('option',{name:'MRW',exact:true}));fireEvent.click(screen.getByRole('button',{name:'Aplicar filtro'}));expect(screen.getByRole('button',{name:'Quitar filtro Transportista: MRW'})).toBeTruthy();expect(screen.getByText('REC-1')).toBeTruthy();
 });
+
+it('keeps embedded report actions and semantic state badges visible without a repeated heading',async()=>{
+ render(<PickupReportHistory embedded onClose={()=>{}}/>);await screen.findByText('REC-1');
+ expect(screen.queryByRole('heading',{name:'Informes de recogida'})).toBeNull();
+ expect(screen.getByText('Pendiente').closest('.dsStatusBadge')?.getAttribute('data-tone')).toBe('warning');
+ expect(screen.getByRole('button',{name:'Enviar por correo REC-1'})).toBeTruthy();
+ expect(screen.getByRole('region',{name:'Filtros de informes de recogida'}).classList.contains('dsSearchFiltersInset')).toBe(true);
+});

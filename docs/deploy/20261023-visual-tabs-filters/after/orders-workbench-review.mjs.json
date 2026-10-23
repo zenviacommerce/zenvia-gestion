@@ -1,0 +1,804 @@
+[
+  {
+    "screen": "orders",
+    "width": 390,
+    "theme": "light",
+    "file": "orders-390-light.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1,
+        "content": 360
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "headerControls": [
+      {
+        "height": 48,
+        "font": "700 13px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "nowrap",
+        "text": " Nuevo pedido",
+        "icon": true
+      },
+      {
+        "height": 48,
+        "font": "700 13px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "nowrap",
+        "text": " Más acciones",
+        "icon": true
+      }
+    ],
+    "fingerScrollLeft": 477
+  },
+  {
+    "screen": "orders",
+    "width": 1440,
+    "theme": "light",
+    "file": "orders-1440-light.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1,
+        "content": 1116
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "headerControls": [
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "normal",
+        "text": " Nuevo pedido",
+        "icon": true
+      },
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "nowrap",
+        "text": " Más acciones",
+        "icon": true
+      }
+    ]
+  },
+  {
+    "screen": "orders",
+    "width": 1920,
+    "theme": "light",
+    "file": "orders-1920-light.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1,
+        "content": 1596
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "headerControls": [
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "normal",
+        "text": " Nuevo pedido",
+        "icon": true
+      },
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "nowrap",
+        "text": " Más acciones",
+        "icon": true
+      }
+    ]
+  },
+  {
+    "screen": "orders",
+    "width": 2560,
+    "theme": "light",
+    "file": "orders-2560-light.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1,
+        "content": 2236
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "headerControls": [
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "normal",
+        "text": " Nuevo pedido",
+        "icon": true
+      },
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "nowrap",
+        "text": " Más acciones",
+        "icon": true
+      }
+    ]
+  },
+  {
+    "screen": "orders",
+    "width": 390,
+    "theme": "dark",
+    "file": "orders-390-dark.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1,
+        "content": 360
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "headerControls": [
+      {
+        "height": 48,
+        "font": "700 13px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "nowrap",
+        "text": " Nuevo pedido",
+        "icon": true
+      },
+      {
+        "height": 48,
+        "font": "700 13px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "nowrap",
+        "text": " Más acciones",
+        "icon": true
+      }
+    ],
+    "fingerScrollLeft": 460
+  },
+  {
+    "screen": "orders",
+    "width": 1440,
+    "theme": "dark",
+    "file": "orders-1440-dark.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1,
+        "content": 1116
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "headerControls": [
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "normal",
+        "text": " Nuevo pedido",
+        "icon": true
+      },
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "nowrap",
+        "text": " Más acciones",
+        "icon": true
+      }
+    ]
+  },
+  {
+    "screen": "orders",
+    "width": 1920,
+    "theme": "dark",
+    "file": "orders-1920-dark.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1,
+        "content": 1596
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "headerControls": [
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "normal",
+        "text": " Nuevo pedido",
+        "icon": true
+      },
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "nowrap",
+        "text": " Más acciones",
+        "icon": true
+      }
+    ]
+  },
+  {
+    "screen": "orders",
+    "width": 2560,
+    "theme": "dark",
+    "file": "orders-2560-dark.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1,
+        "content": 2236
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "headerControls": [
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "normal",
+        "text": " Nuevo pedido",
+        "icon": true
+      },
+      {
+        "height": 41,
+        "font": "700 16px Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, \"Segoe UI\", sans-serif",
+        "whiteSpace": "nowrap",
+        "text": " Más acciones",
+        "icon": true
+      }
+    ]
+  },
+  {
+    "screen": "reports",
+    "width": 390,
+    "theme": "light",
+    "file": "reports-390-light.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1,
+        "content": 360
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "filterGeometry": {
+      "shared": true,
+      "iconInside": true,
+      "inset": 17,
+      "looseFilters": 0,
+      "actions": [
+        {
+          "label": "PDF",
+          "left": 54,
+          "right": 162
+        },
+        {
+          "label": "Abrir informe",
+          "left": 167,
+          "right": 336
+        },
+        {
+          "label": "Enviar por correo",
+          "left": 54,
+          "right": 336
+        }
+      ],
+      "doubleCard": false
+    }
+  },
+  {
+    "screen": "reports",
+    "width": 1440,
+    "theme": "light",
+    "file": "reports-1440-light.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1,
+        "content": 1116
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "filterGeometry": {
+      "shared": true,
+      "iconInside": true,
+      "inset": 17,
+      "looseFilters": 0,
+      "actions": [
+        {
+          "label": "PDF",
+          "left": 911.640625,
+          "right": 1001.578125
+        },
+        {
+          "label": "Abrir informe",
+          "left": 1006.578125,
+          "right": 1157.5
+        },
+        {
+          "label": "Enviar por correo",
+          "left": 1162.5,
+          "right": 1349
+        }
+      ],
+      "doubleCard": false
+    }
+  },
+  {
+    "screen": "reports",
+    "width": 1920,
+    "theme": "light",
+    "file": "reports-1920-light.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1,
+        "content": 1596
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "filterGeometry": {
+      "shared": true,
+      "iconInside": true,
+      "inset": 17,
+      "looseFilters": 0,
+      "actions": [
+        {
+          "label": "PDF",
+          "left": 1391.640625,
+          "right": 1481.578125
+        },
+        {
+          "label": "Abrir informe",
+          "left": 1486.578125,
+          "right": 1637.5
+        },
+        {
+          "label": "Enviar por correo",
+          "left": 1642.5,
+          "right": 1829
+        }
+      ],
+      "doubleCard": false
+    }
+  },
+  {
+    "screen": "reports",
+    "width": 2560,
+    "theme": "light",
+    "file": "reports-2560-light.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1,
+        "content": 2236
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "filterGeometry": {
+      "shared": true,
+      "iconInside": true,
+      "inset": 17,
+      "looseFilters": 0,
+      "actions": [
+        {
+          "label": "PDF",
+          "left": 2031.640625,
+          "right": 2121.578125
+        },
+        {
+          "label": "Abrir informe",
+          "left": 2126.578125,
+          "right": 2277.5
+        },
+        {
+          "label": "Enviar por correo",
+          "left": 2282.5,
+          "right": 2469
+        }
+      ],
+      "doubleCard": false
+    }
+  },
+  {
+    "screen": "reports",
+    "width": 390,
+    "theme": "dark",
+    "file": "reports-390-dark.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1,
+        "content": 360
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "filterGeometry": {
+      "shared": true,
+      "iconInside": true,
+      "inset": 17,
+      "looseFilters": 0,
+      "actions": [
+        {
+          "label": "PDF",
+          "left": 54,
+          "right": 162
+        },
+        {
+          "label": "Abrir informe",
+          "left": 167,
+          "right": 336
+        },
+        {
+          "label": "Enviar por correo",
+          "left": 54,
+          "right": 336
+        }
+      ],
+      "doubleCard": false
+    }
+  },
+  {
+    "screen": "reports",
+    "width": 1440,
+    "theme": "dark",
+    "file": "reports-1440-dark.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1,
+        "content": 1116
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "filterGeometry": {
+      "shared": true,
+      "iconInside": true,
+      "inset": 17,
+      "looseFilters": 0,
+      "actions": [
+        {
+          "label": "PDF",
+          "left": 911.640625,
+          "right": 1001.578125
+        },
+        {
+          "label": "Abrir informe",
+          "left": 1006.578125,
+          "right": 1157.5
+        },
+        {
+          "label": "Enviar por correo",
+          "left": 1162.5,
+          "right": 1349
+        }
+      ],
+      "doubleCard": false
+    }
+  },
+  {
+    "screen": "reports",
+    "width": 1920,
+    "theme": "dark",
+    "file": "reports-1920-dark.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1,
+        "content": 1596
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "filterGeometry": {
+      "shared": true,
+      "iconInside": true,
+      "inset": 17,
+      "looseFilters": 0,
+      "actions": [
+        {
+          "label": "PDF",
+          "left": 1391.640625,
+          "right": 1481.578125
+        },
+        {
+          "label": "Abrir informe",
+          "left": 1486.578125,
+          "right": 1637.5
+        },
+        {
+          "label": "Enviar por correo",
+          "left": 1642.5,
+          "right": 1829
+        }
+      ],
+      "doubleCard": false
+    }
+  },
+  {
+    "screen": "reports",
+    "width": 2560,
+    "theme": "dark",
+    "file": "reports-2560-dark.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1,
+        "content": 2236
+      }
+    ],
+    "tabs": [
+      "Pendientes15",
+      "Etiquetados10",
+      "Enviados14",
+      "Incidencias2",
+      "Cancelados4",
+      "Informes de recogida"
+    ],
+    "actions": [
+      "Nuevo pedido",
+      "Actualizar pedidos",
+      "Tarifas de transporte",
+      "A6",
+      "Facturación manual de Shopify"
+    ],
+    "overflow": false,
+    "filterGeometry": {
+      "shared": true,
+      "iconInside": true,
+      "inset": 17,
+      "looseFilters": 0,
+      "actions": [
+        {
+          "label": "PDF",
+          "left": 2031.640625,
+          "right": 2121.578125
+        },
+        {
+          "label": "Abrir informe",
+          "left": 2126.578125,
+          "right": 2277.5
+        },
+        {
+          "label": "Enviar por correo",
+          "left": 2282.5,
+          "right": 2469
+        }
+      ],
+      "doubleCard": false
+    }
+  }
+]

@@ -1,0 +1,378 @@
+[
+  {
+    "screen": "amazon",
+    "width": 390,
+    "theme": "light",
+    "file": "amazon-390-light.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Marketplaces",
+      "Pedidos",
+      "Inventario",
+      "Sin vincular3"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "amazon",
+    "width": 1440,
+    "theme": "light",
+    "file": "amazon-1440-light.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Marketplaces",
+      "Pedidos",
+      "Inventario",
+      "Sin vincular3"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "amazon",
+    "width": 1920,
+    "theme": "light",
+    "file": "amazon-1920-light.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Marketplaces",
+      "Pedidos",
+      "Inventario",
+      "Sin vincular3"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "amazon",
+    "width": 2560,
+    "theme": "light",
+    "file": "amazon-2560-light.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Marketplaces",
+      "Pedidos",
+      "Inventario",
+      "Sin vincular3"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "amazon",
+    "width": 390,
+    "theme": "dark",
+    "file": "amazon-390-dark.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Marketplaces",
+      "Pedidos",
+      "Inventario",
+      "Sin vincular3"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "amazon",
+    "width": 1440,
+    "theme": "dark",
+    "file": "amazon-1440-dark.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Marketplaces",
+      "Pedidos",
+      "Inventario",
+      "Sin vincular3"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "amazon",
+    "width": 1920,
+    "theme": "dark",
+    "file": "amazon-1920-dark.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Marketplaces",
+      "Pedidos",
+      "Inventario",
+      "Sin vincular3"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "amazon",
+    "width": 2560,
+    "theme": "dark",
+    "file": "amazon-2560-dark.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Marketplaces",
+      "Pedidos",
+      "Inventario",
+      "Sin vincular3"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "shopify",
+    "width": 390,
+    "theme": "light",
+    "file": "shopify-390-light.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Inventario"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "shopify",
+    "width": 1440,
+    "theme": "light",
+    "file": "shopify-1440-light.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Inventario"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "shopify",
+    "width": 1920,
+    "theme": "light",
+    "file": "shopify-1920-light.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Inventario"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "shopify",
+    "width": 2560,
+    "theme": "light",
+    "file": "shopify-2560-light.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Inventario"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "shopify",
+    "width": 390,
+    "theme": "dark",
+    "file": "shopify-390-dark.png",
+    "panels": [
+      {
+        "width": 360,
+        "available": 360,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Inventario"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "shopify",
+    "width": 1440,
+    "theme": "dark",
+    "file": "shopify-1440-dark.png",
+    "panels": [
+      {
+        "width": 1116,
+        "available": 1116,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Inventario"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "shopify",
+    "width": 1920,
+    "theme": "dark",
+    "file": "shopify-1920-dark.png",
+    "panels": [
+      {
+        "width": 1596,
+        "available": 1596,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Inventario"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  },
+  {
+    "screen": "shopify",
+    "width": 2560,
+    "theme": "dark",
+    "file": "shopify-2560-dark.png",
+    "panels": [
+      {
+        "width": 2236,
+        "available": 2236,
+        "ratio": 1
+      }
+    ],
+    "tabs": [
+      "Resumen",
+      "Productos",
+      "Inventario"
+    ],
+    "actions": [
+      "Actualizar datos"
+    ],
+    "overflow": false
+  }
+]

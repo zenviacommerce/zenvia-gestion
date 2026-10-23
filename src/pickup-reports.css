@@ -14,3 +14,9 @@
 @media(max-width:640px){.pickupVerification{padding:10px}.pickupVerificationList{max-height:clamp(140px,24dvh,220px)}.pickupVerifyCheck code{font-size:16px}.pickupVerificationTotals{gap:8px;font-size:12px}.pickupVerificationTotals button{min-height:40px}.pickupVerification header>button{white-space:nowrap;min-height:40px}.pickupRemoveLine{min-height:40px}.pickupDocumentModal .formModalBody{overflow:auto}.pickupDocumentModal .formSection{min-width:0}}
 .pickupPdfPreviewModal{width:min(1000px,96vw);height:94dvh}.pickupPdfPreviewModal .formModalBody{display:flex;flex-direction:column;min-height:0;flex:1}.pickupPdfPreviewModal iframe{display:block;flex:1;width:100%;min-height:300px;border:1px solid var(--border);border-radius:8px;background:white}.pickupPdfPreviewModal .formModalBody>a{margin-top:8px}@media(max-width:640px){.pickupPdfPreviewModal{width:100%;height:100dvh;max-height:100dvh;border-radius:0}}
 .pickupSigningFooter{margin-right:auto;color:var(--muted);font-size:12px;font-weight:600;line-height:1.4}@media(max-width:640px){.pickupSigningFooter{flex-basis:100%;width:100%;text-align:center;margin:0;font-size:12px}}
+
+/* Report metadata and its actions must remain inside the same visible card. */
+.pickupHistoryEmbedded .pickupRow{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center}
+.pickupHistoryEmbedded .pickupRow>.pickupDocumentActions{display:flex;justify-content:flex-end;min-width:0;max-width:100%}
+.pickupHistoryEmbedded .pickupDocumentActions button{white-space:nowrap}
+@media(max-width:767px){.pickupHistoryEmbedded .pickupRow{grid-template-columns:minmax(0,1fr)}.pickupHistoryEmbedded .pickupRow>.pickupDocumentActions{justify-content:flex-start;width:100%}.pickupHistoryEmbedded .pickupDocumentActions button{flex:1 1 auto}}

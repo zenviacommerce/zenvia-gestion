@@ -1,3 +1,4 @@
+import {SearchField} from '@zenvia/ui';
 import {PageHeader} from '../components/PageHeader';
 import {KpiGrid} from '../components/KpiGrid';
 import {StatCard} from '../components/StatCard';
@@ -8,7 +9,7 @@ import {useImportActivity} from '../components/useImportActivity';
 import { useEffect, useMemo, useState } from 'react';
 import {
   AlertCircle, CheckCircle2, ChevronLeft, ChevronRight, ExternalLink, Eye, FileText,
-  Link2, LoaderCircle, Mail, Paperclip, RefreshCw, Search, ShieldCheck,
+  Link2, LoaderCircle, Mail, Paperclip, RefreshCw, ShieldCheck,
   Sparkles, X,
 } from 'lucide-react';
 import type { ExpenseCategory, InvoiceImportCandidate } from '../types';
@@ -338,7 +339,7 @@ export function GmailPage({ categories, onImported, onManageAccounts, canManageA
 
     <div className="toolbar gmailToolbar">
       <FilterBar className="gmailFilterBar finalGmailFilters" label="Filtros de facturas desde Gmail">
-        <div className="search"><Search size={17}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por proveedor, asunto o archivo…"/></div>
+        <SearchField value={query} onChange={e=>setQuery(e.target.value)} placeholder="Buscar por proveedor, asunto o archivo…"/>
         <SelectField className="gmailStatusFilter" value={statusFilter} onChange={value=>setStatusFilter(value as GmailViewFilter)} ariaLabel="Filtrar por estado" options={[{value:'all',label:'Todos los estados'},{value:'pending',label:'Pendientes'},{value:'imported',label:'Importadas'},{value:'not_imported',label:'No importadas'},{value:'ignored',label:'Ignoradas'},{value:'not_ignored',label:'No ignoradas'},{value:'error',label:'Con error'}]}/>
         <span className="gmailFilterSummary">{shown.length} resultado{shown.length===1?'':'s'}</span>
       </FilterBar>

@@ -114,3 +114,5 @@
   .supportTicketEditor{grid-template-columns:1fr}
   .supportEditorDescription,.supportEditorActions{grid-column:1}
 }
+
+.supportListCard{overflow:visible;min-width:0}.supportListCard .supportTicketList{overflow:hidden}

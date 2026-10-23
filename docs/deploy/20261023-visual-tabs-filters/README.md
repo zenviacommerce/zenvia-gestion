@@ -1,0 +1,80 @@
+# Hotfix visual · 23/10/2026
+
+Componentes reales, datos sintéticos, red bloqueada. Sin emitir documentos, firmar informes ni enviar correos reales. Cada pantalla a 390/1440/1920/2560, en claro y oscuro. Inventario de pestañas y acciones de cabecera conservado. Geometría posterior comprobada automáticamente.
+
+| Pantalla · ancho · tema | Antes | Después |
+|---|---|---|
+| billing · 390 · light | [Ver](before/billing-390-light.png) | [Ver](after/billing-390-light.png) |
+| billing · 1440 · light | [Ver](before/billing-1440-light.png) | [Ver](after/billing-1440-light.png) |
+| billing · 1920 · light | [Ver](before/billing-1920-light.png) | [Ver](after/billing-1920-light.png) |
+| billing · 2560 · light | [Ver](before/billing-2560-light.png) | [Ver](after/billing-2560-light.png) |
+| billing · 390 · dark | [Ver](before/billing-390-dark.png) | [Ver](after/billing-390-dark.png) |
+| billing · 1440 · dark | [Ver](before/billing-1440-dark.png) | [Ver](after/billing-1440-dark.png) |
+| billing · 1920 · dark | [Ver](before/billing-1920-dark.png) | [Ver](after/billing-1920-dark.png) |
+| billing · 2560 · dark | [Ver](before/billing-2560-dark.png) | [Ver](after/billing-2560-dark.png) |
+| expenses · 390 · light | [Ver](before/expenses-390-light.png) | [Ver](after/expenses-390-light.png) |
+| expenses · 1440 · light | [Ver](before/expenses-1440-light.png) | [Ver](after/expenses-1440-light.png) |
+| expenses · 1920 · light | [Ver](before/expenses-1920-light.png) | [Ver](after/expenses-1920-light.png) |
+| expenses · 2560 · light | [Ver](before/expenses-2560-light.png) | [Ver](after/expenses-2560-light.png) |
+| expenses · 390 · dark | [Ver](before/expenses-390-dark.png) | [Ver](after/expenses-390-dark.png) |
+| expenses · 1440 · dark | [Ver](before/expenses-1440-dark.png) | [Ver](after/expenses-1440-dark.png) |
+| expenses · 1920 · dark | [Ver](before/expenses-1920-dark.png) | [Ver](after/expenses-1920-dark.png) |
+| expenses · 2560 · dark | [Ver](before/expenses-2560-dark.png) | [Ver](after/expenses-2560-dark.png) |
+| amazon · 390 · light | [Ver](before/amazon-390-light.png) | [Ver](after/amazon-390-light.png) |
+| amazon · 1440 · light | [Ver](before/amazon-1440-light.png) | [Ver](after/amazon-1440-light.png) |
+| amazon · 1920 · light | [Ver](before/amazon-1920-light.png) | [Ver](after/amazon-1920-light.png) |
+| amazon · 2560 · light | [Ver](before/amazon-2560-light.png) | [Ver](after/amazon-2560-light.png) |
+| amazon · 390 · dark | [Ver](before/amazon-390-dark.png) | [Ver](after/amazon-390-dark.png) |
+| amazon · 1440 · dark | [Ver](before/amazon-1440-dark.png) | [Ver](after/amazon-1440-dark.png) |
+| amazon · 1920 · dark | [Ver](before/amazon-1920-dark.png) | [Ver](after/amazon-1920-dark.png) |
+| amazon · 2560 · dark | [Ver](before/amazon-2560-dark.png) | [Ver](after/amazon-2560-dark.png) |
+| shopify · 390 · light | [Ver](before/shopify-390-light.png) | [Ver](after/shopify-390-light.png) |
+| shopify · 1440 · light | [Ver](before/shopify-1440-light.png) | [Ver](after/shopify-1440-light.png) |
+| shopify · 1920 · light | [Ver](before/shopify-1920-light.png) | [Ver](after/shopify-1920-light.png) |
+| shopify · 2560 · light | [Ver](before/shopify-2560-light.png) | [Ver](after/shopify-2560-light.png) |
+| shopify · 390 · dark | [Ver](before/shopify-390-dark.png) | [Ver](after/shopify-390-dark.png) |
+| shopify · 1440 · dark | [Ver](before/shopify-1440-dark.png) | [Ver](after/shopify-1440-dark.png) |
+| shopify · 1920 · dark | [Ver](before/shopify-1920-dark.png) | [Ver](after/shopify-1920-dark.png) |
+| shopify · 2560 · dark | [Ver](before/shopify-2560-dark.png) | [Ver](after/shopify-2560-dark.png) |
+| support · 390 · light | [Ver](before/support-390-light.png) | [Ver](after/support-390-light.png) |
+| support · 1440 · light | [Ver](before/support-1440-light.png) | [Ver](after/support-1440-light.png) |
+| support · 1920 · light | [Ver](before/support-1920-light.png) | [Ver](after/support-1920-light.png) |
+| support · 2560 · light | [Ver](before/support-2560-light.png) | [Ver](after/support-2560-light.png) |
+| support · 390 · dark | [Ver](before/support-390-dark.png) | [Ver](after/support-390-dark.png) |
+| support · 1440 · dark | [Ver](before/support-1440-dark.png) | [Ver](after/support-1440-dark.png) |
+| support · 1920 · dark | [Ver](before/support-1920-dark.png) | [Ver](after/support-1920-dark.png) |
+| support · 2560 · dark | [Ver](before/support-2560-dark.png) | [Ver](after/support-2560-dark.png) |
+| admin · 390 · light | [Ver](before/admin-390-light.png) | [Ver](after/admin-390-light.png) |
+| admin · 1440 · light | [Ver](before/admin-1440-light.png) | [Ver](after/admin-1440-light.png) |
+| admin · 1920 · light | [Ver](before/admin-1920-light.png) | [Ver](after/admin-1920-light.png) |
+| admin · 2560 · light | [Ver](before/admin-2560-light.png) | [Ver](after/admin-2560-light.png) |
+| admin · 390 · dark | [Ver](before/admin-390-dark.png) | [Ver](after/admin-390-dark.png) |
+| admin · 1440 · dark | [Ver](before/admin-1440-dark.png) | [Ver](after/admin-1440-dark.png) |
+| admin · 1920 · dark | [Ver](before/admin-1920-dark.png) | [Ver](after/admin-1920-dark.png) |
+| admin · 2560 · dark | [Ver](before/admin-2560-dark.png) | [Ver](after/admin-2560-dark.png) |
+| settings · 390 · light | [Ver](before/settings-390-light.png) | [Ver](after/settings-390-light.png) |
+| settings · 1440 · light | [Ver](before/settings-1440-light.png) | [Ver](after/settings-1440-light.png) |
+| settings · 1920 · light | [Ver](before/settings-1920-light.png) | [Ver](after/settings-1920-light.png) |
+| settings · 2560 · light | [Ver](before/settings-2560-light.png) | [Ver](after/settings-2560-light.png) |
+| settings · 390 · dark | [Ver](before/settings-390-dark.png) | [Ver](after/settings-390-dark.png) |
+| settings · 1440 · dark | [Ver](before/settings-1440-dark.png) | [Ver](after/settings-1440-dark.png) |
+| settings · 1920 · dark | [Ver](before/settings-1920-dark.png) | [Ver](after/settings-1920-dark.png) |
+| settings · 2560 · dark | [Ver](before/settings-2560-dark.png) | [Ver](after/settings-2560-dark.png) |
+| orders · 390 · light | [Ver](before/orders-390-light.png) | [Ver](after/orders-390-light.png) |
+| orders · 1440 · light | [Ver](before/orders-1440-light.png) | [Ver](after/orders-1440-light.png) |
+| orders · 1920 · light | [Ver](before/orders-1920-light.png) | [Ver](after/orders-1920-light.png) |
+| orders · 2560 · light | [Ver](before/orders-2560-light.png) | [Ver](after/orders-2560-light.png) |
+| orders · 390 · dark | [Ver](before/orders-390-dark.png) | [Ver](after/orders-390-dark.png) |
+| orders · 1440 · dark | [Ver](before/orders-1440-dark.png) | [Ver](after/orders-1440-dark.png) |
+| orders · 1920 · dark | [Ver](before/orders-1920-dark.png) | [Ver](after/orders-1920-dark.png) |
+| orders · 2560 · dark | [Ver](before/orders-2560-dark.png) | [Ver](after/orders-2560-dark.png) |
+| reports · 390 · light | [Ver](before/reports-390-light.png) | [Ver](after/reports-390-light.png) |
+| reports · 1440 · light | [Ver](before/reports-1440-light.png) | [Ver](after/reports-1440-light.png) |
+| reports · 1920 · light | [Ver](before/reports-1920-light.png) | [Ver](after/reports-1920-light.png) |
+| reports · 2560 · light | [Ver](before/reports-2560-light.png) | [Ver](after/reports-2560-light.png) |
+| reports · 390 · dark | [Ver](before/reports-390-dark.png) | [Ver](after/reports-390-dark.png) |
+| reports · 1440 · dark | [Ver](before/reports-1440-dark.png) | [Ver](after/reports-1440-dark.png) |
+| reports · 1920 · dark | [Ver](before/reports-1920-dark.png) | [Ver](after/reports-1920-dark.png) |
+| reports · 2560 · dark | [Ver](before/reports-2560-dark.png) | [Ver](after/reports-2560-dark.png) |
+
+La revisión incluye el ancho interior del panel, el buscador compartido y los filtros cerrados en las pantallas corregidas. La apertura de correo conserva el envío explícito.

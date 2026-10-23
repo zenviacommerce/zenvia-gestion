@@ -281,6 +281,9 @@ Cada informe nuevo es de un transportista. La confirmación de una selección mi
 ## Ajustes aprobados23/10/2026
 Las cabeceras de menú «Más acciones» conservan secondary, tipografía y altura de los botones hermanos, icono y texto sin salto. Los disclosures nativos mantienen su semántica de teclado. La etiqueta superior de FormModal usa --primary (verde de marca), como PageHeader.
 
+## Cancelación de expediciones — propuesta 23/10/2026
+
+El detalle usa `OrderCancellationPanel` y `CancelShipmentModal`, con `FormModal` de `@zenvia/ui` y etiqueta verde LOGÍSTICA. La confirmación muestra transportista, tracking completo e integración, y requiere una casilla explícita. Se distingue Solicitud en curso, Cancelación pendiente, Resultado sin confirmar, Cancelación rechazada y Cancelación confirmada; solo el último habilita reetiquetar. «Comprobar estado» consulta sin reenviar la solicitud. Descargar e Imprimir se conservan, deshabilitados mientras hay incertidumbre o no se ha podido verificarla. La cancelación no cambia el estado del pedido en Amazon/Shopify ni promete devolución del importe. Capturas e inventario: `docs/deploy/20261023-cancel-shipments-review/manifest.json`.
 ### Búsqueda y filtros compartidos (23/10/2026)
 
 `SearchField` de `@zenvia/ui` es el campo de búsqueda con lupa, alto y radio del sistema, etiqueta accesible y borrado opcional. Para una lista con filtros, usar `SearchFilters`: agrupa búsqueda, botón secundario «Añadir filtro», panel accesible con Escape y retorno de foco, controles `SelectField` y chips editables y quitables. Pedidos e Informes de recogida consumen exactamente este componente; Estado se añade desde su menú. Cada pantalla conserva su lógica de consulta y sus acciones.

@@ -45,32 +45,75 @@ async function sourceCancel(admin:any,order:any,op:any,refresh:boolean,beforeMut
  const feed:any=await spApiRequest('/feeds/2021-06-30/feeds',{method:'POST',maxAttempts:1,body:{feedType:'POST_ORDER_ACKNOWLEDGEMENT_DATA',marketplaceIds:[context.marketplace_id],inputFeedDocumentId:doc.feedDocumentId}},credentials);
  return {status:'pending',remoteId:feed.feedId,message:'Amazon ha recibido la cancelación. Pendiente del informe de procesamiento.'};
 }
+const identity=(order:any)=>({provider:order.shipping_provider||'sendcloud',accountId:order.shipping_integration_account_id??null,reference:String(order.shipping_remote_id||order.sendcloud_parcel_id||order.tracking_number||''),trackingNumber:order.tracking_number??null,labelCreatedAt:order.label_created_at??null});
+function sameIdentity(expected:any,current:ReturnType<typeof identity>){
+ if(!expected||!Object.prototype.hasOwnProperty.call(expected,'labelCreatedAt'))return false;
+ return ['provider','accountId','reference','trackingNumber'].every(key=>expected[key]===current[key as keyof typeof current])&&
+  (expected.labelCreatedAt===current.labelCreatedAt||(expected.labelCreatedAt!=null&&current.labelCreatedAt!=null&&Date.parse(expected.labelCreatedAt)===Date.parse(current.labelCreatedAt)));
+}
+async function generationKey(current:ReturnType<typeof identity>){
+ const stamp=current.labelCreatedAt==null?null:new Date(current.labelCreatedAt).toISOString();
+ const bytes=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify([current.provider,current.accountId,current.reference,current.trackingNumber,stamp])));
+ return 'shipment:'+Array.from(new Uint8Array(bytes),byte=>byte.toString(16).padStart(2,'0')).join('');
+}
 Deno.serve(async(req:Request)=>{
- if(req.method==='OPTIONS')return new Response('ok',{headers:cors});if(req.method!=='POST')return response({error:'Método no permitido.'},405);
+ if(req.method==='OPTIONS')return new Response('ok',{headers:cors});
+ if(req.method!=='POST')return response({error:'Método no permitido.'},405);
  try{
-  const admin=createAdminClient(),caller=await authenticateUser(req,admin);if(caller.role!=='admin'&&!caller.permissions?.includes('orders'))return response({error:'No tienes permiso para gestionar pedidos.'},403);
-  const body=await req.json(),owner=caller.data_owner_id;const found=await admin.from('fulfillment_orders').select('*').eq('id',body.orderId).eq('owner_id',owner).maybeSingle();if(found.error)throw found.error;const order=found.data;if(!order)return response({error:'Pedido no encontrado.'},404);
+  const admin=createAdminClient(),caller=await authenticateUser(req,admin);
+  if(caller.role!=='admin'&&!caller.permissions?.includes('orders'))return response({error:'No tienes permiso para gestionar pedidos.'},403);
+  const body=await req.json(),owner=caller.data_owner_id;
+  const found=await admin.from('fulfillment_orders').select('*').eq('id',body.orderId).eq('owner_id',owner).maybeSingle();
+  if(found.error)throw found.error;const order=found.data;if(!order)return response({error:'Pedido no encontrado.'},404);
+  if(order.pii_purged_at)return response({error:'Los datos personales de este pedido se han retirado.'},409);
+  if(body.action==='context'){
+   if(!sameIdentity(body.expected,identity(order)))return response({error:'La expedición ha cambiado. Actualiza el pedido.'},409);
+   const account=await admin.from('integration_accounts').select('display_name').eq('id',order.shipping_integration_account_id).eq('owner_id',owner).eq('provider',order.shipping_provider||'sendcloud').maybeSingle();
+   if(account.error)throw account.error;if(!account.data?.display_name)return response({error:'No se pudo verificar la cuenta de transporte.'},409);
+   return response({ok:true,accountName:account.data.display_name});
+  }
   const refresh=body.action==='refresh';if(!refresh&&body.action!=='cancel')return response({error:'Acción no válida.'},400);
   let operations:any[]=[];
-  if(refresh){const result=await admin.from('order_cancellation_operations').select('*').eq('order_id',order.id).eq('owner_id',owner).in('status',['submitting','pending','unknown']);if(result.error)throw result.error;operations=result.data||[];}
-  else{
-   const kind=body.kind;if(!['label','order'].includes(kind))throw new Error('Acción de cancelación no válida.');
-   const provider=kind==='label'?(order.shipping_provider||'sendcloud'):order.source_channel;
-   const shipmentRef=String(order.shipping_remote_id||order.sendcloud_parcel_id||order.tracking_number||'');
-   if(kind==='label'&&!shipmentRef)throw new Error('El pedido no tiene una etiqueta activa.');
-   if(kind==='order'&&!['amazon','shopify'].includes(provider))throw new Error('Este origen no admite cancelación.');
-   // Validate options before creating a durable operation.
-   if(kind==='order'&&!['customer','inventory','address','other'].includes(body.reason))throw new Error('Selecciona el motivo de cancelación.');
-   const claim=await admin.rpc('integration_start_cancellation',{p_order_id:order.id,p_owner_id:owner,p_kind:kind,p_provider:provider,p_reference:kind==='label'?`${provider}:${order.shipping_integration_account_id}:${shipmentRef}`:`${provider}:${order.source_integration_account_id}:${order.order_id}`,p_user_id:caller.user_id,p_details:{reason:body.reason||'other',refund:body.refund===true,restock:body.restock!==false,shipmentRef,trackingNumber:order.tracking_number,parcelId:order.sendcloud_parcel_id,shippingRemoteId:order.shipping_remote_id,shippingAccountId:order.shipping_integration_account_id,carrierCode:order.carrier_code,shippingCost:order.shipping_cost_amount}});
+  if(refresh){
+   let query=admin.from('order_cancellation_operations').select('*').eq('order_id',order.id).eq('owner_id',owner).in('status',['submitting','pending','unknown','confirmed','rejected']).order('created_at',{ascending:false}).limit(50);
+   if(body.kind==='label')query=query.eq('kind','label');
+   const result=await query;if(result.error)throw result.error;operations=result.data||[];
+  }else{
+   const kind=body.kind;if(!['label','order'].includes(kind))return response({error:'Acción de cancelación no válida.'},400);
+   const current=identity(order),provider=kind==='label'?current.provider:order.source_channel;
+   if(kind==='label'){
+    if(order.external_shipment!=null)return response({error:'Este envío externo debe anularse con su agencia.'},409);
+    if(!current.reference||order.label_cancelled_at)return response({error:'El pedido no tiene una etiqueta activa.'},409);
+    if(!sameIdentity(body.expected,current))return response({error:'La expedición ha cambiado. Actualiza el pedido y revisa la etiqueta antes de cancelar.'},409);
+   }
+   if(kind==='order'&&!['amazon','shopify'].includes(provider))return response({error:'Este origen no admite cancelación.'},400);
+   if(kind==='order'&&!['customer','inventory','address','other'].includes(body.reason))return response({error:'Selecciona el motivo de cancelación.'},400);
+   const claim=await admin.rpc('integration_start_cancellation',{p_order_id:order.id,p_owner_id:owner,p_kind:kind,p_provider:provider,p_reference:kind==='label'?await generationKey(current):`${provider}:${order.source_integration_account_id}:${order.order_id}`,p_user_id:caller.user_id,p_details:{reason:body.reason||'other',refund:body.refund===true,restock:body.restock!==false,shipmentRef:current.reference,trackingNumber:order.tracking_number,parcelId:order.sendcloud_parcel_id,shippingRemoteId:order.shipping_remote_id,shippingAccountId:order.shipping_integration_account_id,carrierCode:order.carrier_code,shippingCost:order.shipping_cost_amount,labelCreatedAt:order.label_created_at??null}});
    if(claim.error)throw claim.error;if(!claim.data.claimed)return response({ok:true,operations:[claim.data.operation]});operations=[claim.data.operation];
   }
   const results=[];
   for(const op of operations){
-   // An in-flight mutation must never be repeated by a refresh request.
+   if(refresh&&['confirmed','rejected'].includes(op.status)){results.push(op);continue;}
+   // Refresh only queries the original shipment; an uncertain mutation is never resent.
    if(refresh&&op.status==='submitting'&&Date.now()-Date.parse(op.created_at)<180000){results.push(op);continue;}
-   let result:any,attempted=false;const beforeMutation=async()=>{attempted=true;};try{const snapshot=op.kind==='label'?{...order,shipping_provider:op.provider,shipping_integration_account_id:op.details.shippingAccountId,sendcloud_parcel_id:op.details.parcelId,shipping_remote_id:op.details.shippingRemoteId,tracking_number:op.details.trackingNumber,carrier_code:op.details.carrierCode}:order;result=op.kind==='label'?await cancelCarrier(admin,snapshot,refresh,beforeMutation):await sourceCancel(admin,order,op,refresh,beforeMutation);}catch(error){result={status:refresh?(op.status==='submitting'?'unknown':op.status):!attempted||error instanceof CancellationRejected||/Amazon SP-API \((?:400|401|403|404|422)\)/.test(error instanceof Error?error.message:'')?'rejected':'unknown',message:error instanceof Error?error.message.replace(/(https?:\/\/[^\s?]+)\?[^\s]+/g,'$1?[omitido]').slice(0,800):'No se pudo confirmar la cancelación.'};}
-   const saved=await admin.rpc('integration_finish_cancellation',{p_operation_id:op.id,p_owner_id:owner,p_status:result.status,p_message:result.message,p_remote_id:result.remoteId||null});if(saved.error)throw saved.error;results.push({...op,status:result.status,message:result.message,remote_id:result.remoteId||op.remote_id});
+   let result:any,attempted=false;const beforeMutation=async()=>{attempted=true;};
+   try{
+    const snapshot=op.kind==='label'?{...order,shipping_provider:op.provider,shipping_integration_account_id:op.details.shippingAccountId,sendcloud_parcel_id:op.details.parcelId,shipping_remote_id:op.details.shippingRemoteId,tracking_number:op.details.trackingNumber,carrier_code:op.details.carrierCode}:order;
+    result=op.kind==='label'?await cancelCarrier(admin,snapshot,refresh,beforeMutation):await sourceCancel(admin,order,op,refresh,beforeMutation);
+    if(!refresh&&!attempted&&result.status==='unknown')result={status:'rejected',message:'No se ha enviado la cancelación porque no se pudo verificar la expedición. Actualiza y revisa sus datos.'};
+   }catch(error){
+    const rejected=!refresh&&(!attempted||error instanceof CancellationRejected);
+    result={status:rejected?'rejected':refresh&&op.status==='pending'?'pending':'unknown',message:rejected?'No se ha podido cancelar el envío. Revisa la cuenta y el estado con la agencia.':'El resultado no está confirmado. Comprueba el estado; la solicitud no se reenviará.'};
+   }
+   const saved=await admin.rpc('integration_finish_cancellation',{p_operation_id:op.id,p_owner_id:owner,p_status:result.status,p_message:result.message,p_remote_id:result.remoteId||null});if(saved.error)throw saved.error;
+   const persisted=await admin.from('order_cancellation_operations').select('*').eq('id',op.id).eq('owner_id',owner).maybeSingle();if(persisted.error)throw persisted.error;
+   if(!persisted.data)throw new Error('CANCELLATION_RESULT_UNAVAILABLE');results.push(persisted.data);
   }
   return response({ok:true,operations:results});
- }catch(error){const message=error instanceof Error?error.message:'No se pudo gestionar la cancelación.';return response({error:message},message==='Sesión no válida.'?401:400);}
+ }catch(error){
+  const message=error instanceof Error?error.message:'';
+  if(message==='Sesión no válida.')return response({error:message},401);
+  if(message.startsWith('MFA_'))return response({error:'Se requiere verificar tu sesión con MFA.',code:message==='MFA_REQUIRED'?'MFA_REQUIRED':'MFA_UNAVAILABLE'},403);
+  return response({error:'No se pudo gestionar la cancelación. Actualiza el pedido y revisa si ya hay una solicitud en curso.'},400);
+ }
 });

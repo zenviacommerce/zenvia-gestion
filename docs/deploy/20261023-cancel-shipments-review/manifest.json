@@ -1,0 +1,3380 @@
+{
+  "synthetic": true,
+  "network": "blocked except synthetic flag",
+  "baseline": "0798dc4aeef6b61c40aa908f47e6f55c860110f8",
+  "decisions": [
+    "Preserved all existing actions on active shipments.",
+    "Download and print are disabled while a cancellation is uncertain; preparation is blocked by service-only RPC.",
+    "Confirmed cancellation enables existing relabel flow and retains shipment history."
+  ],
+  "captures": [
+    {
+      "phase": "before",
+      "width": 390,
+      "theme": "light",
+      "kind": "active",
+      "file": "before-active-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "before",
+      "width": 390,
+      "theme": "dark",
+      "kind": "active",
+      "file": "before-active-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "before",
+      "width": 1280,
+      "theme": "light",
+      "kind": "active",
+      "file": "before-active-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "before",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "active",
+      "file": "before-active-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "before",
+      "width": 1440,
+      "theme": "light",
+      "kind": "active",
+      "file": "before-active-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "before",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "active",
+      "file": "before-active-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "active",
+      "file": "after-active-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "confirmed-stale-detail",
+      "file": "after-confirmed-stale-detail-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Actualizar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "modal-mrw-pending",
+      "file": "after-modal-mrw-pending-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "result-mrw-pending",
+      "file": "after-result-mrw-pending-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "detail-mrw-pending",
+      "file": "after-detail-mrw-pending-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "confirmed-history",
+      "file": "after-confirmed-history-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Editar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Preparar nueva etiqueta",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "relabelled-history",
+      "file": "after-relabelled-history-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "modal-sendcloud-pending",
+      "file": "after-modal-sendcloud-pending-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "result-sendcloud-pending",
+      "file": "after-result-sendcloud-pending-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "detail-sendcloud-pending",
+      "file": "after-detail-sendcloud-pending-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "modal-envia-rejected",
+      "file": "after-modal-envia-rejected-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "result-envia-rejected",
+      "file": "after-result-envia-rejected-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "detail-envia-rejected",
+      "file": "after-detail-envia-rejected-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "modal-mrw-unknown",
+      "file": "after-modal-mrw-unknown-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "result-mrw-unknown",
+      "file": "after-result-mrw-unknown-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "light",
+      "kind": "detail-mrw-unknown",
+      "file": "after-detail-mrw-unknown-light-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "active",
+      "file": "after-active-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "confirmed-stale-detail",
+      "file": "after-confirmed-stale-detail-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Actualizar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "modal-mrw-pending",
+      "file": "after-modal-mrw-pending-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "result-mrw-pending",
+      "file": "after-result-mrw-pending-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "detail-mrw-pending",
+      "file": "after-detail-mrw-pending-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "confirmed-history",
+      "file": "after-confirmed-history-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Editar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Preparar nueva etiqueta",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "relabelled-history",
+      "file": "after-relabelled-history-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "modal-sendcloud-pending",
+      "file": "after-modal-sendcloud-pending-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "result-sendcloud-pending",
+      "file": "after-result-sendcloud-pending-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "detail-sendcloud-pending",
+      "file": "after-detail-sendcloud-pending-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "modal-envia-rejected",
+      "file": "after-modal-envia-rejected-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "result-envia-rejected",
+      "file": "after-result-envia-rejected-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "detail-envia-rejected",
+      "file": "after-detail-envia-rejected-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "modal-mrw-unknown",
+      "file": "after-modal-mrw-unknown-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "result-mrw-unknown",
+      "file": "after-result-mrw-unknown-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 390,
+      "theme": "dark",
+      "kind": "detail-mrw-unknown",
+      "file": "after-detail-mrw-unknown-dark-390.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "active",
+      "file": "after-active-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "confirmed-stale-detail",
+      "file": "after-confirmed-stale-detail-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Actualizar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "modal-mrw-pending",
+      "file": "after-modal-mrw-pending-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "result-mrw-pending",
+      "file": "after-result-mrw-pending-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "detail-mrw-pending",
+      "file": "after-detail-mrw-pending-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "confirmed-history",
+      "file": "after-confirmed-history-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Editar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Preparar nueva etiqueta",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "relabelled-history",
+      "file": "after-relabelled-history-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "modal-sendcloud-pending",
+      "file": "after-modal-sendcloud-pending-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "result-sendcloud-pending",
+      "file": "after-result-sendcloud-pending-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "detail-sendcloud-pending",
+      "file": "after-detail-sendcloud-pending-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "modal-envia-rejected",
+      "file": "after-modal-envia-rejected-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "result-envia-rejected",
+      "file": "after-result-envia-rejected-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "detail-envia-rejected",
+      "file": "after-detail-envia-rejected-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "modal-mrw-unknown",
+      "file": "after-modal-mrw-unknown-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "result-mrw-unknown",
+      "file": "after-result-mrw-unknown-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "light",
+      "kind": "detail-mrw-unknown",
+      "file": "after-detail-mrw-unknown-light-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "active",
+      "file": "after-active-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "confirmed-stale-detail",
+      "file": "after-confirmed-stale-detail-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Actualizar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "modal-mrw-pending",
+      "file": "after-modal-mrw-pending-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "result-mrw-pending",
+      "file": "after-result-mrw-pending-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "detail-mrw-pending",
+      "file": "after-detail-mrw-pending-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "confirmed-history",
+      "file": "after-confirmed-history-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Editar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Preparar nueva etiqueta",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "relabelled-history",
+      "file": "after-relabelled-history-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "modal-sendcloud-pending",
+      "file": "after-modal-sendcloud-pending-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "result-sendcloud-pending",
+      "file": "after-result-sendcloud-pending-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "detail-sendcloud-pending",
+      "file": "after-detail-sendcloud-pending-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "modal-envia-rejected",
+      "file": "after-modal-envia-rejected-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "result-envia-rejected",
+      "file": "after-result-envia-rejected-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "detail-envia-rejected",
+      "file": "after-detail-envia-rejected-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "modal-mrw-unknown",
+      "file": "after-modal-mrw-unknown-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "result-mrw-unknown",
+      "file": "after-result-mrw-unknown-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1280,
+      "theme": "dark",
+      "kind": "detail-mrw-unknown",
+      "file": "after-detail-mrw-unknown-dark-1280.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "active",
+      "file": "after-active-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "confirmed-stale-detail",
+      "file": "after-confirmed-stale-detail-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Actualizar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "modal-mrw-pending",
+      "file": "after-modal-mrw-pending-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "result-mrw-pending",
+      "file": "after-result-mrw-pending-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "detail-mrw-pending",
+      "file": "after-detail-mrw-pending-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "confirmed-history",
+      "file": "after-confirmed-history-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Editar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Preparar nueva etiqueta",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "relabelled-history",
+      "file": "after-relabelled-history-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "modal-sendcloud-pending",
+      "file": "after-modal-sendcloud-pending-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "result-sendcloud-pending",
+      "file": "after-result-sendcloud-pending-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "detail-sendcloud-pending",
+      "file": "after-detail-sendcloud-pending-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "modal-envia-rejected",
+      "file": "after-modal-envia-rejected-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "result-envia-rejected",
+      "file": "after-result-envia-rejected-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "detail-envia-rejected",
+      "file": "after-detail-envia-rejected-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "modal-mrw-unknown",
+      "file": "after-modal-mrw-unknown-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "result-mrw-unknown",
+      "file": "after-result-mrw-unknown-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "light",
+      "kind": "detail-mrw-unknown",
+      "file": "after-detail-mrw-unknown-light-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "active",
+      "file": "after-active-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "confirmed-stale-detail",
+      "file": "after-confirmed-stale-detail-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Actualizar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "modal-mrw-pending",
+      "file": "after-modal-mrw-pending-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "result-mrw-pending",
+      "file": "after-result-mrw-pending-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "detail-mrw-pending",
+      "file": "after-detail-mrw-pending-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "confirmed-history",
+      "file": "after-confirmed-history-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Editar pedido",
+          "disabled": false
+        },
+        {
+          "name": "Preparar nueva etiqueta",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "relabelled-history",
+      "file": "after-relabelled-history-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "modal-sendcloud-pending",
+      "file": "after-modal-sendcloud-pending-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "result-sendcloud-pending",
+      "file": "after-result-sendcloud-pending-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "detail-sendcloud-pending",
+      "file": "after-detail-sendcloud-pending-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "modal-envia-rejected",
+      "file": "after-modal-envia-rejected-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "result-envia-rejected",
+      "file": "after-result-envia-rejected-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "detail-envia-rejected",
+      "file": "after-detail-envia-rejected-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "modal-mrw-unknown",
+      "file": "after-modal-mrw-unknown-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Cancelar env\u00edo",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Volver",
+          "disabled": false
+        },
+        {
+          "name": "Solicitar cancelaci\u00f3n",
+          "disabled": true
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": false
+        },
+        {
+          "name": "Imprimir",
+          "disabled": false
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "result-mrw-unknown",
+      "file": "after-result-mrw-unknown-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Cerrar",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    },
+    {
+      "phase": "after",
+      "width": 1440,
+      "theme": "dark",
+      "kind": "detail-mrw-unknown",
+      "file": "after-detail-mrw-unknown-dark-1440.png",
+      "actions": [
+        {
+          "name": "",
+          "disabled": false
+        },
+        {
+          "name": "Comprobar estado",
+          "disabled": false
+        },
+        {
+          "name": "Copiar tracking",
+          "disabled": false
+        },
+        {
+          "name": "Descargar",
+          "disabled": true
+        },
+        {
+          "name": "Imprimir",
+          "disabled": true
+        }
+      ]
+    }
+  ],
+  "productionBaseline": "3dfd5f37433958bfe739c7232212dcbb38b6c179",
+  "localBaselineAlias": "0798dc4aeef6b61c40aa908f47e6f55c860110f8"
+}

@@ -19,3 +19,13 @@ Estimación inicial 1–2 h. Pausar #299 y #300; no mezclarlos en main. Producci
 - Limitación operativa: Gmail de la app conserva autorización de sesión, sin refresh token de servidor. El watchdog SQL garantiza salida de sending; la comprobación de Gmail ocurre al abrir con token vigente o pulsar Comprobar envío. Si Google deniega lectura o se selecciona otra cuenta, se conserva el resultado incierto y se pide corregir autorización. Nunca se interpreta como ausencia.
 
 Validación final local: 770/770 pruebas Vitest (131 archivos), 1292/1292 pruebas Node (incluidos inventarios de acciones, buscadores/filtros y Tabs), build de producción y comprobación Deno correctos. Capturas: 10 PNG, cero errores de navegador y una sola llamada simulada de envío por escenario. No se ejecutó correo real. Revisión independiente sin bloqueos pendientes.
+
+## Preparación de producción
+
+PR #301: `1a2aa517e4f31c1e8230123ca2f86898a42e2b5a`. Se subieron exclusivamente 35 archivos del hotfix sobre main; las bases de los 11 archivos modificados coinciden exactamente con main. No se mezcló #298 ni #299.
+
+Rollback frontend preparado: restaurar deployment Vercel `dpl_6QnGEy8hmRSpfnh7Z3BijStzdMse` (URL `zenvia-gestion-q2xg52tkg-sergiorojasdiaz-7097.vercel.app`, main `ca8a595c6558356e766168fd51dd0ef78ef3ae66`). Antes de downgrade backend, ejecutar el guard de `supabase/rollback/20261023_pickup_mail_recovery.sql`: aborta con sending o reconciliaciones pendientes y conserva hechos/auditoría. Edge: restaurar los nueve archivos exactos de v3 de la snapshot con `verify_jwt=true`. Nunca restaurar a ciegas el sending del incidente si ya se reintentó.
+
+Preflight Edge: v3 ACTIVE, verify_jwt=true y nueve archivos sin cambios desde snapshot. Solo se sustituirán cuatro helpers del informe y se añadirá pickupMailRecovery; entrypoint, autenticación, MFA y vendor idénticos. MFA a15:08:39UTC: enabled=true,cohorte=1,solo propietario, sin cambios.
+
+Se prepara además un preflight transaccional (`20261023-pickup-mail-production-preflight.sql`) que aborta si cambian las tres definiciones originales, el único intento del incidente ya liberado o la configuración del piloto MFA. Se ejecutará como prefijo de la migración; contiene únicamente comprobaciones, sin cambios de pedidos ni de facturas.

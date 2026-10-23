@@ -1,6 +1,8 @@
 # VERI*FACTU y rectificativas completas — diseño aprobado
 
-23 de octubre de 2026. Estado: DISEÑO APROBADO; fase 0 iniciada, núcleo pendiente. Responsable de aprobación: propietario de Zenvia. No habilita remisión real ni solicita certificados por chat.
+23 de octubre de 2026. Estado: DISEÑO APROBADO; base de fase 0 completada, núcleo pendiente. Responsable de aprobación: propietario de Zenvia. No habilita remisión real ni solicita certificados por chat.
+
+**Actualización de custodia aprobada:** Google Cloud europe-west1, escalado a cero y clave privada no exportable en Cloud HSM multi-tenant. Esta decisión sustituye la opción anterior de PFX descifrado en memoria mediante KMS de envoltura. El plan de alta por el propietario está en `20261023-verifactu-phase0/google-cloud-owner-onboarding.md`; no se han creado recursos ni subido certificados. La compatibilidad de la firma remota mTLS debe demostrarse con el adaptador antes de activar AEAT.
 
 ## Decisión aprobada
 
@@ -174,7 +176,7 @@ Riesgos materiales: clasificación fiscal y OSS, fallos de representación, cont
 
 El propietario ha aprobado el alcance exclusivamente VERI*FACTU, la pasarela aislada con custodia de claves y las fases 0–5. Confirma no inclusión en SII y uso de series e impuestos actuales; no se pide validación adicional al asesor. Esto no autoriza contratar infraestructura, introducir certificados por chat, emitir facturas reales ni remitir registros a AEAT.
 
-**Ejecución autorizada:** fases 0–1 después de estabilizar #299. Fase 0 iniciada mediante inventario agregado y descarga estática de contratos oficiales, sin llamadas SOAP. No hay todavía núcleo fiscal, credenciales o UI fiscal implementados. Seguimiento: `20261023-verifactu-phase0/README.md`.
+**Ejecución autorizada:** fases 0–1 después de estabilizar #299. Fase 0 documentada y comprobada offline mediante inventario agregado, contratos y catálogo oficiales, vectores de huella y matriz de conservación, sin llamadas SOAP. No hay todavía núcleo fiscal, credenciales o UI fiscal implementados. Seguimiento: `20261023-verifactu-phase0/README.md`.
 
 ## Fuentes primarias consultadas el 23/10/2026
 

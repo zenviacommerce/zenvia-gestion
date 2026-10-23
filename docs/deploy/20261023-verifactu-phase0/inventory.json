@@ -51,5 +51,17 @@
       "definition_hash": "37de2bfee716ff3ec12a694ea47dfe02"
     }
   ],
-  "writes_performed": false
+  "writes_performed": false,
+  "tax_lines_by_rate": [
+    {
+      "tax_rate": "10.0000",
+      "lines": 1,
+      "invoices": 1
+    },
+    {
+      "tax_rate": "21.0000",
+      "lines": 45,
+      "invoices": 26
+    }
+  ]
 }

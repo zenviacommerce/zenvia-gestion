@@ -1,4 +1,4 @@
-# VERI*FACTU — fase 0 iniciada, fase 1 preparada
+# VERI*FACTU — base de fase 0 completada, fase 1 preparada
 
 23/10/2026. Diseño aprobado por el propietario. Exclusivamente VERI*FACTU, no SII confirmado por el propietario; series e impuestos actuales. No se requiere otra confirmación del asesor para comenzar. Objetivo de la sociedad: 1/1/2027. Anotado OSS si se superan 10.000 € de ventas a distancia en la UE; no se modifica automáticamente la fiscalidad.
 
@@ -8,7 +8,7 @@ Inventario de solo lectura, limitado al owner del propietario: 27 facturas está
 
 `inventory.json` conserva esos agregados y hashes de definición de los puntos públicos de emisión, reapertura, eliminación y rectificación, para detectar cambios durante el trabajo. Los hashes no sustituyen la auditoría de implementaciones privadas, triggers, cascadas y tareas de mantenimiento de fase 1.
 
-Se descargaron los bytes del WSDL y cinco XSD desde la documentación pública oficial de AEAT; `contracts/manifest.json` registra URL, tamaño y SHA-256. Solo descargas estáticas: ninguna llamada SOAP, ni autenticación, certificado o factura. El esquema de firma XML externo de W3C todavía no se ha fijado; por tanto, no se declara completa la validación XSD offline. Faltan fijar validaciones, ejemplos y vectores oficiales de huella, y completar la matriz de conservación.
+Se descargaron los bytes del WSDL y cinco XSD desde la documentación pública oficial de AEAT; `contracts/manifest.json` registra URL, tamaño y SHA-256. Solo descargas estáticas: ninguna llamada SOAP, ni autenticación, certificado o factura. También se ha fijado el esquema de firma XML externo de W3C con SHA-256. Los seis XSD compilan sin acceso a red mediante un resolver de copias locales; esto valida la compilación del contrato, no todavía documentos de ejemplo ni la lógica fiscal. También se fijaron las especificaciones oficiales de servicio, QR y huella por URL/tamaño/SHA-256 en official-specifications.json. Los tres vectores oficiales de huella 0.1.2 pasan la comprobación SHA-256 sobre las cadenas canónicas transcritas. Esto prepara la fase 1; todavía no acredita un serializador fiscal, XML de facturas ni transporte AEAT. Se fijó también validaciones 1.2.2 y el catálogo oficial errores.properties, con 247 códigos únicos, y se documentó la matriz inicial de conservación en retention-and-scope.md. El cierre y sus límites están en acceptance.md.
 
 ## Primer corte de fase 1, después de #299
 
@@ -18,6 +18,10 @@ Se descargaron los bytes del WSDL y cinco XSD desde la documentación pública o
 4. Funciones de dominio y guardas con tests de los vectores oficiales fijados. Plan de migración y rollback exactos antes de producción; no conexión real AEAT ni custodia de certificados en esta fase.
 
 Estimación de diseño vigente: fase 0, 1–2 días; fase 1, 4–6 días de ingeniería. Este inicio no equivale a declarar las dos fases terminadas. La implementación fiscal espera la aceptación de rendimiento de #299 para respetar el orden del propietario.
+
+## Pasarela decidida por el propietario
+
+El propietario ha elegido Google Cloud, europe-west1 (Bélgica), escalado a cero y clave privada no exportable en KMS/HSM. Se prepara el alta en google-cloud-owner-onboarding.md para que la ejecute personalmente después de #299 y fase 0. No se han creado recursos ni importado certificados. Esa elección no bloquea el inventario, contratos ni pruebas offline de fase 0.
 
 ## Dos opciones concretas de pasarela y custodia
 

@@ -37,6 +37,19 @@
       "url": "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/RespuestaSuministro.xsd",
       "sha256": "82acf80f785643caac13087aae66808ed721a13f08ca5218cf8ae81b695549ef",
       "bytes": 6259
+    },
+    {
+      "file": "xmldsig-core-schema.xsd",
+      "url": "https://www.w3.org/TR/xmldsig-core/xmldsig-core-schema.xsd",
+      "sha256": "d102ad3df7664c307e0c2c776ba4a90513b1969974d8a940bae1a77f9f21e15d",
+      "bytes": 10292
+    },
+    {
+      "file": "errores.properties",
+      "url": "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/errores.properties",
+      "sha256": "06519ceb23422bd6b0ad3bfb659e3007615050da4920781d12cff536481d5902",
+      "bytes": 25232,
+      "encoding": "ISO-8859-1 (Java properties)"
     }
   ]
 }

@@ -2,7 +2,7 @@ import {getActiveSupabase,getActiveTenant} from './supabase';
 import {fetchMatchingOrderIds,type OrdersDashboardFilters} from './orders';
 import type {PickupDocumentStatus} from './pickupReportDocuments';
 export type PickupReportItem={orderId:string;orderNumber:string;channel:string;carrier:string;trackingNumber:string;packages:number;eligible:boolean;issue?:string|null;previousReports:string[];packageCountEstimated?:boolean;packagesSource?:string};
-export type PickupReport={id:string;number:string;createdAt:string;createdBy:string;sender:{legalName:string;taxId:string;address:string;email:string;phone:string};items:Array<Omit<PickupReportItem,'eligible'|'issue'|'previousReports'>>;totalPackages:number;document?:PickupDocumentStatus};
+export type PickupReport={id:string;number:string;createdAt:string;createdBy:string;sender:{legalName:string;taxId:string;address:string;email:string;phone:string};items:Array<Omit<PickupReportItem,'eligible'|'issue'|'previousReports'>>;totalPackages:number;removedItems?:Array<Omit<PickupReportItem,'eligible'|'issue'|'previousReports'>&{reason:string;removedAt?:string;removedBy?:string}>;document?:PickupDocumentStatus};
 export type PickupReportSummary=Pick<PickupReport,'id'|'number'|'createdAt'|'totalPackages'>&{totalOrders?:number;carriers?:string[];document?:PickupDocumentStatus};
 export type PickupPreview={items:PickupReportItem[];totalPackages:number;canCreate:boolean};
 async function rpc<T>(name:string,params:Record<string,unknown>):Promise<T>{

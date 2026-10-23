@@ -1,0 +1,14 @@
+// @vitest-environment node
+import{it,expect,vi}from'vitest';
+import{reconcilePickupGmail}from'../supabase/functions/_shared/pickupMailRecovery';
+const entry={sender:'owner@example.test',rfcMessageId:'<zenvia.test@example.test>',requestId:'request-test'};
+it('confirms sent only in the bound mailbox with matching sent message headers',async()=>{
+ const fetcher=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({emailAddress:entry.sender}))).mockResolvedValueOnce(new Response(JSON.stringify({messages:[{id:'m1'}]}))).mockResolvedValueOnce(new Response(JSON.stringify({id:'m1',labelIds:['SENT'],payload:{headers:[{name:'Message-ID',value:entry.rfcMessageId},{name:'X-Zenvia-Pickup-Request',value:entry.requestId}]}})));
+ expect(await reconcilePickupGmail(fetcher,'synthetic-token',entry)).toEqual({status:'sent',messageId:'m1'});expect(fetcher.mock.calls.every(c=>!c[1]?.method||c[1].method==='GET')).toBe(true);
+});
+it('does not search or release a different mailbox',async()=>{const f=vi.fn().mockResolvedValue(new Response(JSON.stringify({emailAddress:'other@example.test'})));expect(await reconcilePickupGmail(f,'synthetic-token',entry)).toMatchObject({status:'unconfirmed',code:'GMAIL_MAILBOX_MISMATCH'});expect(f).toHaveBeenCalledTimes(1)});
+it.each([401,403,429,500])('does not interpret Gmail %i as absence',async status=>{expect(await reconcilePickupGmail(vi.fn().mockResolvedValue(new Response('{}',{status})),'synthetic-token',entry)).toMatchObject({status:'unconfirmed'})});
+it('reports only a complete zero-result search as a negative observation, never as permission to resend',async()=>{const f=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({emailAddress:entry.sender}))).mockResolvedValueOnce(new Response(JSON.stringify({resultSizeEstimate:0})));expect(await reconcilePickupGmail(f,'synthetic-token',entry)).toEqual({status:'absent'})});
+it('fails closed on pagination, malformed JSON or headers that do not match',async()=>{for(const data of [{nextPageToken:'more'},{messages:'invalid'},{messages:[{id:'m1'}]}]){const f=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({emailAddress:entry.sender}))).mockResolvedValueOnce(new Response(JSON.stringify(data))).mockResolvedValueOnce(new Response(JSON.stringify({id:'m1',labelIds:['INBOX'],payload:{headers:[]}})));expect(await reconcilePickupGmail(f,'synthetic-token',entry)).toMatchObject({status:'unconfirmed'})}});
+
+it.each([{}, {resultSizeEstimate:1}, {resultSizeEstimate:1,messages:[]}, {error:{code:500}}, {resultSizeEstimate:-1}, null])('never interprets incomplete HTTP 200 search %j as absence',async data=>{const f=vi.fn().mockResolvedValueOnce(new Response(JSON.stringify({emailAddress:entry.sender}))).mockResolvedValueOnce(new Response(JSON.stringify(data)));expect(await reconcilePickupGmail(f,'synthetic-token',entry)).toMatchObject({status:'unconfirmed'})});

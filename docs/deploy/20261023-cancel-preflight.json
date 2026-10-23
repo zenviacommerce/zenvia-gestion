@@ -1,0 +1,12 @@
+{
+  "checkedAt": "2026-10-23T05:20:36.701Z",
+  "project": "sjkxxbedkkmgmqnvaqjh",
+  "orders": 1023,
+  "cancellationOperations": 0,
+  "shipmentHistory": 0,
+  "productionWrites": 0,
+  "proposedMigration": "supabase/migrations/20261023070000_cancellation_identity.sql",
+  "migrationBackfill": false,
+  "existingRowsModifiedByDDL": 0,
+  "published": false
+}

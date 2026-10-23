@@ -1,4 +1,5 @@
-import {carrierCancellationResult} from './orderCancellation.ts';
+import {parseSendcloudCancellation,parseEnviaCancellation,parseMrwCancellation,type CancellationOutcome} from './carrierCancellationPolicy.ts';
+import {pollShipment} from './tracking/adapters.ts';
 export class CancellationRejected extends Error {}
 const clean=(v:unknown)=>String(v??'').trim();
 const esc=(v:unknown)=>clean(v).replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&apos;');
@@ -11,46 +12,49 @@ export async function cancellationAccount(admin:any,order:any,provider:string,so
  return {account:result.data,stored};
 }
 async function jsonRequest(url:string,headers:any,body?:any){
- const res=await fetch(url,{method:body===undefined?'GET':'POST',headers:{...headers,Accept:'application/json',...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(25000)});
+ const res=await fetch(url,{method:body===undefined?'GET':'POST',headers:{...headers,Accept:'application/json',...(body===undefined?{}:{'Content-Type':'application/json'})},body:body===undefined?undefined:JSON.stringify(body),signal:AbortSignal.timeout(25000),redirect:'error'});
  const payload=await res.json().catch(()=>({}));
- if(!res.ok){if(res.status>=400&&res.status<500&&res.status!==408&&res.status!==429)throw new CancellationRejected(`El transportista rechazó la solicitud (${res.status}). ${clean(payload.message||payload.error?.message).slice(0,500)}`);throw new Error(`No se pudo confirmar la respuesta del transportista (${res.status}).`);}
- return payload;
+ if(!res.ok){if(res.status>=400&&res.status<500&&res.status!==408&&res.status!==429)throw new CancellationRejected(`El transportista rechazó la solicitud (${res.status}).`);throw new Error('CARRIER_RESPONSE_UNCONFIRMED');}
+ return {payload,status:res.status};
 }
+const pending=():CancellationOutcome=>({status:'pending',message:'Cancelación solicitada; pendiente de confirmación del transportista.'});
+const unknown=():CancellationOutcome=>({status:'unknown',message:'El resultado no está confirmado. Comprueba el estado antes de volver a solicitarlo.'});
+function accepted(result:CancellationOutcome){if(result.status==='rejected')throw new CancellationRejected(result.message);return result;}
+const phase=(v:unknown)=>clean(v).toLowerCase().replace(/[ -]+/g,'_');
+const transported=new Set(['delivered','returned_to_sender','shipment_picked_up_by_driver','parcel_en_route','driver_en_route','being_sorted','at_sorting_centre','en_route_to_sorting_center']);
 export async function cancelCarrier(admin:any,order:any,refresh=false,beforeMutation:()=>Promise<void>=async()=>{}){
  const provider=order.shipping_provider||'sendcloud';const {account,stored}=await cancellationAccount(admin,order,provider);
  if(provider==='sendcloud'){
   const pub=stored.publicKey||stored.public_key||(account.credential_source==='environment'?(Deno.env.get('SENDCLOUD_PUBLIC_KEY')||Deno.env.get('SENDCLOUD_API_KEY')):''),secret=stored.secretKey||stored.secret_key||(account.credential_source==='environment'?(Deno.env.get('SENDCLOUD_SECRET_KEY')||Deno.env.get('SENDCLOUD_API_SECRET')):'');
   if(!pub||!secret||!order.sendcloud_parcel_id)throw new CancellationRejected('Faltan las claves o el identificador de parcela Sendcloud.');
-  const headers={Authorization:`Basic ${btoa(`${pub}:${secret}`)}`};const url=`https://panel.sendcloud.sc/api/v2/parcels/${encodeURIComponent(order.sendcloud_parcel_id)}`;
-  if(refresh){const payload=await jsonRequest(url,headers);const parcel=payload.parcel||payload;const statuses=await jsonRequest('https://panel.sendcloud.sc/api/v2/parcels/statuses',headers);const confirmed=(Array.isArray(statuses)?statuses:statuses.statuses||[]).some((state:any)=>String(state.id)===String(parcel.status?.id)&&['cancelled','canceled'].includes(clean(state.message).toLowerCase()));return confirmed?{status:'confirmed',message:'Sendcloud confirma la anulación.'}:{status:'pending',message:'Sendcloud todavía no confirma la anulación.'};}
-  await beforeMutation();
-  const payload=await jsonRequest(`${url}/cancel`,headers,{});
-  // Sendcloud's cancelled flag acknowledges the request; parcel state confirms completion.
-  if(payload.cancelled===false)throw new CancellationRejected('Sendcloud rechazó la anulación.');
-  return {status:'pending',message:'Anulación solicitada a Sendcloud. Comprueba el estado para confirmar su finalización.'};
+  const headers={Authorization:`Basic ${btoa(`${pub}:${secret}`)}`},url=`https://panel.sendcloud.sc/api/v2/parcels/${encodeURIComponent(order.sendcloud_parcel_id)}`;
+  const {payload}=await jsonRequest(url,headers),parcel=payload.parcel||payload;
+  if(String(parcel.id)!==String(order.sendcloud_parcel_id)||(order.tracking_number&&clean(parcel.tracking_number)!==clean(order.tracking_number)))return unknown();
+  const catalog=await jsonRequest('https://panel.sendcloud.sc/api/v2/parcels/statuses',headers);
+  const statuses=Array.isArray(catalog.payload)?catalog.payload:catalog.payload.statuses||catalog.payload.parcel_statuses||[];
+  const state=phase(statuses.find((item:any)=>String(item.id)===String(parcel.status?.id))?.message);
+  if(['cancelled','canceled'].includes(state))return {status:'confirmed',message:'Sendcloud confirma la cancelación.'};
+  if(['cancelled_upstream','cancellation_request','submitting_cancellation_request'].includes(state))return pending();
+  if(transported.has(state))throw new CancellationRejected('El envío ya está en la red del transportista y no admite esta anulación.');
+  if(refresh)return state?pending():unknown();
+  const label=parcel.label,announced=clean(label?.label_printer)||(Array.isArray(label?.normal_printer)&&label.normal_printer.some((value:any)=>clean(value)));
+  if(!announced||!clean(parcel.tracking_number))throw new CancellationRejected('Sendcloud no confirma una etiqueta anunciada. No se enviará una solicitud que pueda borrar la parcela.');
+  await beforeMutation();const result=await jsonRequest(`${url}/cancel`,headers,{});return accepted(parseSendcloudCancellation(result.status,result.payload));
  }
- if(refresh&&provider==='envia'){
-  const token=stored.token||stored.apiToken||stored.api_token;if(!token||!order.tracking_number)throw new Error('Faltan los datos para comprobar Envia.com.');
-  const payload=await jsonRequest(`${account.config?.environment==='production'?'https://queries.envia.com':'https://queries.test.envia.com'}/guide/${encodeURIComponent(order.tracking_number)}`,{Authorization:`Bearer ${token}`});
-  const raw=Array.isArray(payload.data)?payload.data[0]:payload.data||payload;
-  const status=clean(raw?.status?.name||raw?.status?.description||raw?.status||raw?.shipmentStatus||raw?.trackingStatus).toLowerCase();
-  return ['cancelled','canceled','cancelado','cancelada'].includes(status)?{status:'confirmed',message:'Envia.com confirma la anulación.'}:{status:'pending',message:'Envia.com todavía no confirma la anulación.'};
- }
- if(refresh)return {status:'unknown',message:'Comprueba la anulación con tu agencia MRW. No se reenviará la solicitud.'};
  if(provider==='envia'){
   const token=stored.token||stored.apiToken||stored.api_token;if(!token||!order.carrier_code||!order.tracking_number)throw new CancellationRejected('Faltan el token, transportista o tracking de Envia.com.');
-  await beforeMutation();
-  const payload=await jsonRequest(`${account.config?.environment==='production'?'https://api.envia.com':'https://api-test.envia.com'}/ship/cancel/`,{Authorization:`Bearer ${token}`},{carrier:order.carrier_code,trackingNumber:order.tracking_number});
-  try{return carrierCancellationResult('envia',payload)}catch(error){throw new CancellationRejected(error instanceof Error?error.message:'Envia.com rechazó la anulación.');}
+  if(refresh){const movement=await pollShipment({...account,provider},stored,order.tracking_number);return movement.state==='cancelled'?{status:'confirmed',message:'Envia.com confirma la cancelación.'}:movement.state?pending():unknown();}
+  await beforeMutation();const result=await jsonRequest(`${account.config?.environment==='production'?'https://api.envia.com':'https://api-test.envia.com'}/ship/cancel/`,{Authorization:`Bearer ${token}`},{carrier:order.carrier_code,trackingNumber:order.tracking_number});
+  return accepted(parseEnviaCancellation(result.payload,order.tracking_number,order.carrier_code));
  }
  if(provider!=='mrw')throw new CancellationRejected('Este proveedor no admite anulación desde ZENVIA.');
  const c={franchise:stored.franchiseCode||stored.codigoFranquicia,subscriber:stored.subscriberCode||stored.codigoAbonado,department:stored.departmentCode||stored.codigoDepartamento,user:stored.username||stored.userName||stored.usuario,password:stored.password};
  const ref=order.shipping_remote_id||order.tracking_number;if(!c.franchise||!c.subscriber||!c.user||!c.password||!ref)throw new CancellationRejected('Faltan las credenciales o el número de envío MRW.');
+ if(refresh){const movement=await pollShipment({...account,provider},stored,ref);return movement.state==='cancelled'?{status:'confirmed',message:'MRW confirma la cancelación.'}:movement.state?pending():unknown();}
  const body=`<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Header><AuthInfo xmlns="http://www.mrw.es/"><CodigoFranquicia>${esc(c.franchise)}</CodigoFranquicia><CodigoAbonado>${esc(c.subscriber)}</CodigoAbonado><CodigoDepartamento>${esc(c.department)}</CodigoDepartamento><UserName>${esc(c.user)}</UserName><Password>${esc(c.password)}</Password></AuthInfo></soap:Header><soap:Body><CancelarEnvio xmlns="http://www.mrw.es/"><request><CancelaEnvio><NumeroEnvioOriginal>${esc(ref)}</NumeroEnvioOriginal></CancelaEnvio></request></CancelarEnvio></soap:Body></soap:Envelope>`;
- const environment=account.config?.environment==='test'?'test':'production',gateway=Deno.env.get('MRW_GATEWAY_URL'),key=Deno.env.get('MRW_GATEWAY_SECRET');let xml='';
+ const environment=account.config?.environment==='test'?'test':'production',gateway=Deno.env.get('MRW_GATEWAY_URL'),key=Deno.env.get('MRW_GATEWAY_SECRET');let xml='',status=200;
  await beforeMutation();
- if(gateway&&key){const payload=await jsonRequest(gateway,{'X-Zenvia-Gateway-Key':key},{environment,method:'POST',operation:'CancelarEnvio',soapVersion:'1.1',body});if(Number(payload.status)>=500)throw new Error('MRW no confirmó la respuesta.');xml=payload.bodyBase64?atob(payload.bodyBase64):'';}
- else{const res=await fetch(`https://${environment==='test'?'sagec-test':'sagec'}.mrw.es/mrwenvio.asmx`,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8',SOAPAction:'"http://www.mrw.es/CancelarEnvio"'},body,signal:AbortSignal.timeout(25000)});xml=await res.text();if(!res.ok)throw new Error(`MRW no confirmó la respuesta (${res.status}).`);}
- if(/<(?:\w+:)?(?:faultstring|DescripcionError|Mensaje)>[^<]+/i.test(xml))throw new CancellationRejected('MRW rechazó la anulación. Comprueba las condiciones del envío con tu agencia.');
- return /<(?:\w+:)?NumeroEnvio>\s*[^<]+/i.test(xml)?{status:'confirmed',message:'MRW confirmó la anulación del envío.'}:{status:'unknown',message:'MRW no devolvió una confirmación de anulación. Compruébalo con tu agencia.'};
+ if(gateway&&key){const result=await jsonRequest(gateway,{'X-Zenvia-Gateway-Key':key},{environment,method:'POST',operation:'CancelarEnvio',soapVersion:'1.1',body});status=Number(result.payload.status)||500;try{xml=result.payload.bodyBase64?atob(result.payload.bodyBase64):''}catch{return unknown()}}
+ else{const res=await fetch(`https://${environment==='test'?'sagec-test':'sagec'}.mrw.es/mrwenvio.asmx`,{method:'POST',headers:{'Content-Type':'text/xml; charset=utf-8',SOAPAction:'"http://www.mrw.es/CancelarEnvio"'},body,signal:AbortSignal.timeout(25000),redirect:'error'});status=res.status;xml=await res.text();}
+ const result=parseMrwCancellation(xml,ref);if(result.status==='rejected')return accepted(result);if(status<200||status>=300)return unknown();return result;
 }

@@ -1,0 +1,14 @@
+.cancelShipmentModal{width:min(560px,calc(100vw - 24px))}
+.cancelShipmentSummary{margin:0 0 20px;display:grid;gap:14px}
+.cancelShipmentSummary>div{min-width:0}
+.cancelShipmentSummary dt{color:var(--muted);font-size:12px;margin-bottom:4px}
+.cancelShipmentSummary dd{margin:0;font-weight:600;overflow-wrap:anywhere}
+.cancelShipmentAck{display:flex;align-items:flex-start;gap:10px;margin-top:20px;line-height:1.5}
+.cancelShipmentAck input{flex:0 0 18px;width:18px;height:18px;margin:3px 0 0;accent-color:var(--accent)}
+.cancellationNotice{border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:12px;background:var(--surface)}
+.cancellationNotice p{line-height:1.5;overflow-wrap:anywhere}
+.cancellationNotice p:last-child{margin-bottom:0}
+@media(max-width:600px){.cancelShipmentModal .formModalActions{flex-wrap:wrap}.cancelShipmentModal .formModalActions button{flex:1;min-height:44px}.cancelShipmentModal .formModalBody{font-size:14px}}
+.cancelShipmentModal.formModal{width:min(560px,calc(100vw - 24px));max-width:560px}
+.cancelShipmentModal.formModal .formModalHead h3{font-size:20px;line-height:1.25;letter-spacing:0;text-transform:none}
+@media(max-width:700px){.cancelShipmentModal.formModal{width:100%;max-width:none}}

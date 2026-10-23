@@ -1,0 +1,42 @@
+{
+  "retrieved_date": "2026-10-23",
+  "source": "Official AEAT documentation static download only; no SOAP calls; no certificates",
+  "files": [
+    {
+      "file": "SistemaFacturacion.wsdl",
+      "url": "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SistemaFacturacion.wsdl",
+      "sha256": "05919120708ff7650612fa6683c9336eaf919335d9a4db10e86759190af48602",
+      "bytes": 8780
+    },
+    {
+      "file": "SuministroInformacion.xsd",
+      "url": "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SuministroInformacion.xsd",
+      "sha256": "ee4c1655175644de44c4c25055ffeb8e5f4bb4bc3834ce8254d4222ef18c8aa1",
+      "bytes": 49540
+    },
+    {
+      "file": "SuministroLR.xsd",
+      "url": "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/SuministroLR.xsd",
+      "sha256": "cbdac8d427cc5ab5d77ca48974cab0f35d6bb819c4c66db361681e3710aeba36",
+      "bytes": 1573
+    },
+    {
+      "file": "ConsultaLR.xsd",
+      "url": "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/ConsultaLR.xsd",
+      "sha256": "bf2cdb8fc4b95b291757a72b76d8fffca06a6d30d9329122ca2fd6b2d5f8f1b1",
+      "bytes": 3886
+    },
+    {
+      "file": "RespuestaConsultaLR.xsd",
+      "url": "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/RespuestaConsultaLR.xsd",
+      "sha256": "de35063acb8d9ba0d6ae51acc6b595de9c2b12333250e95e13108ef5f2670d45",
+      "bytes": 10058
+    },
+    {
+      "file": "RespuestaSuministro.xsd",
+      "url": "https://prewww2.aeat.es/static_files/common/internet/dep/aplicaciones/es/aeat/tikeV1.0/cont/ws/RespuestaSuministro.xsd",
+      "sha256": "82acf80f785643caac13087aae66808ed721a13f08ca5218cf8ae81b695549ef",
+      "bytes": 6259
+    }
+  ]
+}

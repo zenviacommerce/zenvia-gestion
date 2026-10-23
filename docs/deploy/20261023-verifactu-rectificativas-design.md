@@ -1,8 +1,8 @@
-# VERI*FACTU y rectificativas completas — diseño para revisión
+# VERI*FACTU y rectificativas completas — diseño aprobado
 
-23 de octubre de 2026. Estado: PROPUESTA, SIN IMPLEMENTAR. Responsable de aprobación: propietario de Zenvia. No habilita remisión real ni solicita certificados por chat.
+23 de octubre de 2026. Estado: DISEÑO APROBADO; fase 0 iniciada, núcleo pendiente. Responsable de aprobación: propietario de Zenvia. No habilita remisión real ni solicita certificados por chat.
 
-## Decisión propuesta
+## Decisión aprobada
 
 Construir un núcleo fiscal único en Gestión, exclusivamente VERI*FACTU para los obligados de territorio común que entren en su ámbito, con registros inmutables, encadenamiento por obligado e instalación, outbox transaccional y un servicio aislado para custodiar certificados y comunicarse con AEAT. Platform administra capacidades y salud con permisos actuales; no comparte certificados entre clientes. Las rectificativas forman parte del núcleo antes de cualquier automatización Shopify.
 
@@ -20,7 +20,7 @@ No se implementa modalidad NO VERI*FACTU, ni se la activa automáticamente si fa
 
 La disposición final primera del RDL 15/2025 mantiene la adaptación antes del **1/1/2027 para los sujetos del art. 3.1.a** y **1/7/2027 para el resto**. Se ha contrastado el texto consolidado de RD 1007/2023 y BOE original, sin basar el calendario en anuncios. El plazo de fabricantes conserva la regla de nueve meses desde la Orden HAC/1177/2024; AEAT identifica el 29/7/2025. La ampliación para usuarios no equivale a permiso para vender ahora un SIF sin adaptar. [S1, S2, S3, S13]
 
-Antes de habilitar ZENVIA COMMERCE SL: el asesor debe confirmar por escrito obligado/NIF, territorio, sujeción a Sociedades, **no inclusión en SII**, regímenes, series, rectificativas y fecha de comienzo. No consta evidencia suficiente en esta sesión para afirmar su situación censal. Los contribuyentes incluidos en SII están excluidos del RRSIF; el alta del cliente conserva el fundamento de inclusión o exclusión. No se envían automáticamente por VERI*FACTU operaciones de otro ámbito. [S10]
+El propietario confirma que ZENVIA COMMERCE SL no está en el SII y aprueba el alcance exclusivo VERI*FACTU, las series e impuestos actuales y las fases 0–5. Esta decisión permite iniciar fases 0–1 sin otra validación del asesor. Se conserva la fecha objetivo 1/1/2027 indicada para la sociedad. Anotar y evaluar OSS si las ventas a distancia intracomunitarias superan 10.000 €; no cambiar automáticamente impuestos o régimen. No se envían operaciones fuera del ámbito autorizado. [S10]
 
 El RD exige altas, anulaciones, huella y trazabilidad, y declaración responsable del productor. La opción VERI*FACTU se mantiene al menos hasta terminar el año de su primer envío efectivo. No exige firma electrónica individual de los registros; el certificado autentica la transmisión. El registro reglamentario de eventos de NO VERI*FACTU no es obligatorio en la modalidad elegida. Por decisión de producto se mantiene auditoría interna inmutable de emisión, corrección, credenciales, remisión, exportación e incidencias. [S2, S3, S8, S9]
 
@@ -78,7 +78,7 @@ Se guardan los bytes calculados y el offset horario; no se recalcula el pasado c
 
 ## Remisión, respuestas y correcciones del registro
 
-La pasarela usa SOAP/XML y autenticación mTLS con certificado del obligado o representación acreditada. Fase 0 debe descargar desde el portal oficial y fijar con SHA-256 el WSDL, XSD, validaciones y ejemplos exactos. En esta revisión se han leído la descripción de servicio 1.0.3 (28/7/2025), hash 0.1.2 y especificación QR; algunos enlaces antiguos de WSDL/errores devuelven páginas de redirección sin el contrato. Eso impide declarar validado el adaptador antes de resolverlos. No se inventan códigos a partir de proveedores terceros. [S6, S7]
+La pasarela usa SOAP/XML y autenticación mTLS con certificado del obligado o representación acreditada. Fase 0 debe descargar desde el portal oficial y fijar con SHA-256 el WSDL, XSD, validaciones y ejemplos exactos. En esta revisión se han leído la descripción de servicio 1.0.3 (28/7/2025), hash 0.1.2 y especificación QR; algunos enlaces antiguos de WSDL/errores devuelven páginas de redirección sin el contrato. Los enlaces del WSDL y cinco XSD se han resuelto y fijado posteriormente en fase 0; eso no acredita todavía el adaptador, las validaciones ni los ejemplos. No se inventan códigos a partir de proveedores terceros. [S6, S7]
 
 | Resultado | Comportamiento propuesto |
 |---|---|
@@ -104,7 +104,7 @@ Inicialmente lotes pequeños, con una tarea activa por cadena y lease con token 
 | R4 | Resto de causas, incluyendo correcciones no monetarias cuando proceda |
 | R5 | Rectificación de facturas simplificadas |
 
-Tipos del catálogo oficial L2 y modos S/I de L3. [S3] El asistente ofrece motivo y referencias; el tipo lo confirma el usuario y las causas sensibles R2/R3 requieren revisión del asesor. No asignar R4 a toda devolución por defecto.
+Tipos del catálogo oficial L2 y modos S/I de L3. [S3] El asistente ofrece motivo y referencias; el tipo lo confirma el usuario y las causas R2/R3 conservan sus requisitos específicos documentados. No asignar R4 a toda devolución por defecto.
 
 Por **diferencias I** se documenta el incremento o reducción, positivo o negativo. Por **sustitución S** se presentan los importes correctos y los importes rectificados por separado; se propone la opción de un único documento con ambos bloques. Ejemplo propio de prueba: original base 100, IVA 21, total 121; corrección a base 80, IVA 16,80, total 96,80. I: base −20, IVA −4,20, total −24,20. S: base correcta 80 e IVA 16,80, base rectificada 100 y cuota rectificada 21. El impacto económico neto es −24,20, no +96,80 de venta adicional. [S11]
 
@@ -133,13 +133,13 @@ La protección reside en DB, no solo en ocultar botones: triggers y privilegios 
 
 Guardar XML original, snapshot, PDF definitivo, hashes, solicitudes/respuestas y exportación legible por obligado/rango. Bucket privado, URLs temporales y autorización en cada descarga. Copias cifradas y copia externa con retención inmutable y roles separados; ensayar restauración y comprobación de cadena. No declarar una copia en el mismo proyecto suficiente contra una cuenta administradora comprometida.
 
-El plazo se define en una matriz fiscal/mercantil/OSS y litigios con el asesor; no reutilizar la retención de 365 días del DNI y firma logística. El borrado de PII operativa de Amazon no debe arrastrar documentos fiscales cuya conservación esté legalmente justificada; separar dato fiscal imprescindible de payloads operativos. No se fija aquí una purga automática general a cuatro años. Hasta aprobar la matriz se conserva el archivo fiscal sin una regla automática de destrucción.
+El plazo se documenta en una matriz fiscal/mercantil/OSS y litigios; no reutilizar la retención de 365 días del DNI y firma logística. El borrado de PII operativa de Amazon no debe arrastrar documentos fiscales cuya conservación esté legalmente justificada; separar dato fiscal imprescindible de payloads operativos. No se fija aquí una purga automática general a cuatro años. Hasta aprobar la matriz se conserva el archivo fiscal sin una regla automática de destrucción.
 
 El rollback técnico puede pausar nuevas emisiones y workers, manteniendo lectura/exportación y cola pendiente; **no** borra registros remitidos, retrocede la cabecera, reutiliza números ni restaura un frontend que permita modificar emitidas. Tras la primera remisión real, los cambios fiscales requieren reparación hacia delante. Simular restauración con respuesta desconocida para impedir dobles envíos o cadenas bifurcadas.
 
 ## Transición y relación con la hoja de ruta
 
-Las 28 facturas emitidas/cobradas observadas se inventarían y archivarían como legado con su representación y procedencia. No se falsifican fechas de creación de registros, no se incluyen retrospectivamente en una cadena nueva ni se envían en bloque sin criterio del asesor y autorización con SQL exacto/recuento. El borrador se valida con las reglas nuevas cuando se emita. Si un documento histórico necesita corrección, se conserva el original y se genera la operación fiscal que corresponda.
+Las 28 facturas emitidas/cobradas observadas se inventarían y archivarían como legado con su representación y procedencia. No se falsifican fechas de creación de registros, no se incluyen retrospectivamente en una cadena nueva ni se envían en bloque sin autorización explícita con SQL exacto/recuento. El borrador se valida con las reglas nuevas cuando se emita. Si un documento histórico necesita corrección, se conserva el original y se genera la operación fiscal que corresponda.
 
 Shopify automática queda **después del núcleo**: Manual/Automática + prueba que solo genera borradores; evento configurable etiqueta/salida, idempotencia por owner/cuenta/pedido, serie propia, bloqueo a borrador si no cuadran totales y cancelaciones/devoluciones a rectificativa en borrador. La presencia de NIF/empresa propone completa, pero la simplificada exige validar límites y supuestos legales; no se usa como fallback universal si faltan datos. OSS se decide por operación y configuración fiscal; AEAT identifica clave de régimen 17 cuando corresponde. [S12]
 
@@ -149,11 +149,11 @@ Presupuestos y albaranes quedan después: no fiscales, series y estados propios 
 
 ## Plan por fases, estimación y aceptación
 
-Estimación de ingeniería, un ingeniero senior, excluye esperas del asesor, propietario y proveedor; no constituye compromiso de fecha ni suma trabajo paralelo ficticio.
+Estimación de ingeniería, un ingeniero senior, excluye esperas del propietario y proveedor; no constituye compromiso de fecha ni suma trabajo paralelo ficticio.
 
 | Fase | Entregable revisable | Estimación |
 |---|---|---|
-| 0 | Dictamen de ámbito/SII, inventario activo, contratos AEAT fijados, series/impuestos y matriz de conservación; decisión de custodio | 1–2 días |
+| 0 | Ámbito/SII confirmado por el propietario, inventario activo, contratos AEAT fijados, series/impuestos y matriz de conservación; decisión de custodio | 1–2 días |
 | 1 | Núcleo transaccional, cierre de mutabilidad, numeración/idempotencia, snapshots y cadena alta/anulación; sin conexión live | 4–6 días |
 | 2 | R1–R5, S/I, parcial/total, múltiples/sucesivas, saldo y PDF/QR archivados | 4–6 días |
 | 3 | Carga/rotación segura, adaptador SOAP, outbox, respuesta por línea, desconocidos, reintentos y subsanaciones en pruebas externas | 4–6 días |
@@ -166,15 +166,15 @@ Pruebas de aceptación: vectores de hash AEAT y XML/XSD, 20 solicitudes de emisi
 
 PDF: QR de 30–40 mm, propuesta 35 mm en posición inicial visible y zona libre ≥2 mm; destino y parámetros oficiales por ambiente, leyenda VERI*FACTU legible. Decodificación automática del QR en render a escala real y revisión humana. Borrador marcado inequívocamente sin QR fiscal que aparente emisión. [S7]
 
-Para cerrar producción: asesor aprueba supuestos y ejemplos; pruebas externas completadas; informe de aislamiento y restauración; declaración responsable firmada por productor por versión con identidad, composición, funcionalidades y datos de instalación; disponible en producto y archivada con historial. No se anuncia «homologado por AEAT» por superar pruebas o emitir la declaración. La propuesta incluye la ficha del producto, binarios/commit y dependencias que respaldan cada declaración. [S2, S14]
+Para cerrar producción: supuestos y ejemplos aprobados por el propietario; pruebas externas completadas; informe de aislamiento y restauración; declaración responsable firmada por productor por versión con identidad, composición, funcionalidades y datos de instalación; disponible en producto y archivada con historial. No se anuncia «homologado por AEAT» por superar pruebas o emitir la declaración. La propuesta incluye la ficha del producto, binarios/commit y dependencias que respaldan cada declaración. [S2, S14]
 
 Riesgos materiales: clasificación fiscal y OSS, fallos de representación, contrato AEAT cambiante, compromiso de administrador/certificado, concurrencia, red/duplicados, legado sin PDF congelado y cálculo de saldo por sustitución. Cada uno tiene puerta de aceptación anterior; si falla ámbito, custodia o integridad, se bloquea la activación de ese obligado. Queda prohibido afirmar cumplimiento integral con la sola implementación del hash y QR.
 
-## Decisiones para revisión del propietario
+## Decisiones del propietario y límites
 
-Se propone aprobar el alcance exclusivamente VERI*FACTU, la pasarela aislada con KMS y las fases 0–5; el asesor confirma ámbito/SII, series, fiscalidad y conservación. La aprobación de este diseño no autoriza contratar infraestructura, subir el certificado por chat, emitir facturas reales ni enviar registros a producción. Tras revisión se prepara el plan de implementación y su primer corte concreto.
+El propietario ha aprobado el alcance exclusivamente VERI*FACTU, la pasarela aislada con custodia de claves y las fases 0–5. Confirma no inclusión en SII y uso de series e impuestos actuales; no se pide validación adicional al asesor. Esto no autoriza contratar infraestructura, introducir certificados por chat, emitir facturas reales ni remitir registros a AEAT.
 
-**Punto de parada: este documento. No hay migraciones, handlers, credenciales o UI fiscal implementados.**
+**Ejecución autorizada:** fases 0–1 después de estabilizar #299. Fase 0 iniciada mediante inventario agregado y descarga estática de contratos oficiales, sin llamadas SOAP. No hay todavía núcleo fiscal, credenciales o UI fiscal implementados. Seguimiento: `20261023-verifactu-phase0/README.md`.
 
 ## Fuentes primarias consultadas el 23/10/2026
 
@@ -192,4 +192,5 @@ Se propone aprobar el alcance exclusivamente VERI*FACTU, la pasarela aislada con
 - S12: [AEAT: altas y régimen OSS](https://sede.agenciatributaria.gob.es/Sede/iva/sistemas-informaticos-facturacion-verifactu/preguntas-frecuentes/registros-facturacion-alta.html).
 - S13: [AEAT: aclaraciones para desarrolladores, 4/12/2025](https://sede.agenciatributaria.gob.es/static_files/AEAT_Desarrolladores/EEDD/IVA/VERI-FACTU/FAQs-Desarrolladores.pdf). El manual IVA 2025 aún muestra anteriores fechas de usuarios; se utiliza S1 para el calendario vigente.
 - S14: [AEAT: ejemplos de declaración responsable 0.5.1](https://sede.agenciatributaria.gob.es/static_files/Sede/Tema/IVA/Verifactu/EjemplosDeclaracionResponsable(V0.5.1).pdf).
-- Contratos por fijar en fase 0: [portal oficial técnico, WSDL, XSD y validaciones](https://sede.agenciatributaria.gob.es/Sede/iva/sistemas-informaticos-facturacion-verifactu/informacion-tecnica.html).
+- Contratos WSDL y cinco XSD fijados con SHA-256 en `20261023-verifactu-phase0/contracts/manifest.json`; validaciones y ejemplos todavía pendientes. Portal: [portal oficial técnico, WSDL, XSD y validaciones](https://sede.agenciatributaria.gob.es/Sede/iva/sistemas-informaticos-facturacion-verifactu/informacion-tecnica.html).
+

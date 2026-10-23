@@ -468,3 +468,10 @@ export function getOrderTrackingLink(orderId:string){
 export function reconcileAmazonOrders(){return invokeFunction<{ok:boolean;processed:number;failures:Array<{orderId:string;error:string}>}>('amazon-reconcile-orders',{});}
 
 export function completeAmazonRecipients(){return invokeFunction<{ok:boolean;enriched:number;failures:Array<{amazonAccountId:string;error:string}>}>('amazon-recipient-fallback',{});}
+
+export type ShipmentCreationResult={status:'pending'|'released'|'recovered';provider?:string;orderId?:string};
+export async function reconcileOrderShipmentCreation(orderId:string):Promise<ShipmentCreationResult>{
+ const value=await invokeFunction<ShipmentCreationResult>('shipping-creation-reconcile',{orderId},AbortSignal.timeout(110000));
+ if(!['pending','released','recovered'].includes(value?.status))throw new Error('La comprobación no devolvió un resultado válido. Actualiza el pedido antes de continuar.');
+ return value;
+}

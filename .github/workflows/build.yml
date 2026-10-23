@@ -34,6 +34,10 @@ jobs:
         run: npx vitest run tests/pickup-*.test.ts tests/pickup-*.test.tsx tests/signature-pad.test.tsx --maxWorkers=2
       - name: Typecheck pickup Edge Functions with Deno
         run: npx --yes deno@2.9.6 check --no-lock supabase/functions/pickup-report-documents/index.ts supabase/functions/pickup-report-purge/index.ts
+      - name: Durable shipment creation reconciliation regressions
+        run: npx vitest run tests/shipping-creation-*.test.ts tests/shipping-reconciliation*.test.ts tests/shipping-reference-lookup.test.ts tests/shipment-creation-recovery.test.tsx
+      - name: Typecheck carrier creation and reconciliation with Deno
+        run: npx --yes deno@2.9.6 check --no-lock supabase/functions/shipping-creation-reconcile/index.ts supabase/functions/shipping-creation-worker/index.ts supabase/functions/mrw-shipping/index.ts supabase/functions/envia-shipping/index.ts supabase/functions/sendcloud-orders/index.ts
       - name: Build production bundle
         run: npm run build
       - name: Upload dist artifact

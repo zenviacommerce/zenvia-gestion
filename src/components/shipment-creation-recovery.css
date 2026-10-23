@@ -1,0 +1,5 @@
+.shipmentCreationRecovery{margin:0 0 16px;}
+.shipmentCreationRecovery .formSectionTitle span{line-height:1.5;}
+.shipmentCreationRecovery>.secondary{min-height:44px;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:normal;}
+.shipmentCreationRecovery>p{margin:12px 0 0;line-height:1.5;overflow-wrap:anywhere;}
+@media(max-width:600px){.shipmentCreationRecovery>.secondary{width:100%;}}

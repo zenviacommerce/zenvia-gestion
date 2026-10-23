@@ -1,0 +1,22 @@
+{
+  "note": "The dialog and service are lazy chunks. TypeScript-only interface field names are erased; assertions inspect actual runtime markers.",
+  "checks": [
+    {
+      "path": "PickupDocumentDialog-DIdezBg2.js",
+      "status": 200,
+      "checks": {
+        "Comprobar env\u00edo": true,
+        "Estado del informe:": true,
+        "Pendiente de comprobar": true
+      }
+    },
+    {
+      "path": "pickupReportDocuments-BsFvrUV3.js",
+      "status": 200,
+      "checks": {
+        "reconcile_mail": true
+      }
+    }
+  ],
+  "passed": true
+}

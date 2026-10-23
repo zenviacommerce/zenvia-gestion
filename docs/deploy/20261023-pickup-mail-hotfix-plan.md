@@ -29,3 +29,21 @@ Rollback frontend preparado: restaurar deployment Vercel `dpl_6QnGEy8hmRSpfnh7Z3
 Preflight Edge: v3 ACTIVE, verify_jwt=true y nueve archivos sin cambios desde snapshot. Solo se sustituirán cuatro helpers del informe y se añadirá pickupMailRecovery; entrypoint, autenticación, MFA y vendor idénticos. MFA a15:08:39UTC: enabled=true,cohorte=1,solo propietario, sin cambios.
 
 Se prepara además un preflight transaccional (`20261023-pickup-mail-production-preflight.sql`) que aborta si cambian las tres definiciones originales, el único intento del incidente ya liberado o la configuración del piloto MFA. Se ejecutará como prefijo de la migración; contiene únicamente comprobaciones, sin cambios de pedidos ni de facturas.
+
+## Backend publicado · 15:14 UTC
+
+CI #301: seis workflows success en el commit exacto `1a2aa517e4f31c1e8230123ca2f86898a42e2b5a`. Preflight transaccional correcto a15:14:42 UTC, sin cambios. Migración `pickup_mail_recovery_hotfix` aplicada; sin backfill ni cambios en pedidos. Edge desplegada v4 ACTIVE, verify_jwt=true, hash de bundle `39e1a7d00ead601a21a94ba400c3d676ebcae605d3cdcfe86a45235c9d65036f`. Se mantiene autenticación/MFA original.
+
+Verificación backend a15:15:16 UTC: archivos exactos desplegados; watchdog `* * * * *` activo; seis RPC de correo con EXECUTE denegado a anon/authenticated y permitido a service_role; MFA enabled=true/cohorte1/solo propietario. El único intento sigue failed/EDGE_CPU_LIMIT/reconcile_required=false. La RPC context confirma que ya no bloquea un reintento.
+
+PR #301 integrada por squash: main `5db28e2e721bfeb75a6cc4b4d38d8c63f128529c`. Pendiente comprobar deployment/alias Vercel antes de avisar al propietario.
+
+## Frontend publicado y comprobación operativa
+
+Vercel producción READY: `dpl_84q6V8ePQ25hYYDYE6XEiz8UsPot`, commit `5db28e2e721bfeb75a6cc4b4d38d8c63f128529c`, URL `zenvia-gestion-5qf91gqb6-sergiorojasdiaz-7097.vercel.app`, alias `gestion.zenviacommerce.com`, sin aliasError. Build 48,9s.
+
+Edge real sin credenciales: OPTIONS200, POST401 por falta de autorización. Logs desde15:14:40 muestran boot60ms y esas dos solicitudes, sin error de ejecución; no prueban un envío autenticado. Watchdog cron succeeded a15:15 y15:16 UTC (12–21ms). Su return_message «1 row» es la fila devuelta por SELECT, no una modificación de correo. El envío completo está probado con proveedor simulado, no con Gmail real.
+
+HTTP de producción: HTML200 y bundle index-By4wrXKI.js200. El modal y servicio son chunks lazy separados: PickupDocumentDialog-DIdezBg2.js y pickupReportDocuments-BsFvrUV3.js, ambos200. Confirmados en runtime los textos Comprobar envío/Estado del informe/Pendiente de comprobar y action reconcile_mail. [Recibo](20261023-pickup-mail-review/production-http-check.json). El primer chequeo del index no encontraba los marcadores por estar en chunks lazy; no era un fallo de publicación.
+
+Avisado el propietario para recargar y reintentar REC-2026-0004; copia por defecto y sin duplicado al enviarse a sí mismo. Se le indica que Google puede pedir lectura y que debe elegir el mismo buzón. No se ha enviado correo real desde esta sesión. Retomado #299; #300 permanece en diseño para revisión.

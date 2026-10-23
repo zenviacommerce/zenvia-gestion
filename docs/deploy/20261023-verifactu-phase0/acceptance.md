@@ -1,6 +1,6 @@
 # Cierre documental/técnico de fase 0
 
-23/10/2026. La fase 0 dispone de los entregables definidos para iniciar el núcleo, sin remisión AEAT ni emisión de facturas. #299 conserva su aceptación de rendimiento pendiente del propietario; no se publica frontend ni se da de alta infraestructura fiscal mientras esté pendiente.
+23/10/2026. La fase 0 dispone de los entregables definidos para iniciar el núcleo, sin remisión AEAT ni emisión de facturas. #299 conserva su aceptación de rendimiento pendiente del propietario. Este ha autorizado publicar el frontend tras cerrar MFA y CI, para medir en su navegador real; permanece prohibida el alta de infraestructura fiscal hasta su indicación.
 
 | Entregable de fase 0 | Evidencia |
 |---|---|

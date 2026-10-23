@@ -23,7 +23,7 @@ Estimación de diseño vigente: fase 0, 1–2 días; fase 1, 4–6 días de inge
 
 El propietario ha elegido Google Cloud, europe-west1 (Bélgica), escalado a cero y clave privada no exportable en KMS/HSM. Se prepara el alta en google-cloud-owner-onboarding.md para que la ejecute personalmente después de #299 y fase 0. No se han creado recursos ni importado certificados. Esa elección no bloquea el inventario, contratos ni pruebas offline de fase 0.
 
-## Dos opciones concretas de pasarela y custodia
+## Comparativa histórica anterior a la decisión
 
 Estimaciones de presupuesto de ingeniería, no ofertas ni contratación. Supuesto común: un obligado, ≤10.000 registros/mes, test y producción separados, tráfico pequeño y sin instancia dedicada siempre encendida. Importes mensuales aproximados en euros con margen de consumo; la factura puede ser en USD, con cambio e impuestos. Incluyen compute ligero, claves/secretos y logs/archivo modestos; excluyen NAT dedicado, firewall administrado, HSM dedicado y soporte empresarial.
 
@@ -32,7 +32,7 @@ Estimaciones de presupuesto de ingeniería, no ofertas ni contratación. Supuest
 | AWS | eu-west-1, Irlanda | Lambda + API Gateway; PFX cifrado en Secrets Manager mediante KMS, identidad mínima de runtime; S3 para archivo privado | 10–25 € |
 | Google Cloud | europe-west1, Bélgica | Cloud Run con mínimo 0 + Secret Manager regional + Cloud KMS; Cloud Storage para archivo privado | 5–20 €; 20–45 € si se mantiene una instancia mínima caliente |
 
-Recomendación inicial: AWS si se prefiere mantener un proveedor habitual; Google Cloud es igualmente viable para un contenedor SOAP/mTLS con escalado a cero. Son alternativas para seleccionar, no recursos creados. Confirmar región compatible de cada recurso, presupuesto y arquitectura de salida antes de contratar. El aislamiento estricto de red puede aumentar estos importes y requiere una cotización aparte.
+Esta comparación se conserva como antecedente. La selección está cerrada: Google Cloud en Bélgica. El plan vigente de Cloud HSM con clave no exportable, costes y consola está en google-cloud-owner-onboarding.md; la opción PFX cifrado de esta tabla no satisface por sí sola esa custodia. Confirmar compatibilidad HSM/mTLS en una prueba posterior, región de cada recurso, presupuesto y arquitectura de salida antes de contratar. El aislamiento estricto de red puede aumentar estos importes y requiere una cotización aparte.
 
 En ambas, el certificado importado puede existir brevemente descifrado en memoria para mTLS; KMS/envelope encryption no lo convierte en una clave HSM no exportable. No exponer firma arbitraria, PFX, contraseña o claves al frontend, logs o base de datos de Gestión. Validar representación, rotación, revocación y recuperación antes de habilitar tráfico AEAT. Ninguna opción se ha contratado o desplegado.
 

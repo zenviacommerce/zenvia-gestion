@@ -1167,4 +1167,39 @@ BEGIN
  RETURN result;
 END $function$
 ;
+CREATE OR REPLACE FUNCTION public.pickup_document_complete(p_owner uuid, p_actor uuid, p_report uuid, p_request uuid, p_lease uuid, p_artifact jsonb)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+declare s private.pickup_document_state%rowtype;o private.pickup_document_operations%rowtype;v_groups integer;v_count integer;v_complete boolean;v_root text;v_report jsonb;begin
+ perform private.pickup_document_assert(p_owner,p_actor);perform pg_advisory_xact_lock(hashtextextended('pickup-document:'||p_report::text,0));
+ select * into o from private.pickup_document_operations where owner_id=p_owner and request_id=p_request and report_id=p_report and actor_id=p_actor for update;
+ if not found then raise exception 'PICKUP_OPERATION_NOT_FOUND';end if;if o.status='completed' then return private.pickup_document_json(p_report);end if;
+ select * into s from private.pickup_document_state where report_id=p_report and owner_id=p_owner for update;
+ v_report:=private.pickup_report_effective(p_report);
+ if jsonb_typeof(o.input->'verifiedOrderIds') is distinct from 'array' or jsonb_array_length(o.input->'verifiedOrderIds')=0 or jsonb_array_length(o.input->'verifiedOrderIds')>2000 then raise exception 'PICKUP_VERIFICATION_REQUIRED';end if;
+ if coalesce(o.input->>'reportRevision','') !~ '^[0-9]{1,9}$' or (o.input->>'reportRevision')::integer<>s.revision then raise exception 'PICKUP_VERIFICATION_STALE';end if;
+ if (select coalesce(jsonb_agg(id order by id),'[]'::jsonb) from jsonb_array_elements_text(o.input->'verifiedOrderIds') id) is distinct from
+ (select coalesce(jsonb_agg(i->>'orderId' order by i->>'orderId'),'[]'::jsonb) from jsonb_array_elements(v_report->'items') i where trim(i->>'carrier')=o.carrier) then raise exception 'PICKUP_VERIFICATION_STALE';end if;
+ if (o.input->>'packages')::integer is distinct from (select sum((i->>'packages')::integer) from jsonb_array_elements(v_report->'items')i where trim(i->>'carrier')=o.carrier) then raise exception 'PICKUP_INVALID_PACKAGES';end if;
+
+ if s.lease is distinct from p_lease or s.lease_request is distinct from p_request or s.lease_until<=now() or s.status in ('signed','void') or s.pii_purged_at is not null or s.expires_at<=now() then raise exception 'PICKUP_LEASE_LOST';end if;
+ v_root:=p_owner::text||'/'||p_report::text||'/'||p_request::text;
+ if coalesce(p_artifact->>'pdfHash','') !~ '^[a-f0-9]{64}$' or (s.stamp_path is null and p_artifact->>'stampPath' is distinct from v_root||'/stamp.png') or (s.stamp_path is not null and p_artifact->>'stampPath' is distinct from s.stamp_path)
+ or (p_artifact->>'logoPath' is not null and p_artifact->>'logoPath' not in (v_root||'/logo.png',coalesce(s.logo_path,''))) then raise exception 'PICKUP_INVALID_ARTIFACT';end if;
+ insert into private.pickup_document_signatures(report_id,owner_id,carrier,request_id,driver_name,identifier,received_at,packages,signature_path,signature_hash,created_by)
+ values(p_report,p_owner,o.carrier,p_request,trim(o.input->>'driverName'),trim(o.input->>'identifier'),(o.input->>'receivedAt')::timestamptz,(o.input->>'packages')::integer,o.signature_path,o.input->>'signatureHash',p_actor);
+ select count(distinct trim(i->>'carrier')) into v_groups from public.pickup_reports r,jsonb_array_elements(private.pickup_report_effective(r.id)->'items')i where r.id=p_report;
+ select count(*) into v_count from private.pickup_document_signatures where report_id=p_report;v_complete:=v_count=v_groups;
+ update private.pickup_document_state set status=case when v_complete then 'signed' else 'partial' end,revision=revision+1,pdf_path=o.pdf_path,pdf_hash=p_artifact->>'pdfHash',stamp_path=coalesce(stamp_path,p_artifact->>'stampPath'),logo_path=coalesce(logo_path,p_artifact->>'logoPath'),
+ first_signed_at=coalesce(first_signed_at,now()),expires_at=coalesce(expires_at,now()+make_interval(days=>coalesce((select retention_days from private.pickup_document_config where id),365))),signed_at=case when v_complete then now() end,signed_by=case when v_complete then p_actor end,
+ lease=null,lease_request=null,lease_until=null where report_id=p_report;
+ update private.pickup_document_operations set status='completed',completed_at=now(),input='{}' where owner_id=p_owner and request_id=p_request;
+ insert into public.audit_logs(workspace_owner_id,actor_user_id,module,action,entity_type,entity_id,entity_label,summary,details)
+ select p_owner,p_actor,'orders','sign_pickup_report','pickup_report',p_report::text,r.number,'Firma registrada en informe de recogida',jsonb_build_object('carrier',o.carrier,'packages',(o.input->>'packages')::integer,'signatureHash',o.input->>'signatureHash','pdfHash',p_artifact->>'pdfHash') from public.pickup_reports r where r.id=p_report;
+ return private.pickup_document_json(p_report);
+end$function$
+;
 commit;

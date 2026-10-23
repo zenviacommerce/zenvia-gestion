@@ -308,3 +308,5 @@ La acción individual y masiva «Marcar como enviado» usa `FormModal` de `@zenv
 Los avisos de recogida y el histórico importado usan `StatusBadge`; el aviso comparte el umbral configurable `orders.overdueHours`. Un histórico del canal sin etiqueta local no se presenta como salida física acreditada. El detalle muestra fecha y causa cuando existe esa evidencia. Se conservan `Tabs`, `SearchField`, «Añadir filtro», selección y paginación existentes.
 
 Evidencia de revisión en `deploy/20261023-internal-logistics-review/`: pantallas reales con servicios sintéticos y red bloqueada, pruebas SQL separadas. Sin publicación.
+
+Firma de recogida: la comprobación de envíos abre el cuerpo del modal, antes de datos y firma. Un único scroll contiene la lista completa. Bultos recogidos suma las líneas comprobadas y se recalcula al cambiar o retirar líneas; una edición distinta muestra aviso accesible y conserva ambos totales en el PDF.

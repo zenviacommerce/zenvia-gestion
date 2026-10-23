@@ -154,3 +154,37 @@ do $$declare src text;f record;before_src text;begin
  end loop;
 end$$;
 revoke all on function private.order_logistics_identity(jsonb),private.order_logistics_evidence(jsonb),private.order_logistics_state(jsonb),private.order_report_identity(uuid,uuid,text),private.order_dispatch_from_tracking(),private.order_dispatch_from_signature() from public,anon,authenticated;
+
+-- Additive RPCs use the existing MFA manifest/wrapper contract. The pilot configuration is unchanged.
+DO $wrap$
+DECLARE f record; original text; impl_name text; impl_oid regprocedure; args text;
+BEGIN
+ FOR f IN SELECT p.* FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+ WHERE n.nspname='public' AND p.proname IN
+ ('order_logistics_read','order_logistics_mark_sent')
+ LOOP
+ original:=pg_get_functiondef(f.oid);
+ impl_name:='mfa_impl_'||f.proname;
+ EXECUTE replace(original,'FUNCTION public.'||f.proname||'(', 'FUNCTION private.'||impl_name||'(');
+ impl_oid:=to_regprocedure('private.'||impl_name||'('||oidvectortypes(f.proargtypes)||')');
+ SELECT string_agg('$'||i,',' ORDER BY i) INTO args FROM generate_series(1,f.pronargs)i;
+ EXECUTE format('CREATE OR REPLACE FUNCTION public.%I(%s) RETURNS jsonb LANGUAGE plpgsql %s SECURITY DEFINER SET search_path=%L AS %L',
+ f.proname,pg_get_function_arguments(f.oid),CASE WHEN f.provolatile='s' THEN 'STABLE' ELSE 'VOLATILE' END,'',
+ 'BEGIN IF auth.uid() IS NULL THEN RAISE EXCEPTION ''AUTH_REQUIRED'' USING ERRCODE=''42501''; END IF; PERFORM public.security_mfa_assert(false); RETURN private.'||impl_name||'('||args||'); END');
+ EXECUTE format('REVOKE ALL ON FUNCTION %s FROM PUBLIC,anon,authenticated',impl_oid);
+ INSERT INTO private.mfa_function_manifest(signature,function_oid,implementation,original_definition,wrapper_hash)
+ VALUES(f.oid::regprocedure::text,f.oid,impl_oid,original,md5(pg_get_functiondef(f.oid)));
+ END LOOP;
+END $wrap$;
+
+-- A declared pickup total can differ from the verified line sum. The PDF already
+-- prints both totals; keep exact verified IDs/revision and base numeric validation.
+do $declared$ declare src text; fn text; needle text; begin
+ foreach fn in array array['public.pickup_document_prepare(uuid,uuid,uuid,uuid,uuid,jsonb)','public.pickup_document_complete(uuid,uuid,uuid,uuid,uuid,jsonb)'] loop
+ src:=pg_get_functiondef(fn::regprocedure);
+ needle:='if (p_input->>''packages'')::integer is distinct from (select sum((i->>''packages'')::integer) from jsonb_array_elements(v_report->''items'')i where trim(i->>''carrier'')=v_carrier) then raise exception ''PICKUP_INVALID_PACKAGES'';end if;';
+ if fn like '%complete%' then needle:=replace(replace(needle,'p_input','o.input'),'v_carrier','o.carrier');end if;
+ if position(needle in src)=0 then raise exception 'LOGISTICS_DECLARED_PACKAGES_GUARD_CHANGED';end if;
+ execute replace(src,needle,'');
+ end loop;
+end $declared$;

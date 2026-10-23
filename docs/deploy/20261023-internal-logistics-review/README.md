@@ -46,3 +46,16 @@ El KPI Enviados usa la misma regla que Pedidos. Caso sintético: 23 comerciales 
 | reports · 1440 | [Ver](before/reports-1440-light.png) | [Ver](after/reports-1440-light.png) |
 | reports · 1920 | [Ver](before/reports-1920-light.png) | [Ver](after/reports-1920-light.png) |
 | reports · 2560 | [Ver](before/reports-2560-light.png) | [Ver](after/reports-2560-light.png) |
+
+
+## Revisión del repartidor tras aprobación
+
+La lista de envíos aparece primero, antes de los datos y firma, con un solo desplazamiento del modal. Bultos parte de cero y suma únicamente las líneas comprobadas; marcar, desmarcar o retirar recalcula y limpia cualquier ajuste. La edición muestra el aviso de discrepancia y guarda el número declarado; el PDF distingue el total de líneas del declarado.
+
+| Vista | Antes | Después | Aviso de discrepancia |
+| --- | --- | --- | --- |
+| 390 claro | [Antes](driver-review-before/03-verification-390-light.png) | [Después](flow/03-verification-390-light.png) | [Aviso](flow/05b-declared-discrepancy-390-light.png) |
+| 1440 claro | [Antes](driver-review-before/03-verification-1440-light.png) | [Después](flow/03-verification-1440-light.png) | [Aviso](flow/05b-declared-discrepancy-1440-light.png) |
+| 2560 oscuro | [Antes](driver-review-before/03-verification-2560-dark.png) | [Después](flow/03-verification-2560-dark.png) | [Aviso](flow/05b-declared-discrepancy-2560-dark.png) |
+
+El flujo completo se repite a 390/1440/2560, claro y oscuro, con 72 capturas actuales más las 18 anteriores preservadas para comparar el modal. Datos sintéticos; red externa bloqueada.

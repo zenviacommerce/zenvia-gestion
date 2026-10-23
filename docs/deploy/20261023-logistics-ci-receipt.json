@@ -1,0 +1,63 @@
+{
+  "pr": 297,
+  "commit": "bc46de366b1cb3926773bf7fafdabf0be9d623bd",
+  "productionWrites": 0,
+  "published": false,
+  "localTests": 715,
+  "focused": {
+    "sql": 19,
+    "ui": 6,
+    "pdf": 2
+  },
+  "realIntegration": {
+    "passed": 11,
+    "failed": 0,
+    "skipped": 0
+  },
+  "workflows": [
+    {
+      "name": "Shared UI package and tab contracts",
+      "id": 39947727992,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39947727992"
+    },
+    {
+      "name": "Build check",
+      "id": 39947727973,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39947727973"
+    },
+    {
+      "name": "Auth resilience tests",
+      "id": 39947728004,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39947728004"
+    },
+    {
+      "name": "MFA real integration (disposable Supabase)",
+      "id": 39947727824,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39947727824"
+    },
+    {
+      "name": "Build ZENVIA Gestión",
+      "id": 39947728176,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39947728176"
+    },
+    {
+      "name": "MFA visual review (Playwright)",
+      "id": 39947727902,
+      "status": "completed",
+      "conclusion": "success",
+      "url": "https://github.com/zenviacommerce/zenvia-gestion/actions/runs/39947727902"
+    }
+  ],
+  "vercel": "success",
+  "pending": "Owner approval of exact production SQL; repeat read-only preflight before execution"
+}

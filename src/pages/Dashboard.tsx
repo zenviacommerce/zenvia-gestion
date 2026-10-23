@@ -1,7 +1,7 @@
 import {OrderFinancialSummary} from '../components/OrderFinancialSummary';
 import {KpiGrid} from '../components/KpiGrid';
 import {PageHeader} from '../components/PageHeader';
-import {readOrdersSnapshot,ORDERS_SNAPSHOT_EVENT} from '../services/ordersSnapshot';
+import {ORDERS_SNAPSHOT_EVENT} from '../services/ordersSnapshot';
 import { watchFulfillmentOrders } from '../services/orderLiveUpdates';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -14,8 +14,7 @@ import { StatCard } from '../components/StatCard';
 import { PeriodFilterPanel } from '../components/PeriodFilterPanel';
 import { defaultDateFilter, periodLabel } from '../services/filters';
 import { loadSalesInvoices, type SalesInvoice } from '../services/sales';
-import { listFulfillmentOrders, type FulfillmentOrder } from '../services/orders';
-import { isCancelledOrder, isPendingOrder, isProcessedOrder } from '../services/orderStatus';
+import {fetchOrdersOperationalSummary,type OrdersOperationalSummary} from '../services/orders';
 import { readViewCache, writeViewCache } from '../services/viewCache';
 import { useSettings } from '../context/SettingsContext';
 import { DASHBOARD_KPI_DEFAULTS, persistRememberedFilter, rememberedFilter, selectedPreferenceKeys } from '../services/uiPreferences';
@@ -24,15 +23,13 @@ import { formatAppMoney } from '../services/formatting';
 const colors = ['#0f766e','#2563eb','#7c3aed','#d97706','#64748b','#dc2626','#0891b2'];
 const DASHBOARD_SALES_CACHE='dashboard:sales';
 
-function orderDate(order:FulfillmentOrder){return order.orderCreatedAt?.slice(0,10)||'';}
-
 export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrders}:{invoices:Invoice[];products:Product[];suppliers:Supplier[];onUpload?:()=>void;onProducts?:()=>void;onOrders?:()=>void}){
   const {settings,preferences,patchPreferences}=useSettings();
   const money=(value:number,maximumFractionDigits=2)=>formatAppMoney(value,settings.general.currencyCode,settings.general,{minimumFractionDigits:2,maximumFractionDigits});
   const [filter,setFilter]=useState(()=>rememberedFilter(preferences,'dashboard.period',defaultDateFilter(preferences.defaultPeriod)));
   const [sales,setSales]=useState<SalesInvoice[]>(()=>readViewCache<SalesInvoice[]>(DASHBOARD_SALES_CACHE)||[]);
   const [ordersRefreshRevision,setOrdersRefreshRevision]=useState(0);
-  const [orders,setOrders]=useState<FulfillmentOrder[]>(()=>readOrdersSnapshot());
+  const [orderSummary,setOrderSummary]=useState<{from:string;to:string;values:OrdersOperationalSummary}|null>(null);
 
   useEffect(()=>{
     const timer=window.setTimeout(()=>{void persistRememberedFilter(preferences,patchPreferences,'dashboard.period',filter)},350);
@@ -46,22 +43,26 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
   useEffect(()=>{
     let alive=true;
     let inFlight=false;
-    const publish=(next:FulfillmentOrder[])=>{if(!alive)return;setOrders(next);setOrdersRefreshRevision(value=>value+1);};
-    const refreshOrders=async()=>{
-      if(inFlight)return;
+    let queued=false;
+    let queuedFinance=false;
+    const refreshOrders=async(invalidateFinance=false)=>{
+      if(invalidateFinance)queuedFinance=true;
+      if(inFlight){queued=true;return;}
       inFlight=true;
+      const refreshFinance=queuedFinance;queuedFinance=false;
       try{
-        publish(await listFulfillmentOrders());
+        const values=await fetchOrdersOperationalSummary(filter.from,filter.to);
+        if(alive){setOrderSummary({from:filter.from,to:filter.to,values});if(refreshFinance)setOrdersRefreshRevision(value=>value+1);}
       }catch{/* Conserva los KPI existentes ante un fallo puntual de sincronización o lectura. */}
-      finally{inFlight=false;}
+      finally{inFlight=false;if(alive&&queued){queued=false;void refreshOrders();}}
     };
     // Background ingestion runs on the server; this page reads persisted data.
     void refreshOrders();
-    const onSnapshot=()=>{if(alive){setOrders(readOrdersSnapshot());setOrdersRefreshRevision(value=>value+1);}};
+    const onSnapshot=()=>{if(alive)void refreshOrders(true);};
     window.addEventListener(ORDERS_SNAPSHOT_EVENT,onSnapshot);
-    const stopLiveUpdates=watchFulfillmentOrders(refreshOrders,Math.max(60,settings.orders.refreshSeconds)*1000);
+    const stopLiveUpdates=watchFulfillmentOrders(()=>refreshOrders(true),Math.max(60,settings.orders.refreshSeconds)*1000);
     return()=>{alive=false;stopLiveUpdates();window.removeEventListener(ORDERS_SNAPSHOT_EVENT,onSnapshot);};
-  },[settings.integrations.sendcloudEnabled,settings.orders.refreshSeconds]);
+  },[settings.integrations.sendcloudEnabled,settings.orders.refreshSeconds,filter.from,filter.to]);
 
   const periodExpenses=useMemo(()=>invoices.filter(invoice=>(!filter.from||invoice.invoiceDate>=filter.from)&&(!filter.to||invoice.invoiceDate<=filter.to)),[invoices,filter]);
   const selectedSales=useMemo(()=>sales.filter(invoice=>{
@@ -70,14 +71,6 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
     if(filter.to&&invoice.issueDate>filter.to)return false;
     return true;
   }),[sales,filter.from,filter.to]);
-  const selectedOrders=useMemo(()=>orders.filter(order=>{
-    const date=orderDate(order);
-    if(!date)return false;
-    if(filter.from&&date<filter.from)return false;
-    if(filter.to&&date>filter.to)return false;
-    return true;
-  }),[orders,filter.from,filter.to]);
-
   const visibleKpis=new Set(selectedPreferenceKeys(preferences.dashboardKpis,DASHBOARD_KPI_DEFAULTS));
   const showKpi=(key:string)=>visibleKpis.has(key);
   const selectedPeriod=periodLabel(filter);
@@ -90,17 +83,16 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
   const receivable=selectedSales.reduce((s,i)=>s+Math.max(0,i.totalAmount-i.paidAmount),0);
   const pending=periodExpenses.filter(i=>i.status==='pending').length;
 
-  const validOrders=selectedOrders.filter(order=>!isCancelledOrder(order));
-  const allValidOrders=orders.filter(order=>!isCancelledOrder(order));
-  const orderCount=validOrders.length;
+  const operational=orderSummary?.from===filter.from&&orderSummary.to===filter.to?orderSummary.values:null;
+  const orderCount=operational?.orders??'—';
   // "Pendientes" is an operational backlog, not a period KPI: it must always
   // reflect every order that is still genuinely pending even across month /
   // quarter boundaries. Period filters continue to apply to the remaining KPIs.
-  const pendingOrders=allValidOrders.filter(isPendingOrder).length;
-  const shippedOrders=validOrders.filter(isProcessedOrder).length;
-  const cancelledOrders=selectedOrders.filter(isCancelledOrder).length;
-  const amazonOrders=validOrders.filter(order=>order.sourceChannel==='amazon').length;
-  const shopifyOrders=validOrders.filter(order=>order.sourceChannel==='shopify').length;
+  const pendingOrders=operational?.pending;
+  const shippedOrders=operational?.shipped??'—';
+  const cancelledOrders=operational?.cancelled??'—';
+  const amazonOrders=operational?.amazon??'—';
+  const shopifyOrders=operational?.shopify??'—';
 
   const byCategory=Object.entries(periodExpenses.reduce<Record<string,number>>((a,i)=>{a[i.category]=(a[i.category]||0)+i.total;return a;},{})).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value);
   const changed=products.filter(p=>p.lastPrice!=null&&p.previousPrice!=null).sort((a,b)=>Math.abs(((b.lastPrice!-b.previousPrice!)/b.previousPrice!))-Math.abs(((a.lastPrice!-a.previousPrice!)/a.previousPrice!)))[0];
@@ -123,7 +115,7 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
     {[...['orders','pendingOrders','shippedOrders','cancelledOrders']].some(showKpi)&&<><div className="dashboardSectionHead orders"><div><div className="eyebrow">OPERATIVA</div><h2>Pedidos y logística</h2><p>Amazon, Shopify y pedidos manuales · {selectedPeriod}</p></div></div>
     <KpiGrid label="Pedidos y logística" dense>
       {showKpi('orders')&&<StatCard label="Pedidos" value={String(orderCount)} sub={`Amazon ${amazonOrders} · Shopify ${shopifyOrders}`} icon={<ShoppingBag/>}/>}
-      {showKpi('pendingOrders')&&<StatCard variant={pendingOrders>0?'warning':'default'} label="Pendientes" value={String(pendingOrders)} sub={pendingOrders>0?'Pendientes reales · sin limitar por periodo':'Sin pedidos pendientes'} icon={<PackageCheck/>} onClick={onOrders}/>}
+      {showKpi('pendingOrders')&&<StatCard variant={(pendingOrders??0)>0?'warning':'default'} label="Pendientes" value={pendingOrders===undefined?'—':String(pendingOrders)} sub={pendingOrders===undefined?'Cargando pedidos pendientes':pendingOrders>0?'Pendientes reales · sin limitar por periodo':'Sin pedidos pendientes'} icon={<PackageCheck/>} onClick={onOrders}/>}
       {showKpi('shippedOrders')&&<StatCard label="Enviados" value={String(shippedOrders)} sub={selectedPeriod} icon={<Truck/>}/>}
       {showKpi('cancelledOrders')&&<StatCard label="Cancelados" value={String(cancelledOrders)} sub={selectedPeriod} icon={<XCircle/>}/>}
     </KpiGrid></>}
@@ -138,3 +130,4 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
   </div>
 }
 function Empty({text}:{text:string}){return <div className="emptyState">{text}</div>}
+

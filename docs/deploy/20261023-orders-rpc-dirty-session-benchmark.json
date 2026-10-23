@@ -1,0 +1,236 @@
+{
+  "workbench": {
+    "rpc": "workbench",
+    "note": "Session-only pending queue copy: 0, 1 and 3 groups forced through full sibling fallback; no persistent queue or business writes",
+    "at_utc": "2026-10-23T16:10:45.716216",
+    "samples": [
+      {
+        "bytes": 392813,
+        "state": "all",
+        "total": 1008,
+        "sample": 1,
+        "variant": "production",
+        "page_rows": 25,
+        "elapsed_ms": 5881.951,
+        "result_hash": "6dade8c1fcbeda87a6ca578fcf78170b",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 392813,
+        "state": "all",
+        "total": 1008,
+        "sample": 1,
+        "variant": "dirty_0",
+        "page_rows": 25,
+        "elapsed_ms": 215.221,
+        "result_hash": "6dade8c1fcbeda87a6ca578fcf78170b",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 392813,
+        "state": "all",
+        "total": 1008,
+        "sample": 2,
+        "variant": "dirty_0",
+        "page_rows": 25,
+        "elapsed_ms": 182.487,
+        "result_hash": "6dade8c1fcbeda87a6ca578fcf78170b",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 392813,
+        "state": "all",
+        "total": 1008,
+        "sample": 3,
+        "variant": "dirty_0",
+        "page_rows": 25,
+        "elapsed_ms": 182.029,
+        "result_hash": "6dade8c1fcbeda87a6ca578fcf78170b",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 392813,
+        "state": "all",
+        "total": 1008,
+        "sample": 1,
+        "variant": "dirty_1",
+        "page_rows": 25,
+        "elapsed_ms": 193.983,
+        "result_hash": "6dade8c1fcbeda87a6ca578fcf78170b",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 392813,
+        "state": "all",
+        "total": 1008,
+        "sample": 2,
+        "variant": "dirty_1",
+        "page_rows": 25,
+        "elapsed_ms": 182.078,
+        "result_hash": "6dade8c1fcbeda87a6ca578fcf78170b",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 392813,
+        "state": "all",
+        "total": 1008,
+        "sample": 3,
+        "variant": "dirty_1",
+        "page_rows": 25,
+        "elapsed_ms": 179.274,
+        "result_hash": "6dade8c1fcbeda87a6ca578fcf78170b",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 392813,
+        "state": "all",
+        "total": 1008,
+        "sample": 1,
+        "variant": "dirty_3",
+        "page_rows": 25,
+        "elapsed_ms": 186.652,
+        "result_hash": "6dade8c1fcbeda87a6ca578fcf78170b",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 392813,
+        "state": "all",
+        "total": 1008,
+        "sample": 2,
+        "variant": "dirty_3",
+        "page_rows": 25,
+        "elapsed_ms": 187.474,
+        "result_hash": "6dade8c1fcbeda87a6ca578fcf78170b",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 392813,
+        "state": "all",
+        "total": 1008,
+        "sample": 3,
+        "variant": "dirty_3",
+        "page_rows": 25,
+        "elapsed_ms": 182.033,
+        "result_hash": "6dade8c1fcbeda87a6ca578fcf78170b",
+        "tariff_rows": 353
+      }
+    ]
+  },
+  "pickup": {
+    "rpc": "pickup",
+    "note": "Session-only pending queue copy: 0, 1 and 3 groups forced through full sibling fallback; no persistent queue or business writes",
+    "at_utc": "2026-10-23T16:10:54.848263",
+    "samples": [
+      {
+        "bytes": 393648,
+        "state": "all",
+        "total": 1008,
+        "sample": 1,
+        "variant": "production",
+        "page_rows": 25,
+        "elapsed_ms": 5806.436,
+        "result_hash": "4b1cbbcd7822ea8dbc9cdefe37cece08",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 393648,
+        "state": "all",
+        "total": 1008,
+        "sample": 1,
+        "variant": "dirty_0",
+        "page_rows": 25,
+        "elapsed_ms": 218.008,
+        "result_hash": "4b1cbbcd7822ea8dbc9cdefe37cece08",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 393648,
+        "state": "all",
+        "total": 1008,
+        "sample": 2,
+        "variant": "dirty_0",
+        "page_rows": 25,
+        "elapsed_ms": 176.021,
+        "result_hash": "4b1cbbcd7822ea8dbc9cdefe37cece08",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 393648,
+        "state": "all",
+        "total": 1008,
+        "sample": 3,
+        "variant": "dirty_0",
+        "page_rows": 25,
+        "elapsed_ms": 163.572,
+        "result_hash": "4b1cbbcd7822ea8dbc9cdefe37cece08",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 393648,
+        "state": "all",
+        "total": 1008,
+        "sample": 1,
+        "variant": "dirty_1",
+        "page_rows": 25,
+        "elapsed_ms": 164.352,
+        "result_hash": "4b1cbbcd7822ea8dbc9cdefe37cece08",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 393648,
+        "state": "all",
+        "total": 1008,
+        "sample": 2,
+        "variant": "dirty_1",
+        "page_rows": 25,
+        "elapsed_ms": 169.887,
+        "result_hash": "4b1cbbcd7822ea8dbc9cdefe37cece08",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 393648,
+        "state": "all",
+        "total": 1008,
+        "sample": 3,
+        "variant": "dirty_1",
+        "page_rows": 25,
+        "elapsed_ms": 172.26,
+        "result_hash": "4b1cbbcd7822ea8dbc9cdefe37cece08",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 393648,
+        "state": "all",
+        "total": 1008,
+        "sample": 1,
+        "variant": "dirty_3",
+        "page_rows": 25,
+        "elapsed_ms": 471.989,
+        "result_hash": "4b1cbbcd7822ea8dbc9cdefe37cece08",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 393648,
+        "state": "all",
+        "total": 1008,
+        "sample": 2,
+        "variant": "dirty_3",
+        "page_rows": 25,
+        "elapsed_ms": 219.226,
+        "result_hash": "4b1cbbcd7822ea8dbc9cdefe37cece08",
+        "tariff_rows": 353
+      },
+      {
+        "bytes": 393648,
+        "state": "all",
+        "total": 1008,
+        "sample": 3,
+        "variant": "dirty_3",
+        "page_rows": 25,
+        "elapsed_ms": 224.92,
+        "result_hash": "4b1cbbcd7822ea8dbc9cdefe37cece08",
+        "tariff_rows": 353
+      }
+    ]
+  }
+}

@@ -1,0 +1,248 @@
+{
+  "status": "candidate_not_deployed_target_not_met",
+  "measured_at": "2026-10-23 13:49:07.487483+00",
+  "method": "Session-local temporary SQL functions with current production source; private/public production RPC definitions unchanged. Existing MFA gate validated without changing principals, sessions or factors. No rows returned: totals and result hashes only.",
+  "stale_keys": 0,
+  "samples": [
+    {
+      "rpc": "workbench",
+      "state": "pending",
+      "total": 1,
+      "sample": 1,
+      "elapsed_ms": 136.004,
+      "result_hash": "36ae647f86a7682698c61a3a2b7ae933"
+    },
+    {
+      "rpc": "workbench",
+      "state": "pending",
+      "total": 1,
+      "sample": 2,
+      "elapsed_ms": 103.61,
+      "result_hash": "36ae647f86a7682698c61a3a2b7ae933"
+    },
+    {
+      "rpc": "workbench",
+      "state": "pending",
+      "total": 1,
+      "sample": 3,
+      "elapsed_ms": 101.433,
+      "result_hash": "36ae647f86a7682698c61a3a2b7ae933"
+    },
+    {
+      "rpc": "workbench",
+      "state": "labelled",
+      "total": 5,
+      "sample": 1,
+      "elapsed_ms": 107.939,
+      "result_hash": "773e0914475b10e38360d227234c240f"
+    },
+    {
+      "rpc": "workbench",
+      "state": "labelled",
+      "total": 5,
+      "sample": 2,
+      "elapsed_ms": 106.216,
+      "result_hash": "773e0914475b10e38360d227234c240f"
+    },
+    {
+      "rpc": "workbench",
+      "state": "labelled",
+      "total": 5,
+      "sample": 3,
+      "elapsed_ms": 101.009,
+      "result_hash": "773e0914475b10e38360d227234c240f"
+    },
+    {
+      "rpc": "workbench",
+      "state": "shipped",
+      "total": 938,
+      "sample": 1,
+      "elapsed_ms": 147.405,
+      "result_hash": "3ed5d2b89fe11cede2cf9be9108b62bf"
+    },
+    {
+      "rpc": "workbench",
+      "state": "shipped",
+      "total": 938,
+      "sample": 2,
+      "elapsed_ms": 151.825,
+      "result_hash": "3ed5d2b89fe11cede2cf9be9108b62bf"
+    },
+    {
+      "rpc": "workbench",
+      "state": "shipped",
+      "total": 938,
+      "sample": 3,
+      "elapsed_ms": 148.294,
+      "result_hash": "3ed5d2b89fe11cede2cf9be9108b62bf"
+    },
+    {
+      "rpc": "workbench",
+      "state": "all",
+      "total": 1008,
+      "sample": 1,
+      "elapsed_ms": 145.331,
+      "result_hash": "bb46eec535a3ee7fa272084dcbba4bf6"
+    },
+    {
+      "rpc": "workbench",
+      "state": "all",
+      "total": 1008,
+      "sample": 2,
+      "elapsed_ms": 145.689,
+      "result_hash": "bb46eec535a3ee7fa272084dcbba4bf6"
+    },
+    {
+      "rpc": "workbench",
+      "state": "all",
+      "total": 1008,
+      "sample": 3,
+      "elapsed_ms": 142.276,
+      "result_hash": "bb46eec535a3ee7fa272084dcbba4bf6"
+    },
+    {
+      "rpc": "workbench",
+      "state": "issues",
+      "total": 8,
+      "sample": 1,
+      "elapsed_ms": 107.538,
+      "result_hash": "b4b328769469b701ac654a13871dab41"
+    },
+    {
+      "rpc": "workbench",
+      "state": "issues",
+      "total": 8,
+      "sample": 2,
+      "elapsed_ms": 116.62,
+      "result_hash": "b4b328769469b701ac654a13871dab41"
+    },
+    {
+      "rpc": "workbench",
+      "state": "issues",
+      "total": 8,
+      "sample": 3,
+      "elapsed_ms": 112.831,
+      "result_hash": "b4b328769469b701ac654a13871dab41"
+    },
+    {
+      "rpc": "pickup",
+      "state": "pending",
+      "total": 1,
+      "sample": 1,
+      "elapsed_ms": 123.525,
+      "result_hash": "fa6f487cca2620ea6d4eee03c3824eb4"
+    },
+    {
+      "rpc": "pickup",
+      "state": "pending",
+      "total": 1,
+      "sample": 2,
+      "elapsed_ms": 95.025,
+      "result_hash": "fa6f487cca2620ea6d4eee03c3824eb4"
+    },
+    {
+      "rpc": "pickup",
+      "state": "pending",
+      "total": 1,
+      "sample": 3,
+      "elapsed_ms": 91.782,
+      "result_hash": "fa6f487cca2620ea6d4eee03c3824eb4"
+    },
+    {
+      "rpc": "pickup",
+      "state": "labelled",
+      "total": 5,
+      "sample": 1,
+      "elapsed_ms": 111.697,
+      "result_hash": "b9eafe937f328b6205004e9a828707ab"
+    },
+    {
+      "rpc": "pickup",
+      "state": "labelled",
+      "total": 5,
+      "sample": 2,
+      "elapsed_ms": 103.66,
+      "result_hash": "b9eafe937f328b6205004e9a828707ab"
+    },
+    {
+      "rpc": "pickup",
+      "state": "labelled",
+      "total": 5,
+      "sample": 3,
+      "elapsed_ms": 100.59,
+      "result_hash": "b9eafe937f328b6205004e9a828707ab"
+    },
+    {
+      "rpc": "pickup",
+      "state": "shipped",
+      "total": 938,
+      "sample": 1,
+      "elapsed_ms": 145.379,
+      "result_hash": "5803f6bed8af7a0a039196c791e98b63"
+    },
+    {
+      "rpc": "pickup",
+      "state": "shipped",
+      "total": 938,
+      "sample": 2,
+      "elapsed_ms": 166.033,
+      "result_hash": "5803f6bed8af7a0a039196c791e98b63"
+    },
+    {
+      "rpc": "pickup",
+      "state": "shipped",
+      "total": 938,
+      "sample": 3,
+      "elapsed_ms": 155.719,
+      "result_hash": "5803f6bed8af7a0a039196c791e98b63"
+    },
+    {
+      "rpc": "pickup",
+      "state": "all",
+      "total": 1008,
+      "sample": 1,
+      "elapsed_ms": 132.732,
+      "result_hash": "ef0dc802381ccadcb1337d8cd0076022"
+    },
+    {
+      "rpc": "pickup",
+      "state": "all",
+      "total": 1008,
+      "sample": 2,
+      "elapsed_ms": 126.729,
+      "result_hash": "ef0dc802381ccadcb1337d8cd0076022"
+    },
+    {
+      "rpc": "pickup",
+      "state": "all",
+      "total": 1008,
+      "sample": 3,
+      "elapsed_ms": 130.211,
+      "result_hash": "ef0dc802381ccadcb1337d8cd0076022"
+    },
+    {
+      "rpc": "pickup",
+      "state": "issues",
+      "total": 0,
+      "sample": 1,
+      "elapsed_ms": 82.088,
+      "result_hash": "8dbda48ad3d93b67e8034bb77ef03a7d"
+    },
+    {
+      "rpc": "pickup",
+      "state": "issues",
+      "total": 0,
+      "sample": 2,
+      "elapsed_ms": 83.828,
+      "result_hash": "8dbda48ad3d93b67e8034bb77ef03a7d"
+    },
+    {
+      "rpc": "pickup",
+      "state": "issues",
+      "total": 0,
+      "sample": 3,
+      "elapsed_ms": 82.364,
+      "result_hash": "8dbda48ad3d93b67e8034bb77ef03a7d"
+    }
+  ]
+}

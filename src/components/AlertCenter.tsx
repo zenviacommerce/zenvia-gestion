@@ -35,7 +35,7 @@ export function AlertCenter({
     try{
       const [salesInvoices,orders,clients,integrations]=await Promise.all([
         loadSalesInvoices(),
-        listFulfillmentOrders(),
+        listFulfillmentOrders({logistics:false}),
         loadClients(),
         loadIntegrationHealth(settings.integrations),
       ]);
@@ -145,3 +145,4 @@ export function AlertCenter({
     </div>}
   </div>;
 }
+

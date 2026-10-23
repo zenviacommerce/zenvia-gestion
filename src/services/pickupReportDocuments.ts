@@ -1,7 +1,7 @@
 import {getActiveSupabase,getActiveTenant} from './supabase';
 import {authorizeGmailSend} from './gmailSender';
 export type PickupDocumentStatus={id:string;status:'pending'|'partial'|'signed'|'void';revision:number;carriers?:string[];signatures:Array<{carrier:string;signedAt:string;signedBy:string;packages:number;actorName?:string|null}>;signedAt?:string|null;signedBy?:string|null;voidedAt?:string|null;voidedBy?:string|null;voidReason?:string|null;piiPurgedAt?:string|null;piiExpired?:boolean;retentionUntil?:string|null;pdfAvailable?:boolean};
-export type PickupSignatureInput={carrier:string;driverName:string;identifier:string;receivedAt:string;packages:number;signatureDataUrl:string};
+export type PickupSignatureInput={carrier:string;driverName:string;identifier:string;receivedAt:string;packages:number;signatureDataUrl:string;verifiedOrderIds:string[];reportRevision:number};
 export type PickupMailInput={reportId:string;requestId:string;to:string;subject:string;body:string;ccOwner:boolean};
 export type PickupMailEntry={requestId:string;to:string|null;subject:string|null;ccOwner:boolean;status:'sending'|'sent'|'failed'|'unknown';createdAt:string;finishedAt?:string|null;actorId:string};
 type Scope={client:ReturnType<typeof getActiveSupabase>;workspace:string|undefined};
@@ -27,3 +27,5 @@ export async function sendPickupReportEmail(input:PickupMailInput){
 }
 
 export async function getPickupDocumentOwnerEmail(reportId:string){return (await invoke<{ok:true;email:string}>({action:'owner_email',reportId})).email}
+
+export async function excludePickupReportItem(reportId:string,orderId:string,reason:string){const result=await invoke<{ok:true;report:import('./pickupReports').PickupReport;state:PickupDocumentStatus}>({action:'exclude_item',reportId,orderId,reason});return {...result.report,document:result.state}}

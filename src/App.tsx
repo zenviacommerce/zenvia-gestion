@@ -95,6 +95,7 @@ export default function App(){
  const [loading,setLoading]=useState(false);
  const [error,setError]=useState('');
  const [page,setPage]=useState<Page>('dashboard');
+ const [startPageReady,setStartPageReady]=useState(false);
  const [settingsInitialSection,setSettingsInitialSection]=useState<'general'|'integrations'|undefined>();
  const [ordersPendingEntry,setOrdersPendingEntry]=useState(false);
  const [upload,setUpload]=useState(false);
@@ -107,7 +108,6 @@ export default function App(){
  const [settingsDirty,setSettingsDirty]=useState(false);
  const [passkeySetupVisible,setPasskeySetupVisible]=useState(false);
  const [workspaceLogo,setWorkspaceLogo]=useState<string|null>(null);
- const startPageApplied=useRef(false);
  const shopifyOAuthCallbackRef=useRef<string|null>(getShopifyOAuthCallback());
  const shopifyOAuthExchangeStarted=useRef(false);
  const userId=session?.user.id||null;
@@ -295,14 +295,14 @@ export default function App(){
 
  useEffect(()=>{
    if(!mfaAccess.ready||!accessReady||!access?.active||!allowedPages.length)return;
-   if(!startPageApplied.current&&!settingsLoading){
+   if(!startPageReady&&!settingsLoading){
      const initial=ordersEntryPage(window.location.search,allowedPages)||effectiveStartPage(preferences.startPage,settings.general.startPage,allowedPages);
      if(initial)setPage(initial);
-     startPageApplied.current=true;
+     setStartPageReady(true);
      return;
    }
    if(!allowedPages.includes(page))setPage(allowedPages[0]);
- },[mfaAccess.ready,accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading]);
+ },[mfaAccess.ready,accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading,startPageReady]);
 
  useEffect(()=>{
    if(!mfaAccess.ready||!accessReady||!access?.active)return;
@@ -316,7 +316,7 @@ export default function App(){
        if(!confirmed){const restored=new URL(window.location.href);restored.searchParams.set('page',page);restored.searchParams.delete('tab');window.history.replaceState(null,'',restored.pathname+restored.search+restored.hash);return;}
        setSettingsDirty(false);
      }
-     startPageApplied.current=true;setOrdersPendingEntry(false);setPage(next);
+     setStartPageReady(true);setOrdersPendingEntry(false);setPage(next);
    })();};
    window.addEventListener('popstate',onHistory);
    return()=>window.removeEventListener('popstate',onHistory);
@@ -328,7 +328,7 @@ export default function App(){
    if(!query||shopifyOAuthExchangeStarted.current)return;
    shopifyOAuthExchangeStarted.current=true;
    shopifyOAuthCallbackRef.current=null;
-   startPageApplied.current=true;
+   setStartPageReady(true);
    setPage('settings');
    setSettingsInitialSection('integrations');
    if(shopifyOAuthWasDenied()){
@@ -349,7 +349,7 @@ export default function App(){
  useEffect(()=>{
    const openBankSettings=()=>{
      if(!mfaAccess.ready||!accessReady||!access?.active||!allowedPages.includes('settings'))return;
-     startPageApplied.current=true;
+     setStartPageReady(true);
      setSettingsInitialSection('general');
      setPage('settings');
    };
@@ -390,6 +390,10 @@ export default function App(){
  if(access&&!['active','trialing'].includes(access.workspaceStatus)) return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>{access.workspaceStatus==='suspended'?'Empresa suspendida':'Servicio cancelado'}</h1><p>{access.workspaceStatus==='suspended'?'El acceso de tu empresa a ZENVIA Gestión está suspendido temporalmente. Contacta con soporte para reactivarlo.':'La suscripción de tu empresa ya no está activa. Contacta con soporte si necesitas recuperar el acceso.'}</p><div className="actions"><button className="secondary" onClick={()=>supabase.auth.signOut({scope:'local'})}>Cerrar sesión</button></div></div></div></>;
  if(!access||!access.active||!allowedPages.length) return <><ToastHost/><div className="authPage"><div className="authPanel accessDeniedPanel"><div className="authHeroIcon"><LockKeyhole/></div><h1>{error?'No se pudo cargar el acceso':'Acceso no autorizado'}</h1><p>{error?error:access&&!access.active?'Tu acceso a ZENVIA Gestión está desactivado.':'Esta cuenta no está autorizada para utilizar ZENVIA Gestión. Contacta con el administrador.'}</p><div className="actions">{error&&<button className="primary" onClick={()=>{setAccessReady(false);setError('');withTimeout(loadAccessAndBranding(session.user.id),90000,'El servicio de datos sigue recuperándose. Vuelve a intentarlo en unos segundos.').then(({profile,workspaceLogo:nextLogo})=>{setAccess(profile);setWorkspaceLogo(nextLogo);setAccessReady(true)}).catch(e=>{setAccess(null);setWorkspaceLogo(null);setAccessReady(true);setError(errorMessage(e,'No se pudo comprobar tu acceso.'))})}}>Reintentar</button>}<button className="secondary" onClick={()=>supabase.auth.signOut({scope:'local'})}>Cerrar sesión</button></div></div></div></>;
 
+ // Resolve the permitted entry page before mounting children: Dashboard's
+ // effects otherwise start financial and operational RPCs on Orders deep links.
+ if(!startPageReady) return <><ToastHost/><div className="fullLoader"><LoaderCircle className="spin"/> Preparando tu vista…</div></>;
+
  const navigate=async(next:Page,options?:{pendingOrders?:boolean})=>{
    if(!allowedPages.includes(next))return;
    if(page==='settings'&&next!=='settings'&&settingsDirty){
@@ -397,7 +401,7 @@ export default function App(){
      if(!confirmed)return;
      setSettingsDirty(false);
    }
-   startPageApplied.current=true;
+   setStartPageReady(true);
    const nextUrl=new URL(window.location.href);
    nextUrl.searchParams.set('page',next);
    if(next!=='orders')nextUrl.searchParams.delete('tab');
@@ -703,3 +707,4 @@ export default function App(){
  {can('suppliers')&&<SupplierModal open={supplierModal} supplier={supplierToEdit} categories={data.categories} onClose={closeSupplierModal} onSave={saveSupplier}/>}
  </div>
 }
+

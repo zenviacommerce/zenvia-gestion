@@ -19,3 +19,7 @@ Los cuatro bundles de despliegue se construyen desde las dependencias frescas de
 Snapshots completos: supabase/snapshots/20261023-relabel-before-publication. Restaurar los cuatro bundles con verify_jwt=true y frontendB dpl_9K2RvEJdTVrnMUKhA2u3t7Qv9GNw. Conservar tabla/trigger de historial para no perder evidencia ni detener su purga PII; no hace falta DROP, DELETE ni UPDATE de rollback. B permanece como lector de informes firmados.
 
 No se invocan operaciones comerciales reales en pruebas. No se cambia MFA, PayPal, suscripciones ni informes existentes. La purga de informes sigue desactivada.
+
+Validación final local:661/661 Vitest (118archivos),1284/1284Node, build correcto y Deno sobre bundles reales correcto. React: carga solo al abrir el detalle, dependencias primitivas, descarte de respuestas obsoletas y guardia PII; no se añaden listeners ni librerías.
+
+CI detectó una incompatibilidad con el contrato de activación MFA existente: toda tabla pública expuesta debe tener las cuatro políticas restrictivas mfa_select/insert/update/delete_gate. La primera versión solo incluía comprobación MFA en la política SELECT. Se añade una regresión roja (0políticas frente a4), se adoptan los cuatro gates estándar en la tabla nueva, sin modificar ninguna función, configuración ni cohorte MFA existente. No se rebajan tests ni el scanner. Regresión focal posterior9/9.

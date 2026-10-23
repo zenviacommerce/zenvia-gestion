@@ -19,9 +19,14 @@ revoke all on public.order_shipment_history from anon,authenticated;
 grant select on public.order_shipment_history to authenticated,service_role;
 create policy order_shipment_history_workspace_select on public.order_shipment_history for select to authenticated using (
  owner_id=(select private.app_workspace_owner_id())
- and (select private.app_has_permission('orders')) and (select private.mfa_allowed())
+ and (select private.app_has_permission('orders'))
  and exists(select 1 from public.fulfillment_orders o where o.id=order_shipment_history.order_id and o.owner_id=order_shipment_history.owner_id and o.pii_purged_at is null)
 );
+-- Preserve the existing activation scanner contract on every exposed table.
+create policy mfa_select_gate on public.order_shipment_history as restrictive for select to authenticated using ((select private.mfa_allowed()));
+create policy mfa_insert_gate on public.order_shipment_history as restrictive for insert to authenticated with check ((select private.mfa_allowed()));
+create policy mfa_update_gate on public.order_shipment_history as restrictive for update to authenticated using ((select private.mfa_allowed())) with check ((select private.mfa_allowed()));
+create policy mfa_delete_gate on public.order_shipment_history as restrictive for delete to authenticated using ((select private.mfa_allowed()));
 create function private.record_order_shipment_history() returns trigger
 language plpgsql security definer set search_path='' as $$
 declare old_cancelled boolean; new_cancelled boolean; reference text; identity text; cancelled timestamptz;

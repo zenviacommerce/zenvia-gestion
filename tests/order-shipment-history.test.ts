@@ -46,3 +46,7 @@ it.each([null,'envia'])('does not mistake NULL status/provider for cancellation 
  await db.exec(`update fulfillment_orders set carrier_name='Importación rutinaria'`);
  expect((await db.query('select * from order_shipment_history')).rows).toHaveLength(0);
  }finally{await db.close()}});
+it('meets the existing MFA activation contract with four restrictive gates',async()=>{const db=await fixture();try{
+ const rows=(await db.query<any>(`select polname,polpermissive from pg_policy where polrelid='public.order_shipment_history'::regclass and polname in ('mfa_select_gate','mfa_insert_gate','mfa_update_gate','mfa_delete_gate')`)).rows;
+ expect(rows).toHaveLength(4);expect(rows.every(row=>row.polpermissive===false)).toBe(true);
+ }finally{await db.close()}});

@@ -1,0 +1,49 @@
+{
+  "gestion": {
+    "head": "31c94ec6248ec6e5d9f389261a2c786f5bc41dc7",
+    "merge": "d3ddb4af4443f6c8f7a395181bf3b1e755b0379e",
+    "ci": [
+      {
+        "name": "Shared UI package and tab contracts",
+        "id": 39933830138,
+        "conclusion": "success"
+      },
+      {
+        "name": "Build check",
+        "id": 39933830359,
+        "conclusion": "success"
+      },
+      {
+        "name": "Auth resilience tests",
+        "id": 39933830245,
+        "conclusion": "success"
+      },
+      {
+        "name": "MFA real integration (disposable Supabase)",
+        "id": 39933830222,
+        "conclusion": "success"
+      },
+      {
+        "name": "Build ZENVIA Gesti\u00f3n",
+        "id": 39933830174,
+        "conclusion": "success"
+      },
+      {
+        "name": "MFA visual review (Playwright)",
+        "id": 39933830123,
+        "conclusion": "success"
+      }
+    ]
+  },
+  "platform": {
+    "head": "c998dffba2c3cb3e5c3f4af3f23d2921252e1c0e",
+    "merge": "f2c7a30a7cc3c78d6f674d82493b31f8ded6db84",
+    "ci": [
+      {
+        "name": "Build ZENVIA Platform",
+        "id": 39932578776,
+        "conclusion": "success"
+      }
+    ]
+  }
+}

@@ -1,0 +1,180 @@
+{
+  "gestion": {
+    "head": "31c94ec6248ec6e5d9f389261a2c786f5bc41dc7",
+    "merge": "d3ddb4af4443f6c8f7a395181bf3b1e755b0379e",
+    "ci": [
+      {
+        "name": "Shared UI package and tab contracts",
+        "id": 39933830138,
+        "conclusion": "success"
+      },
+      {
+        "name": "Build check",
+        "id": 39933830359,
+        "conclusion": "success"
+      },
+      {
+        "name": "Auth resilience tests",
+        "id": 39933830245,
+        "conclusion": "success"
+      },
+      {
+        "name": "MFA real integration (disposable Supabase)",
+        "id": 39933830222,
+        "conclusion": "success"
+      },
+      {
+        "name": "Build ZENVIA Gesti\u00f3n",
+        "id": 39933830174,
+        "conclusion": "success"
+      },
+      {
+        "name": "MFA visual review (Playwright)",
+        "id": 39933830123,
+        "conclusion": "success"
+      }
+    ],
+    "production": {
+      "domain": "gestion.zenviacommerce.com",
+      "id": "dpl_FVvd4pni3VPBWfrdH2MuomuW6wW5",
+      "sha": "d3ddb4af4443f6c8f7a395181bf3b1e755b0379e",
+      "state": "READY",
+      "readyAt": "2026-10-23T09:50:51.852Z"
+    }
+  },
+  "platform": {
+    "head": "c998dffba2c3cb3e5c3f4af3f23d2921252e1c0e",
+    "merge": "f2c7a30a7cc3c78d6f674d82493b31f8ded6db84",
+    "ci": [
+      {
+        "name": "Build ZENVIA Platform",
+        "id": 39932578776,
+        "conclusion": "success"
+      }
+    ],
+    "production": {
+      "domain": "admin.zenviacommerce.com",
+      "id": "dpl_8QNN7ERpGUSwJncHWaGNvNMB5YeL",
+      "sha": "f2c7a30a7cc3c78d6f674d82493b31f8ded6db84",
+      "state": "READY",
+      "readyAt": "2026-10-23T09:50:36.136Z"
+    }
+  },
+  "productionChecks": {
+    "billing2560": [
+      {
+        "available": 2221,
+        "content": 2221,
+        "viewport": 2560,
+        "width": 2221
+      }
+    ],
+    "expenses2560": [
+      {
+        "available": 2221,
+        "content": 2221,
+        "viewport": 2560,
+        "width": 2221
+      }
+    ],
+    "support": {
+      "addFilter": true,
+      "doubleCard": false,
+      "iconInside": true,
+      "looseFilters": 0,
+      "shared": true
+    },
+    "reports390": {
+      "actions": [
+        {
+          "left": 54,
+          "right": 160.578125,
+          "text": "PDF",
+          "visible": true
+        },
+        {
+          "left": 165.578125,
+          "right": 321,
+          "text": "Abrir informe",
+          "visible": true
+        },
+        {
+          "left": 54,
+          "right": 321,
+          "text": "Enviar por correo",
+          "visible": true
+        },
+        {
+          "left": 54,
+          "right": 160.578125,
+          "text": "PDF",
+          "visible": true
+        },
+        {
+          "left": 165.578125,
+          "right": 321,
+          "text": "Abrir informe",
+          "visible": true
+        },
+        {
+          "left": 54,
+          "right": 321,
+          "text": "Enviar por correo",
+          "visible": true
+        },
+        {
+          "left": 54,
+          "right": 160.578125,
+          "text": "PDF",
+          "visible": true
+        },
+        {
+          "left": 165.578125,
+          "right": 321,
+          "text": "Abrir informe",
+          "visible": true
+        },
+        {
+          "left": 54,
+          "right": 321,
+          "text": "Enviar por correo",
+          "visible": true
+        }
+      ],
+      "badges": [
+        {
+          "background": "rgb(254, 243, 199)",
+          "color": "rgb(146, 64, 14)",
+          "tone": "warning"
+        },
+        {
+          "background": "rgb(254, 243, 199)",
+          "color": "rgb(146, 64, 14)",
+          "tone": "warning"
+        },
+        {
+          "background": "rgb(254, 243, 199)",
+          "color": "rgb(146, 64, 14)",
+          "tone": "warning"
+        }
+      ],
+      "inset": 17,
+      "overflow": false,
+      "viewport": 390
+    },
+    "platformTickets390": {
+      "iconInside": true,
+      "looseFilters": 0,
+      "overflow": false,
+      "shared": true,
+      "viewport": 390
+    },
+    "emailOpenedWithoutSending": {
+      "form": true,
+      "ownerCopyChecked": true,
+      "sendDisabled": true,
+      "alerts": 0
+    },
+    "browserViewportRestored": true
+  }
+}

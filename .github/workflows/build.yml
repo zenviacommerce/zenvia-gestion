@@ -35,7 +35,7 @@ jobs:
       - name: Carrier cancellation identity, outcomes and recovery regressions
         run: npx vitest run tests/carrier-cancellation*.test.ts tests/order-cancellation*.test.ts tests/order-cancellation*.test.tsx --maxWorkers=2
       - name: Typecheck pickup and cancellation Edge Functions with Deno
-        run: npx --yes deno@2.9.6 check --no-lock supabase/functions/pickup-report-documents/index.ts supabase/functions/pickup-report-purge/index.ts supabase/functions/order-cancellation/index.ts
+        run: npx --yes deno@2.9.6 check --no-lock supabase/functions/pickup-report-documents/index.ts supabase/functions/pickup-report-purge/index.ts supabase/functions/order-cancellation/index.ts supabase/rollbacks/order-cancellation-paused.ts
       - name: Build production bundle
         run: npm run build
       - name: Upload dist artifact

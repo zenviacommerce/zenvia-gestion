@@ -1,5 +1,7 @@
 -- Rollback only before any cancellation operation exists. Keep audit and MFA unchanged.
 begin;
+-- First pause the endpoint and drain in-flight requests (see review README).
+lock table public.order_cancellation_operations in share row exclusive mode;
 do $$ begin if exists(select 1 from public.order_cancellation_operations) then raise exception 'Existen solicitudes de cancelación: conserva el backend de consulta y retira solo la entrada UI.';end if;end $$;
 CREATE OR REPLACE FUNCTION public.integration_start_cancellation(p_order_id uuid, p_owner_id uuid, p_kind text, p_provider text, p_reference text, p_user_id uuid, p_details jsonb)
  RETURNS jsonb

@@ -6,7 +6,8 @@
   "files": [
     "dist",
     "README.md",
-    "tab-contract.mjs"
+    "tab-contract.mjs",
+    "filter-contract.mjs"
   ],
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
@@ -17,7 +18,8 @@
     },
     "./styles.css": "./dist/styles.css",
     "./forms.css": "./dist/forms.css",
-    "./tab-contract": "./tab-contract.mjs"
+    "./tab-contract": "./tab-contract.mjs",
+    "./filter-contract": "./filter-contract.mjs"
   },
   "sideEffects": [
     "**/*.css"

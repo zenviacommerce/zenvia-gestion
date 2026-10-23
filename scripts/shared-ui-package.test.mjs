@@ -2,7 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';import {rea
 test('shared package pins the approved API at 0.2.0 without shipping another React or business services',async()=>{
  const pkg=JSON.parse(await readFile('packages/ui/package.json','utf8'));assert.equal(pkg.name,'@zenvia/ui');assert.equal(pkg.version,'0.2.0');assert.equal(pkg.dependencies?.react,undefined);assert.equal(pkg.peerDependencies.react,'19.2.1');
  const root=JSON.parse(await readFile('package.json','utf8'));assert.equal(root.dependencies['@zenvia/ui'],'0.2.0');
- const api=await import('../packages/ui/dist/index.js');for(const name of ['PageHeader','KpiGrid','StatCard','FilterBar','Tabs','PageTabs','DataTable','MobileList','FormModal','FormSection','FormGrid'])assert.equal(typeof api[name],'function',name);
+ const api=await import('../packages/ui/dist/index.js');for(const name of ['PageHeader','KpiGrid','StatCard','FilterBar','Tabs','PageTabs','DataTable','MobileList','FormModal','FormSection','FormGrid','SearchField','SearchFilters'])assert.equal(typeof api[name],'function',name);
  const before=await readFile('src/design-system.css','utf8');assert.match(before,/@import ['"]@zenvia\/ui\/styles.css['"]/);
 });
 
@@ -12,11 +12,11 @@ test('extracted implementations and CSS match approved production sources (form 
  assert.equal(baseline.baseline,'45441a470dd2ff30fc4d78020a0cc1309290bf6d');
  // Reviewed Tabs 0.2: only the compatibility alias and shared tab styles
  // differ from extraction. Owner-approved23/10 modal eyebrow uses brand green.
- // Keep every other approved production hash pinned.
+ // Owner-authorized search/filter extraction adds shared styles; keep other hashes pinned.
  const workbenchHashes={
   'src/forms.css':'1b0ddee8dc1c5ccda7dbfa7804401ee31d3769826fd5a9e21a3e04498fe80ead',
   'src/PageTabs.tsx':'bf71a9e55c43282d0c87eb7a9b3be9360c1a47e8ccfe6103c2bba97e17892da3',
-  'src/styles.css':'ed5734521712bf8e1d6f556ddcdb70c573de4b633293de2d24146e93735c91d8',
+  'src/styles.css':'c46ef2ff78a82d9b1e037bc462f741ecccacb34ae72ced45f1a0d881ee6a2367',
  };
  for(const [path,entry] of Object.entries(baseline.sources)){
   const content=await readFile('packages/ui/'+path);

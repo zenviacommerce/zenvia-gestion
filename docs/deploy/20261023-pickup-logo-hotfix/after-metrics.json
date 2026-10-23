@@ -1,0 +1,114 @@
+{
+  "phase": "after",
+  "results": [
+    {
+      "file": "after-png-pending.pdf",
+      "pages": 1,
+      "logoBoxMm": [
+        18.0,
+        9.0,
+        36.0,
+        21.0
+      ],
+      "titleBoxMm": [
+        12.0,
+        21.848,
+        198.343,
+        27.191
+      ],
+      "overlap": false,
+      "logoBackground": [
+        255,
+        255,
+        255
+      ],
+      "stampBackground": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "after-png-signed.pdf",
+      "pages": 1,
+      "logoBoxMm": [
+        18.0,
+        9.0,
+        36.0,
+        21.0
+      ],
+      "titleBoxMm": [
+        12.0,
+        21.848,
+        198.343,
+        27.191
+      ],
+      "overlap": false,
+      "logoBackground": [
+        255,
+        255,
+        255
+      ],
+      "stampBackground": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "after-webp-pending.pdf",
+      "pages": 1,
+      "logoBoxMm": [
+        18.0,
+        9.0,
+        36.0,
+        21.0
+      ],
+      "titleBoxMm": [
+        12.0,
+        21.848,
+        198.343,
+        27.191
+      ],
+      "overlap": false,
+      "logoBackground": [
+        255,
+        255,
+        255
+      ],
+      "stampBackground": [
+        255,
+        255,
+        255
+      ]
+    },
+    {
+      "file": "after-webp-signed.pdf",
+      "pages": 1,
+      "logoBoxMm": [
+        18.0,
+        9.0,
+        36.0,
+        21.0
+      ],
+      "titleBoxMm": [
+        12.0,
+        21.848,
+        198.343,
+        27.191
+      ],
+      "overlap": false,
+      "logoBackground": [
+        255,
+        255,
+        255
+      ],
+      "stampBackground": [
+        255,
+        255,
+        255
+      ]
+    }
+  ],
+  "failures": []
+}

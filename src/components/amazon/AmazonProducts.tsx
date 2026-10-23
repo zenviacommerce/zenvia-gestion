@@ -1,8 +1,9 @@
+import {SearchField} from '@zenvia/ui';
 import { ProductIdentity } from '../ProductIdentity';
 import { ProductMappingAction } from '../ProductMappingAction';
 import { AmazonLoading } from './AmazonLoading';
 import { useEffect, useRef, useState } from 'react';
-import { RefreshCw, Search } from 'lucide-react';
+import { RefreshCw } from 'lucide-react';
 import { isAmazonConnectivityError, loadAmazonProductMetadata, loadAmazonProducts, type AmazonAnalyticsFilters, type AmazonPageResult, type AmazonProductAnalytics, type AmazonProductMetadata, type AmazonProductSort } from '../../services/amazon';
 import { errorMessage } from '../../services/toast';
 import { AmazonMappingModal } from './AmazonMappingModal';
@@ -71,7 +72,7 @@ export function AmazonProducts({filters,embedded=false,refreshToken=0}:{filters:
         <p>Ordena por cualquier métrica. Beneficio y margen por producto se muestran antes de publicidad y costes globales no atribuibles.</p>
       </div>
       
-      <label className="amazonSearch"><Search size={16}/><input value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU, ASIN o producto"/></label>
+      <SearchField className="amazonSearch" value={search} onChange={e=>{setSearch(e.target.value);setPage(1);}} placeholder="Buscar SKU, ASIN o producto"/>
     </div>
     {error&&!embedded&&<div className="amazonQueryError amazonQueryErrorInline"><span>{error}</span><button className="secondary" onClick={()=>void refresh()}><RefreshCw size={14}/> Reintentar</button></div>}
     {loading&&<AmazonLoading>Cargando productos de Amazon…</AmazonLoading>}<TableSortReset sorting={{...sorting,resetSort}}/><div className="amazonTableScroll">

@@ -3,6 +3,14 @@ const api=vi.hoisted(()=>({rpc:vi.fn()}));
 vi.mock('../src/services/supabase',()=>({supabase:api,getActiveSupabase:()=>api}));
 import {listMatchingOrdersForAction,type OrdersDashboardFilters} from '../src/services/orders';
 const filters={from:'',to:'',state:'pending',channel:'all',query:'',tracking:'all',country:'all',carrier:'all',page:0,pageSize:25,overdueHours:24,sortKey:'orderDate',sortDirection:'desc'} as OrdersDashboardFilters;
+it('loads period operational aggregates without any full-order or logistics request',async()=>{
+ const service=await import('../src/services/orders');
+ expect((service as any).fetchOrdersOperationalSummary).toBeTypeOf('function');
+ api.rpc.mockReturnValue({abortSignal:async()=>({data:{orders:12,pending:2,shipped:8,cancelled:1,amazon:9,shopify:3},error:null})});
+ const result=await (service as any).fetchOrdersOperationalSummary('2026-10-01','2026-12-31');
+ expect(result).toEqual({orders:12,pending:2,shipped:8,cancelled:1,amazon:9,shopify:3});
+ expect(api.rpc).toHaveBeenLastCalledWith('orders_operational_summary_v1',{p_from:'2026-10-01',p_to:'2026-12-31'});
+});
 function respond(changed=false){api.rpc.mockImplementation((_name,args)=>{const page=args.p_page;return {abortSignal:()=>Promise.resolve({data:{rows:Array.from({length:page?5:100},(_,n)=>({id:'id-'+(page*100+n),sendcloud_id:'test',shipping_address:{},items:[]})),total:changed&&page?106:105,page,pageSize:100,kpis:{},facets:{}},error:null})}})}
 it('explicit bulk actions retrieve all server pages while preserving filters',async()=>{respond();const orders=await listMatchingOrdersForAction(filters);expect(orders).toHaveLength(105);expect(new Set(orders.map(o=>o.id)).size).toBe(105);expect(api.rpc).toHaveBeenCalledWith('orders_dashboard_pickup_v1',expect.objectContaining({p_page:1,p_page_size:100,p_state:'pending'}));});
 it('does not silently offer incomplete bulk targets if the matching set changes while paging',async()=>{respond(true);await expect(listMatchingOrdersForAction(filters)).rejects.toThrow(/cambiado/);});
@@ -49,3 +57,4 @@ it('routes workbench pages and IDs together while leaving financial calls on the
  await fetchOrdersDashboardPage({...filters,state:'all',pageSize:1});
  expect(api.rpc).toHaveBeenLastCalledWith('orders_dashboard_pickup_v1',expect.not.objectContaining({p_tracking_stale_days:expect.anything()}));
 });
+

@@ -1,6 +1,7 @@
 -- Preserve public wrappers/OIDs/ACLs and the cache validity guard. Only reuse
 -- the classifier fields already maintained by the projection refresh function.
 SET LOCAL lock_timeout='3s';
+SET LOCAL statement_timeout='15s';
 DO $cache$
 DECLARE f record;src text;needle text;replacement text;
 BEGIN
@@ -10,10 +11,10 @@ BEGIN
  WHERE n.nspname='private' AND p.proname IN('mfa_impl_orders_workbench_v1','mfa_impl_orders_dashboard_pickup_v1') LOOP
   src:=pg_get_functiondef(f.oid);
   needle:=$old$private.order_logistics_state(to_jsonb(p)) AS order_state$old$;
-  IF position(needle IN src)=0 THEN RAISE EXCEPTION 'ORDERS_CACHE_LOGISTICS_SOURCE_CHANGED';END IF;
+  IF position(needle IN src)=0 AND position('p.print_sort,p.order_state,p.created_day,p.dispatched_day,p.shipping_cost_day' IN src)=0 THEN RAISE EXCEPTION 'ORDERS_CACHE_LOGISTICS_SOURCE_CHANGED';END IF;
   src:=replace(src,needle,'p.order_state');
   needle:=$old$(coalesce(nullif(private.order_logistics_evidence(to_jsonb(p))->>'dispatchedAt',''),nullif(private.order_logistics_evidence(to_jsonb(p))->>'historicalDate',''))::timestamptz AT TIME ZONE 'Europe/Madrid')::date AS dispatched_day$old$;
-  IF position(needle IN src)=0 THEN RAISE EXCEPTION 'ORDERS_CACHE_DATE_SOURCE_CHANGED';END IF;
+  IF position(needle IN src)=0 AND position('p.created_day,p.dispatched_day,p.shipping_cost_day' IN src)=0 THEN RAISE EXCEPTION 'ORDERS_CACHE_DATE_SOURCE_CHANGED';END IF;
   src:=replace(src,needle,'p.dispatched_day');
   needle:=$old$private.order_logistics_state(to_jsonb(original)) AS order_state$old$;
   IF position(needle IN src)=0 THEN RAISE EXCEPTION 'ORDERS_CACHE_FALLBACK_SOURCE_CHANGED';END IF;
@@ -223,3 +224,38 @@ BEGIN
   EXECUTE format('CREATE OR REPLACE FUNCTION private.%I(%s) RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path='''' SET plan_cache_mode=force_generic_plan AS %L',f.proname,args,'BEGIN RETURN ('||regexp_replace(src,'[;[:space:]]+$','')||');END;');
  END LOOP;
 END $payloads$;
+
+
+-- Aggregate-only Summary API: no unpaged order JSON or logistics metadata.
+CREATE FUNCTION public.orders_operational_summary_v1(p_from date DEFAULT NULL,p_to date DEFAULT NULL)
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path=''
+AS $summary$
+DECLARE own uuid:=private.pickup_report_owner();
+BEGIN
+ RETURN (
+ WITH gate AS MATERIALIZED (SELECT private.orders_dashboard_hybrid_read_enabled() usable),
+ stale AS MATERIALIZED (SELECT group_key FROM private.orders_projection_stale_keys() WHERE (SELECT usable FROM gate)),
+ classified AS MATERIALIZED (
+  SELECT p.order_state,p.source_channel,(p.order_created_at AT TIME ZONE 'UTC')::date created_day
+  FROM private.orders_dashboard_projection p
+  WHERE p.owner_id=own AND (SELECT usable FROM gate)
+   AND NOT EXISTS(SELECT 1 FROM stale s WHERE s.group_key=p.projection_group_key)
+  UNION ALL
+  SELECT f.order_state,f.source_channel,(f.order_created_at AT TIME ZONE 'UTC')::date
+  FROM private.orders_classified_fallback(CASE WHEN (SELECT usable FROM gate) THEN ARRAY(SELECT group_key FROM stale) ELSE NULL END) f
+  WHERE NOT (SELECT usable FROM gate) OR EXISTS(SELECT 1 FROM stale)
+ ), scoped AS (
+  SELECT *,created_day IS NOT NULL AND (p_from IS NULL OR created_day>=p_from) AND (p_to IS NULL OR created_day<=p_to) in_period FROM classified
+ )
+ SELECT jsonb_build_object(
+  'orders',count(*) FILTER(WHERE in_period AND order_state<>'cancelled'),
+  'pending',count(*) FILTER(WHERE order_state='pending'),
+  'shipped',count(*) FILTER(WHERE in_period AND order_state='shipped'),
+  'cancelled',count(*) FILTER(WHERE in_period AND order_state='cancelled'),
+  'amazon',count(*) FILTER(WHERE in_period AND order_state<>'cancelled' AND source_channel='amazon'),
+  'shopify',count(*) FILTER(WHERE in_period AND order_state<>'cancelled' AND source_channel='shopify')
+ ) FROM scoped);
+END $summary$;
+REVOKE ALL ON FUNCTION public.orders_operational_summary_v1(date,date) FROM PUBLIC,anon;
+GRANT EXECUTE ON FUNCTION public.orders_operational_summary_v1(date,date) TO authenticated;
+

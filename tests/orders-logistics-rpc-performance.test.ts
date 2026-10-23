@@ -3,6 +3,35 @@ import {it,expect} from 'vitest';
 import {readFileSync} from 'node:fs';
 import {verificationFixture} from './helpers/pickupVerificationFixture';
 const patch='supabase/migrations/20261023132255_orders_cached_logistics_read.sql';
+it('upgrades the emergency projected state/date read without reverting it or failing the source guard',async()=>{
+ const {db}=await fixture();try{
+ const expected=(await db.query<any>("select orders_workbench_v1(p_state=>'all') value")).rows[0].value;
+ for(const name of ['mfa_impl_orders_workbench_v1','mfa_impl_orders_dashboard_pickup_v1']){
+  const src=(await db.query<any>(`select pg_get_functiondef(p.oid) definition from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='private' and p.proname=$1`,[name])).rows[0].definition;
+  await db.exec(src.replace('private.order_logistics_state(to_jsonb(p)) AS order_state','p.order_state').replace("(coalesce(nullif(private.order_logistics_evidence(to_jsonb(p))->>'dispatchedAt',''),nullif(private.order_logistics_evidence(to_jsonb(p))->>'historicalDate',''))::timestamptz AT TIME ZONE 'Europe/Madrid')::date AS dispatched_day",'p.dispatched_day'));
+ }
+ await db.exec(readFileSync(patch,'utf8'));
+ expect((await db.query<any>("select orders_workbench_v1(p_state=>'all') value")).rows[0].value).toEqual(expected);
+ }finally{await db.close()}
+},20000);
+
+it('returns aggregate operational totals across periods without downloading any order metadata',async()=>{
+ const{db}=await fixture();try{
+ await db.exec(readFileSync(patch,'utf8'));
+ const data=(await db.query<any>("select orders_operational_summary_v1() value")).rows[0].value;
+ expect(data).toEqual({orders:3,pending:0,shipped:0,cancelled:0,amazon:0,shopify:3});
+ const empty=(await db.query<any>("select orders_operational_summary_v1('2000-01-01','2000-12-31') value")).rows[0].value;
+ expect(empty).toEqual({...data,orders:0,shopify:0});
+ await db.exec("select order_logistics_mark_sent(jsonb_build_array(jsonb_build_object('id',o.id,'identity',private.shipment_tracking_identity(o)))) from fulfillment_orders o where order_number='DEMO-1'");
+ const dispatched=(await db.query<any>('select orders_operational_summary_v1() value')).rows[0].value;
+ expect(dispatched.shipped).toBe(1);expect(dispatched.orders).toBe(3);
+ await db.exec(readFileSync('supabase/rollback/20261023_orders_cached_logistics_read.sql','utf8'));
+ expect((await db.query<any>('select orders_operational_summary_v1() value')).rows[0].value).toEqual(dispatched);
+ await db.exec("set test.owner='00000000-0000-4000-8000-000000000002'");
+ expect((await db.query<any>('select orders_operational_summary_v1() value')).rows[0].value.orders).toBe(0);
+ await db.exec("set test.mfa='no'");await expect(db.exec('select orders_operational_summary_v1()')).rejects.toThrow('MFA_REQUIRED');
+ }finally{await db.close()}
+},20000);
 async function fixture(){
  const f=await verificationFixture('active');await f.db.exec(readFileSync('tests/fixtures/logistics-production-generation.sql','utf8'));
  for(const r of JSON.parse(readFileSync('supabase/snapshots/20261023-internal-logistics-rollback-functions.json','utf8')))await f.db.exec(r.definition);
@@ -147,3 +176,4 @@ it('cascades removed projection fragments and denies direct client reads and fal
  await db.exec('set role authenticated');await expect(db.query('select * from private.orders_projection_payloads')).rejects.toThrow('permission denied');await expect(db.query("select * from private.orders_classified_fallback(null)")).rejects.toThrow('permission denied');
  }finally{await db.close()}
 },20000);
+

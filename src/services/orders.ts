@@ -209,8 +209,9 @@ function dedupeMarketplaceOrders(orders:FulfillmentOrder[]){
 let ordersClient:ReturnType<typeof getActiveSupabase>|null=null;
 let authSubscription:{unsubscribe:()=>void}|null=null;
 let ordersRead:Promise<FulfillmentOrder[]>|null=null;
-export function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
+export function listFulfillmentOrders(options?:{logistics?:boolean}):Promise<FulfillmentOrder[]>{
   const client=getActiveSupabase();
+  if(options?.logistics===false)return readFulfillmentOrders(client,false);
   if(ordersClient!==client){
     authSubscription?.unsubscribe();ordersClient=client;ordersRead=null;
     authSubscription=client.auth.onAuthStateChange(event=>{if(event==='SIGNED_OUT')resetOrdersSnapshot();}).data.subscription;
@@ -220,20 +221,28 @@ export function listFulfillmentOrders():Promise<FulfillmentOrder[]>{
   void request.finally(()=>{if(ordersRead===request)ordersRead=null}).catch(()=>{});
   return request;
 }
-async function readFulfillmentOrders(client:ReturnType<typeof getActiveSupabase>):Promise<FulfillmentOrder[]>{
+async function readFulfillmentOrders(client:ReturnType<typeof getActiveSupabase>,includeLogistics=true):Promise<FulfillmentOrder[]>{
   const snapshotVersion=ordersSnapshotVersion();
   const {data,error}=await client.from('fulfillment_orders').select('id,sendcloud_id,sendcloud_remote_id,order_id,order_number,source_integration_account_id,shipping_integration_account_id,integration_id,integration_name,integration_type,source_channel,source_status,order_created_at,order_updated_at,pii_purged_at,destination_country_code,customer_name,customer_email,customer_phone,shipping_address,billing_address,items,total_amount,currency,shipping_measurement:raw_payload->shipping_details->measurement,tracking_metadata:raw_payload->_zenvia_tracking,package_length_cm,package_width_cm,package_height_cm,sendcloud_parcel_id,sendcloud_shipment_id,shipping_provider,shipping_remote_id,shipping_label_url,tracking_number,tracking_url,tracking_status_code,tracking_status_message,tracking_updated_at,shipping_option_code,contract_id,carrier_code,carrier_name,shipping_service_name,shipping_cost_amount,shipping_cost_currency,shipping_cost_source,shipping_cost_net_amount,shipping_cost_tax_amount,shipping_cost_recorded_at,label_created_at,label_cancelled_at,label_printed_at,label_print_count,label_print_state_known,fulfilled_at,last_synced_at').order('order_created_at',{ascending:false,nullsFirst:false}).limit(10000).abortSignal(AbortSignal.timeout(15000));
   if(error)throw error;
   const rawRows=data||[];
-  const metadata=rawRows.length?await client.rpc('order_logistics_read',{p_ids:rawRows.map((o:any)=>o.id)}).abortSignal(AbortSignal.timeout(15000)):{data:[],error:null};
+  const metadata=includeLogistics&&rawRows.length?await client.rpc('order_logistics_read',{p_ids:rawRows.map((o:any)=>o.id)}).abortSignal(AbortSignal.timeout(15000)):{data:[],error:null};
   if(metadata.error)throw metadata.error;
   if(!Array.isArray(metadata.data))throw Error('La respuesta de estado logístico no es válida.');
-  if(metadata.data.length!==rawRows.length)throw Error('Los pedidos han cambiado. Actualiza para comprobar su estado logístico.');
+  if(includeLogistics&&metadata.data.length!==rawRows.length)throw Error('Los pedidos han cambiado. Actualiza para comprobar su estado logístico.');
   const facts=new Map(metadata.data.map((o:any)=>[o.id,o]));
   const orders=dedupeMarketplaceOrders(rawRows.map((o:any)=>mapRow({...o,...(facts.get(o.id)||{})}))).filter(order=>!isAmazonAwaitingPayment(order));
+  if(!includeLogistics)return getActiveSupabase()===client?orders:[];
   // Synchronization and the database identity trigger persist the account name.
   if(getActiveSupabase()!==client)return readOrdersSnapshot();
   return publishOrdersSnapshot(orders,snapshotVersion);
+}
+export type OrdersOperationalSummary={orders:number;pending:number;shipped:number;cancelled:number;amazon:number;shopify:number};
+export async function fetchOrdersOperationalSummary(from:string,to:string):Promise<OrdersOperationalSummary>{
+  const {data,error}=await getActiveSupabase().rpc('orders_operational_summary_v1',{p_from:from||null,p_to:to||null}).abortSignal(AbortSignal.timeout(15000));
+  if(error)throw error;
+  if(!data||['orders','pending','shipped','cancelled','amazon','shopify'].some(key=>typeof data[key]!=='number'||!Number.isFinite(data[key])||data[key]<0))throw Error('La respuesta del resumen de pedidos no es válida.');
+  return data;
 }
 export type OrdersDashboardFilters={
   from:string;to:string;state:'pending'|'labelled'|'shipped'|'issues'|'cancelled'|'all';
@@ -468,3 +477,11 @@ export function getOrderTrackingLink(orderId:string){
 export function reconcileAmazonOrders(){return invokeFunction<{ok:boolean;processed:number;failures:Array<{orderId:string;error:string}>}>('amazon-reconcile-orders',{});}
 
 export function completeAmazonRecipients(){return invokeFunction<{ok:boolean;enriched:number;failures:Array<{amazonAccountId:string;error:string}>}>('amazon-recipient-fallback',{});}
+
+export type ShipmentCreationResult={status:'pending'|'released'|'recovered';provider?:string;orderId?:string};
+export async function reconcileOrderShipmentCreation(orderId:string):Promise<ShipmentCreationResult>{
+ const value=await invokeFunction<ShipmentCreationResult>('shipping-creation-reconcile',{orderId},AbortSignal.timeout(110000));
+ if(!['pending','released','recovered'].includes(value?.status))throw new Error('La comprobación no devolvió un resultado válido. Actualiza el pedido antes de continuar.');
+ return value;
+}
+

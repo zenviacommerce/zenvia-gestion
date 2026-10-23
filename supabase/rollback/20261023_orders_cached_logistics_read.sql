@@ -607,4 +607,10 @@ SELECT CASE
  'facets',(SELECT data FROM facets)
 ) END;
 $function$;
+-- Keep derived fragments, but stop their writer after the old RPCs are restored.
+DO $stop$BEGIN
+ IF EXISTS(SELECT 1 FROM pg_trigger WHERE tgrelid=to_regclass('private.orders_dashboard_projection') AND tgname='orders_projection_payload_changed') THEN
+  ALTER TABLE private.orders_dashboard_projection DISABLE TRIGGER orders_projection_payload_changed;
+ END IF;
+END $stop$;
 COMMIT;

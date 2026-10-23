@@ -89,3 +89,61 @@ it.each(['dispatch','history'])('detects lost %s evidence invalidation without s
  }
  }finally{await db.close()}
 },20000);
+
+it('batches current page evidence without reconstructing a JSON order for every visible row',async()=>{
+ const{db}=await fixture();try{await db.exec(readFileSync(patch,'utf8'));
+ const baseline=(await db.query<any>("select orders_workbench_v1(p_state=>'all') value")).rows[0].value;
+ const original=(await db.query<any>("select pg_get_functiondef('private.order_logistics_evidence(jsonb)'::regprocedure) definition")).rows[0].definition;
+ await db.exec(original.replace('FUNCTION private.order_logistics_evidence(','FUNCTION private.test_original_logistics_evidence('));
+ await db.exec(`create or replace function private.order_logistics_evidence(p_row jsonb) returns jsonb language plpgsql stable security definer set search_path='' as $$begin perform set_config('test.evidence_calls',(coalesce(nullif(current_setting('test.evidence_calls',true),''),'0')::int+1)::text,false);return private.test_original_logistics_evidence(p_row);end$$;set test.evidence_calls='0';`);
+ const actual=(await db.query<any>("select orders_workbench_v1(p_state=>'all') value")).rows[0].value;
+ expect(actual).toEqual(baseline);expect((await db.query<any>("select current_setting('test.evidence_calls')::int calls")).rows[0].calls).toBe(0);
+ }finally{await db.close()}
+},20000);
+
+it('ignores missing, obsolete-format and tuple-mismatched fragments, including misleading cached data',async()=>{
+ const{db}=await fixture();try{await db.exec(readFileSync(patch,'utf8'));const baseline=(await db.query<any>("select orders_workbench_v1(p_state=>'all') value")).rows[0].value;
+ for(const condition of ['format','tuple','missing']){
+  if(condition==='format')await db.exec("update private.orders_projection_payloads set format_generation=0,row_payload=jsonb_build_object('customer_name','STALE_FRAGMENT'),tariff_payload='{}'");
+  if(condition==='tuple')await db.exec("update private.orders_projection_payloads set format_generation=1,projection_version='not-current'");
+  if(condition==='missing')await db.exec('delete from private.orders_projection_payloads');
+  for(const rpc of ['orders_workbench_v1','orders_dashboard_pickup_v1']){
+   const actual=(await db.query<any>(`select ${rpc}(p_state=>'all') value`)).rows[0].value;
+   if(rpc==='orders_workbench_v1')expect(actual).toEqual(baseline);
+   expect(JSON.stringify(actual)).not.toContain('STALE_FRAGMENT');expect(actual.rows.length).toBe(3);
+  }
+ }
+ }finally{await db.close()}
+},20000);
+it('refreshes fragments atomically and detects a lost fragment update by its projection tuple token',async()=>{
+ const{db}=await fixture();try{await db.exec(readFileSync(patch,'utf8'));
+ const target=(await db.query<any>('select owner_id,projection_group_key,id from private.orders_dashboard_projection order by id limit 1')).rows[0];
+ await db.query("update private.orders_dashboard_projection set customer_name='Canonical refresh' where id=$1",[target.id]);
+ const token=(await db.query<any>('select c.projection_version=p.xmin::text||\':\'||p.ctid::text as current,c.row_payload->>\'customer_name\' as name from private.orders_projection_payloads c join private.orders_dashboard_projection p on p.owner_id=c.owner_id and p.projection_group_key=c.group_key where p.id=$1',[target.id])).rows[0];expect(token).toEqual({current:true,name:'Canonical refresh'});
+ await db.exec('alter table private.orders_dashboard_projection disable trigger orders_projection_payload_changed');
+ await db.query("update private.orders_dashboard_projection set customer_name='New tuple without fragment' where id=$1",[target.id]);
+ const actual=(await db.query<any>("select orders_workbench_v1(p_state=>'all') value")).rows[0].value;expect(actual.rows.find((r:any)=>r.id===target.id).customer_name).toBe('New tuple without fragment');
+ }finally{await db.close()}
+},20000);
+it('serializes dates and identities live when the reader timezone differs from the fragment writer',async()=>{
+ const{db}=await fixture();try{
+ await db.exec("set timezone='UTC'");await db.exec(readFileSync(patch,'utf8'));
+ await db.exec("set timezone='Europe/Madrid'");
+ for(const rpc of ['orders_workbench_v1','orders_dashboard_pickup_v1']){
+  const hybrid=(await db.query<any>(`select ${rpc}(p_state=>'all') value`)).rows[0].value;
+  await db.exec('update private.orders_projection_control set read_enabled=false where singleton');
+  const fallback=(await db.query<any>(`select ${rpc}(p_state=>'all') value`)).rows[0].value;
+  expect(hybrid).toEqual(fallback);
+  await db.exec('update private.orders_projection_control set read_enabled=true where singleton');
+ }
+ }finally{await db.close()}
+},20000);
+it('cascades removed projection fragments and denies direct client reads and fallback execution',async()=>{
+ const{db}=await fixture();try{await db.exec(readFileSync(patch,'utf8'));
+ const baseline=(await db.query<any>("select orders_workbench_v1(p_state=>'all') value")).rows[0].value;
+ await db.exec('delete from private.orders_dashboard_projection where id=(select id from private.orders_dashboard_projection order by id limit 1)');
+ expect((await db.query<any>('select count(*)::int n from private.orders_projection_payloads')).rows[0].n).toBe(2);
+ expect((await db.query<any>("select orders_workbench_v1(p_state=>'all') value")).rows[0].value).toEqual(baseline);
+ await db.exec('set role authenticated');await expect(db.query('select * from private.orders_projection_payloads')).rejects.toThrow('permission denied');await expect(db.query("select * from private.orders_classified_fallback(null)")).rejects.toThrow('permission denied');
+ }finally{await db.close()}
+},20000);

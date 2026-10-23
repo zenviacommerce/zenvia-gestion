@@ -32,3 +32,7 @@ Capturas posteriores, pruebas de geometría y acciones, revisión, CI y recibos 
 Tarea de consumo: detectadas dos automatizaciones equivalentes. Se mantiene la original `6ad9d539921881918816717f6a519e1e` (11:19:53 Madrid, contexto detallado de métricas) y se pausa la duplicada `6ada0435d7d081918b634b4fe22aa88e`. No se resetean estadísticas.
 
 Capturas y geometría final: 72 pares antes/después en Gestión, incluidas las 9 pantallas con pestañas a 390/1440/1920/2560 claro/oscuro. Panel exterior e interior al ancho útil del padre; icono, padding, filtros cerrados y acciones de informes comprobados. Inventario de pestañas y acciones de cabecera idéntico. Platform: 24 pares y las mismas comprobaciones de ancho/búsqueda. No se ha publicado todavía.
+
+## CI: inventario de búsqueda accesible
+
+El primer pase remoto falló en la comparación histórica de controles de Facturación: SearchField convierte el input text sin nombre accesible en type=search con aria-label derivado de su mismo placeholder. No faltaba ninguna acción. El inventario normaliza exclusivamente esa transición aprobada de búsqueda, conservando número de controles, textos, nombres explícitos, fechas y estados disabled. Prueba roja/verde cubre pérdida de control, cambio de nombre, cambio de disabled y cambio indebido de tipo. Se repite el flujo visual completo; no se omite ningún check.

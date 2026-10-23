@@ -1,0 +1,22 @@
+{
+  "samples": 50,
+  "started_at": "2026-10-22T08:11:57.781683+00:00",
+  "duration_ms": 9914.799,
+  "finished_at": "2026-10-22T08:12:07.696482+00:00",
+  "limitations": "Point sampling may miss sub-200ms writes or waits; zero writer samples means concurrency was unobserved, not a passed load test; no business writes or forced locks were generated.",
+  "max_advisory_waiters": 0,
+  "max_active_source_writers": 0,
+  "max_worker_advisory_locks": 0,
+  "samples_with_worker_locks": 0,
+  "max_active_worker_sessions": 0,
+  "nominal_sample_interval_ms": 200,
+  "samples_with_source_writers": 0,
+  "max_source_write_advisory_waiters": 0,
+  "max_source_write_other_lock_waiters": 0,
+  "max_active_sessions_query_unavailable": 0,
+  "samples_with_source_writers_and_worker_locks": 0,
+  "observation_kind": "during_requested_real_producer_probe_invocation",
+  "project_ref": "sjkxxbedkkmgmqnvaqjh",
+  "coverage_conclusion": "No source writer or worker advisory lock was observed at sample instants; real source-write/worker-lock concurrency remains unobserved, not validated.",
+  "active_worker_sessions_caveat": "Query-name heuristic can include diagnostics mentioning projection functions; advisory lock counters are separately observed."
+}

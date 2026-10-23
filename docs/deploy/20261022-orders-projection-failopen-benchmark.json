@@ -1,0 +1,342 @@
+{
+  "environment": "isolated PGlite PostgreSQL WASM; not production/capacity evidence",
+  "raw_orders": 1014,
+  "deduped_orders": 1000,
+  "samples_per_scenario": 25,
+  "stages": [
+    {
+      "stage": "baseline",
+      "measurements": [
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "pending",
+          "mean_ms": 208.6040716000001,
+          "p95_ms": 248.48469999999998,
+          "p99_ms": 254.44576300000062,
+          "min_ms": 190.14054099999976,
+          "max_ms": 254.44576300000062
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "issues",
+          "mean_ms": 185.20245467999993,
+          "p95_ms": 207.2951119999998,
+          "p99_ms": 226.1525819999988,
+          "min_ms": 172.36960100000033,
+          "max_ms": 226.1525819999988
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "search",
+          "mean_ms": 206.84856803999975,
+          "p95_ms": 236.51708999999937,
+          "p99_ms": 249.24203699999998,
+          "min_ms": 191.64037799999824,
+          "max_ms": 249.24203699999998
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "page2",
+          "mean_ms": 199.41051096000024,
+          "p95_ms": 213.15050500000143,
+          "p99_ms": 259.22235,
+          "min_ms": 188.77872800000114,
+          "max_ms": 259.22235
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "selection",
+          "mean_ms": 178.88491135999982,
+          "p95_ms": 182.99161800000002,
+          "p99_ms": 187.91988499999934,
+          "min_ms": 175.3688140000013,
+          "max_ms": 187.91988499999934
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "pending",
+          "mean_ms": 198.01978660000023,
+          "p95_ms": 212.56628099999944,
+          "p99_ms": 213.22636899999998,
+          "min_ms": 187.77994699999908,
+          "max_ms": 213.22636899999998
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "issues",
+          "mean_ms": 189.58742267999887,
+          "p95_ms": 221.69372199999634,
+          "p99_ms": 235.35702599999786,
+          "min_ms": 174.57850999999937,
+          "max_ms": 235.35702599999786
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "search",
+          "mean_ms": 200.57628444000002,
+          "p95_ms": 209.50071200000093,
+          "p99_ms": 260.67792100000224,
+          "min_ms": 192.75536499999725,
+          "max_ms": 260.67792100000224
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "page2",
+          "mean_ms": 210.42876624000027,
+          "p95_ms": 235.67573999999877,
+          "p99_ms": 239.17588700000488,
+          "min_ms": 192.70843400000012,
+          "max_ms": 239.17588700000488
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "selection",
+          "mean_ms": 185.69570776000037,
+          "p95_ms": 204.66750099999626,
+          "p99_ms": 232.9967570000008,
+          "min_ms": 177.19184600000153,
+          "max_ms": 232.9967570000008
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "pickup",
+          "mean_ms": 203.4703064000007,
+          "p95_ms": 226.1705260000017,
+          "p99_ms": 247.02339999999822,
+          "min_ms": 197.10743899999943,
+          "max_ms": 247.02339999999822
+        }
+      ]
+    },
+    {
+      "stage": "singleton",
+      "measurements": [
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "pending",
+          "mean_ms": 59.055039560000004,
+          "p95_ms": 63.30853500000376,
+          "p99_ms": 68.66539000000193,
+          "min_ms": 57.13167799999792,
+          "max_ms": 68.66539000000193
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "issues",
+          "mean_ms": 45.60361795999896,
+          "p95_ms": 48.123367000000144,
+          "p99_ms": 51.34496200000285,
+          "min_ms": 44.36190499999793,
+          "max_ms": 51.34496200000285
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "search",
+          "mean_ms": 62.75356267999945,
+          "p95_ms": 63.48953499999334,
+          "p99_ms": 67.8024299999961,
+          "min_ms": 61.88399899999786,
+          "max_ms": 67.8024299999961
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "page2",
+          "mean_ms": 65.36539256000019,
+          "p95_ms": 77.37437399999908,
+          "p99_ms": 77.6165800000017,
+          "min_ms": 61.9231740000032,
+          "max_ms": 77.6165800000017
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "selection",
+          "mean_ms": 50.09613840000151,
+          "p95_ms": 56.365436000000045,
+          "p99_ms": 63.38532800000394,
+          "min_ms": 48.205839000002015,
+          "max_ms": 63.38532800000394
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "pending",
+          "mean_ms": 63.19865419999958,
+          "p95_ms": 74.21645599999465,
+          "p99_ms": 76.39636500000779,
+          "min_ms": 60.63919299999543,
+          "max_ms": 76.39636500000779
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "issues",
+          "mean_ms": 49.273492839998795,
+          "p95_ms": 54.18081099999836,
+          "p99_ms": 60.44256999999925,
+          "min_ms": 46.117459999994026,
+          "max_ms": 60.44256999999925
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "search",
+          "mean_ms": 66.81615443999995,
+          "p95_ms": 71.41103000000294,
+          "p99_ms": 79.15822300000582,
+          "min_ms": 63.831082000004244,
+          "max_ms": 79.15822300000582
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "page2",
+          "mean_ms": 66.46698643999989,
+          "p95_ms": 69.06945299998915,
+          "p99_ms": 69.42109400000481,
+          "min_ms": 64.25262400000065,
+          "max_ms": 69.42109400000481
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "selection",
+          "mean_ms": 50.457483280000744,
+          "p95_ms": 53.58534399999189,
+          "p99_ms": 54.02279699999781,
+          "min_ms": 48.835868000009214,
+          "max_ms": 54.02279699999781
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "pickup",
+          "mean_ms": 72.04456971999898,
+          "p95_ms": 76.79719399999885,
+          "p99_ms": 82.13497999998799,
+          "min_ms": 70.23823099999572,
+          "max_ms": 82.13497999998799
+        }
+      ]
+    },
+    {
+      "stage": "projection",
+      "measurements": [
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "pending",
+          "mean_ms": 30.14149839999969,
+          "p95_ms": 31.962443999989773,
+          "p99_ms": 32.15150899998844,
+          "min_ms": 29.015013000011095,
+          "max_ms": 32.15150899998844
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "issues",
+          "mean_ms": 17.723411640001576,
+          "p95_ms": 19.286957999996957,
+          "p99_ms": 19.56134899999597,
+          "min_ms": 16.509760999993887,
+          "max_ms": 19.56134899999597
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "search",
+          "mean_ms": 35.03632843999832,
+          "p95_ms": 36.882397000008496,
+          "p99_ms": 42.11334100000386,
+          "min_ms": 33.42384499999753,
+          "max_ms": 42.11334100000386
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "page2",
+          "mean_ms": 34.938104600001246,
+          "p95_ms": 37.55903999999282,
+          "p99_ms": 40.216732000000775,
+          "min_ms": 33.29188299999805,
+          "max_ms": 40.216732000000775
+        },
+        {
+          "operation": "orders_dashboard_page_v1",
+          "scenario": "selection",
+          "mean_ms": 19.495003079999005,
+          "p95_ms": 21.224904999995488,
+          "p99_ms": 21.238696000000346,
+          "min_ms": 18.804363000002922,
+          "max_ms": 21.238696000000346
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "pending",
+          "mean_ms": 29.62576567999902,
+          "p95_ms": 32.10034999999334,
+          "p99_ms": 32.38381900000968,
+          "min_ms": 28.355785000007018,
+          "max_ms": 32.38381900000968
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "issues",
+          "mean_ms": 16.943348839999526,
+          "p95_ms": 19.50000600000203,
+          "p99_ms": 20.93558699999994,
+          "min_ms": 15.801900000005844,
+          "max_ms": 20.93558699999994
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "search",
+          "mean_ms": 34.75309059999941,
+          "p95_ms": 35.80142099999648,
+          "p99_ms": 36.72115300000587,
+          "min_ms": 33.54591800000344,
+          "max_ms": 36.72115300000587
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "page2",
+          "mean_ms": 35.26963715999853,
+          "p95_ms": 39.279913999998826,
+          "p99_ms": 40.30120899999747,
+          "min_ms": 33.65652599999157,
+          "max_ms": 40.30120899999747
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "selection",
+          "mean_ms": 19.57148140000005,
+          "p95_ms": 20.676284999994095,
+          "p99_ms": 21.12061700000777,
+          "min_ms": 18.286699000003864,
+          "max_ms": 21.12061700000777
+        },
+        {
+          "operation": "orders_dashboard_pickup_v1",
+          "scenario": "pickup",
+          "mean_ms": 41.39269659999816,
+          "p95_ms": 43.45190699999512,
+          "p99_ms": 46.780472999991616,
+          "min_ms": 39.32011400000192,
+          "max_ms": 46.780472999991616
+        }
+      ]
+    }
+  ],
+  "synthetic_amazon_update_comparison": [
+    {
+      "maintenance_enabled": false,
+      "samples": 100,
+      "mean_ms": 0.5614758699997037,
+      "p95_ms": 0.9516189999994822,
+      "p99_ms": 2.6670149999990826,
+      "min_ms": 0.411482999988948,
+      "max_ms": 3.1616440000070725
+    },
+    {
+      "maintenance_enabled": true,
+      "samples": 100,
+      "mean_ms": 0.6952533200000471,
+      "p95_ms": 0.9832569999998668,
+      "p99_ms": 1.179084999996121,
+      "min_ms": 0.5744790000026114,
+      "max_ms": 1.3370730000024196
+    }
+  ],
+  "write_limitations": "Single-process PGlite; Amazon-shaped local UPDATE only. No real Amazon sync, network, pool, multi-session contention, production tail, or CPU evidence.",
+  "measured_revision": "Enqueue-only, xmin/membership guard; before final xmin+ctid token and independent scheduled cleanup. Illustrative local evidence; rerun script for final-revision measurements."
+}

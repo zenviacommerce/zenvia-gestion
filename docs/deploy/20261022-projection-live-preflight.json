@@ -1,0 +1,9 @@
+{
+  "project": "sjkxxbedkkmgmqnvaqjh",
+  "measured_at": "2026-10-22 07:29:20.195838+00",
+  "projection_installed": false,
+  "advisory_locks_at_snapshot": 0,
+  "advisory_waiters_at_snapshot": 0,
+  "pg_stat_statements_reset": "2026-10-19 10:28:22.384136+00",
+  "interpretation": "Read-only preflight before review correction. No projection trigger exists in production; this snapshot cannot establish trigger overhead, p95 or contention under load. No reset performed. Real Amazon sync measurement must follow approval of revised shadow installation."
+}

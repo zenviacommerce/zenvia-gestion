@@ -1,0 +1,72 @@
+[
+  {
+    "batch": "metrics-11441",
+    "receipt": {
+      "error": null,
+      "metrics": [
+        "node_memory_Cached_bytes{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 1.032265728e+09",
+        "node_load15{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 0.37",
+        "node_memory_MemFree_bytes{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 2.40549888e+08",
+        "node_memory_MemTotal_bytes{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 2.025500672e+09",
+        "node_memory_Buffers_bytes{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 7.5063296e+07",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"idle\"} 224283.72",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"iowait\"} 309.61",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"irq\"} 0",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"nice\"} 6.48",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"softirq\"} 323.88",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"steal\"} 2399.96",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"system\"} 2602.82",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"user\"} 22861.55",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"idle\"} 224247.34",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"iowait\"} 308.92",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"irq\"} 0",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"nice\"} 7.51",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"softirq\"} 327.4",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"steal\"} 2403.63",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"system\"} 2600.25",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"user\"} 22857.34",
+        "node_load1{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 0.36",
+        "node_load5{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 0.4",
+        "node_memory_MemAvailable_bytes{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 1.069084672e+09"
+      ],
+      "request_id": 11441,
+      "captured_at": "2026-10-22T08:53:17.55818+00:00",
+      "status_code": 200
+    }
+  },
+  {
+    "batch": "metrics-11446",
+    "receipt": {
+      "error": null,
+      "metrics": [
+        "node_memory_MemTotal_bytes{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 2.025500672e+09",
+        "node_memory_Buffers_bytes{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 7.5108352e+07",
+        "node_load15{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 0.36",
+        "node_load5{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 0.37",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"idle\"} 224340.23",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"iowait\"} 309.72",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"irq\"} 0",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"nice\"} 6.48",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"softirq\"} 323.96",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"steal\"} 2400.81",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"system\"} 2603.47",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"0\",mode=\"user\"} 22864.41",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"idle\"} 224303.36",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"iowait\"} 309.04",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"irq\"} 0",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"nice\"} 7.51",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"softirq\"} 327.47",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"steal\"} 2404.49",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"system\"} 2600.86",
+        "node_cpu_seconds_total{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\",cpu=\"1\",mode=\"user\"} 22860.62",
+        "node_memory_MemAvailable_bytes{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 1.102913536e+09",
+        "node_memory_Cached_bytes{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 1.032527872e+09",
+        "node_load1{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 0.3",
+        "node_memory_MemFree_bytes{supabase_project_ref=\"sjkxxbedkkmgmqnvaqjh\",supabase_identifier=\"sjkxxbedkkmgmqnvaqjh\",service_type=\"db\"} 2.73399808e+08"
+      ],
+      "request_id": 11446,
+      "captured_at": "2026-10-22T08:54:18.610723+00:00",
+      "status_code": 200
+    }
+  }
+]

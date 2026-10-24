@@ -1,3 +1,5 @@
+> **Revisión vigente:** [paquete de corrección desde pantalla](../20261024-verifactu-correction/README.md), que amplía esta fase con PDF rectificativo, estados derivados y activación/rollback coordinado de ambas migraciones. No ejecutar esta fase sola.
+
 # VERI*FACTU fase 1 — propuesta revisable, sin activar
 
 Estado: rama de revisión, **no aplicada en producción**. La migración arranca en `disabled`. No se ha emitido ninguna factura real, cambiado PDF, conectado AEAT, creado recurso Google Cloud ni manejado certificados. La pasarela elegida sigue siendo Google Cloud europe-west1 con escalado a cero, pendiente de alta por el propietario según fase 0.

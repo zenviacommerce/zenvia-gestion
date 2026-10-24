@@ -1,3 +1,4 @@
+import {salesFiscalAmounts} from '../services/salesFiscalAmounts';
 import {SearchField} from '@zenvia/ui';
 import {PageHeader} from '../components/PageHeader';
 import {KpiGrid} from '../components/KpiGrid';
@@ -172,8 +173,8 @@ export function Clients(){
     const ordered=[...periodInvoices].sort((a,b)=>b.issueDate.localeCompare(a.issueDate));
     for(const invoice of ordered){
       const metric=map.get(invoice.clientId);if(!metric)continue;
-      const registered=invoice.status!=='draft';if(registered){metric.invoiced+=invoice.totalAmount;metric.count+=1;if(!metric.lastDate||invoice.issueDate>metric.lastDate)metric.lastDate=invoice.issueDate;}
-      if(invoice.invoiceType==='standard'&&!['draft','paid','rectified'].includes(invoice.status))metric.pending+=Math.max(0,invoice.totalAmount-invoice.paidAmount);
+      const registered=invoice.status!=='draft'&&invoice.status!=='cancelled'&&invoice.fiscalStatus!=='cancelled'&&!invoice.cancelledAt;if(registered){metric.invoiced+=salesFiscalAmounts(invoice).totalAmount;metric.count+=1;if(!metric.lastDate||invoice.issueDate>metric.lastDate)metric.lastDate=invoice.issueDate;}
+      if(invoice.invoiceType==='standard'&&!['draft','paid','rectified','cancelled'].includes(invoice.status)&&invoice.fiscalStatus!=='cancelled'&&!invoice.cancelledAt)metric.pending+=Math.max(0,invoice.totalAmount-invoice.paidAmount);
       if(metric.recent.length<5)metric.recent.push(invoice);
     }
     return map;
@@ -295,3 +296,4 @@ export function Clients(){
     {selected&&<ClientDrawer client={selected} metric={metrics.get(selected.id)||{invoiced:0,pending:0,count:0,lastDate:null,recent:[]}} period={selectedPeriod} onClose={()=>setSelected(null)} onEdit={()=>openEdit(selected)} onDelete={()=>remove(selected)} busy={busyId===selected.id}/>} 
   </div>;
 }
+

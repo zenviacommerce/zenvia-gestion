@@ -1,6 +1,8 @@
 -- Full schema rollback only BEFORE any use of the new issuer/shadow ledger.
 -- After use, run disable-shadow.sql instead and retain all fiscal history.
 BEGIN;
+-- Restored legacy definitions may contain unqualified composite return types.
+SET LOCAL search_path=public;
 SET LOCAL lock_timeout='3s';SET LOCAL statement_timeout='15s';
 DO $gate$ BEGIN
  IF EXISTS(SELECT 1 FROM private.verifactu_records) OR EXISTS(SELECT 1 FROM private.verifactu_events) OR EXISTS(SELECT 1 FROM private.verifactu_series_state) OR EXISTS(SELECT 1 FROM private.verifactu_receipt_snapshots) OR EXISTS(SELECT 1 FROM private.verifactu_cancellations) THEN RAISE EXCEPTION 'VF_ROLLBACK_PRESERVE_HISTORY: disable shadow, do not drop records or recycle numbers';END IF;

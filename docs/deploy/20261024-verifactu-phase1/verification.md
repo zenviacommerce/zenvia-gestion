@@ -35,3 +35,14 @@ Un nuevo recibo draft todavía se contaba como pendiente de cobro. RED observado
 MFA real de PR reveló regresión de metadatos: tres wrappers con retorno compuesto tenían hash calculado con search_path visible public; checker vacío devuelve tipo calificado public.*. Se reprodujo RED con los mismos tres findings; SET LOCAL search_path='' antes del wrapper loop lo corrige, sin aflojar guardas ni cambiar piloto. Core24 +paridad38 GREEN62. [MFA real job 120956135557](https://github.com/zenviacommerce/zenvia-gestion/actions/runs/40122248780/job/120956135557) GREEN11/11, cero skips. Nueva huella de migración: `7e4cdc4afa9a8e6537214be5054d0c098859e12e47df9f59ae1e40ed1d685bc9`.
 
 Resumen operativo, inventario literal de sentencias existentes e histórico de dos renumeraciones acreditadas: `REVIEW-SUMMARY.md`, `existing-table-statements.sql`, `review-production-evidence.json`. Todas las consultas de producción en esta revisión fueron SELECT; no se aplicó la migración.
+
+
+## Ampliación del circuito, decisión del propietario y cierre local (24/10/2026)
+
+Paquete vigente: [corrección desde pantalla](../20261024-verifactu-correction/README.md). Legado F202650/F202654 y demás emitidas: sin acción ni regularización automática, por decisión expresa del propietario. No se ha aplicado ni publicado fase1/ampliación en producción.
+
+Se añaden clasificación R1–R5/S-I, motivo, edición de líneas en borrador, emisión R transaccional, vínculos y estados derivados, anulación registrada con confirmación y PDF con original. S final−original en los agregados, sin reescribir pagos/documentos. Guardado rectificativo atómico para cerrar la carrera con emisión. La captura disabled bloquea nuevas altas pero conserva la posibilidad de encadenar anulaciones de altas ya capturadas. Lectura de estado mantiene permisos sales OR dashboard; escrituras sales+MFA.
+
+Revisión independiente y correcciones: [informe](../20261024-verifactu-correction/independent-review-and-fixes.md). Local: 1028 Vitest PASS /2 harness visuales opt-in (ejecutados expresamente), 1292 contratos Node PASS, build PASS; 40 capturas reales de componentes con datos sintéticos, 0 desbordamiento horizontal. PDF simple y prueba de 1.000 caracteres/80 conceptos renderizados. Cadenas/numeración/concurrencia real y MFA real deben quedar en verde en CI del head.
+
+El rollback inicial añade search_path=public para restaurar tipos compuestos históricos desde sesiones con search_path vacío. El preflight ignora las siete columnas técnicas nuevas al calcular la huella fiscal histórica; no altera las filas. Hashes actuales de migraciones/rollback/interruptor: [sha256.json](../20261024-verifactu-correction/sha256.json), que sustituye los hashes de rollback anteriores.

@@ -1,3 +1,4 @@
+import {salesFiscalAmounts} from '../services/salesFiscalAmounts';
 import {OrderFinancialSummary} from '../components/OrderFinancialSummary';
 import {KpiGrid} from '../components/KpiGrid';
 import {PageHeader} from '../components/PageHeader';
@@ -66,7 +67,7 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
 
   const periodExpenses=useMemo(()=>invoices.filter(invoice=>(!filter.from||invoice.invoiceDate>=filter.from)&&(!filter.to||invoice.invoiceDate<=filter.to)),[invoices,filter]);
   const selectedSales=useMemo(()=>sales.filter(invoice=>{
-    if(invoice.status==='draft')return false;
+    if(invoice.status==='draft'||invoice.status==='cancelled'||invoice.fiscalStatus==='cancelled'||invoice.cancelledAt)return false;
     if(filter.from&&invoice.issueDate<filter.from)return false;
     if(filter.to&&invoice.issueDate>filter.to)return false;
     return true;
@@ -76,11 +77,11 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
   const selectedPeriod=periodLabel(filter);
   const expenseTotal=periodExpenses.reduce((s,i)=>s+i.total,0);
   const inputVat=periodExpenses.reduce((s,i)=>s+i.vat,0);
-  const salesTotal=selectedSales.reduce((s,i)=>s+i.totalAmount,0);
-  const outputVat=selectedSales.reduce((s,i)=>s+i.taxAmount,0);
+  const salesTotal=selectedSales.reduce((s,i)=>s+salesFiscalAmounts(i).totalAmount,0);
+  const outputVat=selectedSales.reduce((s,i)=>s+salesFiscalAmounts(i).taxAmount,0);
   const result=salesTotal-expenseTotal;
   const vatBalance=outputVat-inputVat;
-  const receivable=selectedSales.reduce((s,i)=>s+Math.max(0,i.totalAmount-i.paidAmount),0);
+  const receivable=selectedSales.filter(i=>i.invoiceType==='standard').reduce((s,i)=>s+Math.max(0,i.totalAmount-i.paidAmount),0);
   const pending=periodExpenses.filter(i=>i.status==='pending').length;
 
   const operational=orderSummary?.from===filter.from&&orderSummary.to===filter.to?orderSummary.values:null;
@@ -123,7 +124,7 @@ export function Dashboard({invoices,products,suppliers,onUpload,onProducts,onOrd
     <div className="grid2">
       <section className="card"><div className="cardHead"><div><h3>Gasto por categoría</h3><p>Distribución · {selectedPeriod}</p></div></div>{byCategory.length?<div className="chartWrap"><ResponsiveContainer width="100%" height={250}><PieChart><Pie data={byCategory} dataKey="value" nameKey="name" innerRadius={65} outerRadius={95} paddingAngle={3}>{byCategory.map((_,i)=><Cell key={i} fill={colors[i%colors.length]}/>)}</Pie><Tooltip formatter={(v)=>money(Number(v))}/></PieChart></ResponsiveContainer><div className="legend">{byCategory.map((x,i)=><div key={x.name}><i style={{background:colors[i%colors.length]}}/><span>{x.name}</span><strong>{money(x.value,0)}</strong></div>)}</div></div>:<Empty text="No hay facturas de gastos para los filtros seleccionados."/>}</section>
       <section className="card"><div className="cardHead"><div><h3>Últimos movimientos</h3><p>Ventas y gastos · {selectedPeriod}</p></div></div>{selectedSales.length||periodExpenses.length?<div className="invoiceList">
-        {[...selectedSales.slice(0,3).map(i=>({id:`s-${i.id}`,name:i.clientName,date:i.issueDate,detail:i.invoiceNumber||'Factura de venta',amount:i.totalAmount,status:'Venta'})),...periodExpenses.slice(0,3).map(i=>({id:`e-${i.id}`,name:i.supplierName,date:i.invoiceDate,detail:i.category,amount:-i.total,status:'Gasto'}))].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(item=><div className="invoiceRow" key={item.id}><div className="supplierBadge">{item.name.slice(0,2).toUpperCase()}</div><div className="invoiceMain"><strong>{item.name}</strong><span>{new Date(`${item.date}T12:00:00`).toLocaleDateString('es-ES')} · {item.detail}</span></div><div className="invoiceAmount"><strong>{item.amount>0?'+':''}{money(item.amount)}</strong><span className={item.status==='Venta'?'pill ok':'pill warn'}>{item.status}</span></div></div>)}
+        {[...selectedSales.slice(0,3).map(i=>({id:`s-${i.id}`,name:i.clientName,date:i.issueDate,detail:i.invoiceNumber||'Factura de venta',amount:salesFiscalAmounts(i).totalAmount,status:'Venta'})),...periodExpenses.slice(0,3).map(i=>({id:`e-${i.id}`,name:i.supplierName,date:i.invoiceDate,detail:i.category,amount:-i.total,status:'Gasto'}))].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,5).map(item=><div className="invoiceRow" key={item.id}><div className="supplierBadge">{item.name.slice(0,2).toUpperCase()}</div><div className="invoiceMain"><strong>{item.name}</strong><span>{new Date(`${item.date}T12:00:00`).toLocaleDateString('es-ES')} · {item.detail}</span></div><div className="invoiceAmount"><strong>{item.amount>0?'+':''}{money(item.amount)}</strong><span className={item.status==='Venta'?'pill ok':'pill warn'}>{item.status}</span></div></div>)}
       </div>:<Empty text="Todavía no hay movimientos en este periodo."/>}</section>
     </div>
     <section className="card alertCard"><div className="trendIcon"><PackageCheck/></div><div><h3>Control de costes de producto</h3>{changed&&delta!=null?<p>Último cambio destacado: <strong>{changed.name}</strong> está a <strong>{money(changed.lastPrice!,4)}/{changed.unit}</strong> ({delta>0?'+':''}{delta.toFixed(1)} % frente al precio anterior).</p>:<p>Cuando una línea de mercancía se vincule a un producto, aquí verás las variaciones de coste automáticamente.</p>}</div>{onProducts&&<button className="secondary" onClick={onProducts}>Ver productos <ArrowUpRight size={14}/></button>}</section>

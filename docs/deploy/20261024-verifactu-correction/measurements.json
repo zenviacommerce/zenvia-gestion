@@ -1,0 +1,278 @@
+[
+  {
+    "name": "01-issued-list",
+    "width": 1440,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "01-issued-list-1440-light.png"
+  },
+  {
+    "name": "01-issued-list",
+    "width": 1440,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "01-issued-list-1440-dark.png"
+  },
+  {
+    "name": "01-issued-list",
+    "width": 390,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "01-issued-list-390-light.png"
+  },
+  {
+    "name": "01-issued-list",
+    "width": 390,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "01-issued-list-390-dark.png"
+  },
+  {
+    "name": "02-immutable-detail",
+    "width": 1440,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "02-immutable-detail-1440-light.png"
+  },
+  {
+    "name": "02-immutable-detail",
+    "width": 1440,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "02-immutable-detail-1440-dark.png"
+  },
+  {
+    "name": "02-immutable-detail",
+    "width": 390,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "02-immutable-detail-390-light.png"
+  },
+  {
+    "name": "02-immutable-detail",
+    "width": 390,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "02-immutable-detail-390-dark.png"
+  },
+  {
+    "name": "03-correction-classification",
+    "width": 1440,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "03-correction-classification-1440-light.png"
+  },
+  {
+    "name": "03-correction-classification",
+    "width": 1440,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "03-correction-classification-1440-dark.png"
+  },
+  {
+    "name": "03-correction-classification",
+    "width": 390,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "03-correction-classification-390-light.png"
+  },
+  {
+    "name": "03-correction-classification",
+    "width": 390,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "03-correction-classification-390-dark.png"
+  },
+  {
+    "name": "04-correction-editor",
+    "width": 1440,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "04-correction-editor-1440-light.png"
+  },
+  {
+    "name": "04b-correction-lines",
+    "width": 1440,
+    "theme": "light",
+    "image": "04b-correction-lines-1440-light.png"
+  },
+  {
+    "name": "04-correction-editor",
+    "width": 1440,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "04-correction-editor-1440-dark.png"
+  },
+  {
+    "name": "04b-correction-lines",
+    "width": 1440,
+    "theme": "dark",
+    "image": "04b-correction-lines-1440-dark.png"
+  },
+  {
+    "name": "04-correction-editor",
+    "width": 390,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "04-correction-editor-390-light.png"
+  },
+  {
+    "name": "04b-correction-lines",
+    "width": 390,
+    "theme": "light",
+    "image": "04b-correction-lines-390-light.png"
+  },
+  {
+    "name": "04-correction-editor",
+    "width": 390,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "04-correction-editor-390-dark.png"
+  },
+  {
+    "name": "04b-correction-lines",
+    "width": 390,
+    "theme": "dark",
+    "image": "04b-correction-lines-390-dark.png"
+  },
+  {
+    "name": "05-correction-issued-list",
+    "width": 1440,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "05-correction-issued-list-1440-light.png"
+  },
+  {
+    "name": "05-correction-issued-list",
+    "width": 1440,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "05-correction-issued-list-1440-dark.png"
+  },
+  {
+    "name": "05-correction-issued-list",
+    "width": 390,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "05-correction-issued-list-390-light.png"
+  },
+  {
+    "name": "05-correction-issued-list",
+    "width": 390,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "05-correction-issued-list-390-dark.png"
+  },
+  {
+    "name": "06-correction-issued-detail",
+    "width": 1440,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "06-correction-issued-detail-1440-light.png"
+  },
+  {
+    "name": "06-correction-issued-detail",
+    "width": 1440,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "06-correction-issued-detail-1440-dark.png"
+  },
+  {
+    "name": "06-correction-issued-detail",
+    "width": 390,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "06-correction-issued-detail-390-light.png"
+  },
+  {
+    "name": "06-correction-issued-detail",
+    "width": 390,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "06-correction-issued-detail-390-dark.png"
+  },
+  {
+    "name": "07-cancellation-confirm",
+    "width": 1440,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "07-cancellation-confirm-1440-light.png"
+  },
+  {
+    "name": "07-cancellation-confirm",
+    "width": 1440,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "07-cancellation-confirm-1440-dark.png"
+  },
+  {
+    "name": "07-cancellation-confirm",
+    "width": 390,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "07-cancellation-confirm-390-light.png"
+  },
+  {
+    "name": "07-cancellation-confirm",
+    "width": 390,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "07-cancellation-confirm-390-dark.png"
+  },
+  {
+    "name": "08-cancelled-list",
+    "width": 1440,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "08-cancelled-list-1440-light.png"
+  },
+  {
+    "name": "08-cancelled-list",
+    "width": 1440,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "08-cancelled-list-1440-dark.png"
+  },
+  {
+    "name": "08-cancelled-list",
+    "width": 390,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "08-cancelled-list-390-light.png"
+  },
+  {
+    "name": "08-cancelled-list",
+    "width": 390,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "08-cancelled-list-390-dark.png"
+  },
+  {
+    "name": "00-before-correction-detail",
+    "width": 1440,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "00-before-correction-detail-1440-light.png"
+  },
+  {
+    "name": "00-before-correction-detail",
+    "width": 1440,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "00-before-correction-detail-1440-dark.png"
+  },
+  {
+    "name": "00-before-correction-detail",
+    "width": 390,
+    "theme": "light",
+    "horizontalOverflow": false,
+    "image": "00-before-correction-detail-390-light.png"
+  },
+  {
+    "name": "00-before-correction-detail",
+    "width": 390,
+    "theme": "dark",
+    "horizontalOverflow": false,
+    "image": "00-before-correction-detail-390-dark.png"
+  }
+]

@@ -80,7 +80,7 @@ export type SalesPayment = {
   notes?: string | null;
 };
 
-export type SalesInvoiceStatus = 'draft' | 'issued' | 'sent' | 'partially_paid' | 'paid' | 'rectified';
+export type SalesInvoiceStatus = 'draft' | 'issued' | 'sent' | 'partially_paid' | 'paid' | 'rectified' | 'cancelled';
 
 export type SalesInvoice = {
   id: string;
@@ -93,6 +93,17 @@ export type SalesInvoice = {
   taxRegistrationCountryCode?: string | null;
   invoiceType: 'standard' | 'rectifying';
   rectifiesInvoiceId?: string | null;
+  verifactuType?: string | null;
+  rectificationMode?: 'S'|'I'|null;
+  rectificationReason?: string|null;
+  rectificationOriginalNumber?: string|null;
+  rectificationOriginalDate?: string|null;
+  rectificationOriginalBase?: number|null;
+  rectificationOriginalTax?: number|null;
+  fiscalStatus?: 'rectified'|'cancelled';
+  cancelledAt?: string|null;
+  relatedCorrections?: {id:string;number:string;status:string}[];
+
   invoiceNumber?: string | null;
   status: SalesInvoiceStatus;
   issueDate: string;
@@ -130,6 +141,8 @@ export type SalesInvoice = {
 };
 
 export type SalesInvoiceDraftInput = {
+  verifactuType?: string|null;
+  rectificationReason?: string|null;
   clientId: string;
   seriesId: string;
   taxRegistrationId?: string | null;
@@ -188,15 +201,16 @@ export async function ensureSalesSeries(year:number):Promise<SalesInvoiceSeries[
 }
 
 export async function loadSalesInvoices():Promise<SalesInvoice[]>{
-  const [invoiceResult,lineResult,paymentResult,clientResult,seriesResult,taxResult]=await Promise.all([
-    supabase.from('sales_invoices').select('id,client_id,series_id,tax_registration_id,client_name,invoice_type,rectifies_invoice_id,invoice_number,status,issue_date,operation_date,due_date,currency,subtotal,discount_amount,tax_amount,total_amount,payment_method,payment_method_id,bank_account_id,bank_account_snapshot,bank_snapshot_source,bank_snapshot_at,notes,client_tax_id,client_email,client_phone,client_address,issuer_name,issuer_tax_id,issuer_email,issuer_phone,issuer_address,issuer_tax_country_code,issuer_tax_registration_label,issued_at,sent_at,paid_at,created_at').order('issue_date',{ascending:false}).order('created_at',{ascending:false}),
+  const [invoiceResult,lineResult,paymentResult,clientResult,seriesResult,taxResult,shadowResult]=await Promise.all([
+    supabase.from('sales_invoices').select('id,client_id,series_id,tax_registration_id,client_name,invoice_type,rectifies_invoice_id,verifactu_type,rectification_mode,rectification_reason,rectification_original_number,rectification_original_date,rectification_original_base,rectification_original_tax,invoice_number,status,issue_date,operation_date,due_date,currency,subtotal,discount_amount,tax_amount,total_amount,payment_method,payment_method_id,bank_account_id,bank_account_snapshot,bank_snapshot_source,bank_snapshot_at,notes,client_tax_id,client_email,client_phone,client_address,issuer_name,issuer_tax_id,issuer_email,issuer_phone,issuer_address,issuer_tax_country_code,issuer_tax_registration_label,issued_at,sent_at,paid_at,created_at').order('issue_date',{ascending:false}).order('created_at',{ascending:false}),
     supabase.from('sales_invoice_lines').select('id,invoice_id,product_id,position,description,quantity,unit,unit_price,discount_percent,tax_rate,line_net,tax_amount,line_total').order('position'),
     supabase.from('sales_payments').select('id,invoice_id,payment_date,amount,method,reference,notes').order('payment_date'),
     supabase.from('clients').select('id,name,tax_id,email,phone,address_line1,address_line2,postal_code,city,province,country_code'),
     supabase.from('sales_invoice_series').select('id,name'),
     supabase.from('business_tax_registrations').select('id,label,country_code,vat_number,fiscal_name,address_text,is_default,active'),
+    supabase.rpc('verifactu_shadow_status'),
   ]);
-  for(const result of [invoiceResult,lineResult,paymentResult,clientResult,seriesResult,taxResult])if(result.error)throw result.error;
+  for(const result of [invoiceResult,lineResult,paymentResult,clientResult,seriesResult,taxResult,shadowResult])if(result.error)throw result.error;
   const clients=new Map((clientResult.data??[]).map((row:any)=>[row.id,row]));
   const series=new Map((seriesResult.data??[]).map((row:any)=>[row.id,row.name]));
   const taxRegs=new Map((taxResult.data??[]).map((row:any)=>[row.id,row]));
@@ -205,19 +219,23 @@ export async function loadSalesInvoices():Promise<SalesInvoice[]>{
   for(const row of lineResult.data??[]){const bucket=lines.get(row.invoice_id)??[];bucket.push({id:row.id,productId:row.product_id,position:row.position,description:row.description,quantity:n(row.quantity),unit:row.unit||'ud',unitPrice:n(row.unit_price),discountPercent:n(row.discount_percent),taxRate:n(row.tax_rate),lineNet:n(row.line_net),taxAmount:n(row.tax_amount),lineTotal:n(row.line_total)});lines.set(row.invoice_id,bucket);}
   const payments=new Map<string,SalesPayment[]>();
   for(const row of paymentResult.data??[]){const bucket=payments.get(row.invoice_id)??[];bucket.push({id:row.id,paymentDate:row.payment_date,amount:n(row.amount),method:row.method,reference:row.reference,notes:row.notes});payments.set(row.invoice_id,bucket);}
-  return (invoiceResult.data??[]).map((row:any)=>{
+  const cancellations=new Map<string,string>((shadowResult.data?.cancellations??[]).filter((r:any)=>r.documentKind==='invoice').map((r:any)=>[r.documentId,r.cancelledAt]));
+  const rawInvoices=invoiceResult.data??[];
+  const relatedByOriginal=new Map<string,{id:string;number:string;status:string}[]>();
+  for(const row of rawInvoices){if(!row.rectifies_invoice_id)continue;const related=relatedByOriginal.get(row.rectifies_invoice_id)||[];related.push({id:row.id,number:row.invoice_number||'Borrador rectificativo',status:cancellations.has(row.id)?'cancelled':row.status});relatedByOriginal.set(row.rectifies_invoice_id,related);}
+  return rawInvoices.map((row:any)=>{
     const liveClient:any=clients.get(row.client_id);const tax:any=taxRegs.get(row.tax_registration_id)||defaultTax;const draft=row.status==='draft';const invoicePayments=payments.get(row.id)??[];
-    return {id:row.id,clientId:row.client_id,clientName:row.client_name||liveClient?.name||'Cliente',seriesId:row.series_id,seriesName:series.get(row.series_id)||'Serie',taxRegistrationId:row.tax_registration_id||tax?.id||null,taxRegistrationLabel:row.issuer_tax_registration_label||tax?.label||null,taxRegistrationCountryCode:row.issuer_tax_country_code||tax?.country_code||null,invoiceType:row.invoice_type,rectifiesInvoiceId:row.rectifies_invoice_id,invoiceNumber:row.invoice_number,status:row.status,issueDate:row.issue_date,operationDate:row.operation_date,dueDate:row.due_date,currency:row.currency||DEFAULT_APP_SETTINGS.general.currencyCode,subtotal:n(row.subtotal),discountAmount:n(row.discount_amount),taxAmount:n(row.tax_amount),totalAmount:n(row.total_amount),paymentMethod:row.payment_method,paymentMethodId:row.payment_method_id??null,bankAccountId:row.bank_account_id??null,bankAccountSnapshot:row.bank_account_snapshot??null,bankSnapshotSource:row.bank_snapshot_source??null,bankSnapshotAt:row.bank_snapshot_at??null,notes:row.notes,
+    return {id:row.id,clientId:row.client_id,clientName:row.client_name||liveClient?.name||'Cliente',seriesId:row.series_id,seriesName:series.get(row.series_id)||'Serie',taxRegistrationId:row.tax_registration_id||tax?.id||null,taxRegistrationLabel:row.issuer_tax_registration_label||tax?.label||null,taxRegistrationCountryCode:row.issuer_tax_country_code||tax?.country_code||null,invoiceType:row.invoice_type,rectifiesInvoiceId:row.rectifies_invoice_id,verifactuType:row.verifactu_type,rectificationMode:row.rectification_mode,rectificationReason:row.rectification_reason,rectificationOriginalNumber:row.rectification_original_number,rectificationOriginalDate:row.rectification_original_date,rectificationOriginalBase:row.rectification_original_base==null?null:n(row.rectification_original_base),rectificationOriginalTax:row.rectification_original_tax==null?null:n(row.rectification_original_tax),cancelledAt:cancellations.get(row.id),fiscalStatus:cancellations.has(row.id)?'cancelled' as const:(relatedByOriginal.get(row.id)||[]).some(r=>!['draft','cancelled'].includes(r.status))?'rectified' as const:undefined,relatedCorrections:relatedByOriginal.get(row.id)||[],invoiceNumber:row.invoice_number,status:row.status,issueDate:row.issue_date,operationDate:row.operation_date,dueDate:row.due_date,currency:row.currency||DEFAULT_APP_SETTINGS.general.currencyCode,subtotal:n(row.subtotal),discountAmount:n(row.discount_amount),taxAmount:n(row.tax_amount),totalAmount:n(row.total_amount),paymentMethod:row.payment_method,paymentMethodId:row.payment_method_id??null,bankAccountId:row.bank_account_id??null,bankAccountSnapshot:row.bank_account_snapshot??null,bankSnapshotSource:row.bank_snapshot_source??null,bankSnapshotAt:row.bank_snapshot_at??null,notes:row.notes,
       clientTaxId:row.client_tax_id||(draft?liveClient?.tax_id:null),clientEmail:row.client_email||(draft?liveClient?.email:null),clientPhone:row.client_phone||(draft?liveClient?.phone:null),clientAddress:row.client_address||(draft?addressFrom(liveClient):null),
       issuerName:row.issuer_name||(draft?tax?.fiscal_name:null),issuerTaxId:row.issuer_tax_id||(draft?tax?.vat_number:null),issuerEmail:row.issuer_email,issuerPhone:row.issuer_phone,issuerAddress:row.issuer_address||(draft?tax?.address_text:null),issuerTaxCountryCode:row.issuer_tax_country_code||(draft?tax?.country_code:null),issuerTaxRegistrationLabel:row.issuer_tax_registration_label||(draft?tax?.label:null),issuedAt:row.issued_at,sentAt:row.sent_at,paidAt:row.paid_at,lines:lines.get(row.id)??[],payments:invoicePayments,paidAmount:invoicePayments.reduce((sum,p)=>sum+p.amount,0)} satisfies SalesInvoice;
   });
 }
 
-function invoiceRow(input:SalesInvoiceDraftInput,defaultDueDays:number){const issueDate=sanitizeDatabaseSingleLine(input.issueDate);const currency=sanitizeDatabaseSingleLine(input.currency||DEFAULT_APP_SETTINGS.general.currencyCode).toUpperCase().slice(0,3)||DEFAULT_APP_SETTINGS.general.currencyCode;return {client_id:input.clientId,series_id:input.seriesId,tax_registration_id:input.taxRegistrationId||null,issue_date:issueDate,operation_date:nullable(input.operationDate),due_date:nullable(input.dueDate)||defaultSalesDueDate(issueDate,defaultDueDays)||null,currency,payment_method:nullable(input.paymentMethod),...(input.paymentMethodId!==undefined?{payment_method_id:nullable(input.paymentMethodId)}:{}),...(input.bankAccountId!==undefined?{bank_account_id:input.bankAccountId||null}:{}),notes:nullable(input.notes)}}
+function invoiceRow(input:SalesInvoiceDraftInput,defaultDueDays:number){const issueDate=sanitizeDatabaseSingleLine(input.issueDate);const currency=sanitizeDatabaseSingleLine(input.currency||DEFAULT_APP_SETTINGS.general.currencyCode).toUpperCase().slice(0,3)||DEFAULT_APP_SETTINGS.general.currencyCode;return {...(input.verifactuType!==undefined?{verifactu_type:input.verifactuType}:{}),...(input.rectificationReason!==undefined?{rectification_reason:nullable(input.rectificationReason)}:{}),client_id:input.clientId,series_id:input.seriesId,tax_registration_id:input.taxRegistrationId||null,issue_date:issueDate,operation_date:nullable(input.operationDate),due_date:nullable(input.dueDate)||defaultSalesDueDate(issueDate,defaultDueDays)||null,currency,payment_method:nullable(input.paymentMethod),...(input.paymentMethodId!==undefined?{payment_method_id:nullable(input.paymentMethodId)}:{}),...(input.bankAccountId!==undefined?{bank_account_id:input.bankAccountId||null}:{}),notes:nullable(input.notes)}}
 function lineRows(invoiceId:string,lines:SalesInvoiceLine[]){return lines.map((line,index)=>({invoice_id:invoiceId,product_id:line.productId||null,position:index+1,description:sanitizeDatabaseSingleLine(line.description),quantity:line.quantity,unit:sanitizeDatabaseSingleLine(line.unit)||'ud',unit_price:line.unitPrice,discount_percent:line.discountPercent||0,tax_rate:line.taxRate}));}
 
 export async function createSalesInvoiceDraft(input:SalesInvoiceDraftInput,defaultDueDays:number){const {data:invoice,error}=await supabase.from('sales_invoices').insert(invoiceRow(input,defaultDueDays)).select('id').single();if(error)throw error;const rows=lineRows(invoice.id,input.lines).filter(row=>row.description);if(rows.length){const {error:lineError}=await supabase.from('sales_invoice_lines').insert(rows);if(lineError){await supabase.from('sales_invoices').delete().eq('id',invoice.id);throw lineError;}}return invoice.id as string;}
-export async function updateSalesInvoiceDraft(id:string,input:SalesInvoiceDraftInput,defaultDueDays:number){const {data,error}=await supabase.from('sales_invoices').update(invoiceRow(input,defaultDueDays)).eq('id',id).eq('status','draft').select('id').maybeSingle();if(error)throw error;if(!data)throw new Error('La factura ya no está en borrador. Usa una rectificativa para corregirla.');const {error:deleteError}=await supabase.from('sales_invoice_lines').delete().eq('invoice_id',id);if(deleteError)throw deleteError;const rows=lineRows(id,input.lines).filter(row=>row.description);if(rows.length){const {error:lineError}=await supabase.from('sales_invoice_lines').insert(rows);if(lineError)throw lineError;}}
+export async function updateSalesInvoiceDraft(id:string,input:SalesInvoiceDraftInput,defaultDueDays:number){if(input.verifactuType?.startsWith('R')){const {error}=await supabase.rpc('save_sales_invoice_correction',{p_invoice_id:id,p_header:invoiceRow(input,defaultDueDays),p_lines:lineRows(id,input.lines).filter(row=>row.description)});if(error)throw error;return;}const {data,error}=await supabase.from('sales_invoices').update(invoiceRow(input,defaultDueDays)).eq('id',id).eq('status','draft').select('id').maybeSingle();if(error)throw error;if(!data)throw new Error('La factura ya no está en borrador. Usa una rectificativa para corregirla.');const {error:deleteError}=await supabase.from('sales_invoice_lines').delete().eq('invoice_id',id);if(deleteError)throw deleteError;const rows=lineRows(id,input.lines).filter(row=>row.description);if(rows.length){const {error:lineError}=await supabase.from('sales_invoice_lines').insert(rows);if(lineError)throw lineError;}}
 export async function deleteSalesInvoiceDraft(id:string){const {error}=await supabase.from('sales_invoices').delete().eq('id',id).eq('status','draft');if(error)throw error;}
 export async function issueSalesInvoice(id:string){const {data,error}=await supabase.rpc('issue_sales_invoice',{p_invoice_id:id});if(error)throw error;return data;}
 export async function markSalesInvoiceSent(id:string){const {error}=await supabase.from('sales_invoices').update({status:'sent',sent_at:new Date().toISOString()}).eq('id',id).in('status',['issued','sent']);if(error)throw error;}

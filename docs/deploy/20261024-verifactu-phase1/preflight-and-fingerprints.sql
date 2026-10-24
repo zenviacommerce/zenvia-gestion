@@ -9,7 +9,7 @@ SELECT status,document_kind,invoice_type,count(*) AS rows,
 FROM public.sales_invoices GROUP BY 1,2,3 ORDER BY 1,2,3;
 SELECT count(*) AS receipts FROM public.sales_receipts;
 SELECT 'closed_invoices' AS scope,count(*) AS rows,
- md5(coalesce(string_agg((to_jsonb(i)-ARRAY['verifactu_type','rectification_mode'])::text,E'\n' ORDER BY id),'')) AS content_hash
+ md5(coalesce(string_agg((to_jsonb(i)-ARRAY['verifactu_type','rectification_mode','rectification_reason','rectification_original_number','rectification_original_date','rectification_original_base','rectification_original_tax'])::text,E'\n' ORDER BY id),'')) AS content_hash
 FROM public.sales_invoices i WHERE status<>'draft'
 UNION ALL
 SELECT 'closed_invoice_lines',count(*),md5(coalesce(string_agg(to_jsonb(l)::text,E'\n' ORDER BY l.id),''))

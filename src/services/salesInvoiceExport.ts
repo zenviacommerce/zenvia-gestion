@@ -1,3 +1,4 @@
+import {salesFiscalAmounts} from './salesFiscalAmounts';
 import JSZip from 'jszip';
 import type { BusinessSettings, SalesInvoice } from './sales';
 import type { GeneralSettings, SalesSettings } from './settingsSchema';
@@ -7,7 +8,7 @@ import { startActivity } from './activity';
 
 function escapeCsv(value:unknown){return `"${String(value??'').replaceAll('"','""')}"`;}
 function safePart(value:string){return value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-zA-Z0-9._-]+/g,'-').replace(/^-+|-+$/g,'');}
-function statusLabel(status:SalesInvoice['status']){return ({draft:'Borrador',issued:'Emitida',sent:'Enviada',partially_paid:'Cobro parcial',paid:'Cobrada',rectified:'Rectificada'} as const)[status]||status;}
+function statusLabel(status:SalesInvoice['status']){return ({draft:'Borrador',issued:'Emitida',sent:'Enviada',partially_paid:'Cobro parcial',paid:'Cobrada',rectified:'Rectificada',cancelled:'Anulada'} as const)[status]||status;}
 
 export async function exportSalesInvoices(selected:SalesInvoice[],settings:BusinessSettings,branding:InvoicePdfBranding,salesSettings:SalesSettings,generalSettings:GeneralSettings,label='seleccion'){
   const activity=startActivity({
@@ -18,10 +19,10 @@ export async function exportSalesInvoices(selected:SalesInvoice[],settings:Busin
     total:selected.length,
   });
   const zip=new JSZip();
-  const header=['Fecha','Número','Cliente','NIF/CIF','Tipo','Estado','Base','IVA','Total','Pendiente','Moneda'];
+  const header=['Fecha','Número','Cliente','NIF/CIF','Tipo','Estado','Base','IVA','Total','Pendiente','Moneda','Tipo fiscal','Modalidad','Original','Fecha original','Motivo','Base original','IVA original','Impacto base','Impacto IVA','Impacto total'];
   const rows=selected.map(invoice=>[
-    invoice.issueDate,invoice.invoiceNumber||'Borrador',invoice.clientName,invoice.clientTaxId||'',invoice.invoiceType==='rectifying'?'Rectificativa':'Ordinaria',statusLabel(invoice.status),
-    invoice.subtotal.toFixed(2),invoice.taxAmount.toFixed(2),invoice.totalAmount.toFixed(2),invoice.status==='draft'?'':Math.max(0,invoice.totalAmount-invoice.paidAmount).toFixed(2),invoice.currency,
+    invoice.issueDate,invoice.invoiceNumber||'Borrador',invoice.clientName,invoice.clientTaxId||'',invoice.invoiceType==='rectifying'?'Rectificativa':'Ordinaria',statusLabel(invoice.fiscalStatus||invoice.status),
+    invoice.subtotal.toFixed(2),invoice.taxAmount.toFixed(2),invoice.totalAmount.toFixed(2),invoice.status==='draft'||invoice.fiscalStatus==='cancelled'||invoice.invoiceType==='rectifying'?'':Math.max(0,invoice.totalAmount-invoice.paidAmount).toFixed(2),invoice.currency,invoice.verifactuType||'',invoice.rectificationMode||'',invoice.rectificationOriginalNumber||'',invoice.rectificationOriginalDate||'',invoice.rectificationReason||'',invoice.rectificationOriginalBase??'',invoice.rectificationOriginalTax??'',salesFiscalAmounts(invoice).subtotal.toFixed(2),salesFiscalAmounts(invoice).taxAmount.toFixed(2),salesFiscalAmounts(invoice).totalAmount.toFixed(2),
   ]);
   const exportLabel=safePart(label)||'seleccion';
   zip.file(`resumen_${exportLabel}.csv`,'\ufeff'+[header,...rows].map(row=>row.map(escapeCsv).join(';')).join('\n'));
@@ -44,8 +45,8 @@ export async function exportSalesInvoices(selected:SalesInvoice[],settings:Busin
       // large client-side PDF exports instead of appearing only at the end.
       if(processed%4===0)await new Promise<void>(resolve=>setTimeout(resolve,0));
     }
-    const exportTotal=selected.reduce((sum,invoice)=>sum+invoice.totalAmount,0);
-    zip.file('LEEME.txt',`ZENVIA Gestión · ${label}\nFacturas: ${selected.length}\nTotal: ${formatAppMoney(exportTotal,generalSettings.currencyCode,generalSettings,{minimumFractionDigits:2,maximumFractionDigits:2})}\n`);
+    const exportTotal=selected.reduce((sum,invoice)=>sum+salesFiscalAmounts(invoice).totalAmount,0);
+    zip.file('LEEME.txt',`ZENVIA Gestión · ${label}\nFacturas: ${selected.length}\nImpacto fiscal de la selección (S final-original; I diferencias): ${formatAppMoney(exportTotal,generalSettings.currencyCode,generalSettings,{minimumFractionDigits:2,maximumFractionDigits:2})}\n`);
     activity.update({current:selected.length,progress:80,detail:'Comprimiendo el ZIP…'});
     return await zip.generateAsync({type:'blob'},metadata=>{
       activity.update({
@@ -58,3 +59,4 @@ export async function exportSalesInvoices(selected:SalesInvoice[],settings:Busin
     activity.finish();
   }
 }
+

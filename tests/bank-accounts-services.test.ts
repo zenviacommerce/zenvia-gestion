@@ -3,7 +3,7 @@ const state=vi.hoisted(()=>({rows:{} as Record<string,any[]>,writes:[] as Array<
 vi.mock('../src/services/supabase',()=>({supabase:{from:(table:string)=>{
  let single=false;const response=()=>({data:single?(state.rows[table]?.[0]??{id:'saved',receipt_number:'REC-2026-0001'}):(state.rows[table]??[]),error:null});
  const q:any={select:()=>q,order:()=>q,eq:()=>q,in:()=>q,is:()=>q,single:()=>{single=true;return q},maybeSingle:()=>{single=true;return q},insert:(row:any)=>{state.writes.push({table,row,op:'insert'});return q},update:(row:any)=>{state.writes.push({table,row,op:'update'});return q},delete:()=>q,then:(resolve:any)=>Promise.resolve(response()).then(resolve)};return q;
-},rpc:async(name:string,args:any)=>{state.calls.push({name,args});return {data:name==='save_shopify_order_invoice'?'saved':{id:'bank',alias:args.p_alias,iban:args.p_iban,bic:args.p_bic,holder:args.p_holder,is_default:true,validation_status:'valid'},error:null}}}}));
+},rpc:async(name:string,args:any={})=>{state.calls.push({name,args});if(name==='verifactu_shadow_status')return {data:{cancellations:[]},error:null};return {data:name==='save_shopify_order_invoice'?'saved':{id:'bank',alias:args.p_alias,iban:args.p_iban,bic:args.p_bic,holder:args.p_holder,is_default:true,validation_status:'valid'},error:null}}}}));
 import {createSalesInvoiceDraft,loadSalesInvoices,saveBusinessSettings} from '../src/services/sales';
 import {createSalesReceipt,loadSalesReceipts,updateSalesReceipt} from '../src/services/salesReceipts';
 import {saveOrderInvoice} from '../src/services/orderInvoices';
@@ -44,3 +44,4 @@ it('does not clear a frozen Shopify bank when the edit intentionally omits bank 
  await saveOrderInvoice('order',{client:{name:'Client',countryCode:'ES',paymentTermsDays:0},seriesId:'series',issueDate:'2026-10-21',lines:[]},false);
  expect(state.calls[0].args.p_client).not.toHaveProperty('bankAccountId');
 });
+

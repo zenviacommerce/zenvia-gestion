@@ -1,0 +1,6 @@
+/* Scoped spacing around the shared FormModal; the finance host resets polishedModal padding. */
+.modal.salesCorrectionModal{padding:20px;gap:0}
+.salesCorrectionModal .formModalHead{flex-shrink:0}
+.salesCorrectionModal .formModalBody{min-height:0}
+.salesCorrectionModal textarea{font:inherit;width:100%;padding:10px 12px;border:1px solid var(--border,#e2e8f0);border-radius:10px;background:var(--surface,#fff);color:var(--text,#172033)}
+@media(max-width:700px){.modal.salesCorrectionModal{padding:18px 16px max(18px,env(safe-area-inset-bottom))}}

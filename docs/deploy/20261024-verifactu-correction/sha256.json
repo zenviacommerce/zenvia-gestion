@@ -1,0 +1,8 @@
+{
+  "supabase/migrations/20261024075749_verifactu_shadow_phase1.sql": "7e4cdc4afa9a8e6537214be5054d0c098859e12e47df9f59ae1e40ed1d685bc9",
+  "supabase/migrations/20261024193413_verifactu_correction_circuit.sql": "6a00993d40eef3eac278214b777dc4bb72d1c58f78752c63b20cb062e29b8b94",
+  "docs/deploy/20261024-verifactu-phase1/rollback.sql": "8baa27986b63e5161d45f0bf86d9ed68b0ddac946c92c16672af9529714f48d5",
+  "docs/deploy/20261024-verifactu-correction/rollback.sql": "5d577f46e42dab98e5e10a431bb5b1cf4dea7b3ab5c8c72ba61e22f9d99901b5",
+  "docs/deploy/20261024-verifactu-phase1/activate-shadow.sql": "b5c195014fb3da547456afdded746b8032dd266eb1e219c5eaf0ac163752b1b7",
+  "docs/deploy/20261024-verifactu-phase1/disable-shadow.sql": "85aecebca82f2c28c453553c78e5eca4c2c638eef32adff364e9e2afeebe2da9"
+}

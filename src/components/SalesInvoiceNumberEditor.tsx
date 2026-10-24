@@ -6,7 +6,7 @@ import { ensureSalesSeries, loadSalesInvoices, type SalesInvoice } from '../serv
 import { updateSalesInvoiceNumber } from '../services/salesInvoiceNumber';
 import { errorMessage, showSuccess } from '../services/toast';
 
-const statusLabel=(status:SalesInvoice['status'])=>({draft:'Borrador',issued:'Emitida',sent:'Enviada',partially_paid:'Cobro parcial',paid:'Cobrada',rectified:'Rectificada'}[status]);
+const statusLabel=(status:SalesInvoice['status'])=>({draft:'Borrador',issued:'Emitida',sent:'Enviada',partially_paid:'Cobro parcial',paid:'Cobrada',rectified:'Rectificada',cancelled:'Anulada'}[status]);
 
 export function SalesInvoiceNumberEditor(){
   const [host,setHost]=useState<HTMLElement|null>(null);
@@ -79,3 +79,4 @@ export function SalesInvoiceNumberEditor(){
     </div></div>,document.body)}
   </>;
 }
+

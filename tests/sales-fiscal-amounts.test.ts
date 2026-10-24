@@ -1,0 +1,14 @@
+import {describe,it,expect} from 'vitest';
+import {salesFiscalAmounts} from '../src/services/salesFiscalAmounts';
+const standard={status:'issued' as const,invoiceType:'standard' as const,subtotal:100,taxAmount:21,totalAmount:121};
+const correction={...standard,invoiceType:'rectifying' as const,rectificationMode:'S' as const,subtotal:80,taxAmount:16.8,totalAmount:96.8,rectificationOriginalBase:100,rectificationOriginalTax:21};
+describe('fiscal economic amounts without rewriting document face values',()=>{
+ it('counts standard and legacy signed differences as stored',()=>{expect(salesFiscalAmounts(standard)).toEqual({subtotal:100,taxAmount:21,totalAmount:121});expect(salesFiscalAmounts({...standard,invoiceType:'rectifying',subtotal:-20,taxAmount:-4.2,totalAmount:-24.2})).toEqual({subtotal:-20,taxAmount:-4.2,totalAmount:-24.2});});
+ it.each(['draft','cancelled'] as const)('excludes %s documents',status=>{expect(salesFiscalAmounts({...standard,status})).toEqual({subtotal:0,taxAmount:0,totalAmount:0});});
+ it('excludes derived annulment while preserving commercial issued status',()=>{expect(salesFiscalAmounts({...standard,fiscalStatus:'cancelled'})).toEqual({subtotal:0,taxAmount:0,totalAmount:0});expect(salesFiscalAmounts({...standard,cancelledAt:'2026-10-24T12:00:00Z'})).toEqual({subtotal:0,taxAmount:0,totalAmount:0});});
+ it('reports S final minus original, preserves inputs, and avoids binary roundoff',()=>{expect(salesFiscalAmounts(correction)).toEqual({subtotal:-20,taxAmount:-4.2,totalAmount:-24.2});expect(correction.totalAmount).toBe(96.8);});
+ it('uses explicit I signed values and supports positive/negative/zero',()=>{for(const value of [-20,0,20])expect(salesFiscalAmounts({...correction,rectificationMode:'I',subtotal:value,taxAmount:0,totalAmount:value})).toEqual({subtotal:value,taxAmount:0,totalAmount:value});});
+ it('sums chained S replacements and S replacement of a prior I adjustment',()=>{const child={...correction,subtotal:70,taxAmount:14.7,totalAmount:84.7,rectificationOriginalBase:80,rectificationOriginalTax:16.8};expect([standard,correction,child].reduce((sum,i)=>sum+salesFiscalAmounts(i).subtotal,0)).toBe(70);const difference={...correction,rectificationMode:'I' as const,subtotal:-20,taxAmount:-4.2,totalAmount:-24.2};const replaceDifference={...correction,subtotal:-30,taxAmount:-6.3,totalAmount:-36.3,rectificationOriginalBase:-20,rectificationOriginalTax:-4.2};expect([standard,difference,replaceDifference].reduce((sum,i)=>sum+salesFiscalAmounts(i).subtotal,0)).toBe(70);});
+});
+it('refuses to invent a missing S original snapshot',()=>{expect(()=>salesFiscalAmounts({...correction,rectificationOriginalBase:null})).toThrow('Falta el desglose original');});
+it('normalizes unchanged replacement values to positive zero',()=>{expect(salesFiscalAmounts({...correction,rectificationOriginalBase:80,rectificationOriginalTax:16.8})).toEqual({subtotal:0,taxAmount:0,totalAmount:0});});

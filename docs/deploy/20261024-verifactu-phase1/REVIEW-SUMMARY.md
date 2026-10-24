@@ -1,3 +1,5 @@
+> **Actualización del propietario (24/10/2026):** el paquete vigente es [circuito de corrección, SQL adicional, capturas y activación](../20261024-verifactu-correction/README.md). Las facturas históricas, incluidas F202650/F202654, se conservan sin acción. El circuito UI pendiente descrito debajo queda sustituido por esta ampliación, todavía sin aplicar ni publicar.
+
 # #306 — resumen de revisión antes de aprobar
 
 **No aplicado ni publicado.** Recuentos de producción del 24/10/2026, alrededor de las 20:40–20:47 Europe/Madrid, solo SELECT. Evidencia: `review-production-evidence.json`. SQL literal por operación: `existing-table-statements.sql` (inventario, no ejecutar).

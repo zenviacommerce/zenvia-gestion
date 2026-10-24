@@ -1,6 +1,6 @@
 # #299 — candidato posterior a la recuperación
 
-23/10/2026. No aplicado en producción. Objetivo de aceptación: pickup, workbench y logistics por debajo de 300 ms con las llamadas reales concurrentes del navegador del propietario. Las mediciones aisladas no acreditan este objetivo.
+23/10/2026. Documento del candidato inicial; SQL y frontend publicados posteriormente según el diario `20261023-orders-299-production/README.md`. Las estimaciones siguientes se conservan como antecedente. Objetivo de aceptación: pickup, workbench y logistics por debajo de 300 ms con las llamadas reales concurrentes del navegador del propietario. Las mediciones aisladas no acreditan este objetivo.
 
 ## Recuperación confirmada por el propietario
 
@@ -15,7 +15,7 @@ Pendientes: pickup 748 ms, workbench 1.029 ms, logistics 427 ms (primera carga).
 
 ## SQL exacto y coste previsto
 
-Aplicación: `supabase/migrations/20261023132255_orders_cached_logistics_read.sql`, dentro de una transacción. Rollback: `supabase/rollback/20261023_orders_cached_logistics_read.sql`.
+Aplicación: `supabase/migrations/20261023185119_orders_299_approved_cache_backfill.sql (núcleo aplicado; API separada en 20261023214651_orders_operational_summary_mfa.sql)`, dentro de una transacción. Rollback: `supabase/rollback/20261023_orders_cached_logistics_read.sql`.
 
 El SQL crea una tabla privada derivada y rellena una fila por fila de proyección. Recuento previo real: **1.011 filas, 2 owners**. Tamaño agregado de tuplas origen: 1.857.391 bytes; representación JSON sin raw_payload: 4.014.027 bytes. Esto describe el volumen de entrada, no es una medición del tamaño final, WAL o duración del backfill. No modifica pedidos, facturas ni evidencia inmutable. El coste temporal del backfill en SMALL todavía no se ha medido; statement_timeout limita cada sentencia a 15 s y lock_timeout a 3 s. Si falla, abortar la transacción, no ampliar el límite a ciegas.
 

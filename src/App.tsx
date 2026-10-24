@@ -95,6 +95,7 @@ export default function App(){
  const [loading,setLoading]=useState(false);
  const [error,setError]=useState('');
  const [page,setPage]=useState<Page>('dashboard');
+ const [startPageReady,setStartPageReady]=useState(false);
  const [settingsInitialSection,setSettingsInitialSection]=useState<'general'|'integrations'|undefined>();
  const [ordersPendingEntry,setOrdersPendingEntry]=useState(false);
  const [upload,setUpload]=useState(false);
@@ -107,7 +108,6 @@ export default function App(){
  const [settingsDirty,setSettingsDirty]=useState(false);
  const [passkeySetupVisible,setPasskeySetupVisible]=useState(false);
  const [workspaceLogo,setWorkspaceLogo]=useState<string|null>(null);
- const startPageApplied=useRef(false);
  const shopifyOAuthCallbackRef=useRef<string|null>(getShopifyOAuthCallback());
  const shopifyOAuthExchangeStarted=useRef(false);
  const userId=session?.user.id||null;
@@ -295,14 +295,14 @@ export default function App(){
 
  useEffect(()=>{
    if(!mfaAccess.ready||!accessReady||!access?.active||!allowedPages.length)return;
-   if(!startPageApplied.current&&!settingsLoading){
+   if(!startPageReady&&!settingsLoading){
      const initial=ordersEntryPage(window.location.search,allowedPages)||effectiveStartPage(preferences.startPage,settings.general.startPage,allowedPages);
      if(initial)setPage(initial);
-     startPageApplied.current=true;
+     setStartPageReady(true);
      return;
    }
-   if(!allowedPages.includes(page))setPage(allowedPages[0]);
- },[mfaAccess.ready,accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading]);
+   if(startPageReady&&!allowedPages.includes(page))setPage(allowedPages[0]);
+ },[mfaAccess.ready,accessReady,access,allowedPages,page,preferences.startPage,settings.general.startPage,settingsLoading,startPageReady]);
 
  useEffect(()=>{
    if(!mfaAccess.ready||!accessReady||!access?.active)return;
@@ -316,7 +316,7 @@ export default function App(){
        if(!confirmed){const restored=new URL(window.location.href);restored.searchParams.set('page',page);restored.searchParams.delete('tab');window.history.replaceState(null,'',restored.pathname+restored.search+restored.hash);return;}
        setSettingsDirty(false);
      }
-     startPageApplied.current=true;setOrdersPendingEntry(false);setPage(next);
+     setStartPageReady(true);setOrdersPendingEntry(false);setPage(next);
    })();};
    window.addEventListener('popstate',onHistory);
    return()=>window.removeEventListener('popstate',onHistory);
@@ -328,7 +328,7 @@ export default function App(){
    if(!query||shopifyOAuthExchangeStarted.current)return;
    shopifyOAuthExchangeStarted.current=true;
    shopifyOAuthCallbackRef.current=null;
-   startPageApplied.current=true;
+   setStartPageReady(true);
    setPage('settings');
    setSettingsInitialSection('integrations');
    if(shopifyOAuthWasDenied()){
@@ -349,7 +349,7 @@ export default function App(){
  useEffect(()=>{
    const openBankSettings=()=>{
      if(!mfaAccess.ready||!accessReady||!access?.active||!allowedPages.includes('settings'))return;
-     startPageApplied.current=true;
+     setStartPageReady(true);
      setSettingsInitialSection('general');
      setPage('settings');
    };
@@ -397,7 +397,7 @@ export default function App(){
      if(!confirmed)return;
      setSettingsDirty(false);
    }
-   startPageApplied.current=true;
+   setStartPageReady(true);
    const nextUrl=new URL(window.location.href);
    nextUrl.searchParams.set('page',next);
    if(next!=='orders')nextUrl.searchParams.delete('tab');
@@ -683,7 +683,10 @@ export default function App(){
    <button className="mobileThemeToggle" onClick={toggleTheme} title={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'} aria-label={theme==='dark'?'Cambiar a modo claro':'Cambiar a modo oscuro'}>{theme==='dark'?<Sun size={19}/>:<Moon size={19}/>}</button>
    <PasskeySetup userId={session.user.id} onVisibilityChange={setPasskeySetupVisible}/>
    {error&&<div className="globalError">{error}<button onClick={refresh}>Reintentar</button></div>}
-   {page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders',{pendingOrders:true}):undefined}/>}
+   {/* Keep navigation available while resolving preferences, without starting
+       Dashboard's financial/operational RPCs for an Orders entry. */}
+   {!startPageReady&&<div className="fullLoader" role="status"><LoaderCircle className="spin"/><span>Preparando tu vista…</span><span>Puedes abrir una sección desde el menú mientras cargan tus preferencias.</span></div>}
+   {startPageReady&&page==='dashboard'&&can('dashboard')&&<Dashboard invoices={data.invoices} products={data.products} suppliers={data.suppliers} onUpload={can('invoices')?()=>setUpload(true):undefined} onProducts={can('products')?()=>void navigate('products'):undefined} onOrders={can('orders')?()=>void navigate('orders',{pendingOrders:true}):undefined}/>}
    {can('sales')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':sales'} active={page==='sales'}><SalesInvoices/></RetainedImportPage>}
    {can('orders')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':orders'} active={page==='orders'}><Orders pendingOnly={ordersPendingEntry} active={page==='orders'}/></RetainedImportPage>}
    {can('invoices')&&<RetainedImportPage key={session.user.id+':'+access.workspaceId+':invoices'} active={page==='invoices'}><ExpenseInvoicesHub invoices={data.invoices} suppliers={data.suppliers} categories={data.categories} onUpload={()=>setUpload(true)} onBulkUpload={()=>setBulkUpload(true)} onStatusChange={changeStatus} onPaymentStatusChange={changePaymentStatus} onBulkPaymentStatusChange={changePaymentStatuses} onOpenFile={openInvoice} onDelete={removeInvoice} onSupplierChange={changeInvoiceSupplier} onCategoryChange={changeInvoiceCategory} onImported={refresh} canManageAccounts={access.role==='admin'} onManageAccounts={()=>{setSettingsInitialSection('integrations');void navigate('settings');}}/></RetainedImportPage>}
@@ -703,3 +706,4 @@ export default function App(){
  {can('suppliers')&&<SupplierModal open={supplierModal} supplier={supplierToEdit} categories={data.categories} onClose={closeSupplierModal} onSave={saveSupplier}/>}
  </div>
 }
+

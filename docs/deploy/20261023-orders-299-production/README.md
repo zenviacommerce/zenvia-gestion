@@ -35,3 +35,21 @@ El propietario autoriza publicar #299 tras cerrar MFA y CI, sin autenticar en pr
 - La aceptación de rendimiento requiere el navegador real del propietario y llamadas concurrentes; tiempos SQL aislados no demuestran ese objetivo.
 
 Frontend todavía sin publicar en este punto del diario; pendiente CI final y despliegue main.
+
+## Publicado para aceptación en navegador real
+
+#299 fusionada con autorización explícita del propietario, después de 7/7 controles CI verdes en `63810cc898f05634ad0072621596f5b5d51d5a49`: ambos builds, auth-tests, real-auth-vault, screenshots, package-and-parity y Vercel Preview Comments. Revisión independiente sin hallazgos críticos/importantes y 22/22 pruebas SQL repetidas.
+
+Main publicado: `8bc47cfd6aa5e8bd4fd9e56d4741e37a82daf730`. Vercel deployment `6SnK6Aqbn62Ywr8psxc3G4iZeNBf`, Ready, producción y dominio gestion.zenviacommerce.com asignado; finalizado 23/10/2026 23:54:09 CEST, build 39 s. Host inmutable: zenvia-gestion-h2549vepl-sergiorojasdiaz-7097.vercel.app. Captura `frontend-production.jpg`. Propietario avisado inmediatamente para medir Pendientes, Etiquetados y Enviados.
+
+Tras publicar: 0 hallazgos MFA, 0 grupos sucios y 0 sesiones esperando Lock en la consulta puntual. En el destino anterior se confirmó Instant Rollback habilitado. API autenticada AAL1 rechazada con MFA_REQUIRED. No se han alterado cohortes ni configuración del piloto.
+
+**Aceptación concurrente pendiente del propietario.** No se declara todavía alcanzado <300 ms ni se sustituye su prueba por tiempos SQL aislados. Cualquier regresión sostenida activa el rollback inmediato ya autorizado. No se ha ejecutado rollback en este corte.
+
+VERI*FACTU fase 0: reejecución offline PASS de 8 contratos fijados, 6 esquemas y 3 vectores oficiales de huella; documentación en #300 actualizada a decisión Google Cloud/HSM. No se ha creado infraestructura fiscal ni cargado certificados. La comprobación no acredita aún serializador, XML generado ni transporte AEAT.
+
+## Decisión posterior del propietario: mantener #299, sin rollback
+
+Navegador real, llamadas simultáneas y referencia get_workspace_context=88 ms. Pendientes: pickup 757/714 ms, workbench 843/859 ms, summary 543/455 ms. Enviados: pickup 791 ms, workbench 798 ms, summary 350 ms. Sin errores ni regresión de contadores o filas. El propietario ordena explícitamente NO hacer rollback; esa instrucción sustituye el disparador anterior para estas mediciones.
+
+Última iteración autorizada con límite de dos horas para <300 ms, con EXPLAIN de las RPC reales y aviso antes de publicar de nuevo. De no alcanzarse, documentar y continuar VERI*FACTU fase 1. Evidencias y plan en `20261023-orders-299-final-iteration/` y `20261023-orders-299-final-iteration-plan.md`.

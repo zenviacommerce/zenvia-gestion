@@ -1,0 +1,9 @@
+# Última iteración de Pedidos — límite de dos horas
+
+Autorización: mantener producción estable, sin rollback. Medición del propietario: red 88 ms; workbench 798–859 ms, pickup 714–791 ms, summary 350–543 ms. Contadores y filas correctos. Avisar antes de publicar; no declarar <300 ms por SQL aislado.
+
+Diagnóstico: EXPLAIN ANALYZE/BUFFERS bajo authenticated y AAL2 del propietario y consultas internas con el mismo JWT y SECURITY DEFINER postgres. Pendientes workbench 149 ms; financiero pickup 120 ms; en paralelo SQL 129/114/52 ms. El plan interno consume unos 27–32 ms comprobando grupos obsoletos; no se observa búsqueda de pedidos sin índice. Leer todos los grupos es necesario para contadores y para preservar fallback ante invalidación perdida. El payload workbench Pendientes pesa 293.254 bytes, 285.176 de candidatos de tarifa, frente a 7.305 bytes de página; no se cambia ese contrato en el primer corte.
+
+App inicia page=dashboard y monta sus hijos cuando acceso termina, antes de aplicar la ruta/preferencia en useEffect. Los efectos hijos de Dashboard lanzan pickup y summary aunque inmediatamente se cambie a Pedidos. Se corregirá esa carga prematura mediante una barrera explícita de resolución de página, respetando MFA, acceso, preferencias y deep links; el menú y cierre de sesión permanecerán disponibles durante preferencias pendientes. Esta es una hipótesis para el coste concurrente; solo el navegador real validará el objetivo.
+
+Plan: pruebas App que fallen por montaje transitorio de Dashboard (ruta Pedidos, preferencia Pedidos, settings pendientes, destino Resumen y permiso denegado); barrera mínima de inicialización en App; ejecutar tests y build; revisar CI y capturas. No cambiar RPC ni datos antes de evidencias adicionales. Preparar rollback frontend al SHA publicado 8bc47cf. Con CI verde, avisar al propietario antes del corte y medir de nuevo. Si no alcanza <300 ms dentro del límite, registrar el resultado y continuar VERI*FACTU fase 1.

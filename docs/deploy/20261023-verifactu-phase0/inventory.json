@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-23",
+  "scope": "owner del propietario; agregados sin datos identificativos de facturas",
+  "invoices": [
+    {
+      "status": "issued",
+      "invoice_type": "standard",
+      "document_kind": "invoice",
+      "fiscal_treatment": "taxable",
+      "invoices": 1
+    },
+    {
+      "status": "paid",
+      "invoice_type": "standard",
+      "document_kind": "invoice",
+      "fiscal_treatment": "taxable",
+      "invoices": 26
+    }
+  ],
+  "series": [
+    {
+      "code": "F",
+      "kind": "standard",
+      "year": 2026,
+      "active": true,
+      "series": 1
+    },
+    {
+      "code": "R",
+      "kind": "rectifying",
+      "year": 2026,
+      "active": true,
+      "series": 1
+    }
+  ],
+  "public_entrypoint_definition_hashes": [
+    {
+      "proname": "create_rectifying_invoice",
+      "definition_hash": "30070950a0502278bfab5d63a915821b"
+    },
+    {
+      "proname": "delete_reversible_sales_invoice",
+      "definition_hash": "a08991f23100d33bd05cc5fe5ea5b1e5"
+    },
+    {
+      "proname": "issue_sales_invoice",
+      "definition_hash": "3ab4902e0991311503486058931cfed5"
+    },
+    {
+      "proname": "reopen_sales_invoice",
+      "definition_hash": "37de2bfee716ff3ec12a694ea47dfe02"
+    }
+  ],
+  "writes_performed": false,
+  "tax_lines_by_rate": [
+    {
+      "tax_rate": "10.0000",
+      "lines": 1,
+      "invoices": 1
+    },
+    {
+      "tax_rate": "21.0000",
+      "lines": 45,
+      "invoices": 26
+    }
+  ]
+}

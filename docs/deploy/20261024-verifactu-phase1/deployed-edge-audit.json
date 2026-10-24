@@ -1,0 +1,550 @@
+{
+  "checked_at_utc": "2026-10-24T08:44:05.309Z",
+  "project": "sjkxxbedkkmgmqnvaqjh",
+  "method": "Read deployed function bundles; literal fiscal table/RPC scan; no invocation or environment secrets read",
+  "results": [
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "admin-users",
+        "version": 27,
+        "deployed_sha256": "1b0ddfd136a66b7c52ffc0f79ffb673ccbb7964a5d542e7b4756f8ebe88c8e83",
+        "matched": [],
+        "bytes": 21507,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "sendcloud-orders",
+        "version": 37,
+        "deployed_sha256": "7c989de9569fbe878b211259d5a33e0a32620d399450612821c6943168a769b5",
+        "matched": [],
+        "bytes": 68190,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "sendcloud-order-tools",
+        "version": 38,
+        "deployed_sha256": "c7a385c024cdb9e76600b754359a8e93c90652a3bb9ece1e104ac287257f0e8a",
+        "matched": [],
+        "bytes": 64888,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-status",
+        "version": 21,
+        "deployed_sha256": "81e74da5f47611523a26c12e2cb95a49422be3f30c7425e55a6fd58439d0fbec",
+        "matched": [],
+        "bytes": 30615,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-sync-manual",
+        "version": 26,
+        "deployed_sha256": "c885653d577d8a5cc3b0a8abd9e55bb5cfe971daf2e2a6103f982cb6187d71e6",
+        "matched": [],
+        "bytes": 43432,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-sync-orders",
+        "version": 26,
+        "deployed_sha256": "d40a3982fa2d4508a0da3ab4196473db16393e728fcf3ece07882121e3f0fbf5",
+        "matched": [],
+        "bytes": 49639,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-sync-finances",
+        "version": 18,
+        "deployed_sha256": "46da0b9676e552d5c6361080a049e7fca3d2ae3c84d5bc717c15b1387973ecf9",
+        "matched": [],
+        "bytes": 30626,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-sync-inventory",
+        "version": 13,
+        "deployed_sha256": "4900ab294ac784457d295d04b13ccb8ed701d47b7fd09b7cb9b953476d659ae1",
+        "matched": [],
+        "bytes": 18314,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-sync-orchestrator",
+        "version": 19,
+        "deployed_sha256": "dd0d8bbe7d750bb19df16394648108660c87a93e61dd51dbc6870eca3b984539",
+        "matched": [],
+        "bytes": 39169,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-sync-worker",
+        "version": 44,
+        "deployed_sha256": "07ca04ec1a14f827869e1d4f0887e951842c36caebc724ddb2e32767879f7fa5",
+        "matched": [],
+        "bytes": 102688,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "noop",
+        "version": 10,
+        "deployed_sha256": "6c9dfed6f423433bcfbe723be6fbb30188b75c277da73b02fd327d462912a4b3",
+        "matched": [],
+        "bytes": 588,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-sync-fx",
+        "version": 35,
+        "deployed_sha256": "b87a4caea1b1708b24075c50d217d78b7b4275bffdbb658a0579dfbb05bb3633",
+        "matched": [],
+        "bytes": 8812,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-backfill-finance-components",
+        "version": 18,
+        "deployed_sha256": "6e2d24042c763e7aa49607a578f554568305f6b7903a71995cb09c0e31d2dafd",
+        "matched": [],
+        "bytes": 15349,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-confirm-shipment",
+        "version": 19,
+        "deployed_sha256": "9779ae9feaf8360c492ed898da1131841dc511328f83c9b51d9ce19efa93f173",
+        "matched": [],
+        "bytes": 37663,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "transport-tariff-parser",
+        "version": 13,
+        "deployed_sha256": "cf85c6a8376f0dc16d9d6ffb7ae90b6485bb40b2acb85955b94c0864940b675b",
+        "matched": [],
+        "bytes": 18843,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-sync-product-images",
+        "version": 23,
+        "deployed_sha256": "488695d168909e388bfadae5622543351c98494bdaebf6ce1c4aac365f97283a",
+        "matched": [],
+        "bytes": 22803,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "integration-accounts",
+        "version": 46,
+        "deployed_sha256": "d5d28e3f2dbf98257c085d21a0a8a5cb17faaff0dfadf941fc66c5971546496a",
+        "matched": [],
+        "bytes": 109200,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "support-notify",
+        "version": 11,
+        "deployed_sha256": "ee78a62c42ec1b7f69b308f06af0de5b43d3efa600d3f8531b37ef66eaef1184",
+        "matched": [],
+        "bytes": 12102,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "platform-admin",
+        "version": 15,
+        "deployed_sha256": "4febc5fd9c6e8cb97b1db2012ad43a88a2e4735a0e28c281236331a8b6a5348f",
+        "matched": [],
+        "bytes": 1112,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "platform-bridge",
+        "version": 32,
+        "deployed_sha256": "b030442ecbbae2b137828b116608a6e31655f2cd67cbcaf70a24048ce4b4a32a",
+        "matched": [],
+        "bytes": 63019,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "customer-billing",
+        "version": 10,
+        "deployed_sha256": "52ec9cfb5c70ee9033354579ffaf1a88385358d1e9443605bb3c8d65dae18d88",
+        "matched": [],
+        "bytes": 7695,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "platform-mailer",
+        "version": 10,
+        "deployed_sha256": "2b59282833eca11885cc74531e5d2c365a29d9204d4caee288087c5d6da509ff",
+        "matched": [],
+        "bytes": 15704,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "app-agent",
+        "version": 20,
+        "deployed_sha256": "6c865db1e5b5332e1eaebd5cc441be73ba98959b7af4c9e60bce10b239671907",
+        "matched": [
+          "ue}).eq('owner_id',ownerId).eq('active',true));\\\\n  }\\\\n  if(can('sales')){\\\\n    let recentQuery=admin.from('sales_invoices')\\\\n      .select('id,invoice_number,client_name,status,issue_date,due_date,total_amount,tax_amount,currency')\\\\n      .eq('owner_id',ownerId);\\\\n    recentQue",
+          "centQuery.order('issue_date',{ascending:false,nullsFirst:false}).limit(30));\\\\n    let totalQuery=admin.from('sales_invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId);\\\\n    totalQuery=applyDateRange(totalQuery,'issue_date',periods.sales);\\\\n    tasks.salesTotal",
+          "=safeCount(totalQuery);\\\\n    let openQuery=admin.from('sales_invoices').select('id',{count:'exact',head:true}).eq('owner_id',ownerId).in('status',['issued','sent','partially_paid']);\\\\n    openQuery=applyDateRange(openQuery,'issu"
+        ],
+        "bytes": 52591,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "envia-shipping",
+        "version": 47,
+        "deployed_sha256": "79af5ad5154a5820788a19fd9231b553195289024f99000d30168ed97b890899",
+        "matched": [],
+        "bytes": 78461,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "invoice-document-intelligence",
+        "version": 8,
+        "deployed_sha256": "06b631525fe203b5cb60a071a328066fe89b98e4d2648ec6e2bc96a64e9480be",
+        "matched": [],
+        "bytes": 14691,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "order-logistics-state",
+        "version": 17,
+        "deployed_sha256": "2cdac7ddeb6f53dbec80226042053f757a7c30949539619a59368da85c43cb1a",
+        "matched": [],
+        "bytes": 23109,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "mrw-shipping",
+        "version": 28,
+        "deployed_sha256": "a24466ba0475834ff15569a33be231574ff3a97af07d8e81d61c662b9dcf87f1",
+        "matched": [],
+        "bytes": 52695,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "shopify-orders",
+        "version": 15,
+        "deployed_sha256": "3a3c5d7ebacc52c1f64ee4dd9d52bbfbb7cac3846aef13e924c46fb5ec06a163",
+        "matched": [],
+        "bytes": 57612,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "app-agent-tools",
+        "version": 6,
+        "deployed_sha256": "0458dfabdc4c09817696ef1b91a1110b8f7fb02b70f8cf1626477208791932f1",
+        "matched": [],
+        "bytes": 8986,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "mrw-label-diagnostic",
+        "version": 5,
+        "deployed_sha256": "5c823e402a2c371a22bf0d947324c70f1fb07235b9eed656f4cc025a9d0bd39b",
+        "matched": [],
+        "bytes": 762,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-reconcile-orders",
+        "version": 12,
+        "deployed_sha256": "7c89604f7898f0cad1daf06588ce819dca756d5d268f7d7f3ada87c29783cfb0",
+        "matched": [],
+        "bytes": 43517,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-order-diagnostics",
+        "version": 3,
+        "deployed_sha256": "0d524bd22b5dfdf6c0a883e0a2430201a3334e04aefa1cc1b9138317aa73a87d",
+        "matched": [],
+        "bytes": 718,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "shopify-confirm-shipment",
+        "version": 7,
+        "deployed_sha256": "9ed72b274d942124d0e2dd7f12d766728189c3e3b2acbc1639590c2d64d8c7de",
+        "matched": [],
+        "bytes": 25220,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "order-cancellation",
+        "version": 3,
+        "deployed_sha256": "4425134b43456c8c9582759c06a72209671b6127ae993e930a38faa5e064b550",
+        "matched": [],
+        "bytes": 48267,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-recipient-fallback",
+        "version": 8,
+        "deployed_sha256": "c302031c32f8d3200e880c3328fb0a7d82fb3a33892d03d4b62615e304054037",
+        "matched": [],
+        "bytes": 15061,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "shopify-analytics-sync",
+        "version": 10,
+        "deployed_sha256": "4f2762bbce889a479b7eb51e4880cc79cb8deaa17644ec5ea192e6e04fa7bcf4",
+        "matched": [],
+        "bytes": 30673,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-performance-diagnostic",
+        "version": 10,
+        "deployed_sha256": "d7a4cadfb14952ef57b1ba9cf8d48ca6383cb74d28936941f55e5ce5d232fa82",
+        "matched": [],
+        "bytes": 657,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "shipping-release-verification",
+        "version": 4,
+        "deployed_sha256": "66db4aad548ec7997c5d75b16fc3a65770cda93acfb0089c57b2433c972e5d86",
+        "matched": [],
+        "bytes": 802,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "shopify-order-events",
+        "version": 1,
+        "deployed_sha256": "cab1754bcdea731135475006a58be99347b6f2c1516d5cfc792056bded8ef0f5",
+        "matched": [],
+        "bytes": 27852,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "platform-shadow-source",
+        "version": 2,
+        "deployed_sha256": "64fe39c18805ec4e23a5033f7a047f8cca325da4bfdd0db8b948055a5a6572c1",
+        "matched": [],
+        "bytes": 6837,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "shipment-tracking-worker",
+        "version": 13,
+        "deployed_sha256": "97320468c4c15d8a55ebf7284416f2405abd48d4094951ee1032d8454567a96a",
+        "matched": [],
+        "bytes": 55109,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "shipment-tracking-webhook",
+        "version": 1,
+        "deployed_sha256": "ae18f45aece01785325b5c5ec9ac6a0a210673d0a011e8a2b681b87c52691257",
+        "matched": [],
+        "bytes": 5030,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "mrw-readonly-probe",
+        "version": 10,
+        "deployed_sha256": "8f370fcfa4888781484c78f17a8167ef4f6b6d108f47b03026a97c7bc40c8433",
+        "matched": [],
+        "bytes": 694,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "amazon-projection-probe",
+        "version": 3,
+        "deployed_sha256": "afcf78ae51d8a02c502d3c2ef5d24c936679af2bece5d1e0395b3ab696f076d2",
+        "matched": [],
+        "bytes": 723,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "register-external-shipment",
+        "version": 1,
+        "deployed_sha256": "64bfcf5a3542e3c8b4e5a06b0aaac3e4764c64a17ecd26a795461fafc03b1755",
+        "matched": [],
+        "bytes": 6967,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "pickup-report-documents",
+        "version": 4,
+        "deployed_sha256": "39e1a7d00ead601a21a94ba400c3d676ebcae605d3cdcfe86a45235c9d65036f",
+        "matched": [],
+        "bytes": 210393,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "pickup-report-purge",
+        "version": 3,
+        "deployed_sha256": "98540a57cf606467e7eea3ceb8c7f902b2d3cf5985ab2f4465e2209212e53399",
+        "matched": [],
+        "bytes": 184190,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "shipping-creation-reconcile",
+        "version": 1,
+        "deployed_sha256": "3ccb37a900b6a4d039c73ec7c71a4eefed3cb6a62d18b534490d7310889183cb",
+        "matched": [],
+        "bytes": 44197,
+        "error": false
+      }
+    },
+    {
+      "status": "fulfilled",
+      "value": {
+        "slug": "shipping-creation-worker",
+        "version": 1,
+        "deployed_sha256": "94a1045546ce21a432a681b2d2531204e4b9b30f1c4c461344cfd6e6ee2759f0",
+        "matched": [],
+        "bytes": 43378,
+        "error": false
+      }
+    }
+  ]
+}

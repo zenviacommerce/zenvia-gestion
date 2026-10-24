@@ -1,0 +1,143 @@
+[
+  {
+    "write_surface": {
+      "triggers": [
+        {
+          "name": "sales_invoice_lines_calculate",
+          "table": "sales_invoice_lines",
+          "definition": "CREATE TRIGGER sales_invoice_lines_calculate BEFORE INSERT OR UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION private.sales_invoice_line_calculate()"
+        },
+        {
+          "name": "sales_invoice_lines_guard",
+          "table": "sales_invoice_lines",
+          "definition": "CREATE TRIGGER sales_invoice_lines_guard BEFORE INSERT OR DELETE OR UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION private.guard_sales_invoice_line_edit()"
+        },
+        {
+          "name": "sales_invoice_lines_recalc",
+          "table": "sales_invoice_lines",
+          "definition": "CREATE TRIGGER sales_invoice_lines_recalc AFTER INSERT OR DELETE OR UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION private.recalculate_sales_invoice_totals()"
+        },
+        {
+          "name": "sales_invoice_lines_updated_at",
+          "table": "sales_invoice_lines",
+          "definition": "CREATE TRIGGER sales_invoice_lines_updated_at BEFORE UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "name": "sales_invoice_series_updated_at",
+          "table": "sales_invoice_series",
+          "definition": "CREATE TRIGGER sales_invoice_series_updated_at BEFORE UPDATE ON public.sales_invoice_series FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "name": "audit_sales_invoice_number_change",
+          "table": "sales_invoices",
+          "definition": "CREATE TRIGGER audit_sales_invoice_number_change AFTER UPDATE OF invoice_number ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION private.audit_sales_invoice_number_change()"
+        },
+        {
+          "name": "sales_invoice_bank_snapshot",
+          "table": "sales_invoices",
+          "definition": "CREATE TRIGGER sales_invoice_bank_snapshot BEFORE INSERT OR UPDATE ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION private.bank_document_snapshot()"
+        },
+        {
+          "name": "sales_invoices_default_due_date",
+          "table": "sales_invoices",
+          "definition": "CREATE TRIGGER sales_invoices_default_due_date BEFORE INSERT OR UPDATE OF issue_date, due_date ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION private.set_default_sales_invoice_due_date()"
+        },
+        {
+          "name": "sales_invoices_immutable",
+          "table": "sales_invoices",
+          "definition": "CREATE TRIGGER sales_invoices_immutable BEFORE DELETE OR UPDATE ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION private.guard_sales_invoice_immutable()"
+        },
+        {
+          "name": "sales_invoices_updated_at",
+          "table": "sales_invoices",
+          "definition": "CREATE TRIGGER sales_invoices_updated_at BEFORE UPDATE ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "functions": [
+        {
+          "signature": "delete_reversible_sales_invoice(uuid)",
+          "volatility": "v",
+          "definition_hash": "a08991f23100d33bd05cc5fe5ea5b1e5",
+          "security_definer": false
+        },
+        {
+          "signature": "issue_sales_invoice(uuid)",
+          "volatility": "v",
+          "definition_hash": "3ab4902e0991311503486058931cfed5",
+          "security_definer": false
+        },
+        {
+          "signature": "mark_sales_invoice_paid(uuid)",
+          "volatility": "v",
+          "definition_hash": "35aea0e57ee04ae33d16a3eed2a5902c",
+          "security_definer": false
+        },
+        {
+          "signature": "private.audit_sales_invoice_number_change()",
+          "volatility": "v",
+          "definition_hash": "f56024f345d73a4247f9b10dd571301f",
+          "security_definer": true
+        },
+        {
+          "signature": "private.guard_sales_invoice_immutable()",
+          "volatility": "v",
+          "definition_hash": "dd22fa261f4993f624bde80dca546a80",
+          "security_definer": false
+        },
+        {
+          "signature": "private.guard_sales_invoice_line_edit()",
+          "volatility": "v",
+          "definition_hash": "88ca92bc7ae0efe98a7e5b84f8a2df05",
+          "security_definer": false
+        },
+        {
+          "signature": "private.recalculate_sales_invoice_totals()",
+          "volatility": "v",
+          "definition_hash": "3b6fcdd94c68fe4040fdceba16b949d0",
+          "security_definer": false
+        },
+        {
+          "signature": "private.sales_invoice_line_calculate()",
+          "volatility": "v",
+          "definition_hash": "cfc9d89f7cb6b558da857a914f634758",
+          "security_definer": false
+        },
+        {
+          "signature": "private.set_default_sales_invoice_due_date()",
+          "volatility": "v",
+          "definition_hash": "651fc5c1a86a534aadfc61b997e9a504",
+          "security_definer": false
+        },
+        {
+          "signature": "reopen_sales_invoice(uuid)",
+          "volatility": "v",
+          "definition_hash": "37de2bfee716ff3ec12a694ea47dfe02",
+          "security_definer": false
+        },
+        {
+          "signature": "update_sales_invoice_number(uuid,text)",
+          "volatility": "v",
+          "definition_hash": "505076432fd3de62a60a7bf33566dc48",
+          "security_definer": false
+        }
+      ],
+      "foreign_keys": [
+        {
+          "name": "sales_invoices_rectifies_invoice_id_fkey",
+          "table": "sales_invoices",
+          "definition": "FOREIGN KEY (rectifies_invoice_id) REFERENCES sales_invoices(id) ON DELETE RESTRICT"
+        },
+        {
+          "name": "sales_invoice_lines_invoice_id_fkey",
+          "table": "sales_invoice_lines",
+          "definition": "FOREIGN KEY (invoice_id) REFERENCES sales_invoices(id) ON DELETE CASCADE"
+        },
+        {
+          "name": "sales_payments_invoice_id_fkey",
+          "table": "sales_payments",
+          "definition": "FOREIGN KEY (invoice_id) REFERENCES sales_invoices(id) ON DELETE CASCADE"
+        }
+      ]
+    }
+  }
+]

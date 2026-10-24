@@ -324,6 +324,18 @@ BEGIN
  IF p_receipt AND i.document_kind<>'receipt' THEN RAISE EXCEPTION 'VF_RECEIPT_KIND_REQUIRED';END IF;
  IF NOT p_receipt AND i.document_kind<>'invoice' THEN RAISE EXCEPTION 'VF_INVOICE_KIND_REQUIRED';END IF;
  IF i.status<>'draft' THEN RETURN i;END IF; -- retries never consume another number or hash
+ IF (i.invoice_type='standard' AND (coalesce(i.verifactu_type,'F1') NOT IN('F1','F2','F3') OR i.rectifies_invoice_id IS NOT NULL OR i.rectification_mode IS NOT NULL))
+ OR (i.invoice_type='rectifying' AND (i.verifactu_type IS NULL OR i.verifactu_type NOT IN('R1','R2','R3','R4','R5') OR i.rectification_mode IS NULL OR i.rectifies_invoice_id IS NULL)) THEN
+  RAISE EXCEPTION 'VF_DOCUMENT_CLASSIFICATION_INVALID';
+ END IF;
+ -- Child writers lock this parent before changing lines. Recompute under the
+ -- same parent lock: editable draft header totals are never a fiscal input.
+ UPDATE public.sales_invoices SET
+ subtotal=(SELECT coalesce(round(sum(line_net),2),0) FROM public.sales_invoice_lines WHERE invoice_id=i.id),
+ discount_amount=(SELECT coalesce(round(sum(quantity*unit_price),2)-round(sum(line_net),2),0) FROM public.sales_invoice_lines WHERE invoice_id=i.id),
+ tax_amount=(SELECT coalesce(round(sum(tax_amount),2),0) FROM public.sales_invoice_lines WHERE invoice_id=i.id),
+ total_amount=(SELECT coalesce(round(sum(line_total),2),0) FROM public.sales_invoice_lines WHERE invoice_id=i.id)
+ WHERE id=i.id AND owner_id=o RETURNING * INTO i;
  IF i.currency<>'EUR' THEN RAISE EXCEPTION 'VF_EUR_REQUIRED';END IF;
  IF i.total_amount IS NULL OR (i.invoice_type='standard' AND i.total_amount<=0) THEN RAISE EXCEPTION 'VF_DOCUMENT_TOTAL_INVALID';END IF;
  IF NOT EXISTS(SELECT 1 FROM public.sales_invoice_lines WHERE invoice_id=i.id AND owner_id=o) OR EXISTS(SELECT 1 FROM public.sales_invoice_lines WHERE invoice_id=i.id AND owner_id<>o) THEN RAISE EXCEPTION 'VF_LINES_INVALID';END IF;
@@ -366,6 +378,8 @@ BEGIN
  SELECT * INTO r FROM public.sales_receipts WHERE id=p_id AND owner_id=o FOR UPDATE;
  IF r.id IS NULL THEN RAISE EXCEPTION 'VF_DOCUMENT_NOT_FOUND';END IF;
  IF r.status<>'draft' THEN RETURN r;END IF;
+ UPDATE public.sales_receipts SET total_amount=(SELECT coalesce(round(sum(line_total),2),0) FROM public.sales_receipt_lines WHERE receipt_id=r.id)
+ WHERE id=r.id AND owner_id=o RETURNING * INTO r;
  IF r.total_amount<=0 OR NOT EXISTS(SELECT 1 FROM public.sales_receipt_lines WHERE receipt_id=r.id AND owner_id=o) OR EXISTS(SELECT 1 FROM public.sales_receipt_lines WHERE receipt_id=r.id AND owner_id<>o) THEN RAISE EXCEPTION 'VF_RECEIPT_LINES_INVALID';END IF;
  v_year:=extract(year FROM r.receipt_date)::integer;
  -- Serialise by owner/year, including an absent counter, without sequences.

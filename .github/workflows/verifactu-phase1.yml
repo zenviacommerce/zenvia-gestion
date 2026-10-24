@@ -55,3 +55,25 @@ jobs:
           PGUSER: postgres
           PGDATABASE: postgres
         run: node scripts/verifactu-postgres-concurrency.mjs
+
+  unit-build-and-visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - name: Focused fiscal and lifecycle tests
+        run: npx vitest run tests/verifactu-core.test.ts tests/verifactu-hash.test.ts tests/verifactu-hash-sql-parity.test.ts tests/verifactu-ui-lifecycle.test.tsx --maxWorkers=2 --minWorkers=1
+      - run: npm run build
+      - name: Install pinned screenshot runner
+        run: npm install --no-save --package-lock=false playwright@1.58.2 && npx playwright install --with-deps chromium
+      - name: Capture synthetic before and after at desktop and mobile widths
+        run: node scripts/verifactu-visual-capture.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verifactu-phase1-before-after
+          path: artifacts/verifactu-phase1-visual

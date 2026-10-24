@@ -110,7 +110,9 @@ try {
 
   await draft(27);
   for (const mutation of ["status='draft'", "invoice_number='F-2026-9999'", 'total_amount=0', `owner_id='${other}'`]) await denied(`${context}UPDATE sales_invoices SET ${mutation} WHERE id='${id(1)}';`, /VF_FISCAL_IMMUTABLE|VF_TENANT_IMMUTABLE/);
-  await denied(`${context}DELETE FROM sales_invoices WHERE id='${id(1)}';`, /VF_FISCAL_IMMUTABLE/);
+  assert.equal(await sql(`${context}WITH removed AS (DELETE FROM sales_invoices WHERE id='${id(1)}' RETURNING id) SELECT count(*) FROM removed;`),'0','RLS filters issued rows from direct DELETE');
+  await check(`EXISTS(SELECT 1 FROM sales_invoices WHERE id='${id(1)}' AND status='issued')`,'filtered DELETE leaves issued document intact');
+  await denied(`SET test.uid='${owner}';SET test.owner='${owner}';DELETE FROM sales_invoices WHERE id='${id(1)}';`,/VF_FISCAL_IMMUTABLE/);
   await denied(`${context}SET test.owner='${other}';${issue(27)}`, /VF_DOCUMENT_NOT_FOUND/);
   await denied(`${context}SET test.mfa='no';${issue(27)}`, /MFA_REQUIRED/);
   await denied(`${context}SELECT * FROM private.verifactu_records;`, /permission denied/);

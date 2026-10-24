@@ -1,0 +1,601 @@
+{
+  "columns": [
+    {
+      "type": "uuid",
+      "table": "business_settings",
+      "column": "owner_id",
+      "default": "private.app_workspace_owner_id()",
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "legal_name",
+      "default": "'ZENVIA COMMERCE SL'::text",
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "trade_name",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "tax_id",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "address_line1",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "address_line2",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "postal_code",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "city",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "province",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "country_code",
+      "default": "'ES'::text",
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "email",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "phone",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "iban",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "invoice_footer",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "timestamptz",
+      "table": "business_settings",
+      "column": "created_at",
+      "default": "now()",
+      "nullable": "NO"
+    },
+    {
+      "type": "timestamptz",
+      "table": "business_settings",
+      "column": "updated_at",
+      "default": "now()",
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "business_settings",
+      "column": "website",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "uuid",
+      "table": "business_tax_registrations",
+      "column": "id",
+      "default": "gen_random_uuid()",
+      "nullable": "NO"
+    },
+    {
+      "type": "uuid",
+      "table": "business_tax_registrations",
+      "column": "owner_id",
+      "default": "private.app_workspace_owner_id()",
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "business_tax_registrations",
+      "column": "label",
+      "default": null,
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "business_tax_registrations",
+      "column": "country_code",
+      "default": "'ES'::text",
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "business_tax_registrations",
+      "column": "vat_number",
+      "default": null,
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "business_tax_registrations",
+      "column": "fiscal_name",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "business_tax_registrations",
+      "column": "address_text",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "bool",
+      "table": "business_tax_registrations",
+      "column": "is_default",
+      "default": "false",
+      "nullable": "NO"
+    },
+    {
+      "type": "bool",
+      "table": "business_tax_registrations",
+      "column": "active",
+      "default": "true",
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "business_tax_registrations",
+      "column": "notes",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "timestamptz",
+      "table": "business_tax_registrations",
+      "column": "created_at",
+      "default": "now()",
+      "nullable": "NO"
+    },
+    {
+      "type": "timestamptz",
+      "table": "business_tax_registrations",
+      "column": "updated_at",
+      "default": "now()",
+      "nullable": "NO"
+    },
+    {
+      "type": "uuid",
+      "table": "clients",
+      "column": "id",
+      "default": "gen_random_uuid()",
+      "nullable": "NO"
+    },
+    {
+      "type": "uuid",
+      "table": "clients",
+      "column": "owner_id",
+      "default": "private.app_workspace_owner_id()",
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "name",
+      "default": null,
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "tax_id",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "email",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "phone",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "address_line1",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "address_line2",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "postal_code",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "city",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "province",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "country_code",
+      "default": "'ES'::text",
+      "nullable": "NO"
+    },
+    {
+      "type": "int4",
+      "table": "clients",
+      "column": "payment_terms_days",
+      "default": "0",
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "notes",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "bool",
+      "table": "clients",
+      "column": "active",
+      "default": "true",
+      "nullable": "NO"
+    },
+    {
+      "type": "timestamptz",
+      "table": "clients",
+      "column": "created_at",
+      "default": "now()",
+      "nullable": "NO"
+    },
+    {
+      "type": "timestamptz",
+      "table": "clients",
+      "column": "updated_at",
+      "default": "now()",
+      "nullable": "NO"
+    },
+    {
+      "type": "numeric",
+      "table": "clients",
+      "column": "default_vat_rate",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "text",
+      "table": "clients",
+      "column": "default_payment_method",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "uuid",
+      "table": "sales_receipt_counters",
+      "column": "owner_id",
+      "default": "private.app_workspace_owner_id()",
+      "nullable": "NO"
+    },
+    {
+      "type": "int4",
+      "table": "sales_receipt_counters",
+      "column": "year",
+      "default": null,
+      "nullable": "NO"
+    },
+    {
+      "type": "int4",
+      "table": "sales_receipt_counters",
+      "column": "next_number",
+      "default": "1",
+      "nullable": "NO"
+    },
+    {
+      "type": "uuid",
+      "table": "sales_receipt_lines",
+      "column": "id",
+      "default": "gen_random_uuid()",
+      "nullable": "NO"
+    },
+    {
+      "type": "uuid",
+      "table": "sales_receipt_lines",
+      "column": "owner_id",
+      "default": "private.app_workspace_owner_id()",
+      "nullable": "NO"
+    },
+    {
+      "type": "uuid",
+      "table": "sales_receipt_lines",
+      "column": "receipt_id",
+      "default": null,
+      "nullable": "NO"
+    },
+    {
+      "type": "uuid",
+      "table": "sales_receipt_lines",
+      "column": "product_id",
+      "default": null,
+      "nullable": "YES"
+    },
+    {
+      "type": "int4",
+      "table": "sales_receipt_lines",
+      "column": "position",
+      "default": "1",
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "sales_receipt_lines",
+      "column": "description",
+      "default": null,
+      "nullable": "NO"
+    },
+    {
+      "type": "numeric",
+      "table": "sales_receipt_lines",
+      "column": "quantity",
+      "default": "1",
+      "nullable": "NO"
+    },
+    {
+      "type": "text",
+      "table": "sales_receipt_lines",
+      "column": "unit",
+      "default": "'ud'::text",
+      "nullable": "NO"
+    },
+    {
+      "type": "numeric",
+      "table": "sales_receipt_lines",
+      "column": "unit_price",
+      "default": "0",
+      "nullable": "NO"
+    },
+    {
+      "type": "numeric",
+      "table": "sales_receipt_lines",
+      "column": "discount_percent",
+      "default": "0",
+      "nullable": "NO"
+    },
+    {
+      "type": "numeric",
+      "table": "sales_receipt_lines",
+      "column": "invoice_tax_rate",
+      "default": "21",
+      "nullable": "NO"
+    },
+    {
+      "type": "numeric",
+      "table": "sales_receipt_lines",
+      "column": "line_total",
+      "default": "0",
+      "nullable": "NO"
+    },
+    {
+      "type": "timestamptz",
+      "table": "sales_receipt_lines",
+      "column": "created_at",
+      "default": "now()",
+      "nullable": "NO"
+    },
+    {
+      "type": "timestamptz",
+      "table": "sales_receipt_lines",
+      "column": "updated_at",
+      "default": "now()",
+      "nullable": "NO"
+    }
+  ],
+  "constraints": [
+    {
+      "name": "sales_invoice_series_kind_check",
+      "table": "sales_invoice_series",
+      "definition": "CHECK ((kind = ANY (ARRAY['standard'::text, 'rectifying'::text, 'receipt'::text])))"
+    },
+    {
+      "name": "sales_invoice_series_next_number_check",
+      "table": "sales_invoice_series",
+      "definition": "CHECK ((next_number > 0))"
+    },
+    {
+      "name": "sales_invoice_series_owner_id_code_year_key",
+      "table": "sales_invoice_series",
+      "definition": "UNIQUE (owner_id, code, year)"
+    },
+    {
+      "name": "sales_invoice_series_owner_workspace_fkey",
+      "table": "sales_invoice_series",
+      "definition": "FOREIGN KEY (owner_id) REFERENCES workspaces(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "sales_invoice_series_padding_check",
+      "table": "sales_invoice_series",
+      "definition": "CHECK (((padding >= 1) AND (padding <= 10)))"
+    },
+    {
+      "name": "sales_invoice_series_pkey",
+      "table": "sales_invoice_series",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "sales_series_bank_same_owner",
+      "table": "sales_invoice_series",
+      "definition": "FOREIGN KEY (owner_id, default_bank_account_id) REFERENCES business_bank_accounts(owner_id, id)"
+    },
+    {
+      "name": "sales_invoice_bank_same_owner",
+      "table": "sales_invoices",
+      "definition": "FOREIGN KEY (owner_id, bank_account_id) REFERENCES business_bank_accounts(owner_id, id)"
+    },
+    {
+      "name": "sales_invoices_client_id_fkey",
+      "table": "sales_invoices",
+      "definition": "FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE RESTRICT"
+    },
+    {
+      "name": "sales_invoices_document_kind_check",
+      "table": "sales_invoices",
+      "definition": "CHECK ((document_kind = ANY (ARRAY['invoice'::text, 'receipt'::text])))"
+    },
+    {
+      "name": "sales_invoices_fiscal_treatment_check",
+      "table": "sales_invoices",
+      "definition": "CHECK ((fiscal_treatment = ANY (ARRAY['taxable'::text, 'exempt'::text, 'non_taxable'::text, 'out_of_scope'::text])))"
+    },
+    {
+      "name": "sales_invoices_invoice_type_check",
+      "table": "sales_invoices",
+      "definition": "CHECK ((invoice_type = ANY (ARRAY['standard'::text, 'rectifying'::text])))"
+    },
+    {
+      "name": "sales_invoices_owner_id_invoice_number_key",
+      "table": "sales_invoices",
+      "definition": "UNIQUE (owner_id, invoice_number)"
+    },
+    {
+      "name": "sales_invoices_owner_workspace_fkey",
+      "table": "sales_invoices",
+      "definition": "FOREIGN KEY (owner_id) REFERENCES workspaces(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "sales_invoices_pkey",
+      "table": "sales_invoices",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "name": "sales_invoices_rectifies_invoice_id_fkey",
+      "table": "sales_invoices",
+      "definition": "FOREIGN KEY (rectifies_invoice_id) REFERENCES sales_invoices(id) ON DELETE RESTRICT"
+    },
+    {
+      "name": "sales_invoices_reserved_number_check",
+      "table": "sales_invoices",
+      "definition": "CHECK (((reserved_number IS NULL) OR (reserved_number > 0)))"
+    },
+    {
+      "name": "sales_invoices_series_id_fkey",
+      "table": "sales_invoices",
+      "definition": "FOREIGN KEY (series_id) REFERENCES sales_invoice_series(id) ON DELETE RESTRICT"
+    },
+    {
+      "name": "sales_invoices_source_fulfillment_order_id_fkey",
+      "table": "sales_invoices",
+      "definition": "FOREIGN KEY (source_fulfillment_order_id) REFERENCES fulfillment_orders(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "sales_invoices_status_check",
+      "table": "sales_invoices",
+      "definition": "CHECK ((status = ANY (ARRAY['draft'::text, 'issued'::text, 'sent'::text, 'partially_paid'::text, 'paid'::text, 'rectified'::text, 'cancelled'::text])))"
+    },
+    {
+      "name": "sales_invoices_tax_registration_id_fkey",
+      "table": "sales_invoices",
+      "definition": "FOREIGN KEY (tax_registration_id) REFERENCES business_tax_registrations(id) ON DELETE SET NULL"
+    },
+    {
+      "name": "sales_receipt_bank_same_owner",
+      "table": "sales_receipts",
+      "definition": "FOREIGN KEY (owner_id, bank_account_id) REFERENCES business_bank_accounts(owner_id, id)"
+    },
+    {
+      "name": "sales_receipts_client_id_fkey",
+      "table": "sales_receipts",
+      "definition": "FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE RESTRICT"
+    },
+    {
+      "name": "sales_receipts_owner_id_fkey",
+      "table": "sales_receipts",
+      "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+    },
+    {
+      "name": "sales_receipts_owner_id_receipt_number_key",
+      "table": "sales_receipts",
+      "definition": "UNIQUE (owner_id, receipt_number)"
+    },
+    {
+      "name": "sales_receipts_pkey",
+      "table": "sales_receipts",
+      "definition": "PRIMARY KEY (id)"
+    }
+  ],
+  "trigger_helpers": [
+    {
+      "signature": "private.set_default_sales_invoice_due_date()",
+      "definition": "CREATE OR REPLACE FUNCTION private.set_default_sales_invoice_due_date()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\nbegin\n  if new.issue_date is not null and new.due_date is null then\n    new.due_date := new.issue_date + private.sales_default_due_days(new.owner_id);\n  end if;\n  return new;\nend;\n$function$\n"
+    },
+    {
+      "signature": "private.bank_document_snapshot()",
+      "definition": "CREATE OR REPLACE FUNCTION private.bank_document_snapshot()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare v_account public.business_bank_accounts%rowtype;v_selected uuid;v_transfer boolean;v_capture boolean;v_series uuid;\nbegin\n if tg_op='UPDATE' and new.owner_id is distinct from old.owner_id then raise exception 'La empresa del documento no se puede modificar.'; end if;\n if tg_op='UPDATE' and old.bank_snapshot_source is not null then\n  if new.bank_account_id is distinct from old.bank_account_id or new.bank_account_snapshot is distinct from old.bank_account_snapshot\n   or new.bank_snapshot_source is distinct from old.bank_snapshot_source or new.bank_snapshot_at is distinct from old.bank_snapshot_at then raise exception 'La cuenta bancaria guardada en el documento no se puede modificar.'; end if;\n  return new;\n end if;\n if new.bank_account_snapshot is not null or new.bank_snapshot_source is not null or new.bank_snapshot_at is not null then raise exception 'La cuenta bancaria del documento la guarda el servidor.'; end if;\n perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(new.owner_id::text||':business-bank-accounts',0));\n v_selected:=new.bank_account_id;\n if v_selected is not null and not exists(select 1 from public.business_bank_accounts where owner_id=new.owner_id and id=v_selected and archived_at is null and validation_status='valid') then raise exception 'La cuenta bancaria seleccionada no está disponible.'; end if;\n if tg_table_name='sales_invoices' then v_capture:=new.status<>'draft';v_series:=new.series_id;else v_capture:=true;end if;\n if not v_capture then return new; end if;\n if v_selected is null and v_series is not null then\n  select a.id into v_selected from public.sales_invoice_series s join public.business_bank_accounts a on a.owner_id=s.owner_id and a.id=s.default_bank_account_id\n   where s.id=v_series and s.owner_id=new.owner_id and a.archived_at is null and a.validation_status='valid';\n end if;\n if v_selected is null then select id into v_selected from public.business_bank_accounts where owner_id=new.owner_id and is_default and archived_at is null and validation_status='valid';end if;\n -- Existing documents stored display labels. New documents carry stable method IDs.\n v_transfer:=new.payment_method_id='bank_transfer' or (new.payment_method_id is null and lower(btrim(coalesce(new.payment_method,''))) in ('transferencia bancaria','transferencia','bank transfer'));\n if v_selected is null and coalesce(v_transfer,false) then raise exception 'Falta una cuenta bancaria en Configuración → General';end if;\n if v_selected is not null then\n  select * into v_account from public.business_bank_accounts where owner_id=new.owner_id and id=v_selected and archived_at is null and validation_status='valid';\n  new.bank_account_id:=v_account.id;\n  new.bank_account_snapshot:=jsonb_build_object('version',1,'accountId',v_account.id,'alias',v_account.alias,'iban',v_account.iban,'bic',v_account.bic,'holder',v_account.holder);\n end if;\n new.bank_snapshot_source:=case when tg_table_name='sales_receipts' then 'receipt_created' else 'issued' end;\n new.bank_snapshot_at:=transaction_timestamp();return new;\nend $function$\n"
+    }
+  ]
+}

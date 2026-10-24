@@ -11,7 +11,11 @@ it('installs on a fresh schema without the optional production projection cache'
  await db.exec("set zenvia.logistics_release_bundle='atomic'");await db.exec(readFileSync('supabase/migrations/20261023103551_internal_logistics_state.sql','utf8'));
  expect((await db.query<any>("select to_regprocedure('private.orders_projection_stale_keys()') absent")).rows[0].absent).toBeNull();
  await db.exec(readFileSync('supabase/migrations/20261024064200_orders_purge_logistics_retention.sql','utf8'));
- await db.exec("update fulfillment_orders set fulfilled_at='2026-08-25',source_status='Shipped',pii_purged_at=now(),label_created_at=null,tracking_number=null,shipping_remote_id=null where order_number='DEMO-1'");
+ await db.exec("update fulfillment_orders set order_created_at='2026-08-01',label_created_at='2026-09-05',fulfilled_at=null,tracking_updated_at=null,shipping_cost_recorded_at=null,shipping_cost_amount=12.10,shipping_cost_currency='EUR' where order_number='DEMO-1'");
+ const costs=[];for(const rpc of ['orders_workbench_v1','orders_dashboard_pickup_v1'])costs.push((await db.query<any>(`select ${rpc}(p_from=>'2026-09-01',p_to=>'2026-09-30',p_state=>'all') v`)).rows[0].v.kpis.transport);
+ expect(costs[0].shipments).toBe(1);expect(costs[0].total).toBe(12.10);
+ await db.exec("update fulfillment_orders set source_status='Shipped',pii_purged_at=now(),label_created_at=null,tracking_number=null,shipping_remote_id=null where order_number='DEMO-1'");
+ for(const [i,rpc] of ['orders_workbench_v1','orders_dashboard_pickup_v1'].entries())expect((await db.query<any>(`select ${rpc}(p_from=>'2026-09-01',p_to=>'2026-09-30',p_state=>'all') v`)).rows[0].v.kpis.transport).toEqual(costs[i]);
  expect((await db.query<any>("select private.order_logistics_state(to_jsonb(o)) s from fulfillment_orders o where order_number='DEMO-1'")).rows[0].s).toBe('shipped');
  expect((await db.query<any>("select orders_workbench_v1(p_state=>'pending') v")).rows[0].v.rows.some((r:any)=>r.order_number==='DEMO-1')).toBe(false);
  }finally{await db.close()}

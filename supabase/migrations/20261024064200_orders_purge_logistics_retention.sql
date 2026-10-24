@@ -139,10 +139,13 @@ BEGIN
  END IF; -- Fresh installations without the optional projection cache use the classifier directly.
 
  -- Retained cost period, without changing row/composite shapes or label identity.
- FOR f IN SELECT oid FROM pg_proc WHERE oid IN(to_regprocedure('private.orders_dashboard_projection_refresh(uuid,text)'),to_regprocedure('private.orders_classified_fallback(text[])')) LOOP
+ FOR f IN SELECT oid,proname FROM pg_proc WHERE oid IN(to_regprocedure('private.orders_dashboard_projection_refresh(uuid,text)'),to_regprocedure('private.orders_classified_fallback(text[])')) OR (pronamespace='private'::regnamespace AND proname IN('mfa_impl_orders_workbench_v1','mfa_impl_orders_dashboard_pickup_v1')) LOOP
   src:=pg_get_functiondef(f.oid);
   needle:='(coalesce(f.shipping_cost_recorded_at,f.fulfilled_at,f.label_created_at,f.tracking_updated_at,f.order_created_at) AT TIME ZONE ''Europe/Madrid'')::date AS shipping_cost_day';
-  IF strpos(src,needle)=0 THEN RAISE EXCEPTION 'RETENTION_COST_DATE_SOURCE_CHANGED';END IF;
+  IF strpos(src,needle)=0 THEN
+   IF f.proname IN('mfa_impl_orders_workbench_v1','mfa_impl_orders_dashboard_pickup_v1') THEN CONTINUE;END IF;
+   RAISE EXCEPTION 'RETENTION_COST_DATE_SOURCE_CHANGED';
+  END IF;
   src:=replace(src,needle,'CASE WHEN f.pii_purged_at IS NOT NULL THEN coalesce((f.shipping_cost_recorded_at AT TIME ZONE ''Europe/Madrid'')::date,(SELECT r.shipping_cost_day FROM private.order_logistics_retention r WHERE r.owner_id=f.owner_id AND r.order_id=f.id),(coalesce(f.fulfilled_at,f.label_created_at,f.tracking_updated_at,f.order_created_at) AT TIME ZONE ''Europe/Madrid'')::date) ELSE '||needle);
   -- Complete CASE before the original AS alias.
   src:=replace(src,'ELSE '||needle,'ELSE '||replace(needle,' AS shipping_cost_day',' END AS shipping_cost_day'));

@@ -52,7 +52,7 @@ BEGIN
  v_cost_day:=(coalesce(nullif(original->>'shipping_cost_recorded_at',''),nullif(original->>'fulfilled_at',''),nullif(original->>'label_created_at',''),nullif(original->>'tracking_updated_at',''),original->>'order_created_at')::timestamptz AT TIME ZONE 'Europe/Madrid')::date;
  INSERT INTO private.order_logistics_retention(owner_id,order_id,operational_state,dispatched_at,evidence_basis,cause,observed_only,had_label,shipping_cost_day)
  VALUES(v_owner,v_id,CASE WHEN v_state='cancelled' THEN 'cancelled' ELSE 'shipped' END,
- nullif(e->>'historicalDate','')::timestamptz,e->>'basis',e->>'cause',coalesce((e->>'observedOnly')::boolean,false),v_has_label,v_cost_day)
+ CASE WHEN v_state='cancelled' AND e->>'basis'='pii_retained_fulfilled_history' THEN NULL ELSE nullif(e->>'historicalDate','')::timestamptz END,e->>'basis',e->>'cause',coalesce((e->>'observedOnly')::boolean,false),v_has_label,v_cost_day)
  ON CONFLICT DO NOTHING;
 END $capture$;
 REVOKE ALL ON FUNCTION private.order_logistics_store_retention(jsonb) FROM PUBLIC,anon,authenticated;

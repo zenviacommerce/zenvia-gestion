@@ -35,7 +35,7 @@ Fuente primaria consultada: https://developer-docs.amazon/sp-api/lang-en_en/docs
 
 ## Verificación previa
 
-RED observado: pedido Shipped/fulfilled purgado pasa Pending con el clasificador previo; frontend sin metadatos también lo trataba como pendiente. GREEN: pruebas de purga antes/después del hotfix, eliminación real del estado normalizado por el trigger productivo, proyección y tres RPC, actualización posterior, cancelación, pendientes reales, costes registrados/transportista, documentos, aislamiento y caché/fallback. Suite completa 140/140 en 23 archivos, build correcto. Revisión independiente sin blockers tras limitar la inferencia had_label al backfill. Prueba adicional del gate de recuento: rechaza reparación con población distinta sin escribir el archivo derivado.
+RED observado: pedido Shipped/fulfilled purgado pasa Pending con el clasificador previo; frontend sin metadatos también lo trataba como pendiente. GREEN: pruebas de purga antes/después del hotfix, eliminación real del estado normalizado por el trigger productivo, proyección y tres RPC, actualización posterior, cancelación, pendientes reales, costes registrados/transportista, documentos, aislamiento y caché/fallback. Suite completa 140/140 en 23 archivos, build correcto. Después se añadió y pasó una prueba específica de rollback de las ocho funciones; los tres casos de purga/reparación/rollback se reejecutaron en verde tras el último ajuste de cancelados. Revisión independiente sin blockers tras limitar la inferencia had_label al backfill. Prueba adicional del gate de recuento: rechaza reparación con población distinta sin escribir el archivo derivado.
 
 ## Verificación tras aprobación
 

@@ -24,8 +24,9 @@ it('repairs existing purged rows without touching pickup documents and preserves
  const repaired=(await db.query<any>("select order_state,dispatched_day from private.orders_dashboard_projection where order_number='403-3333333-4444444'")).rows[0];expect(repaired.order_state).toBe('shipped');expect(repaired.dispatched_day).not.toBeNull();
  expect((await db.query<any>('select to_jsonb(r) v from pickup_reports r order by id')).rows).toEqual(docs);
  expect((await db.query<any>('select to_jsonb(r) v from pickup_report_items r order by order_id')).rows).toEqual(members);
- await db.exec("update fulfillment_orders set source_status='Cancelled',pii_purged_at=now() where order_number='DEMO-2'");
+ await db.exec("update fulfillment_orders set source_status='Cancelled',fulfilled_at='2026-08-25',label_created_at=null,sendcloud_parcel_id=null,shipping_remote_id=null,pii_purged_at=now() where order_number='DEMO-2'");
  expect((await db.query<any>("select private.order_logistics_state(to_jsonb(o)) s from fulfillment_orders o where order_number='DEMO-2'")).rows[0].s).toBe('cancelled');
+ expect((await db.query<any>("select dispatched_at from private.order_logistics_retention r join fulfillment_orders o on o.id=r.order_id where o.order_number='DEMO-2'")).rows[0].dispatched_at).toBeNull();
  await db.exec("update fulfillment_orders set source_status='Unshipped',fulfilled_at=null,label_created_at=null,sendcloud_parcel_id=null,shipping_remote_id=null,tracking_status_code=null where order_number='DEMO-3'");
  expect((await db.query<any>("select private.order_logistics_state(to_jsonb(o)) s from fulfillment_orders o where order_number='DEMO-3'")).rows[0].s).toBe('pending');
  await db.exec("update fulfillment_orders set label_created_at=now(),tracking_number='MUST-BE-ERASED',shipping_remote_id='MUST-BE-ERASED' where order_number='403-3333333-4444444'");
@@ -65,6 +66,25 @@ it('keeps a purged fulfilled Amazon order shipped across projection, RPCs and la
  await db.exec("update fulfillment_orders set fulfilled_at=null,source_status='Unshipped',tracking_status_code=null where id='"+row.id+"'");
  await db.exec('select private.orders_dashboard_projection_reconcile(100)');
  expect((await db.query<any>("select order_state,dispatched_day from private.orders_dashboard_projection where id=$1",[row.id])).rows[0]).toEqual(projected);
+ }finally{await db.close()}
+},30000);
+it('restores the exact production functions with emergency rollback without restoring erased PII',async()=>{
+ const{db}=await fixture();try{
+ await db.exec(readBasePatch());
+ const originals=[...JSON.parse(readFileSync('docs/deploy/20261024-orders-purge-logistics/before-functions.json','utf8')),...JSON.parse(readFileSync('docs/deploy/20261024-orders-purge-logistics/before-fallback.json','utf8'))].filter((f:any)=>['private.order_logistics_evidence(','private.order_logistics_state(','private.mfa_impl_order_logistics_read(','private.orders_projection_stale_keys(','private.orders_dashboard_projection_refresh(','private.orders_classified_fallback(','private.mfa_impl_orders_workbench_v1(','private.mfa_impl_orders_dashboard_pickup_v1('].some(n=>f.signature.startsWith(n)));
+ for(const f of originals)await db.exec(f.definition);
+ const signatures=originals.map((f:any)=>f.signature);
+ const hashes=()=>db.query<any>("select oid::regprocedure::text signature,md5(pg_get_functiondef(oid)) hash from pg_proc where oid=any(select unnest($1::text[])::regprocedure) order by 1",[signatures]);
+ const before=(await hashes()).rows;
+ await db.exec(readFileSync('docs/deploy/20261024-orders-purge-logistics/definitions.sql','utf8'));
+ await db.exec("update fulfillment_orders set pii_purged_at=now(),tracking_number=null,label_created_at=null,shipping_remote_id=null where order_number='DEMO-1'");
+ expect((await db.query<any>('select count(*) n from private.order_logistics_retention')).rows[0].n).toBe(1);
+ await db.exec(readFileSync('docs/deploy/20261024-orders-purge-logistics/rollback.sql','utf8'));
+ expect((await hashes()).rows).toEqual(before);
+ expect((await db.query<any>('select count(*) n from private.order_logistics_retention')).rows[0].n).toBe(1);
+ expect((await db.query<any>("select count(*) n from pg_trigger where tgname='zzzzb_order_logistics_retention'")).rows[0].n).toBe(0);
+ expect((await db.query<any>("select tracking_number,shipping_remote_id from fulfillment_orders where order_number='DEMO-1'")).rows[0]).toEqual({tracking_number:null,shipping_remote_id:null});
+ expect((await db.query<any>("select orders_workbench_v1(p_state=>'all') v")).rows[0].v.total).toBe(3);
  }finally{await db.close()}
 },30000);
 it('upgrades the emergency projected state/date read without reverting it or failing the source guard',async()=>{

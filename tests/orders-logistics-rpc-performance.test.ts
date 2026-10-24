@@ -4,7 +4,69 @@ import {readFileSync} from 'node:fs';
 import {verificationFixture} from './helpers/pickupVerificationFixture';
 const patch='supabase/migrations/20261023185119_orders_299_approved_cache_backfill.sql';
 const summaryPatch='supabase/migrations/20261023214651_orders_operational_summary_mfa.sql';
-const readPatch=()=>readFileSync(patch,'utf8')+readFileSync(summaryPatch,'utf8');
+const readBasePatch=()=>readFileSync(patch,'utf8')+readFileSync(summaryPatch,'utf8');
+const readPatch=()=>readBasePatch()+readFileSync('docs/deploy/20261024-orders-purge-logistics/definitions.sql','utf8');
+it('repairs existing purged rows without touching pickup documents and preserves cancellation and true pending',async()=>{
+ const{db}=await fixture();try{
+ await db.exec(readBasePatch());await db.exec(readFileSync('supabase/migrations/20261016185733_amazon_buyer_pii_guard.sql','utf8'));
+ await db.exec(JSON.parse(readFileSync('docs/deploy/20261024-orders-purge-logistics/before-functions.json','utf8')).find((f:any)=>f.signature==='private.mfa_impl_order_logistics_read(uuid[])').definition);
+ await db.exec("update fulfillment_orders set source_channel='amazon',order_number='403-3333333-4444444',source_status='Shipped',fulfilled_at='2026-08-25',tracking_status_code='DELIVERED',shipping_provider='sendcloud' where order_number='DEMO-1'");
+ await db.exec("select private.orders_dashboard_projection_refresh('00000000-0000-4000-8000-000000000001','shopify:DEMO-1');select private.orders_dashboard_projection_refresh('00000000-0000-4000-8000-000000000001','amazon:403-3333333-4444444')");
+ const docs=(await db.query<any>('select to_jsonb(r) v from pickup_reports r order by id')).rows;
+ const members=(await db.query<any>('select to_jsonb(r) v from pickup_report_items r order by order_id')).rows;
+ await db.exec("update fulfillment_orders set pii_purged_at=now(),tracking_number=null,label_created_at=null,shipping_remote_id=null where order_number='403-3333333-4444444'");
+ expect((await db.query<any>("select private.order_logistics_state(to_jsonb(o)) s from fulfillment_orders o where order_number='403-3333333-4444444'")).rows[0].s).toBe('pending');
+ await db.exec(readFileSync('docs/deploy/20261024-orders-purge-logistics/definitions.sql','utf8'));
+ await expect(db.exec('BEGIN;'+readFileSync('docs/deploy/20261024-orders-purge-logistics/repair.sql','utf8')+'COMMIT;')).rejects.toThrow('RETENTION_RECOUNT_REQUIRED');await db.exec('ROLLBACK');
+ await db.exec('select private.order_logistics_store_retention(to_jsonb(o)) from fulfillment_orders o where pii_purged_at is not null');
+ await db.exec('select private.orders_dashboard_projection_reconcile(100)');
+ await db.exec("select private.orders_dashboard_projection_refresh('00000000-0000-4000-8000-000000000001','amazon:403-3333333-4444444')");
+ const repaired=(await db.query<any>("select order_state,dispatched_day from private.orders_dashboard_projection where order_number='403-3333333-4444444'")).rows[0];expect(repaired.order_state).toBe('shipped');expect(repaired.dispatched_day).not.toBeNull();
+ expect((await db.query<any>('select to_jsonb(r) v from pickup_reports r order by id')).rows).toEqual(docs);
+ expect((await db.query<any>('select to_jsonb(r) v from pickup_report_items r order by order_id')).rows).toEqual(members);
+ await db.exec("update fulfillment_orders set source_status='Cancelled',pii_purged_at=now() where order_number='DEMO-2'");
+ expect((await db.query<any>("select private.order_logistics_state(to_jsonb(o)) s from fulfillment_orders o where order_number='DEMO-2'")).rows[0].s).toBe('cancelled');
+ await db.exec("update fulfillment_orders set source_status='Unshipped',fulfilled_at=null,label_created_at=null,sendcloud_parcel_id=null,shipping_remote_id=null,tracking_status_code=null where order_number='DEMO-3'");
+ expect((await db.query<any>("select private.order_logistics_state(to_jsonb(o)) s from fulfillment_orders o where order_number='DEMO-3'")).rows[0].s).toBe('pending');
+ await db.exec("update fulfillment_orders set label_created_at=now(),tracking_number='MUST-BE-ERASED',shipping_remote_id='MUST-BE-ERASED' where order_number='403-3333333-4444444'");
+ await db.exec('select private.orders_dashboard_projection_reconcile(100)');
+ expect((await db.query<any>("select order_state,dispatched_day from private.orders_dashboard_projection where order_number='403-3333333-4444444'")).rows[0]).toEqual(repaired);
+ expect((await db.query<any>("select tracking_number,shipping_remote_id from fulfillment_orders where order_number='403-3333333-4444444'")).rows[0]).toEqual({tracking_number:null,shipping_remote_id:null});
+ expect((await db.query<any>("select has_table_privilege('authenticated','private.order_logistics_retention','SELECT') allowed")).rows[0].allowed).toBe(false);
+ expect((await db.query<any>("select has_function_privilege('authenticated','private.order_logistics_store_retention(jsonb)','EXECUTE') allowed")).rows[0].allowed).toBe(false);
+ }finally{await db.close()}
+},30000);
+it('keeps a purged fulfilled Amazon order shipped across projection, RPCs and later updates',async()=>{
+ const{db}=await fixture();try{
+ await db.exec(readBasePatch());
+ await db.exec(readFileSync('supabase/migrations/20261016185733_amazon_buyer_pii_guard.sql','utf8'));
+ await db.exec(JSON.parse(readFileSync('docs/deploy/20261024-orders-purge-logistics/before-functions.json','utf8')).find((f:any)=>f.signature==='private.mfa_impl_order_logistics_read(uuid[])').definition);
+ await db.exec(readFileSync('docs/deploy/20261024-orders-purge-logistics/definitions.sql','utf8'));
+ await db.exec("update fulfillment_orders set source_channel='amazon',order_number='403-1111111-2222222',source_status='Shipped',fulfilled_at='2026-08-25T06:54:00Z',tracking_status_code='DELIVERED',tracking_updated_at='2026-08-28T12:00:00Z',shipping_provider='sendcloud',shipping_cost_amount=12.10,shipping_cost_currency='EUR' where order_number='DEMO-1'");
+ const old=(await db.query<any>("select orders_dashboard_pickup_v1(p_state=>'all') v")).rows[0].v;
+ const row=(await db.query<any>("select id from fulfillment_orders where order_number='403-1111111-2222222'")).rows[0];
+ await db.exec(JSON.parse(readFileSync('docs/deploy/20261024-orders-purge-logistics/before-functions.json','utf8')).find((f:any)=>f.signature==='private.shipment_tracking_purge_order()').definition);
+ await db.exec("create trigger test_privacy_tracking_cleanup after update of pii_purged_at on fulfillment_orders for each row execute function private.shipment_tracking_purge_order()");
+ await db.exec("insert into shipment_tracking_state(order_id,owner_id,account_id,provider,tracking_number,identity_key,normalized_state,event_at,movement_at) select id,owner_id,'10000000-0000-4000-8000-000000000055','sendcloud',tracking_number,private.shipment_tracking_identity(o),'delivered','2026-08-28','2026-08-26' from fulfillment_orders o where order_number='403-1111111-2222222'");
+ expect((await db.query<any>('select count(*) n from shipment_tracking_state where order_id=$1',[row.id])).rows[0].n).toBe(1);
+ await db.exec("update fulfillment_orders set pii_purged_at=now(),label_created_at=null,tracking_number=null,shipping_remote_id=null where order_number='403-1111111-2222222'");
+ expect((await db.query<any>('select count(*) n from shipment_tracking_state where order_id=$1',[row.id])).rows[0].n).toBe(0);
+ expect((await db.query<any>("select private.order_logistics_state(to_jsonb(o)) state from fulfillment_orders o where id=$1",[row.id])).rows[0].state).toBe('shipped');
+ await db.exec('select private.orders_dashboard_projection_reconcile(100)');
+ const projected=(await db.query<any>("select order_state,dispatched_day from private.orders_dashboard_projection where id=$1",[row.id])).rows[0];expect(projected.order_state).toBe('shipped');expect(projected.dispatched_day).not.toBeNull();
+ const meta=(await db.query<any>('select order_logistics_read($1) v',[[row.id]])).rows[0].v[0];expect(meta.logistics_state).toBe('shipped');expect(meta.logistics.historical).toBe(true);
+ for(const rpc of ['orders_workbench_v1','orders_dashboard_pickup_v1']){
+  const pending=(await db.query<any>(`select ${rpc}(p_state=>'pending') v`)).rows[0].v;expect(pending.rows.some((r:any)=>r.id===row.id)).toBe(false);
+  const shipped=(await db.query<any>(`select ${rpc}(p_state=>'shipped') v`)).rows[0].v;const r=shipped.rows.find((r:any)=>r.id===row.id);expect(r).toBeDefined();expect(r.logistics.historical).toBe(true);expect(r.customer_name).toBeNull();expect(r.tracking_number).toBeNull();
+ }
+ const next=(await db.query<any>("select orders_dashboard_pickup_v1(p_state=>'all') v")).rows[0].v;
+ expect(next.kpis.transport.total).toBe(old.kpis.transport.total);expect(next.kpis.transport.shipments).toBe(old.kpis.transport.shipments);expect(next.kpis.transport.mrw).toBe(old.kpis.transport.mrw);
+ expect((await db.query<any>('select count(*) n from private.orders_projection_stale_keys()')).rows[0].n).toBe(0);
+ await db.exec("update fulfillment_orders set fulfilled_at=null,source_status='Unshipped',tracking_status_code=null where id='"+row.id+"'");
+ await db.exec('select private.orders_dashboard_projection_reconcile(100)');
+ expect((await db.query<any>("select order_state,dispatched_day from private.orders_dashboard_projection where id=$1",[row.id])).rows[0]).toEqual(projected);
+ }finally{await db.close()}
+},30000);
 it('upgrades the emergency projected state/date read without reverting it or failing the source guard',async()=>{
  const {db}=await fixture();try{
  const expected=(await db.query<any>("select orders_workbench_v1(p_state=>'all') value")).rows[0].value;
@@ -40,16 +102,17 @@ it('returns aggregate operational totals across periods without downloading any 
 async function fixture(){
  const f=await verificationFixture('active');await f.db.exec(readFileSync('tests/fixtures/logistics-production-generation.sql','utf8'));
  for(const r of JSON.parse(readFileSync('supabase/snapshots/20261023-internal-logistics-rollback-functions.json','utf8')))await f.db.exec(r.definition);
- await f.db.exec("set zenvia.logistics_release_bundle='atomic'");await f.db.exec(readFileSync('supabase/migrations/20261023103551_internal_logistics_state.sql','utf8'));await f.db.exec(readFileSync('supabase/migrations/20261023131000_logistics_projection_cutover.sql','utf8'));await f.db.exec('select private.orders_dashboard_projection_reconcile(100)');return f;
+ await f.db.exec("set zenvia.logistics_release_bundle='atomic'");await f.db.exec(readFileSync('supabase/migrations/20261023103551_internal_logistics_state.sql','utf8'));await f.db.exec(readFileSync('supabase/migrations/20261023131000_logistics_projection_cutover.sql','utf8'));await f.db.exec('select private.orders_dashboard_projection_reconcile(100)');await f.db.exec(JSON.parse(readFileSync('docs/deploy/20261024-orders-purge-logistics/before-functions.json','utf8')).find((x:any)=>x.signature==='private.mfa_impl_order_logistics_read(uuid[])').definition);return f;
 }
 it.each(['orders_workbench_v1','orders_dashboard_pickup_v1'])('serves valid cached %s without reclassifying every unpaged shipment',async rpc=>{
  const {db}=await fixture();try{
  const baseline=(await db.query<any>(`select ${rpc}(p_state=>'all',p_page_size=>1) value`)).rows[0].value;
+ await db.exec(readPatch());
  // Make redundant state classification observable without time-sensitive limits.
  const original=(await db.query<any>("select pg_get_functiondef('private.order_logistics_state(jsonb)'::regprocedure) definition")).rows[0].definition;
  await db.exec(original.replace('FUNCTION private.order_logistics_state(','FUNCTION private.test_original_logistics_state('));
  await db.exec(`create or replace function private.order_logistics_state(p_row jsonb) returns text language plpgsql stable security definer set search_path='' as $$begin perform set_config('test.state_calls',(coalesce(nullif(current_setting('test.state_calls',true),''),'0')::int+1)::text,false);return private.test_original_logistics_state(p_row);end$$;`);
- await db.exec(readPatch());await db.exec("set test.state_calls='0'");
+ await db.exec("set test.state_calls='0'");
  const actual=(await db.query<any>(`select ${rpc}(p_state=>'all',p_page_size=>1) value`)).rows[0].value;
  expect(actual).toEqual(baseline);
  expect((await db.query<any>("select current_setting('test.state_calls')::int calls")).rows[0].calls).toBeLessThanOrEqual(1);

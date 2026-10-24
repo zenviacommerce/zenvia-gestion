@@ -11,27 +11,24 @@ import {renderToStaticMarkup} from 'react-dom/server';
 const root=process.cwd();
 const read=(file)=>fs.readFileSync(path.join(root,file),'utf8');
 
-test('invoice number is proposed and editable inside the create/edit invoice modal',()=>{
+test('invoice modal previews the series but assigns no editable fiscal number',()=>{
   const page=read('src/pages/SalesInvoicesCore.tsx');
   const main=read('src/main.tsx');
-  assert.match(page,/updateSalesInvoiceNumber/,'invoice modal must use the invoice-number update service');
-  assert.match(page,/\[invoiceNumber,setInvoiceNumber\]/,'invoice modal must keep the editable number in modal state');
-  assert.match(page,/Número de factura/,'invoice modal must show a Número de factura field');
-  assert.match(page,/prefix.*nextNumber|nextNumber.*prefix/s,'invoice modal must propose the next number from the selected series');
-  assert.match(page,/setInvoiceNumber\(e\.target\.value\)/,'invoice number field must be directly editable');
-  assert.doesNotMatch(main,/SalesInvoiceNumberEditor/,'there must not be a separate invoice-numbering button/manager');
+  assert.doesNotMatch(page,/updateSalesInvoiceNumber/);
+  assert.doesNotMatch(page,/setInvoiceNumber/);
+  assert.match(page,/prefix.*nextNumber|nextNumber.*prefix/s);
+  assert.doesNotMatch(main,/SalesInvoiceNumberEditor/);
 });
 
-test('saving a draft persists the chosen number and issuance preserves it',()=>{
+test('draft save leaves fiscal allocation to the transactional issuer',()=>{
   const page=read('src/pages/SalesInvoicesCore.tsx');
-  const migrations=fs.readdirSync(path.join(root,'supabase/migrations')).filter(name=>/invoice_number/i.test(name));
-  assert.ok(migrations.length>0,'an invoice-number migration must exist');
-  const sql=migrations.map(name=>read(`supabase/migrations/${name}`)).join('\n');
-  assert.match(page,/updateSalesInvoiceNumber\([^,]+,invoiceNumber\.trim\(\)\)/,'modal save must persist the chosen invoice number');
-  assert.match(sql,/Ya existe una factura con el número/i,'RPC must reject duplicate numbers');
-  assert.match(sql,/next_number/i,'manual numbers ahead of the sequence must advance next_number');
-  assert.match(sql,/audit_logs/i,'renumbering must be audited');
-  assert.match(sql,/coalesce\(trim\(v_invoice\.invoice_number\),'\s*'\)<>''/,'issuing a draft must preserve a manually assigned number');
+  const service=read('src/services/salesInvoiceNumber.ts');
+  const sql=read('supabase/migrations/20261024075749_verifactu_shadow_phase1.sql');
+  assert.doesNotMatch(page,/updateSalesInvoiceNumber\(/);
+  assert.match(service,/no se puede cambiar manualmente|asigna.*emitir/i);
+  assert.match(sql,/vf_allocate_number/);
+  assert.match(sql,/FOR UPDATE/);
+  assert.match(sql,/VF_NUMBER_ASSIGNED_ON_ISSUE/);
 });
 
 test('StatCard preserves the dashboard warning for pending KPI cards and actions',async()=>{
@@ -45,3 +42,4 @@ test('StatCard preserves the dashboard warning for pending KPI cards and actions
   const neutral=renderToStaticMarkup(createElement(StatCard,{label:'Pendientes',value:'0',icon:null}));
   assert.doesNotMatch(neutral,/dashboardPendingOrders/,'default KPI must stay neutral');
 });
+

@@ -16,14 +16,15 @@ test('sales invoice import reads PDFs into reviewable draft candidates and never
   const service=await source('src/services/salesInvoiceImport.ts');
   assert.match(service,/readInvoiceDocumentEnhanced/);
   assert.match(service,/createSalesInvoiceDraft/);
-  assert.match(service,/updateSalesInvoiceNumber/);
+  assert.doesNotMatch(service,/updateSalesInvoiceNumber/);
+  assert.match(service,/Referencia del documento importado/);
   assert.match(service,/matchSalesInvoiceClient/);
   assert.doesNotMatch(service,/issueSalesInvoice\s*\(/);
 });
 
 test('sales invoice import modal reviews multiple PDFs before creating drafts',async()=>{
   const modal=await source('src/components/SalesInvoiceImportModal.tsx');
-  for(const label of ['Importar facturas de venta','Seleccionar PDFs','Revisar','Cliente','Serie','Número de factura','Fecha factura','Vencimiento','DNI / CIF / VAT','Guardar / reparar borradores']){
+  for(const label of ['Importar facturas de venta','Seleccionar PDFs','Revisar','Cliente','Serie','Referencia del documento importado','Fecha factura','Vencimiento','DNI / CIF / VAT','Guardar / reparar borradores']){
     assert.ok(modal.includes(label),label);
   }
   assert.match(modal,/multiple/);
@@ -62,3 +63,4 @@ test('desktop sidebar hides the mobile drawer close button',async()=>{
   assert.match(css,/\.sidebar \.mobileMenuClose\{display:none!important\}/);
   assert.match(css,/@media[\s\S]*\.sidebar \.mobileMenuClose\{[\s\S]*display:grid!important/);
 });
+

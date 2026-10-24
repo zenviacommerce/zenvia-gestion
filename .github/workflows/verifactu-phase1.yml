@@ -66,6 +66,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
+      - name: Application script contracts
+        run: node --test $(find scripts -maxdepth 1 -name "*.test.mjs" ! -name "mfa-real-integration.test.mjs" | sort)
       - name: Complete regression suite
         run: npm test -- --maxWorkers=2 --minWorkers=1
       - run: npm run build

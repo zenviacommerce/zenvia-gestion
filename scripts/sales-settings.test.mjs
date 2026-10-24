@@ -11,7 +11,7 @@ test('Facturación settings exposes every operational sales default',async()=>{
     'Vencimiento por defecto','Método de pago por defecto','IVA por defecto',
     'Serie por defecto','Registro IVA por defecto','Notas por defecto',
     'Mostrar IBAN','Mostrar datos fiscales','Mostrar vencimiento','Mostrar método de pago',
-    'Permitir cobros parciales','Marcar automáticamente como cobrada','Permitir editar facturas emitidas'
+    'Permitir cobros parciales','Marcar automáticamente como cobrada','Conservación de facturas emitidas'
   ]) assert.match(page,new RegExp(label,'i'),label);
   assert.match(page,/updateSection\('sales'/);
   assert.match(page,/loadManagedSalesSeries/);
@@ -28,7 +28,11 @@ test('new invoices consume configured sales defaults instead of hidden literals'
   assert.match(core,/settings\.sales\.defaultTaxRegistrationId/);
   assert.doesNotMatch(core,/setPaymentMethod\('Transferencia bancaria'\)/);
   assert.match(core,/allowPartialPayments/);
-  assert.match(core,/allowEditIssuedInvoices/);
+  assert.doesNotMatch(core,/allowEditIssuedInvoices/);
+  assert.match(core,/invoice\.status==='draft'/);
+  const sql=await read('../supabase/migrations/20261024075749_verifactu_shadow_phase1.sql');
+  assert.match(sql,/VF_FISCAL_IMMUTABLE/);
+  assert.doesNotMatch(sql,/allowEditIssuedInvoices/);
 });
 
 test('invoice PDF visibility is driven by sales settings',async()=>{
@@ -40,7 +44,7 @@ test('invoice PDF visibility is driven by sales settings',async()=>{
   assert.match(pdf,/showPaymentMethodOnPdf/);
 });
 
-test('database enforces partial payment auto-paid and issued-edit settings',async()=>{
+test('historical migration preserves the former payment settings contract; phase 1 overrides mutability',async()=>{
   const sql=await read('../supabase/migrations/20260921090000_configurable_sales_behavior.sql');
   assert.match(sql,/sales_setting_boolean/i);
   assert.match(sql,/allowPartialPayments/);
@@ -50,3 +54,4 @@ test('database enforces partial payment auto-paid and issued-edit settings',asyn
   assert.match(sql,/guard_sales_invoice_immutable/i);
   assert.match(sql,/mark_sales_invoice_paid/i);
 });
+

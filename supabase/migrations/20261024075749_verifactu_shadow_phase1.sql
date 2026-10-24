@@ -284,7 +284,7 @@ BEGIN
 END$$;
 CREATE FUNCTION private.vf_append_record(p_invoice uuid,p_kind text,p_alta uuid DEFAULT NULL,p_reason text DEFAULT NULL) RETURNS uuid LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE i public.sales_invoices;c private.verifactu_settings;ch private.verifactu_chains;alta private.verifactu_records;
- fields jsonb;v_input text;v_hash text;v_snapshot jsonb;v_now timestamptz:=clock_timestamp();v_lex text;v_id uuid:=gen_random_uuid();v_type text;
+ fields jsonb;v_input text;v_hash text;v_snapshot jsonb;v_now timestamptz;v_lex text;v_id uuid:=gen_random_uuid();v_type text;
 BEGIN
  SELECT * INTO i FROM public.sales_invoices WHERE id=p_invoice;
  SELECT * INTO c FROM private.verifactu_settings WHERE owner_id=i.owner_id FOR SHARE;
@@ -292,6 +292,9 @@ BEGIN
  IF private.vf_text(i.issuer_tax_id) IS DISTINCT FROM private.vf_text(c.issuer_nif) THEN RAISE EXCEPTION 'VF_ISSUER_NIF_MISMATCH';END IF;
  PERFORM private.vf_lock_chain(i.owner_id,c.issuer_nif,c.installation_id);
  SELECT * INTO ch FROM private.verifactu_chains WHERE owner_id=i.owner_id AND issuer_nif=c.issuer_nif AND installation_id=c.installation_id FOR UPDATE;
+ -- A cancellation may wait for another document's chain lock. Timestamp the
+ -- record after acquiring that lock so sequence and generation time agree.
+ v_now:=clock_timestamp();
  v_lex:=private.vf_offset_time(v_now);
  IF p_kind='alta' THEN
   v_type:=coalesce(i.verifactu_type,CASE WHEN i.document_kind='receipt' THEN 'F2' WHEN i.invoice_type='standard' THEN 'F1' END);

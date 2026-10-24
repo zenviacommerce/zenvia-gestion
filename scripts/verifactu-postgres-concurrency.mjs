@@ -122,11 +122,21 @@ try {
   await denied('TRUNCATE private.verifactu_events;', /VF_APPEND_ONLY/);
   await chainCheck(26);
   console.log('PASS: fiscal immutability, tenant boundary, MFA, direct archive and issue bypass denied');
+  await Promise.all([
+    ...Array.from({length:20},(_,index)=>sql(`${context}SELECT public.verifactu_cancel_sales_document('${id(index+1)}','invoice','Synthetic duplicate cancellation');`)),
+    sql(`${context}${issue(27)}`)
+  ]);
+  await chainCheck(47);
+  await check("(SELECT count(*)=20 FROM private.verifactu_records WHERE record_kind='anulacion') AND NOT EXISTS(SELECT 1 FROM (SELECT generated_at,lag(generated_at) OVER(ORDER BY sequence) prior FROM private.verifactu_records)r WHERE generated_at<prior)",'concurrent cancellations and issue have consecutive sequence and ordered timestamps');
+  const cancellations=await Promise.all(Array.from({length:20},()=>sql(`${context}SELECT public.verifactu_cancel_sales_document('${id(1)}','invoice','Synthetic duplicate cancellation');`)));
+  assert.equal(new Set(cancellations).size,1);await chainCheck(47);
+  console.log('PASS: 20 cancellations concurrent with issue and 20 cancellation retries preserve one chain, ordered time and idempotence');
+
   for(let n=41;n<=60;n++)await sql(`${context}INSERT INTO sales_receipts(id,owner_id,client_id,receipt_date) VALUES('${id(n)}','${owner}','00000000-0000-4000-8000-000000000011','2026-10-24');INSERT INTO sales_receipt_lines(id,owner_id,receipt_id,description,quantity,unit_price) VALUES('${id(n+1000)}','${owner}','${id(n)}','Synthetic proof of payment',1,100);`);
   const receiptNumbers=await Promise.all(Array.from({length:20},(_,index)=>sql(`${context}SELECT r.receipt_number FROM public.issue_sales_receipt_document('${id(index+41)}')r;`)));
   assert.deepEqual(receiptNumbers.sort(),Array.from({length:20},(_,index)=>`REC-2026-${String(index+1).padStart(4,'0')}`));
   await check('(SELECT count(*)=20 FROM private.verifactu_receipt_snapshots)','all independent receipts have immutable snapshots');
-  await chainCheck(26);
+  await chainCheck(47);
   console.log('PASS: 20 simultaneous standalone receipts have consecutive numbers and snapshots, without inferred fiscal RF');
   console.log('VERI*FACTU PostgreSQL concurrency gate passed (synthetic data, no AEAT connection).');
 } finally {

@@ -29,6 +29,8 @@ export type SalesReceipt={
   clientId:string;
   clientName:string;
   receiptNumber:string;
+  status:'draft'|'issued';
+  issuedAt?:string|null;
   receiptDate:string;
   currency:string;
   notes?:string|null;
@@ -86,7 +88,7 @@ function lineRows(receiptId:string,lines:SalesReceiptLine[]){
 
 export async function loadSalesReceipts():Promise<SalesReceipt[]>{
   const [receiptResult,lineResult,clientResult,paymentResult]=await Promise.all([
-    supabase.from('sales_receipts').select('id,client_id,receipt_number,receipt_date,currency,notes,total_amount,created_at,payment_method,payment_method_id,bank_account_id,bank_account_snapshot,bank_snapshot_source,bank_snapshot_at').order('receipt_date',{ascending:false}).order('created_at',{ascending:false}),
+    supabase.from('sales_receipts').select('id,status,issued_at,client_id,receipt_number,receipt_date,currency,notes,total_amount,created_at,payment_method,payment_method_id,bank_account_id,bank_account_snapshot,bank_snapshot_source,bank_snapshot_at').order('receipt_date',{ascending:false}).order('created_at',{ascending:false}),
     supabase.from('sales_receipt_lines').select('id,receipt_id,product_id,position,description,quantity,unit,unit_price,discount_percent,invoice_tax_rate,line_total').order('position'),
     supabase.from('clients').select('id,name'),
     supabase.from('sales_receipt_payments').select('id,receipt_id,payment_date,amount,method,reference,notes,created_at').order('payment_date').order('created_at'),
@@ -112,7 +114,7 @@ export async function loadSalesReceipts():Promise<SalesReceipt[]>{
   return (receiptResult.data??[]).map((row:any)=>{
     const receiptPayments=payments.get(row.id)??[];
     return {
-      id:row.id,clientId:row.client_id,clientName:clients.get(row.client_id)||'Cliente',receiptNumber:row.receipt_number,
+      id:row.id,clientId:row.client_id,clientName:clients.get(row.client_id)||'Cliente',receiptNumber:row.receipt_number||'Borrador',status:row.status==='draft'?'draft':'issued',issuedAt:row.issued_at??null,
       receiptDate:row.receipt_date,currency:row.currency||'EUR',notes:row.notes,totalAmount:n(row.total_amount),
       paymentMethod:row.payment_method??null,paymentMethodId:row.payment_method_id??null,bankAccountId:row.bank_account_id??null,bankAccountSnapshot:row.bank_account_snapshot??null,bankSnapshotSource:row.bank_snapshot_source??null,bankSnapshotAt:row.bank_snapshot_at??null,
       lines:lines.get(row.id)??[],payments:receiptPayments,paidAmount:receiptPayments.reduce((sum,payment)=>sum+payment.amount,0),
@@ -120,27 +122,41 @@ export async function loadSalesReceipts():Promise<SalesReceipt[]>{
   });
 }
 
-export async function createSalesReceipt(input:SalesReceiptInput){
-  const {data:receipt,error}=await supabase.from('sales_receipts').insert(receiptRow(input)).select('id,receipt_number').single();
+export async function issueSalesReceiptDocument(receiptId:string){
+  const {data,error}=await supabase.rpc('issue_sales_receipt_document',{p_receipt_id:receiptId});
   if(error)throw error;
-  const rows=lineRows(receipt.id,input.lines);
-  if(!rows.length){await supabase.from('sales_receipts').delete().eq('id',receipt.id);throw new Error('Añade al menos una línea al recibo.');}
-  const {error:lineError}=await supabase.from('sales_receipt_lines').insert(rows);
-  if(lineError){await supabase.from('sales_receipts').delete().eq('id',receipt.id);throw lineError;}
-  return {id:receipt.id as string,receiptNumber:receipt.receipt_number as string};
+  return data;
+}
+
+export async function createSalesReceipt(input:SalesReceiptInput){
+  const validLines=lineRows('',input.lines);
+  if(!validLines.length)throw new Error('Añade al menos una línea al recibo.');
+  const {data:receipt,error}=await supabase.from('sales_receipts').insert({...receiptRow(input),status:'draft'}).select('id').single();
+  if(error)throw error;
+  try{
+    const {error:lineError}=await supabase.from('sales_receipt_lines').insert(validLines.map(line=>({...line,receipt_id:receipt.id})));
+    if(lineError)throw lineError;
+    // A failed issuance preserves the draft and its identity for review or retry.
+    const issued=await issueSalesReceiptDocument(receipt.id);
+    return {id:receipt.id as string,receiptNumber:issued.receipt_number as string};
+  }catch(error){
+    const failure=error instanceof Error?error:new Error(String((error as {message?:string})?.message||'No se pudo emitir el recibo.'));
+    throw Object.assign(failure,{draftReceiptId:receipt.id as string});
+  }
 }
 
 export async function updateSalesReceipt(id:string,input:SalesReceiptInput){
-  const {error}=await supabase.from('sales_receipts').update(receiptRow(input)).eq('id',id);
-  if(error)throw error;
   const rows=lineRows(id,input.lines);
   if(!rows.length)throw new Error('Añade al menos una línea al recibo.');
+  const {data,error}=await supabase.from('sales_receipts').update(receiptRow(input)).eq('id',id).eq('status','draft').select('id').maybeSingle();
+  if(error)throw error;
+  if(!data)throw new Error('Solo se puede editar un recibo en borrador.');
   const {error:deleteError}=await supabase.from('sales_receipt_lines').delete().eq('receipt_id',id);if(deleteError)throw deleteError;
   const {error:lineError}=await supabase.from('sales_receipt_lines').insert(rows);if(lineError)throw lineError;
 }
 
 export async function deleteSalesReceipt(id:string){
-  const {error}=await supabase.from('sales_receipts').delete().eq('id',id);
+  const {error}=await supabase.from('sales_receipts').delete().eq('id',id).eq('status','draft');
   if(error)throw error;
 }
 
@@ -155,3 +171,4 @@ export async function addSalesReceiptPayment(receiptId:string,input:{amount:numb
   });
   if(error)throw error;
 }
+

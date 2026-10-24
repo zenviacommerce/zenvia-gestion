@@ -18,11 +18,9 @@ import {
   type BusinessSettings, type Client, type SalesInvoice, type SalesInvoiceDraftInput,
   type SalesInvoiceLine, type SalesInvoiceSeries,
 } from '../services/sales';
-import { updateSalesInvoiceNumber } from '../services/salesInvoiceNumber';
 import { loadBillableProducts, type BillableProduct } from '../services/billableProducts';
 import { createRectifyingInvoice } from '../services/salesRectifying';
 import { deleteSalesInvoiceDraftSafe } from '../services/salesDraftDelete';
-import { deleteReversibleSalesInvoice, reopenSalesInvoice } from '../services/salesReversible';
 import { downloadSalesInvoicePdf, printSalesInvoicePdf } from '../services/salesInvoicePdf';
 import { loadCompanyBranding, removeCompanyLogo, uploadCompanyLogo, validateCompanyLogo, type CompanyBranding } from '../services/companyBranding';
 import { loadTaxRegistrations, type TaxRegistration } from '../services/salesConfig';
@@ -70,7 +68,6 @@ export function InvoiceModal({open,invoice,clients:initialClients,products,onClo
   const clients=clientSource.clients;
   const [clientId,setClientId]=useState('');
   const [seriesId,setSeriesId]=useState('');
-  const [invoiceNumber,setInvoiceNumber]=useState('');
   const [taxRegistrationId,setTaxRegistrationId]=useState('');
   const [taxRegistrations,setTaxRegistrations]=useState<TaxRegistration[]>([]);
   const [series,setSeries]=useState<SalesInvoiceSeries[]>([]);
@@ -96,13 +93,13 @@ export function InvoiceModal({open,invoice,clients:initialClients,products,onClo
   useEffect(()=>{
     if(!open)return;
     if(invoice){
-      setClientId(invoice.clientId);setSeriesId(invoice.seriesId);setInvoiceNumber(invoice.invoiceNumber||'');setTaxRegistrationId(invoice.taxRegistrationId||'');setIssueDate(invoice.issueDate);
+      setClientId(invoice.clientId);setSeriesId(invoice.seriesId);setTaxRegistrationId(invoice.taxRegistrationId||'');setIssueDate(invoice.issueDate);
       setOperationDate(invoice.operationDate||'');setDueDate(invoice.dueDate||'');setPaymentMethod(invoice.paymentMethod||'');
       setNotes(invoice.notes||'');setLines(invoice.lines.length?invoice.lines.map((line,index)=>({...line,position:index+1})):[emptyLine(1,settings.sales.defaultVatRate)]);
     }else{
       const firstClient=clients[0];
       const initialIssueDate=today();
-      setClientId(firstClient?.id||'');setSeriesId(settings.sales.defaultSeriesId||'');setInvoiceNumber('');setTaxRegistrationId(settings.sales.defaultTaxRegistrationId||'');setIssueDate(initialIssueDate);setOperationDate('');setPaymentMethod(clientDefaultPaymentMethod(firstClient,settings.sales));setNotes(settings.sales.defaultNotes);setLines([emptyLine(1,clientDefaultVatRate(firstClient,settings.sales.defaultVatRate))]);
+      setClientId(firstClient?.id||'');setSeriesId(settings.sales.defaultSeriesId||'');setTaxRegistrationId(settings.sales.defaultTaxRegistrationId||'');setIssueDate(initialIssueDate);setOperationDate('');setPaymentMethod(clientDefaultPaymentMethod(firstClient,settings.sales));setNotes(settings.sales.defaultNotes);setLines([emptyLine(1,clientDefaultVatRate(firstClient,settings.sales.defaultVatRate))]);
       setDueDate(defaultSalesDueDate(initialIssueDate,resolveSalesDueDays(firstClient?.paymentTermsDays,settings.sales.defaultDueDays)));
     }
     setError('');
@@ -122,19 +119,10 @@ export function InvoiceModal({open,invoice,clients:initialClients,products,onClo
     return()=>{cancelled=true};
   },[open,issueDate,invoice?.invoiceType,settings.sales.defaultSeriesId]);
 
-  useEffect(()=>{
-    if(!open||!seriesId)return;
-    const selected=series.find(item=>item.id===seriesId);
-    if(!selected)return;
-    if(invoice?.invoiceNumber&&invoice.seriesId===seriesId){setInvoiceNumber(invoice.invoiceNumber);return;}
-    setInvoiceNumber(`${selected.prefix}${String(selected.nextNumber).padStart(selected.padding,'0')}`);
-  },[open,seriesId,series,invoice?.id,invoice?.invoiceNumber,invoice?.seriesId]);
-
   if(!open)return null;
   const editing=Boolean(invoice);
   const invoiceKind=invoice?.invoiceType||'standard';
   const selectableSeries=series.filter(item=>item.kind===invoiceKind);
-  const selectedSeries=selectableSeries.find(item=>item.id===seriesId);
   const seriesOptions=selectableSeries.map(s=>({value:s.id,label:`${s.name} · próximo ${s.prefix}${String(s.nextNumber).padStart(s.padding,'0')}`,searchText:`${s.name} ${s.code||''} ${s.prefix}`}));
   const taxRegistrationOptions=taxRegistrations.map(item=>({value:item.id,label:`${item.label} · ${item.vatNumber}${item.isDefault?' · predeterminado':''}`,searchText:`${item.label} ${item.vatNumber} ${item.countryCode}`}));
   const updateLine=(index:number,patch:Partial<SalesInvoiceLine>)=>setLines(current=>current.map((line,i)=>i===index?{...line,...patch}:line));
@@ -164,8 +152,6 @@ export function InvoiceModal({open,invoice,clients:initialClients,products,onClo
   const save=async()=>{
     if(!clientId){setError('Selecciona un cliente.');return;}
     if(!seriesId){setError('Selecciona una serie.');return;}
-    if(!invoiceNumber.trim()){setError('Indica el número de factura.');return;}
-    if(selectedSeries&&!invoiceNumber.trim().startsWith(selectedSeries.prefix)){setError(`El número debe comenzar por ${selectedSeries.prefix}.`);return;}
     if(taxRegistrations.length&&!taxRegistrationId){setError('Selecciona el registro IVA del emisor.');return;}
     const cleanLines=lines.filter(line=>line.description.trim());
     if(!cleanLines.length){setError('Añade al menos una línea a la factura.');return;}
@@ -174,24 +160,21 @@ export function InvoiceModal({open,invoice,clients:initialClients,products,onClo
     if(!bankFrozen&&bankTransfer&&(bank.loading||bank.error||bank.selectionError)){setError(bank.error||bank.selectionError||'Espera a que se carguen las cuentas bancarias.');return;}
     setBusy(true);setError('');
     const payload:SalesInvoiceDraftInput={clientId,seriesId,taxRegistrationId:taxRegistrationId||null,issueDate,operationDate:operationDate||undefined,dueDate:dueDate||undefined,currency:invoice?.currency||settings.general.currencyCode,paymentMethod:paymentMethod||undefined,paymentMethodId:documentPaymentMethodId(settings.sales,paymentMethod,paymentMethod===invoice?.paymentMethod?invoice?.paymentMethodId:undefined),...(!bankFrozen?{bankAccountId:bankTransfer?(bank.value||null):null}:{}),notes:notes||undefined,lines:cleanLines};
-    let createdId='';
     try{
-      const targetId=invoice?.id||(createdId=await createSalesInvoiceDraft(payload,settings.sales.defaultDueDays));
       if(invoice)await updateSalesInvoiceDraft(invoice.id,payload,settings.sales.defaultDueDays);
-      try{await updateSalesInvoiceNumber(targetId,invoiceNumber.trim());}
-      catch(numberError){if(createdId)await deleteSalesInvoiceDraftSafe(createdId).catch(()=>{});throw numberError;}
-      await onSaved();showSuccess(invoice?'Borrador actualizado correctamente.':`Borrador ${invoiceNumber.trim()} creado correctamente.`);onClose();
+      else await createSalesInvoiceDraft(payload,settings.sales.defaultDueDays);
+      await onSaved();showSuccess(invoice?'Borrador actualizado correctamente.':'Borrador creado correctamente.');onClose();
     }catch(e){setError(errorMessage(e,'No se pudo guardar la factura.'));}finally{setBusy(false);}
   };
 
   return <div className="modalBackdrop"><div className="modal salesInvoiceModal polishedModal">
-    <div className="modalHead salesModalHead"><div><div className="eyebrow">{invoiceKind==='rectifying'?'RECTIFICATIVA':'FACTURA DE VENTA'}</div><h3>{invoiceKind==='rectifying'?'Rectificativa en borrador':editing?'Editar borrador':'Nueva factura'}</h3><p>{invoiceKind==='rectifying'?'Revisa la corrección antes de emitirla. La serie R es independiente.':'Te proponemos el siguiente número de la serie; puedes modificarlo antes de guardar.'}</p></div><button onClick={onClose}><X/></button></div>
+    <div className="modalHead salesModalHead"><div><div className="eyebrow">{invoiceKind==='rectifying'?'RECTIFICATIVA':'FACTURA DE VENTA'}</div><h3>{invoiceKind==='rectifying'?'Rectificativa en borrador':editing?'Editar borrador':'Nueva factura'}</h3><p>{invoiceKind==='rectifying'?'Revisa la corrección antes de emitirla. La serie R es independiente.':'El número definitivo se asigna al emitir.'}</p></div><button onClick={onClose}><X/></button></div>
     <section className="salesFormSection">
       <div className="salesSectionTitle"><UserRound size={18}/><div><strong>Cliente, serie, número e IVA emisor</strong><span>Quién recibe la factura, cómo se numera y desde qué registro IVA se emite</span></div></div>
       <div className="salesInvoiceMeta salesInvoiceMetaDates">
         <label>Cliente *<SearchableSelect onOpen={clientSource.onOpen} onSearch={clientSource.onSearch} value={clientId} options={clientOptions} onChange={chooseClient} placeholder="Selecciona cliente" searchPlaceholder="Buscar cliente, CIF, email…" ariaLabel="Cliente de la factura"/></label>
         <label>Serie<SearchableSelect value={seriesId} options={seriesOptions} onChange={setSeriesId} placeholder="Selecciona serie" searchPlaceholder="Buscar serie…" ariaLabel="Serie de facturación"/></label>
-        <label>Número de factura *<input value={invoiceNumber} onChange={e=>setInvoiceNumber(e.target.value)} placeholder={selectedSeries?`${selectedSeries.prefix}${String(selectedSeries.nextNumber).padStart(selectedSeries.padding,'0')}`:'Número de factura'}/><small>{selectedSeries?`Propuesto según la serie ${selectedSeries.name}. Puedes modificarlo.`:'Selecciona una serie para obtener el siguiente número.'}</small></label>
+        <label>Número de factura<input value="Se asignará al emitir" readOnly/><small>La numeración se asigna al cerrar el borrador.</small></label>
         <label>Registro IVA<SearchableSelect value={taxRegistrationId} options={taxRegistrationOptions} onChange={setTaxRegistrationId} allowEmpty emptyLabel={taxRegistrations.length?'Selecciona registro IVA':'Sin registros IVA'} searchPlaceholder="Buscar registro IVA…" ariaLabel="Registro IVA del emisor"/></label>
       </div>
     </section>
@@ -260,7 +243,7 @@ function BulkPaymentModal({invoices,salesSettings,onClose,onSaved}:{invoices:Sal
   return <div className="modalBackdrop"><div className="modal smallModal polishedModal salesPaymentModal"><div className="modalHead salesModalHead"><div><div className="eyebrow">COBROS EN LOTE</div><h3>Marcar facturas como cobradas</h3><p>{invoices.length} factura{invoices.length===1?'':'s'} · Total pendiente {money(total)}</p></div><button onClick={onClose}><X/></button></div><div className="salesFormSection"><div className="salesFormGrid"><label>Fecha de cobro<input type="date" value={date} onChange={e=>setDate(e.target.value)}/></label><label>Método<SelectField value={method} onChange={setMethod} ariaLabel="Método de cobro en lote" options={paymentOptions}/></label><label className="salesSpan2">Referencia común<input value={reference} onChange={e=>setReference(e.target.value)} placeholder="Opcional"/></label></div></div><div className="salesBulkPaymentList">{invoices.map(invoice=><div key={invoice.id}><span>{invoice.invoiceNumber||'Factura'} · {invoice.clientName}</span><strong>{money(Math.max(0,invoice.totalAmount-invoice.paidAmount))}</strong></div>)}</div>{error&&<div className="errorBox">{error}</div>}<div className="modalActions"><button className="secondary" onClick={onClose} disabled={busy}>Cancelar</button><button className="primary" disabled={busy} onClick={save}>{busy?'Registrando…':`Cobrar ${money(total)}`}</button></div></div></div>;
 }
 
-function InvoiceDetail({invoice,settings,allowEditIssuedInvoices,autoMarkPaid,onClose,onPdf,onPrint,onPayment,onMarkPaid,onSend,onRectify,onEdit,onReopen,onDelete,onIssue}:{invoice:SalesInvoice|null;settings:BusinessSettings;allowEditIssuedInvoices:boolean;autoMarkPaid:boolean;onClose:()=>void;onPdf:(invoice:SalesInvoice)=>void;onPrint:(invoice:SalesInvoice)=>void;onPayment:(invoice:SalesInvoice)=>void;onMarkPaid:(invoice:SalesInvoice)=>void;onSend:(invoice:SalesInvoice)=>void;onRectify:(invoice:SalesInvoice)=>void;onEdit:(invoice:SalesInvoice)=>void;onReopen:(invoice:SalesInvoice)=>void;onDelete:(invoice:SalesInvoice)=>void;onIssue:(invoice:SalesInvoice)=>void}){
+function InvoiceDetail({invoice,settings,autoMarkPaid,onClose,onPdf,onPrint,onPayment,onMarkPaid,onSend,onRectify,onEdit,onDelete,onIssue}:{invoice:SalesInvoice|null;settings:BusinessSettings;autoMarkPaid:boolean;onClose:()=>void;onPdf:(invoice:SalesInvoice)=>void;onPrint:(invoice:SalesInvoice)=>void;onPayment:(invoice:SalesInvoice)=>void;onMarkPaid:(invoice:SalesInvoice)=>void;onSend:(invoice:SalesInvoice)=>void;onRectify:(invoice:SalesInvoice)=>void;onEdit:(invoice:SalesInvoice)=>void;onDelete:(invoice:SalesInvoice)=>void;onIssue:(invoice:SalesInvoice)=>void}){
   const {settings:appSettings}=useSettings();
   if(!invoice)return null;const pending=Math.max(0,invoice.totalAmount-invoice.paidAmount);const canRectify=invoice.invoiceType==='standard'&&!['draft','rectified'].includes(invoice.status);
   return <div className="modalBackdrop"><div className="modal salesDetailModal polishedModal"><div className="modalHead salesModalHead"><div><div className="eyebrow">{invoice.invoiceType==='rectifying'?'FACTURA RECTIFICATIVA':'FACTURA DE VENTA'}</div><h3>{invoice.invoiceNumber||'Borrador'}</h3><p>{invoice.clientName} · {dateLabel(invoice.issueDate,appSettings.general)}</p></div><button onClick={onClose}><X/></button></div>
@@ -270,7 +253,7 @@ function InvoiceDetail({invoice,settings,allowEditIssuedInvoices,autoMarkPaid,on
     <div className="salesDetailBottom"><div className="salesParties"><div><h4>Emisor</h4><p><strong>{invoice.issuerName||settings.legalName}</strong><br/>{invoice.issuerTaxId||settings.taxId}{invoice.issuerTaxRegistrationLabel?` · ${invoice.issuerTaxRegistrationLabel}`:''}<br/>{invoice.issuerAddress||settings.addressLine1}{(invoice.issuerEmail||settings.email)&&<><br/>{invoice.issuerEmail||settings.email}</>}{(invoice.issuerPhone||settings.phone)&&<><br/>{invoice.issuerPhone||settings.phone}</>}</p></div><div><h4>Cliente</h4><p><strong>{invoice.clientName}</strong>{invoice.clientTaxId&&<><br/>{invoice.clientTaxId}</>}{invoice.clientAddress&&<><br/>{invoice.clientAddress}</>}{invoice.clientEmail&&<><br/>{invoice.clientEmail}</>}{invoice.clientPhone&&<><br/>{invoice.clientPhone}</>}</p></div></div><div className="salesTotals"><span>Base imponible <strong>{money(invoice.subtotal)}</strong></span>{invoice.discountAmount!==0&&<span>Descuentos <strong>{money(-invoice.discountAmount)}</strong></span>}<span>IVA <strong>{money(invoice.taxAmount)}</strong></span><span className="salesGrandTotal">Total <strong>{money(invoice.totalAmount)}</strong></span></div></div>
     {(invoice.status!=='draft'||invoice.bankSnapshotSource||invoice.bankSnapshotAt)&&<BankAccountSnapshotView snapshot={invoice.bankAccountSnapshot} source={invoice.bankSnapshotSource} capturedAt={invoice.bankSnapshotAt}/>}
     {invoice.payments.length>0&&<section className="salesDetailSection"><h4>Cobros</h4><div className="salesPaymentList">{invoice.payments.map(payment=><div key={payment.id}><span>{dateLabel(payment.paymentDate,appSettings.general)} · {payment.method||'Cobro'}{payment.reference?` · ${payment.reference}`:''}</span><strong>{money(payment.amount)}</strong></div>)}</div></section>}
-    <div className="modalActions salesDetailActions">{invoice.status==='draft'?<><button className="secondary" onClick={()=>onEdit(invoice)}><Pencil size={16}/> Editar borrador</button><button className="secondary" onClick={()=>onPdf(invoice)}><Download size={16}/> Descargar PDF</button><button className="secondary" onClick={()=>onPrint(invoice)}><Printer size={16}/> Imprimir PDF</button><button className="secondary dangerText" onClick={()=>onDelete(invoice)}><Trash2 size={16}/> Eliminar borrador</button><button className="primary" onClick={()=>onIssue(invoice)}><FileCheck2 size={16}/> {invoice.invoiceType==='rectifying'?'Emitir rectificativa':'Emitir factura'}</button></>:invoice.status==='issued'?<>{allowEditIssuedInvoices&&<button className="secondary" onClick={()=>onReopen(invoice)}><Pencil size={16}/> Editar factura</button>}<button className="secondary dangerText" onClick={()=>onDelete(invoice)}><Trash2 size={16}/> Eliminar factura</button><button className="secondary" onClick={()=>onPdf(invoice)}><Download size={16}/> Descargar PDF</button><button className="secondary" onClick={()=>onPrint(invoice)}><Printer size={16}/> Imprimir PDF</button><button className="primary" onClick={()=>onSend(invoice)}><Mail size={16}/> Enviar por Gmail</button></>:<><button className="secondary" onClick={()=>onPdf(invoice)}><Download size={16}/> Descargar PDF</button><button className="secondary" onClick={()=>onPrint(invoice)}><Printer size={16}/> Imprimir PDF</button>{invoice.status!=='rectified'&&<button className="primary" onClick={()=>onSend(invoice)}><Mail size={16}/> Enviar por Gmail</button>}</>}{invoice.invoiceType==='standard'&&!['draft','paid','rectified'].includes(invoice.status)&&<button className="secondary" onClick={()=>onPayment(invoice)}><CheckCircle2 size={16}/> Registrar cobro</button>}{invoice.invoiceType==='standard'&&invoice.status==='paid'&&<button className="secondary" disabled><CheckCircle2 size={16}/> Cobrada</button>}{invoice.invoiceType==='standard'&&!autoMarkPaid&&invoice.status!=='paid'&&invoice.status!=='draft'&&invoice.status!=='rectified'&&pending<=0.005&&<button className="secondary" onClick={()=>onMarkPaid(invoice)}><CheckCircle2 size={16}/> Marcar como cobrada</button>}{canRectify&&<button className="secondary dangerText" onClick={()=>onRectify(invoice)}><RotateCcw size={16}/> Crear rectificativa</button>}</div>
+    <div className="modalActions salesDetailActions">{invoice.status==='draft'?<><button className="secondary" onClick={()=>onEdit(invoice)}><Pencil size={16}/> Editar borrador</button><button className="secondary" onClick={()=>onPdf(invoice)}><Download size={16}/> Descargar PDF</button><button className="secondary" onClick={()=>onPrint(invoice)}><Printer size={16}/> Imprimir PDF</button><button className="secondary dangerText" onClick={()=>onDelete(invoice)}><Trash2 size={16}/> Eliminar borrador</button><button className="primary" onClick={()=>onIssue(invoice)}><FileCheck2 size={16}/> {invoice.invoiceType==='rectifying'?'Emitir rectificativa':'Emitir factura'}</button></>:invoice.status==='issued'?<><button className="secondary" onClick={()=>onPdf(invoice)}><Download size={16}/> Descargar PDF</button><button className="secondary" onClick={()=>onPrint(invoice)}><Printer size={16}/> Imprimir PDF</button><button className="primary" onClick={()=>onSend(invoice)}><Mail size={16}/> Enviar por Gmail</button></>:<><button className="secondary" onClick={()=>onPdf(invoice)}><Download size={16}/> Descargar PDF</button><button className="secondary" onClick={()=>onPrint(invoice)}><Printer size={16}/> Imprimir PDF</button>{invoice.status!=='rectified'&&<button className="primary" onClick={()=>onSend(invoice)}><Mail size={16}/> Enviar por Gmail</button>}</>}{invoice.invoiceType==='standard'&&!['draft','paid','rectified'].includes(invoice.status)&&<button className="secondary" onClick={()=>onPayment(invoice)}><CheckCircle2 size={16}/> Registrar cobro</button>}{invoice.invoiceType==='standard'&&invoice.status==='paid'&&<button className="secondary" disabled><CheckCircle2 size={16}/> Cobrada</button>}{invoice.invoiceType==='standard'&&!autoMarkPaid&&invoice.status!=='paid'&&invoice.status!=='draft'&&invoice.status!=='rectified'&&pending<=0.005&&<button className="secondary" onClick={()=>onMarkPaid(invoice)}><CheckCircle2 size={16}/> Marcar como cobrada</button>}{canRectify&&<button className="secondary dangerText" onClick={()=>onRectify(invoice)}><RotateCcw size={16}/> Crear rectificativa</button>}</div>
   </div></div>;
 }
 
@@ -335,7 +318,7 @@ export function SalesInvoices({
   const sortedInvoices=sorting.rows;
   const selectedSet=useMemo(()=>new Set(selectedIds),[selectedIds]);
   const selectedVisible=filtered.filter(invoice=>selectedSet.has(invoice.id));
-  const deletableSelected=selectedVisible.filter(invoice=>invoice.status==='draft'||invoice.status==='issued');
+  const deletableSelected=selectedVisible.filter(invoice=>invoice.status==='draft');
   const issuableSelected=selectedVisible.filter(invoice=>invoice.status==='draft');
   const collectableSelected=selectedVisible.filter(invoice=>invoice.invoiceType==='standard'&&!['draft','paid','rectified'].includes(invoice.status)&&Math.max(0,invoice.totalAmount-invoice.paidAmount)>0.005);
   const allVisibleSelected=filtered.length>0&&filtered.every(invoice=>selectedSet.has(invoice.id));
@@ -354,28 +337,7 @@ export function SalesInvoices({
     return {issued,tax,pending,collected,drafts,count:issuedRows.length,average:issuedRows.length?issued/issuedRows.length:0};
   },[filtered]);
   const openNew=()=>{if(!clients.length){showError('Crea al menos un cliente antes de preparar una factura.');return;}setEditing(null);setModal(true);};
-  const edit=(invoice:SalesInvoice)=>{setDetail(null);setEditing(invoice);setModal(true);};
-  const reopenForEdit=async(invoice:SalesInvoice)=>{
-    if(invoice.status!=='issued'||!appSettings.sales.allowEditIssuedInvoices)return;
-    const confirmed=await confirmAction({
-      title:'Editar factura emitida',
-      message:`${invoice.invoiceNumber} volverá a borrador y conservará su número mientras la corriges.`,
-      confirmLabel:'Volver a borrador',
-      tone:'warning',
-      details:['Podrás modificar sus datos y volver a emitirla después.'],
-    });
-    if(!confirmed)return;
-    setBusyId(invoice.id);setError('');
-    try{
-      await reopenSalesInvoice(invoice.id);
-      const next=await loadSalesInvoices();setInvoices(next);
-      const draft=next.find(item=>item.id===invoice.id)||null;
-      setDetail(null);
-      if(draft){setEditing(draft);setModal(true);}
-      showSuccess('Factura reabierta. Puedes corregirla y volver a emitirla.');
-    }catch(e){showError(errorMessage(e,'No se pudo reabrir la factura.'));}
-    finally{setBusyId(null);}
-  };
+  const edit=(invoice:SalesInvoice)=>{if(invoice.status!=='draft')return;setDetail(null);setEditing(invoice);setModal(true);};
   const markPaid=async(invoice:SalesInvoice)=>{
     setBusyId(invoice.id);setError('');
     try{await markSalesInvoicePaid(invoice.id);await refresh();showSuccess('Factura marcada como cobrada.');}
@@ -406,24 +368,15 @@ export function SalesInvoices({
     finally{setBusyId(null);}
   };
   const remove=async(invoice:SalesInvoice)=>{
-    const issued=invoice.status==='issued';
-    const confirmed=await confirmAction({
-      title:issued?'Eliminar factura emitida':'Eliminar borrador',
-      message:issued
-        ?`Se eliminará completamente ${invoice.invoiceNumber}. Su número quedará libre para reutilizarse.`
-        :'Este borrador se eliminará definitivamente.',
-      confirmLabel:'Eliminar',
-      tone:'danger',
-      details:['Esta acción no se puede deshacer.'],
-    });
+    if(invoice.status!=='draft')return;
+    const confirmed=await confirmAction({title:'Eliminar borrador',message:'Este borrador se eliminará definitivamente.',confirmLabel:'Eliminar',tone:'danger',details:['Esta acción no se puede deshacer.']});
     if(!confirmed)return;
     setBusyId(invoice.id);setError('');
     try{
-      if(issued)await deleteReversibleSalesInvoice(invoice.id);else await deleteSalesInvoiceDraftSafe(invoice.id);
+      await deleteSalesInvoiceDraftSafe(invoice.id);
       if(detail?.id===invoice.id)setDetail(null);
-      await refresh();
-      showSuccess(issued?'Factura eliminada. Su número queda disponible para reutilizarse.':'Borrador eliminado correctamente.');
-    }catch(e){showError(errorMessage(e,issued?'No se pudo eliminar la factura.':'No se pudo eliminar el borrador.'));}
+      await refresh();showSuccess('Borrador eliminado correctamente.');
+    }catch(e){showError(errorMessage(e,'No se pudo eliminar el borrador.'));}
     finally{setBusyId(null);}
   };
   const issueSelected=async()=>{
@@ -501,7 +454,7 @@ export function SalesInvoices({
       description:'El resultado permanecerá visible al terminar.',
       items:selectedVisible.map(invoice=>({id:invoice.id,label:`${invoice.invoiceNumber||'Borrador'} · ${invoice.clientName}`})),
     });
-    for(const invoice of selectedVisible.filter(item=>!['draft','issued'].includes(item.status))){
+    for(const invoice of selectedVisible.filter(item=>item.status!=='draft')){
       process.setItem(invoice.id,'skipped','Este estado no permite eliminación directa.');
     }
 
@@ -510,8 +463,7 @@ export function SalesInvoices({
       for(const invoice of deletableSelected){
         process.setItem(invoice.id,'running','Eliminando…');
         try{
-          if(invoice.status==='issued')await deleteReversibleSalesInvoice(invoice.id);
-          else await deleteSalesInvoiceDraftSafe(invoice.id);
+          await deleteSalesInvoiceDraftSafe(invoice.id);
           removed+=1;
           process.setItem(invoice.id,'success','Eliminada correctamente.');
         }catch(e){
@@ -586,7 +538,7 @@ export function SalesInvoices({
       <SortableTableHeader label="IVA" sortKey="tax" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className="right"/>
       <SortableTableHeader label="Total" sortKey="total" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className="right"/>
       <SortableTableHeader label="Pendiente" sortKey="pending" activeKey={sorting.sort.key} direction={sorting.sort.direction} onSort={sorting.toggleSort} className="right"/>
-      <th className="right">Acciones</th></tr></thead><tbody>{sortedInvoices.map(invoice=>{const pending=Math.max(0,invoice.totalAmount-invoice.paidAmount);return <tr key={invoice.id} className={`clickableRow ${selectedSet.has(invoice.id)?'bulkSelectedRow':''}`} onClick={()=>setDetail(invoice)}><td className="bulkSelectionCell" onClick={e=>e.stopPropagation()}><BulkSelectCheckbox checked={selectedSet.has(invoice.id)} onChange={checked=>toggleInvoice(invoice.id,checked)} label={`Seleccionar ${invoice.invoiceNumber||invoice.clientName}`}/></td><td>{dateLabel(invoice.issueDate,appSettings.general)}</td><td><span className={isOverdueInvoice(invoice)?'salesDueDate overdue':'salesDueDate'}>{invoice.dueDate?dateLabel(invoice.dueDate,appSettings.general):'—'}{isOverdueInvoice(invoice)&&<small>Vencida</small>}</span></td><td><strong>{invoice.invoiceNumber||'Borrador'}</strong></td><td>{invoice.clientName}</td><td>{invoice.invoiceType==='rectifying'?<span className="tag">Rectificativa</span>:'Ordinaria'}</td><td><span className={statusClass(invoice.status)}>{statusLabel(invoice.status)}</span></td><td className="right">{money(invoice.subtotal)}</td><td className="right">{money(invoice.taxAmount)}</td><td className="right"><strong>{money(invoice.totalAmount)}</strong></td><td className="right">{invoice.status==='draft'||invoice.invoiceType==='rectifying'?'—':money(pending)}</td><td className="right"><div className="invoiceActions" onClick={e=>e.stopPropagation()}><button className="iconBtn" title="Ver detalle" onClick={()=>setDetail(invoice)}><Eye size={16}/></button>{invoice.status==='draft'?<><button className="iconBtn" title="Editar borrador" onClick={()=>edit(invoice)}><Pencil size={16}/></button><button className="iconBtn" title="Descargar PDF borrador" onClick={()=>pdf(invoice)}><Download size={16}/></button><button className="iconBtn" title="Imprimir PDF borrador" onClick={()=>printPdf(invoice)}><Printer size={16}/></button><button className="iconBtn accountBtn" title="Emitir" disabled={busyId===invoice.id} onClick={()=>emit(invoice)}><FileCheck2 size={16}/></button><button className="iconBtn dangerIcon" title="Eliminar borrador" disabled={busyId===invoice.id} onClick={()=>remove(invoice)}><Trash2 size={16}/></button></>:<><button className="iconBtn" title="Descargar PDF" onClick={()=>pdf(invoice)}><Download size={16}/></button><button className="iconBtn" title="Imprimir PDF" onClick={()=>printPdf(invoice)}><Printer size={16}/></button>{invoice.status==='issued'&&<>{appSettings.sales.allowEditIssuedInvoices&&<button className="iconBtn" title="Editar factura emitida" disabled={busyId===invoice.id} onClick={()=>reopenForEdit(invoice)}><Pencil size={16}/></button>}<button className="iconBtn dangerIcon" title="Eliminar factura emitida" disabled={busyId===invoice.id} onClick={()=>remove(invoice)}><Trash2 size={16}/></button></>}{invoice.status!=='rectified'&&<button className="iconBtn" title="Enviar por Gmail" onClick={()=>setSendInvoice(invoice)}><Mail size={16}/></button>}{invoice.invoiceType==='standard'&&!['draft','paid','rectified'].includes(invoice.status)&&pending>0.005&&<button className="invoiceCollectButton" title="Registrar cobro" onClick={()=>setPaymentInvoice(invoice)}><Banknote size={15}/><span>Cobrar</span></button>}{invoice.invoiceType==='standard'&&invoice.status==='paid'&&<span className="invoicePaidMark"><CheckCircle2 size={14}/> Cobrada</span>}{invoice.invoiceType==='standard'&&!appSettings.sales.autoMarkPaid&&invoice.status!=='paid'&&invoice.status!=='rectified'&&pending<=0.005&&<button className="invoiceCollectButton" title="Marcar como cobrada" disabled={busyId===invoice.id} onClick={()=>void markPaid(invoice)}><CheckCircle2 size={15}/><span>Marcar cobrada</span></button>}{invoice.invoiceType==='standard'&&invoice.status!=='rectified'&&<button className="iconBtn" title="Crear rectificativa" disabled={busyId===invoice.id} onClick={()=>rectify(invoice)}><RotateCcw size={16}/></button>}</>}</div></td></tr>;})}</tbody></table>:<div className="emptyState large">No hay facturas de venta para los filtros seleccionados.</div>}</section>
+      <th className="right">Acciones</th></tr></thead><tbody>{sortedInvoices.map(invoice=>{const pending=Math.max(0,invoice.totalAmount-invoice.paidAmount);return <tr key={invoice.id} className={`clickableRow ${selectedSet.has(invoice.id)?'bulkSelectedRow':''}`} onClick={()=>setDetail(invoice)}><td className="bulkSelectionCell" onClick={e=>e.stopPropagation()}><BulkSelectCheckbox checked={selectedSet.has(invoice.id)} onChange={checked=>toggleInvoice(invoice.id,checked)} label={`Seleccionar ${invoice.invoiceNumber||invoice.clientName}`}/></td><td>{dateLabel(invoice.issueDate,appSettings.general)}</td><td><span className={isOverdueInvoice(invoice)?'salesDueDate overdue':'salesDueDate'}>{invoice.dueDate?dateLabel(invoice.dueDate,appSettings.general):'—'}{isOverdueInvoice(invoice)&&<small>Vencida</small>}</span></td><td><strong>{invoice.invoiceNumber||'Borrador'}</strong></td><td>{invoice.clientName}</td><td>{invoice.invoiceType==='rectifying'?<span className="tag">Rectificativa</span>:'Ordinaria'}</td><td><span className={statusClass(invoice.status)}>{statusLabel(invoice.status)}</span></td><td className="right">{money(invoice.subtotal)}</td><td className="right">{money(invoice.taxAmount)}</td><td className="right"><strong>{money(invoice.totalAmount)}</strong></td><td className="right">{invoice.status==='draft'||invoice.invoiceType==='rectifying'?'—':money(pending)}</td><td className="right"><div className="invoiceActions" onClick={e=>e.stopPropagation()}><button className="iconBtn" title="Ver detalle" onClick={()=>setDetail(invoice)}><Eye size={16}/></button>{invoice.status==='draft'?<><button className="iconBtn" title="Editar borrador" onClick={()=>edit(invoice)}><Pencil size={16}/></button><button className="iconBtn" title="Descargar PDF borrador" onClick={()=>pdf(invoice)}><Download size={16}/></button><button className="iconBtn" title="Imprimir PDF borrador" onClick={()=>printPdf(invoice)}><Printer size={16}/></button><button className="iconBtn accountBtn" title="Emitir" disabled={busyId===invoice.id} onClick={()=>emit(invoice)}><FileCheck2 size={16}/></button><button className="iconBtn dangerIcon" title="Eliminar borrador" disabled={busyId===invoice.id} onClick={()=>remove(invoice)}><Trash2 size={16}/></button></>:<><button className="iconBtn" title="Descargar PDF" onClick={()=>pdf(invoice)}><Download size={16}/></button><button className="iconBtn" title="Imprimir PDF" onClick={()=>printPdf(invoice)}><Printer size={16}/></button>{invoice.status!=='rectified'&&<button className="iconBtn" title="Enviar por Gmail" onClick={()=>setSendInvoice(invoice)}><Mail size={16}/></button>}{invoice.invoiceType==='standard'&&!['draft','paid','rectified'].includes(invoice.status)&&pending>0.005&&<button className="invoiceCollectButton" title="Registrar cobro" onClick={()=>setPaymentInvoice(invoice)}><Banknote size={15}/><span>Cobrar</span></button>}{invoice.invoiceType==='standard'&&invoice.status==='paid'&&<span className="invoicePaidMark"><CheckCircle2 size={14}/> Cobrada</span>}{invoice.invoiceType==='standard'&&!appSettings.sales.autoMarkPaid&&invoice.status!=='paid'&&invoice.status!=='rectified'&&pending<=0.005&&<button className="invoiceCollectButton" title="Marcar como cobrada" disabled={busyId===invoice.id} onClick={()=>void markPaid(invoice)}><CheckCircle2 size={15}/><span>Marcar cobrada</span></button>}{invoice.invoiceType==='standard'&&invoice.status!=='rectified'&&<button className="iconBtn" title="Crear rectificativa" disabled={busyId===invoice.id} onClick={()=>rectify(invoice)}><RotateCcw size={16}/></button>}</>}</div></td></tr>;})}</tbody></table>:<div className="emptyState large">No hay facturas de venta para los filtros seleccionados.</div>}</section>
     {!loading&&filtered.length>0&&<div className="salesInvoicesMobileList">
       {sortedInvoices.map(invoice=>{const pending=Math.max(0,invoice.totalAmount-invoice.paidAmount);const collectable=invoice.invoiceType==='standard'&&!['draft','paid','rectified'].includes(invoice.status)&&pending>0.005;return <article className={`salesInvoiceMobileCard ${selectedSet.has(invoice.id)?'selected':''}`} key={invoice.id}>
         <div className="salesInvoiceMobileSelect"><BulkSelectCheckbox checked={selectedSet.has(invoice.id)} onChange={checked=>toggleInvoice(invoice.id,checked)} label={`Seleccionar ${invoice.invoiceNumber||invoice.clientName}`}/></div>
@@ -604,6 +556,7 @@ export function SalesInvoices({
       </article>;})}
     </div>}
     {!products.length&&clients.length>0&&<div className="card alertCard"><div className="trendIcon"><PackageSearch/></div><div><h3>Catálogo comercial</h3><p>Puedes crear facturas con conceptos libres. Cuando tengas productos activos aparecerán en el buscador del editor de factura.</p></div></div>}
-    <InvoiceModal open={modal} invoice={editing} clients={clients} products={products} onClose={()=>{setModal(false);setEditing(null);}} onSaved={refresh}/><InvoiceDetail invoice={detail} settings={settings} allowEditIssuedInvoices={appSettings.sales.allowEditIssuedInvoices} autoMarkPaid={appSettings.sales.autoMarkPaid} onClose={()=>setDetail(null)} onPdf={pdf} onPrint={printPdf} onPayment={setPaymentInvoice} onMarkPaid={markPaid} onSend={setSendInvoice} onRectify={rectify} onEdit={edit} onReopen={reopenForEdit} onDelete={remove} onIssue={emit}/><BusinessModal open={businessModal} settings={settings} branding={branding} onClose={()=>setBusinessModal(false)} onSaved={async(next,nextBranding)=>{setSettings(next);setBranding(nextBranding);await refresh();}}/><SeriesManagerModal open={seriesModal} onClose={()=>setSeriesModal(false)} onChanged={refresh}/><PaymentModal invoice={paymentInvoice} salesSettings={appSettings.sales} onClose={()=>setPaymentInvoice(null)} onSaved={refresh}/><BulkPaymentModal invoices={bulkPaymentInvoices} salesSettings={appSettings.sales} onClose={()=>setBulkPaymentInvoices([])} onSaved={refresh}/><SendInvoiceModal invoice={sendInvoice} settings={settings} branding={branding} onClose={()=>setSendInvoice(null)} onSent={refresh}/>
+    <InvoiceModal open={modal} invoice={editing} clients={clients} products={products} onClose={()=>{setModal(false);setEditing(null);}} onSaved={refresh}/><InvoiceDetail invoice={detail} settings={settings} autoMarkPaid={appSettings.sales.autoMarkPaid} onClose={()=>setDetail(null)} onPdf={pdf} onPrint={printPdf} onPayment={setPaymentInvoice} onMarkPaid={markPaid} onSend={setSendInvoice} onRectify={rectify} onEdit={edit} onDelete={remove} onIssue={emit}/><BusinessModal open={businessModal} settings={settings} branding={branding} onClose={()=>setBusinessModal(false)} onSaved={async(next,nextBranding)=>{setSettings(next);setBranding(nextBranding);await refresh();}}/><SeriesManagerModal open={seriesModal} onClose={()=>setSeriesModal(false)} onChanged={refresh}/><PaymentModal invoice={paymentInvoice} salesSettings={appSettings.sales} onClose={()=>setPaymentInvoice(null)} onSaved={refresh}/><BulkPaymentModal invoices={bulkPaymentInvoices} salesSettings={appSettings.sales} onClose={()=>setBulkPaymentInvoices([])} onSaved={refresh}/><SendInvoiceModal invoice={sendInvoice} settings={settings} branding={branding} onClose={()=>setSendInvoice(null)} onSent={refresh}/>
   </div>;
 }
+

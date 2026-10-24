@@ -1,0 +1,57 @@
+name: VERI FACTU phase 1 PostgreSQL concurrency
+
+on:
+  push:
+    branches: [feature/verifactu-shadow-phase1-20261024]
+    paths:
+      - 'supabase/migrations/20261024075749_verifactu_shadow_phase1.sql'
+      - 'tests/fixtures/verifactu-before.sql'
+      - 'tests/verifactu-*.test.*'
+      - 'scripts/verifactu-postgres-concurrency.mjs'
+      - '.github/workflows/verifactu-phase1.yml'
+  pull_request:
+    paths:
+      - 'supabase/migrations/20261024075749_verifactu_shadow_phase1.sql'
+      - 'tests/fixtures/verifactu-before.sql'
+      - 'tests/verifactu-*.test.*'
+      - 'scripts/verifactu-postgres-concurrency.mjs'
+      - '.github/workflows/verifactu-phase1.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  postgres-concurrency:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Ensure PostgreSQL client
+        run: |
+          if ! command -v psql >/dev/null; then
+            sudo apt-get update
+            sudo apt-get install -y postgresql-client
+          fi
+      - name: Run real PostgreSQL concurrency gate
+        env:
+          VERIFACTU_DISPOSABLE_POSTGRES: '1'
+          PGHOST: localhost
+          PGUSER: postgres
+          PGDATABASE: postgres
+        run: node scripts/verifactu-postgres-concurrency.mjs

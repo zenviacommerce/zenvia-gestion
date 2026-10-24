@@ -27,7 +27,7 @@ import {
 } from '../services/sales';
 import { deleteSalesInvoiceDraftSafe } from '../services/salesDraftDelete';
 import {
-  addSalesReceiptPayment, createSalesReceipt, deleteSalesReceipt, loadSalesReceipts, updateSalesReceipt,
+  addSalesReceiptPayment, createSalesReceipt, deleteSalesReceipt, loadSalesReceipts, updateSalesReceipt, issueSalesReceiptDocument,
   type SalesReceipt, type SalesReceiptInput, type SalesReceiptLine,
 } from '../services/salesReceipts';
 import { downloadSalesReceiptPdf, printSalesReceiptPdf } from '../services/salesReceiptPdf';
@@ -53,6 +53,7 @@ export function ReceiptModal({receipt,clients:initialClients,products,onClose,on
   const clients=clientSource.clients;
   const [clientId,setClientId]=useState(receipt?.clientId||clients[0]?.id||'');
   const [receiptDate,setReceiptDate]=useState(receipt?.receiptDate||today());
+  const [savedDraftId,setSavedDraftId]=useState(receipt?.id||'');
   const [notes,setNotes]=useState(receipt?.notes||'');
   const [paymentMethodId,setPaymentMethodId]=useState(receipt?.paymentMethodId||settings.sales.paymentMethods.find(item=>item.active&&item.id===settings.sales.defaultPaymentMethod)?.id||settings.sales.paymentMethods.find(item=>item.active)?.id||'');
   const bank=useBankAccountChoice({active:!receipt,documentKey:receipt?.id||'new-receipt'});
@@ -80,14 +81,18 @@ export function ReceiptModal({receipt,clients:initialClients,products,onClose,on
     setBusy(true);setError('');
     const input:SalesReceiptInput={clientId,receiptDate,currency:settings.general.currencyCode,...(!receipt?{bankAccountId:paymentMethodId==='bank_transfer'?(bank.value||null):null,paymentMethodId:paymentMethodId||null,paymentMethod:settings.sales.paymentMethods.find(item=>item.id===paymentMethodId)?.label||null}:{}),notes:notes||undefined,lines:clean};
     try{
-      if(receipt)await updateSalesReceipt(receipt.id,input);
+      if(savedDraftId){await updateSalesReceipt(savedDraftId,input);await issueSalesReceiptDocument(savedDraftId);}
       else await createSalesReceipt(input);
       await onSaved();showSuccess(receipt?'Recibo actualizado.':'Recibo creado.');onClose();
-    }catch(e){setError(errorMessage(e,'No se pudo guardar el recibo.'))}
+    }catch(e){
+      const draftId=(e as {draftReceiptId?:string})?.draftReceiptId;
+      if(draftId){setSavedDraftId(draftId);await onSaved();}
+      setError(errorMessage(e,'No se pudo guardar el recibo.')+(draftId?' El recibo sigue en borrador; puedes revisar los datos y volver a guardarlo.':''));
+    }
     finally{setBusy(false)}
   };
   return <div className="modalBackdrop"><div className="modal salesInvoiceModal polishedModal">
-    <div className="modalHead salesModalHead"><div><div className="eyebrow">RECIBO DE TIENDA</div><h3>{receipt?'Editar recibo':'Nuevo recibo'}</h3><p>Control de mercancía entregada y deuda del cliente. El cobro y la facturación son procesos independientes.</p></div><button onClick={onClose} aria-label="Cerrar"><X/></button></div>
+    <div className="modalHead salesModalHead"><div><div className="eyebrow">RECIBO DE TIENDA</div><h3>{receipt?'Editar borrador de recibo':'Nuevo recibo'}</h3><p>Control de mercancía entregada y deuda del cliente. El cobro y la facturación son procesos independientes.</p></div><button onClick={onClose} aria-label="Cerrar"><X/></button></div>
     <section className="salesFormSection"><div className="salesSectionTitle"><UserRound/><div><strong>Cliente y fecha</strong><span>El recibo seguirá existiendo aunque después lo cobres o prepares una factura.</span></div></div>
       <div className="salesFormGrid"><label>Cliente *<SearchableSelect onOpen={clientSource.onOpen} onSearch={clientSource.onSearch} value={clientId} options={clientOptions} onChange={setClientId} placeholder="Selecciona cliente" searchPlaceholder="Buscar cliente…" ariaLabel="Cliente del recibo"/></label><label>Fecha<input type="date" value={receiptDate} onChange={e=>setReceiptDate(e.target.value)}/></label></div>
     </section>
@@ -208,11 +213,11 @@ function ReceiptDetailDrawer({
     subtitle={`${receipt.clientName} · ${formatAppDate(receipt.receiptDate,settings.general,'—')}`}
     onClose={onClose}
     actions={<>
-      {pending>0.005&&<button className="primary" onClick={()=>onPayment(receipt)}><Banknote size={15}/> Cobrar</button>}
-      <button className="secondary" onClick={()=>onEdit(receipt)}><Pencil size={15}/> Editar</button>
-      <button className="secondary" onClick={()=>printSalesReceiptPdf(receipt,business,branding,settings.general)}><Printer size={15}/> Imprimir</button>
-      <button className="secondary" onClick={()=>downloadSalesReceiptPdf(receipt,business,branding,settings.general)}><Download size={15}/> PDF</button>
-      <button className="secondary dangerText" onClick={()=>onDelete(receipt)}><Trash2 size={15}/> Eliminar</button>
+      {receipt.status!=='draft'&&pending>0.005&&<button className="primary" onClick={()=>onPayment(receipt)}><Banknote size={15}/> Cobrar</button>}
+      {receipt.status==='draft'&&<button className="secondary" onClick={()=>onEdit(receipt)}><Pencil size={15}/> Editar borrador</button>}
+      {receipt.status!=='draft'&&<button className="secondary" onClick={()=>printSalesReceiptPdf(receipt,business,branding,settings.general)}><Printer size={15}/> Imprimir</button>}
+      {receipt.status!=='draft'&&<button className="secondary" onClick={()=>downloadSalesReceiptPdf(receipt,business,branding,settings.general)}><Download size={15}/> PDF</button>}
+      {receipt.status==='draft'&&<button className="secondary dangerText" onClick={()=>onDelete(receipt)}><Trash2 size={15}/> Eliminar borrador</button>}
     </>}
   >
     <div className="recordDetailKpis">
@@ -297,29 +302,31 @@ export function SalesReceipts(){
   const sortedReceipts=sorting.rows;
   const selectedSet=useMemo(()=>new Set(selected),[selected]);
   const selectedRows=shown.filter(receipt=>selectedSet.has(receipt.id));
-  const collectableSelected=selectedRows.filter(receipt=>pendingAmount(receipt)>0.005);
+  const billableSelected=selectedRows.filter(receipt=>receipt.status!=='draft');
+  const collectableSelected=billableSelected.filter(receipt=>pendingAmount(receipt)>0.005);
   const allVisibleSelected=shown.length>0&&shown.every(receipt=>selectedSet.has(receipt.id));
   const openReceipts=shown.filter(receipt=>pendingAmount(receipt)>0.005);
   const pendingTotal=shown.reduce((sum,receipt)=>sum+pendingAmount(receipt),0);
   const collectedTotal=shown.reduce((sum,receipt)=>sum+receipt.paidAmount,0);
   const openNew=()=>{setEditing(null);setModal(true)};
-  const openEdit=(receipt:SalesReceipt)=>{setDetail(null);setEditing(receipt);setModal(true)};
-  const openPayment=(receipt:SalesReceipt)=>{setDetail(null);setPaymentReceipt(receipt)};
+  const openEdit=(receipt:SalesReceipt)=>{if(receipt.status!=='draft')return;setDetail(null);setEditing(receipt);setModal(true)};
+  const openPayment=(receipt:SalesReceipt)=>{if(receipt.status==='draft')return;setDetail(null);setPaymentReceipt(receipt)};
   const toggle=(id:string,checked:boolean)=>setSelected(current=>checked?[...new Set([...current,id])]:current.filter(value=>value!==id));
   const toggleAllVisible=(checked:boolean)=>setSelected(current=>{
     const next=new Set(current);for(const receipt of shown){if(checked)next.add(receipt.id);else next.delete(receipt.id)}return [...next];
   });
 
   const remove=async(receipt:SalesReceipt)=>{
+    if(receipt.status!=='draft')return;
     const ok=await confirmAction({title:'Eliminar recibo',message:`Se eliminará ${receipt.receiptNumber} junto con su historial de cobros, si lo hubiera.`,confirmLabel:'Eliminar',tone:'danger',details:['Esta acción no afecta a ninguna factura, porque los recibos no están vinculados a ellas.']});
     if(!ok)return;
     try{await deleteSalesReceipt(receipt.id);if(detail?.id===receipt.id)setDetail(null);showSuccess('Recibo eliminado.');await refresh()}catch(e){showError(errorMessage(e,'No se pudo eliminar el recibo.'))}
   };
 
   const invoiceSelected=async()=>{
-    if(!selectedRows.length){showError('Selecciona al menos un recibo.');return;}
+    if(!billableSelected.length){showError('Selecciona al menos un recibo emitido.');return;}
     const groups=new Map<string,SalesReceipt[]>();
-    for(const receipt of selectedRows){const key=`${receipt.clientId}|${monthKey(receipt.receiptDate)}`;groups.set(key,[...(groups.get(key)||[]),receipt]);}
+    for(const receipt of billableSelected){const key=`${receipt.clientId}|${monthKey(receipt.receiptDate)}`;groups.set(key,[...(groups.get(key)||[]),receipt]);}
     const confirmed=await confirmAction({title:'Preparar facturas en borrador',message:`Se crearán ${groups.size} factura${groups.size===1?'':'s'} en borrador, agrupando los recibos seleccionados por cliente y mes natural.`,confirmLabel:'Generar borradores',tone:'default',details:['Los recibos no se vincularán ni cambiarán de estado: seguirán siendo independientes.','El IVA se aplicará a la factura según el tipo guardado en cada línea.','Puedes combinar recibos cobrados y pendientes en la misma preparación.']});
     if(!confirmed)return;
     setBusy(true);
@@ -347,7 +354,7 @@ export function SalesReceipts(){
   };
 
   return <div className="page salesReceiptsPage designSystemPage financeDesignPage">
-    <PageHeader title="Recibos" eyebrow="VENTAS · RECIBOS" description="Controla lo que se lleva cada cliente, registra sus cobros y prepara después facturas a partir de uno o varios recibos." actions={<><button className="secondary" disabled={!selectedRows.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={17}/> Facturar seleccionados{selectedRows.length?` (${selectedRows.length})`:''}</button><button className="primary" onClick={openNew}><Plus size={17}/> Nuevo recibo</button></>}/>
+    <PageHeader title="Recibos" eyebrow="VENTAS · RECIBOS" description="Controla lo que se lleva cada cliente, registra sus cobros y prepara después facturas a partir de uno o varios recibos." actions={<><button className="secondary" disabled={!billableSelected.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={17}/> Facturar seleccionados{billableSelected.length?` (${billableSelected.length})`:''}</button><button className="primary" onClick={openNew}><Plus size={17}/> Nuevo recibo</button></>}/>
     <KpiGrid label="Indicadores de recibos" dense>
       <StatCard label="Pendiente de cobro" value={money(pendingTotal)} sub={periodLabel(dateFilter)} icon={<ReceiptText/>}/>
       <StatCard label="Cobrado" value={money(collectedTotal)} sub={periodLabel(dateFilter)} icon={<Banknote/>}/>
@@ -366,7 +373,7 @@ export function SalesReceipts(){
     </FilterBar>
     {shown.length>0&&<BulkSelectionToolbar selectedCount={selectedRows.length} totalCount={shown.length} allSelected={allVisibleSelected} onToggleAll={toggleAllVisible} label="recibos visibles">
       <button className="secondary" type="button" disabled={!collectableSelected.length||busy} onClick={()=>setBulkPaymentReceipts(collectableSelected)}><Banknote size={15}/> Cobrar seleccionados ({collectableSelected.length})</button>
-      <button className="primary" type="button" disabled={!selectedRows.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={15}/> Facturar seleccionados ({selectedRows.length})</button>
+      <button className="primary" type="button" disabled={!billableSelected.length||busy} onClick={()=>void invoiceSelected()}><FileCheck2 size={15}/> Facturar seleccionados ({billableSelected.length})</button>
     </BulkSelectionToolbar>}
     <TableSortReset sorting={sorting}/><section className="card tableCard salesReceiptTableCard">
       {loading?<div className="emptyState large">Cargando recibos…</div>:sortedReceipts.length?<table><thead><tr>
@@ -386,11 +393,11 @@ export function SalesReceipts(){
         <td><span className={`salesReceiptStatus ${receiptStatus}`}>{collectionLabel(receipt)}</span></td>
         <td className="right"><div className="invoiceActions" onClick={e=>e.stopPropagation()}>
           <button className="iconBtn" title="Ver detalle" onClick={()=>setDetail(receipt)}><Eye size={15}/></button>
-          {pending>0.005&&<button className="invoiceCollectButton" title="Registrar cobro" onClick={()=>openPayment(receipt)}><Banknote size={15}/><span>Cobrar</span></button>}
-          <button className="iconBtn" title="Imprimir" onClick={()=>{try{printSalesReceiptPdf(receipt,business,branding,settings.general)}catch(e){showError(errorMessage(e,'No se pudo imprimir.'))}}}><Printer size={15}/></button>
-          <button className="iconBtn" title="Descargar PDF" onClick={()=>{try{downloadSalesReceiptPdf(receipt,business,branding,settings.general)}catch(e){showError(errorMessage(e,'No se pudo generar el PDF.'))}}}><Download size={15}/></button>
-          <button className="iconBtn" title="Editar" onClick={()=>openEdit(receipt)}><Pencil size={15}/></button>
-          <button className="iconBtn dangerIcon" title="Eliminar" onClick={()=>void remove(receipt)}><Trash2 size={15}/></button>
+          {receipt.status!=='draft'&&pending>0.005&&<button className="invoiceCollectButton" title="Registrar cobro" onClick={()=>openPayment(receipt)}><Banknote size={15}/><span>Cobrar</span></button>}
+          {receipt.status!=='draft'&&<button className="iconBtn" title="Imprimir" onClick={()=>{try{printSalesReceiptPdf(receipt,business,branding,settings.general)}catch(e){showError(errorMessage(e,'No se pudo imprimir.'))}}}><Printer size={15}/></button>}
+          {receipt.status!=='draft'&&<button className="iconBtn" title="Descargar PDF" onClick={()=>{try{downloadSalesReceiptPdf(receipt,business,branding,settings.general)}catch(e){showError(errorMessage(e,'No se pudo generar el PDF.'))}}}><Download size={15}/></button>}
+          {receipt.status==='draft'&&<button className="iconBtn" title="Editar borrador" onClick={()=>openEdit(receipt)}><Pencil size={15}/></button>}
+          {receipt.status==='draft'&&<button className="iconBtn dangerIcon" title="Eliminar borrador" onClick={()=>void remove(receipt)}><Trash2 size={15}/></button>}
         </div></td>
       </tr>})}</tbody></table>:<div className="emptyState large">No hay recibos para los filtros seleccionados.</div>}
     </section>
@@ -400,3 +407,4 @@ export function SalesReceipts(){
     <BulkReceiptPaymentModal receipts={bulkPaymentReceipts} salesSettings={settings.sales} onClose={()=>setBulkPaymentReceipts([])} onSaved={refresh}/>
   </div>;
 }
+

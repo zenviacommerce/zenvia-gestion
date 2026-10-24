@@ -1,15 +1,61 @@
 {
   "scope": "Facturación y Recibos: cierre de inmutabilidad y corrección desde pantalla",
-  "retained": ["Nueva factura", "Series", "Datos fiscales", "Ver detalle", "Editar borrador", "Eliminar borrador", "Emitir", "Descargar PDF", "Imprimir PDF", "Enviar por Gmail", "Registrar cobro", "Crear rectificativa"],
-  "added": ["Tipo R1-R5", "Modalidad S/I", "Motivo obligatorio", "Vínculo original/rectificativas", "Anular con supuesto, motivo y confirmación", "Estado Rectificada", "Estado Anulada"],
+  "retained": [
+    "Nueva factura",
+    "Series",
+    "Datos fiscales",
+    "Ver detalle",
+    "Editar borrador",
+    "Eliminar borrador",
+    "Emitir",
+    "Descargar PDF",
+    "Imprimir PDF",
+    "Enviar por Gmail",
+    "Registrar cobro",
+    "Crear rectificativa"
+  ],
+  "added": [
+    "Tipo R1-R5",
+    "Modalidad S/I",
+    "Motivo obligatorio",
+    "Vínculo original/rectificativas",
+    "Anular con supuesto, motivo y confirmación",
+    "Estado Rectificada",
+    "Estado Anulada",
+    "Integridad sombra (solo lectura, bajo demanda; volver a comprobar/cerrar)"
+  ],
   "intentionallyRemoved": [
-    {"action":"Editar factura emitida","alternative":"Crear rectificativa"},
-    {"action":"Eliminar factura emitida","alternative":"Rectificativa o anulación registrada cuando proceda"},
-    {"action":"Reabrir factura emitida","alternative":"Crear rectificativa"},
-    {"action":"Renumerar factura emitida","alternative":"Conservar el número; rectificativa o anulación registrada"},
-    {"action":"Editar o borrar recibo emitido","alternative":"Conservar el documento; anulación registrada (RPC)"}
+    {
+      "action": "Editar factura emitida",
+      "alternative": "Crear rectificativa"
+    },
+    {
+      "action": "Eliminar factura emitida",
+      "alternative": "Rectificativa o anulación registrada cuando proceda"
+    },
+    {
+      "action": "Reabrir factura emitida",
+      "alternative": "Crear rectificativa"
+    },
+    {
+      "action": "Renumerar factura emitida",
+      "alternative": "Conservar el número; rectificativa o anulación registrada"
+    },
+    {
+      "action": "Editar o borrar recibo emitido",
+      "alternative": "Conservar el documento; anulación registrada (RPC)"
+    }
   ],
   "bulk": "Eliminar seleccionadas solo cuenta y elimina borradores, aun con documentos emitidos seleccionados.",
-  "unchangedControls": ["Buscar facturas", "Periodo de facturación", "Estado", "Cliente", "País", "Cobro", "Selección", "Ordenación"],
+  "unchangedControls": [
+    "Buscar facturas",
+    "Periodo de facturación",
+    "Estado",
+    "Cliente",
+    "País",
+    "Cobro",
+    "Selección",
+    "Ordenación"
+  ],
   "notes": "La anulación de recibos permanece en RPC; no se atribuye un botón nuevo que el propietario no ha pedido. La rectificación de facturas no cambia automáticamente pagos ni devuelve dinero."
 }

@@ -2,9 +2,12 @@ import jsPDF from 'jspdf';
 import type { BusinessSettings, SalesInvoice } from './sales';
 import { DEFAULT_APP_SETTINGS, type GeneralSettings, type SalesSettings } from './settingsSchema';
 import { formatAppDate, formatAppMoney, invoiceDocumentLabels, localeForLanguage } from './formatting';
+import type {VerifactuPreviewBlock} from './verifactuQr';
 
 export type InvoicePdfBranding = {
   logoDataUrl?: string | null;
+  /** Offline synthetic review only; ordinary PDF callers never supply this. */
+  verifactuPreview?:VerifactuPreviewBlock;
 };
 
 export function salesInvoicePdfFilename(invoice:SalesInvoice){
@@ -12,14 +15,14 @@ export function salesInvoicePdfFilename(invoice:SalesInvoice){
   return `${number.replace(/[^A-Za-z0-9_-]+/g,'_')}.pdf`;
 }
 
-function addLogo(doc:jsPDF,logoDataUrl?:string|null){
+function addLogo(doc:jsPDF,logoDataUrl?:string|null,offset=0){
   if(!logoDataUrl)return 0;
   try{
     const image=doc.getImageProperties(logoDataUrl);
     const maxWidth=56;const maxHeight=20;const ratio=image.width/image.height;
     let width=maxWidth;let height=width/ratio;
     if(height>maxHeight){height=maxHeight;width=height*ratio;}
-    doc.addImage(logoDataUrl,undefined as any,14,11,width,height,undefined,'FAST');
+    doc.addImage(logoDataUrl,undefined as any,14,11+offset,width,height,undefined,'FAST');
     return height;
   }catch{return 0;}
 }
@@ -48,8 +51,21 @@ export function createSalesInvoicePdfBlob(
     ?(invoice.invoiceType==='rectifying'?labels.draftRectifyingInvoice:labels.draftInvoice)
     :(invoice.invoiceType==='rectifying'?labels.rectifyingInvoice:labels.invoice);
 
-  const logoHeight=addLogo(doc,branding?.logoDataUrl);
-  let issuerY=logoHeight?14+logoHeight+4:16;
+  const preview=branding?.verifactuPreview;
+  const offset=preview?50:0;
+  if(preview){
+    if(preview.syntheticPreview!==true||!preview.url.startsWith('https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?'))throw new Error('VF_PDF_PREVIEW_ONLY');
+    const qr=new URL(preview.url);const q=qr.searchParams;
+    if(q.get('nif')!==issuerTaxId||q.get('numserie')!==invoice.invoiceNumber||q.get('fecha')!==invoice.issueDate.slice(8,10)+'-'+invoice.issueDate.slice(5,7)+'-'+invoice.issueDate.slice(0,4)||q.get('importe')!==invoice.totalAmount.toFixed(2))throw new Error('VF_PDF_QR_MISMATCH');
+    const size=preview.matrix.size;const unit=35/(size+8);
+    doc.setFillColor(255,255,255);doc.rect(14,10,35,35,'F');doc.setFillColor(0,0,0);
+    for(let row=0;row<size;row++)for(let col=0;col<size;col++)if(preview.matrix.data[row*size+col])doc.rect(14+(col+4)*unit,10+(row+4)*unit,unit,unit,'F');
+    doc.link(14,10,35,35,{url:preview.url});
+    doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text(doc.splitTextToSize(preview.label,135),55,20);
+    doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('QR de pruebas. No acredita el envío ni la aceptación por la AEAT.',55,35);
+  }
+  const logoHeight=addLogo(doc,branding?.logoDataUrl,offset);
+  let issuerY=(logoHeight?14+logoHeight+4:16)+offset;
   doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.text(issuerName,14,issuerY);
   issuerY+=5;doc.setFont('helvetica','normal');doc.setFontSize(8.5);
   if(issuerTaxId&&(salesSettings?.showFiscalDataOnPdf??true)){doc.text(`${taxCountry&&taxCountry!=='ES'?'VAT':labels.taxId}${taxLabel?` · ${taxLabel}`:''}: ${issuerTaxId}`,14,issuerY);issuerY+=4.5;}
@@ -57,13 +73,13 @@ export function createSalesInvoicePdfBlob(
   if(issuerEmail){doc.text(issuerEmail,14,issuerY);issuerY+=4;}
   if(issuerPhone){doc.text(issuerPhone,14,issuerY);issuerY+=4;}
 
-  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text(title,196,16,{align:'right'});
-  doc.setFontSize(11);doc.text(number,196,24,{align:'right'});doc.setFont('helvetica','normal');doc.setFontSize(9);
-  doc.text(`${labels.date}: ${dateLabel(invoice.issueDate)}`,196,31,{align:'right'});
-  if(invoice.dueDate&&(salesSettings?.showDueDateOnPdf??true))doc.text(`${labels.dueDate}: ${dateLabel(invoice.dueDate)}`,196,37,{align:'right'});
-  if(invoice.operationDate)doc.text(`${labels.operationDate}: ${dateLabel(invoice.operationDate)}`,196,43,{align:'right'});
+  doc.setFont('helvetica','bold');doc.setFontSize(18);doc.text(title,196,16+offset,{align:'right'});
+  doc.setFontSize(11);doc.text(number,196,24+offset,{align:'right'});doc.setFont('helvetica','normal');doc.setFontSize(9);
+  doc.text(`${labels.date}: ${dateLabel(invoice.issueDate)}`,196,31+offset,{align:'right'});
+  if(invoice.dueDate&&(salesSettings?.showDueDateOnPdf??true))doc.text(`${labels.dueDate}: ${dateLabel(invoice.dueDate)}`,196,37+offset,{align:'right'});
+  if(invoice.operationDate)doc.text(`${labels.operationDate}: ${dateLabel(invoice.operationDate)}`,196,43+offset,{align:'right'});
 
-  const blockY=Math.max(60,issuerY+7);
+  const blockY=Math.max(60+offset,issuerY+7);
   doc.setDrawColor(210);doc.line(14,blockY-5,196,blockY-5);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text(labels.billTo,14,blockY);doc.setFont('helvetica','normal');
   let clientY=blockY+7;doc.setFontSize(10);doc.text(invoice.clientName,14,clientY);clientY+=6;doc.setFontSize(8.8);
   if(invoice.clientTaxId&&(salesSettings?.showFiscalDataOnPdf??true)){doc.text(`${labels.taxId}: ${invoice.clientTaxId}`,14,clientY);clientY+=4.5;}

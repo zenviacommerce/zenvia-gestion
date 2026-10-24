@@ -1,0 +1,54 @@
+{
+  "date": "2026-10-24",
+  "static_downloads_only": true,
+  "files": [
+    {
+      "file": "SistemaFacturacion.wsdl",
+      "bytes": 8780,
+      "sha256": "05919120708ff7650612fa6683c9336eaf919335d9a4db10e86759190af48602",
+      "matches_pinned": true
+    },
+    {
+      "file": "SuministroInformacion.xsd",
+      "bytes": 49540,
+      "sha256": "ee4c1655175644de44c4c25055ffeb8e5f4bb4bc3834ce8254d4222ef18c8aa1",
+      "matches_pinned": true
+    },
+    {
+      "file": "SuministroLR.xsd",
+      "bytes": 1573,
+      "sha256": "cbdac8d427cc5ab5d77ca48974cab0f35d6bb819c4c66db361681e3710aeba36",
+      "matches_pinned": true
+    },
+    {
+      "file": "ConsultaLR.xsd",
+      "bytes": 3886,
+      "sha256": "bf2cdb8fc4b95b291757a72b76d8fffca06a6d30d9329122ca2fd6b2d5f8f1b1",
+      "matches_pinned": true
+    },
+    {
+      "file": "RespuestaConsultaLR.xsd",
+      "bytes": 10058,
+      "sha256": "de35063acb8d9ba0d6ae51acc6b595de9c2b12333250e95e13108ef5f2670d45",
+      "matches_pinned": true
+    },
+    {
+      "file": "RespuestaSuministro.xsd",
+      "bytes": 6259,
+      "sha256": "82acf80f785643caac13087aae66808ed721a13f08ca5218cf8ae81b695549ef",
+      "matches_pinned": true
+    },
+    {
+      "file": "xmldsig-core-schema.xsd",
+      "bytes": 10292,
+      "sha256": "d102ad3df7664c307e0c2c776ba4a90513b1969974d8a940bae1a77f9f21e15d",
+      "matches_pinned": true
+    },
+    {
+      "file": "errores.properties",
+      "bytes": 25232,
+      "sha256": "06519ceb23422bd6b0ad3bfb659e3007615050da4920781d12cff536481d5902",
+      "matches_pinned": true
+    }
+  ]
+}

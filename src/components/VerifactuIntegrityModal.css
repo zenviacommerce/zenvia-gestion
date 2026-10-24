@@ -1,0 +1,10 @@
+.modal.vfIntegrityModal{padding:24px;max-width:900px;}
+.vfIntegrityModal .vfIntegrityTable{overflow-x:auto;max-width:100%;}
+.vfIntegrityModal table{width:100%;border-collapse:collapse;}
+.vfIntegrityModal th,.vfIntegrityModal td{padding:10px 8px;text-align:left;border-bottom:1px solid var(--border,#e2e8f0);}
+.vfIntegrityModal code{overflow-wrap:anywhere;}
+.vfIntegrityModal p{overflow-wrap:anywhere;}
+.vfIntegrityModal .errorBox{display:block;background:#fff1f2;color:#9f1239;border:1px solid #fda4af;}
+.vfIntegrityModal .errorBox p{color:inherit;}
+[data-theme="dark"] .vfIntegrityModal .errorBox{background:#3f1520;color:#fecdd3;border-color:#9f354b;}
+@media(max-width:600px){.modal.vfIntegrityModal{padding:16px;}.vfIntegrityModal li{margin-bottom:12px;}}

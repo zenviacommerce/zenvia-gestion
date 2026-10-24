@@ -255,3 +255,11 @@ it.each(['open','overdue'])('excludes registered annulments and rectified origin
  await chooseSelect('Filtrar por situación de cobro',filter==='open'?/^Pendientes de cobro$/:/^Vencidas y pendientes$/);
  expect(screen.queryAllByText('Anulada de prueba')).toHaveLength(0);expect(screen.queryAllByText('Rectificada de prueba')).toHaveLength(0);expect(screen.getAllByText('Pendiente real').length).toBeGreaterThan(0);
 });
+
+it('loads the integrity report only after opening its action',async()=>{
+ fixture.invoices=[invoice('issued','issued')];render(<SalesInvoices/>);await screen.findAllByText('F-2026-0001');
+ expect(fixture.calls.filter(x=>x.name==='verifactu_integrity_report')).toHaveLength(0);
+ fireEvent.click(screen.getByRole('button',{name:'Integridad sombra'}));
+ await screen.findByText(/No se pudo completar la verificación/);
+ expect(fixture.calls.filter(x=>x.name==='verifactu_integrity_report')).toHaveLength(1);
+});

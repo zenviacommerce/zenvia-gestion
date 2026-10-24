@@ -1,0 +1,8 @@
+import {it,expect,vi} from 'vitest';
+import {loadVerifactuIntegrityReport} from '../src/services/verifactuMonitor';
+const api=vi.hoisted(()=>({rpc:vi.fn()}));
+vi.mock('../src/services/supabase',()=>({supabase:api}));
+const good={checkedAt:'2026-10-24T21:22:05Z',mode:'shadow',status:'empty',recordCount:0,altaCount:0,cancellationCount:0,eventCount:1,issueCount:0,issues:[],issuesTruncated:false,days:[],recent:[],aeatConnected:false};
+it('loads the owner scoped report without owner arguments',async()=>{api.rpc.mockResolvedValue({data:good,error:null});expect(await loadVerifactuIntegrityReport()).toEqual(good);expect(api.rpc).toHaveBeenCalledWith('verifactu_integrity_report');});
+it.each([{status:'ok'},{issueCount:1},{aeatConnected:true},{status:'broken',issueCount:1,issues:[]},{days:[{day:'broken',altas:-1,cancellations:0}]},{recent:[{id:'r',sequence:1,kind:'alta',hash:'bad',generatedAt:'bad'}]},{recordCount:null},{issuesTruncated:null}])('rejects incomplete or inconsistent reports %j',async patch=>{api.rpc.mockResolvedValue({data:{...good,...patch},error:null});await expect(loadVerifactuIntegrityReport()).rejects.toThrow('VF_MONITOR_RESPONSE_INVALID');});
+it('propagates monitor failures rather than treating them as zero activity',async()=>{api.rpc.mockResolvedValue({data:null,error:new Error('statement timeout')});await expect(loadVerifactuIntegrityReport()).rejects.toThrow('statement timeout');});

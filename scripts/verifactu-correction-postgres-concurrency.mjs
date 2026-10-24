@@ -162,6 +162,15 @@ try {
   await check(`(SELECT snapshot->'invoice'->>'rectification_reason'='Synthetic explicit price difference' AND (snapshot->'invoice'->>'total_amount')::numeric=0 AND (snapshot->'lines'->0->>'unit_price')::numeric=0 FROM private.verifactu_records WHERE invoice_id='${issuedChild}')`, 'issue-first retains old coherent header and lines and rejects waiting save');
   console.log('PASS: atomic correction saves and issue serialize in both orders with coherent snapshots');
   await chainCheck(11);
+  await sql(readFileSync(new URL('../supabase/migrations/20261024213501_verifactu_integrity_report.sql', import.meta.url),'utf8'));
+  assert.equal(await sql(`${context}SELECT public.verifactu_integrity_report()->>'status';`),'ok');
+  await draft(5);
+  const duringMonitor = sql(`${context}BEGIN;${issue(5)}SELECT pg_sleep(2);COMMIT;`, {application:'vf-monitor-writer'});
+  await waitForSleep('vf-monitor-writer');
+  assert.equal(await sql(`${context}SELECT (r->>'status'='ok' AND (r->>'recordCount')::int=11)::text FROM public.verifactu_integrity_report() r;`),'true');
+  await duringMonitor;
+  assert.equal(await sql(`${context}SELECT (r->>'status'='ok' AND (r->>'recordCount')::int=12)::text FROM public.verifactu_integrity_report() r;`),'true');
+  console.log('PASS: read-only monitor uses coherent snapshots before and after a concurrent issue');
   for (const kind of ['base','correction']) for (const action of ['issue','mode']) await rollbackWriterRace(kind,action,migration);
   console.log('VERI*FACTU correction PostgreSQL concurrency gate passed (synthetic data, no AEAT).');
 } finally {

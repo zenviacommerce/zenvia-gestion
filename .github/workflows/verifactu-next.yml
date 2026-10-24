@@ -5,9 +5,13 @@ on:
       - 'gateway/verifactu/**'
       - 'supabase/functions/_shared/verifactu/**'
       - 'src/services/verifactuQr.ts'
+      - 'src/services/verifactuMonitor.ts'
+      - 'src/components/VerifactuIntegrityModal*'
+      - 'supabase/migrations/*verifactu*.sql'
       - 'src/services/salesInvoicePdf.ts'
       - 'tests/verifactu-*.test.*'
       - 'scripts/verify-verifactu*'
+      - 'scripts/verifactu-next*'
       - '.github/workflows/verifactu-next.yml'
   workflow_dispatch:
 permissions:

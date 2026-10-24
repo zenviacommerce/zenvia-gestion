@@ -186,3 +186,56 @@ func TestRejectDeepXMLBeforeValidation(t *testing.T) {
 		t.Fatal("unbounded XML depth")
 	}
 }
+func TestGatewayValidXSDThroughRemoteSignedMutualTLS(t *testing.T) {
+	client, key := fakeKMS(t, "")
+	signer, err := NewKMSSigner(context.Background(), syntheticKeyName, client, token)
+	if err != nil {
+		t.Fatal(err)
+	}
+	public, ca := syntheticCertificate(t, key)
+	cert, err := ClientCertificate(public, signer)
+	if err != nil {
+		t.Fatal(err)
+	}
+	calls := 0
+	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		calls++
+		if len(r.TLS.VerifiedChains) == 0 {
+			t.Error("client identity not verified")
+		}
+		b, _ := io.ReadAll(r.Body)
+		if !strings.Contains(string(b), "<sf:RegistroAlta>") {
+			t.Error("validated fiscal record missing")
+		}
+		w.Header().Set("Content-Type", "text/xml")
+		io.WriteString(w, "<synthetic-business-response/>")
+	}))
+	server.TLS = &tls.Config{ClientAuth: tls.RequireAndVerifyClientCert, ClientCAs: ca, MinVersion: tls.VersionTLS12}
+	server.StartTLS()
+	defer server.Close()
+	roots := x509.NewCertPool()
+	roots.AddCert(server.Certificate())
+	cfg, _ := ClientTLSConfig(cert, roots)
+	root, _ := filepath.Abs("../..")
+	body, err := os.ReadFile(filepath.Join(root, "artifacts/verifactu-xml/F1-ordinary.xml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	g := NewGateway(true, "89890001K", transportFor(server.URL, cfg), PythonXSDValidator{Script: filepath.Join(root, "scripts/verify-verifactu-xml.py")})
+	for _, issuer := range []string{"OTHER0000", "89890001K"} {
+		requestBody := strings.ReplaceAll(string(body), "89890001K", issuer)
+		r := httptest.NewRequest(http.MethodPost, "/submit", strings.NewReader(requestBody))
+		r.Header.Set("Content-Type", "application/xml; charset=utf-8")
+		w := httptest.NewRecorder()
+		g.ServeHTTP(w, r)
+		if issuer == "OTHER0000" && w.Code != 422 {
+			t.Fatal("foreign issuer accepted")
+		}
+		if issuer == "89890001K" && (w.Code != 200 || w.Header().Get("X-AEAT-Environment") != "test") {
+			t.Fatal("local end-to-end failed")
+		}
+	}
+	if calls != 1 {
+		t.Fatal("rejected input reached the mutual TLS server")
+	}
+}

@@ -6,6 +6,16 @@ const patch='supabase/migrations/20261023185119_orders_299_approved_cache_backfi
 const summaryPatch='supabase/migrations/20261023214651_orders_operational_summary_mfa.sql';
 const readBasePatch=()=>readFileSync(patch,'utf8')+readFileSync(summaryPatch,'utf8');
 const readPatch=()=>readBasePatch()+readFileSync('docs/deploy/20261024-orders-purge-logistics/definitions.sql','utf8');
+it('installs on a fresh schema without the optional production projection cache',async()=>{
+ const{db}=await verificationFixture('legacy');try{
+ await db.exec("set zenvia.logistics_release_bundle='atomic'");await db.exec(readFileSync('supabase/migrations/20261023103551_internal_logistics_state.sql','utf8'));
+ expect((await db.query<any>("select to_regprocedure('private.orders_projection_stale_keys()') absent")).rows[0].absent).toBeNull();
+ await db.exec(readFileSync('supabase/migrations/20261024064200_orders_purge_logistics_retention.sql','utf8'));
+ await db.exec("update fulfillment_orders set fulfilled_at='2026-08-25',source_status='Shipped',pii_purged_at=now(),label_created_at=null,tracking_number=null,shipping_remote_id=null where order_number='DEMO-1'");
+ expect((await db.query<any>("select private.order_logistics_state(to_jsonb(o)) s from fulfillment_orders o where order_number='DEMO-1'")).rows[0].s).toBe('shipped');
+ expect((await db.query<any>("select orders_workbench_v1(p_state=>'pending') v")).rows[0].v.rows.some((r:any)=>r.order_number==='DEMO-1')).toBe(false);
+ }finally{await db.close()}
+},30000);
 it('repairs existing purged rows without touching pickup documents and preserves cancellation and true pending',async()=>{
  const{db}=await fixture();try{
  await db.exec(readBasePatch());await db.exec(readFileSync('supabase/migrations/20261016185733_amazon_buyer_pii_guard.sql','utf8'));

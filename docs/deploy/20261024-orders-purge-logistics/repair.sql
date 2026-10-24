@@ -1,9 +1,15 @@
 -- Approved-count gate: 549 already-purged source rows, nine wrong projections.
 -- No purge is executed again and no source order or document is updated.
-CREATE TEMP TABLE logistics_retention_repair_targets ON COMMIT DROP AS
-SELECT o.owner_id,o.id,private.orders_dashboard_group_key(o.source_channel,o.order_number,o.id) group_key
-FROM public.fulfillment_orders o JOIN private.orders_dashboard_projection p ON p.owner_id=o.owner_id AND p.id=o.id
-WHERE o.pii_purged_at IS NOT NULL AND p.order_state IN('pending','labelled');
+DO $targets$ BEGIN
+ IF to_regclass('private.orders_dashboard_projection') IS NULL THEN
+  CREATE TEMP TABLE logistics_retention_repair_targets(owner_id uuid,id uuid,group_key text) ON COMMIT DROP;
+ ELSE
+  CREATE TEMP TABLE logistics_retention_repair_targets ON COMMIT DROP AS
+  SELECT o.owner_id,o.id,private.orders_dashboard_group_key(o.source_channel,o.order_number,o.id) group_key
+  FROM public.fulfillment_orders o JOIN private.orders_dashboard_projection p ON p.owner_id=o.owner_id AND p.id=o.id
+  WHERE o.pii_purged_at IS NOT NULL AND p.order_state IN('pending','labelled');
+ END IF;
+END $targets$;
 DO $repair$
 DECLARE n bigint;owners bigint;targets bigint;last_dirty bigint;r record;started timestamptz:=clock_timestamp();
 BEGIN

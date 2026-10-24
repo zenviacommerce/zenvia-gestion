@@ -126,6 +126,7 @@ BEGIN
  IF strpos(src,needle)=0 THEN RAISE EXCEPTION 'RETENTION_STATE_SOURCE_CHANGED';END IF;
  src:=replace(src,needle,'when p_row->>''pii_purged_at'' IS NOT NULL then coalesce((SELECT operational_state FROM private.order_logistics_retention WHERE owner_id=(p_row->>''owner_id'')::uuid AND order_id=(p_row->>''id'')::uuid),''shipped'') '||needle);EXECUTE src;
 
+ IF to_regprocedure('private.orders_projection_stale_keys()') IS NOT NULL THEN
  src:=pg_get_functiondef('private.orders_projection_stale_keys()'::regprocedure);
  src:=replace(src,'p.label_cancelled_at,p.pii_purged_at,','p.label_cancelled_at,p.pii_purged_at,p.fulfilled_at,');
  src:=replace(src,'h.basis history_basis','h.basis history_basis,r.operational_state retained_state,r.dispatched_at retained_at,r.order_id retained_order_id');
@@ -133,9 +134,10 @@ BEGIN
  src:=replace(src,'''cancelled'' WHEN historical','''cancelled'' WHEN pii_purged_at IS NOT NULL THEN coalesce(retained_state,''shipped'') WHEN historical');
  src:=replace(src,'CASE WHEN physical THEN dispatched_at WHEN historical THEN historical_date END','CASE WHEN pii_purged_at IS NOT NULL THEN CASE WHEN retained_order_id IS NOT NULL THEN retained_at ELSE coalesce(historical_date,fulfilled_at) END WHEN physical THEN dispatched_at WHEN historical THEN historical_date END');
  EXECUTE src;
+ END IF; -- Fresh installations without the optional projection cache use the classifier directly.
 
  -- Retained cost period, without changing row/composite shapes or label identity.
- FOR f IN SELECT oid FROM pg_proc WHERE oid IN('private.orders_dashboard_projection_refresh(uuid,text)'::regprocedure,'private.orders_classified_fallback(text[])'::regprocedure) LOOP
+ FOR f IN SELECT oid FROM pg_proc WHERE oid IN(to_regprocedure('private.orders_dashboard_projection_refresh(uuid,text)'),to_regprocedure('private.orders_classified_fallback(text[])')) LOOP
   src:=pg_get_functiondef(f.oid);
   needle:='(coalesce(f.shipping_cost_recorded_at,f.fulfilled_at,f.label_created_at,f.tracking_updated_at,f.order_created_at) AT TIME ZONE ''Europe/Madrid'')::date AS shipping_cost_day';
   IF strpos(src,needle)=0 THEN RAISE EXCEPTION 'RETENTION_COST_DATE_SOURCE_CHANGED';END IF;
@@ -148,7 +150,7 @@ BEGIN
  FOR f IN SELECT oid FROM pg_proc WHERE pronamespace='private'::regnamespace AND proname IN('mfa_impl_orders_workbench_v1','mfa_impl_orders_dashboard_pickup_v1') LOOP
   src:=pg_get_functiondef(f.oid);
   needle:='''logistics'',CASE WHEN d.identity_key';
-  IF strpos(src,needle)=0 THEN RAISE EXCEPTION 'RETENTION_PAGE_SOURCE_CHANGED';END IF;
+  IF strpos(src,needle)=0 AND strpos(src,'private.order_logistics_evidence(to_jsonb(p))')=0 THEN RAISE EXCEPTION 'RETENTION_PAGE_SOURCE_CHANGED';END IF;
   src:=replace(src,needle,'''logistics'',CASE WHEN p.pii_purged_at IS NOT NULL THEN private.order_logistics_retained_evidence(jsonb_build_object(''id'',p.id,''owner_id'',p.owner_id,''pii_purged_at'',p.pii_purged_at,''fulfilled_at'',p.fulfilled_at)) WHEN d.identity_key');
   a:=strpos(src,'shipping AS (');b:=strpos(substr(src,a),'counts AS (')+a-1;
   IF a=0 OR b<a THEN RAISE EXCEPTION 'RETENTION_SHIPPING_CTE_CHANGED';END IF;

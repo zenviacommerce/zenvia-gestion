@@ -29,3 +29,9 @@ Rollback probado: restaura función guard y reservas del borrador antes de activ
 ## Ajuste final detectado al revisar capturas
 
 Un nuevo recibo draft todavía se contaba como pendiente de cobro. RED observado con 75 € en borrador y contador pendiente 1; corrección limita los cuatro KPI a recibos emitidos. GREEN UI **13/13**, 99 casos fiscales específicos en total; contratos afectados y TypeScript correctos. Capturas sintéticas regeneradas desde componentes reales: dos filas (una emitida y una draft) conservan la lista, con KPI de pendiente 100 € / 1 recibo, en vez de 200 € / 2. La última CI repite suite completa, contratos, PG y PNG para este estado final.
+
+## Revisión solicitada por el propietario, 24/10 por la tarde
+
+MFA real de PR reveló regresión de metadatos: tres wrappers con retorno compuesto tenían hash calculado con search_path visible public; checker vacío devuelve tipo calificado public.*. Se reprodujo RED con los mismos tres findings; SET LOCAL search_path='' antes del wrapper loop lo corrige, sin aflojar guardas ni cambiar piloto. Core24 +paridad38 GREEN62. [MFA real job 120956135557](https://github.com/zenviacommerce/zenvia-gestion/actions/runs/40122248780/job/120956135557) GREEN11/11, cero skips. Nueva huella de migración: `7e4cdc4afa9a8e6537214be5054d0c098859e12e47df9f59ae1e40ed1d685bc9`.
+
+Resumen operativo, inventario literal de sentencias existentes e histórico de dos renumeraciones acreditadas: `REVIEW-SUMMARY.md`, `existing-table-statements.sql`, `review-production-evidence.json`. Todas las consultas de producción en esta revisión fueron SELECT; no se aplicó la migración.

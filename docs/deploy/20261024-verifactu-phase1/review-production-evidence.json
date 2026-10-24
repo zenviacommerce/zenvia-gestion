@@ -1,0 +1,208 @@
+{
+  "checked_at": "2026-10-24T18:48:21.777Z",
+  "project": "sjkxxbedkkmgmqnvaqjh",
+  "mode": "read_only",
+  "counts": [
+    {
+      "object": "sales_invoices",
+      "rows": 29
+    },
+    {
+      "object": "closed_invoices",
+      "rows": 28
+    },
+    {
+      "object": "draft_numbers_to_clear",
+      "rows": 1
+    },
+    {
+      "object": "sales_invoice_lines",
+      "rows": 50
+    },
+    {
+      "object": "closed_invoice_lines",
+      "rows": 48
+    },
+    {
+      "object": "sales_receipts",
+      "rows": 8
+    },
+    {
+      "object": "sales_receipt_lines",
+      "rows": 13
+    },
+    {
+      "object": "sales_invoice_series",
+      "rows": 4
+    },
+    {
+      "object": "sales_receipt_counters",
+      "rows": 1
+    },
+    {
+      "object": "sales_invoice_released_numbers",
+      "rows": 0
+    }
+  ],
+  "number_audit": [
+    {
+      "evidence": {
+        "details_keys": [
+          "new_invoice_number",
+          "previous_invoice_number",
+          "status"
+        ],
+        "number_audit_classes": [
+          {
+            "events": 75,
+            "status": "draft",
+            "document_ids": 73,
+            "previous_number_present": false
+          },
+          {
+            "events": 4,
+            "status": "draft",
+            "document_ids": 2,
+            "previous_number_present": true
+          },
+          {
+            "events": 4,
+            "status": "issued",
+            "document_ids": 4,
+            "previous_number_present": false
+          }
+        ],
+        "proven_closed_number_changes": null
+      }
+    }
+  ],
+  "proved_history": [
+    {
+      "post_issue_clear_or_change_events": 3,
+      "documents": 2,
+      "existing_documents": 2,
+      "owner_existing_documents": 2
+    }
+  ],
+  "timeline": [
+    {
+      "id": 1774,
+      "current_number": "F202650",
+      "created_at": "2026-10-13 06:25:40.074038+00",
+      "status_at_change": "issued",
+      "previous_number": null,
+      "new_number": "F20265"
+    },
+    {
+      "id": 1775,
+      "current_number": "F202650",
+      "created_at": "2026-10-13 06:31:03.139207+00",
+      "status_at_change": "draft",
+      "previous_number": "F20265",
+      "new_number": null
+    },
+    {
+      "id": 1776,
+      "current_number": "F202650",
+      "created_at": "2026-10-13 06:31:03.139207+00",
+      "status_at_change": "draft",
+      "previous_number": null,
+      "new_number": "F202651"
+    },
+    {
+      "id": 1777,
+      "current_number": "F202650",
+      "created_at": "2026-10-13 07:06:24.091165+00",
+      "status_at_change": "draft",
+      "previous_number": "F202651",
+      "new_number": null
+    },
+    {
+      "id": 1778,
+      "current_number": "F202650",
+      "created_at": "2026-10-13 07:06:24.091165+00",
+      "status_at_change": "draft",
+      "previous_number": null,
+      "new_number": "F202650"
+    },
+    {
+      "id": 1970,
+      "current_number": "F202654",
+      "created_at": "2026-10-15 16:01:32.629982+00",
+      "status_at_change": "draft",
+      "previous_number": null,
+      "new_number": "F202652"
+    },
+    {
+      "id": 2083,
+      "current_number": "F202654",
+      "created_at": "2026-10-21 15:06:24.866751+00",
+      "status_at_change": "draft",
+      "previous_number": "F202652",
+      "new_number": null
+    },
+    {
+      "id": 2084,
+      "current_number": "F202654",
+      "created_at": "2026-10-21 15:08:10.653992+00",
+      "status_at_change": "issued",
+      "previous_number": null,
+      "new_number": "F202652"
+    },
+    {
+      "id": 2086,
+      "current_number": "F202654",
+      "created_at": "2026-10-21 15:19:05.28589+00",
+      "status_at_change": "draft",
+      "previous_number": "F202652",
+      "new_number": null
+    },
+    {
+      "id": 2087,
+      "current_number": "F202654",
+      "created_at": "2026-10-21 15:19:10.742193+00",
+      "status_at_change": "draft",
+      "previous_number": null,
+      "new_number": "F202654"
+    }
+  ],
+  "series": [
+    {
+      "scope": "otro workspace",
+      "code": "DEMO",
+      "year": 2026,
+      "prefix": "D-2026-",
+      "next_number": 3,
+      "padding": 4,
+      "next_invoice_number": "D-2026-0003"
+    },
+    {
+      "scope": "otro workspace",
+      "code": "R",
+      "year": 2026,
+      "prefix": "R-2026-",
+      "next_number": 1,
+      "padding": 4,
+      "next_invoice_number": "R-2026-0001"
+    },
+    {
+      "scope": "propietario",
+      "code": "F",
+      "year": 2026,
+      "prefix": "F2026",
+      "next_number": 55,
+      "padding": 1,
+      "next_invoice_number": "F202655"
+    },
+    {
+      "scope": "propietario",
+      "code": "R",
+      "year": 2026,
+      "prefix": "R2026",
+      "next_number": 1,
+      "padding": 4,
+      "next_invoice_number": "R20260001"
+    }
+  ],
+  "production_mfa_findings": []
+}

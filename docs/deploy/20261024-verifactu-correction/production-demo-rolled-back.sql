@@ -1,0 +1,22 @@
+BEGIN;SET LOCAL lock_timeout='3s';SET LOCAL statement_timeout='15s';SET LOCAL application_name='vf_demo_rolled_back_smoke';
+SELECT set_config('request.jwt.claims','{"sub":"d2fd3456-f2ae-4cd4-8b21-0c869c4aa89f","role":"authenticated","aal":"aal1"}',true);
+INSERT INTO private.verifactu_settings(owner_id,mode,issuer_nif) SELECT '835a7f45-7edf-4af2-b455-a8ec9c9f07e0','shadow',btrim(tax_id) FROM public.business_settings WHERE owner_id='835a7f45-7edf-4af2-b455-a8ec9c9f07e0';
+SET LOCAL ROLE authenticated;
+DO $test$ DECLARE original uuid:='7c660fb9-70f1-424b-b1af-ca52efc5b3d4';correction uuid;i public.sales_invoices;messages text[]:='{}';s jsonb;BEGIN
+ UPDATE public.sales_invoices SET issue_date=(now() AT TIME ZONE 'Europe/Madrid')::date WHERE id=original;
+ SELECT * INTO i FROM public.issue_sales_invoice(original);
+ IF i.status<>'issued' OR i.invoice_number IS NULL THEN RAISE EXCEPTION 'SMOKE_ISSUE_FAILED';END IF;
+ BEGIN UPDATE public.sales_invoices SET notes='synthetic mutation must fail' WHERE id=original;RAISE EXCEPTION 'SMOKE_IMMUTABILITY_FAILED';EXCEPTION WHEN OTHERS THEN IF SQLERRM NOT LIKE '%VF_FISCAL_IMMUTABLE%' THEN RAISE;END IF; END;
+ BEGIN PERFORM public.reopen_sales_invoice(original);RAISE EXCEPTION 'SMOKE_REOPEN_FAILED';EXCEPTION WHEN OTHERS THEN IF SQLERRM NOT LIKE '%VF_FISCAL_IMMUTABLE%' THEN RAISE;END IF;END;
+ correction:=public.create_sales_invoice_correction(original,'R4','I','Prueba sintética revertida del circuito aprobado');
+ PERFORM public.save_sales_invoice_correction(correction,jsonb_build_object('rectification_reason','Prueba sintética revertida del guardado atómico'),jsonb_build_array(jsonb_build_object('description','Ajuste sintético sin validez fiscal','quantity',1,'unit_price',-1,'tax_rate',21)));
+ SELECT * INTO i FROM public.issue_sales_invoice(correction);
+ IF i.status<>'issued' OR i.invoice_type<>'rectifying' THEN RAISE EXCEPTION 'SMOKE_CORRECTION_FAILED';END IF;
+ PERFORM public.verifactu_cancel_sales_document(correction,'invoice','Prueba sintética revertida: operación inexistente');
+ PERFORM public.verifactu_cancel_sales_document(original,'invoice','Prueba sintética revertida: operación inexistente');
+ s:=public.verifactu_shadow_status();
+ IF (s->>'records')::int<>4 OR jsonb_array_length(s->'cancellations')<>2 OR s->>'aeatConnected'<>'false' THEN RAISE EXCEPTION 'SMOKE_CHAIN_COUNT_FAILED %',s;END IF;
+END $test$;
+RESET ROLE;
+SELECT jsonb_build_object('synthetic_demo_only',true,'rollback_follows',true,'records',(SELECT count(*) FROM private.verifactu_records),'cancellations',(SELECT count(*) FROM private.verifactu_cancellations),'chain_valid',NOT EXISTS(SELECT 1 FROM (SELECT *,lag(hash,1,'') OVER(ORDER BY sequence) prev FROM private.verifactu_records WHERE owner_id='835a7f45-7edf-4af2-b455-a8ec9c9f07e0')r WHERE previous_hash<>prev OR hash<>upper(encode(sha256(convert_to(hash_input,'UTF8')),'hex')))) smoke;
+ROLLBACK;

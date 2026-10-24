@@ -1,0 +1,251 @@
+{
+  "approved_head": "d9629c30b10ac6f181dfcaf87ad1270d3284a8f7",
+  "merge": "c9df8aa6afa8f9d9b07abf13a48c9f6c375ed101",
+  "project": "sjkxxbedkkmgmqnvaqjh",
+  "deployment": "dpl_Gd4tAGNUMiKqrUUhz8hpZ5P3nAmt",
+  "previous_deployment": "dpl_FDkKv1dUjohVTY8g7TeRjmPS25qy",
+  "before": [
+    {
+      "evidence": [
+        {
+          "hash": "dbeb1fe10e86d9191b750b78376da2a5",
+          "rows": 28,
+          "scope": "closed_invoices"
+        },
+        {
+          "hash": "a706d237a87b82aabe4ebc6c582edcdc",
+          "rows": 48,
+          "scope": "closed_invoice_lines"
+        },
+        {
+          "hash": "071c4419b6a496859f45f742d5535db6",
+          "rows": 8,
+          "scope": "legacy_receipts"
+        },
+        {
+          "hash": "9012a6a3987f712b2737cc8c03054772",
+          "rows": 13,
+          "scope": "legacy_receipt_lines"
+        },
+        {
+          "hash": "34c1c56fd9e4825e28db2b8eae8e114e",
+          "rows": 27,
+          "scope": "payments"
+        },
+        {
+          "hash": "04e0a68e8b9887fcc8c46de153729206",
+          "rows": 7,
+          "scope": "receipt_payments"
+        }
+      ]
+    }
+  ],
+  "after": [
+    {
+      "evidence": [
+        {
+          "hash": "dbeb1fe10e86d9191b750b78376da2a5",
+          "rows": 28,
+          "scope": "closed_invoices"
+        },
+        {
+          "hash": "a706d237a87b82aabe4ebc6c582edcdc",
+          "rows": 48,
+          "scope": "closed_invoice_lines"
+        },
+        {
+          "hash": "071c4419b6a496859f45f742d5535db6",
+          "rows": 8,
+          "scope": "legacy_receipts"
+        },
+        {
+          "hash": "9012a6a3987f712b2737cc8c03054772",
+          "rows": 13,
+          "scope": "legacy_receipt_lines"
+        },
+        {
+          "hash": "34c1c56fd9e4825e28db2b8eae8e114e",
+          "rows": 27,
+          "scope": "payments"
+        },
+        {
+          "hash": "04e0a68e8b9887fcc8c46de153729206",
+          "rows": 7,
+          "scope": "receipt_payments"
+        }
+      ]
+    }
+  ],
+  "final": [
+    {
+      "final_verification": {
+        "chains": 0,
+        "events": [
+          {
+            "sequence": 1,
+            "event_kind": "mode_shadow",
+            "hash_valid": true,
+            "occurred_at": "2026-10-24T21:22:05.786274+00:00"
+          }
+        ],
+        "series": [
+          {
+            "code": "R",
+            "year": 2026,
+            "prefix": "R2026",
+            "next_number": 1
+          },
+          {
+            "code": "DEMO",
+            "year": 2026,
+            "prefix": "D-2026-",
+            "next_number": 3
+          },
+          {
+            "code": "R",
+            "year": 2026,
+            "prefix": "R-2026-",
+            "next_number": 1
+          },
+          {
+            "code": "F",
+            "year": 2026,
+            "prefix": "F2026",
+            "next_number": 55
+          }
+        ],
+        "records": 0,
+        "activity": 0,
+        "settings": [
+          {
+            "mode": "shadow",
+            "owner_id": "7461b2b7-f383-460d-b1c7-6ccbb52e42b2",
+            "installation_id": "1a00d7ed-bdc5-4909-b3e9-2d3a60eafc72"
+          }
+        ],
+        "manifests": 8,
+        "checked_at": "2026-10-24T21:22:30.497581+00:00",
+        "mfa_findings": 0,
+        "backup_drafts": 1,
+        "cancellations": 0,
+        "number_states": 0,
+        "mfa_configuration": [
+          {
+            "enabled": true,
+            "cohort_size": 1
+          }
+        ],
+        "receipt_snapshots": 0,
+        "legacy_receipts_issued": 8,
+        "historical_invoice_null_metadata": 28
+      }
+    }
+  ],
+  "demo_rolled_back": [
+    {
+      "smoke": {
+        "records": 4,
+        "chain_valid": true,
+        "cancellations": 2,
+        "rollback_follows": true,
+        "synthetic_demo_only": true
+      }
+    }
+  ],
+  "migrations": [
+    {
+      "name": "verifactu_shadow_phase1",
+      "source": "20261024075749",
+      "applied_version": "20261024211923"
+    },
+    {
+      "name": "verifactu_correction_circuit",
+      "source": "20261024193413",
+      "applied_version": "20261024212002"
+    }
+  ],
+  "advisors": [
+    {
+      "name": "rls_enabled_no_policy",
+      "level": "INFO",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0008_rls_enabled_no_policy",
+      "findings": [
+        {
+          "object": "verifactu_cancellations",
+          "schema": "private"
+        },
+        {
+          "object": "verifactu_chains",
+          "schema": "private"
+        },
+        {
+          "object": "verifactu_draft_number_backup",
+          "schema": "private"
+        },
+        {
+          "object": "verifactu_events",
+          "schema": "private"
+        },
+        {
+          "object": "verifactu_migration_backup",
+          "schema": "private"
+        },
+        {
+          "object": "verifactu_receipt_snapshots",
+          "schema": "private"
+        },
+        {
+          "object": "verifactu_records",
+          "schema": "private"
+        },
+        {
+          "object": "verifactu_series_state",
+          "schema": "private"
+        },
+        {
+          "object": "verifactu_settings",
+          "schema": "private"
+        }
+      ]
+    },
+    {
+      "name": "authenticated_security_definer_function_executable",
+      "level": "WARN",
+      "remediation": "https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable",
+      "findings": [
+        {
+          "object": "create_sales_invoice_correction",
+          "schema": "public"
+        },
+        {
+          "object": "delete_reversible_sales_invoice",
+          "schema": "public"
+        },
+        {
+          "object": "issue_sales_invoice",
+          "schema": "public"
+        },
+        {
+          "object": "issue_sales_receipt",
+          "schema": "public"
+        },
+        {
+          "object": "issue_sales_receipt_document",
+          "schema": "public"
+        },
+        {
+          "object": "save_sales_invoice_correction",
+          "schema": "public"
+        },
+        {
+          "object": "verifactu_cancel_sales_document",
+          "schema": "public"
+        },
+        {
+          "object": "verifactu_shadow_status",
+          "schema": "public"
+        }
+      ]
+    }
+  ]
+}

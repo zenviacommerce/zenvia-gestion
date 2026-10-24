@@ -72,6 +72,15 @@ export function createSalesInvoicePdfBlob(
   if(invoice.clientPhone){doc.text(invoice.clientPhone,14,clientY);clientY+=4;}
 
   let y=Math.max(blockY+34,clientY+7);
+  if(invoice.invoiceType==='rectifying'&&invoice.rectifiesInvoiceId){
+    const reference=[`Rectifica: ${invoice.rectificationOriginalNumber||invoice.rectifiesInvoiceId} · ${dateLabel(invoice.rectificationOriginalDate||invoice.issueDate)}`,`${invoice.verifactuType||''} · ${invoice.rectificationMode==='S'?'Por sustitución (importes correctos finales)':'Por diferencias (ajuste firmado)'}`,`Motivo: ${invoice.rectificationReason||''}`];
+    if(invoice.rectificationMode==='S')reference.push(`Base rectificada: ${money(invoice.rectificationOriginalBase??0)} · Cuota rectificada: ${money(invoice.rectificationOriginalTax??0)}`);
+    doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+    for(const text of reference)for(const row of doc.splitTextToSize(text,178)){
+      if(y>265){doc.addPage();y=22;}doc.text(row,14,y);y+=4.5;
+    }
+    y+=5;
+  }
   doc.setFillColor(245,247,249);doc.rect(14,y-5,182,8,'F');doc.setFont('helvetica','bold');doc.setFontSize(8.5);
   doc.text(labels.description,16,y);doc.text(labels.quantity,112,y,{align:'right'});doc.text(labels.price,135,y,{align:'right'});doc.text(labels.vat,153,y,{align:'right'});doc.text(labels.total,194,y,{align:'right'});y+=7;doc.setFont('helvetica','normal');
   for(const line of invoice.lines){
@@ -114,3 +123,4 @@ export function printSalesInvoicePdf(invoice:SalesInvoice,settings?:BusinessSett
   const blob=createSalesInvoicePdfBlob(invoice,settings,branding,salesSettings,generalSettings);
   const url=URL.createObjectURL(blob);const printWindow=window.open(url,'_blank','noopener,noreferrer');if(!printWindow){URL.revokeObjectURL(url);throw new Error('El navegador ha bloqueado la ventana de impresión. Permite las ventanas emergentes para ZENVIA Gestión e inténtalo de nuevo.');}const cleanup=()=>window.setTimeout(()=>URL.revokeObjectURL(url),60000);printWindow.addEventListener('load',()=>{window.setTimeout(()=>{try{printWindow.focus();printWindow.print();}catch{}cleanup();},700);},{once:true});window.setTimeout(cleanup,65000);
 }
+

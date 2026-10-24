@@ -1,12 +1,9 @@
-import { supabase } from './supabase';
+import {deleteSalesInvoiceDraftSafe} from './salesDraftDelete';
 
-export async function reopenSalesInvoice(id: string) {
-  const { data, error } = await supabase.rpc('reopen_sales_invoice', { p_invoice_id: id });
-  if (error) throw error;
-  return data;
+export async function reopenSalesInvoice(_id:string):Promise<never>{
+  throw new Error('Las facturas emitidas no se pueden reabrir. Crea una rectificativa.');
 }
 
-export async function deleteReversibleSalesInvoice(id: string) {
-  const { error } = await supabase.rpc('delete_reversible_sales_invoice', { p_invoice_id: id });
-  if (error) throw error;
+export async function deleteReversibleSalesInvoice(id:string){
+  return deleteSalesInvoiceDraftSafe(id);
 }

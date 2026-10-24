@@ -1,0 +1,85 @@
+[
+  {
+    "inventory": {
+      "triggers": [
+        {
+          "name": "sales_payments_status",
+          "table": "sales_payments",
+          "function": "CREATE OR REPLACE FUNCTION private.sync_sales_payment_status()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n  v_invoice_id uuid;\n  v_owner uuid;\n  v_paid numeric;\n  v_total numeric;\n  v_status text;\n  v_allow_partial boolean;\n  v_auto_paid boolean;\nbegin\n  v_invoice_id := case when tg_op='DELETE' then old.invoice_id else new.invoice_id end;\n\n  select owner_id,total_amount,status\n    into v_owner,v_total,v_status\n  from public.sales_invoices\n  where id=v_invoice_id;\n\n  if v_status='draft' then\n    raise exception 'No se pueden registrar cobros sobre una factura en borrador.';\n  end if;\n\n  select coalesce(sum(amount),0)\n    into v_paid\n  from public.sales_payments\n  where invoice_id=v_invoice_id;\n\n  v_allow_partial := private.sales_setting_boolean(v_owner,'allowPartialPayments',true);\n  v_auto_paid := private.sales_setting_boolean(v_owner,'autoMarkPaid',true);\n\n  if not v_allow_partial\n     and v_paid > 0.005\n     and v_total > 0\n     and v_paid < v_total - 0.005\n  then\n    raise exception 'Los cobros parciales están desactivados para este espacio de trabajo.';\n  end if;\n\n  update public.sales_invoices\n  set status=case\n      when v_paid>=v_total-0.005 and v_total>0 and v_auto_paid then 'paid'\n      when v_paid>0.005 then 'partially_paid'\n      when v_status in ('paid','partially_paid') then 'issued'\n      else v_status\n    end,\n    paid_at=case\n      when v_paid>=v_total-0.005 and v_total>0 and v_auto_paid then coalesce(paid_at,now())\n      else null\n    end\n  where id=v_invoice_id;\n\n  return coalesce(new,old);\nend;\n$function$\n",
+          "definition": "CREATE TRIGGER sales_payments_status AFTER INSERT OR DELETE OR UPDATE ON public.sales_payments FOR EACH ROW EXECUTE FUNCTION private.sync_sales_payment_status()"
+        },
+        {
+          "name": "sales_receipt_payments_guard",
+          "table": "sales_receipt_payments",
+          "function": "CREATE OR REPLACE FUNCTION private.guard_sales_receipt_payment()\n RETURNS trigger\n LANGUAGE plpgsql\n SET search_path TO ''\nAS $function$\ndeclare\n  v_total numeric;\n  v_paid numeric;\nbegin\n  select total_amount into v_total from public.sales_receipts where id=new.receipt_id;\n  if v_total is null then raise exception 'Recibo no encontrado.'; end if;\n\n  select coalesce(sum(amount),0) into v_paid\n  from public.sales_receipt_payments\n  where receipt_id=new.receipt_id\n    and (tg_op='INSERT' or id<>new.id);\n\n  if v_paid+new.amount > v_total+0.005 then\n    raise exception 'El cobro no puede superar el importe pendiente del recibo.';\n  end if;\n  return new;\nend;\n$function$\n",
+          "definition": "CREATE TRIGGER sales_receipt_payments_guard BEFORE INSERT OR UPDATE ON public.sales_receipt_payments FOR EACH ROW EXECUTE FUNCTION private.guard_sales_receipt_payment()"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "table": "sales_invoices",
+          "definition": "FOREIGN KEY (rectifies_invoice_id) REFERENCES sales_invoices(id) ON DELETE RESTRICT"
+        },
+        {
+          "table": "sales_invoice_lines",
+          "definition": "FOREIGN KEY (invoice_id) REFERENCES sales_invoices(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_invoice_lines",
+          "definition": "FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL"
+        },
+        {
+          "table": "sales_payments",
+          "definition": "FOREIGN KEY (invoice_id) REFERENCES sales_invoices(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_invoice_lines",
+          "definition": "FOREIGN KEY (owner_id) REFERENCES workspaces(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_receipt_lines",
+          "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_receipt_lines",
+          "definition": "FOREIGN KEY (receipt_id) REFERENCES sales_receipts(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_receipt_lines",
+          "definition": "FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL"
+        },
+        {
+          "table": "sales_receipt_payments",
+          "definition": "FOREIGN KEY (receipt_id) REFERENCES sales_receipts(id) ON DELETE CASCADE"
+        }
+      ],
+      "receipt_count": 8,
+      "invoice_counts": [
+        {
+          "rows": 2,
+          "status": "issued",
+          "invoice_type": "standard",
+          "document_kind": "invoice",
+          "draft_numbers": 0,
+          "draft_reservations": 0
+        },
+        {
+          "rows": 1,
+          "status": "draft",
+          "invoice_type": "standard",
+          "document_kind": "invoice",
+          "draft_numbers": 1,
+          "draft_reservations": 1
+        },
+        {
+          "rows": 26,
+          "status": "paid",
+          "invoice_type": "standard",
+          "document_kind": "invoice",
+          "draft_numbers": 0,
+          "draft_reservations": 0
+        }
+      ]
+    }
+  }
+]

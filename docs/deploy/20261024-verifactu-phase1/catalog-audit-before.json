@@ -1,0 +1,1930 @@
+[
+  {
+    "metadata": {
+      "grants": [
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_released_numbers",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoice_series",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "anon",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_invoices",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_counters",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipt_lines",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "postgres",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "YES",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "authenticated",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "INSERT",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "SELECT",
+          "with_hierarchy": "YES"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "UPDATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "DELETE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRUNCATE",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "REFERENCES",
+          "with_hierarchy": "NO"
+        },
+        {
+          "grantee": "service_role",
+          "grantor": "postgres",
+          "table_name": "sales_receipts",
+          "is_grantable": "NO",
+          "table_schema": "public",
+          "table_catalog": "postgres",
+          "privilege_type": "TRIGGER",
+          "with_hierarchy": "NO"
+        }
+      ],
+      "triggers": [
+        {
+          "table": "sales_invoice_series",
+          "enabled": "O",
+          "trigger": "sales_invoice_series_updated_at",
+          "definition": "CREATE TRIGGER sales_invoice_series_updated_at BEFORE UPDATE ON public.sales_invoice_series FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "table": "sales_invoices",
+          "enabled": "O",
+          "trigger": "audit_sales_invoice_number_change",
+          "definition": "CREATE TRIGGER audit_sales_invoice_number_change AFTER UPDATE OF invoice_number ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION private.audit_sales_invoice_number_change()"
+        },
+        {
+          "table": "sales_invoices",
+          "enabled": "O",
+          "trigger": "sales_invoice_bank_snapshot",
+          "definition": "CREATE TRIGGER sales_invoice_bank_snapshot BEFORE INSERT OR UPDATE ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION private.bank_document_snapshot()"
+        },
+        {
+          "table": "sales_invoices",
+          "enabled": "O",
+          "trigger": "sales_invoices_default_due_date",
+          "definition": "CREATE TRIGGER sales_invoices_default_due_date BEFORE INSERT OR UPDATE OF issue_date, due_date ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION private.set_default_sales_invoice_due_date()"
+        },
+        {
+          "table": "sales_invoices",
+          "enabled": "O",
+          "trigger": "sales_invoices_immutable",
+          "definition": "CREATE TRIGGER sales_invoices_immutable BEFORE DELETE OR UPDATE ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION private.guard_sales_invoice_immutable()"
+        },
+        {
+          "table": "sales_invoices",
+          "enabled": "O",
+          "trigger": "sales_invoices_updated_at",
+          "definition": "CREATE TRIGGER sales_invoices_updated_at BEFORE UPDATE ON public.sales_invoices FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "table": "sales_invoice_lines",
+          "enabled": "O",
+          "trigger": "sales_invoice_lines_calculate",
+          "definition": "CREATE TRIGGER sales_invoice_lines_calculate BEFORE INSERT OR UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION private.sales_invoice_line_calculate()"
+        },
+        {
+          "table": "sales_invoice_lines",
+          "enabled": "O",
+          "trigger": "sales_invoice_lines_guard",
+          "definition": "CREATE TRIGGER sales_invoice_lines_guard BEFORE INSERT OR DELETE OR UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION private.guard_sales_invoice_line_edit()"
+        },
+        {
+          "table": "sales_invoice_lines",
+          "enabled": "O",
+          "trigger": "sales_invoice_lines_recalc",
+          "definition": "CREATE TRIGGER sales_invoice_lines_recalc AFTER INSERT OR DELETE OR UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION private.recalculate_sales_invoice_totals()"
+        },
+        {
+          "table": "sales_invoice_lines",
+          "enabled": "O",
+          "trigger": "sales_invoice_lines_updated_at",
+          "definition": "CREATE TRIGGER sales_invoice_lines_updated_at BEFORE UPDATE ON public.sales_invoice_lines FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "table": "sales_receipts",
+          "enabled": "O",
+          "trigger": "sales_receipt_bank_snapshot",
+          "definition": "CREATE TRIGGER sales_receipt_bank_snapshot BEFORE INSERT OR UPDATE ON public.sales_receipts FOR EACH ROW EXECUTE FUNCTION private.bank_document_snapshot()"
+        },
+        {
+          "table": "sales_receipts",
+          "enabled": "O",
+          "trigger": "sales_receipts_assign_number",
+          "definition": "CREATE TRIGGER sales_receipts_assign_number BEFORE INSERT ON public.sales_receipts FOR EACH ROW EXECUTE FUNCTION private.assign_sales_receipt_number()"
+        },
+        {
+          "table": "sales_receipts",
+          "enabled": "O",
+          "trigger": "sales_receipts_updated_at",
+          "definition": "CREATE TRIGGER sales_receipts_updated_at BEFORE UPDATE ON public.sales_receipts FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        },
+        {
+          "table": "sales_receipt_lines",
+          "enabled": "O",
+          "trigger": "sales_receipt_lines_calculate",
+          "definition": "CREATE TRIGGER sales_receipt_lines_calculate BEFORE INSERT OR UPDATE ON public.sales_receipt_lines FOR EACH ROW EXECUTE FUNCTION private.sales_receipt_line_calculate()"
+        },
+        {
+          "table": "sales_receipt_lines",
+          "enabled": "O",
+          "trigger": "sales_receipt_lines_recalc",
+          "definition": "CREATE TRIGGER sales_receipt_lines_recalc AFTER INSERT OR DELETE OR UPDATE ON public.sales_receipt_lines FOR EACH ROW EXECUTE FUNCTION private.recalculate_sales_receipt_total()"
+        },
+        {
+          "table": "sales_receipt_lines",
+          "enabled": "O",
+          "trigger": "sales_receipt_lines_updated_at",
+          "definition": "CREATE TRIGGER sales_receipt_lines_updated_at BEFORE UPDATE ON public.sales_receipt_lines FOR EACH ROW EXECUTE FUNCTION set_updated_at()"
+        }
+      ],
+      "foreign_keys": [
+        {
+          "table": "sales_invoices",
+          "definition": "FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE RESTRICT"
+        },
+        {
+          "table": "sales_invoices",
+          "definition": "FOREIGN KEY (series_id) REFERENCES sales_invoice_series(id) ON DELETE RESTRICT"
+        },
+        {
+          "table": "sales_invoices",
+          "definition": "FOREIGN KEY (rectifies_invoice_id) REFERENCES sales_invoices(id) ON DELETE RESTRICT"
+        },
+        {
+          "table": "sales_invoice_lines",
+          "definition": "FOREIGN KEY (invoice_id) REFERENCES sales_invoices(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_invoice_lines",
+          "definition": "FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL"
+        },
+        {
+          "table": "sales_payments",
+          "definition": "FOREIGN KEY (invoice_id) REFERENCES sales_invoices(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_invoices",
+          "definition": "FOREIGN KEY (tax_registration_id) REFERENCES business_tax_registrations(id) ON DELETE SET NULL"
+        },
+        {
+          "table": "sales_invoice_lines",
+          "definition": "FOREIGN KEY (owner_id) REFERENCES workspaces(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_invoices",
+          "definition": "FOREIGN KEY (owner_id) REFERENCES workspaces(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_receipts",
+          "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_receipts",
+          "definition": "FOREIGN KEY (client_id) REFERENCES clients(id) ON DELETE RESTRICT"
+        },
+        {
+          "table": "sales_receipt_lines",
+          "definition": "FOREIGN KEY (owner_id) REFERENCES auth.users(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_receipt_lines",
+          "definition": "FOREIGN KEY (receipt_id) REFERENCES sales_receipts(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_receipt_lines",
+          "definition": "FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE SET NULL"
+        },
+        {
+          "table": "sales_receipt_payments",
+          "definition": "FOREIGN KEY (receipt_id) REFERENCES sales_receipts(id) ON DELETE CASCADE"
+        },
+        {
+          "table": "sales_invoices",
+          "definition": "FOREIGN KEY (source_fulfillment_order_id) REFERENCES fulfillment_orders(id) ON DELETE SET NULL"
+        },
+        {
+          "table": "sales_invoices",
+          "definition": "FOREIGN KEY (owner_id, bank_account_id) REFERENCES business_bank_accounts(owner_id, id)"
+        },
+        {
+          "table": "sales_receipts",
+          "definition": "FOREIGN KEY (owner_id, bank_account_id) REFERENCES business_bank_accounts(owner_id, id)"
+        }
+      ]
+    }
+  }
+]

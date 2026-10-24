@@ -59,6 +59,9 @@ it('does not bypass page permissions for an Orders deep link',async()=>{
 });
 it('can finish entry through browser history while preferences are still loading',async()=>{
  state.settingsLoading=true;render(<App/>);await screen.findByText('Preparando tu vista…');
+ // The loader commits before passive history effects settle. Finish that React
+ // commit before simulating the next user navigation; preferences stay loading.
+ await act(async()=>{});
  await act(async()=>{window.history.pushState({},'','/?page=orders&tab=pending');window.dispatchEvent(new PopStateEvent('popstate'));});
  await screen.findByRole('heading',{name:'Pedidos de prueba'});
  expect(state.summary).not.toHaveBeenCalled();expect(state.financial).not.toHaveBeenCalled();

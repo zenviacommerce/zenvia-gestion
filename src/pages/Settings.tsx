@@ -661,7 +661,7 @@ function SalesSection({onDirtyChange}:{onDirtyChange:(dirty:boolean)=>void}){
         <div className="settingsToggleGrid">
           <label className="settingsToggleField"><input type="checkbox" checked={draft.allowPartialPayments} onChange={e=>update('allowPartialPayments',e.target.checked)}/><span><strong>Permitir cobros parciales</strong><small>Si se desactiva, solo se podrá registrar el importe pendiente completo.</small></span></label>
           <label className="settingsToggleField"><input type="checkbox" checked={draft.autoMarkPaid} onChange={e=>update('autoMarkPaid',e.target.checked)}/><span><strong>Marcar automáticamente como cobrada</strong><small>Al alcanzar el total cobrado, cambia el estado a Cobrada.</small></span></label>
-          <label className="settingsToggleField"><input type="checkbox" checked={draft.allowEditIssuedInvoices} onChange={e=>update('allowEditIssuedInvoices',e.target.checked)}/><span><strong>Permitir editar facturas emitidas</strong><small>Solo se podrán reabrir emitidas sin envío ni cobros.</small></span></label>
+          <div className="settingsToggleField"><span><strong>Conservación de facturas emitidas</strong><small>Las facturas emitidas se conservan. Para corregirlas, crea una rectificativa.</small></span></div>
         </div>
       </div>
 
@@ -2719,3 +2719,4 @@ export function SettingsPage({isAdmin,access,initialSection}:{isAdmin:boolean;ac
     </div>
   </div>;
 }
+

@@ -21,7 +21,6 @@ function bestSeries(series:SalesInvoiceSeries[],invoiceNumber:string){
   const standards=series.filter(item=>item.kind==='standard'&&item.active);
   return [...standards].sort((a,b)=>b.prefix.length-a.prefix.length).find(item=>invoiceNumber.startsWith(item.prefix))||standards[0]||null;
 }
-function proposedNumber(series:SalesInvoiceSeries){return `${series.prefix}${String(series.nextNumber).padStart(series.padding,'0')}`;}
 
 export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,onFinished}:Props){
   const {settings}=useSettings();
@@ -47,7 +46,7 @@ export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,o
       const allSeries=await ensureSalesSeries(year);
       const series=allSeries.filter(row=>row.kind==='standard'&&row.active);
       const selectedSeries=bestSeries(series,candidate.invoiceNumber);
-      candidate={...candidate,seriesId:selectedSeries?.id||'',invoiceNumber:candidate.invoiceNumber||(selectedSeries?proposedNumber(selectedSeries):'')};
+      candidate={...candidate,seriesId:selectedSeries?.id||''};
       const duplicateInvoice=candidate.invoiceNumber?existingInvoices.find(invoice=>invoice.invoiceNumber===candidate.invoiceNumber):undefined;
       const repairable=Boolean(duplicateInvoice&&duplicateInvoice.status==='draft');
       if(duplicateInvoice){
@@ -80,7 +79,7 @@ export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,o
   const selected=items.find(item=>item.id===selectedId);
   const candidate=selected?.candidate;
   const clientOptions=useMemo(()=>clients.map(client=>({value:client.id,label:client.name,description:client.taxId||client.city||undefined,searchText:[client.name,client.taxId,client.email,client.city].filter(Boolean).join(' ')})),[clients]);
-  const seriesOptions=(selected?.series||[]).map(series=>({value:series.id,label:`${series.name} · ${series.prefix}`,description:`Siguiente ${proposedNumber(series)}`,searchText:`${series.name} ${series.code} ${series.prefix}`}));
+  const seriesOptions=(selected?.series||[]).map(series=>({value:series.id,label:`${series.name} · ${series.prefix}`,description:'Número asignado al emitir',searchText:`${series.name} ${series.code} ${series.prefix}`}));
 
   const changeDate=async(value:string)=>{
     if(!selected||!candidate)return;
@@ -108,10 +107,7 @@ export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,o
     if(current.dueDate<current.issueDate)return 'El vencimiento no puede ser anterior a la fecha de factura.';
     if(current.proposedClient?.taxId&&taxIdError(current.proposedClient.taxId,false))return 'Revisa el DNI/CIF/VAT detectado del cliente.';
     if(!current.seriesId||!selectedSeries)return 'Selecciona la serie.';
-    if(!current.invoiceNumber.trim())return 'Indica el número de factura.';
-    if(!current.invoiceNumber.startsWith(selectedSeries.prefix))return `El número debe comenzar por ${selectedSeries.prefix}.`;
     const collision=existingInvoices.find(invoice=>invoice.invoiceNumber===current.invoiceNumber);
-    if(current.existingInvoiceId&&current.existingInvoiceNumber&&current.invoiceNumber!==current.existingInvoiceNumber)return 'Para reparar este borrador conserva su número de factura.';
     if(collision&&collision.id!==current.existingInvoiceId)return 'Ya existe una factura con este número.';
     if(!current.lines.some(line=>line.description.trim()&&Number.isFinite(line.quantity)&&line.quantity>0))return 'Añade al menos una línea válida.';
     if(current.lines.some(line=>!Number.isFinite(line.quantity)||!Number.isFinite(line.unitPrice)||!Number.isFinite(line.taxRate)))return 'Hay una línea con valores numéricos no válidos.';
@@ -198,7 +194,7 @@ export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,o
       <div className="salesFormGrid">
         <label>Cliente *<SearchableSelect value={candidate.clientId} options={clientOptions} onChange={value=>patchCandidate(selected.id,{clientId:value,proposedClient:value&&value!==candidate.clientId?null:candidate.proposedClient})} placeholder={candidate.proposedClient?.name?`Nuevo: ${candidate.proposedClient.name}`:'Selecciona cliente'} searchPlaceholder="Buscar cliente, CIF, email…" ariaLabel="Cliente importado"/>{candidate.proposedClient?.name&&<small className="salesImportedClientHint">{candidate.clientId?'Datos detectados para completar el cliente':'Se creará automáticamente'}: <strong>{candidate.proposedClient.name}</strong>{candidate.proposedClient.taxId?` · ${candidate.proposedClient.taxId}`:' · sin DNI/CIF/VAT en el PDF'}</small>}</label>
         <label>Serie *<SearchableSelect value={candidate.seriesId} options={seriesOptions} onChange={value=>patchCandidate(selected.id,{seriesId:value})} placeholder="Selecciona serie" searchPlaceholder="Buscar serie…" ariaLabel="Serie importada"/></label>
-        <label>Número de factura *<input value={candidate.invoiceNumber} disabled={Boolean(candidate.existingInvoiceId)} onChange={event=>patchCandidate(selected.id,{invoiceNumber:event.target.value})}/>{candidate.existingInvoiceId&&<small className="salesImportedClientHint">Se actualizará el borrador existente, conservando este número.</small>}</label>
+        <label>Referencia del documento importado<input aria-label="Referencia del documento importado" value={candidate.invoiceNumber} onChange={event=>patchCandidate(selected.id,{invoiceNumber:event.target.value})}/><small className="salesImportedClientHint">Se conserva como referencia. El número fiscal se asignará al emitir.</small></label>
         <label>Fecha factura *<input type="date" value={candidate.issueDate} onChange={event=>void changeDate(event.target.value)}/></label>
         <label>Vencimiento *<input type="date" min={candidate.issueDate||undefined} value={candidate.dueDate} onChange={event=>patchCandidate(selected.id,{dueDate:event.target.value})}/><small className="salesImportedClientHint">Por defecto, {settings.sales.defaultDueDays} días después de la fecha de factura.</small></label>
       </div>
@@ -221,3 +217,4 @@ export function SalesInvoiceImportModal({open,onClose,clients,existingInvoices,o
     <div className="modalActions"><button className="secondary" onClick={onClose} disabled={busy}>Cerrar</button><button className="primary" onClick={importReady} disabled={busy||readyCount===0}>{busy?'Guardando…':`Guardar / reparar borradores (${readyCount})`}</button></div>
   </div></div>;
 }
+

@@ -3,8 +3,17 @@ BEGIN;
 SET LOCAL search_path='';
 SET LOCAL lock_timeout='3s';
 SET LOCAL statement_timeout='15s';
--- Match the operation lock order, then stop writes while checking history.
-LOCK TABLE public.sales_invoices,public.sales_invoice_lines IN ACCESS EXCLUSIVE MODE;
+-- Freeze all source and archive writers BEFORE checking for any history.
+-- Source-first order follows fiscal writers. Contention/inversion fails bounded
+-- under lock_timeout; a failed transaction never reaches destructive DDL.
+LOCK TABLE public.sales_invoices,public.sales_invoice_lines,
+ public.sales_receipts,public.sales_receipt_lines,public.sales_invoice_series,
+ public.sales_invoice_released_numbers,public.sales_receipt_counters,
+ private.verifactu_settings,private.verifactu_chains,private.verifactu_series_state,
+ private.verifactu_records,private.verifactu_cancellations,
+ private.verifactu_receipt_snapshots,private.verifactu_events,
+ private.verifactu_draft_number_backup,private.verifactu_migration_backup
+ IN ACCESS EXCLUSIVE MODE;
 DO $gate$ BEGIN
  IF EXISTS(SELECT 1 FROM private.verifactu_records) OR EXISTS(SELECT 1 FROM private.verifactu_events) OR EXISTS(SELECT 1 FROM private.verifactu_cancellations) OR EXISTS(SELECT 1 FROM private.verifactu_series_state) OR EXISTS(SELECT 1 FROM private.verifactu_receipt_snapshots) THEN RAISE EXCEPTION 'VF_ROLLBACK_PRESERVE_HISTORY';END IF;
  IF EXISTS(SELECT 1 FROM public.sales_invoices WHERE rectification_reason IS NOT NULL OR rectification_original_number IS NOT NULL) THEN RAISE EXCEPTION 'VF_ROLLBACK_REVIEW_NEW_DRAFTS';END IF;

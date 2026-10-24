@@ -57,6 +57,54 @@ async function waitForSleep(application) {
   }
   throw new Error(`Did not observe deterministic transaction barrier: ${application}`);
 }
+async function waitForRollbackLock(application) {
+  const deadline = Date.now() + 5_000;
+  while (Date.now() < deadline) {
+    if (await sql(`SELECT EXISTS(SELECT 1 FROM pg_stat_activity WHERE application_name='${application}' AND wait_event_type='Lock');`, { database: 'postgres' }) === 't') return;
+    await new Promise(resolve => setTimeout(resolve, 25));
+  }
+  throw new Error(`Rollback did not wait for writer before its history gate: ${application}`);
+}
+async function rollbackWriterRace(kind, action, migration) {
+  const raceDb = `${db}_rollback_${kind}_${action}`;
+  const writerApp = `vf-rollback-writer-${kind}-${action}`;
+  const rollbackApp = `vf-rollback-waiter-${kind}-${action}`;
+  let raceCreated = false, writer, rolling;
+  try {
+    await sql(`CREATE DATABASE ${raceDb};`, { database: 'postgres' }); raceCreated = true;
+    await sql(readFileSync(new URL('../tests/fixtures/verifactu-before.sql', import.meta.url), 'utf8'), { database: raceDb });
+    await sql(readFileSync(new URL('../supabase/migrations/20261024075749_verifactu_shadow_phase1.sql', import.meta.url), 'utf8'), { database: raceDb });
+    if (kind === 'correction') await sql(readFileSync(new URL(`../supabase/migrations/${migration}`, import.meta.url), 'utf8'), { database: raceDb });
+    let write;
+    if (action === 'issue') {
+      await sql(`${context}INSERT INTO sales_invoices(id,owner_id,client_id,series_id,issue_date) VALUES('${id(1)}','${owner}','00000000-0000-4000-8000-000000000011','${series}','2026-10-24');INSERT INTO sales_invoice_lines(owner_id,invoice_id,description,quantity,unit_price,tax_rate) VALUES('${owner}','${id(1)}','Synthetic first issue rollback race',1,100,21);`, { database: raceDb });
+      write = `${context}BEGIN;${issue(1)}SELECT pg_sleep(2);COMMIT;`;
+    } else {
+      write = `SET test.uid='${owner}';SET test.owner='${owner}';BEGIN;INSERT INTO private.verifactu_settings(owner_id,mode,issuer_nif) VALUES('${owner}','shadow','89890001K');SELECT pg_sleep(2);COMMIT;`;
+    }
+    writer = sql(write, { database: raceDb, application: writerApp });
+    await waitForSleep(writerApp);
+    const rollbackPath = kind === 'base' ? '../docs/deploy/20261024-verifactu-phase1/rollback.sql' : '../docs/deploy/20261024-verifactu-correction/rollback.sql';
+    // Attach rejection handling immediately: refusal is the required result.
+    rolling = sql(readFileSync(new URL(rollbackPath, import.meta.url), 'utf8'), { database: raceDb, application: rollbackApp }).then(() => ({ ok: true }), error => ({ ok: false, error }));
+    await waitForRollbackLock(rollbackApp);
+    await writer;
+    const result = await rolling;
+    assert.equal(result.ok, false, `${kind} rollback must refuse committed ${action} history`);
+    assert.match(String(result.error), /VF_ROLLBACK_PRESERVE_HISTORY/);
+    assert.equal(await sql('SELECT count(*)>0 FROM private.verifactu_events;', { database: raceDb }), 't', 'writer audit rows survive rollback refusal');
+    if (action === 'issue') {
+      assert.equal(await sql(`SELECT status='issued' AND invoice_number='F-2026-0001' FROM sales_invoices WHERE id='${id(1)}';`, { database: raceDb }), 't', 'first issued invoice and number survive');
+    } else {
+      assert.equal(await sql(`SELECT mode='shadow' FROM private.verifactu_settings WHERE owner_id='${owner}';`, { database: raceDb }), 't', 'activation survives');
+      assert.equal(await sql("SELECT count(*)=1 FROM private.verifactu_events WHERE event_kind='mode_shadow';", { database: raceDb }), 't', 'activation event survives');
+    }
+    console.log(`PASS: ${kind} rollback waits for concurrent first ${action}, then refuses and preserves history`);
+  } finally {
+    await Promise.allSettled([writer, rolling].filter(Boolean));
+    if (raceCreated) await sql(`DROP DATABASE ${raceDb} WITH (FORCE);`, { database: 'postgres' });
+  }
+}
 let created = false;
 try {
   assert.ok(Number(await sql('SHOW server_version_num;', { database: 'postgres' })) >= 170000, 'PostgreSQL 17 or newer required');
@@ -114,6 +162,7 @@ try {
   await check(`(SELECT snapshot->'invoice'->>'rectification_reason'='Synthetic explicit price difference' AND (snapshot->'invoice'->>'total_amount')::numeric=0 AND (snapshot->'lines'->0->>'unit_price')::numeric=0 FROM private.verifactu_records WHERE invoice_id='${issuedChild}')`, 'issue-first retains old coherent header and lines and rejects waiting save');
   console.log('PASS: atomic correction saves and issue serialize in both orders with coherent snapshots');
   await chainCheck(11);
+  for (const kind of ['base','correction']) for (const action of ['issue','mode']) await rollbackWriterRace(kind,action,migration);
   console.log('VERI*FACTU correction PostgreSQL concurrency gate passed (synthetic data, no AEAT).');
 } finally {
   if (created) await sql(`DROP DATABASE ${db} WITH (FORCE);`, { database: 'postgres' });

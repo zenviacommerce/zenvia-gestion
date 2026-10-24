@@ -4,6 +4,17 @@ BEGIN;
 -- Restored legacy definitions may contain unqualified composite return types.
 SET LOCAL search_path=public;
 SET LOCAL lock_timeout='3s';SET LOCAL statement_timeout='15s';
+-- Freeze all source and archive writers BEFORE checking for any history.
+-- Source-first order follows fiscal writers. Contention/inversion fails bounded
+-- under lock_timeout; a failed transaction never reaches destructive DDL.
+LOCK TABLE public.sales_invoices,public.sales_invoice_lines,
+ public.sales_receipts,public.sales_receipt_lines,public.sales_invoice_series,
+ public.sales_invoice_released_numbers,public.sales_receipt_counters,
+ private.verifactu_settings,private.verifactu_chains,private.verifactu_series_state,
+ private.verifactu_records,private.verifactu_cancellations,
+ private.verifactu_receipt_snapshots,private.verifactu_events,
+ private.verifactu_draft_number_backup,private.verifactu_migration_backup
+ IN ACCESS EXCLUSIVE MODE;
 DO $gate$ BEGIN
  IF EXISTS(SELECT 1 FROM private.verifactu_records) OR EXISTS(SELECT 1 FROM private.verifactu_events) OR EXISTS(SELECT 1 FROM private.verifactu_series_state) OR EXISTS(SELECT 1 FROM private.verifactu_receipt_snapshots) OR EXISTS(SELECT 1 FROM private.verifactu_cancellations) THEN RAISE EXCEPTION 'VF_ROLLBACK_PRESERVE_HISTORY: disable shadow, do not drop records or recycle numbers';END IF;
  IF EXISTS(SELECT 1 FROM public.sales_receipts WHERE status='draft' AND receipt_number IS NULL) OR EXISTS(SELECT 1 FROM public.sales_invoices WHERE verifactu_type IS NOT NULL OR rectification_mode IS NOT NULL) THEN RAISE EXCEPTION 'VF_ROLLBACK_REVIEW_NEW_DRAFTS';END IF;

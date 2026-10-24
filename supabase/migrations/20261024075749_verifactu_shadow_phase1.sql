@@ -224,6 +224,12 @@ BEGIN
  IF used AND (new.code IS DISTINCT FROM old.code OR new.kind IS DISTINCT FROM old.kind OR new.year IS DISTINCT FROM old.year OR new.prefix IS DISTINCT FROM old.prefix OR new.padding IS DISTINCT FROM old.padding OR (new.next_number IS DISTINCT FROM old.next_number AND NOT internal_writer)) THEN RAISE EXCEPTION 'VF_SERIES_IMMUTABLE';END IF;RETURN new;
 END$$;
 CREATE TRIGGER vf_series_guard BEFORE UPDATE OR DELETE ON public.sales_invoice_series FOR EACH ROW EXECUTE FUNCTION private.vf_series_guard();
+CREATE FUNCTION private.vf_receipt_counter_guard() RETURNS trigger LANGUAGE plpgsql SET search_path='' AS $$
+BEGIN
+ IF current_user IS DISTINCT FROM pg_get_userbyid((SELECT relowner FROM pg_class WHERE oid='private.verifactu_records'::regclass)) THEN RAISE EXCEPTION 'VF_INTERNAL_COUNTER_ONLY';END IF;
+ RETURN CASE WHEN TG_OP='DELETE' THEN old ELSE new END;
+END$$;
+CREATE TRIGGER vf_receipt_counter_guard BEFORE INSERT OR UPDATE OR DELETE ON public.sales_receipt_counters FOR EACH ROW EXECUTE FUNCTION private.vf_receipt_counter_guard();
 REVOKE INSERT,UPDATE,DELETE ON public.sales_invoice_released_numbers,public.sales_receipt_counters FROM authenticated;
 CREATE POLICY vf_invoice_delete_draft ON public.sales_invoices AS RESTRICTIVE FOR DELETE TO authenticated USING(status='draft');
 CREATE POLICY vf_receipt_delete_draft ON public.sales_receipts AS RESTRICTIVE FOR DELETE TO authenticated USING(status='draft');

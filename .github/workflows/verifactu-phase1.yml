@@ -66,8 +66,8 @@ jobs:
           node-version: '22'
           cache: npm
       - run: npm ci
-      - name: Focused fiscal and lifecycle tests
-        run: npx vitest run tests/verifactu-core.test.ts tests/verifactu-hash.test.ts tests/verifactu-hash-sql-parity.test.ts tests/verifactu-ui-lifecycle.test.tsx --maxWorkers=2 --minWorkers=1
+      - name: Complete regression suite
+        run: npm test -- --maxWorkers=2 --minWorkers=1
       - run: npm run build
       - name: Install pinned screenshot runner
         run: npm install --no-save --package-lock=false playwright@1.58.2 && npx playwright install --with-deps chromium

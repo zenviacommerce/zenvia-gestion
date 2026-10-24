@@ -122,6 +122,12 @@ try {
   await denied('TRUNCATE private.verifactu_events;', /VF_APPEND_ONLY/);
   await chainCheck(26);
   console.log('PASS: fiscal immutability, tenant boundary, MFA, direct archive and issue bypass denied');
+  for(let n=41;n<=60;n++)await sql(`${context}INSERT INTO sales_receipts(id,owner_id,client_id,receipt_date) VALUES('${id(n)}','${owner}','00000000-0000-4000-8000-000000000011','2026-10-24');INSERT INTO sales_receipt_lines(id,owner_id,receipt_id,description,quantity,unit_price) VALUES('${id(n+1000)}','${owner}','${id(n)}','Synthetic proof of payment',1,100);`);
+  const receiptNumbers=await Promise.all(Array.from({length:20},(_,index)=>sql(`${context}SELECT r.receipt_number FROM public.issue_sales_receipt_document('${id(index+41)}')r;`)));
+  assert.deepEqual(receiptNumbers.sort(),Array.from({length:20},(_,index)=>`REC-2026-${String(index+1).padStart(4,'0')}`));
+  await check('(SELECT count(*)=20 FROM private.verifactu_receipt_snapshots)','all independent receipts have immutable snapshots');
+  await chainCheck(26);
+  console.log('PASS: 20 simultaneous standalone receipts have consecutive numbers and snapshots, without inferred fiscal RF');
   console.log('VERI*FACTU PostgreSQL concurrency gate passed (synthetic data, no AEAT connection).');
 } finally {
   if (created) await sql(`DROP DATABASE ${db} WITH (FORCE);`, { database: 'postgres' });

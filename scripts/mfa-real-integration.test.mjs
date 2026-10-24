@@ -168,7 +168,10 @@ gate('Self-service initial enrollment, second TOTP, out-of-cohort challenge and 
  sql(`update public.app_users set active=false where user_id='${noFactor.id}';`);
 });
 gate('Rename wrapper manifest, ownership isolation and cohort AAL2 (real GoTrue)',async()=>{
- sql("select 1 / (case when exists(select 1 from private.mfa_activation_findings()) then 0 else 1 end);");
+ sql(`DO $gate$ DECLARE findings text;BEGIN
+ SELECT string_agg(entry||': '||reason,E'\\n' ORDER BY entry) INTO findings FROM private.mfa_activation_findings();
+ IF findings IS NOT NULL THEN RAISE EXCEPTION 'MFA_ACTIVATION_FINDINGS: %',findings;END IF;
+ END $gate$;`);
  const actor={...primary,c:null,session:null};
  await login(actor); // independent fresh AAL1 session; preserve primary's AAL2 approver client
  let denied=await actor.c.rpc('security_mfa_rename_factor',{p_factor_id:actor.factor,p_friendly_name:'CI-current'});
@@ -246,3 +249,4 @@ after(async()=>{
  if(primary){try{sql(`delete from public.app_users where data_owner_id='${primary.id}';delete from public.workspaces where id='${primary.id}';`)}catch{}}
  admin.auth.stopAutoRefresh();
 });
+

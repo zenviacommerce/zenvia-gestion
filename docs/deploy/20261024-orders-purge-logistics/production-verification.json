@@ -1,0 +1,183 @@
+{
+  "checks": [
+    {
+      "name": "real-auth-vault",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "Vercel Preview Comments",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "package-and-parity",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "screenshots",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "auth-tests",
+      "status": "completed",
+      "conclusion": "success"
+    },
+    {
+      "name": "build",
+      "status": "completed",
+      "conclusion": "success"
+    }
+  ],
+  "verification": [
+    {
+      "verification": {
+        "dirty": 0,
+        "stale": 0,
+        "receipt": {
+          "repair_ms": 686.752,
+          "deployment": "20261024-purge-logistics",
+          "completed_at": "2026-10-24T07:26:25.958223+00:00",
+          "retained_rows": 549,
+          "refreshed_groups": 9
+        },
+        "retained": 549,
+        "wrong_purged": 0,
+        "migration_recorded": false
+      }
+    }
+  ],
+  "before": [
+    {
+      "baseline": {
+        "source": {
+          "rows": 549,
+          "digest": "7d8b9c1166f52bfb71a1e9c916b62c26"
+        },
+        "invoices": {
+          "rows": 82,
+          "digest": "694c78a5ed9ca85c9cf95903c523de26"
+        },
+        "invoice_lines": {
+          "rows": 330,
+          "digest": "8bcfa07cc5dada5bb25d72e4eb5d5e5b"
+        },
+        "pickup_reports": {
+          "rows": 4,
+          "digest": "cce6bc567b3415b1d3b8e56ec4a9861d"
+        },
+        "sales_invoices": {
+          "rows": 29,
+          "digest": "8755082390e2da03df1b371cc6b7a887"
+        },
+        "pickup_report_items": {
+          "rows": 33,
+          "digest": "0de70b80f4ddacb2ca0dfdc4a673a499"
+        },
+        "sales_invoice_lines": {
+          "rows": 50,
+          "digest": "3fd86734973425f7a19184ca280d5a62"
+        }
+      }
+    }
+  ],
+  "after": [
+    {
+      "baseline": {
+        "source": {
+          "rows": 549,
+          "digest": "7d8b9c1166f52bfb71a1e9c916b62c26"
+        },
+        "invoices": {
+          "rows": 82,
+          "digest": "694c78a5ed9ca85c9cf95903c523de26"
+        },
+        "invoice_lines": {
+          "rows": 330,
+          "digest": "8bcfa07cc5dada5bb25d72e4eb5d5e5b"
+        },
+        "pickup_reports": {
+          "rows": 4,
+          "digest": "cce6bc567b3415b1d3b8e56ec4a9861d"
+        },
+        "sales_invoices": {
+          "rows": 29,
+          "digest": "8755082390e2da03df1b371cc6b7a887"
+        },
+        "pickup_report_items": {
+          "rows": 33,
+          "digest": "0de70b80f4ddacb2ca0dfdc4a673a499"
+        },
+        "sales_invoice_lines": {
+          "rows": 50,
+          "digest": "3fd86734973425f7a19184ca280d5a62"
+        }
+      }
+    }
+  ],
+  "rpcPending": [
+    {
+      "verification": {
+        "rpc": "orders_workbench_v1",
+        "rows": 2,
+        "state": "pending",
+        "total": 2,
+        "counters": {
+          "issues": 7,
+          "pending": 2,
+          "shipped": 943,
+          "labelled": 0,
+          "cancelled": 64
+        },
+        "elapsed_ms": 147.801
+      }
+    }
+  ],
+  "rpcShipped": [
+    {
+      "verification": {
+        "rpc": "orders_workbench_v1",
+        "rows": 25,
+        "state": "shipped",
+        "total": 943,
+        "counters": {
+          "issues": 7,
+          "pending": 2,
+          "shipped": 943,
+          "labelled": 0,
+          "cancelled": 64
+        },
+        "elapsed_ms": 183.582
+      }
+    }
+  ],
+  "rpcPickup": [
+    {
+      "verification": {
+        "rpc": "orders_dashboard_pickup_v1",
+        "rows": 2,
+        "state": "pending",
+        "total": 2,
+        "counters": null,
+        "elapsed_ms": 144.19
+      }
+    }
+  ],
+  "rpcLogistics": [
+    {
+      "verification": {
+        "rpc": "order_logistics_read",
+        "orders": 9,
+        "elapsed_ms": 23.694,
+        "all_shipped": true
+      }
+    }
+  ]
+}

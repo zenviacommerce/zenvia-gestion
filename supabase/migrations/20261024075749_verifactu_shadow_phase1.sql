@@ -426,6 +426,9 @@ CREATE FUNCTION public.verifactu_shadow_status() RETURNS jsonb LANGUAGE sql STAB
 
 -- Use the existing public MFA-wrapper/manifest contract, without changing pilot
 -- configuration, cohort, factors, credentials or any existing MFA setting.
+-- pg_get_functiondef qualifies composite return types according to search_path.
+-- Match private.mfa_activation_findings() exactly when recording wrapper hashes.
+SET LOCAL search_path='';
 DO $wrappers$ DECLARE f record;src text;impl text;impl_oid regprocedure;args text;body text;result_type text;old_manifest jsonb;BEGIN
  FOR f IN SELECT p.* FROM pg_proc p WHERE p.pronamespace='public'::regnamespace AND p.proname IN('issue_sales_invoice','issue_sales_receipt','issue_sales_receipt_document','verifactu_cancel_sales_document','verifactu_shadow_status','delete_reversible_sales_invoice') LOOP
   SELECT to_jsonb(m) INTO old_manifest FROM private.mfa_function_manifest m WHERE m.function_oid=f.oid;

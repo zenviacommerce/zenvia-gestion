@@ -6,6 +6,24 @@ const patch='supabase/migrations/20261023185119_orders_299_approved_cache_backfi
 const summaryPatch='supabase/migrations/20261023214651_orders_operational_summary_mfa.sql';
 const readBasePatch=()=>readFileSync(patch,'utf8')+readFileSync(summaryPatch,'utf8');
 const readPatch=()=>readBasePatch()+readFileSync('docs/deploy/20261024-orders-purge-logistics/definitions.sql','utf8');
+it('executes the exact 549-row repair with nine bad groups atomically and leaves source rows unchanged',async()=>{
+ const{db}=await fixture();try{
+ await db.exec(readBasePatch());
+ await db.exec(`insert into fulfillment_orders(id,owner_id,sendcloud_id,order_number,source_channel,source_status,order_created_at,fulfilled_at,pii_purged_at,shipping_address,items,shipping_provider,carrier_name)
+ select md5('purge-'||n)::uuid,'00000000-0000-4000-8000-000000000001','purge-'||n,'403-'||lpad(n::text,7,'0')||'-1234567','amazon',case when n>513 then 'Cancelled' else 'Shipped' end,'2026-08-01',case when n<=513 then '2026-08-25'::timestamptz end,now(),'{}','[]','sendcloud','MRW' from generate_series(1,549)n;
+ insert into private.order_logistics_legacy(owner_id,identity_key,order_id,historical_date,basis) select owner_id,private.shipment_tracking_identity(o),id,'2026-08-25','pre_cutover_channel_history' from fulfillment_orders o where sendcloud_id like 'purge-%' and substring(sendcloud_id from 7)::int<=504;
+ insert into private.order_dispatch_evidence(owner_id,identity_key,order_id,dispatched_at,cause,evidence_basis) select owner_id,'old-erased-label-'||id,id,'2026-08-28','tracking','legacy_carrier_status_observed' from fulfillment_orders where sendcloud_id like 'purge-%' and substring(sendcloud_id from 7)::int between 505 and 513;
+ select private.orders_dashboard_projection_reconcile(1000);`);
+ const source=()=>db.query<any>("select md5(string_agg(to_jsonb(o)::text,'~' order by id)) digest from fulfillment_orders o");const before=(await source()).rows;
+ expect((await db.query<any>("select count(*) n from private.orders_dashboard_projection where pii_purged_at is not null and order_state='pending'")).rows[0].n).toBe(9);
+ await db.exec(readFileSync('docs/deploy/20261024-orders-purge-logistics/apply.sql','utf8'));
+ expect((await db.query<any>('select count(*) n from private.order_logistics_retention')).rows[0].n).toBe(549);
+ expect((await db.query<any>("select order_state,count(*)::int n from private.orders_dashboard_projection where pii_purged_at is not null group by 1 order by 1")).rows).toEqual([{order_state:'cancelled',n:36},{order_state:'shipped',n:513}]);
+ expect((await source()).rows).toEqual(before);
+ expect((await db.query<any>('select count(*) n from private.orders_projection_stale_keys()')).rows[0].n).toBe(0);
+ const report=(await db.query<any>("select obj_description('private.order_logistics_retention'::regclass)::jsonb report")).rows[0].report;expect(report.retained_rows).toBe(549);expect(report.refreshed_groups).toBe(9);expect(report.repair_ms).toBeLessThan(15000);console.info('Synthetic retention repair: 549 derived rows / 9 groups, ms='+report.repair_ms);
+ }finally{await db.close()}
+},30000);
 it('installs on a fresh schema without the optional production projection cache',async()=>{
  const{db}=await verificationFixture('legacy');try{
  await db.exec("set zenvia.logistics_release_bundle='atomic'");await db.exec(readFileSync('supabase/migrations/20261023103551_internal_logistics_state.sql','utf8'));

@@ -3,6 +3,13 @@ const boundary=vi.hoisted(()=>({rows:[] as any[],facts:[] as any[],rpc:vi.fn(),c
 vi.mock('../src/services/supabase',()=>({supabase:{},getActiveSupabase:()=>boundary.client}));
 import {listFulfillmentOrders} from '../src/services/orders';import{isProcessedOrder,isPendingOrder}from'../src/services/orderStatus';
 import {readOrdersSnapshot} from '../src/services/ordersSnapshot';
+it('does not resurrect a purged order when lightweight alert reads omit logistics metadata',()=>{
+ const archived={piiPurgedAt:'2026-10-24T02:30:00Z',sourceStatus:'Shipped',fulfilledAt:'2026-08-25T08:00:00Z'} as any;
+ expect(isProcessedOrder(archived)).toBe(true);expect(isPendingOrder(archived)).toBe(false);
+ expect(isProcessedOrder({...archived,sourceStatus:'Cancelled'})).toBe(false);
+ expect(isPendingOrder({...archived,sourceStatus:'Cancelled'})).toBe(false);
+ expect(isPendingOrder({sourceStatus:'Unshipped'} as any)).toBe(true);
+});
 it('Summary reads the same current-label evidence and historical distinction as the workbench',async()=>{
  boundary.rows=[{id:'one',source_channel:'amazon',source_status:'shipped',order_number:'DEMO1',label_created_at:'2026-10-23T08:00:00Z'},{id:'two',source_channel:'shopify',source_status:'shipped',order_number:'DEMO2'}];
  boundary.facts=[{id:'one',logistics_identity:'generation1',logistics_state:'labelled',logistics:null},{id:'two',logistics_identity:'history2',logistics_state:'shipped',logistics:{historical:true,historicalDate:'2026-10-22T08:00:00Z'}}];

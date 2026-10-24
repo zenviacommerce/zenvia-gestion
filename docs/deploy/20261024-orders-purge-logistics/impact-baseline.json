@@ -1,0 +1,36 @@
+[
+  {
+    "baseline": {
+      "purged": {
+        "rows": 549,
+        "cost_sum": null,
+        "cost_known": 0,
+        "carrier_digest": "0638566b86f0092e8712a2386cdb00e7"
+      },
+      "invoices": {
+        "rows": 82,
+        "digest": "694c78a5ed9ca85c9cf95903c523de26"
+      },
+      "invoice_lines": {
+        "rows": 330,
+        "digest": "8bcfa07cc5dada5bb25d72e4eb5d5e5b"
+      },
+      "pickup_reports": {
+        "rows": 4,
+        "digest": "cce6bc567b3415b1d3b8e56ec4a9861d"
+      },
+      "sales_invoices": {
+        "rows": 29,
+        "digest": "8755082390e2da03df1b371cc6b7a887"
+      },
+      "pickup_report_items": {
+        "rows": 33,
+        "digest": "0de70b80f4ddacb2ca0dfdc4a673a499"
+      },
+      "sales_invoice_lines": {
+        "rows": 50,
+        "digest": "3fd86734973425f7a19184ca280d5a62"
+      }
+    }
+  }
+]

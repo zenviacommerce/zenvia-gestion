@@ -23,6 +23,7 @@ export function isReadyForDispatch(order:FulfillmentOrder){
 export function isProcessedOrder(order:FulfillmentOrder){
   if(isCancelledOrder(order))return false;
   if(order.labelCancelledAt)return false;
+  if(order.piiPurgedAt)return true;
   if(order.logisticsHistorical===true)return true;
   if(!hasShippingLabel(order))return false;
   return Boolean(order.logisticsDispatchedAt);
@@ -40,3 +41,4 @@ export function isAmazonAwaitingPayment(order:FulfillmentOrder){
 export function isPendingOrder(order:FulfillmentOrder){
   return !isAmazonAwaitingPayment(order)&&!hasShippingLabel(order)&&!isCancelledOrder(order)&&!isProcessedOrder(order);
 }
+

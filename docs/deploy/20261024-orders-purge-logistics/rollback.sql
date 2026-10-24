@@ -1,0 +1,785 @@
+-- Emergency rollback: exact pre-hotfix eight functions. Retain non-PII archival facts.
+-- Restoring the previous classifier reintroduces the known Pending defect. Never restore erased PII.
+BEGIN;
+SET LOCAL lock_timeout='3s';
+SET LOCAL statement_timeout='15s';
+DROP TRIGGER IF EXISTS zzzzb_order_logistics_retention ON public.fulfillment_orders;
+CREATE OR REPLACE FUNCTION private.mfa_impl_order_logistics_read(p_ids uuid[])
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+DECLARE v_owner uuid:=private.pickup_report_owner();
+BEGIN
+ IF p_ids IS NULL OR cardinality(p_ids)>10000 THEN RAISE EXCEPTION 'LOGISTICS_INVALID_SELECTION';END IF;
+ RETURN (
+ WITH requested AS MATERIALIZED (
+  SELECT o.id,o.owner_id,o.source_status,o.label_cancelled_at,o.pii_purged_at,
+   o.shipping_provider,o.tracking_status_code,
+   (o.label_created_at IS NOT NULL OR o.sendcloud_parcel_id IS NOT NULL OR nullif(o.shipping_remote_id,'') IS NOT NULL) has_label,
+   private.shipment_tracking_identity(o) identity_key
+  FROM public.fulfillment_orders o WHERE o.owner_id=v_owner AND o.id=ANY(p_ids)
+ ), facts AS MATERIALIZED (
+  SELECT o.*,s.normalized_state,
+   CASE
+    WHEN d.identity_key IS NOT NULL AND o.label_cancelled_at IS NULL AND o.pii_purged_at IS NULL AND o.has_label
+     THEN jsonb_build_object('dispatchedAt',d.dispatched_at,'cause',d.cause,'actorId',d.actor_id,'reportId',d.report_id,'basis',d.evidence_basis,'observedOnly',d.evidence_basis LIKE '%_observed')
+    WHEN d.identity_key IS NULL AND h.order_id IS NOT NULL AND (h.basis='pre_cutover_label_without_evidence' OR NOT o.has_label)
+     THEN jsonb_build_object('historical',true,'historicalDate',h.historical_date,'basis',h.basis)
+   END evidence
+  FROM requested o
+  LEFT JOIN private.order_dispatch_evidence d ON d.owner_id=o.owner_id AND d.identity_key=o.identity_key
+  LEFT JOIN private.order_logistics_legacy h ON h.owner_id=o.owner_id AND h.order_id=o.id AND h.identity_key=o.identity_key
+  LEFT JOIN public.shipment_tracking_state s ON s.owner_id=o.owner_id AND s.order_id=o.id AND s.identity_key=o.identity_key
+ )
+ SELECT coalesce(jsonb_agg(jsonb_build_object('id',id,'logistics_identity',identity_key,'logistics',evidence,
+  'logistics_state',CASE
+   WHEN lower(trim(coalesce(source_status,''))) IN ('cancelled','canceled','cancelled_by_customer','cancelled_by_seller')
+    OR label_cancelled_at IS NOT NULL
+    OR coalesce(normalized_state,private.tracking_legacy_state(shipping_provider,tracking_status_code))='cancelled' THEN 'cancelled'
+   WHEN evidence->>'historical'='true' THEN 'shipped'
+   WHEN NOT has_label THEN 'pending'
+   WHEN evidence IS NOT NULL THEN 'shipped'
+   ELSE 'labelled' END)),'[]'::jsonb) FROM facts);
+END
+$function$;
+
+CREATE OR REPLACE FUNCTION private.order_logistics_evidence(p_row jsonb)
+ RETURNS jsonb
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+ select jsonb_build_object('dispatchedAt',d.dispatched_at,'cause',d.cause,'actorId',d.actor_id,'reportId',d.report_id,'basis',d.evidence_basis,'observedOnly',d.evidence_basis like '%_observed')
+ from private.order_dispatch_evidence d where d.owner_id=(p_row->>'owner_id')::uuid
+ and d.identity_key=private.order_logistics_identity(p_row)
+ and p_row->>'label_cancelled_at' is null and p_row->>'pii_purged_at' is null
+ and (p_row->>'label_created_at' is not null or p_row->>'sendcloud_parcel_id' is not null or nullif(p_row->>'shipping_remote_id','') is not null)
+ union all
+ select jsonb_build_object('historical',true,'historicalDate',h.historical_date,'basis',h.basis) from private.order_logistics_legacy h
+ where h.owner_id=(p_row->>'owner_id')::uuid and h.order_id=(p_row->>'id')::uuid and h.identity_key=private.order_logistics_identity(p_row)
+ and (h.basis='pre_cutover_label_without_evidence' or (p_row->>'label_created_at' is null and p_row->>'sendcloud_parcel_id' is null and nullif(p_row->>'shipping_remote_id','') is null))
+ and not exists(select 1 from private.order_dispatch_evidence d where d.owner_id=h.owner_id and d.identity_key=h.identity_key);
+$function$;
+
+CREATE OR REPLACE FUNCTION private.order_logistics_state(p_row jsonb)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$
+ select case
+ when lower(trim(coalesce(p_row->>'source_status',''))) in ('cancelled','canceled','cancelled_by_customer','cancelled_by_seller')
+ or p_row->>'label_cancelled_at' is not null or coalesce(p_row->>'tracking_normalized_state',
+ (select s.normalized_state from public.shipment_tracking_state s where s.owner_id=(p_row->>'owner_id')::uuid and s.order_id=(p_row->>'id')::uuid and s.identity_key=private.order_logistics_identity(p_row)),
+ private.tracking_legacy_state(p_row->>'shipping_provider',p_row->>'tracking_status_code'))='cancelled' then 'cancelled'
+ when private.order_logistics_evidence(p_row)->>'historical'='true' then 'shipped'
+ when not (p_row->>'label_created_at' is not null or p_row->>'sendcloud_parcel_id' is not null or nullif(p_row->>'shipping_remote_id','') is not null) then 'pending'
+ when private.order_logistics_evidence(p_row) is not null then 'shipped'
+ else 'labelled' end;
+$function$;
+
+CREATE OR REPLACE FUNCTION private.orders_dashboard_projection_refresh(p_owner uuid, p_key text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO ''
+AS $function$BEGIN DELETE FROM private.orders_projection_versions WHERE owner_id=p_owner AND group_key=p_key;
+ INSERT INTO private.orders_projection_versions SELECT 'orders',o.id,o.owner_id,p_key,(o.xmin::text||':'||o.ctid::text)
+ FROM public.fulfillment_orders o WHERE o.owner_id=p_owner AND private.orders_dashboard_group_key(o.source_channel,o.order_number,o.id)=p_key;
+ INSERT INTO private.orders_projection_versions SELECT 'tracking',t.order_id,o.owner_id,p_key,(t.xmin::text||':'||t.ctid::text)
+ FROM public.shipment_tracking_state t JOIN public.fulfillment_orders o ON o.id=t.order_id
+ WHERE o.owner_id=p_owner AND private.orders_dashboard_group_key(o.source_channel,o.order_number,o.id)=p_key;
+ WITH refreshed AS MATERIALIZED (
+WITH ranked AS (
+ SELECT o.*, o.owner_id::text||':'||CASE WHEN o.source_channel IN ('amazon','shopify') AND trim(coalesce(o.order_number,''))<>'' THEN o.source_channel||':'||trim(o.order_number) ELSE o.id::text END AS dedupe_key,
+  row_number() OVER (
+   PARTITION BY CASE
+      WHEN o.source_channel IN ('amazon','shopify') AND trim(coalesce(o.order_number,''))<>''
+        THEN o.source_channel||':'||trim(o.order_number)
+      ELSE o.id::text
+   END
+   ORDER BY
+    ((CASE WHEN coalesce(nullif(o.sendcloud_remote_id,''),o.sendcloud_id,'')<>'' AND coalesce(nullif(o.sendcloud_remote_id,''),o.sendcloud_id) NOT LIKE 'amazon:%' THEN 40 ELSE 0 END)
+    +(CASE WHEN o.shipping_integration_account_id IS NOT NULL THEN 20 ELSE 0 END)
+    +(CASE WHEN nullif(o.customer_name,'') IS NOT NULL THEN 8 ELSE 0 END)
+    +(CASE WHEN nullif(o.customer_phone,'') IS NOT NULL THEN 4 ELSE 0 END)
+    +(CASE WHEN nullif(o.customer_email,'') IS NOT NULL THEN 2 ELSE 0 END)
+    +(CASE WHEN nullif(o.shipping_address->>'address_line_1','') IS NOT NULL THEN 8 ELSE 0 END)
+    +(CASE WHEN nullif(o.shipping_address->>'postal_code','') IS NOT NULL THEN 4 ELSE 0 END)
+    +(CASE WHEN o.raw_payload#>>'{shipping_details,measurement,weight,value}' ~ '^[0-9]+([.][0-9]+)?$' THEN CASE WHEN (o.raw_payload#>>'{shipping_details,measurement,weight,value}')::numeric>0 THEN 4 ELSE 0 END ELSE 0 END)
+    +(CASE WHEN jsonb_typeof(o.items)='array' AND jsonb_array_length(o.items)>0 THEN 2 ELSE 0 END)
+    +(CASE WHEN o.sendcloud_parcel_id IS NOT NULL OR o.shipping_remote_id IS NOT NULL OR o.label_created_at IS NOT NULL THEN 50 ELSE 0 END)
+    ) DESC,
+    o.order_created_at DESC NULLS LAST,o.id DESC
+  ) AS dedupe_rank
+ FROM public.fulfillment_orders o WHERE o.owner_id=p_owner AND private.orders_dashboard_group_key(o.source_channel,o.order_number,o.id)=p_key
+),
+grouped AS MATERIALIZED (
+ SELECT dedupe_key,jsonb_agg(to_jsonb(r) ORDER BY dedupe_rank) copies FROM ranked r GROUP BY dedupe_key
+),
+merged_json AS MATERIALIZED (
+ SELECT copies->0||jsonb_build_object(
+'source_integration_account_id',(SELECT v->'source_integration_account_id' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'source_integration_account_id' IS NOT NULL AND v->'source_integration_account_id'<>'null'::jsonb AND coalesce(v->>'source_integration_account_id','')<>'' ORDER BY n LIMIT 1),
+'customer_name',(SELECT v->'customer_name' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'customer_name' IS NOT NULL AND v->'customer_name'<>'null'::jsonb AND coalesce(v->>'customer_name','')<>'' ORDER BY n LIMIT 1),
+'customer_email',(SELECT v->'customer_email' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'customer_email' IS NOT NULL AND v->'customer_email'<>'null'::jsonb AND coalesce(v->>'customer_email','')<>'' ORDER BY n LIMIT 1),
+'customer_phone',(SELECT v->'customer_phone' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'customer_phone' IS NOT NULL AND v->'customer_phone'<>'null'::jsonb AND coalesce(v->>'customer_phone','')<>'' ORDER BY n LIMIT 1),
+'currency',(SELECT v->'currency' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'currency' IS NOT NULL AND v->'currency'<>'null'::jsonb AND coalesce(v->>'currency','')<>'' ORDER BY n LIMIT 1),
+'pii_purged_at',(SELECT v->'pii_purged_at' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'pii_purged_at' IS NOT NULL AND v->'pii_purged_at'<>'null'::jsonb AND coalesce(v->>'pii_purged_at','')<>'' ORDER BY n LIMIT 1),
+'destination_country_code',(SELECT v->'destination_country_code' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'destination_country_code' IS NOT NULL AND v->'destination_country_code'<>'null'::jsonb AND coalesce(v->>'destination_country_code','')<>'' ORDER BY n LIMIT 1),
+'package_length_cm',(SELECT v->'package_length_cm' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'package_length_cm' IS NOT NULL AND v->'package_length_cm'<>'null'::jsonb AND coalesce(v->>'package_length_cm','')<>'' ORDER BY n LIMIT 1),
+'package_width_cm',(SELECT v->'package_width_cm' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'package_width_cm' IS NOT NULL AND v->'package_width_cm'<>'null'::jsonb AND coalesce(v->>'package_width_cm','')<>'' ORDER BY n LIMIT 1),
+'package_height_cm',(SELECT v->'package_height_cm' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'package_height_cm' IS NOT NULL AND v->'package_height_cm'<>'null'::jsonb AND coalesce(v->>'package_height_cm','')<>'' ORDER BY n LIMIT 1),
+'total_amount',(SELECT v->'total_amount' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'total_amount' IS NOT NULL AND v->'total_amount'<>'null'::jsonb AND coalesce(v->>'total_amount','')<>'' ORDER BY n LIMIT 1),
+'shipping_address',coalesce((SELECT v->'shipping_address' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE jsonb_typeof(v->'shipping_address')='object' AND v->'shipping_address'<>'{}'::jsonb ORDER BY n LIMIT 1),'{}'::jsonb),
+'billing_address',coalesce((SELECT v->'billing_address' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE jsonb_typeof(v->'billing_address')='object' AND v->'billing_address'<>'{}'::jsonb ORDER BY n LIMIT 1),'{}'::jsonb),
+'items',coalesce((SELECT v->'items' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE jsonb_typeof(v->'items')='array' AND v->'items'<>'[]'::jsonb ORDER BY n LIMIT 1),'[]'::jsonb),
+'raw_payload',coalesce(nullif(copies->0->'raw_payload','null'::jsonb),'{}'::jsonb)||jsonb_build_object('shipping_details',coalesce(nullif(copies->0#>'{raw_payload,shipping_details}','null'::jsonb),'{}'::jsonb)||jsonb_build_object('measurement',coalesce(nullif(copies->0#>'{raw_payload,shipping_details,measurement}','null'::jsonb),'{}'::jsonb)||jsonb_build_object('weight',(SELECT v#>'{raw_payload,shipping_details,measurement,weight}' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v#>>'{raw_payload,shipping_details,measurement,weight,value}' ~ '^[0-9]+([.][0-9]+)?$' ORDER BY n LIMIT 1))))
+) AS data FROM grouped
+),
+merged AS MATERIALIZED (
+ SELECT populated.* FROM merged_json CROSS JOIN LATERAL
+   jsonb_populate_record(NULL::public.fulfillment_orders,
+   CASE WHEN data->>'pii_purged_at' IS NOT NULL THEN data||jsonb_build_object(
+     'customer_name',NULL,'customer_email',NULL,'customer_phone',NULL,
+     'shipping_address','{}'::jsonb,'billing_address','{}'::jsonb,'raw_payload','{}'::jsonb,
+     'tracking_number',NULL,'tracking_url',NULL,'shipping_label_url',NULL,'tracking_status_message',NULL,'amazon_tracking_sync_error',NULL,'shopify_tracking_sync_error',NULL,'shopify_tracking_synced_number',NULL,'sendcloud_id','amazon-purged:'||(data->>'id'),
+     'shipping_remote_id',NULL,'sendcloud_parcel_id',NULL,'sendcloud_shipment_id',NULL,'sendcloud_remote_id',NULL,
+     'items',coalesce((SELECT jsonb_agg(jsonb_strip_nulls(jsonb_build_object('item_id',CASE WHEN jsonb_typeof(item->'item_id') IN ('string','number') THEN item->'item_id' END,'sku',CASE WHEN jsonb_typeof(item->'sku') IN ('string') THEN item->'sku' END,'product_id',CASE WHEN jsonb_typeof(item->'product_id') IN ('string') THEN item->'product_id' END,'quantity',CASE WHEN jsonb_typeof(item->'quantity') IN ('number') THEN item->'quantity' END,'unit_price',CASE WHEN jsonb_typeof(item->'unit_price')='number' THEN item->'unit_price' WHEN jsonb_typeof(item->'unit_price')='object' THEN jsonb_strip_nulls(jsonb_build_object('value',CASE WHEN item->'unit_price'->>'value' ~ '^-?[0-9]+([.][0-9]+)?$' THEN (item->'unit_price'->>'value')::numeric END,'currency',CASE WHEN item->'unit_price'->>'currency' ~ '^[A-Z]{3}$' THEN item->'unit_price'->>'currency' END)) END,'total_price',CASE WHEN jsonb_typeof(item->'total_price')='number' THEN item->'total_price' WHEN jsonb_typeof(item->'total_price')='object' THEN jsonb_strip_nulls(jsonb_build_object('value',CASE WHEN item->'total_price'->>'value' ~ '^-?[0-9]+([.][0-9]+)?$' THEN (item->'total_price'->>'value')::numeric END,'currency',CASE WHEN item->'total_price'->>'currency' ~ '^[A-Z]{3}$' THEN item->'total_price'->>'currency' END)) END))) FROM jsonb_array_elements(coalesce(data->'items','[]'::jsonb)) item),'[]'::jsonb)
+   ) ELSE data END) AS populated
+),
+normalized AS (
+ SELECT r.*, st.normalized_state as tracking_normalized_state,st.raw_code as tracking_raw_code,st.raw_message as tracking_raw_message,st.event_at as tracking_event_at,st.raw_event_time as tracking_event_time_raw,st.observed_at as tracking_observed_at,st.movement_at as tracking_movement_at,st.last_checked_at as tracking_checked_at,st.last_error as tracking_error,
+   lower(trim(coalesce(r.source_status,''))) AS source_code,
+   lower(regexp_replace(concat_ws(' ',r.tracking_status_code,r.tracking_status_message),'[_-]+',' ','g')) AS tracking_text,
+   (r.sendcloud_parcel_id IS NOT NULL OR nullif(r.shipping_remote_id,'') IS NOT NULL OR r.label_created_at IS NOT NULL) AS has_label,
+   upper(coalesce(nullif(r.destination_country_code,''),nullif(r.shipping_address->>'country_code',''),'XX')) AS country_code,
+   CASE
+     WHEN regexp_replace(lower(coalesce(r.carrier_code,r.carrier_name,'')),'[^a-z0-9]','','g')='correosexpress' THEN 'correos express'
+     WHEN regexp_replace(lower(coalesce(r.carrier_code,r.carrier_name,'')),'[^a-z0-9]','','g')='correos' THEN 'correos'
+     WHEN regexp_replace(lower(coalesce(r.carrier_code,r.carrier_name,'')),'[^a-z0-9]','','g')='mrw' THEN 'mrw'
+     WHEN nullif(r.carrier_name,'') IS NOT NULL THEN lower(r.carrier_name)
+     WHEN lower(coalesce(r.carrier_code,split_part(r.shipping_option_code,':',1),'')) LIKE '%correos%' THEN 'correos'
+     WHEN lower(coalesce(r.carrier_code,split_part(r.shipping_option_code,':',1),'')) LIKE '%mrw%' THEN 'mrw'
+     ELSE lower(coalesce(nullif(r.carrier_code,''),split_part(r.shipping_option_code,':',1),'—'))
+   END AS carrier_label
+ FROM merged r LEFT JOIN public.shipment_tracking_state st ON st.order_id=r.id AND st.owner_id=r.owner_id AND r.pii_purged_at IS NULL AND st.account_id=r.shipping_integration_account_id AND st.identity_key=md5(jsonb_build_array(r.owner_id,r.shipping_integration_account_id,r.shipping_provider,r.tracking_number,r.shipping_remote_id,r.sendcloud_parcel_id,r.label_created_at,r.label_cancelled_at)::text)
+ WHERE NOT (r.source_channel='amazon' AND
+     regexp_replace(lower(coalesce(r.source_status,'')),'[^a-z]','','g')
+       IN ('pending','pendingavailability','invoiceunconfirmed'))
+),
+flags AS (
+ SELECT n.*,
+  (n.source_code IN ('cancelled','canceled','cancelled_by_customer','cancelled_by_seller') OR coalesce(n.tracking_normalized_state,private.tracking_legacy_state(n.shipping_provider,n.tracking_status_code))='cancelled') AS is_cancelled,
+  (n.source_code IN ('fulfilled','shipped','delivered') OR
+    (n.has_label AND n.tracking_text<>'' AND
+      NOT (n.tracking_text LIKE ANY(ARRAY[
+        '%created%','%pending%','%ready to send%','%ready for shipment%',
+        '%announced%','%being announced%','%no label%',
+        '%announcement failed%','%error collecting%'])))) AS has_progress,
+  CASE coalesce(n.tracking_normalized_state,CASE WHEN n.shipping_provider='mrw' THEN NULL ELSE private.tracking_legacy_state(n.shipping_provider,n.tracking_status_code) END)
+ WHEN 'pre_transit' THEN 'ready' WHEN 'in_transit' THEN 'transit' WHEN 'out_for_delivery' THEN 'route'
+ WHEN 'delivered' THEN 'delivered' WHEN 'exception' THEN 'issue' WHEN 'returned' THEN 'returned' WHEN 'cancelled' THEN 'cancelled' ELSE 'none' END AS tracking_class
+ FROM normalized n
+),
+classified AS (
+ SELECT f.*,
+  CASE WHEN f.raw_payload#>>'{shipping_details,measurement,weight,value}' ~ '^[0-9]+([.][0-9]+)?$'
+    THEN (f.raw_payload#>>'{shipping_details,measurement,weight,value}')::numeric * CASE lower(f.raw_payload#>>'{shipping_details,measurement,weight,unit}') WHEN 'g' THEN 0.001 WHEN 'lb' THEN 0.45359237 WHEN 'lbs' THEN 0.45359237 ELSE 1 END END AS weight_sort,
+  (SELECT coalesce(sum(CASE WHEN item->>'quantity' ~ '^-?[0-9]+([.][0-9]+)?$' AND (item->>'quantity')::numeric<>0 THEN (item->>'quantity')::numeric ELSE 1 END),0) FROM jsonb_array_elements(CASE WHEN jsonb_typeof(f.items)='array' THEN f.items ELSE '[]'::jsonb END) item) AS units_sort,
+  CASE WHEN NOT f.has_label THEN '' WHEN f.label_printed_at IS NOT NULL THEN '2-'||f.label_printed_at::text WHEN f.label_print_state_known THEN '1' ELSE '0' END AS print_sort,
+  private.order_logistics_state(to_jsonb(f)) AS order_state,
+  (f.order_created_at AT TIME ZONE 'Europe/Madrid')::date AS created_day,
+  (coalesce(nullif(private.order_logistics_evidence(to_jsonb(f))->>'dispatchedAt',''),nullif(private.order_logistics_evidence(to_jsonb(f))->>'historicalDate',''))::timestamptz AT TIME ZONE 'Europe/Madrid')::date AS dispatched_day,
+  (coalesce(f.shipping_cost_recorded_at,f.fulfilled_at,f.label_created_at,f.tracking_updated_at,f.order_created_at) AT TIME ZONE 'Europe/Madrid')::date AS shipping_cost_day,
+  coalesce((('{"ES":21,"PT":23,"FR":20,"DE":19,"IT":22,"NL":21,"BE":21,"AT":20,"IE":23,"PL":23,"CZ":21,"GR":24,"HU":27,"RO":21,"FI":25.5,"SE":25,"DK":25,"HR":25,"SI":22,"SK":23,"LT":21,"LV":21,"EE":24,"BG":20,"CY":19,"MT":18,"LU":17,"GB":20}'::jsonb)->>
+    upper(coalesce(nullif(f.destination_country_code,''),nullif(f.shipping_address->>'country_code',''),'XX')))::numeric,0) AS vat_percent
+ FROM flags f
+) SELECT c.id,c.owner_id,c.sendcloud_id,c.order_id,c.order_number,c.integration_id,c.integration_name,c.integration_type,c.source_channel,c.source_status,c.order_created_at,c.order_updated_at,c.customer_name,c.customer_email,c.customer_phone,c.shipping_address,c.billing_address,c.items,c.total_amount,c.currency,c.raw_payload,c.sendcloud_parcel_id,c.sendcloud_shipment_id,c.tracking_number,c.tracking_url,c.shipping_option_code,c.contract_id,c.label_created_at,c.fulfilled_at,c.last_synced_at,c.created_at,c.updated_at,c.carrier_code,c.carrier_name,c.shipping_service_name,c.tracking_status_code,c.tracking_status_message,c.tracking_updated_at,c.amazon_tracking_synced_at,c.amazon_tracking_last_attempt_at,c.amazon_tracking_sync_error,c.amazon_tracking_sync_attempts,c.shipping_cost_amount,c.shipping_cost_currency,c.shipping_cost_source,c.shipping_cost_net_amount,c.shipping_cost_tax_amount,c.shipping_cost_recorded_at,c.source_integration_account_id,c.shipping_integration_account_id,c.sendcloud_remote_id,c.shipping_provider,c.shipping_remote_id,c.shipping_label_url,c.package_length_cm,c.package_width_cm,c.package_height_cm,c.label_printed_at,c.label_print_count,c.label_print_state_known,c.shopify_tracking_synced_at,c.shopify_tracking_synced_number,c.shopify_tracking_sync_error,c.shopify_tracking_last_attempt_at,c.shopify_tracking_lease,c.shopify_tracking_lease_until,c.label_cancelled_at,c.order_action_lease,c.order_action_lease_until,c.pii_purged_at,c.destination_country_code,c.pii_policy_version,c.marketplace_carrier,c.tracking_normalized_state,c.tracking_raw_code,c.tracking_raw_message,c.tracking_event_at,c.tracking_event_time_raw,c.tracking_observed_at,c.tracking_movement_at,c.tracking_checked_at,c.tracking_error,c.source_code,c.tracking_text,c.has_label,c.country_code,c.carrier_label,c.is_cancelled,c.has_progress,c.tracking_class,c.weight_sort,c.units_sort,c.print_sort,c.order_state,c.created_day,c.dispatched_day,c.shipping_cost_day,c.vat_percent,p_key AS projection_group_key FROM classified c),
+ upserted AS (INSERT INTO private.orders_dashboard_projection(id,owner_id,sendcloud_id,order_id,order_number,integration_id,integration_name,integration_type,source_channel,source_status,order_created_at,order_updated_at,customer_name,customer_email,customer_phone,shipping_address,billing_address,items,total_amount,currency,raw_payload,sendcloud_parcel_id,sendcloud_shipment_id,tracking_number,tracking_url,shipping_option_code,contract_id,label_created_at,fulfilled_at,last_synced_at,created_at,updated_at,carrier_code,carrier_name,shipping_service_name,tracking_status_code,tracking_status_message,tracking_updated_at,amazon_tracking_synced_at,amazon_tracking_last_attempt_at,amazon_tracking_sync_error,amazon_tracking_sync_attempts,shipping_cost_amount,shipping_cost_currency,shipping_cost_source,shipping_cost_net_amount,shipping_cost_tax_amount,shipping_cost_recorded_at,source_integration_account_id,shipping_integration_account_id,sendcloud_remote_id,shipping_provider,shipping_remote_id,shipping_label_url,package_length_cm,package_width_cm,package_height_cm,label_printed_at,label_print_count,label_print_state_known,shopify_tracking_synced_at,shopify_tracking_synced_number,shopify_tracking_sync_error,shopify_tracking_last_attempt_at,shopify_tracking_lease,shopify_tracking_lease_until,label_cancelled_at,order_action_lease,order_action_lease_until,pii_purged_at,destination_country_code,pii_policy_version,marketplace_carrier,tracking_normalized_state,tracking_raw_code,tracking_raw_message,tracking_event_at,tracking_event_time_raw,tracking_observed_at,tracking_movement_at,tracking_checked_at,tracking_error,source_code,tracking_text,has_label,country_code,carrier_label,is_cancelled,has_progress,tracking_class,weight_sort,units_sort,print_sort,order_state,created_day,dispatched_day,shipping_cost_day,vat_percent,projection_group_key) SELECT id,owner_id,sendcloud_id,order_id,order_number,integration_id,integration_name,integration_type,source_channel,source_status,order_created_at,order_updated_at,customer_name,customer_email,customer_phone,shipping_address,billing_address,items,total_amount,currency,raw_payload,sendcloud_parcel_id,sendcloud_shipment_id,tracking_number,tracking_url,shipping_option_code,contract_id,label_created_at,fulfilled_at,last_synced_at,created_at,updated_at,carrier_code,carrier_name,shipping_service_name,tracking_status_code,tracking_status_message,tracking_updated_at,amazon_tracking_synced_at,amazon_tracking_last_attempt_at,amazon_tracking_sync_error,amazon_tracking_sync_attempts,shipping_cost_amount,shipping_cost_currency,shipping_cost_source,shipping_cost_net_amount,shipping_cost_tax_amount,shipping_cost_recorded_at,source_integration_account_id,shipping_integration_account_id,sendcloud_remote_id,shipping_provider,shipping_remote_id,shipping_label_url,package_length_cm,package_width_cm,package_height_cm,label_printed_at,label_print_count,label_print_state_known,shopify_tracking_synced_at,shopify_tracking_synced_number,shopify_tracking_sync_error,shopify_tracking_last_attempt_at,shopify_tracking_lease,shopify_tracking_lease_until,label_cancelled_at,order_action_lease,order_action_lease_until,pii_purged_at,destination_country_code,pii_policy_version,marketplace_carrier,tracking_normalized_state,tracking_raw_code,tracking_raw_message,tracking_event_at,tracking_event_time_raw,tracking_observed_at,tracking_movement_at,tracking_checked_at,tracking_error,source_code,tracking_text,has_label,country_code,carrier_label,is_cancelled,has_progress,tracking_class,weight_sort,units_sort,print_sort,order_state,created_day,dispatched_day,shipping_cost_day,vat_percent,projection_group_key FROM refreshed WHERE true
+ ON CONFLICT(owner_id,projection_group_key) DO UPDATE SET id=excluded.id,owner_id=excluded.owner_id,sendcloud_id=excluded.sendcloud_id,order_id=excluded.order_id,order_number=excluded.order_number,integration_id=excluded.integration_id,integration_name=excluded.integration_name,integration_type=excluded.integration_type,source_channel=excluded.source_channel,source_status=excluded.source_status,order_created_at=excluded.order_created_at,order_updated_at=excluded.order_updated_at,customer_name=excluded.customer_name,customer_email=excluded.customer_email,customer_phone=excluded.customer_phone,shipping_address=excluded.shipping_address,billing_address=excluded.billing_address,items=excluded.items,total_amount=excluded.total_amount,currency=excluded.currency,raw_payload=excluded.raw_payload,sendcloud_parcel_id=excluded.sendcloud_parcel_id,sendcloud_shipment_id=excluded.sendcloud_shipment_id,tracking_number=excluded.tracking_number,tracking_url=excluded.tracking_url,shipping_option_code=excluded.shipping_option_code,contract_id=excluded.contract_id,label_created_at=excluded.label_created_at,fulfilled_at=excluded.fulfilled_at,last_synced_at=excluded.last_synced_at,created_at=excluded.created_at,updated_at=excluded.updated_at,carrier_code=excluded.carrier_code,carrier_name=excluded.carrier_name,shipping_service_name=excluded.shipping_service_name,tracking_status_code=excluded.tracking_status_code,tracking_status_message=excluded.tracking_status_message,tracking_updated_at=excluded.tracking_updated_at,amazon_tracking_synced_at=excluded.amazon_tracking_synced_at,amazon_tracking_last_attempt_at=excluded.amazon_tracking_last_attempt_at,amazon_tracking_sync_error=excluded.amazon_tracking_sync_error,amazon_tracking_sync_attempts=excluded.amazon_tracking_sync_attempts,shipping_cost_amount=excluded.shipping_cost_amount,shipping_cost_currency=excluded.shipping_cost_currency,shipping_cost_source=excluded.shipping_cost_source,shipping_cost_net_amount=excluded.shipping_cost_net_amount,shipping_cost_tax_amount=excluded.shipping_cost_tax_amount,shipping_cost_recorded_at=excluded.shipping_cost_recorded_at,source_integration_account_id=excluded.source_integration_account_id,shipping_integration_account_id=excluded.shipping_integration_account_id,sendcloud_remote_id=excluded.sendcloud_remote_id,shipping_provider=excluded.shipping_provider,shipping_remote_id=excluded.shipping_remote_id,shipping_label_url=excluded.shipping_label_url,package_length_cm=excluded.package_length_cm,package_width_cm=excluded.package_width_cm,package_height_cm=excluded.package_height_cm,label_printed_at=excluded.label_printed_at,label_print_count=excluded.label_print_count,label_print_state_known=excluded.label_print_state_known,shopify_tracking_synced_at=excluded.shopify_tracking_synced_at,shopify_tracking_synced_number=excluded.shopify_tracking_synced_number,shopify_tracking_sync_error=excluded.shopify_tracking_sync_error,shopify_tracking_last_attempt_at=excluded.shopify_tracking_last_attempt_at,shopify_tracking_lease=excluded.shopify_tracking_lease,shopify_tracking_lease_until=excluded.shopify_tracking_lease_until,label_cancelled_at=excluded.label_cancelled_at,order_action_lease=excluded.order_action_lease,order_action_lease_until=excluded.order_action_lease_until,pii_purged_at=excluded.pii_purged_at,destination_country_code=excluded.destination_country_code,pii_policy_version=excluded.pii_policy_version,marketplace_carrier=excluded.marketplace_carrier,tracking_normalized_state=excluded.tracking_normalized_state,tracking_raw_code=excluded.tracking_raw_code,tracking_raw_message=excluded.tracking_raw_message,tracking_event_at=excluded.tracking_event_at,tracking_event_time_raw=excluded.tracking_event_time_raw,tracking_observed_at=excluded.tracking_observed_at,tracking_movement_at=excluded.tracking_movement_at,tracking_checked_at=excluded.tracking_checked_at,tracking_error=excluded.tracking_error,source_code=excluded.source_code,tracking_text=excluded.tracking_text,has_label=excluded.has_label,country_code=excluded.country_code,carrier_label=excluded.carrier_label,is_cancelled=excluded.is_cancelled,has_progress=excluded.has_progress,tracking_class=excluded.tracking_class,weight_sort=excluded.weight_sort,units_sort=excluded.units_sort,print_sort=excluded.print_sort,order_state=excluded.order_state,created_day=excluded.created_day,dispatched_day=excluded.dispatched_day,shipping_cost_day=excluded.shipping_cost_day,vat_percent=excluded.vat_percent RETURNING 1)
+ DELETE FROM private.orders_dashboard_projection p WHERE p.owner_id=p_owner AND p.projection_group_key=p_key AND NOT EXISTS(SELECT 1 FROM refreshed);
+ INSERT INTO private.orders_projection_groups(owner_id,group_key,has_row,classifier_generation)
+ SELECT p_owner,p_key,EXISTS(SELECT 1 FROM private.orders_dashboard_projection WHERE owner_id=p_owner AND projection_group_key=p_key),required_generation
+ FROM private.orders_projection_classifier WHERE singleton
+ ON CONFLICT(owner_id,group_key) DO UPDATE SET has_row=excluded.has_row,classifier_generation=excluded.classifier_generation;
+ END$function$;
+
+CREATE OR REPLACE FUNCTION private.orders_projection_stale_keys()
+ RETURNS TABLE(group_key text)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$BEGIN RETURN QUERY 
+ WITH own AS MATERIALIZED(SELECT private.app_workspace_owner_id() id),
+ source_rows AS MATERIALIZED(
+  SELECT o.id,o.owner_id,(CASE WHEN o.source_channel IN ('amazon','shopify') AND trim(coalesce(o.order_number,''))<>'' THEN o.source_channel||':'||trim(o.order_number) ELSE o.id::text END) group_key,(o.xmin::text||':'||o.ctid::text) version
+  FROM public.fulfillment_orders o WHERE o.owner_id=(SELECT id FROM own)
+ ), versions AS MATERIALIZED(SELECT v.* FROM private.orders_projection_versions v WHERE v.owner_id=(SELECT id FROM own)),
+ source_mismatches AS MATERIALIZED(
+  SELECT o.group_key current_key,v.group_key old_key FROM source_rows o
+  FULL JOIN (SELECT * FROM versions WHERE kind='orders') v ON v.id=o.id
+  WHERE o.id IS NULL OR v.id IS NULL OR o.version IS DISTINCT FROM v.version
+ ),tracking_mismatches AS MATERIALIZED(
+  SELECT o.group_key current_key,v.group_key old_key FROM
+  (SELECT t.order_id,(t.xmin::text||':'||t.ctid::text) version,s.group_key FROM public.shipment_tracking_state t
+   JOIN source_rows s ON s.id=t.order_id AND s.owner_id=t.owner_id) o
+  FULL JOIN (SELECT * FROM versions WHERE kind='tracking') v ON v.id=o.order_id
+  WHERE o.order_id IS NULL OR v.id IS NULL OR o.version IS DISTINCT FROM v.version
+ ),fact_identity AS MATERIALIZED(
+  SELECT p.id,p.owner_id,p.projection_group_key,p.order_state,p.dispatched_day,p.has_label,p.is_cancelled,
+  p.label_cancelled_at,p.pii_purged_at,
+  coalesce(x.identity_key,md5(jsonb_build_array(p.owner_id,p.shipping_integration_account_id,p.shipping_provider,p.tracking_number,p.shipping_remote_id,p.sendcloud_parcel_id,p.label_created_at,p.label_cancelled_at)::text)) identity_key
+  FROM private.orders_dashboard_projection p LEFT JOIN private.orders_projection_payloads x ON x.owner_id=p.owner_id AND x.group_key=p.projection_group_key AND x.order_id=p.id AND x.projection_version=p.xmin::text||':'||p.ctid::text AND x.format_generation=1 AND x.serialization_timezone=current_setting('TimeZone') WHERE p.owner_id=(SELECT id FROM own)
+ ),fact_rows AS (
+  SELECT p.*,d.identity_key dispatch_key,d.dispatched_at,h.identity_key history_key,h.historical_date,h.basis history_basis
+  FROM fact_identity p
+  LEFT JOIN private.order_dispatch_evidence d ON d.owner_id=p.owner_id AND d.identity_key=p.identity_key
+  LEFT JOIN private.order_logistics_legacy h ON h.owner_id=p.owner_id AND h.order_id=p.id AND h.identity_key=p.identity_key
+ ),fact_effective AS (
+  SELECT f.*,dispatch_key IS NOT NULL AND has_label AND label_cancelled_at IS NULL AND pii_purged_at IS NULL physical,
+  history_key IS NOT NULL AND dispatch_key IS NULL AND (history_basis='pre_cutover_label_without_evidence' OR NOT has_label) historical FROM fact_rows f
+ ),fact_mismatches AS (
+  SELECT projection_group_key FROM fact_effective
+  WHERE order_state IS DISTINCT FROM CASE WHEN is_cancelled OR label_cancelled_at IS NOT NULL THEN 'cancelled' WHEN historical THEN 'shipped' WHEN NOT has_label THEN 'pending' WHEN physical THEN 'shipped' ELSE 'labelled' END
+  OR dispatched_day IS DISTINCT FROM ((CASE WHEN physical THEN dispatched_at WHEN historical THEN historical_date END) AT TIME ZONE 'Europe/Madrid')::date
+ )
+ SELECT d.group_key FROM private.orders_projection_dirty d WHERE d.owner_id=(SELECT id FROM own)
+ UNION SELECT projection_group_key FROM fact_mismatches
+ UNION SELECT current_key FROM source_mismatches WHERE current_key IS NOT NULL
+ UNION SELECT old_key FROM source_mismatches WHERE old_key IS NOT NULL
+ UNION SELECT current_key FROM tracking_mismatches WHERE current_key IS NOT NULL
+ UNION SELECT old_key FROM tracking_mismatches WHERE old_key IS NOT NULL
+ UNION SELECT s.group_key FROM source_rows s WHERE NOT EXISTS(SELECT 1 FROM private.orders_projection_groups g WHERE g.owner_id=s.owner_id AND g.group_key=s.group_key)
+ UNION SELECT g.group_key FROM private.orders_projection_groups g CROSS JOIN private.orders_projection_classifier c
+ WHERE g.owner_id=(SELECT id FROM own) AND g.classifier_generation<>c.required_generation
+ UNION SELECT coalesce(p.projection_group_key,g.group_key) FROM
+ (SELECT * FROM private.orders_dashboard_projection WHERE owner_id=(SELECT id FROM own)) p
+ FULL JOIN (SELECT * FROM private.orders_projection_groups WHERE owner_id=(SELECT id FROM own) AND has_row) g ON g.group_key=p.projection_group_key
+ WHERE p.projection_group_key IS NULL OR g.group_key IS NULL;END;$function$;
+
+CREATE OR REPLACE FUNCTION private.mfa_impl_orders_dashboard_pickup_v1(p_from date DEFAULT NULL::date, p_to date DEFAULT NULL::date, p_state text DEFAULT 'pending'::text, p_channel text DEFAULT 'all'::text, p_query text DEFAULT ''::text, p_tracking text DEFAULT 'all'::text, p_country text DEFAULT 'all'::text, p_carrier text DEFAULT 'all'::text, p_page integer DEFAULT 0, p_page_size integer DEFAULT 25, p_overdue_hours integer DEFAULT 24, p_sort_key text DEFAULT 'orderDate'::text, p_sort_direction text DEFAULT 'desc'::text, p_selection_ids_only boolean DEFAULT false, p_selection_limit integer DEFAULT 2000, p_selected_ids uuid[] DEFAULT NULL::uuid[], p_pickup_report text DEFAULT 'all'::text, p_selection_all boolean DEFAULT false)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+ SET plan_cache_mode TO 'force_generic_plan'
+AS $function$BEGIN RETURN (WITH projection_gate AS MATERIALIZED (SELECT private.orders_dashboard_hybrid_read_enabled() usable),projection_stale AS MATERIALIZED (SELECT group_key FROM private.orders_projection_stale_keys() WHERE (SELECT usable FROM projection_gate)),projection_source AS MATERIALIZED (SELECT o.* FROM public.fulfillment_orders o WHERE o.owner_id=(SELECT private.app_workspace_owner_id()) AND NOT (SELECT usable FROM projection_gate) UNION ALL SELECT o.* FROM projection_stale s JOIN public.fulfillment_orders o ON o.owner_id=(SELECT private.app_workspace_owner_id()) AND private.orders_dashboard_group_key(o.source_channel,o.order_number,o.id)=s.group_key WHERE (SELECT usable FROM projection_gate)),classified AS MATERIALIZED (SELECT p.id,p.owner_id,p.sendcloud_id,p.order_id,p.order_number,p.integration_id,p.integration_name,p.integration_type,p.source_channel,p.source_status,p.order_created_at,p.order_updated_at,p.customer_name,p.customer_email,p.customer_phone,p.shipping_address,p.billing_address,p.items,p.total_amount,p.currency,p.raw_payload,p.sendcloud_parcel_id,p.sendcloud_shipment_id,p.tracking_number,p.tracking_url,p.shipping_option_code,p.contract_id,p.label_created_at,p.fulfilled_at,p.last_synced_at,p.created_at,p.updated_at,p.carrier_code,p.carrier_name,p.shipping_service_name,p.tracking_status_code,p.tracking_status_message,p.tracking_updated_at,p.amazon_tracking_synced_at,p.amazon_tracking_last_attempt_at,p.amazon_tracking_sync_error,p.amazon_tracking_sync_attempts,p.shipping_cost_amount,p.shipping_cost_currency,p.shipping_cost_source,p.shipping_cost_net_amount,p.shipping_cost_tax_amount,p.shipping_cost_recorded_at,p.source_integration_account_id,p.shipping_integration_account_id,p.sendcloud_remote_id,p.shipping_provider,p.shipping_remote_id,p.shipping_label_url,p.package_length_cm,p.package_width_cm,p.package_height_cm,p.label_printed_at,p.label_print_count,p.label_print_state_known,p.shopify_tracking_synced_at,p.shopify_tracking_synced_number,p.shopify_tracking_sync_error,p.shopify_tracking_last_attempt_at,p.shopify_tracking_lease,p.shopify_tracking_lease_until,p.label_cancelled_at,p.order_action_lease,p.order_action_lease_until,p.pii_purged_at,p.destination_country_code,p.pii_policy_version,p.marketplace_carrier,p.tracking_normalized_state,p.tracking_raw_code,p.tracking_raw_message,p.tracking_event_at,p.tracking_event_time_raw,p.tracking_observed_at,p.tracking_movement_at,p.tracking_checked_at,p.tracking_error,p.source_code,p.tracking_text,p.has_label,p.country_code,p.carrier_label,p.is_cancelled,p.has_progress,p.tracking_class,p.weight_sort,p.units_sort,p.print_sort,p.order_state,p.created_day,p.dispatched_day,p.shipping_cost_day,p.vat_percent FROM private.orders_dashboard_projection p WHERE (SELECT usable FROM projection_gate) AND p.owner_id=(SELECT private.app_workspace_owner_id()) AND NOT EXISTS(SELECT 1 FROM projection_stale s WHERE s.group_key=p.projection_group_key) UNION ALL SELECT z.* FROM private.orders_classified_fallback(CASE WHEN(SELECT usable FROM projection_gate)THEN ARRAY(SELECT group_key FROM projection_stale)ELSE NULL END)z WHERE NOT(SELECT usable FROM projection_gate)OR EXISTS(SELECT 1 FROM projection_stale)),
+matched AS (
+ SELECT c.*,
+  ((p_channel='all' OR c.source_channel=p_channel)
+   AND (p_tracking='all' OR c.tracking_class=p_tracking)
+   AND (p_country='all' OR c.country_code=upper(p_country))
+   AND (p_carrier='all' OR c.carrier_label=lower(p_carrier))
+   AND (trim(coalesce(p_query,''))='' OR position(lower(trim(p_query)) IN lower(concat_ws(' ',
+      c.order_number,c.order_id,c.customer_name,c.tracking_number,
+      c.tracking_status_message,c.carrier_label,c.items::text,c.country_code)))>0)
+   AND (p_pickup_report='all' OR (p_pickup_report IN ('in','pending','signed','void') AND EXISTS (SELECT 1 FROM public.pickup_report_items pi WHERE NOT EXISTS (SELECT 1 FROM private.pickup_report_exclusions x WHERE x.report_id=pi.report_id AND x.order_id=pi.order_id) AND pi.owner_id=c.owner_id AND (CASE WHEN p_pickup_report IN ('in','none') THEN NOT EXISTS (SELECT 1 FROM private.pickup_document_state ds WHERE ds.report_id=pi.report_id AND ds.status='void') WHEN p_pickup_report='pending' THEN coalesce((SELECT ds.status FROM private.pickup_document_state ds WHERE ds.report_id=pi.report_id),'pending') IN ('pending','partial') ELSE coalesce((SELECT ds.status FROM private.pickup_document_state ds WHERE ds.report_id=pi.report_id),'pending')=p_pickup_report END) AND (pi.order_id=c.id OR pi.order_key=CASE WHEN c.source_channel IN ('amazon','shopify') AND nullif(trim(c.order_number),'') IS NOT NULL THEN c.source_channel||':'||coalesce(c.source_integration_account_id::text,'legacy')||':'||trim(c.order_number) ELSE c.id::text END))) OR (p_pickup_report='none' AND NOT EXISTS (SELECT 1 FROM public.pickup_report_items pi WHERE NOT EXISTS (SELECT 1 FROM private.pickup_report_exclusions x WHERE x.report_id=pi.report_id AND x.order_id=pi.order_id) AND pi.owner_id=c.owner_id AND (CASE WHEN p_pickup_report IN ('in','none') THEN NOT EXISTS (SELECT 1 FROM private.pickup_document_state ds WHERE ds.report_id=pi.report_id AND ds.status='void') WHEN p_pickup_report='pending' THEN coalesce((SELECT ds.status FROM private.pickup_document_state ds WHERE ds.report_id=pi.report_id),'pending') IN ('pending','partial') ELSE coalesce((SELECT ds.status FROM private.pickup_document_state ds WHERE ds.report_id=pi.report_id),'pending')=p_pickup_report END) AND (pi.order_id=c.id OR pi.order_key=CASE WHEN c.source_channel IN ('amazon','shopify') AND nullif(trim(c.order_number),'') IS NOT NULL THEN c.source_channel||':'||coalesce(c.source_integration_account_id::text,'legacy')||':'||trim(c.order_number) ELSE c.id::text END))))) AS context_match,
+  ((p_from IS NULL OR c.created_day>=p_from) AND (p_to IS NULL OR c.created_day<=p_to)) AS in_order_period,
+  ((p_from IS NULL OR c.dispatched_day>=p_from) AND (p_to IS NULL OR c.dispatched_day<=p_to)) AS in_shipped_period,
+  ((p_from IS NULL OR c.shipping_cost_day>=p_from) AND (p_to IS NULL OR c.shipping_cost_day<=p_to)) AS in_cost_period
+ FROM classified c
+),
+scope AS (SELECT * FROM matched WHERE context_match),payload_cache AS NOT MATERIALIZED (
+ SELECT c.* FROM private.orders_projection_payloads c JOIN private.orders_dashboard_projection p
+ ON p.owner_id=c.owner_id AND p.projection_group_key=c.group_key AND p.id=c.order_id
+ AND c.projection_version=p.xmin::text||':'||p.ctid::text
+ WHERE c.owner_id=(SELECT private.app_workspace_owner_id()) AND c.format_generation=1 AND c.serialization_timezone=current_setting('TimeZone')
+ AND (SELECT usable FROM projection_gate)
+ AND NOT EXISTS(SELECT 1 FROM projection_stale k WHERE k.group_key=c.group_key)
+ ),
+sales AS (
+ SELECT
+  count(*) FILTER (WHERE in_order_period AND NOT is_cancelled AND total_amount IS NOT NULL AND (currency IS NULL OR currency='EUR')) AS count,
+  coalesce(sum(total_amount) FILTER (WHERE in_order_period AND NOT is_cancelled AND total_amount IS NOT NULL AND (currency IS NULL OR currency='EUR')),0) AS gross,
+  coalesce(sum(total_amount/(1+vat_percent/100)) FILTER (WHERE in_order_period AND NOT is_cancelled AND total_amount IS NOT NULL AND (currency IS NULL OR currency='EUR')),0) AS net
+ FROM scope
+),
+shipping AS (
+ SELECT
+  count(*) FILTER (WHERE has_label AND in_cost_period) AS shipments,
+  count(*) FILTER (WHERE has_label AND in_cost_period AND shipping_cost_amount IS NOT NULL AND coalesce(shipping_cost_currency,'EUR')='EUR') AS valued,
+  count(*) FILTER (WHERE has_label AND in_cost_period AND (shipping_cost_amount IS NULL OR coalesce(shipping_cost_currency,'EUR')<>'EUR')) AS missing,
+  coalesce(sum(shipping_cost_amount) FILTER (WHERE has_label AND in_cost_period AND coalesce(shipping_cost_currency,'EUR')='EUR'),0) AS total,
+  coalesce(sum(coalesce(shipping_cost_net_amount,shipping_cost_amount)) FILTER (WHERE has_label AND in_cost_period AND shipping_cost_amount IS NOT NULL AND coalesce(shipping_cost_currency,'EUR')='EUR'),0) AS net,
+  coalesce(sum(shipping_cost_tax_amount) FILTER (WHERE has_label AND in_cost_period AND shipping_cost_amount IS NOT NULL AND coalesce(shipping_cost_currency,'EUR')='EUR'),0) AS tax,
+  coalesce(sum(shipping_cost_amount) FILTER (WHERE has_label AND in_cost_period AND carrier_label LIKE '%mrw%' AND coalesce(shipping_cost_currency,'EUR')='EUR'),0) AS mrw,
+  coalesce(sum(shipping_cost_amount) FILTER (WHERE has_label AND in_cost_period AND carrier_label LIKE '%correos%' AND coalesce(shipping_cost_currency,'EUR')='EUR'),0) AS correos
+ FROM scope
+),
+counts AS (
+ SELECT
+  count(*) FILTER (WHERE order_state='pending') pending,
+  count(*) FILTER (WHERE order_state='pending' AND pii_purged_at IS NULL) preparable,
+  count(*) FILTER (WHERE order_state='pending' AND source_channel='amazon') amazon,
+  count(*) FILTER (WHERE order_state='pending' AND source_channel='shopify') shopify,
+  count(*) FILTER (WHERE order_state='pending' AND source_channel NOT IN ('amazon','shopify')) manual,
+  count(*) FILTER (WHERE order_state='labelled') labelled,
+  count(*) FILTER (WHERE order_state='shipped' AND in_shipped_period) shipped,
+  count(*) FILTER (WHERE is_cancelled AND in_order_period) cancelled,
+  count(*) FILTER (WHERE order_state='pending' AND order_created_at < now()-make_interval(hours=>greatest(p_overdue_hours,1))) overdue
+ FROM scope
+),
+kpis AS (
+ SELECT jsonb_build_object(
+  'pending',c.pending,'preparablePending',c.preparable,
+  'amazon',c.amazon,'shopify',c.shopify,'manual',c.manual,
+  'labelled',c.labelled,'shipped',c.shipped,'cancelled',c.cancelled,
+  'overduePending',c.overdue,
+  'sales',jsonb_build_object('gross',s.gross,'net',s.net,'vat',s.gross-s.net,'count',s.count,
+    'average',CASE WHEN s.count>0 THEN s.gross/s.count ELSE 0 END),
+  'transport',jsonb_build_object('total',t.total,'net',t.net,'tax',t.tax,'mrw',t.mrw,'correos',t.correos,
+    'other',t.total-t.mrw-t.correos,'shipments',t.shipments,'valued',t.valued,'missing',t.missing,
+    'basis','recorded_only')
+ ) AS data
+ FROM counts c CROSS JOIN sales s CROSS JOIN shipping t
+),
+eligible_scope AS (
+ SELECT * FROM scope WHERE
+   (p_state='pending' AND order_state='pending')
+   OR (p_state='labelled' AND order_state='labelled')
+   OR (p_state='shipped' AND order_state='shipped' AND in_shipped_period)
+   OR (p_state='cancelled' AND is_cancelled AND in_order_period)
+   OR (p_state='all' AND in_order_period)
+),
+-- Selection and row retrieval reuse the exact deduped, classified filter scope.
+eligible AS (
+ SELECT * FROM eligible_scope WHERE p_selected_ids IS NULL
+   OR id=ANY(p_selected_ids)
+),
+selectable AS (
+ SELECT id FROM eligible WHERE p_selection_all OR (order_state='pending' AND pii_purged_at IS NULL)
+),
+numbered AS (
+ SELECT e.*,row_number() OVER (ORDER BY
+  CASE WHEN p_sort_key='pickupReport' AND p_sort_direction='asc' THEN (SELECT max(split_part(pr.number,'-',2)::numeric*1000000000000+split_part(pr.number,'-',3)::numeric) FROM public.pickup_report_items pi JOIN public.pickup_reports pr ON pr.id=pi.report_id AND pr.owner_id=pi.owner_id WHERE NOT EXISTS (SELECT 1 FROM private.pickup_report_exclusions x WHERE x.report_id=pi.report_id AND x.order_id=pi.order_id) AND pi.owner_id=e.owner_id AND (pi.order_id=e.id OR pi.order_key=CASE WHEN e.source_channel IN ('amazon','shopify') AND nullif(trim(e.order_number),'') IS NOT NULL THEN e.source_channel||':'||coalesce(e.source_integration_account_id::text,'legacy')||':'||trim(e.order_number) ELSE e.id::text END)) END ASC NULLS LAST,
+  CASE WHEN p_sort_key='pickupReport' AND p_sort_direction='desc' THEN (SELECT max(split_part(pr.number,'-',2)::numeric*1000000000000+split_part(pr.number,'-',3)::numeric) FROM public.pickup_report_items pi JOIN public.pickup_reports pr ON pr.id=pi.report_id AND pr.owner_id=pi.owner_id WHERE NOT EXISTS (SELECT 1 FROM private.pickup_report_exclusions x WHERE x.report_id=pi.report_id AND x.order_id=pi.order_id) AND pi.owner_id=e.owner_id AND (pi.order_id=e.id OR pi.order_key=CASE WHEN e.source_channel IN ('amazon','shopify') AND nullif(trim(e.order_number),'') IS NOT NULL THEN e.source_channel||':'||coalesce(e.source_integration_account_id::text,'legacy')||':'||trim(e.order_number) ELSE e.id::text END)) END DESC NULLS LAST,
+  CASE WHEN p_sort_key='weight' AND p_sort_direction='asc' THEN weight_sort END ASC NULLS LAST,
+  CASE WHEN p_sort_key='weight' AND p_sort_direction='desc' THEN weight_sort END DESC NULLS LAST,
+  CASE WHEN p_sort_key='units' AND p_sort_direction='asc' THEN units_sort END ASC NULLS LAST,
+  CASE WHEN p_sort_key='units' AND p_sort_direction='desc' THEN units_sort END DESC NULLS LAST,
+  CASE WHEN p_sort_key='printStatus' AND p_sort_direction='asc' THEN print_sort END ASC NULLS LAST,
+  CASE WHEN p_sort_key='printStatus' AND p_sort_direction='desc' THEN print_sort END DESC NULLS LAST,
+  CASE WHEN p_sort_key='orderDate' AND p_sort_direction='asc' THEN order_created_at END ASC NULLS LAST,
+  CASE WHEN p_sort_key='orderDate' AND p_sort_direction<>'asc' THEN order_created_at END DESC NULLS LAST,
+  CASE WHEN p_sort_key='total' AND p_sort_direction='asc' THEN total_amount END ASC NULLS LAST,
+  CASE WHEN p_sort_key='total' AND p_sort_direction='desc' THEN total_amount END DESC NULLS LAST,
+  CASE WHEN p_sort_key='order' AND p_sort_direction='asc' THEN coalesce(order_number,order_id,sendcloud_id) END ASC NULLS LAST,
+  CASE WHEN p_sort_key='order' AND p_sort_direction='desc' THEN coalesce(order_number,order_id,sendcloud_id) END DESC NULLS LAST,
+  CASE WHEN p_sort_key='customer' AND p_sort_direction='asc' THEN customer_name END ASC NULLS LAST,
+  CASE WHEN p_sort_key='customer' AND p_sort_direction='desc' THEN customer_name END DESC NULLS LAST,
+  CASE WHEN p_sort_key='channel' AND p_sort_direction='asc' THEN source_channel END ASC NULLS LAST,
+  CASE WHEN p_sort_key='channel' AND p_sort_direction='desc' THEN source_channel END DESC NULLS LAST,
+  CASE WHEN p_sort_key='carrier' AND p_sort_direction='asc' THEN carrier_label END ASC NULLS LAST,
+  CASE WHEN p_sort_key='carrier' AND p_sort_direction='desc' THEN carrier_label END DESC NULLS LAST,
+  CASE WHEN p_sort_key='state' AND p_sort_direction='asc' THEN order_state END ASC NULLS LAST,
+  CASE WHEN p_sort_key='state' AND p_sort_direction='desc' THEN order_state END DESC NULLS LAST,
+  CASE WHEN p_sort_key='shipping' AND p_sort_direction='asc' THEN shipping_cost_amount END ASC NULLS LAST,
+  CASE WHEN p_sort_key='shipping' AND p_sort_direction='desc' THEN shipping_cost_amount END DESC NULLS LAST,
+  CASE WHEN p_sort_key='tracking' AND p_sort_direction='asc' THEN tracking_class END ASC NULLS LAST,
+  CASE WHEN p_sort_key='tracking' AND p_sort_direction='desc' THEN tracking_class END DESC NULLS LAST,
+  CASE WHEN p_sort_key='labelDate' AND p_sort_direction='asc' THEN coalesce(label_created_at,fulfilled_at,tracking_updated_at) END ASC NULLS LAST,
+  CASE WHEN p_sort_key='labelDate' AND p_sort_direction='desc' THEN coalesce(label_created_at,fulfilled_at,tracking_updated_at) END DESC NULLS LAST,
+  CASE WHEN p_sort_key='products' AND p_sort_direction='asc' THEN items::text END ASC NULLS LAST,
+  CASE WHEN p_sort_key='products' AND p_sort_direction='desc' THEN items::text END DESC NULLS LAST,
+  CASE WHEN p_sort_key='destination' AND p_sort_direction='asc' THEN concat_ws(' ',country_code,shipping_address->>'postal_code') END ASC NULLS LAST,
+  CASE WHEN p_sort_key='destination' AND p_sort_direction='desc' THEN concat_ws(' ',country_code,shipping_address->>'postal_code') END DESC NULLS LAST,
+  order_created_at DESC NULLS LAST,id DESC) AS ordinal
+ FROM eligible e
+),
+paged AS (
+ SELECT * FROM numbered
+ WHERE ordinal>greatest(p_page,0)::bigint*least(greatest(p_page_size,1),100)
+   AND ordinal<= (greatest(p_page,0)::bigint+1)*least(greatest(p_page_size,1),100)
+),
+facets AS (
+ SELECT jsonb_build_object(
+ 'countries',coalesce((SELECT jsonb_agg(country_code ORDER BY country_code) FROM
+    (SELECT DISTINCT country_code FROM classified) countries),'[]'::jsonb),
+ 'carriers',coalesce((SELECT jsonb_agg(carrier_label ORDER BY carrier_label) FROM
+    (SELECT DISTINCT carrier_label FROM classified WHERE carrier_label<>'—') carriers),'[]'::jsonb)
+ ) AS data
+)
+SELECT CASE
+ -- Reject oversized caller arrays before returning any rows. A negative LIMIT
+ -- raises an error, including when the tenant/filter scope contains no rows.
+ WHEN cardinality(p_selected_ids)>2000 THEN
+   (SELECT '{}'::jsonb LIMIT (0-cardinality(p_selected_ids)))
+ WHEN p_selection_ids_only THEN jsonb_build_object(
+   'ids',CASE WHEN (SELECT count(*) FROM selectable)>least(greatest(coalesce(p_selection_limit,2000),1),2000)
+     THEN '[]'::jsonb ELSE coalesce((SELECT jsonb_agg(id ORDER BY id) FROM selectable),'[]'::jsonb) END,
+   'total',(SELECT count(*) FROM selectable),
+   'limit',least(greatest(coalesce(p_selection_limit,2000),1),2000),
+   'exceeded',(SELECT count(*) FROM selectable)>least(greatest(coalesce(p_selection_limit,2000),1),2000)
+ ) ELSE jsonb_build_object(
+ 'total',(SELECT count(*) FROM eligible),
+ 'selectableTotal',(SELECT count(*) FROM selectable),
+ 'page',greatest(p_page,0),
+ 'pageSize',least(greatest(p_page_size,1),100),
+ 'rows',coalesce((
+  SELECT jsonb_agg((coalesce(pc.row_payload,to_jsonb(p)-ARRAY['raw_payload','dedupe_rank','source_code','tracking_text','has_label','country_code','carrier_label','is_cancelled','has_progress','tracking_class','order_state','created_day','dispatched_day','shipping_cost_day','weight_sort','units_sort','print_sort','vat_percent','context_match','in_order_period','in_shipped_period','in_cost_period','is_attention','ordinal']::text[])||jsonb_build_object('logistics_state',p.order_state,'logistics',CASE WHEN d.identity_key IS NOT NULL AND p.label_cancelled_at IS NULL AND p.pii_purged_at IS NULL AND(p.label_created_at IS NOT NULL OR p.sendcloud_parcel_id IS NOT NULL OR nullif(p.shipping_remote_id,'') IS NOT NULL)
+ THEN jsonb_build_object('dispatchedAt',d.dispatched_at,'cause',d.cause,'actorId',d.actor_id,'reportId',d.report_id,'basis',d.evidence_basis,'observedOnly',d.evidence_basis LIKE '%_observed')
+ WHEN h.identity_key IS NOT NULL AND d.identity_key IS NULL AND(h.basis='pre_cutover_label_without_evidence' OR(p.label_created_at IS NULL AND p.sendcloud_parcel_id IS NULL AND nullif(p.shipping_remote_id,'') IS NULL))
+ THEN jsonb_build_object('historical',true,'historicalDate',h.historical_date,'basis',h.basis) END,'logistics_identity',li.identity_key,'pickup_reports',coalesce((SELECT jsonb_agg(jsonb_build_object('id',pr.id,'number',pr.number,'status',coalesce((SELECT ds.status FROM private.pickup_document_state ds WHERE ds.report_id=pr.id),'pending'),'carriers',coalesce((SELECT jsonb_agg(carrier ORDER BY carrier) FROM (SELECT DISTINCT i->>'carrier' carrier FROM jsonb_array_elements(pr.snapshot->'items')i)c),'[]'::jsonb)) ORDER BY pr.created_at DESC,pr.id DESC) FROM public.pickup_report_items pi JOIN public.pickup_reports pr ON pr.id=pi.report_id AND pr.owner_id=pi.owner_id WHERE NOT EXISTS (SELECT 1 FROM private.pickup_report_exclusions x WHERE x.report_id=pi.report_id AND x.order_id=pi.order_id) AND pi.owner_id=p.owner_id AND (pi.order_id=p.id OR pi.order_key=CASE WHEN p.source_channel IN ('amazon','shopify') AND nullif(trim(p.order_number),'') IS NOT NULL THEN p.source_channel||':'||coalesce(p.source_integration_account_id::text,'legacy')||':'||trim(p.order_number) ELSE p.id::text END)),'[]'::jsonb),'shipping_measurement',p.raw_payload#>'{shipping_details,measurement}',
+                           'tracking_metadata',p.raw_payload->'_zenvia_tracking')) ORDER BY p.ordinal) FROM paged p LEFT JOIN payload_cache pc ON pc.owner_id=p.owner_id AND pc.order_id=p.id AND pc.group_key=private.orders_dashboard_group_key(p.source_channel,p.order_number,p.id) LEFT JOIN LATERAL(SELECT coalesce(pc.identity_key,md5(jsonb_build_array(p.owner_id,p.shipping_integration_account_id,p.shipping_provider,p.tracking_number,p.shipping_remote_id,p.sendcloud_parcel_id,p.label_created_at,p.label_cancelled_at)::text)) identity_key)li ON true LEFT JOIN private.order_dispatch_evidence d ON d.owner_id=p.owner_id AND d.identity_key=li.identity_key LEFT JOIN private.order_logistics_legacy h ON h.owner_id=p.owner_id AND h.order_id=p.id AND h.identity_key=li.identity_key), '[]'::jsonb),
+ -- Full cost scope, independent of the selected state and visible page. Only
+ -- tariff inputs are returned; addresses and raw provider payloads stay private.
+ 'tariffCandidates',coalesce((SELECT jsonb_agg(coalesce(tc.tariff_payload,jsonb_build_object(
+    'id',s.id,
+    'pii_purged_at',s.pii_purged_at,
+    'order_created_at',s.order_created_at,
+    'shipping_provider',s.shipping_provider,
+    'sendcloud_parcel_id',s.sendcloud_parcel_id,
+    'shipping_remote_id',s.shipping_remote_id,
+    'fulfilled_at',s.fulfilled_at,
+    'label_created_at',s.label_created_at,
+    'carrier_code',s.carrier_code,
+    'carrier_name',s.carrier_name,
+    'shipping_option_code',s.shipping_option_code,
+    'shipping_service_name',s.shipping_service_name,
+    'shipping_cost_amount',s.shipping_cost_amount,
+    'shipping_cost_net_amount',s.shipping_cost_net_amount,
+    'shipping_cost_tax_amount',s.shipping_cost_tax_amount,
+    'shipping_cost_currency',s.shipping_cost_currency,
+    'shipping_cost_source',s.shipping_cost_source,
+    'shipping_address',jsonb_strip_nulls(jsonb_build_object('country_code',s.shipping_address->'country_code','postal_code',s.shipping_address->'postal_code')),
+    'shipping_measurement',jsonb_build_object('weight',jsonb_build_object('value',s.raw_payload#>'{shipping_details,measurement,weight,value}','unit',s.raw_payload#>'{shipping_details,measurement,weight,unit}')),
+    'kpi_carrier_label',s.carrier_label)) ORDER BY s.id)
+    FROM scope s LEFT JOIN payload_cache tc ON tc.owner_id=s.owner_id AND tc.order_id=s.id AND tc.group_key=private.orders_dashboard_group_key(s.source_channel,s.order_number,s.id) WHERE s.has_label AND s.in_cost_period
+      AND (s.shipping_cost_amount IS NULL OR s.shipping_cost_source='tariff_estimate')),'[]'::jsonb),
+ 'kpis',(SELECT data FROM kpis),
+ 'facets',(SELECT data FROM facets)
+) END);END;$function$;
+
+CREATE OR REPLACE FUNCTION private.mfa_impl_orders_workbench_v1(p_from date DEFAULT NULL::date, p_to date DEFAULT NULL::date, p_state text DEFAULT 'pending'::text, p_channel text DEFAULT 'all'::text, p_query text DEFAULT ''::text, p_tracking text DEFAULT 'all'::text, p_country text DEFAULT 'all'::text, p_carrier text DEFAULT 'all'::text, p_page integer DEFAULT 0, p_page_size integer DEFAULT 25, p_overdue_hours integer DEFAULT 24, p_sort_key text DEFAULT 'orderDate'::text, p_sort_direction text DEFAULT 'desc'::text, p_selection_ids_only boolean DEFAULT false, p_selection_limit integer DEFAULT 2000, p_selected_ids uuid[] DEFAULT NULL::uuid[], p_pickup_report text DEFAULT 'all'::text, p_selection_all boolean DEFAULT false, p_tracking_stale_days integer DEFAULT 3)
+ RETURNS jsonb
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+ SET plan_cache_mode TO 'force_generic_plan'
+AS $function$BEGIN RETURN (WITH projection_gate AS MATERIALIZED (SELECT private.orders_dashboard_hybrid_read_enabled() usable),projection_stale AS MATERIALIZED (SELECT group_key FROM private.orders_projection_stale_keys() WHERE (SELECT usable FROM projection_gate)),projection_source AS MATERIALIZED (SELECT o.* FROM public.fulfillment_orders o WHERE o.owner_id=(SELECT private.app_workspace_owner_id()) AND NOT (SELECT usable FROM projection_gate) UNION ALL SELECT o.* FROM projection_stale s JOIN public.fulfillment_orders o ON o.owner_id=(SELECT private.app_workspace_owner_id()) AND private.orders_dashboard_group_key(o.source_channel,o.order_number,o.id)=s.group_key WHERE (SELECT usable FROM projection_gate)),classified AS MATERIALIZED (SELECT p.id,p.owner_id,p.sendcloud_id,p.order_id,p.order_number,p.integration_id,p.integration_name,p.integration_type,p.source_channel,p.source_status,p.order_created_at,p.order_updated_at,p.customer_name,p.customer_email,p.customer_phone,p.shipping_address,p.billing_address,p.items,p.total_amount,p.currency,p.raw_payload,p.sendcloud_parcel_id,p.sendcloud_shipment_id,p.tracking_number,p.tracking_url,p.shipping_option_code,p.contract_id,p.label_created_at,p.fulfilled_at,p.last_synced_at,p.created_at,p.updated_at,p.carrier_code,p.carrier_name,p.shipping_service_name,p.tracking_status_code,p.tracking_status_message,p.tracking_updated_at,p.amazon_tracking_synced_at,p.amazon_tracking_last_attempt_at,p.amazon_tracking_sync_error,p.amazon_tracking_sync_attempts,p.shipping_cost_amount,p.shipping_cost_currency,p.shipping_cost_source,p.shipping_cost_net_amount,p.shipping_cost_tax_amount,p.shipping_cost_recorded_at,p.source_integration_account_id,p.shipping_integration_account_id,p.sendcloud_remote_id,p.shipping_provider,p.shipping_remote_id,p.shipping_label_url,p.package_length_cm,p.package_width_cm,p.package_height_cm,p.label_printed_at,p.label_print_count,p.label_print_state_known,p.shopify_tracking_synced_at,p.shopify_tracking_synced_number,p.shopify_tracking_sync_error,p.shopify_tracking_last_attempt_at,p.shopify_tracking_lease,p.shopify_tracking_lease_until,p.label_cancelled_at,p.order_action_lease,p.order_action_lease_until,p.pii_purged_at,p.destination_country_code,p.pii_policy_version,p.marketplace_carrier,p.tracking_normalized_state,p.tracking_raw_code,p.tracking_raw_message,p.tracking_event_at,p.tracking_event_time_raw,p.tracking_observed_at,p.tracking_movement_at,p.tracking_checked_at,p.tracking_error,p.source_code,p.tracking_text,p.has_label,p.country_code,p.carrier_label,p.is_cancelled,p.has_progress,p.tracking_class,p.weight_sort,p.units_sort,p.print_sort,p.order_state,p.created_day,p.dispatched_day,p.shipping_cost_day,p.vat_percent FROM private.orders_dashboard_projection p WHERE (SELECT usable FROM projection_gate) AND p.owner_id=(SELECT private.app_workspace_owner_id()) AND NOT EXISTS(SELECT 1 FROM projection_stale s WHERE s.group_key=p.projection_group_key) UNION ALL SELECT z.* FROM private.orders_classified_fallback(CASE WHEN(SELECT usable FROM projection_gate)THEN ARRAY(SELECT group_key FROM projection_stale)ELSE NULL END)z WHERE NOT(SELECT usable FROM projection_gate)OR EXISTS(SELECT 1 FROM projection_stale)),
+workbench_classified AS (
+ SELECT c.*,
+  (NOT c.is_cancelled AND c.tracking_class NOT IN ('delivered','returned','cancelled') AND
+   (c.tracking_class='issue' OR (c.has_label AND c.tracking_class IN ('ready','transit','route') AND
+    CASE WHEN private.orders_workbench_civil_day(c.tracking_event_time_raw) IS NOT NULL
+     THEN (now() AT TIME ZONE 'Europe/Madrid')::date-private.orders_workbench_civil_day(c.tracking_event_time_raw)>=least(greatest(coalesce(p_tracking_stale_days,3),1),90)
+     ELSE coalesce(c.tracking_movement_at,c.tracking_event_at)<=now()-make_interval(days=>least(greatest(coalesce(p_tracking_stale_days,3),1),90)) END))) IS TRUE AS is_attention
+ FROM classified c
+),
+parent_scope AS (
+ SELECT c.country_code,c.carrier_label FROM classified c WHERE (p_channel='all' OR c.source_channel=p_channel)
+ AND (trim(coalesce(p_query,''))='' OR position(lower(trim(p_query)) IN lower(concat_ws(' ',c.order_number,c.order_id,c.customer_name,c.tracking_number,c.tracking_status_message,c.carrier_label,c.items::text,c.country_code)))>0)
+),
+matched AS (
+ SELECT c.*,
+  ((p_channel='all' OR c.source_channel=p_channel)
+   AND (p_tracking='all' OR c.tracking_class=p_tracking)
+   AND (p_country='all' OR c.country_code=upper(p_country))
+   AND (p_carrier='all' OR c.carrier_label=lower(p_carrier))
+   AND (trim(coalesce(p_query,''))='' OR position(lower(trim(p_query)) IN lower(concat_ws(' ',
+      c.order_number,c.order_id,c.customer_name,c.tracking_number,
+      c.tracking_status_message,c.carrier_label,c.items::text,c.country_code)))>0)
+   AND (p_pickup_report='all' OR (p_pickup_report='in' AND EXISTS (SELECT 1 FROM public.pickup_report_items pi WHERE NOT EXISTS (SELECT 1 FROM private.pickup_report_exclusions x WHERE x.report_id=pi.report_id AND x.order_id=pi.order_id) AND pi.owner_id=c.owner_id AND (pi.order_id=c.id OR pi.order_key=CASE WHEN c.source_channel IN ('amazon','shopify') AND nullif(trim(c.order_number),'') IS NOT NULL THEN c.source_channel||':'||coalesce(c.source_integration_account_id::text,'legacy')||':'||trim(c.order_number) ELSE c.id::text END))) OR (p_pickup_report='none' AND NOT EXISTS (SELECT 1 FROM public.pickup_report_items pi WHERE NOT EXISTS (SELECT 1 FROM private.pickup_report_exclusions x WHERE x.report_id=pi.report_id AND x.order_id=pi.order_id) AND pi.owner_id=c.owner_id AND (pi.order_id=c.id OR pi.order_key=CASE WHEN c.source_channel IN ('amazon','shopify') AND nullif(trim(c.order_number),'') IS NOT NULL THEN c.source_channel||':'||coalesce(c.source_integration_account_id::text,'legacy')||':'||trim(c.order_number) ELSE c.id::text END))))) AS context_match,
+  ((p_from IS NULL OR c.created_day>=p_from) AND (p_to IS NULL OR c.created_day<=p_to)) AS in_order_period,
+  ((p_from IS NULL OR c.dispatched_day>=p_from) AND (p_to IS NULL OR c.dispatched_day<=p_to)) AS in_shipped_period,
+  ((p_from IS NULL OR c.shipping_cost_day>=p_from) AND (p_to IS NULL OR c.shipping_cost_day<=p_to)) AS in_cost_period
+ FROM workbench_classified c
+),
+scope AS (SELECT * FROM matched WHERE context_match),payload_cache AS NOT MATERIALIZED (
+ SELECT c.* FROM private.orders_projection_payloads c JOIN private.orders_dashboard_projection p
+ ON p.owner_id=c.owner_id AND p.projection_group_key=c.group_key AND p.id=c.order_id
+ AND c.projection_version=p.xmin::text||':'||p.ctid::text
+ WHERE c.owner_id=(SELECT private.app_workspace_owner_id()) AND c.format_generation=1 AND c.serialization_timezone=current_setting('TimeZone')
+ AND (SELECT usable FROM projection_gate)
+ AND NOT EXISTS(SELECT 1 FROM projection_stale k WHERE k.group_key=c.group_key)
+ ),
+sales AS (
+ SELECT
+  count(*) FILTER (WHERE in_order_period AND NOT is_cancelled AND total_amount IS NOT NULL AND (currency IS NULL OR currency='EUR')) AS count,
+  coalesce(sum(total_amount) FILTER (WHERE in_order_period AND NOT is_cancelled AND total_amount IS NOT NULL AND (currency IS NULL OR currency='EUR')),0) AS gross,
+  coalesce(sum(total_amount/(1+vat_percent/100)) FILTER (WHERE in_order_period AND NOT is_cancelled AND total_amount IS NOT NULL AND (currency IS NULL OR currency='EUR')),0) AS net
+ FROM scope
+),
+shipping AS (
+ SELECT
+  count(*) FILTER (WHERE has_label AND in_cost_period) AS shipments,
+  count(*) FILTER (WHERE has_label AND in_cost_period AND shipping_cost_amount IS NOT NULL AND coalesce(shipping_cost_currency,'EUR')='EUR') AS valued,
+  count(*) FILTER (WHERE has_label AND in_cost_period AND (shipping_cost_amount IS NULL OR coalesce(shipping_cost_currency,'EUR')<>'EUR')) AS missing,
+  coalesce(sum(shipping_cost_amount) FILTER (WHERE has_label AND in_cost_period AND coalesce(shipping_cost_currency,'EUR')='EUR'),0) AS total,
+  coalesce(sum(coalesce(shipping_cost_net_amount,shipping_cost_amount)) FILTER (WHERE has_label AND in_cost_period AND shipping_cost_amount IS NOT NULL AND coalesce(shipping_cost_currency,'EUR')='EUR'),0) AS net,
+  coalesce(sum(shipping_cost_tax_amount) FILTER (WHERE has_label AND in_cost_period AND shipping_cost_amount IS NOT NULL AND coalesce(shipping_cost_currency,'EUR')='EUR'),0) AS tax,
+  coalesce(sum(shipping_cost_amount) FILTER (WHERE has_label AND in_cost_period AND carrier_label LIKE '%mrw%' AND coalesce(shipping_cost_currency,'EUR')='EUR'),0) AS mrw,
+  coalesce(sum(shipping_cost_amount) FILTER (WHERE has_label AND in_cost_period AND carrier_label LIKE '%correos%' AND coalesce(shipping_cost_currency,'EUR')='EUR'),0) AS correos
+ FROM scope
+),
+counts AS (
+ SELECT
+  count(*) FILTER (WHERE order_state='pending') pending,
+  count(*) FILTER (WHERE order_state='pending' AND pii_purged_at IS NULL) preparable,
+  count(*) FILTER (WHERE order_state='pending' AND source_channel='amazon') amazon,
+  count(*) FILTER (WHERE order_state='pending' AND source_channel='shopify') shopify,
+  count(*) FILTER (WHERE order_state='pending' AND source_channel NOT IN ('amazon','shopify')) manual,
+  count(*) FILTER (WHERE order_state='labelled') labelled,
+  count(*) FILTER (WHERE order_state='shipped' AND in_shipped_period) shipped,
+  count(*) FILTER (WHERE is_cancelled AND in_order_period) cancelled,
+  count(*) FILTER (WHERE order_state='pending' AND order_created_at < now()-make_interval(hours=>greatest(p_overdue_hours,1))) overdue
+ FROM scope
+),
+kpis AS (
+ SELECT jsonb_build_object(
+  'pending',c.pending,'preparablePending',c.preparable,
+  'amazon',c.amazon,'shopify',c.shopify,'manual',c.manual,
+  'labelled',c.labelled,'shipped',c.shipped,'cancelled',c.cancelled,
+  'overduePending',c.overdue,
+  'sales',jsonb_build_object('gross',s.gross,'net',s.net,'vat',s.gross-s.net,'count',s.count,
+    'average',CASE WHEN s.count>0 THEN s.gross/s.count ELSE 0 END),
+  'transport',jsonb_build_object('total',t.total,'net',t.net,'tax',t.tax,'mrw',t.mrw,'correos',t.correos,
+    'other',t.total-t.mrw-t.correos,'shipments',t.shipments,'valued',t.valued,'missing',t.missing,
+    'basis','recorded_only')
+ ) AS data
+ FROM counts c CROSS JOIN sales s CROSS JOIN shipping t
+),
+eligible_scope AS (
+ SELECT * FROM scope WHERE
+   (p_state='pending' AND order_state='pending')
+   OR (p_state='labelled' AND order_state='labelled')
+   OR (p_state='issues' AND is_attention)
+   OR (p_state='shipped' AND order_state='shipped' AND in_shipped_period)
+   OR (p_state='cancelled' AND is_cancelled AND in_order_period)
+   OR (p_state='all' AND in_order_period)
+),
+-- Selection and row retrieval reuse the exact deduped, classified filter scope.
+eligible AS (
+ SELECT * FROM eligible_scope WHERE p_selected_ids IS NULL
+   OR id=ANY(p_selected_ids)
+),
+selectable AS (
+ SELECT id FROM eligible WHERE p_selection_all OR (order_state='pending' AND pii_purged_at IS NULL)
+),
+numbered AS (
+ SELECT e.*,row_number() OVER (ORDER BY
+  CASE WHEN p_sort_key='pickupReport' AND p_sort_direction='asc' THEN (SELECT max(split_part(pr.number,'-',2)::numeric*1000000000000+split_part(pr.number,'-',3)::numeric) FROM public.pickup_report_items pi JOIN public.pickup_reports pr ON pr.id=pi.report_id AND pr.owner_id=pi.owner_id WHERE NOT EXISTS (SELECT 1 FROM private.pickup_report_exclusions x WHERE x.report_id=pi.report_id AND x.order_id=pi.order_id) AND pi.owner_id=e.owner_id AND (pi.order_id=e.id OR pi.order_key=CASE WHEN e.source_channel IN ('amazon','shopify') AND nullif(trim(e.order_number),'') IS NOT NULL THEN e.source_channel||':'||coalesce(e.source_integration_account_id::text,'legacy')||':'||trim(e.order_number) ELSE e.id::text END)) END ASC NULLS LAST,
+  CASE WHEN p_sort_key='pickupReport' AND p_sort_direction='desc' THEN (SELECT max(split_part(pr.number,'-',2)::numeric*1000000000000+split_part(pr.number,'-',3)::numeric) FROM public.pickup_report_items pi JOIN public.pickup_reports pr ON pr.id=pi.report_id AND pr.owner_id=pi.owner_id WHERE NOT EXISTS (SELECT 1 FROM private.pickup_report_exclusions x WHERE x.report_id=pi.report_id AND x.order_id=pi.order_id) AND pi.owner_id=e.owner_id AND (pi.order_id=e.id OR pi.order_key=CASE WHEN e.source_channel IN ('amazon','shopify') AND nullif(trim(e.order_number),'') IS NOT NULL THEN e.source_channel||':'||coalesce(e.source_integration_account_id::text,'legacy')||':'||trim(e.order_number) ELSE e.id::text END)) END DESC NULLS LAST,
+  CASE WHEN p_sort_key='weight' AND p_sort_direction='asc' THEN weight_sort END ASC NULLS LAST,
+  CASE WHEN p_sort_key='weight' AND p_sort_direction='desc' THEN weight_sort END DESC NULLS LAST,
+  CASE WHEN p_sort_key='units' AND p_sort_direction='asc' THEN units_sort END ASC NULLS LAST,
+  CASE WHEN p_sort_key='units' AND p_sort_direction='desc' THEN units_sort END DESC NULLS LAST,
+  CASE WHEN p_sort_key='printStatus' AND p_sort_direction='asc' THEN print_sort END ASC NULLS LAST,
+  CASE WHEN p_sort_key='printStatus' AND p_sort_direction='desc' THEN print_sort END DESC NULLS LAST,
+  CASE WHEN p_sort_key='orderDate' AND p_sort_direction='asc' THEN order_created_at END ASC NULLS LAST,
+  CASE WHEN p_sort_key='orderDate' AND p_sort_direction<>'asc' THEN order_created_at END DESC NULLS LAST,
+  CASE WHEN p_sort_key='total' AND p_sort_direction='asc' THEN total_amount END ASC NULLS LAST,
+  CASE WHEN p_sort_key='total' AND p_sort_direction='desc' THEN total_amount END DESC NULLS LAST,
+  CASE WHEN p_sort_key='order' AND p_sort_direction='asc' THEN coalesce(order_number,order_id,sendcloud_id) END ASC NULLS LAST,
+  CASE WHEN p_sort_key='order' AND p_sort_direction='desc' THEN coalesce(order_number,order_id,sendcloud_id) END DESC NULLS LAST,
+  CASE WHEN p_sort_key='customer' AND p_sort_direction='asc' THEN customer_name END ASC NULLS LAST,
+  CASE WHEN p_sort_key='customer' AND p_sort_direction='desc' THEN customer_name END DESC NULLS LAST,
+  CASE WHEN p_sort_key='channel' AND p_sort_direction='asc' THEN source_channel END ASC NULLS LAST,
+  CASE WHEN p_sort_key='channel' AND p_sort_direction='desc' THEN source_channel END DESC NULLS LAST,
+  CASE WHEN p_sort_key='carrier' AND p_sort_direction='asc' THEN carrier_label END ASC NULLS LAST,
+  CASE WHEN p_sort_key='carrier' AND p_sort_direction='desc' THEN carrier_label END DESC NULLS LAST,
+  CASE WHEN p_sort_key='state' AND p_sort_direction='asc' THEN order_state END ASC NULLS LAST,
+  CASE WHEN p_sort_key='state' AND p_sort_direction='desc' THEN order_state END DESC NULLS LAST,
+  CASE WHEN p_sort_key='shipping' AND p_sort_direction='asc' THEN shipping_cost_amount END ASC NULLS LAST,
+  CASE WHEN p_sort_key='shipping' AND p_sort_direction='desc' THEN shipping_cost_amount END DESC NULLS LAST,
+  CASE WHEN p_sort_key='tracking' AND p_sort_direction='asc' THEN tracking_class END ASC NULLS LAST,
+  CASE WHEN p_sort_key='tracking' AND p_sort_direction='desc' THEN tracking_class END DESC NULLS LAST,
+  CASE WHEN p_sort_key='labelDate' AND p_sort_direction='asc' THEN coalesce(label_created_at,fulfilled_at,tracking_updated_at) END ASC NULLS LAST,
+  CASE WHEN p_sort_key='labelDate' AND p_sort_direction='desc' THEN coalesce(label_created_at,fulfilled_at,tracking_updated_at) END DESC NULLS LAST,
+  CASE WHEN p_sort_key='products' AND p_sort_direction='asc' THEN items::text END ASC NULLS LAST,
+  CASE WHEN p_sort_key='products' AND p_sort_direction='desc' THEN items::text END DESC NULLS LAST,
+  CASE WHEN p_sort_key='destination' AND p_sort_direction='asc' THEN concat_ws(' ',country_code,shipping_address->>'postal_code') END ASC NULLS LAST,
+  CASE WHEN p_sort_key='destination' AND p_sort_direction='desc' THEN concat_ws(' ',country_code,shipping_address->>'postal_code') END DESC NULLS LAST,
+  order_created_at DESC NULLS LAST,id DESC) AS ordinal
+ FROM eligible e
+),
+paged AS (
+ SELECT * FROM numbered
+ WHERE ordinal>greatest(p_page,0)::bigint*least(greatest(p_page_size,1),100)
+   AND ordinal<= (greatest(p_page,0)::bigint+1)*least(greatest(p_page_size,1),100)
+),
+facets AS (
+ SELECT jsonb_build_object(
+ 'countries',coalesce((SELECT jsonb_agg(country_code ORDER BY country_code) FROM
+    (SELECT DISTINCT country_code FROM parent_scope) countries),'[]'::jsonb),
+ 'carriers',coalesce((SELECT jsonb_agg(carrier_label ORDER BY carrier_label) FROM
+    (SELECT DISTINCT carrier_label FROM parent_scope WHERE carrier_label<>'—') carriers),'[]'::jsonb)
+ ) AS data
+)
+SELECT CASE
+ -- Reject oversized caller arrays before returning any rows. A negative LIMIT
+ -- raises an error, including when the tenant/filter scope contains no rows.
+ WHEN cardinality(p_selected_ids)>2000 THEN
+   (SELECT '{}'::jsonb LIMIT (0-cardinality(p_selected_ids)))
+ WHEN p_selection_ids_only THEN jsonb_build_object(
+   'ids',CASE WHEN (SELECT count(*) FROM selectable)>least(greatest(coalesce(p_selection_limit,2000),1),2000)
+     THEN '[]'::jsonb ELSE coalesce((SELECT jsonb_agg(id ORDER BY id) FROM selectable),'[]'::jsonb) END,
+   'total',(SELECT count(*) FROM selectable),
+   'limit',least(greatest(coalesce(p_selection_limit,2000),1),2000),
+   'exceeded',(SELECT count(*) FROM selectable)>least(greatest(coalesce(p_selection_limit,2000),1),2000)
+ ) ELSE jsonb_build_object(
+ 'total',(SELECT count(*) FROM eligible),
+ 'selectableTotal',(SELECT count(*) FROM selectable),
+ 'page',greatest(p_page,0),
+ 'pageSize',least(greatest(p_page_size,1),100),
+ 'rows',coalesce((
+  SELECT jsonb_agg((coalesce(pc.row_payload,to_jsonb(p)-ARRAY['raw_payload','dedupe_rank','source_code','tracking_text','has_label','country_code','carrier_label','is_cancelled','has_progress','tracking_class','order_state','created_day','dispatched_day','shipping_cost_day','weight_sort','units_sort','print_sort','vat_percent','context_match','in_order_period','in_shipped_period','in_cost_period','is_attention','ordinal']::text[])||jsonb_build_object('logistics_state',p.order_state,'logistics',CASE WHEN d.identity_key IS NOT NULL AND p.label_cancelled_at IS NULL AND p.pii_purged_at IS NULL AND(p.label_created_at IS NOT NULL OR p.sendcloud_parcel_id IS NOT NULL OR nullif(p.shipping_remote_id,'') IS NOT NULL)
+ THEN jsonb_build_object('dispatchedAt',d.dispatched_at,'cause',d.cause,'actorId',d.actor_id,'reportId',d.report_id,'basis',d.evidence_basis,'observedOnly',d.evidence_basis LIKE '%_observed')
+ WHEN h.identity_key IS NOT NULL AND d.identity_key IS NULL AND(h.basis='pre_cutover_label_without_evidence' OR(p.label_created_at IS NULL AND p.sendcloud_parcel_id IS NULL AND nullif(p.shipping_remote_id,'') IS NULL))
+ THEN jsonb_build_object('historical',true,'historicalDate',h.historical_date,'basis',h.basis) END,'logistics_identity',li.identity_key,'pickup_reports',coalesce((SELECT jsonb_agg(jsonb_build_object('id',pr.id,'number',pr.number) ORDER BY pr.created_at DESC,pr.id DESC) FROM public.pickup_report_items pi JOIN public.pickup_reports pr ON pr.id=pi.report_id AND pr.owner_id=pi.owner_id WHERE NOT EXISTS (SELECT 1 FROM private.pickup_report_exclusions x WHERE x.report_id=pi.report_id AND x.order_id=pi.order_id) AND pi.owner_id=p.owner_id AND (pi.order_id=p.id OR pi.order_key=CASE WHEN p.source_channel IN ('amazon','shopify') AND nullif(trim(p.order_number),'') IS NOT NULL THEN p.source_channel||':'||coalesce(p.source_integration_account_id::text,'legacy')||':'||trim(p.order_number) ELSE p.id::text END)),'[]'::jsonb),'shipping_measurement',p.raw_payload#>'{shipping_details,measurement}',
+                           'tracking_metadata',p.raw_payload->'_zenvia_tracking')) ORDER BY p.ordinal) FROM paged p LEFT JOIN payload_cache pc ON pc.owner_id=p.owner_id AND pc.order_id=p.id AND pc.group_key=private.orders_dashboard_group_key(p.source_channel,p.order_number,p.id) LEFT JOIN LATERAL(SELECT coalesce(pc.identity_key,md5(jsonb_build_array(p.owner_id,p.shipping_integration_account_id,p.shipping_provider,p.tracking_number,p.shipping_remote_id,p.sendcloud_parcel_id,p.label_created_at,p.label_cancelled_at)::text)) identity_key)li ON true LEFT JOIN private.order_dispatch_evidence d ON d.owner_id=p.owner_id AND d.identity_key=li.identity_key LEFT JOIN private.order_logistics_legacy h ON h.owner_id=p.owner_id AND h.order_id=p.id AND h.identity_key=li.identity_key), '[]'::jsonb),
+ -- Full cost scope, independent of the selected state and visible page. Only
+ -- tariff inputs are returned; addresses and raw provider payloads stay private.
+ 'tariffCandidates',coalesce((SELECT jsonb_agg(coalesce(tc.tariff_payload,jsonb_build_object(
+    'id',s.id,
+    'pii_purged_at',s.pii_purged_at,
+    'order_created_at',s.order_created_at,
+    'shipping_provider',s.shipping_provider,
+    'sendcloud_parcel_id',s.sendcloud_parcel_id,
+    'shipping_remote_id',s.shipping_remote_id,
+    'fulfilled_at',s.fulfilled_at,
+    'label_created_at',s.label_created_at,
+    'carrier_code',s.carrier_code,
+    'carrier_name',s.carrier_name,
+    'shipping_option_code',s.shipping_option_code,
+    'shipping_service_name',s.shipping_service_name,
+    'shipping_cost_amount',s.shipping_cost_amount,
+    'shipping_cost_net_amount',s.shipping_cost_net_amount,
+    'shipping_cost_tax_amount',s.shipping_cost_tax_amount,
+    'shipping_cost_currency',s.shipping_cost_currency,
+    'shipping_cost_source',s.shipping_cost_source,
+    'shipping_address',jsonb_strip_nulls(jsonb_build_object('country_code',s.shipping_address->'country_code','postal_code',s.shipping_address->'postal_code')),
+    'shipping_measurement',jsonb_build_object('weight',jsonb_build_object('value',s.raw_payload#>'{shipping_details,measurement,weight,value}','unit',s.raw_payload#>'{shipping_details,measurement,weight,unit}')),
+    'kpi_carrier_label',s.carrier_label)) ORDER BY s.id)
+    FROM scope s LEFT JOIN payload_cache tc ON tc.owner_id=s.owner_id AND tc.order_id=s.id AND tc.group_key=private.orders_dashboard_group_key(s.source_channel,s.order_number,s.id) WHERE s.has_label AND s.in_cost_period
+      AND (s.shipping_cost_amount IS NULL OR s.shipping_cost_source='tariff_estimate')),'[]'::jsonb),
+ 'counters',(SELECT jsonb_build_object(
+ 'pending',count(*) FILTER(WHERE order_state='pending'),
+ 'labelled',count(*) FILTER(WHERE order_state='labelled'),
+ 'shipped',count(*) FILTER(WHERE order_state='shipped' AND in_shipped_period),
+ 'issues',count(*) FILTER(WHERE is_attention),
+ 'cancelled',count(*) FILTER(WHERE is_cancelled AND in_order_period)) FROM scope),
+ 'kpis',(SELECT data FROM kpis),
+ 'facets',(SELECT data FROM facets)
+) END);END;$function$;
+
+CREATE OR REPLACE FUNCTION private.orders_classified_fallback(p_keys text[])
+ RETURNS SETOF private.orders_classified_shape
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO ''
+AS $function$SELECT original.id,original.owner_id,original.sendcloud_id,original.order_id,original.order_number,original.integration_id,original.integration_name,original.integration_type,original.source_channel,original.source_status,original.order_created_at,original.order_updated_at,original.customer_name,original.customer_email,original.customer_phone,original.shipping_address,original.billing_address,original.items,original.total_amount,original.currency,original.raw_payload,original.sendcloud_parcel_id,original.sendcloud_shipment_id,original.tracking_number,original.tracking_url,original.shipping_option_code,original.contract_id,original.label_created_at,original.fulfilled_at,original.last_synced_at,original.created_at,original.updated_at,original.carrier_code,original.carrier_name,original.shipping_service_name,original.tracking_status_code,original.tracking_status_message,original.tracking_updated_at,original.amazon_tracking_synced_at,original.amazon_tracking_last_attempt_at,original.amazon_tracking_sync_error,original.amazon_tracking_sync_attempts,original.shipping_cost_amount,original.shipping_cost_currency,original.shipping_cost_source,original.shipping_cost_net_amount,original.shipping_cost_tax_amount,original.shipping_cost_recorded_at,original.source_integration_account_id,original.shipping_integration_account_id,original.sendcloud_remote_id,original.shipping_provider,original.shipping_remote_id,original.shipping_label_url,original.package_length_cm,original.package_width_cm,original.package_height_cm,original.label_printed_at,original.label_print_count,original.label_print_state_known,original.shopify_tracking_synced_at,original.shopify_tracking_synced_number,original.shopify_tracking_sync_error,original.shopify_tracking_last_attempt_at,original.shopify_tracking_lease,original.shopify_tracking_lease_until,original.label_cancelled_at,original.order_action_lease,original.order_action_lease_until,original.pii_purged_at,original.destination_country_code,original.pii_policy_version,original.marketplace_carrier,original.tracking_normalized_state,original.tracking_raw_code,original.tracking_raw_message,original.tracking_event_at,original.tracking_event_time_raw,original.tracking_observed_at,original.tracking_movement_at,original.tracking_checked_at,original.tracking_error,original.source_code,original.tracking_text,original.has_label,original.country_code,original.carrier_label,original.is_cancelled,original.has_progress,original.tracking_class,original.weight_sort,original.units_sort,original.print_sort,original.order_state,original.created_day,original.dispatched_day,original.shipping_cost_day,original.vat_percent FROM (
+WITH ranked AS (
+ SELECT o.*, o.owner_id::text||':'||CASE WHEN o.source_channel IN ('amazon','shopify') AND trim(coalesce(o.order_number,''))<>'' THEN o.source_channel||':'||trim(o.order_number) ELSE o.id::text END AS dedupe_key,
+  row_number() OVER (
+   PARTITION BY CASE
+      WHEN o.source_channel IN ('amazon','shopify') AND trim(coalesce(o.order_number,''))<>''
+        THEN o.source_channel||':'||trim(o.order_number)
+      ELSE o.id::text
+   END
+   ORDER BY
+    ((CASE WHEN coalesce(nullif(o.sendcloud_remote_id,''),o.sendcloud_id,'')<>'' AND coalesce(nullif(o.sendcloud_remote_id,''),o.sendcloud_id) NOT LIKE 'amazon:%' THEN 40 ELSE 0 END)
+    +(CASE WHEN o.shipping_integration_account_id IS NOT NULL THEN 20 ELSE 0 END)
+    +(CASE WHEN nullif(o.customer_name,'') IS NOT NULL THEN 8 ELSE 0 END)
+    +(CASE WHEN nullif(o.customer_phone,'') IS NOT NULL THEN 4 ELSE 0 END)
+    +(CASE WHEN nullif(o.customer_email,'') IS NOT NULL THEN 2 ELSE 0 END)
+    +(CASE WHEN nullif(o.shipping_address->>'address_line_1','') IS NOT NULL THEN 8 ELSE 0 END)
+    +(CASE WHEN nullif(o.shipping_address->>'postal_code','') IS NOT NULL THEN 4 ELSE 0 END)
+    +(CASE WHEN o.raw_payload#>>'{shipping_details,measurement,weight,value}' ~ '^[0-9]+([.][0-9]+)?$' THEN CASE WHEN (o.raw_payload#>>'{shipping_details,measurement,weight,value}')::numeric>0 THEN 4 ELSE 0 END ELSE 0 END)
+    +(CASE WHEN jsonb_typeof(o.items)='array' AND jsonb_array_length(o.items)>0 THEN 2 ELSE 0 END)
+    +(CASE WHEN o.sendcloud_parcel_id IS NOT NULL OR o.shipping_remote_id IS NOT NULL OR o.label_created_at IS NOT NULL THEN 50 ELSE 0 END)
+    ) DESC,
+    o.order_created_at DESC NULLS LAST,o.id DESC
+  ) AS dedupe_rank
+ FROM public.fulfillment_orders o WHERE o.owner_id=(SELECT private.app_workspace_owner_id()) AND (p_keys IS NULL OR private.orders_dashboard_group_key(o.source_channel,o.order_number,o.id)=ANY(p_keys))
+),
+grouped AS MATERIALIZED (
+ SELECT dedupe_key,jsonb_agg(to_jsonb(r) ORDER BY dedupe_rank) copies FROM ranked r GROUP BY dedupe_key
+),
+merged_json AS MATERIALIZED (
+ SELECT copies->0||jsonb_build_object(
+'source_integration_account_id',(SELECT v->'source_integration_account_id' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'source_integration_account_id' IS NOT NULL AND v->'source_integration_account_id'<>'null'::jsonb AND coalesce(v->>'source_integration_account_id','')<>'' ORDER BY n LIMIT 1),
+'customer_name',(SELECT v->'customer_name' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'customer_name' IS NOT NULL AND v->'customer_name'<>'null'::jsonb AND coalesce(v->>'customer_name','')<>'' ORDER BY n LIMIT 1),
+'customer_email',(SELECT v->'customer_email' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'customer_email' IS NOT NULL AND v->'customer_email'<>'null'::jsonb AND coalesce(v->>'customer_email','')<>'' ORDER BY n LIMIT 1),
+'customer_phone',(SELECT v->'customer_phone' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'customer_phone' IS NOT NULL AND v->'customer_phone'<>'null'::jsonb AND coalesce(v->>'customer_phone','')<>'' ORDER BY n LIMIT 1),
+'currency',(SELECT v->'currency' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'currency' IS NOT NULL AND v->'currency'<>'null'::jsonb AND coalesce(v->>'currency','')<>'' ORDER BY n LIMIT 1),
+'pii_purged_at',(SELECT v->'pii_purged_at' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'pii_purged_at' IS NOT NULL AND v->'pii_purged_at'<>'null'::jsonb AND coalesce(v->>'pii_purged_at','')<>'' ORDER BY n LIMIT 1),
+'destination_country_code',(SELECT v->'destination_country_code' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'destination_country_code' IS NOT NULL AND v->'destination_country_code'<>'null'::jsonb AND coalesce(v->>'destination_country_code','')<>'' ORDER BY n LIMIT 1),
+'package_length_cm',(SELECT v->'package_length_cm' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'package_length_cm' IS NOT NULL AND v->'package_length_cm'<>'null'::jsonb AND coalesce(v->>'package_length_cm','')<>'' ORDER BY n LIMIT 1),
+'package_width_cm',(SELECT v->'package_width_cm' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'package_width_cm' IS NOT NULL AND v->'package_width_cm'<>'null'::jsonb AND coalesce(v->>'package_width_cm','')<>'' ORDER BY n LIMIT 1),
+'package_height_cm',(SELECT v->'package_height_cm' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'package_height_cm' IS NOT NULL AND v->'package_height_cm'<>'null'::jsonb AND coalesce(v->>'package_height_cm','')<>'' ORDER BY n LIMIT 1),
+'total_amount',(SELECT v->'total_amount' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v->'total_amount' IS NOT NULL AND v->'total_amount'<>'null'::jsonb AND coalesce(v->>'total_amount','')<>'' ORDER BY n LIMIT 1),
+'shipping_address',coalesce((SELECT v->'shipping_address' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE jsonb_typeof(v->'shipping_address')='object' AND v->'shipping_address'<>'{}'::jsonb ORDER BY n LIMIT 1),'{}'::jsonb),
+'billing_address',coalesce((SELECT v->'billing_address' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE jsonb_typeof(v->'billing_address')='object' AND v->'billing_address'<>'{}'::jsonb ORDER BY n LIMIT 1),'{}'::jsonb),
+'items',coalesce((SELECT v->'items' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE jsonb_typeof(v->'items')='array' AND v->'items'<>'[]'::jsonb ORDER BY n LIMIT 1),'[]'::jsonb),
+'raw_payload',coalesce(nullif(copies->0->'raw_payload','null'::jsonb),'{}'::jsonb)||jsonb_build_object('shipping_details',coalesce(nullif(copies->0#>'{raw_payload,shipping_details}','null'::jsonb),'{}'::jsonb)||jsonb_build_object('measurement',coalesce(nullif(copies->0#>'{raw_payload,shipping_details,measurement}','null'::jsonb),'{}'::jsonb)||jsonb_build_object('weight',(SELECT v#>'{raw_payload,shipping_details,measurement,weight}' FROM jsonb_array_elements(copies) WITH ORDINALITY a(v,n) WHERE v#>>'{raw_payload,shipping_details,measurement,weight,value}' ~ '^[0-9]+([.][0-9]+)?$' ORDER BY n LIMIT 1))))
+) AS data FROM grouped
+),
+merged AS MATERIALIZED (
+ SELECT populated.* FROM merged_json CROSS JOIN LATERAL
+   jsonb_populate_record(NULL::public.fulfillment_orders,
+   CASE WHEN data->>'pii_purged_at' IS NOT NULL THEN data||jsonb_build_object(
+     'customer_name',NULL,'customer_email',NULL,'customer_phone',NULL,
+     'shipping_address','{}'::jsonb,'billing_address','{}'::jsonb,'raw_payload','{}'::jsonb,
+     'tracking_number',NULL,'tracking_url',NULL,'shipping_label_url',NULL,'tracking_status_message',NULL,'amazon_tracking_sync_error',NULL,'shopify_tracking_sync_error',NULL,'shopify_tracking_synced_number',NULL,'sendcloud_id','amazon-purged:'||(data->>'id'),
+     'shipping_remote_id',NULL,'sendcloud_parcel_id',NULL,'sendcloud_shipment_id',NULL,'sendcloud_remote_id',NULL,
+     'items',coalesce((SELECT jsonb_agg(jsonb_strip_nulls(jsonb_build_object('item_id',CASE WHEN jsonb_typeof(item->'item_id') IN ('string','number') THEN item->'item_id' END,'sku',CASE WHEN jsonb_typeof(item->'sku') IN ('string') THEN item->'sku' END,'product_id',CASE WHEN jsonb_typeof(item->'product_id') IN ('string') THEN item->'product_id' END,'quantity',CASE WHEN jsonb_typeof(item->'quantity') IN ('number') THEN item->'quantity' END,'unit_price',CASE WHEN jsonb_typeof(item->'unit_price')='number' THEN item->'unit_price' WHEN jsonb_typeof(item->'unit_price')='object' THEN jsonb_strip_nulls(jsonb_build_object('value',CASE WHEN item->'unit_price'->>'value' ~ '^-?[0-9]+([.][0-9]+)?$' THEN (item->'unit_price'->>'value')::numeric END,'currency',CASE WHEN item->'unit_price'->>'currency' ~ '^[A-Z]{3}$' THEN item->'unit_price'->>'currency' END)) END,'total_price',CASE WHEN jsonb_typeof(item->'total_price')='number' THEN item->'total_price' WHEN jsonb_typeof(item->'total_price')='object' THEN jsonb_strip_nulls(jsonb_build_object('value',CASE WHEN item->'total_price'->>'value' ~ '^-?[0-9]+([.][0-9]+)?$' THEN (item->'total_price'->>'value')::numeric END,'currency',CASE WHEN item->'total_price'->>'currency' ~ '^[A-Z]{3}$' THEN item->'total_price'->>'currency' END)) END))) FROM jsonb_array_elements(coalesce(data->'items','[]'::jsonb)) item),'[]'::jsonb)
+   ) ELSE data END) AS populated
+),
+normalized AS (
+ SELECT r.*, st.normalized_state as tracking_normalized_state,st.raw_code as tracking_raw_code,st.raw_message as tracking_raw_message,st.event_at as tracking_event_at,st.raw_event_time as tracking_event_time_raw,st.observed_at as tracking_observed_at,st.movement_at as tracking_movement_at,st.last_checked_at as tracking_checked_at,st.last_error as tracking_error,
+   lower(trim(coalesce(r.source_status,''))) AS source_code,
+   lower(regexp_replace(concat_ws(' ',r.tracking_status_code,r.tracking_status_message),'[_-]+',' ','g')) AS tracking_text,
+   (r.sendcloud_parcel_id IS NOT NULL OR nullif(r.shipping_remote_id,'') IS NOT NULL OR r.label_created_at IS NOT NULL) AS has_label,
+   upper(coalesce(nullif(r.destination_country_code,''),nullif(r.shipping_address->>'country_code',''),'XX')) AS country_code,
+   CASE
+     WHEN regexp_replace(lower(coalesce(r.carrier_code,r.carrier_name,'')),'[^a-z0-9]','','g')='correosexpress' THEN 'correos express'
+     WHEN regexp_replace(lower(coalesce(r.carrier_code,r.carrier_name,'')),'[^a-z0-9]','','g')='correos' THEN 'correos'
+     WHEN regexp_replace(lower(coalesce(r.carrier_code,r.carrier_name,'')),'[^a-z0-9]','','g')='mrw' THEN 'mrw'
+     WHEN nullif(r.carrier_name,'') IS NOT NULL THEN lower(r.carrier_name)
+     WHEN lower(coalesce(r.carrier_code,split_part(r.shipping_option_code,':',1),'')) LIKE '%correos%' THEN 'correos'
+     WHEN lower(coalesce(r.carrier_code,split_part(r.shipping_option_code,':',1),'')) LIKE '%mrw%' THEN 'mrw'
+     ELSE lower(coalesce(nullif(r.carrier_code,''),split_part(r.shipping_option_code,':',1),'—'))
+   END AS carrier_label
+ FROM merged r LEFT JOIN public.shipment_tracking_state st ON st.order_id=r.id AND st.owner_id=r.owner_id AND r.pii_purged_at IS NULL AND st.account_id=r.shipping_integration_account_id AND st.identity_key=md5(jsonb_build_array(r.owner_id,r.shipping_integration_account_id,r.shipping_provider,r.tracking_number,r.shipping_remote_id,r.sendcloud_parcel_id,r.label_created_at,r.label_cancelled_at)::text)
+ WHERE NOT (r.source_channel='amazon' AND
+     regexp_replace(lower(coalesce(r.source_status,'')),'[^a-z]','','g')
+       IN ('pending','pendingavailability','invoiceunconfirmed'))
+),
+flags AS (
+ SELECT n.*,
+  (n.source_code IN ('cancelled','canceled','cancelled_by_customer','cancelled_by_seller') OR coalesce(n.tracking_normalized_state,private.tracking_legacy_state(n.shipping_provider,n.tracking_status_code))='cancelled') AS is_cancelled,
+  (n.source_code IN ('fulfilled','shipped','delivered') OR
+    (n.has_label AND n.tracking_text<>'' AND
+      NOT (n.tracking_text LIKE ANY(ARRAY[
+        '%created%','%pending%','%ready to send%','%ready for shipment%',
+        '%announced%','%being announced%','%no label%',
+        '%announcement failed%','%error collecting%'])))) AS has_progress,
+  CASE coalesce(n.tracking_normalized_state,CASE WHEN n.shipping_provider='mrw' THEN NULL ELSE private.tracking_legacy_state(n.shipping_provider,n.tracking_status_code) END)
+ WHEN 'pre_transit' THEN 'ready' WHEN 'in_transit' THEN 'transit' WHEN 'out_for_delivery' THEN 'route'
+ WHEN 'delivered' THEN 'delivered' WHEN 'exception' THEN 'issue' WHEN 'returned' THEN 'returned' WHEN 'cancelled' THEN 'cancelled' ELSE 'none' END AS tracking_class
+ FROM normalized n
+),
+classified AS (
+ SELECT f.*,
+  CASE WHEN f.raw_payload#>>'{shipping_details,measurement,weight,value}' ~ '^[0-9]+([.][0-9]+)?$'
+    THEN (f.raw_payload#>>'{shipping_details,measurement,weight,value}')::numeric * CASE lower(f.raw_payload#>>'{shipping_details,measurement,weight,unit}') WHEN 'g' THEN 0.001 WHEN 'lb' THEN 0.45359237 WHEN 'lbs' THEN 0.45359237 ELSE 1 END END AS weight_sort,
+  (SELECT coalesce(sum(CASE WHEN item->>'quantity' ~ '^-?[0-9]+([.][0-9]+)?$' AND (item->>'quantity')::numeric<>0 THEN (item->>'quantity')::numeric ELSE 1 END),0) FROM jsonb_array_elements(CASE WHEN jsonb_typeof(f.items)='array' THEN f.items ELSE '[]'::jsonb END) item) AS units_sort,
+  CASE WHEN NOT f.has_label THEN '' WHEN f.label_printed_at IS NOT NULL THEN '2-'||f.label_printed_at::text WHEN f.label_print_state_known THEN '1' ELSE '0' END AS print_sort,
+  private.order_logistics_state(to_jsonb(f)) AS order_state,
+  (f.order_created_at AT TIME ZONE 'Europe/Madrid')::date AS created_day,
+  (coalesce(nullif(private.order_logistics_evidence(to_jsonb(f))->>'dispatchedAt',''),nullif(private.order_logistics_evidence(to_jsonb(f))->>'historicalDate',''))::timestamptz AT TIME ZONE 'Europe/Madrid')::date AS dispatched_day,
+  (coalesce(f.shipping_cost_recorded_at,f.fulfilled_at,f.label_created_at,f.tracking_updated_at,f.order_created_at) AT TIME ZONE 'Europe/Madrid')::date AS shipping_cost_day,
+  coalesce((('{"ES":21,"PT":23,"FR":20,"DE":19,"IT":22,"NL":21,"BE":21,"AT":20,"IE":23,"PL":23,"CZ":21,"GR":24,"HU":27,"RO":21,"FI":25.5,"SE":25,"DK":25,"HR":25,"SI":22,"SK":23,"LT":21,"LV":21,"EE":24,"BG":20,"CY":19,"MT":18,"LU":17,"GB":20}'::jsonb)->>
+    upper(coalesce(nullif(f.destination_country_code,''),nullif(f.shipping_address->>'country_code',''),'XX')))::numeric,0) AS vat_percent
+ FROM flags f
+) SELECT * FROM classified) original$function$;
+DO $refresh$ DECLARE r record; BEGIN
+ FOR r IN SELECT DISTINCT o.owner_id,private.orders_dashboard_group_key(o.source_channel,o.order_number,o.id) group_key FROM public.fulfillment_orders o WHERE o.owner_id='7461b2b7-f383-460d-b1c7-6ccbb52e42b2' AND o.order_number=ANY(ARRAY['403-2970774-1997121','404-4926007-5187543','403-4259559-6439518','403-7195567-7816365','402-8619022-2877164','403-7799148-9825916','402-0439094-4451527','403-2631616-3496366','405-3627153-0079561']) LOOP
+ IF NOT pg_try_advisory_xact_lock(hashtextextended(r.owner_id::text||':'||r.group_key,719)) THEN RAISE EXCEPTION 'RETENTION_GROUP_BUSY';END IF;
+ PERFORM private.orders_dashboard_projection_refresh(r.owner_id,r.group_key);
+ END LOOP;
+END $refresh$;
+COMMIT;

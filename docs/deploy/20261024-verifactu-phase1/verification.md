@@ -12,3 +12,20 @@ Sin ejecución de SQL mutante en producción. Código probado con datos sintéti
 La suite global inicial encontró solo archivos locales faltantes en el checkout reconstruido, no cambios del producto. Se restauraron exactamente desde main los fixtures binarios, vendor JS, docs y snapshots ya existentes, sin incluirlos como cambios de la PR. La repetición de los seis suites afectados se registra abajo; no se ocultan fallos ni se presentan como regresiones corregidas por código fiscal.
 
 Rollback probado: restaura función guard y reservas del borrador antes de activación; rechaza destrucción del esquema tras actividad. No se afirma igualdad byte a byte de ACL/manifests/timestamps: updated_at del borrador puede avanzar con migración/reversión. Después de uso, solo kill switch y conservación.
+
+## Cierre de pruebas
+
+- Commit de implementación `0ae6b59fda2a6a141008d37e8f6ce447b632f5a4`: CI [40080184557](https://github.com/zenviacommerce/zenvia-gestion/actions/runs/40080184557) GREEN: **144 archivos / 964 tests Vitest correctos**, 1 harness visual opt-in omitido deliberadamente; build GREEN; 16 capturas PNG adjuntas, sin cambios de layout/PDF. Los logs de errores HTTP/MFA simulados son casos negativos de resiliencia, no solicitudes reales.
+- PostgreSQL real adicional GREEN: 20 anulaciones concurrentes con una emisión y 20 reintentos de anulación conservan cadena, hora ordenada e idempotencia; 20 justificantes independientes simultáneos numeran sin duplicados/huecos y guardan snapshots, sin crear RF fiscales inferidos. Se calcula el timestamp después de obtener el lock de la cadena.
+- Core final **23 casos**, hash TS25 + paridad SQL38 + UI12 = **98 casos específicos** incluidos en la suite completa. Incluye año 2027/serie incorrecta y bloqueo directo de contador para service_role.
+- Scripts Node completos locales **1292/1292 correctos** después de restaurar archivos exactos de main y actualizar los contratos que exigían antiguamente editar números/reabrir emitidas. Los nuevos contratos preservan configuración de pagos, cálculo de vencimientos e importación, y exigen número en emisión/referencia externa separada. Cinco contratos compartidos de tabs/búsquedas y diseño pasan; `check-design-contract.mjs` y TypeScript también.
+- Revisión independiente final de contador, timestamp y contratos actualizados: sin Important abiertos. El commit final añade la misma batería Node al gate de rama antes de abrir la PR.
+
+`preflight-and-fingerprints.sql` entrega el recuento y huellas reproducibles de contenido cerrado, antes/después, sin exponer datos fiscales. La huella de comparación MD5 es operativa de conservación, no la huella fiscal SHA-256. Archivo SQL de migración SHA-256: `caa58acba4a400a20de33244173d8ac90e2bcb3b8052940ef8262e89dddac81b`; rollback: `68bc11115958ef506555e61157ccb442e170f59559d18aa99ea67870857570c7`.
+
+- SQL operativo adicional probado antes/después de migración: preflight read-only. Activación/kill switch probados en fixture desechable sustituyendo únicamente el UUID del owner: shadow→disabled, dos eventos, cero emisiones.
+- Catálogo de producción consultado solo en lectura: authenticated y service_role tienen USAGE sobre private y authenticated puede ejecutar pg_get_userbyid. Las guardas invoker no dependen de un privilegio de esquema inexistente; no se concedió ningún permiso nuevo en producción.
+
+## Ajuste final detectado al revisar capturas
+
+Un nuevo recibo draft todavía se contaba como pendiente de cobro. RED observado con 75 € en borrador y contador pendiente 1; corrección limita los cuatro KPI a recibos emitidos. GREEN UI **13/13**, 99 casos fiscales específicos en total; contratos afectados y TypeScript correctos. Capturas sintéticas regeneradas desde componentes reales: dos filas (una emitida y una draft) conservan la lista, con KPI de pendiente 100 € / 1 recibo, en vez de 200 € / 2. La última CI repite suite completa, contratos, PG y PNG para este estado final.

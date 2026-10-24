@@ -305,9 +305,10 @@ export function SalesReceipts(){
   const billableSelected=selectedRows.filter(receipt=>receipt.status!=='draft');
   const collectableSelected=billableSelected.filter(receipt=>pendingAmount(receipt)>0.005);
   const allVisibleSelected=shown.length>0&&shown.every(receipt=>selectedSet.has(receipt.id));
-  const openReceipts=shown.filter(receipt=>pendingAmount(receipt)>0.005);
-  const pendingTotal=shown.reduce((sum,receipt)=>sum+pendingAmount(receipt),0);
-  const collectedTotal=shown.reduce((sum,receipt)=>sum+receipt.paidAmount,0);
+  const issuedReceipts=shown.filter(receipt=>receipt.status!=='draft');
+  const openReceipts=issuedReceipts.filter(receipt=>pendingAmount(receipt)>0.005);
+  const pendingTotal=issuedReceipts.reduce((sum,receipt)=>sum+pendingAmount(receipt),0);
+  const collectedTotal=issuedReceipts.reduce((sum,receipt)=>sum+receipt.paidAmount,0);
   const openNew=()=>{setEditing(null);setModal(true)};
   const openEdit=(receipt:SalesReceipt)=>{if(receipt.status!=='draft')return;setDetail(null);setEditing(receipt);setModal(true)};
   const openPayment=(receipt:SalesReceipt)=>{if(receipt.status==='draft')return;setDetail(null);setPaymentReceipt(receipt)};
@@ -359,7 +360,7 @@ export function SalesReceipts(){
       <StatCard label="Pendiente de cobro" value={money(pendingTotal)} sub={periodLabel(dateFilter)} icon={<ReceiptText/>}/>
       <StatCard label="Cobrado" value={money(collectedTotal)} sub={periodLabel(dateFilter)} icon={<Banknote/>}/>
       <StatCard label="Recibos pendientes" value={String(openReceipts.length)} sub="Con saldo por cobrar" icon={<ReceiptText/>}/>
-      <StatCard label="Recibos cobrados" value={String(shown.filter(receipt=>collectionStatus(receipt)==='paid').length)} sub="Saldo completamente cobrado" icon={<CheckCircle2/>}/>
+      <StatCard label="Recibos cobrados" value={String(issuedReceipts.filter(receipt=>collectionStatus(receipt)==='paid').length)} sub="Saldo completamente cobrado" icon={<CheckCircle2/>}/>
     </KpiGrid>
     <div className="salesReceiptNotice"><strong>Recibos y facturas son independientes:</strong> cobrar un recibo no lo factura y generar una factura desde varios recibos no los vincula ni altera su estado. El IVA solo se aplica en la factura.</div>
     <PeriodFilterPanel filter={dateFilter} onChange={setDateFilter} title="Periodo de recibos"/>

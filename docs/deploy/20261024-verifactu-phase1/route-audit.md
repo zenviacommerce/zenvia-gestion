@@ -90,3 +90,5 @@ La ampliación de solo lectura está en `routine-audit-before.json` (21 funcione
 | Ledger / configuración / MFA | ACL sin acceso directo auth/anon/service_role, append-only y TRUNCATE bloqueado; configuración solo SQL operador revisado; wrappers MFA sin cambiar cohorte |
 
 Los maestros vivos pueden cambiar para futuras emisiones; los campos fiscales del documento y snapshots ya emitidos no se recalculan. Los PDF no se cambian en fase 1; cualquier fallback legado a datos vivos se inventaría para la revisión PDF de fase 2 y no se considera declaración de conformidad integral.
+
+Última comprobación visual: los borradores de recibo recuperables quedan fuera de los KPI de cobro/pendientes/cobrados. Se conservan visibles y editables en la lista, sin convertir un intento fallido de emisión en saldo exigible. Prueba de comportamiento adicional RED→GREEN; lifecycle UI13/13.

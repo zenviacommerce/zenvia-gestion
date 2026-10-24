@@ -146,3 +146,12 @@ it('keeps a failed-issuance receipt draft reviewable without offering collection
  fireEvent.click(screen.getByRole('checkbox',{name:'Seleccionar Borrador'}));
  for(const button of screen.getAllByRole('button',{name:/Facturar seleccionados/}))expect((button as HTMLButtonElement).disabled).toBe(true);
 });
+
+it('keeps an unissued receipt draft out of collection KPI totals and counts',async()=>{
+ fixture.receipts=[{id:'draft',status:'draft',receiptNumber:'Borrador',receiptDate:'2026-10-24',clientId:'c',clientName:'Cliente',currency:'EUR',totalAmount:75,paidAmount:0,lines:[],payments:[]}];
+ render(<SalesReceipts/>);await screen.findByText('Borrador');
+ const kpis=screen.getByLabelText('Indicadores de recibos');
+ expect(kpis.textContent).not.toContain('75,00');
+ expect(kpis.textContent).toContain('Pendiente de cobro0,00');
+ expect(kpis.textContent).toContain('Recibos pendientes0');
+});

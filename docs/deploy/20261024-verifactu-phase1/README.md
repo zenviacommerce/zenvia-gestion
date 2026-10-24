@@ -47,3 +47,5 @@ El archivo conserva snapshot de factura/líneas y hash_fields. Es una base de so
 Pruebas reproducibles: cuatro suites `tests/verifactu-{core,hash,hash-sql-parity,ui-lifecycle}.test.*`; PostgreSQL 17 real mediante `scripts/verifactu-postgres-concurrency.mjs` (solo loopback desechable, opt-in explícito, sin credenciales); `npm run build`. El workflow adjunta capturas offline desktop 1440 y móvil 390 de componentes reales con filas sintéticas. El harness visual opcional usa `VF_BASELINE_ROOT` apuntando a main aislado; no necesita sesión del propietario.
 
 Resultado final y enlaces CI se registran en `verification.md`. Ninguna prueba automatizada apunta a producción.
+
+Preflight reutilizable: `preflight-and-fingerprints.sql`, lectura de recuentos/huellas sin PII antes y después. Es un inventario global de Gestión; la migración y las guardas son globales, aunque la activación de captura se limita al owner autorizado. Mantener cerradas las operaciones de documentos durante toda la ventana coordinada. Las capturas sintéticas no incluyen el marco completo de navegación de producción y no sustituyen la posterior validación de navegación del propietario.

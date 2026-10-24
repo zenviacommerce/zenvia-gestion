@@ -1,6 +1,6 @@
 // Real billing/expense/receipt components + production list adapters/CSS; offline synthetic data.
 import {build} from 'esbuild';
-import {assertHeaderActionsPreserved,normalizeListSearchControls} from './header-actions-contract.mjs';
+import {assertHeaderActionsPreserved,normalizeListSearchControls,normalizeBillingIntegrityAddition} from './header-actions-contract.mjs';
 import {writeFile,mkdir,mkdtemp,chmod} from 'node:fs/promises';
 import {readReviewFile as readFile,captureReviewScreenshot,reviewCaptureStyles} from './review-file-loader.mjs';
 import {execFileSync} from 'node:child_process';
@@ -72,8 +72,10 @@ if(width===390){await page.evaluate(()=>scrollTo(0,1000));await captureReviewScr
   const clean=s=>s.replace(/\s+/g,' ').trim();if(JSON.stringify(before.cards.map(c=>clean(c.text)))!==JSON.stringify(proof.cards.map(c=>clean(c.text))))failures.push('KPI information changed');
   if(JSON.stringify(before.tabs)!==JSON.stringify(proof.tabs)||proof.tabRoles!==2)failures.push('Sibling tabs lost labels, descriptions or accessible roles');
   try{assertHeaderActionsPreserved(before.headerActions,proof.headerActions,screen+' '+width);}catch(error){failures.push(error.message);}
-  if(JSON.stringify(before.headerActions)!==JSON.stringify(proof.headerActions))failures.push('Header actions changed or portal missing');
-  if(JSON.stringify(normalizeListSearchControls(before.controls))!==JSON.stringify(normalizeListSearchControls(proof.controls)))failures.push('Filter/header controls or disabled state changed');
+  try{
+   if(JSON.stringify(before.headerActions)!==JSON.stringify(normalizeBillingIntegrityAddition(before.headerActions,proof.headerActions,screen)))failures.push('Header actions changed or portal missing');
+   if(JSON.stringify(normalizeListSearchControls(before.controls))!==JSON.stringify(normalizeListSearchControls(normalizeBillingIntegrityAddition(before.controls,proof.controls,screen))))failures.push('Filter/header controls or disabled state changed');
+  }catch(error){failures.push(error.message);}
  }
  if(width===390){
   if(phase==='after'&&screen==='billing'){

@@ -1,0 +1,98 @@
+[
+  {
+    "image": "01-monitor-empty-1440-light.png",
+    "width": 1440,
+    "theme": "light",
+    "overflow": false
+  },
+  {
+    "image": "01-monitor-empty-1440-dark.png",
+    "width": 1440,
+    "theme": "dark",
+    "overflow": false
+  },
+  {
+    "image": "01-monitor-empty-390-light.png",
+    "width": 390,
+    "theme": "light",
+    "overflow": false
+  },
+  {
+    "image": "01-monitor-empty-390-dark.png",
+    "width": 390,
+    "theme": "dark",
+    "overflow": false
+  },
+  {
+    "image": "02-monitor-ok-1440-light.png",
+    "width": 1440,
+    "theme": "light",
+    "overflow": false
+  },
+  {
+    "image": "02-monitor-ok-1440-dark.png",
+    "width": 1440,
+    "theme": "dark",
+    "overflow": false
+  },
+  {
+    "image": "02-monitor-ok-390-light.png",
+    "width": 390,
+    "theme": "light",
+    "overflow": false
+  },
+  {
+    "image": "02-monitor-ok-390-dark.png",
+    "width": 390,
+    "theme": "dark",
+    "overflow": false
+  },
+  {
+    "image": "03-monitor-broken-1440-light.png",
+    "width": 1440,
+    "theme": "light",
+    "overflow": false
+  },
+  {
+    "image": "03-monitor-broken-1440-dark.png",
+    "width": 1440,
+    "theme": "dark",
+    "overflow": false
+  },
+  {
+    "image": "03-monitor-broken-390-light.png",
+    "width": 390,
+    "theme": "light",
+    "overflow": false
+  },
+  {
+    "image": "03-monitor-broken-390-dark.png",
+    "width": 390,
+    "theme": "dark",
+    "overflow": false
+  },
+  {
+    "image": "04-monitor-error-1440-light.png",
+    "width": 1440,
+    "theme": "light",
+    "overflow": false
+  },
+  {
+    "image": "04-monitor-error-1440-dark.png",
+    "width": 1440,
+    "theme": "dark",
+    "overflow": false
+  },
+  {
+    "image": "04-monitor-error-390-light.png",
+    "width": 390,
+    "theme": "light",
+    "overflow": false
+  },
+  {
+    "image": "04-monitor-error-390-dark.png",
+    "width": 390,
+    "theme": "dark",
+    "overflow": false
+  }
+]

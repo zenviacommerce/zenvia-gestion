@@ -1,0 +1,70 @@
+name: VERI FACTU XML QR and isolated gateway
+on:
+  pull_request:
+    paths:
+      - 'gateway/verifactu/**'
+      - 'supabase/functions/_shared/verifactu/**'
+      - 'src/services/verifactuQr.ts'
+      - 'src/services/verifactuMonitor.ts'
+      - 'src/components/VerifactuIntegrityModal*'
+      - 'supabase/migrations/*verifactu*.sql'
+      - 'src/services/salesInvoicePdf.ts'
+      - 'tests/verifactu-*.test.*'
+      - 'scripts/verify-verifactu*'
+      - 'scripts/verifactu-next*'
+      - '.github/workflows/verifactu-next.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-xml-qr-gateway:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.27.3'
+          cache: false
+      - run: npm ci
+      - run: python -m pip install lxml==6.1.1
+      - name: Generate synthetic XML and PDF without production access
+        env:
+          VF_XML_EXPORT: artifacts/verifactu-xml
+          VF_PDF_EXPORT: artifacts/verifactu-pdf
+        run: npx vitest run tests/verifactu-xml.test.ts tests/verifactu-qr.test.ts tests/verifactu-qr-pdf.test.ts tests/verifactu-integrity.test.ts tests/verifactu-monitor-service.test.ts tests/verifactu-monitor-ui.test.tsx
+      - name: Validate official XSD and reject hostile/incomplete XML
+        run: |
+          python scripts/verify-verifactu-xml.py
+          python scripts/verify-verifactu-xml.test.py
+      - name: Independently decode QR from rendered PDF
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y poppler-utils
+          pdftoppm -scale-to 1400 -png -singlefile artifacts/verifactu-pdf/after-test-qr.pdf artifacts/verifactu-pdf/after-test-qr
+          node scripts/verify-verifactu-qr.mjs artifacts/verifactu-pdf/after-test-qr.png
+      - name: Test remote signer, mutual TLS and gateway boundaries
+        working-directory: gateway/verifactu
+        env:
+          GOTOOLCHAIN: local
+        run: |
+          go test -race -v ./...
+          go vet ./...
+          test -z "$(gofmt -l .)"
+      - name: Build disabled gateway container and verify offline runtime XSD
+        run: |
+          docker build -f gateway/verifactu/Dockerfile -t vf-gateway-ci .
+          docker run --rm --network none -i --entrypoint python3 vf-gateway-ci /app/scripts/verify-verifactu-xml.py --stdin < artifacts/verifactu-xml/F1-ordinary.xml
+      - uses: actions/upload-artifact@v4
+        with:
+          name: verifactu-next-offline-xml-pdf
+          path: |
+            artifacts/verifactu-xml
+            artifacts/verifactu-pdf

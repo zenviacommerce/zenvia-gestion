@@ -80,12 +80,15 @@ jobs:
           node scripts/verifactu-visual-capture.mjs
           VF_CORRECTION_CAPTURE=docs/deploy/20261024-verifactu-correction npx vitest run tests/verifactu-correction-visual.test.tsx
           node scripts/verifactu-correction-visual-capture.mjs
+          VF_NEXT_CAPTURE=docs/deploy/20261024-verifactu-next/visual npx vitest run tests/verifactu-monitor-visual.test.tsx
+          node scripts/verifactu-next-visual-capture.mjs
       - uses: actions/upload-artifact@v4
         with:
           name: verifactu-correction-circuit
           path: |
             artifacts/verifactu-correction
             docs/deploy/20261024-verifactu-correction/rectificativa-synthetic.pdf
+            docs/deploy/20261024-verifactu-next/screenshots
       - uses: actions/upload-artifact@v4
         with:
           name: verifactu-phase1-before-after

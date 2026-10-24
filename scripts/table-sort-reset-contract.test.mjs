@@ -12,5 +12,6 @@ test('every existing sortable table wires the common reset control and state mac
   assert.match(s,/<TableSortReset\b|<DataTable\s+sorting=/,path+' must expose a reset outside its column headers');
   assert.doesNotMatch(s,/setSortDir\(/,path+' must not retain an independent two-state toggle');
  }
- assert.equal(consumers.length,14,'keep the audited sortable table inventory explicit');
+ assert.ok(consumers.includes('src/components/VerifactuIntegrityModal.tsx'),'include the new read-only integrity daily table in the audited inventory');
+ assert.equal(consumers.length,15,'keep the audited sortable table inventory explicit');
 });

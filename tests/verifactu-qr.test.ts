@@ -1,0 +1,6 @@
+// @vitest-environment node
+import {it,expect} from 'vitest';
+import {buildVerifactuQrUrl,createVerifactuPreviewBlock,VERIFACTU_REAL_PDF_ENABLED} from '../src/services/verifactuQr';
+it('encodes official four parameter URL including ampersand and a decimal point',()=>{expect(buildVerifactuQrUrl({nif:'89890001K',number:'12345678&G33',date:'2024-01-01',total:'241.40'},'test')).toBe('https://prewww2.aeat.es/wlpl/TIKE-CONT/ValidarQR?nif=89890001K&numserie=12345678%26G33&fecha=01-01-2024&importe=241.40');});
+it.each([{number:'bad\nvalue'},{number:'á'},{number:'x'.repeat(61)},{nif:'123'},{date:'2026-02-30'},{total:'7,2'},{total:'NaN'},{total:'1.001'}])('rejects invalid QR values %j',patch=>{expect(()=>buildVerifactuQrUrl({nif:'89890001K',number:'TEST',date:'2026-10-24',total:'121.00',...patch},'test')).toThrow();});
+it('keeps the real PDF switch closed and preview QR in tests only',()=>{expect(VERIFACTU_REAL_PDF_ENABLED).toBe(false);const x=createVerifactuPreviewBlock({nif:'89890001K',number:'TEST',date:'2026-10-24',total:'121.00'});expect(x.url).toMatch(/^https:\/\/prewww2\.aeat\.es\//);expect(x.label).toContain('PRUEBAS');expect(x.label).toContain('NO REMITIDO');expect(x.matrix.size).toBeGreaterThan(20);expect(x.sizeMm).toBe(35);expect(x.errorCorrectionLevel).toBe('M');});

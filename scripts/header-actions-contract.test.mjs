@@ -1,5 +1,18 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {assertHeaderActionsPreserved} from './header-actions-contract.mjs';
+import {normalizeBillingIntegrityAddition} from './header-actions-contract.mjs';
+test('accounts for exactly the declared billing integrity action without hiding lost or changed controls',()=>{
+ const before=['Series','Datos fiscales','Nueva factura'];
+ assert.deepEqual(normalizeBillingIntegrityAddition(before,['Integridad sombra',...before],'billing'),before);
+ assert.notDeepEqual(normalizeBillingIntegrityAddition(before,['Integridad sombra',...before.slice(1)],'billing'),before);
+ assert.notDeepEqual(normalizeBillingIntegrityAddition(before,['Integridad sombra',...before],'expenses'),before);
+ assert.throws(()=>normalizeBillingIntegrityAddition(before,['Integridad sombra','Integridad sombra',...before],'billing'));
+ const control={tag:'BUTTON',placeholder:null,text:'Integridad sombra',label:null,type:null,disabled:false};
+ const existing={...control,text:'Series'};
+ assert.deepEqual(normalizeBillingIntegrityAddition([existing],[control,existing],'billing'),[existing]);
+ for(const changed of [{...control,disabled:true},{...control,type:'submit'},{...control,label:'Otra acción'}])assert.throws(()=>normalizeBillingIntegrityAddition([existing],[changed,existing],'billing'));
+ assert.notDeepEqual(normalizeBillingIntegrityAddition([existing],[control,{...existing,disabled:true}],'billing'),[existing]);
+});
 test('fails a design migration that drops the preexisting transport-tariff action',()=>{
  assert.throws(()=>assertHeaderActionsPreserved(['Informes de recogida','Tarifas de transporte','Impresión directa'],['Informes de recogida','Impresión directa'],'Pedidos'),/Pedidos: missing header action\(s\): Tarifas de transporte/);
 });
